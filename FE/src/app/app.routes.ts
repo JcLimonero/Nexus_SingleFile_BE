@@ -225,18 +225,25 @@ export const appRoutes: VexRoutes = [
           }
         ]
       },
-      {
-        path: 'configuracion/catalogos',
-        children: [
-          {
-            path: 'agencias',
-            loadComponent: () =>
-              import('./pages/configuracion/catalogos/agencias/agencias.component').then(
-                (m) => m.AgenciasComponent
-              )
-          }
-        ]
-      },
+              {
+          path: 'configuracion/catalogos',
+          children: [
+            {
+              path: 'agencias',
+              loadComponent: () =>
+                import('./pages/configuracion/catalogos/agencias/agencias.component').then(
+                  (m) => m.AgenciasComponent
+                )
+            },
+            {
+              path: 'procesos',
+              loadComponent: () =>
+                import('./pages/configuracion/catalogos/procesos/procesos.component').then(
+                  (m) => m.ProcesosComponent
+                )
+            }
+          ]
+        },
       {
         path: '**',
         loadComponent: () =>

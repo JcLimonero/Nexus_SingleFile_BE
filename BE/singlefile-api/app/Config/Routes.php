@@ -38,6 +38,18 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'Agency::toggleStatus/$1');
     });
     
+    // Rutas de procesos
+    $routes->group('process', function($routes) {
+        $routes->get('/', 'Process::index');
+        $routes->post('/', 'Process::create');
+        $routes->get('search', 'Process::search');
+        $routes->get('stats', 'Process::stats');
+        $routes->get('(:num)', 'Process::show/$1');
+        $routes->put('(:num)', 'Process::update/$1');
+        $routes->delete('(:num)', 'Process::delete/$1');
+        $routes->patch('(:num)/estado', 'Process::toggleStatus/$1');
+    });
+    
     // Rutas de perfil de usuario
     $routes->group('user/profile', function($routes) {
         $routes->post('upload-image', 'UserProfile::uploadImage');

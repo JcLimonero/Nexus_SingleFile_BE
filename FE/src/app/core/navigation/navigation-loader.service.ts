@@ -83,19 +83,25 @@ export class NavigationLoaderService {
             route: '/configuracion/roles',
             icon: 'mat:security'
           },
-          {
-            type: 'dropdown',
-            label: 'Catálogos',
-            icon: 'mat:category',
-            children: [
-              {
-                type: 'link',
-                label: 'Agencias',
-                route: '/configuracion/catalogos/agencias',
-                icon: 'mat:business'
-              }
-            ]
-          }
+                  {
+          type: 'dropdown',
+          label: 'Catálogos',
+          icon: 'mat:category',
+          children: [
+            {
+              type: 'link',
+              label: 'Agencias',
+              route: '/configuracion/catalogos/agencias',
+              icon: 'mat:business'
+            },
+            {
+              type: 'link',
+              label: 'Procesos',
+              route: '/configuracion/catalogos/procesos',
+              icon: 'mat:settings'
+            }
+          ]
+        }
         ]
       });
     } else {
