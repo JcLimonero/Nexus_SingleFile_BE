@@ -99,6 +99,12 @@ export class NavigationLoaderService {
               label: 'Procesos',
               route: '/configuracion/catalogos/procesos',
               icon: 'mat:settings'
+            },
+            {
+              type: 'link',
+              label: 'Tipos de Operación',
+              route: '/configuracion/catalogos/tipos-operacion',
+              icon: 'mat:swap_horiz'
             }
           ]
         }

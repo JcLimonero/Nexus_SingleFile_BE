@@ -49,6 +49,17 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('(:num)', 'Process::delete/$1');
         $routes->patch('(:num)/estado', 'Process::toggleStatus/$1');
     });
+
+    $routes->group('operation-type', function($routes) {
+        $routes->get('/', 'OperationType::index');
+        $routes->post('/', 'OperationType::create');
+        $routes->get('search', 'OperationType::search');
+        $routes->get('stats', 'OperationType::stats');
+        $routes->get('(:num)', 'OperationType::show/$1');
+        $routes->put('(:num)', 'OperationType::update/$1');
+        $routes->delete('(:num)', 'OperationType::delete/$1');
+        $routes->patch('(:num)/estado', 'OperationType::toggleStatus/$1');
+    });
     
     // Rutas de perfil de usuario
     $routes->group('user/profile', function($routes) {

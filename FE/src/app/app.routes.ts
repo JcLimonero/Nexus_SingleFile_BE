@@ -241,6 +241,13 @@ export const appRoutes: VexRoutes = [
                 import('./pages/configuracion/catalogos/procesos/procesos.component').then(
                   (m) => m.ProcesosComponent
                 )
+            },
+            {
+              path: 'tipos-operacion',
+              loadComponent: () =>
+                import('./pages/configuracion/catalogos/tipos-operacion/tipos-operacion.component').then(
+                  (m) => m.TiposOperacionComponent
+                )
             }
           ]
         },
