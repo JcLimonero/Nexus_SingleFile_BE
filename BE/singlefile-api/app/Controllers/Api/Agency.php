@@ -32,35 +32,35 @@ class Agency extends BaseController
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
             
             // Validar parámetros de ordenamiento
-            $allowedSortFields = ['Name', 'SubFix', 'RegistrationDate', 'UpdateDate'];
+            $allowedSortFields = ['Name', 'IdAgency', 'RegistrationDate', 'UpdateDate'];
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'Name';
             }
             
             $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
             
-            // Obtener agencias según los filtros
+            // Obtener agencias según los filtros (siempre con información del usuario)
             if ($search) {
                 // Para búsqueda, siempre incluir todas las agencias (habilitadas y deshabilitadas)
-                $agencies = $this->agencyModel->getAgenciesByName($search, $sortBy, $sortOrder, false);
+                $agencies = $this->agencyModel->getAgenciesByNameWithUser($search, $sortBy, $sortOrder, false);
             } elseif ($region) {
                 // Para filtro por región, respetar el parámetro enabled
                 if ($enabled === 'true') {
-                    $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder, true);
+                    $agencies = $this->agencyModel->getAgenciesByRegionWithUser($region, $sortBy, $sortOrder, true);
                 } elseif ($enabled === 'false') {
-                    $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder, false);
+                    $agencies = $this->agencyModel->getAgenciesByRegionWithUser($region, $sortBy, $sortOrder, false);
                 } else {
-                    $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder, false);
+                    $agencies = $this->agencyModel->getAgenciesByRegionWithUser($region, $sortBy, $sortOrder, false);
                 }
             } else {
                 // Para listado general, respetar el parámetro enabled
                 if ($enabled === 'true') {
-                    $agencies = $this->agencyModel->getAllEnabledAgencies($sortBy, $sortOrder);
+                    $agencies = $this->agencyModel->getAllEnabledAgenciesWithUser($sortBy, $sortOrder);
                 } elseif ($enabled === 'false') {
-                    $agencies = $this->agencyModel->getAllDisabledAgencies($sortBy, $sortOrder);
+                    $agencies = $this->agencyModel->getAllDisabledAgenciesWithUser($sortBy, $sortOrder);
                 } else {
                     // Si no se especifica enabled, traer todas las agencias
-                    $agencies = $this->agencyModel->getAllAgencies($sortBy, $sortOrder);
+                    $agencies = $this->agencyModel->getAllAgenciesWithUser($sortBy, $sortOrder);
                 }
             }
             
@@ -200,7 +200,8 @@ class Agency extends BaseController
                     ]);
             }
             
-            $agency = $this->agencyModel->getAgencyById($id);
+            // Siempre incluir información del usuario que modificó
+            $agency = $this->agencyModel->getAgencyByIdWithUser($id);
             
             if (!$agency) {
                 return $this->response

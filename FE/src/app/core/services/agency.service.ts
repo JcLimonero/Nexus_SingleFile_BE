@@ -5,12 +5,13 @@ import { Observable } from 'rxjs';
 export interface Agency {
   Id: number;
   Name: string;
-  SubFix?: string;
   IdAgency?: string;
   Enabled: number;
   RegistrationDate?: string;
   UpdateDate?: string;
   IdLastUserUpdate?: number;
+  // Campo adicional siempre incluido
+  LastUserUpdateName?: string;
 }
 
 export interface AgencyFilters {
@@ -253,8 +254,8 @@ export class AgencyService {
       errors.push('El nombre no puede exceder 600 caracteres');
     }
 
-    if (agency.SubFix && agency.SubFix.length > 50) {
-      errors.push('El SubFix no puede exceder 50 caracteres');
+    if (agency.IdAgency && agency.IdAgency.length > 50) {
+      errors.push('El IdAgency no puede exceder 50 caracteres');
     }
 
     if (agency.IdAgency && agency.IdAgency.length > 50) {
@@ -281,12 +282,12 @@ export class AgencyService {
       preparedData.Name = agency.Name.trim();
     }
 
-    if (agency.SubFix !== undefined) {
-      preparedData.SubFix = agency.SubFix || null;
+    if (agency.IdAgency !== undefined) {
+      preparedData.IdAgency = agency.IdAgency || undefined;
     }
 
     if (agency.IdAgency !== undefined) {
-      preparedData.IdAgency = agency.IdAgency || null;
+      preparedData.IdAgency = agency.IdAgency || undefined;
     }
 
     if (agency.Enabled !== undefined) {
@@ -303,12 +304,12 @@ export class AgencyService {
     return {
       Id: response.Id,
       Name: response.Name,
-      SubFix: response.SubFix,
-      IdAgency: response.IdAgency,
+      IdAgency: response.IdAgency || undefined,
       Enabled: response.Enabled,
-      RegistrationDate: response.RegistrationDate,
-      UpdateDate: response.UpdateDate,
-      IdLastUserUpdate: response.IdLastUserUpdate
+      RegistrationDate: response.RegistrationDate || undefined,
+      UpdateDate: response.UpdateDate || undefined,
+      IdLastUserUpdate: response.IdLastUserUpdate || undefined,
+      LastUserUpdateName: response.LastUserUpdateName || undefined
     };
   }
 

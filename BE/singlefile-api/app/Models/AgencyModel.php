@@ -119,12 +119,36 @@ class AgencyModel extends Model
     }
 
     /**
+     * Obtener todas las agencias habilitadas con información del usuario
+     */
+    public function getAllEnabledAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
+    {
+        return $this->select('Agency.*, User.Name as LastUserUpdateName')
+                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->where('Agency.Enabled', 1)
+                    ->orderBy("Agency.{$sortBy}", $sortOrder)
+                    ->findAll();
+    }
+
+    /**
      * Obtener todas las agencias deshabilitadas
      */
     public function getAllDisabledAgencies($sortBy = 'Name', $sortOrder = 'ASC')
     {
         return $this->where('Enabled', 0)
                     ->orderBy($sortBy, $sortOrder)
+                    ->findAll();
+    }
+
+    /**
+     * Obtener todas las agencias deshabilitadas con información del usuario
+     */
+    public function getAllDisabledAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
+    {
+        return $this->select('Agency.*, User.Name as LastUserUpdateName')
+                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->where('Agency.Enabled', 0)
+                    ->orderBy("Agency.{$sortBy}", $sortOrder)
                     ->findAll();
     }
 
@@ -138,11 +162,33 @@ class AgencyModel extends Model
     }
 
     /**
+     * Obtener todas las agencias con información del usuario
+     */
+    public function getAllAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
+    {
+        return $this->select('Agency.*, User.Name as LastUserUpdateName')
+                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->orderBy("Agency.{$sortBy}", $sortOrder)
+                    ->findAll();
+    }
+
+    /**
      * Obtener agencia por ID
      */
     public function getAgencyById($id)
     {
         return $this->find($id);
+    }
+
+    /**
+     * Obtener agencia por ID con información del usuario
+     */
+    public function getAgencyByIdWithUser($id)
+    {
+        return $this->select('Agency.*, User.Name as LastUserUpdateName')
+                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->where('Agency.Id', $id)
+                    ->first();
     }
 
     /**
@@ -160,17 +206,49 @@ class AgencyModel extends Model
     }
 
     /**
-     * Obtener agencias por región (SubFix)
+     * Obtener agencias por nombre con información del usuario
+     */
+    public function getAgenciesByNameWithUser($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
+    {
+        $query = $this->select('Agency.*, User.Name as LastUserUpdateName')
+                      ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                      ->like('Agency.Name', $name);
+        
+        if ($enabledOnly) {
+            $query->where('Agency.Enabled', 1);
+        }
+        
+        return $query->orderBy("Agency.{$sortBy}", $sortOrder)->findAll();
+    }
+
+    /**
+     * Obtener agencias por región (IdAgency)
      */
     public function getAgenciesByRegion($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->where('SubFix', $region);
+        $query = $this->where('IdAgency', $region);
         
         if ($enabledOnly) {
             $query->where('Enabled', 1);
         }
         
         return $query->orderBy($sortBy, $sortOrder)->findAll();
+    }
+
+    /**
+     * Obtener agencias por región con información del usuario
+     */
+    public function getAgenciesByRegionWithUser($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
+    {
+        $query = $this->select('Agency.*, User.Name as LastUserUpdateName')
+                      ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                      ->where('Agency.IdAgency', $region);
+        
+        if ($enabledOnly) {
+            $query->where('Agency.Enabled', 1);
+        }
+        
+        return $query->orderBy("Agency.{$sortBy}", $sortOrder)->findAll();
     }
 
     /**
