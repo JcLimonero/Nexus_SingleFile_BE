@@ -96,17 +96,17 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
             <table mat-table [dataSource]="dataSource" matSort class="w-full">
               <!-- Columna ID -->
               <ng-container matColumnDef="Id">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center">ID</th>
-                <td mat-cell *matCellDef="let agencia" class="text-center text-sm font-mono text-gray-600">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1">ID</th>
+                <td mat-cell *matCellDef="let agencia" class="text-center text-xs font-mono text-gray-600 py-0.5">
                   {{ agencia.Id }}
                 </td>
               </ng-container>
 
               <!-- Columna Código -->
               <ng-container matColumnDef="IdAgency">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32">Nd Agencia</th>
-                <td mat-cell *matCellDef="let agencia" class="py-3">
-                  <span class="font-mono bg-blue-50 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1">Nd Agencia</th>
+                <td mat-cell *matCellDef="let agencia" class="py-0.5">
+                  <span class="font-mono bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
                     {{ agencia.IdAgency }}
                   </span>
                 </td>
@@ -114,9 +114,9 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
 
               <!-- Columna Nombre -->
               <ng-container matColumnDef="Name">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1">Nombre</th>
-                <td mat-cell *matCellDef="let agencia" class="py-3">
-                  <div class="font-medium text-gray-900 truncate pr-2" [title]="agencia.Name">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1">Nombre</th>
+                <td mat-cell *matCellDef="let agencia" class="py-0.5">
+                  <div class="font-medium text-gray-900 truncate pr-2 text-xs" [title]="agencia.Name">
                     {{ agencia.Name }}
                   </div>
                 </td>
@@ -124,14 +124,14 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
 
               <!-- Columna Estado -->
               <ng-container matColumnDef="Enabled">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 text-center">Estado</th>
-                <td mat-cell *matCellDef="let agencia" class="text-center py-3">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 text-center py-1">Estado</th>
+                <td mat-cell *matCellDef="let agencia" class="text-center py-0.5">
                   <span 
                     [class]="agencia.Enabled === '1' 
-                      ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' 
-                      : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800'">
+                      ? 'inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' 
+                      : 'inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800'">
                     <span 
-                      [class]="agencia.Enabled === '1' ? 'w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5' : 'w-1.5 h-1.5 bg-red-400 rounded-full mr-1.5'">
+                      [class]="agencia.Enabled === '1' ? 'w-0.5 h-0.5 bg-green-400 rounded-full mr-1' : 'w-0.5 h-0.5 bg-red-400 rounded-full mr-1'">
                     </span>
                     {{ agencia.Enabled === '1' ? 'Activo' : 'Inactivo' }}
                   </span>
@@ -140,9 +140,9 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
 
               <!-- Columna Acciones -->
               <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef class="w-28 text-center">Acciones</th>
-                <td mat-cell *matCellDef="let agencia" class="text-center py-2">
-                  <div class="flex gap-1 justify-center">
+                <th mat-header-cell *matHeaderCellDef class="w-28 text-center py-1">Acciones</th>
+                <td mat-cell *matCellDef="let agencia" class="text-center py-0.5">
+                  <div class="flex gap-0.5 justify-center">
                     <button 
                       (click)="openEditDialog(agencia)" 
                       mat-icon-button 
