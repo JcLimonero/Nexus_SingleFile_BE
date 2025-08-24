@@ -1,0 +1,30 @@
+<?php
+
+use CodeIgniter\Router\RouteCollection;
+
+/**
+ * @var RouteCollection $routes
+ */
+
+// Rutas de la API
+$routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) {
+    
+        // Rutas de autenticación
+    $routes->group('auth', function($routes) {
+        $routes->post('login', 'Auth::login');
+        $routes->post('verify', 'Auth::verify');
+        $routes->post('refresh', 'Auth::refresh');
+        $routes->post('logout', 'Auth::logout');
+    });
+    
+    // Rutas de gestión de contraseñas
+    $routes->group('password', function($routes) {
+        $routes->post('change', 'PasswordManager::changePassword');
+        $routes->post('reset', 'PasswordManager::resetPassword');
+        $routes->get('migration-status', 'PasswordManager::getMigrationStatus');
+        $routes->post('force-migration', 'PasswordManager::forceMigration');
+    });
+});
+
+// Ruta por defecto
+$routes->get('/', 'Home::index');
