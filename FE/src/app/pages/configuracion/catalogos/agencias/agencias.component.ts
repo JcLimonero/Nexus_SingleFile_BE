@@ -84,14 +84,7 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
               </mat-select>
             </mat-form-field>
             
-            <div class="flex items-center justify-end">
-              <button 
-                (click)="refreshData()" 
-                mat-icon-button 
-                matTooltip="Actualizar datos">
-                <mat-icon>🔄</mat-icon>
-              </button>
-            </div>
+
           </div>
         </mat-card-content>
       </mat-card>
