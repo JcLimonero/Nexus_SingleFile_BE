@@ -119,6 +119,16 @@ class AgencyModel extends Model
     }
 
     /**
+     * Obtener todas las agencias deshabilitadas
+     */
+    public function getAllDisabledAgencies($sortBy = 'Name', $sortOrder = 'ASC')
+    {
+        return $this->where('Enabled', 0)
+                    ->orderBy($sortBy, $sortOrder)
+                    ->findAll();
+    }
+
+    /**
      * Obtener todas las agencias (incluyendo deshabilitadas)
      */
     public function getAllAgencies($sortBy = 'Name', $sortOrder = 'ASC')
@@ -138,23 +148,29 @@ class AgencyModel extends Model
     /**
      * Obtener agencias por nombre (búsqueda parcial)
      */
-    public function getAgenciesByName($name, $sortBy = 'Name', $sortOrder = 'ASC')
+    public function getAgenciesByName($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        return $this->like('Name', $name)
-                    ->where('Enabled', 1)
-                    ->orderBy($sortBy, $sortOrder)
-                    ->findAll();
+        $query = $this->like('Name', $name);
+        
+        if ($enabledOnly) {
+            $query->where('Enabled', 1);
+        }
+        
+        return $query->orderBy($sortBy, $sortOrder)->findAll();
     }
 
     /**
      * Obtener agencias por región (SubFix)
      */
-    public function getAgenciesByRegion($region, $sortBy = 'Name', $sortOrder = 'ASC')
+    public function getAgenciesByRegion($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        return $this->where('SubFix', $region)
-                    ->where('Enabled', 1)
-                    ->orderBy($sortBy, $sortOrder)
-                    ->findAll();
+        $query = $this->where('SubFix', $region);
+        
+        if ($enabledOnly) {
+            $query->where('Enabled', 1);
+        }
+        
+        return $query->orderBy($sortBy, $sortOrder)->findAll();
     }
 
     /**
@@ -163,6 +179,14 @@ class AgencyModel extends Model
     public function countEnabledAgencies()
     {
         return $this->where('Enabled', 1)->countAllResults();
+    }
+
+    /**
+     * Contar total de agencias deshabilitadas
+     */
+    public function countDisabledAgencies()
+    {
+        return $this->where('Enabled', 0)->countAllResults();
     }
 
     /**

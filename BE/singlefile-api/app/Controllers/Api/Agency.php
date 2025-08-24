@@ -23,7 +23,7 @@ class Agency extends BaseController
     {
         try {
             // Obtener parámetros de consulta
-            $enabledOnly = $this->request->getGet('enabled') !== 'false';
+            $enabled = $this->request->getGet('enabled');
             $search = $this->request->getGet('search');
             $region = $this->request->getGet('region');
             $limit = $this->request->getGet('limit') ? (int)$this->request->getGet('limit') : null;
@@ -41,13 +41,27 @@ class Agency extends BaseController
             
             // Obtener agencias según los filtros
             if ($search) {
-                $agencies = $this->agencyModel->getAgenciesByName($search, $sortBy, $sortOrder);
+                // Para búsqueda, siempre incluir todas las agencias (habilitadas y deshabilitadas)
+                $agencies = $this->agencyModel->getAgenciesByName($search, $sortBy, $sortOrder, false);
             } elseif ($region) {
-                $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder);
-            } elseif ($enabledOnly) {
-                $agencies = $this->agencyModel->getAllEnabledAgencies($sortBy, $sortOrder);
+                // Para filtro por región, respetar el parámetro enabled
+                if ($enabled === 'true') {
+                    $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder, true);
+                } elseif ($enabled === 'false') {
+                    $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder, false);
+                } else {
+                    $agencies = $this->agencyModel->getAgenciesByRegion($region, $sortBy, $sortOrder, false);
+                }
             } else {
-                $agencies = $this->agencyModel->getAllAgencies($sortBy, $sortOrder);
+                // Para listado general, respetar el parámetro enabled
+                if ($enabled === 'true') {
+                    $agencies = $this->agencyModel->getAllEnabledAgencies($sortBy, $sortOrder);
+                } elseif ($enabled === 'false') {
+                    $agencies = $this->agencyModel->getAllDisabledAgencies($sortBy, $sortOrder);
+                } else {
+                    // Si no se especifica enabled, traer todas las agencias
+                    $agencies = $this->agencyModel->getAllAgencies($sortBy, $sortOrder);
+                }
             }
             
             // Aplicar paginación si se especifica
@@ -55,10 +69,14 @@ class Agency extends BaseController
                 $agencies = array_slice($agencies, $offset, $limit);
             }
             
-            // Contar total de registros
-            $total = $enabledOnly ? 
-                $this->agencyModel->countEnabledAgencies() : 
-                $this->agencyModel->countAllAgencies();
+            // Contar total de registros según el filtro aplicado
+            if ($enabled === 'true') {
+                $total = $this->agencyModel->countEnabledAgencies();
+            } elseif ($enabled === 'false') {
+                $total = $this->agencyModel->countDisabledAgencies();
+            } else {
+                $total = $this->agencyModel->countAllAgencies();
+            }
             
             return $this->response
                 ->setStatusCode(200)
@@ -72,7 +90,8 @@ class Agency extends BaseController
                         'offset' => $offset,
                         'count' => count($agencies),
                         'sort_by' => $sortBy,
-                        'sort_order' => $sortOrder
+                        'sort_order' => $sortOrder,
+                        'filter_enabled' => $enabled
                     ]
                 ]);
                 

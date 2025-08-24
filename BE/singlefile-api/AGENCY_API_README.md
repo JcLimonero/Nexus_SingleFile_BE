@@ -10,7 +10,10 @@ API completo para la gestión de agencias que incluye todas las operaciones CRUD
 Obtiene todas las agencias con filtros y paginación.
 
 **Parámetros de consulta:**
-- `enabled` (boolean): Filtrar por estado (true/false)
+- `enabled` (string): Filtrar por estado
+  - `enabled=true`: Solo agencias habilitadas (Enabled = 1)
+  - `enabled=false`: Solo agencias deshabilitadas (Enabled = 0)
+  - Sin parámetro: Todas las agencias (habilitadas y deshabilitadas)
 - `search` (string): Búsqueda por nombre
 - `region` (string): Filtrar por región (SubFix)
 - `limit` (number): Número de registros por página
@@ -18,9 +21,22 @@ Obtiene todas las agencias con filtros y paginación.
 - `sort_by` (string): Campo para ordenar (Name, SubFix, RegistrationDate, UpdateDate)
 - `sort_order` (string): Orden ASC o DESC
 
-**Ejemplo:**
+**Ejemplos de uso:**
 ```bash
+# Obtener todas las agencias (habilitadas y deshabilitadas)
+GET /api/agency
+
+# Obtener solo agencias habilitadas
+GET /api/agency?enabled=true
+
+# Obtener solo agencias deshabilitadas
+GET /api/agency?enabled=false
+
+# Obtener agencias habilitadas con paginación
 GET /api/agency?enabled=true&limit=10&offset=0&sort_by=Name&sort_order=ASC
+
+# Obtener agencias deshabilitadas de una región específica
+GET /api/agency?enabled=false&region=NORTE
 ```
 
 **Respuesta:**
@@ -35,7 +51,8 @@ GET /api/agency?enabled=true&limit=10&offset=0&sort_by=Name&sort_order=ASC
     "offset": 0,
     "count": 10,
     "sort_by": "Name",
-    "sort_order": "ASC"
+    "sort_order": "ASC",
+    "filter_enabled": "true"
   }
 }
 ```
@@ -279,6 +296,84 @@ GET /api/agency/stats
 - **Valores permitidos**: 0 o 1
 - **Por defecto**: 1 (habilitada)
 
+## 🚫 Manejo de Agencias Deshabilitadas
+
+### **Comportamiento del Parámetro `enabled`**
+
+El API de agencias ahora maneja correctamente las agencias deshabilitadas con el parámetro `enabled`:
+
+#### **`enabled=true`**
+- ✅ Solo retorna agencias con `Enabled = 1`
+- ✅ Útil para mostrar solo agencias activas en formularios
+- ✅ Filtra automáticamente por estado habilitado
+
+#### **`enabled=false`**
+- ✅ Solo retorna agencias con `Enabled = 0`
+- ✅ Útil para administración y auditoría
+- ✅ Permite ver agencias que han sido deshabilitadas
+
+#### **Sin parámetro `enabled`**
+- ✅ Retorna **TODAS** las agencias (habilitadas y deshabilitadas)
+- ✅ Comportamiento por defecto para máxima flexibilidad
+- ✅ Útil para reportes completos y administración
+
+### **Casos de Uso Comunes**
+
+#### **1. Formularios de Selección**
+```bash
+# Solo agencias habilitadas para formularios
+GET /api/agency?enabled=true&sort_by=Name&sort_order=ASC
+```
+
+#### **2. Administración de Agencias**
+```bash
+# Ver todas las agencias para administración
+GET /api/agency?sort_by=Name&sort_order=ASC
+```
+
+#### **3. Auditoría de Agencias Deshabilitadas**
+```bash
+# Solo agencias deshabilitadas para auditoría
+GET /api/agency?enabled=false&sort_by=UpdateDate&sort_order=DESC
+```
+
+#### **4. Reportes por Región**
+```bash
+# Todas las agencias de una región (habilitadas y deshabilitadas)
+GET /api/agency?region=NORTE
+
+# Solo agencias habilitadas de una región
+GET /api/agency?region=NORTE&enabled=true
+
+# Solo agencias deshabilitadas de una región
+GET /api/agency?region=NORTE&enabled=false
+```
+
+### **Búsqueda Incluyendo Agencias Deshabilitadas**
+
+La búsqueda por nombre (`/api/agency/search`) **siempre incluye** agencias habilitadas y deshabilitadas para proporcionar resultados completos:
+
+```bash
+# Búsqueda que incluye agencias habilitadas y deshabilitadas
+GET /api/agency/search?q=agencia
+```
+
+### **Estadísticas Completas**
+
+El endpoint de estadísticas (`/api/agency/stats`) proporciona conteos separados:
+
+```json
+{
+  "success": true,
+  "data": {
+    "total": 25,        // Total de agencias
+    "enabled": 20,      // Agencias habilitadas
+    "disabled": 5,      // Agencias deshabilitadas
+    "regions": [...]
+  }
+}
+```
+
 ## 📊 Códigos de Estado HTTP
 
 - **200**: OK - Operación exitosa
@@ -367,7 +462,20 @@ curl -X POST http://localhost:8080/api/agency \
 
 ### **Obtener agencias con filtros:**
 ```bash
+# Obtener todas las agencias (habilitadas y deshabilitadas)
+curl "http://localhost:8080/api/agency?sort_by=Name&sort_order=ASC"
+
+# Obtener solo agencias habilitadas
+curl "http://localhost:8080/api/agency?enabled=true&sort_by=Name&sort_order=ASC"
+
+# Obtener solo agencias deshabilitadas
+curl "http://localhost:8080/api/agency?enabled=false&sort_by=UpdateDate&sort_order=DESC"
+
+# Obtener agencias habilitadas de una región específica
 curl "http://localhost:8080/api/agency?enabled=true&region=NORTE&sort_by=Name&sort_order=ASC"
+
+# Obtener agencias deshabilitadas de una región específica
+curl "http://localhost:8080/api/agency?enabled=false&region=NORTE&sort_by=Name&sort_order=ASC"
 ```
 
 ### **Actualizar una agencia:**
