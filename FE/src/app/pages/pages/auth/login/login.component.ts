@@ -37,12 +37,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 })
 export class LoginComponent {
   form = this.fb.group({
-    email: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required]
   });
 
   inputType = 'password';
   visible = false;
+  isLoading = false;
 
   constructor(
     private router: Router,
@@ -52,14 +53,40 @@ export class LoginComponent {
   ) {}
 
   send() {
-    this.router.navigate(['/']);
-    this.snackbar.open(
-      "Lucky you! Looks like you didn't need a password or email address! For a real application we provide validators to prevent this. ;)",
-      'THANKS',
-      {
-        duration: 10000
-      }
-    );
+    if (this.form.valid && !this.isLoading) {
+      this.isLoading = true;
+      this.cd.markForCheck();
+
+      // Simular proceso de login
+      setTimeout(() => {
+        this.isLoading = false;
+        this.cd.markForCheck();
+        
+        // Aquí se implementaría la lógica real de autenticación
+        this.router.navigate(['/']);
+        this.snackbar.open(
+          '¡Bienvenido! Has iniciado sesión exitosamente.',
+          'OK',
+          {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          }
+        );
+      }, 2000);
+    } else {
+      // Marcar todos los campos como tocados para mostrar errores
+      this.form.markAllAsTouched();
+      this.cd.markForCheck();
+      
+      this.snackbar.open(
+        'Por favor, completa todos los campos correctamente.',
+        'Entendido',
+        {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        }
+      );
+    }
   }
 
   toggleVisibility() {
