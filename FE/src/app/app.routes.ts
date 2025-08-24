@@ -200,6 +200,44 @@ export const appRoutes: VexRoutes = [
         loadChildren: () => import('./pages/documentation/documentation.routes')
       },
       {
+        path: 'configuracion',
+        children: [
+          {
+            path: 'general',
+            loadComponent: () =>
+              import('./pages/configuracion/configuracion-general/configuracion-general.component').then(
+                (m) => m.ConfiguracionGeneralComponent
+              )
+          },
+          {
+            path: 'usuarios',
+            loadComponent: () =>
+              import('./pages/configuracion/usuarios/usuarios.component').then(
+                (m) => m.UsuariosComponent
+              )
+          },
+          {
+            path: 'roles',
+            loadComponent: () =>
+              import('./pages/configuracion/roles/roles.component').then(
+                (m) => m.RolesComponent
+              )
+          }
+        ]
+      },
+      {
+        path: 'configuracion/catalogos',
+        children: [
+          {
+            path: 'agencias',
+            loadComponent: () =>
+              import('./pages/configuracion/catalogos/agencias/agencias.component').then(
+                (m) => m.AgenciasComponent
+              )
+          }
+        ]
+      },
+      {
         path: '**',
         loadComponent: () =>
           import('./pages/pages/errors/error-404/error-404.component').then(

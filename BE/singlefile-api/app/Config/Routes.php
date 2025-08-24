@@ -28,9 +28,14 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     // Rutas de agencias
     $routes->group('agency', function($routes) {
         $routes->get('/', 'Agency::index');
+        $routes->post('/', 'Agency::create');
         $routes->get('search', 'Agency::search');
         $routes->get('regions', 'Agency::regions');
+        $routes->get('stats', 'Agency::stats');
         $routes->get('(:num)', 'Agency::show/$1');
+        $routes->put('(:num)', 'Agency::update/$1');
+        $routes->delete('(:num)', 'Agency::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'Agency::toggleStatus/$1');
     });
     
     // Rutas de perfil de usuario
