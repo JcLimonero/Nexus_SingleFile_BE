@@ -7,6 +7,7 @@ export interface Agencia {
   RegistrationDate?: string | null;
   UpdateDate?: string | null;
   IdLastUserUpdate?: string;
+  LastUserName?: string; // Nombre del último usuario que actualizó (viene del JOIN en el backend)
   "Tabla 1"?: any;
   "Rec #."?: any;
 }

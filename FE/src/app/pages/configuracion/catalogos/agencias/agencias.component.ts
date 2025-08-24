@@ -155,7 +155,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     const dialogRef = this.dialog.open(AgenciaEditDialogComponent, {
       width: '600px',
       data: dialogData,
-      disableClose: true
+      disableClose: false
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -174,7 +174,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     const dialogRef = this.dialog.open(AgenciaEditDialogComponent, {
       width: '600px',
       data: dialogData,
-      disableClose: true
+      disableClose: false
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -210,5 +210,16 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
         }
       });
     }
+  }
+
+  getPageRange(): string {
+    if (!this.paginator || this.dataSource.filteredData.length === 0) {
+      return '0-0';
+    }
+    
+    const startIndex = this.paginator.pageIndex * this.paginator.pageSize + 1;
+    const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, this.dataSource.filteredData.length);
+    
+    return `${startIndex}-${endIndex}`;
   }
 }
