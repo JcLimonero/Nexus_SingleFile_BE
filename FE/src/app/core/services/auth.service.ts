@@ -12,7 +12,15 @@ export interface LoginResponse {
   success: boolean;
   message: string;
   token?: string;
-  user?: any;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    username: string;
+    role_id: number;
+    role_name: string;
+    enabled: number;
+  };
 }
 
 @Injectable({

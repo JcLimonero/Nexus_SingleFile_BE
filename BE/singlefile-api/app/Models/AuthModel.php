@@ -22,9 +22,11 @@ class AuthModel extends Model
     public function authenticate($email, $password)
     {
         try {
-            // Buscar usuario por email
-            $user = $this->where('Mail', $email)
-                        ->where('Enabled', 1)
+            // Buscar usuario por email con JOIN a UserRol para obtener la descripción del rol
+            $user = $this->select('User.*, UserRol.Name as RoleName')
+                        ->join('UserRol', 'User.IdUserRol = UserRol.Id', 'left')
+                        ->where('User.Mail', $email)
+                        ->where('User.Enabled', 1)
                         ->first();
             
             if (!$user) {
@@ -48,6 +50,7 @@ class AuthModel extends Model
                         'email' => $user['Mail'],
                         'username' => $user['User'],
                         'role_id' => $user['IdUserRol'],
+                        'role_name' => $user['RoleName'] ?? 'Sin rol asignado',
                         'enabled' => $user['Enabled']
                     ],
                     'token' => $token

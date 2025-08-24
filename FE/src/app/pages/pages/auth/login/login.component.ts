@@ -70,7 +70,8 @@ export class LoginComponent {
           this.cd.markForCheck();
           
           if (response.success) {
-            this.snackbar.open('Inicio de sesión exitoso', 'OK', {
+            const roleInfo = response.user?.role_name ? ` (${response.user.role_name})` : '';
+            this.snackbar.open(`Inicio de sesión exitoso${roleInfo}`, 'OK', {
               duration: 3000
             });
             this.router.navigate(['/']);
