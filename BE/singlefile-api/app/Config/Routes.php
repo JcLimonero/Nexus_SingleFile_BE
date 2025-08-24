@@ -24,6 +24,14 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('migration-status', 'PasswordManager::getMigrationStatus');
         $routes->post('force-migration', 'PasswordManager::forceMigration');
     });
+    
+    // Rutas de agencias
+    $routes->group('agency', function($routes) {
+        $routes->get('/', 'Agency::index');
+        $routes->get('search', 'Agency::search');
+        $routes->get('regions', 'Agency::regions');
+        $routes->get('(:num)', 'Agency::show/$1');
+    });
 });
 
 // Ruta por defecto
