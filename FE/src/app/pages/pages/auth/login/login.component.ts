@@ -15,6 +15,7 @@ import { NgIf } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService, LoginRequest, LoginResponse } from '../../../../core/services/auth.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'vex-login',
@@ -69,13 +70,31 @@ export class LoginComponent {
           this.loading = false;
           this.cd.markForCheck();
           
+          console.log('🔐 Respuesta del login:', response);
+          
           if (response.success) {
             const roleInfo = response.user?.role_name ? ` (${response.user.role_name})` : '';
             this.snackbar.open(`Inicio de sesión exitoso${roleInfo}`, 'OK', {
               duration: 3000
             });
-            this.router.navigate(['/']);
+            
+            console.log('🧭 Esperando a que el estado se actualice...');
+            
+            // Esperar a que el estado de autenticación se actualice
+            this.authService.isAuthenticated$.pipe(take(1)).subscribe(isAuth => {
+              if (isAuth) {
+                console.log('✅ Estado actualizado, navegando a /...');
+                this.router.navigate(['/']).then(() => {
+                  console.log('✅ Navegación exitosa a /');
+                }).catch(error => {
+                  console.error('❌ Error en navegación:', error);
+                });
+              } else {
+                console.error('❌ Estado no se actualizó correctamente');
+              }
+            });
           } else {
+            console.log('❌ Login fallido:', response.message);
             this.snackbar.open(response.message || 'Error en el inicio de sesión', 'Error', {
               duration: 5000
             });
@@ -110,5 +129,11 @@ export class LoginComponent {
       this.visible = true;
       this.cd.markForCheck();
     }
+  }
+
+  // Método de prueba temporal
+  testLogout() {
+    console.log('🧪 Probando logout desde el componente...');
+    this.authService.testLogout();
   }
 }

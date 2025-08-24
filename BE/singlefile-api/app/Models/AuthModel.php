@@ -51,7 +51,9 @@ class AuthModel extends Model
                         'username' => $user['User'],
                         'role_id' => $user['IdUserRol'],
                         'role_name' => $user['RoleName'] ?? 'Sin rol asignado',
-                        'enabled' => $user['Enabled']
+                        'enabled' => $user['Enabled'],
+                        'profile_image' => $user['ProfileImage'] ?? null,
+                        'image_type' => $user['ImageType'] ?? null
                     ],
                     'token' => $token
                 ];

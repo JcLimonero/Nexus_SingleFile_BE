@@ -15,6 +15,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'vex-sidenav',
@@ -52,6 +53,7 @@ export class SidenavComponent implements OnInit {
   );
 
   userMenuOpen$: Observable<boolean> = of(false);
+  currentUser$ = this.authService.currentUser$;
 
   items$: Observable<NavigationItem[]> = this.navigationService.items$;
 
@@ -60,7 +62,8 @@ export class SidenavComponent implements OnInit {
     private layoutService: VexLayoutService,
     private configService: VexConfigService,
     private readonly popoverService: VexPopoverService,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {}

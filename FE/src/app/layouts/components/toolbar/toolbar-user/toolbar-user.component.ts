@@ -8,21 +8,29 @@ import { VexPopoverService } from '@vex/components/vex-popover/vex-popover.servi
 import { ToolbarUserDropdownComponent } from './toolbar-user-dropdown/toolbar-user-dropdown.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
+import { AuthService } from '../../../../core/services/auth.service';
+import { Observable } from 'rxjs';
+import { User } from '../../../../core/services/auth.service';
+import { AsyncPipe, NgIf } from '@angular/common';
 
 @Component({
   selector: 'vex-toolbar-user',
   templateUrl: './toolbar-user.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatRippleModule, MatIconModule]
+  imports: [MatRippleModule, MatIconModule, AsyncPipe, NgIf]
 })
 export class ToolbarUserComponent implements OnInit {
   dropdownOpen: boolean = false;
+  currentUser$: Observable<User | null>;
 
   constructor(
     private popover: VexPopoverService,
-    private cd: ChangeDetectorRef
-  ) {}
+    private cd: ChangeDetectorRef,
+    private authService: AuthService
+  ) {
+    this.currentUser$ = this.authService.currentUser$;
+  }
 
   ngOnInit() {}
 

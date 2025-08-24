@@ -61,6 +61,16 @@
         <span *ngIf="!loading">INICIAR SESIÓN</span>
         <span *ngIf="loading">INICIANDO...</span>
       </button>
+
+      <!-- Botón de prueba temporal -->
+      <button 
+        (click)="testLogout()" 
+        color="warn" 
+        mat-button 
+        type="button"
+        class="mt-2">
+        🧪 Probar Logout
+      </button>
     </div>
   </div>
 </div>

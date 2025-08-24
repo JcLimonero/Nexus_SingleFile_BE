@@ -32,6 +32,13 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('regions', 'Agency::regions');
         $routes->get('(:num)', 'Agency::show/$1');
     });
+    
+    // Rutas de perfil de usuario
+    $routes->group('user/profile', function($routes) {
+        $routes->post('upload-image', 'UserProfile::uploadImage');
+        $routes->delete('remove-image', 'UserProfile::removeImage');
+        $routes->get('image/(:num)', 'UserProfile::getProfileImage/$1');
+    });
 });
 
 // Ruta por defecto

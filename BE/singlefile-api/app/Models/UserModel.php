@@ -15,7 +15,8 @@ class UserModel extends Model
     protected $allowedFields    = [
         'Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol',
         'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate',
-        'IdUserTotal', 'DefaultAgency', 'password_migrated'
+        'IdUserTotal', 'DefaultAgency', 'password_migrated',
+        'ProfileImage', 'ImageType'
     ];
 
     protected bool $allowEmptyInserts = false;

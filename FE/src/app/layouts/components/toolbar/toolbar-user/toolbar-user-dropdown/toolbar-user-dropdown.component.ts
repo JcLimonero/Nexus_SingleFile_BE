@@ -4,19 +4,31 @@ import {
   Component,
   OnInit
 } from '@angular/core';
-import { MenuItem } from '../interfaces/menu-item.interface';
-import { trackById } from '@vex/utils/track-by';
 import { VexPopoverRef } from '@vex/components/vex-popover/vex-popover-ref';
-import { RouterLink } from '@angular/router';
-import { MatRippleModule } from '@angular/material/core';
-import { NgClass, NgFor, NgIf } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatButtonModule } from '@angular/material/button';
+import { trackById } from '@vex/utils/track-by';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { NgFor, NgClass, NgIf } from '@angular/common';
+import { MatRippleModule } from '@angular/material/core';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { Observable } from 'rxjs';
+import { User } from '../../../../../core/services/auth.service';
+import { AsyncPipe } from '@angular/common';
+
+export interface MenuItem {
+  id: string;
+  icon: string;
+  label: string;
+  description: string;
+  colorClass: string;
+  route: string;
+}
 
 export interface OnlineStatus {
-  id: 'online' | 'away' | 'dnd' | 'offline';
+  id: string;
   label: string;
   icon: string;
   colorClass: string;
@@ -37,40 +49,43 @@ export interface OnlineStatus {
     MatRippleModule,
     RouterLink,
     NgClass,
-    NgIf
+    NgIf,
+    AsyncPipe
   ]
 })
 export class ToolbarUserDropdownComponent implements OnInit {
+  currentUser$: Observable<User | null>;
+  
   items: MenuItem[] = [
     {
       id: '1',
       icon: 'mat:account_circle',
-      label: 'My Profile',
-      description: 'Personal Information',
+      label: 'Mi Perfil',
+      description: 'Información Personal',
       colorClass: 'text-teal-600',
       route: '/apps/social'
     },
     {
       id: '2',
       icon: 'mat:move_to_inbox',
-      label: 'My Inbox',
-      description: 'Messages & Latest News',
+      label: 'Mi Bandeja',
+      description: 'Mensajes y Noticias',
       colorClass: 'text-primary-600',
       route: '/apps/chat'
     },
     {
       id: '3',
       icon: 'mat:list_alt',
-      label: 'My Projects',
-      description: 'Tasks & Active Projects',
+      label: 'Mis Proyectos',
+      description: 'Tareas y Proyectos Activos',
       colorClass: 'text-amber-600',
       route: '/apps/scrumboard'
     },
     {
       id: '4',
       icon: 'mat:table_chart',
-      label: 'Billing Information',
-      description: 'Pricing & Current Plan',
+      label: 'Información de Facturación',
+      description: 'Precios y Plan Actual',
       colorClass: 'text-purple-600',
       route: '/pages/pricing'
     }
@@ -79,25 +94,25 @@ export class ToolbarUserDropdownComponent implements OnInit {
   statuses: OnlineStatus[] = [
     {
       id: 'online',
-      label: 'Online',
+      label: 'En línea',
       icon: 'mat:check_circle',
       colorClass: 'text-green-600'
     },
     {
       id: 'away',
-      label: 'Away',
+      label: 'Ausente',
       icon: 'mat:access_time',
       colorClass: 'text-orange-600'
     },
     {
       id: 'dnd',
-      label: 'Do not disturb',
+      label: 'No molestar',
       icon: 'mat:do_not_disturb',
       colorClass: 'text-red-600'
     },
     {
       id: 'offline',
-      label: 'Offline',
+      label: 'Desconectado',
       icon: 'mat:offline_bolt',
       colorClass: 'text-gray-600'
     }
@@ -109,8 +124,11 @@ export class ToolbarUserDropdownComponent implements OnInit {
 
   constructor(
     private cd: ChangeDetectorRef,
-    private popoverRef: VexPopoverRef<ToolbarUserDropdownComponent>
-  ) {}
+    private popoverRef: VexPopoverRef<ToolbarUserDropdownComponent>,
+    private authService: AuthService
+  ) {
+    this.currentUser$ = this.authService.currentUser$;
+  }
 
   ngOnInit() {}
 
@@ -121,5 +139,10 @@ export class ToolbarUserDropdownComponent implements OnInit {
 
   close() {
     this.popoverRef.close();
+  }
+
+  logout() {
+    this.authService.logout();
+    this.close();
   }
 }
