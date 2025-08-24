@@ -79,7 +79,7 @@
         src="../../../../assets/img/avatars/1.jpg" />
       <div class="vex-sidenav-user__content flex-auto">
         <div class="vex-sidenav-user__title">{{ (currentUser$ | async)?.name || 'Usuario' }}</div>
-        <div class="vex-sidenav-user__subtitle">{{ (currentUser$ | async)?.role || 'Rol no definido' }}</div>
+        <div class="vex-sidenav-user__subtitle">{{ (currentUser$ | async)?.role_name || (currentUser$ | async)?.role || 'Rol no definido' }}</div>
       </div>
       <mat-icon
         class="vex-sidenav-user__dropdown-icon flex-none"

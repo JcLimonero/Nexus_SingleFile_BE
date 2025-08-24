@@ -73,7 +73,7 @@ export class LoginComponent {
           console.log('🔐 Respuesta del login:', response);
           
           if (response.success) {
-            const roleInfo = response.user?.role_name ? ` (${response.user.role_name})` : '';
+            const roleInfo = response.user?.role_name || response.user?.role ? ` (${response.user.role_name || response.user.role})` : '';
             this.snackbar.open(`Inicio de sesión exitoso${roleInfo}`, 'OK', {
               duration: 3000
             });

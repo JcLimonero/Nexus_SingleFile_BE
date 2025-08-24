@@ -22,11 +22,11 @@ export interface User {
   name?: string;
   email?: string;
   role?: string;
+  role_name?: string; // Campo real del backend
   avatar?: string;
   profile_image?: string;
   image_type?: string;
   role_id?: number;
-  role_name?: string;
   username?: string;
   enabled?: number;
 }
@@ -110,7 +110,13 @@ export class AuthService {
               this.setToken(token);
               
               if (user) {
+                // Mapear el rol del campo role_name al campo role para compatibilidad
+                if (user.role_name && !user.role) {
+                  user.role = user.role_name;
+                }
+                
                 console.log('👤 Configurando usuario:', user);
+                console.log('👤 Rol del usuario:', user.role || user.role_name);
                 this.setCurrentUser(user);
               }
               
