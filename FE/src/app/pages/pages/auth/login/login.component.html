@@ -52,8 +52,14 @@
         >
       </div>
 
-      <button (click)="send()" color="primary" mat-raised-button type="button">
-        INICIAR SESIÓN
+      <button 
+        (click)="send()" 
+        color="primary" 
+        mat-raised-button 
+        type="button"
+        [disabled]="loading || form.invalid">
+        <span *ngIf="!loading">INICIAR SESIÓN</span>
+        <span *ngIf="loading">INICIANDO...</span>
       </button>
     </div>
   </div>
