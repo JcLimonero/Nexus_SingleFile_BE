@@ -61,6 +61,22 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/estado', 'OperationType::toggleStatus/$1');
     });
     
+    // Rutas de usuarios (CRUD)
+    $routes->group('user', function($routes) {
+        $routes->get('/', 'User::index');
+        $routes->post('/', 'User::create');
+        $routes->get('search', 'User::search');
+        $routes->get('stats', 'User::stats');
+        $routes->get('(:num)', 'User::show/$1');
+        $routes->put('(:num)', 'User::update/$1');
+        $routes->delete('(:num)', 'User::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'User::toggleStatus/$1');
+        $routes->post('(:num)/change-password', 'User::changePassword/$1');
+        $routes->post('(:num)/reset-password', 'User::resetPassword/$1');
+        $routes->get('check-username', 'User::checkUsernameAvailability');
+        $routes->get('check-email', 'User::checkEmailAvailability');
+    });
+    
     // Rutas de perfil de usuario
     $routes->group('user/profile', function($routes) {
         $routes->post('upload-image', 'UserProfile::uploadImage');

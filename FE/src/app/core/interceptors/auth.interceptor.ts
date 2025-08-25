@@ -6,7 +6,12 @@ export const AuthInterceptor: HttpInterceptorFn = (
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
   // Por ahora solo logueamos la petición para debuggear
-  console.log('🌐 Interceptando petición:', request.url);
+  console.log('🌐 Interceptando petición:', {
+    url: request.url,
+    method: request.method,
+    headers: request.headers.keys(),
+    fullUrl: request.urlWithParams
+  });
   
   return next(request);
 };
