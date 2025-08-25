@@ -43,8 +43,9 @@ class User extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('User u');
             
-            $builder->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName')
-                ->join('User ur', 'ur.Id = u.IdLastUserUpdate', 'left');
+            $builder->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName, a.Name as AgencyName')
+                ->join('User ur', 'ur.Id = u.IdLastUserUpdate', 'left')
+                ->join('Agency a', 'a.Id = u.DefaultAgency', 'left');
 
             // Aplicar filtros
             if ($enabled !== null && $enabled !== '') {
@@ -133,7 +134,14 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // Generar el siguiente ID manualmente
+            $db = \Config\Database::connect();
+            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM User");
+            $maxIdResult = $maxIdQuery->getRow();
+            $nextId = ($maxIdResult->max_id ?? 0) + 1;
+            
             // Hash de la contraseña
+            $data['Id'] = $nextId;
             $data['Pass'] = password_hash($data['Pass'], PASSWORD_DEFAULT);
             $data['password_migrated'] = 1;
             $data['Enabled'] = $data['Enabled'] ?? '1';
@@ -182,8 +190,9 @@ class User extends BaseController
             $builder = $db->table('User u');
             
             $user = $builder
-                ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName')
+                ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName, a.Name as AgencyName')
                 ->join('User ur', 'ur.Id = u.IdLastUserUpdate', 'left')
+                ->join('Agency a', 'a.Id = u.DefaultAgency', 'left')
                 ->where('u.Id', $id)
                 ->get()
                 ->getRowArray();
@@ -518,15 +527,20 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $users = $this->userModel
-                ->select('Id, Name, User, Mail, Enabled, IdUserRol, DefaultAgency')
+            $db = \Config\Database::connect();
+            $builder = $db->table('User u');
+            
+            $users = $builder
+                ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, a.Name as AgencyName')
+                ->join('Agency a', 'a.Id = u.DefaultAgency', 'left')
                 ->groupStart()
-                    ->like('Name', $query)
-                    ->orLike('User', $query)
-                    ->orLike('Mail', $query)
+                    ->like('u.Name', $query)
+                    ->orLike('u.User', $query)
+                    ->orLike('u.Mail', $query)
                 ->groupEnd()
-                ->orderBy('Name', 'ASC')
-                ->findAll();
+                ->orderBy('u.Name', 'ASC')
+                ->get()
+                ->getResultArray();
 
             return $this->response->setJSON([
                 'success' => true,

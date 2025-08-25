@@ -6,6 +6,7 @@ export interface User {
   Enabled: string; // "1" para activo, "0" para inactivo
   IdUserRol: string;
   DefaultAgency: string;
+  AgencyName?: string; // Nombre de la agencia
   ProfileImage?: string | null;
   RegistrationDate?: string | null;
   UpdateDate?: string | null;
@@ -17,7 +18,7 @@ export interface UserCreateRequest {
   Name: string;
   User: string;
   Mail: string;
-  Password: string;
+  Pass: string;
   IdUserRol: string;
   DefaultAgency: string;
   Enabled: string;
@@ -53,8 +54,26 @@ export interface UserRole {
   Description?: string;
 }
 
+export interface UserRoleResponse {
+  success: boolean;
+  message: string;
+  data: {
+    roles: UserRole[];
+    total: number;
+  };
+}
+
 export interface Agency {
   Id: string;
   Name: string;
   Enabled: string;
+}
+
+export interface AgencyResponse {
+  success: boolean;
+  message: string;
+  data: {
+    agencies: Agency[];
+    total: number;
+  };
 }

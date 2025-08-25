@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { User, UserCreateRequest, UserUpdateRequest, UserResponse, UserRole, Agency } from '../interfaces/user.interface';
+import { User, UserCreateRequest, UserUpdateRequest, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../interfaces/user.interface';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -72,11 +72,11 @@ export class UserService {
   }
 
   // Métodos para obtener datos de referencia
-  getUserRoles(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/user-roles`);
+  getUserRoles(): Observable<UserRoleResponse> {
+    return this.http.get<UserRoleResponse>(`${environment.apiUrl}/user-role`);
   }
 
-  getAgencies(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/agencies`);
+  getAgencies(): Observable<AgencyResponse> {
+    return this.http.get<AgencyResponse>(`${environment.apiUrl}/agency`);
   }
 }

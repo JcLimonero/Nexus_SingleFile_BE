@@ -17,7 +17,7 @@
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Buscar usuarios</mat-label>
@@ -35,23 +35,24 @@
         <mat-label>Rol</mat-label>
         <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()">
           <mat-option value="">Todos los roles</mat-option>
-          <mat-option value="1">Administrador</mat-option>
-          <mat-option value="2">Usuario</mat-option>
-          <mat-option value="3">Supervisor</mat-option>
-          <mat-option value="4">Auditor</mat-option>
-          <mat-option value="5">Solo Lectura</mat-option>
+          <mat-option *ngFor="let role of roles" [value]="role.Id">
+            {{ role.Name }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
 
-      <!-- Filtro por estado -->
+      <!-- Filtro por agencia -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Estado</mat-label>
-        <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
-          <mat-option value="">Todos</mat-option>
-          <mat-option value="1">Activos</mat-option>
-          <mat-option value="0">Inactivos</mat-option>
+        <mat-label>Agencia</mat-label>
+        <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()">
+          <mat-option value="">Todas las agencias</mat-option>
+          <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+            {{ agency.Name }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
+
+
     </div>
   </div>
 
@@ -103,9 +104,8 @@
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Rol
         </th>
-        <td mat-cell *matCellDef="let user" class="text-center py-0">
-          <span class="px-2 py-1 rounded-full text-xs font-medium"
-                [ngClass]="getRoleColor(user.IdUserRol)">
+        <td mat-cell *matCellDef="let user" class="text-left py-0">
+          <span class="text-xs">
             {{ getRoleName(user.IdUserRol) }}
           </span>
         </td>
@@ -117,24 +117,7 @@
           Agencia
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
-          {{ user.DefaultAgency }}
-        </td>
-      </ng-container>
-
-      <!-- Columna Estado -->
-      <ng-container matColumnDef="Enabled">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
-          Estado
-        </th>
-        <td mat-cell *matCellDef="let user" class="text-center">
-          <div class="flex items-center justify-center">
-            <div class="w-0.5 h-0.5 rounded-full mr-2" 
-                 [ngClass]="user.Enabled === '1' ? 'bg-green-500' : 'bg-red-500'"></div>
-            <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
-                  [ngClass]="user.Enabled === '1' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-              {{ user.Enabled === '1' ? 'Activo' : 'Inactivo' }}
-            </span>
-          </div>
+          {{ user.AgencyName || getAgencyName(user.DefaultAgency) }}
         </td>
       </ng-container>
 
@@ -153,14 +136,7 @@
               class="!w-6 !h-6 !min-h-6 !p-0">
               <mat-icon class="!text-sm">edit</mat-icon>
             </button>
-            <button
-              (click)="toggleUserStatus(user)"
-              mat-icon-button
-              [color]="user.Enabled === '1' ? 'warn' : 'accent'"
-              [matTooltip]="user.Enabled === '1' ? 'Desactivar' : 'Activar'"
-              class="!w-6 !h-6 !min-h-6 !p-0">
-              <mat-icon class="!text-sm">{{ user.Enabled === '1' ? 'block' : 'check_circle' }}</mat-icon>
-            </button>
+
             <button
               (click)="deleteUser(user)"
               mat-icon-button

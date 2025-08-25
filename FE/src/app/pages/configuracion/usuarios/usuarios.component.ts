@@ -14,7 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
-import { User, UserResponse } from '../../../core/interfaces/user.interface';
+import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../../../core/interfaces/user.interface';
 import { UserService } from '../../../core/services/user.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
 
@@ -43,12 +43,14 @@ import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.com
 })
 export class UsuariosComponent implements OnInit, AfterViewInit {
   users: User[] = [];
+  roles: UserRole[] = [];
+  agencies: Agency[] = [];
   dataSource = new MatTableDataSource<User>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'User', 'Mail', 'IdUserRol', 'DefaultAgency', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['Id', 'Name', 'User', 'Mail', 'IdUserRol', 'DefaultAgency', 'acciones'];
   loading = false;
   searchTerm = '';
-  statusFilter = '';
   roleFilter = '';
+  agencyFilter = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -61,6 +63,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadRoles();
+    this.loadAgencies();
   }
 
   ngAfterViewInit(): void {
@@ -101,20 +105,50 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     });
   }
 
+  loadRoles(): void {
+    this.userService.getUserRoles().subscribe({
+      next: (response: UserRoleResponse) => {
+        if (response.success) {
+          this.roles = response.data.roles;
+        } else {
+          console.error('Error al cargar roles:', response.message);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+      }
+    });
+  }
+
+  loadAgencies(): void {
+    this.userService.getAgencies().subscribe({
+      next: (response: AgencyResponse) => {
+        if (response.success) {
+          this.agencies = response.data.agencies.filter(agency => agency.Enabled === '1');
+        } else {
+          console.error('Error al cargar agencias:', response.message);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading agencies:', error);
+      }
+    });
+  }
+
   applyFilter(): void {
     const filterValue = this.searchTerm.trim();
     
     // Aplicar filtros
     let filteredData = this.users;
     
-    // Filtro de estado
-    if (this.statusFilter !== '') {
-      filteredData = filteredData.filter(user => user.Enabled === this.statusFilter);
-    }
-    
     // Filtro de rol
     if (this.roleFilter !== '') {
       filteredData = filteredData.filter(user => user.IdUserRol === this.roleFilter);
+    }
+    
+    // Filtro de agencia
+    if (this.agencyFilter !== '') {
+      filteredData = filteredData.filter(user => user.DefaultAgency === this.agencyFilter);
     }
     
     // Filtro de búsqueda de texto
@@ -139,22 +173,33 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   openCreateDialog(): void {
+    console.log('openCreateDialog called');
+    
     const dialogData = {
       user: {} as User,
-      mode: 'create'
+      mode: 'create' as const
     };
 
-    const dialogRef = this.dialog.open(UserEditDialogComponent, {
-      width: '700px',
-      data: dialogData,
-      disableClose: false
-    });
+    console.log('Opening dialog with data:', dialogData);
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.refreshData();
-      }
-    });
+    try {
+      const dialogRef = this.dialog.open(UserEditDialogComponent, {
+        width: '700px',
+        data: dialogData,
+        disableClose: false
+      });
+
+      console.log('Dialog opened successfully:', dialogRef);
+
+      dialogRef.afterClosed().subscribe(result => {
+        console.log('Dialog closed with result:', result);
+        if (result) {
+          this.refreshData();
+        }
+      });
+    } catch (error) {
+      console.error('Error opening dialog:', error);
+    }
   }
 
   openEditDialog(user: User): void {
@@ -177,53 +222,38 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   deleteUser(user: User): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el usuario "${user.Name}"?`)) {
+    console.log('deleteUser called for user:', user);
+    
+    const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${user.Name || user.User}"?`);
+    console.log('User confirmed deletion:', confirmDelete);
+    
+    if (confirmDelete) {
+      console.log('Calling API to delete user with ID:', user.Id);
+      
       this.userService.deleteUser(user.Id).subscribe({
         next: (response) => {
-          if (response.success) {
+          console.log('Delete response:', response);
+          if (response && response.success) {
             this.users = this.users.filter(u => u.Id !== user.Id);
             this.applyFilter();
             this.snackBar.open('Usuario eliminado exitosamente', 'Éxito', {
               duration: 2000
             });
           } else {
-            this.snackBar.open(response.message || 'Error al eliminar usuario', 'Error', {
+            console.error('Delete failed:', response);
+            this.snackBar.open(response?.message || 'Error al eliminar usuario', 'Error', {
               duration: 3000
             });
           }
         },
         error: (error) => {
           console.error('Error deleting user:', error);
-          this.snackBar.open('Error al eliminar usuario', 'Error', {
-            duration: 3000
+          this.snackBar.open(`Error al eliminar usuario: ${error.message || 'Error desconocido'}`, 'Error', {
+            duration: 5000
           });
         }
       });
     }
-  }
-
-  toggleUserStatus(user: User): void {
-    this.userService.toggleStatus(user.Id).subscribe({
-      next: (response) => {
-        if (response.success) {
-          user.Enabled = user.Enabled === '1' ? '0' : '1';
-          this.applyFilter();
-          this.snackBar.open(`Usuario ${user.Enabled === '1' ? 'activado' : 'desactivado'} exitosamente`, 'Éxito', {
-            duration: 2000
-          });
-        } else {
-          this.snackBar.open(response.message || 'Error al cambiar estado del usuario', 'Error', {
-            duration: 3000
-          });
-        }
-      },
-      error: (error) => {
-        console.error('Error toggling user status:', error);
-        this.snackBar.open('Error al cambiar estado del usuario', 'Error', {
-          duration: 3000
-        });
-      }
-    });
   }
 
   getRoleColor(roleId: string): string {
@@ -238,14 +268,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   getRoleName(roleId: string): string {
-    const roleNames: { [key: string]: string } = {
-      '1': 'Administrador',
-      '2': 'Usuario',
-      '3': 'Supervisor',
-      '4': 'Auditor',
-      '5': 'Solo Lectura'
-    };
-    return roleNames[roleId] || 'Desconocido';
+    const role = this.roles.find(r => r.Id === roleId);
+    return role ? role.Name : 'Desconocido';
+  }
+
+  getAgencyName(agencyId: string): string {
+    const agency = this.agencies.find(a => a.Id === agencyId);
+    return agency ? agency.Name : (agencyId === '0' ? 'Sin agencia' : `Agencia ${agencyId}`);
   }
 
   getPageRange(): string {

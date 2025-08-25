@@ -6,8 +6,18 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
+// Manejar solicitudes OPTIONS para CORS
+$routes->options('(:any)', function() {
+    return '';
+});
+
 // Rutas de la API
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) {
+    
+    // Manejar OPTIONS para todas las rutas de API
+    $routes->options('(:any)', function() {
+        return '';
+    });
     
         // Rutas de autenticación
     $routes->group('auth', function($routes) {
@@ -75,6 +85,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('(:num)/reset-password', 'User::resetPassword/$1');
         $routes->get('check-username', 'User::checkUsernameAvailability');
         $routes->get('check-email', 'User::checkEmailAvailability');
+    });
+    
+    // Rutas de roles de usuario (CRUD)
+    $routes->group('user-role', function($routes) {
+        $routes->get('/', 'UserRol::index');
+        $routes->post('/', 'UserRol::create');
+        $routes->get('search', 'UserRol::search');
+        $routes->get('stats', 'UserRol::stats');
+        $routes->get('active', 'UserRol::active');
+        $routes->get('(:num)', 'UserRol::show/$1');
+        $routes->put('(:num)', 'UserRol::update/$1');
+        $routes->delete('(:num)', 'UserRol::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'UserRol::toggleStatus/$1');
     });
     
     // Rutas de perfil de usuario

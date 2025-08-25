@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { User, UserCreateRequest, UserUpdateRequest } from '../../../../core/interfaces/user.interface';
+import { User, UserCreateRequest, UserUpdateRequest, UserRole, Agency } from '../../../../core/interfaces/user.interface';
 import { UserService } from '../../../../core/services/user.service';
 
 @Component({
@@ -39,6 +39,8 @@ export class UserEditDialogComponent implements OnInit {
   loading = false;
   showPassword = false;
   showConfirmPassword = false;
+  roles: UserRole[] = [];
+  agencies: Agency[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -50,6 +52,8 @@ export class UserEditDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadRoles();
+    this.loadAgencies();
     this.populateForm();
   }
 
@@ -58,23 +62,22 @@ export class UserEditDialogComponent implements OnInit {
       Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       User: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
       Mail: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
-      Password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
+      Pass: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
       ConfirmPassword: ['', [Validators.required]],
       IdUserRol: ['', Validators.required],
-      DefaultAgency: ['', Validators.required],
-      Enabled: ['1', Validators.required]
+      DefaultAgency: ['', Validators.required]
     }, { validators: this.passwordMatchValidator() });
 
     // En modo edición, la contraseña no es requerida
     if (this.data.mode === 'edit') {
-      this.userForm.get('Password')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
+      this.userForm.get('Pass')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
       this.userForm.get('ConfirmPassword')?.setValidators([]);
     }
   }
 
   private passwordMatchValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const password = control.get('Password');
+      const password = control.get('Pass');
       const confirmPassword = control.get('ConfirmPassword');
       
       if (password && confirmPassword && password.value !== confirmPassword.value) {
@@ -92,12 +95,11 @@ export class UserEditDialogComponent implements OnInit {
         User: this.data.user.User,
         Mail: this.data.user.Mail,
         IdUserRol: this.data.user.IdUserRol,
-        DefaultAgency: this.data.user.DefaultAgency,
-        Enabled: this.data.user.Enabled
+        DefaultAgency: this.data.user.DefaultAgency
       });
       
       // Limpiar campos de contraseña en edición
-      this.userForm.get('Password')?.setValue('');
+      this.userForm.get('Pass')?.setValue('');
       this.userForm.get('ConfirmPassword')?.setValue('');
     }
   }
@@ -119,10 +121,10 @@ export class UserEditDialogComponent implements OnInit {
       Name: this.userForm.value.Name,
       User: this.userForm.value.User,
       Mail: this.userForm.value.Mail,
-      Password: this.userForm.value.Password,
+      Pass: this.userForm.value.Pass,
       IdUserRol: this.userForm.value.IdUserRol,
       DefaultAgency: this.userForm.value.DefaultAgency,
-      Enabled: this.userForm.value.Enabled
+      Enabled: '1'
     };
 
     this.userService.createUser(userData).subscribe({
@@ -156,13 +158,12 @@ export class UserEditDialogComponent implements OnInit {
       User: this.userForm.value.User,
       Mail: this.userForm.value.Mail,
       IdUserRol: this.userForm.value.IdUserRol,
-      DefaultAgency: this.userForm.value.DefaultAgency,
-      Enabled: this.userForm.value.Enabled
+      DefaultAgency: this.userForm.value.DefaultAgency
     };
 
     // Solo incluir contraseña si se proporcionó una nueva
-    if (this.userForm.value.Password) {
-      userData.Password = this.userForm.value.Password;
+    if (this.userForm.value.Pass) {
+      userData.Pass = this.userForm.value.Pass;
     }
 
     this.userService.updateUser(this.data.user.Id, userData).subscribe({
@@ -199,5 +200,31 @@ export class UserEditDialogComponent implements OnInit {
 
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  private loadRoles(): void {
+    this.userService.getUserRoles().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.roles = response.data.roles || response.data;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+      }
+    });
+  }
+
+  private loadAgencies(): void {
+    this.userService.getAgencies().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.agencies = response.data.agencies || response.data;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading agencies:', error);
+      }
+    });
   }
 }
