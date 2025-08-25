@@ -172,6 +172,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     this.loadUsers();
   }
 
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.roleFilter = '';
+    this.agencyFilter = '';
+    this.applyFilter();
+  }
+
   openCreateDialog(): void {
     console.log('openCreateDialog called');
     
