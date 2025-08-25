@@ -105,6 +105,12 @@ export class NavigationLoaderService {
               label: 'Tipos de Operación',
               route: '/configuracion/catalogos/tipos-operacion',
               icon: 'mat:swap_horiz'
+            },
+            {
+              type: 'link',
+              label: 'Tipos de Cliente',
+              route: '/configuracion/catalogos/tipos-cliente',
+              icon: 'mat:person_outline'
             }
           ]
         }

@@ -70,6 +70,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('(:num)', 'OperationType::delete/$1');
         $routes->patch('(:num)/estado', 'OperationType::toggleStatus/$1');
     });
+
+    // Rutas de tipos de cliente (CRUD)
+    $routes->group('costumer-type', function($routes) {
+        $routes->get('/', 'CostumerType::index');
+        $routes->post('/', 'CostumerType::create');
+        $routes->get('search', 'CostumerType::search');
+        $routes->get('stats', 'CostumerType::stats');
+        $routes->get('active', 'CostumerType::active');
+        $routes->get('(:num)', 'CostumerType::show/$1');
+        $routes->put('(:num)', 'CostumerType::update/$1');
+        $routes->delete('(:num)', 'CostumerType::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'CostumerType::toggleStatus/$1');
+    });
     
     // Rutas de usuarios (CRUD)
     $routes->group('user', function($routes) {

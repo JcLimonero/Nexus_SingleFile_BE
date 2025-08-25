@@ -1,0 +1,52 @@
+// Estilos específicos para el diálogo de edición de tipos de cliente
+// Los estilos principales están manejados por Tailwind CSS
+
+.mat-mdc-dialog-container {
+  border-radius: 8px;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-button {
+  text-transform: none;
+}
+
+// Spinner dentro del botón
+.mat-mdc-button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+// Ajustes para el área de información del sistema
+.system-info {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 16px;
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    font-size: 14px;
+    
+    .info-item {
+      .label {
+        color: #6b7280;
+        font-weight: 500;
+      }
+      
+      .value {
+        margin-left: 8px;
+        color: #111827;
+        
+        &.mono {
+          font-family: 'Courier New', monospace;
+        }
+      }
+    }
+  }
+}
