@@ -98,6 +98,25 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('(:num)/reset-password', 'User::resetPassword/$1');
         $routes->get('check-username', 'User::checkUsernameAvailability');
         $routes->get('check-email', 'User::checkEmailAvailability');
+        
+        // Rutas de accesos consolidados
+        $routes->get('(:num)/access', 'UserAccess::getUserAccess/$1');
+        $routes->put('(:num)/access', 'UserAccess::updateUserAccess/$1');
+        $routes->delete('(:num)/access', 'UserAccess::clearUserAccess/$1');
+        
+        // Rutas específicas de agencias
+        $routes->get('(:num)/agencies', 'UserAgency::getUserAgencies/$1');
+        $routes->post('(:num)/agencies', 'UserAgency::assignAgencies/$1');
+        $routes->delete('(:num)/agencies', 'UserAgency::removeAllAgencies/$1');
+        $routes->delete('(:num)/agencies/(:num)', 'UserAgency::removeAgency/$1/$2');
+        $routes->get('(:num)/agencies/stats', 'UserAgency::getStats/$1');
+        
+        // Rutas específicas de procesos
+        $routes->get('(:num)/processes', 'UserProcess::getUserProcesses/$1');
+        $routes->post('(:num)/processes', 'UserProcess::assignProcesses/$1');
+        $routes->delete('(:num)/processes', 'UserProcess::removeAllProcesses/$1');
+        $routes->delete('(:num)/processes/(:num)', 'UserProcess::removeProcess/$1/$2');
+        $routes->get('(:num)/processes/stats', 'UserProcess::getStats/$1');
     });
     
     // Rutas de roles de usuario (CRUD)

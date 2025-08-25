@@ -17,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../../../core/interfaces/user.interface';
 import { UserService } from '../../../core/services/user.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
+import { UserAccessDialogComponent } from './user-access-dialog/user-access-dialog.component';
 
 @Component({
   selector: 'app-usuarios',
@@ -224,6 +225,31 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.refreshData();
+      }
+    });
+  }
+
+  openAccessDialog(user: User): void {
+    const dialogData = {
+      user: {
+        Id: user.Id!,
+        Name: user.Name,
+        User: user.User,
+        Email: user.Mail
+      },
+      mode: 'edit'
+    };
+
+    const dialogRef = this.dialog.open(UserAccessDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      data: dialogData,
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Accesos actualizados para usuario:', user.Name);
       }
     });
   }

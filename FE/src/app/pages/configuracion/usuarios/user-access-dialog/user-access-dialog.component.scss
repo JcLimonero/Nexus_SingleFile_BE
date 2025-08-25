@@ -1,0 +1,190 @@
+// Estilos específicos para el diálogo de accesos de usuario
+// Los estilos principales están manejados por Tailwind CSS
+
+.mat-mdc-dialog-container {
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90vw;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-button {
+  text-transform: none;
+}
+
+// Spinner dentro del botón
+.mat-mdc-button mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+// Estilos para las tabs
+.mat-mdc-tab-group {
+  .mat-mdc-tab-body-wrapper {
+    min-height: 300px;
+  }
+}
+
+// Estilos para los chips compactos
+.mat-mdc-chip-set {
+  .mat-mdc-chip {
+    font-size: 11px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 0 8px !important;
+    
+    .mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+    }
+    
+    .mdc-chip__text {
+      font-size: 11px !important;
+    }
+    
+    // Avatar icon
+    .mat-mdc-chip-avatar {
+      font-size: 12px !important;
+      width: 16px !important;
+      height: 16px !important;
+      margin-right: 4px !important;
+    }
+    
+    // Remove icon
+    .mat-mdc-chip-remove {
+      font-size: 14px !important;
+      width: 16px !important;
+      height: 16px !important;
+      margin-left: 4px !important;
+    }
+  }
+}
+
+// Contenedor de chips con scroll
+.chips-container {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+}
+
+// Estilos para las listas de elementos asignados
+.access-item {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  
+  .item-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    
+    .mat-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+    
+    .item-name {
+      font-weight: 500;
+      color: #111827;
+    }
+  }
+  
+  .remove-button {
+    .mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Estado vacío
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  
+  .mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    color: #d1d5db;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+// Información del usuario
+.user-info {
+  background-color: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 24px;
+  
+  h3 {
+    color: #1e40af;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    font-size: 14px;
+    
+    .info-item {
+      .label {
+        color: #1d4ed8;
+        font-weight: 500;
+      }
+      
+      .value {
+        margin-left: 8px;
+        color: #1e3a8a;
+        
+        &.mono {
+          font-family: 'Courier New', monospace;
+        }
+      }
+    }
+  }
+}

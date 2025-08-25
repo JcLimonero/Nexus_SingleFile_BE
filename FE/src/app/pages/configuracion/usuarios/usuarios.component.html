@@ -43,7 +43,7 @@
 
       <!-- Filtro por agencia -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Agencia</mat-label>
+        <mat-label>Agencia Predeterminada</mat-label>
         <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()">
           <mat-option value="">Todas las agencias</mat-option>
           <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
@@ -80,7 +80,7 @@
       <!-- Columna Usuario -->
       <ng-container matColumnDef="User">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-          Usuario
+          Usuario DMS
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0 font-mono">
           {{ user.User }}
@@ -112,7 +112,7 @@
       <!-- Columna Agencia -->
       <ng-container matColumnDef="DefaultAgency">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-          Agencia
+          Agencia Predeterminada
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
           {{ user.AgencyName || getAgencyName(user.DefaultAgency) }}
@@ -121,7 +121,7 @@
 
       <!-- Columna Acciones -->
       <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef class="w-32 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+        <th mat-header-cell *matHeaderCellDef class="w-40 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Acciones
         </th>
         <td mat-cell *matCellDef="let user" class="text-center py-0">
@@ -134,7 +134,14 @@
               class="!w-6 !h-6 !min-h-6 !p-0">
               <mat-icon class="!text-sm">edit</mat-icon>
             </button>
-
+            <button
+              (click)="openAccessDialog(user)"
+              mat-icon-button
+              color="accent"
+              matTooltip="Gestionar Accesos"
+              class="!w-6 !h-6 !min-h-6 !p-0">
+              <mat-icon class="!text-sm">security</mat-icon>
+            </button>
             <button
               (click)="deleteUser(user)"
               mat-icon-button
