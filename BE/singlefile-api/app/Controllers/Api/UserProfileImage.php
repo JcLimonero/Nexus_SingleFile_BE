@@ -35,26 +35,38 @@ class UserProfileImage extends BaseController
             // Obtener archivo
             $file = $this->request->getFile('profile_image');
             if (!$file || !$file->isValid()) {
-                return $this->failValidationError('No se proporcionó un archivo válido');
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se proporcionó un archivo válido'
+                ])->setStatusCode(400);
             }
 
             // Validar tipo de archivo
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $mimeType = $file->getMimeType();
             if (!in_array($mimeType, $allowedTypes)) {
-                return $this->failValidationError('Tipo de archivo no permitido. Solo se permiten: JPEG, PNG, GIF, WEBP');
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Tipo de archivo no permitido. Solo se permiten: JPEG, PNG, GIF, WEBP'
+                ])->setStatusCode(400);
             }
 
             // Validar tamaño (máximo 5MB)
             $maxSize = 5 * 1024 * 1024; // 5MB
             if ($file->getSize() > $maxSize) {
-                return $this->failValidationError('El archivo es demasiado grande. Máximo 5MB permitido');
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El archivo es demasiado grande. Máximo 5MB permitido'
+                ])->setStatusCode(400);
             }
 
             // Validar dimensiones (máximo 2048x2048)
             $imageInfo = getimagesize($file->getTempName());
             if ($imageInfo[0] > 2048 || $imageInfo[1] > 2048) {
-                return $this->failValidationError('La imagen es demasiado grande. Máximo 2048x2048 píxeles');
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'La imagen es demasiado grande. Máximo 2048x2048 píxeles'
+                ])->setStatusCode(400);
             }
 
             // Convertir imagen a base64
@@ -87,7 +99,10 @@ class UserProfileImage extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en uploadProfileImage: ' . $e->getMessage());
-            return $this->failServerError('Error interno del servidor: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ])->setStatusCode(500);
         }
     }
 
@@ -128,7 +143,10 @@ class UserProfileImage extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en getProfileImage: ' . $e->getMessage());
-            return $this->failServerError('Error interno del servidor: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ])->setStatusCode(500);
         }
     }
 
@@ -166,7 +184,10 @@ class UserProfileImage extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en removeProfileImage: ' . $e->getMessage());
-            return $this->failServerError('Error interno del servidor: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ])->setStatusCode(500);
         }
     }
 
@@ -213,7 +234,10 @@ class UserProfileImage extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en getProfileImageInfo: ' . $e->getMessage());
-            return $this->failServerError('Error interno del servidor: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage()
+            ])->setStatusCode(500);
         }
     }
 

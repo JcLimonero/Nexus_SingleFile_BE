@@ -108,98 +108,98 @@ export class NavigationLoaderService {
     }
 
     // Agregar el resto de la navegación
-    navigationItems.push(
-      {
-        type: 'subheading',
-        label: 'Apps',
-        children: [
-          {
-            type: 'link',
-            label: 'All-In-One Table',
-            route: '/apps/aio-table',
-            icon: 'mat:assignment'
-          },
-          {
-            type: 'dropdown',
-            label: 'Help Center',
-            icon: 'mat:contact_support',
-            children: [
-              {
-                type: 'link',
-                label: 'Getting Started',
-                route: '/apps/help-center/getting-started'
-              },
-              {
-                type: 'link',
-                label: 'Pricing & Plans',
-                route: '/apps/help-center/pricing'
-              },
-              {
-                type: 'link',
-                label: 'FAQ',
-                route: '/apps/help-center/faq'
-              },
-              {
-                type: 'link',
-                label: 'Guides',
-                route: '/apps/help-center/guides'
-              }
-            ]
-          },
-          {
-            type: 'link',
-            label: 'Calendar',
-            route: '/apps/calendar',
-            icon: 'mat:date_range',
-            badge: {
-              value: '12',
-              bgClass: 'bg-purple-600',
-              textClass: 'text-white'
-            }
-          },
-          {
-            type: 'link',
-            label: 'Chat',
-            route: '/apps/chat',
-            icon: 'mat:chat',
-            badge: {
-              value: '16',
-              bgClass: 'bg-cyan-600',
-              textClass: 'text-white'
-            }
-          },
-          {
-            type: 'link',
-            label: 'Mailbox',
-            route: '/apps/mail',
-            icon: 'mat:mail',
-            badge: {
-              value: '27',
-              bgClass: 'bg-amber-600',
-              textClass: 'text-white'
-            }
-          },
-          {
-            type: 'link',
-            label: 'Social',
-            route: '/apps/social',
-            icon: 'mat:share'
-          },
-          {
-            type: 'link',
-            label: 'Contacts',
-            route: '/apps/contacts/grid',
-            icon: 'mat:contacts'
-          },
-          {
-            type: 'link',
-            label: 'Scrumboard',
-            route: '/apps/scrumboard/1',
-            icon: 'mat:assessment'
-          }
-        ]
-      }
-    );
+    // navigationItems.push(
+    //   {
+    //     type: 'subheading',
+    //     label: 'Apps',
+    //     children: [
+    //       {
+    //         type: 'link',
+    //         label: 'All-In-One Table',
+    //         route: '/apps/aio-table',
+    //         icon: 'mat:assignment'
+    //       },
+    //       {
+    //         type: 'dropdown',
+    //         label: 'Help Center',
+    //         icon: 'mat:contact_support',
+    //         children: [
+    //           {
+    //             type: 'link',
+    //             label: 'Getting Started',
+    //             route: '/apps/help-center/getting-started'
+    //           },
+    //           {
+    //             type: 'link',
+    //             label: 'Pricing & Plans',
+    //             route: '/apps/help-center/pricing'
+    //           },
+    //           {
+    //             type: 'link',
+    //             label: 'FAQ',
+    //             route: '/apps/help-center/faq'
+    //           },
+    //           {
+    //             type: 'link',
+    //             label: 'Guides',
+    //             route: '/apps/help-center/guides'
+    //           }
+    //         ]
+    //       },
+    //       {
+    //         type: 'link',
+    //         label: 'Calendar',
+    //         route: '/apps/calendar',
+    //         icon: 'mat:date_range',
+    //         badge: {
+    //           value: '12',
+    //           bgClass: 'bg-purple-600',
+    //           textClass: 'text-white'
+    //         }
+    //       },
+    //       {
+    //         type: 'link',
+    //         label: 'Chat',
+    //         route: '/apps/chat',
+    //         icon: 'mat:chat',
+    //         badge: {
+    //           value: '16',
+    //           bgClass: 'bg-cyan-600',
+    //           textClass: 'text-white'
+    //         }
+    //       },
+    //       {
+    //         type: 'link',
+    //         label: 'Mailbox',
+    //         route: '/apps/mail',
+    //         icon: 'mat:mail',
+    //         badge: {
+    //           value: '27',
+    //           bgClass: 'bg-amber-600',
+    //           textClass: 'text-white'
+    //         }
+    //       },
+    //       {
+    //         type: 'link',
+    //         label: 'Social',
+    //         route: '/apps/social',
+    //         icon: 'mat:share'
+    //         },
+    //       {
+    //         type: 'link',
+    //         label: 'Contacts',
+    //         route: '/apps/contacts/grid',
+    //         icon: 'mat:contacts'
+    //       },
+    //       {
+    //         type: 'link',
+    //         label: 'Scrumboard',
+    //         route: '/apps/scrumboard/1',
+    //         icon: 'mat:assessment'
+    //       }
+    //     ]
+    //   }
+    // );
 
     return new Observable(observer => {
       observer.next(navigationItems);
