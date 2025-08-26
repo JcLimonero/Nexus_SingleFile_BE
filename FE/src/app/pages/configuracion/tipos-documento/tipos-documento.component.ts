@@ -47,6 +47,8 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   searchTerm = '';
   statusFilter = '';
   phaseFilter = '';
+  requiredFilter = '';
+  expirationFilter = '';
   availablePhases: any[] = [];
   
   // Mapeo de nombres de columnas para mostrar
@@ -141,6 +143,8 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       searchTerm: this.searchTerm, 
       statusFilter: this.statusFilter, 
       phaseFilter: this.phaseFilter,
+      requiredFilter: this.requiredFilter,
+      expirationFilter: this.expirationFilter,
       totalTiposDocumento: this.tiposDocumento.length 
     });
     
@@ -159,6 +163,16 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       const matchesPhase = this.phaseFilter === '' || 
         tipoDocumento.ProcessTypeName === this.phaseFilter;
       
+      // Filtro por requerido
+      const matchesRequired = this.requiredFilter === '' || 
+        (this.requiredFilter === '1' && tipoDocumento.Required === '1') ||
+        (this.requiredFilter === '0' && tipoDocumento.Required === '0');
+      
+      // Filtro por requiere expiración
+      const matchesExpiration = this.expirationFilter === '' || 
+        (this.expirationFilter === '1' && tipoDocumento.ReqExpiration === '1') ||
+        (this.expirationFilter === '0' && tipoDocumento.ReqExpiration === '0');
+      
       // Debug para el primer elemento
       if (this.tiposDocumento.indexOf(tipoDocumento) === 0) {
         console.log('🔍 Primer elemento - Debug:', {
@@ -168,11 +182,15 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
           enabledType: typeof tipoDocumento.Enabled,
           statusFilter: this.statusFilter,
           statusFilterType: typeof this.statusFilter,
-          matchesStatus: matchesStatus
+          matchesStatus: matchesStatus,
+          requiredFilter: this.requiredFilter,
+          matchesRequired: matchesRequired,
+          expirationFilter: this.expirationFilter,
+          matchesExpiration: matchesExpiration
         });
       }
       
-      return matchesSearch && matchesStatus && matchesPhase;
+      return matchesSearch && matchesStatus && matchesPhase && matchesRequired && matchesExpiration;
     });
     
     // Reset paginator to first page
@@ -189,17 +207,23 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     console.log('🧹 Limpiando filtros - Antes:', { 
       searchTerm: this.searchTerm, 
       statusFilter: this.statusFilter,
-      phaseFilter: this.phaseFilter
+      phaseFilter: this.phaseFilter,
+      requiredFilter: this.requiredFilter,
+      expirationFilter: this.expirationFilter
     });
     
     this.searchTerm = '';
     this.statusFilter = '';
     this.phaseFilter = '';
+    this.requiredFilter = '';
+    this.expirationFilter = '';
     
     console.log('🧹 Limpiando filtros - Después:', { 
       searchTerm: this.searchTerm, 
       statusFilter: this.statusFilter,
-      phaseFilter: this.phaseFilter
+      phaseFilter: this.phaseFilter,
+      requiredFilter: this.requiredFilter,
+      expirationFilter: this.expirationFilter
     });
     
     this.applyFilter();

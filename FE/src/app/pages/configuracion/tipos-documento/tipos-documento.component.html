@@ -29,7 +29,7 @@
           mat-stroked-button 
           color="warn" 
           (click)="clearFilters()"
-          [disabled]="!searchTerm && !statusFilter && !phaseFilter"
+          [disabled]="!searchTerm && !statusFilter && !phaseFilter && !requiredFilter && !expirationFilter"
           matTooltip="Limpiar filtros"
           class="flex items-center gap-2">
           <mat-icon>clear_all</mat-icon>
@@ -50,7 +50,7 @@
       </div>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Buscar tipos de documento</mat-label>
@@ -81,6 +81,26 @@
           <mat-option *ngFor="let phase of availablePhases" [value]="phase.value">
             {{ phase.name }}
           </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filtro por requerido -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Requerido</mat-label>
+        <mat-select [(ngModel)]="requiredFilter" (ngModelChange)="applyFilter()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="1">Sí</mat-option>
+          <mat-option value="0">No</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filtro por requiere expiración -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Requiere Expiración</mat-label>
+        <mat-select [(ngModel)]="expirationFilter" (ngModelChange)="applyFilter()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="1">Sí</mat-option>
+          <mat-option value="0">No</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
