@@ -54,6 +54,30 @@
               </mat-select>
               <mat-hint>Selecciona las agencias a las que el usuario tendrá acceso</mat-hint>
             </mat-form-field>
+            
+            <!-- Botones de acción masiva para agencias -->
+            <div class="flex gap-2 mt-3">
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="primary" 
+                (click)="assignAllAgencies()"
+                class="flex items-center gap-2"
+                [disabled]="selectedAgencies.length === allAgencies.length">
+                <mat-icon>add_circle</mat-icon>
+                Asignar Todas
+              </button>
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="warn" 
+                (click)="removeAllAgencies()"
+                class="flex items-center gap-2"
+                [disabled]="selectedAgencies.length === 0">
+                <mat-icon>remove_circle</mat-icon>
+                Quitar Todas
+              </button>
+            </div>
           </div>
 
           <!-- Lista de agencias seleccionadas -->
@@ -107,6 +131,30 @@
               </mat-select>
               <mat-hint>Selecciona los procesos que el usuario podrá gestionar</mat-hint>
             </mat-form-field>
+            
+            <!-- Botones de acción masiva para procesos -->
+            <div class="flex gap-2 mt-3">
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="primary" 
+                (click)="assignAllProcesses()"
+                class="flex items-center gap-2"
+                [disabled]="selectedProcesses.length === allProcesses.length">
+                <mat-icon>add_circle</mat-icon>
+                Asignar Todos
+              </button>
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="warn" 
+                (click)="removeAllProcesses()"
+                class="flex items-center gap-2"
+                [disabled]="selectedProcesses.length === 0">
+                <mat-icon>remove_circle</mat-icon>
+                Quitar Todos
+              </button>
+            </div>
           </div>
 
           <!-- Lista de procesos seleccionados -->

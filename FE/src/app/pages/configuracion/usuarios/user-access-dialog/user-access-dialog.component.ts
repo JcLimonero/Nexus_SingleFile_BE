@@ -138,6 +138,54 @@ export class UserAccessDialogComponent implements OnInit {
     this.accessForm.patchValue({ processes: this.selectedProcesses });
   }
 
+  /**
+   * Asignar todas las agencias disponibles
+   */
+  assignAllAgencies(): void {
+    this.selectedAgencies = this.allAgencies.map(agency => agency.Id);
+    this.accessForm.patchValue({ agencies: this.selectedAgencies });
+    
+    this.snackBar.open(`Todas las agencias (${this.allAgencies.length}) han sido asignadas`, 'Éxito', {
+      duration: 2000
+    });
+  }
+
+  /**
+   * Quitar todas las agencias asignadas
+   */
+  removeAllAgencies(): void {
+    this.selectedAgencies = [];
+    this.accessForm.patchValue({ agencies: this.selectedAgencies });
+    
+    this.snackBar.open('Todas las agencias han sido removidas', 'Info', {
+      duration: 2000
+    });
+  }
+
+  /**
+   * Asignar todos los procesos disponibles
+   */
+  assignAllProcesses(): void {
+    this.selectedProcesses = this.allProcesses.map(process => process.Id);
+    this.accessForm.patchValue({ processes: this.selectedProcesses });
+    
+    this.snackBar.open(`Todos los procesos (${this.allProcesses.length}) han sido asignados`, 'Éxito', {
+      duration: 2000
+    });
+  }
+
+  /**
+   * Quitar todos los procesos asignados
+   */
+  removeAllProcesses(): void {
+    this.selectedProcesses = [];
+    this.accessForm.patchValue({ processes: this.selectedProcesses });
+    
+    this.snackBar.open('Todos los procesos han sido removidos', 'Info', {
+      duration: 2000
+    });
+  }
+
   getAgencyName(agencyId: string): string {
     const agency = this.allAgencies.find(a => a.Id === agencyId);
     return agency?.Name || `Agencia ${agencyId}`;
