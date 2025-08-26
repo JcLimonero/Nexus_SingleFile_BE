@@ -77,7 +77,7 @@ export class DocumentTypeEditDialogComponent implements OnInit {
         this.subProcesses = subProcessesResponse.data.processes || [];
       }
     }).catch(error => {
-      console.error('Error loading catalogs:', error);
+      // Error loading catalogs
     });
   }
 
@@ -131,7 +131,6 @@ export class DocumentTypeEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error creating document type:', error);
         this.snackBar.open('Error al crear tipo de documento', 'Error', {
           duration: 3000
         });
@@ -165,7 +164,6 @@ export class DocumentTypeEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error updating document type:', error);
         this.snackBar.open('Error al actualizar tipo de documento', 'Error', {
           duration: 3000
         });

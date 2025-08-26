@@ -99,7 +99,6 @@ export class CostumerTypeEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error creating costumer type:', error);
         this.snackBar.open('Error al crear tipo de cliente', 'Error', {
           duration: 3000
         });
@@ -130,7 +129,6 @@ export class CostumerTypeEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error updating costumer type:', error);
         this.snackBar.open('Error al actualizar tipo de cliente', 'Error', {
           duration: 3000
         });

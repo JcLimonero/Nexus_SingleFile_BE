@@ -54,7 +54,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     'Id': 'ID',
     'Name': 'Nombre',
     'ProcessTypeName': 'Fase',
-    'SubProcessName': 'Subproceso',
+    'SubProcessName': 'Sub Fase',
     'Required': 'Requerido',
     'ReqExpiration': 'Requiere expiración',
     'Enabled': 'Estado',
@@ -128,7 +128,6 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading tipos documento:', error);
         this.snackBar.open('Error al cargar tipos de documento', 'Error', { duration: 3000 });
         this.loading = false;
       }
@@ -235,7 +234,6 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
-          console.error('Error deleting document type:', error);
           this.snackBar.open('Error al eliminar tipo de documento', 'Error', {
             duration: 3000
           });
@@ -264,12 +262,11 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
           });
         }
       },
-      error: (error) => {
-        console.error('Error toggling status:', error);
-        this.snackBar.open('Error al cambiar estado', 'Error', {
-          duration: 3000
-        });
-      }
+              error: (error) => {
+          this.snackBar.open('Error al cambiar estado', 'Error', {
+            duration: 3000
+          });
+        }
     });
   }
 

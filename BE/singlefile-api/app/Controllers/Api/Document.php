@@ -540,7 +540,7 @@ class Document extends BaseController
     /**
      * Método auxiliar para obtener el ID del usuario actual
      */
-    private function getCurrentUserId()
+    protected function getCurrentUserId()
     {
         return parent::getCurrentUserId();
     }

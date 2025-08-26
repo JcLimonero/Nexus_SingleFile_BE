@@ -142,7 +142,6 @@ export class UserEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error creating user:', error);
         this.snackBar.open('Error al crear usuario', 'Error', {
           duration: 3000
         });
@@ -181,7 +180,6 @@ export class UserEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error updating user:', error);
         this.snackBar.open('Error al actualizar usuario', 'Error', {
           duration: 3000
         });
@@ -210,7 +208,7 @@ export class UserEditDialogComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading roles:', error);
+        // Error loading roles
       }
     });
   }
@@ -223,7 +221,7 @@ export class UserEditDialogComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error loading agencies:', error);
+        // Error loading agencies
       }
     });
   }

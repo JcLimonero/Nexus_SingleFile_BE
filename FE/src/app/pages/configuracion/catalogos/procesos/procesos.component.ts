@@ -100,7 +100,6 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       },
       error: (error) => {
-        console.error('Error loading procesos:', error);
         this.snackBar.open('Error de conexión al cargar procesos', 'Error', {
           duration: 3000
         });
@@ -199,7 +198,6 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
-          console.error('Error deleting proceso:', error);
           this.snackBar.open('Error al eliminar proceso', 'Error', {
             duration: 3000
           });

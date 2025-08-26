@@ -81,28 +81,20 @@ export class UserAccessDialogComponent implements OnInit {
       this.userAccessService.getActiveProcesses().toPromise(),
       this.userAccessService.getUserAccess(this.data.user.Id).toPromise()
     ]).then(([agenciesResponse, processesResponse, userAccessResponse]) => {
-      console.log('Agencies response:', agenciesResponse);
-      console.log('Processes response:', processesResponse);
-      console.log('User access response:', userAccessResponse);
-      
       // Procesar agencias disponibles
       if (agenciesResponse?.success) {
         this.allAgencies = agenciesResponse.data.agencies || [];
-        console.log('Loaded agencies:', this.allAgencies);
       }
       
       // Procesar procesos disponibles
       if (processesResponse?.success) {
         this.allProcesses = processesResponse.data.processes || [];
-        console.log('Loaded processes:', this.allProcesses);
       }
       
       // Cargar accesos actuales del usuario
       if (userAccessResponse?.success) {
         this.userAgencies = userAccessResponse.data.agencies || [];
         this.userProcesses = userAccessResponse.data.processes || [];
-        console.log('User agencies:', this.userAgencies);
-        console.log('User processes:', this.userProcesses);
       } else {
         // Si no hay accesos o hay error, inicializar vacío
         this.userAgencies = [];
@@ -121,7 +113,6 @@ export class UserAccessDialogComponent implements OnInit {
       
       this.loading = false;
     }).catch(error => {
-      console.error('Error loading access data:', error);
       this.snackBar.open('Error al cargar datos de acceso', 'Error', {
         duration: 3000
       });
@@ -186,7 +177,6 @@ export class UserAccessDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error updating user access:', error);
         this.snackBar.open('Error al actualizar accesos', 'Error', {
           duration: 3000
         });

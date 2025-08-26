@@ -107,7 +107,6 @@ export class ProcesoEditDialogComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        console.error('Error updating proceso:', error);
         this.snackBar.open('Error al actualizar proceso', 'Error', {
           duration: 3000
         });
@@ -132,7 +131,6 @@ export class ProcesoEditDialogComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        console.error('Error creating proceso:', error);
         this.snackBar.open('Error al crear proceso', 'Error', {
           duration: 3000
         });

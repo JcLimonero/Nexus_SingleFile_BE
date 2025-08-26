@@ -99,7 +99,6 @@ export class TipoOperacionEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error creating tipo operacion:', error);
         this.snackBar.open('Error al crear tipo de operación', 'Error', {
           duration: 3000
         });
@@ -130,7 +129,6 @@ export class TipoOperacionEditDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error updating tipo operacion:', error);
         this.snackBar.open('Error al actualizar tipo de operación', 'Error', {
           duration: 3000
         });

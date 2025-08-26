@@ -88,13 +88,17 @@ class DocumentModel extends Model
             d.IdCurrentStatus,
             d.IdDocumentError,
             dt.Name as DocumentTypeName,
+            dt.IdProcessType,
+            dt.IdSubProcess,
             dfs.Description as CurrentStatusDescription,
             dfe.Description as DocumentErrorDescription,
             u.Name as LastUserUpdateName,
             f.Id as FileId,
             f.Description as FileDescription,
             f.IdCurrentState as FileCurrentState,
-            fs.Description as FileStatusDescription
+            fs.Description as FileStatusDescription,
+            fss.Name as ProcessTypeName,
+            sp.Name as SubProcessName
         ');
 
         // JOINs para obtener las descripciones
@@ -104,6 +108,10 @@ class DocumentModel extends Model
         $builder->join('User u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('File f', 'f.Id = d.IdFile', 'left');
         $builder->join('File_Status fs', 'fs.Id = f.IdCurrentState', 'left');
+        // JOIN para obtener el tipo de proceso desde File_SubStatus
+        $builder->join('File_SubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
+        // JOIN para obtener el subproceso
+        $builder->join('Process sp', 'sp.Id = dt.IdSubProcess', 'left');
 
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -122,11 +130,21 @@ class DocumentModel extends Model
             $builder->where('d.IdFile', $filters['file_id']);
         }
 
+        if (!empty($filters['process_type'])) {
+            $builder->where('dt.IdProcessType', $filters['process_type']);
+        }
+
+        if (!empty($filters['sub_process'])) {
+            $builder->where('dt.IdSubProcess', $filters['sub_process']);
+        }
+
         if (!empty($filters['search'])) {
             $builder->groupStart();
             $builder->like('d.Name', $filters['search']);
             $builder->orLike('d.Comment', $filters['search']);
             $builder->orLike('dt.Name', $filters['search']);
+            $builder->orLike('fss.Name', $filters['search']);
+            $builder->orLike('sp.Name', $filters['search']);
             $builder->groupEnd();
         }
 
@@ -153,6 +171,8 @@ class DocumentModel extends Model
         
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
         $builder->join('File f', 'f.Id = d.IdFile', 'left');
+        $builder->join('File_SubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
+        $builder->join('Process sp', 'sp.Id = dt.IdSubProcess', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
         if (!empty($filters['enabled'])) {
@@ -171,11 +191,21 @@ class DocumentModel extends Model
             $builder->where('d.IdFile', $filters['file_id']);
         }
 
+        if (!empty($filters['process_type'])) {
+            $builder->where('dt.IdProcessType', $filters['process_type']);
+        }
+
+        if (!empty($filters['sub_process'])) {
+            $builder->where('dt.IdSubProcess', $filters['sub_process']);
+        }
+
         if (!empty($filters['search'])) {
             $builder->groupStart();
             $builder->like('d.Name', $filters['search']);
             $builder->orLike('d.Comment', $filters['search']);
             $builder->orLike('dt.Name', $filters['search']);
+            $builder->orLike('fss.Name', $filters['search']);
+            $builder->orLike('sp.Name', $filters['search']);
             $builder->groupEnd();
         }
 

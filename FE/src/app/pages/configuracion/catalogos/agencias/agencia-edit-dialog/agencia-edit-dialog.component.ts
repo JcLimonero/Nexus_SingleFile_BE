@@ -10,11 +10,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { Agencia, AgenciaUpdateRequest } from '../../../../../core/interfaces/agencia.interface';
-import { AgenciaService } from '../../../../../core/services/agencia.service';
+import { Agency } from '../../../../../core/services/agency.service';
+import { AgencyService } from '../../../../../core/services/agency.service';
 
 export interface AgenciaEditDialogData {
-  agencia: Agencia;
+  agencia: Agency;
   mode: 'edit' | 'create';
 }
 
@@ -41,7 +41,7 @@ export class AgenciaEditDialogComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private agenciaService: AgenciaService,
+    private agencyService: AgencyService,
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<AgenciaEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AgenciaEditDialogData
@@ -90,12 +90,12 @@ export class AgenciaEditDialogComponent implements OnInit {
   }
 
   private updateAgencia(): void {
-    const updateData: AgenciaUpdateRequest = {
+    const updateData = {
       Id: this.data.agencia.Id,
       ...this.agenciaForm.value
     };
 
-    this.agenciaService.updateAgencia(updateData).subscribe({
+    this.agencyService.updateAgency(Number(updateData.Id), updateData).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
@@ -111,7 +111,6 @@ export class AgenciaEditDialogComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        console.error('Error updating agencia:', error);
         this.snackBar.open('Error de conexión al actualizar agencia', 'Error', {
           duration: 3000
         });
@@ -122,7 +121,7 @@ export class AgenciaEditDialogComponent implements OnInit {
   private createAgencia(): void {
     const createData = this.agenciaForm.value;
 
-    this.agenciaService.createAgencia(createData).subscribe({
+    this.agencyService.createAgency(createData).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
@@ -138,7 +137,6 @@ export class AgenciaEditDialogComponent implements OnInit {
       },
       error: (error) => {
         this.loading = false;
-        console.error('Error creating agencia:', error);
         this.snackBar.open('Error de conexión al crear agencia', 'Error', {
           duration: 3000
         });

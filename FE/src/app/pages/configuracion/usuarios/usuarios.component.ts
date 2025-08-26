@@ -97,7 +97,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading users:', error);
         this.snackBar.open('Error al cargar usuarios', 'Error', {
           duration: 3000
         });
@@ -112,11 +111,11 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         if (response.success) {
           this.roles = response.data.roles;
         } else {
-          console.error('Error al cargar roles:', response.message);
+          // Error al cargar roles
         }
       },
       error: (error) => {
-        console.error('Error loading roles:', error);
+        // Error loading roles
       }
     });
   }
@@ -127,11 +126,11 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         if (response.success) {
           this.agencies = response.data.agencies.filter(agency => agency.Enabled === '1');
         } else {
-          console.error('Error al cargar agencias:', response.message);
+          // Error al cargar agencias
         }
       },
       error: (error) => {
-        console.error('Error loading agencies:', error);
+        // Error loading agencies
       }
     });
   }
@@ -181,14 +180,10 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   openCreateDialog(): void {
-    console.log('openCreateDialog called');
-    
     const dialogData = {
       user: {} as User,
       mode: 'create' as const
     };
-
-    console.log('Opening dialog with data:', dialogData);
 
     try {
       const dialogRef = this.dialog.open(UserEditDialogComponent, {
@@ -197,16 +192,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         disableClose: false
       });
 
-      console.log('Dialog opened successfully:', dialogRef);
-
       dialogRef.afterClosed().subscribe(result => {
-        console.log('Dialog closed with result:', result);
         if (result) {
           this.refreshData();
         }
       });
     } catch (error) {
-      console.error('Error opening dialog:', error);
+      // Error opening dialog
     }
   }
 
@@ -247,25 +239,19 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       disableClose: false
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('Accesos actualizados para usuario:', user.Name);
-      }
-    });
+          dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          // Accesos actualizados para usuario
+        }
+      });
   }
 
   deleteUser(user: User): void {
-    console.log('deleteUser called for user:', user);
-    
     const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${user.Name || user.User}"?`);
-    console.log('User confirmed deletion:', confirmDelete);
     
     if (confirmDelete) {
-      console.log('Calling API to delete user with ID:', user.Id);
-      
       this.userService.deleteUser(user.Id).subscribe({
         next: (response) => {
-          console.log('Delete response:', response);
           if (response && response.success) {
             this.users = this.users.filter(u => u.Id !== user.Id);
             this.applyFilter();
@@ -273,14 +259,12 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
               duration: 2000
             });
           } else {
-            console.error('Delete failed:', response);
             this.snackBar.open(response?.message || 'Error al eliminar usuario', 'Error', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('Error deleting user:', error);
           this.snackBar.open(`Error al eliminar usuario: ${error.message || 'Error desconocido'}`, 'Error', {
             duration: 5000
           });

@@ -599,7 +599,7 @@ class Process extends BaseController
      * Método auxiliar para obtener el ID del usuario actual
      * Ahora utiliza la funcionalidad del BaseController
      */
-    private function getCurrentUserId()
+    protected function getCurrentUserId()
     {
         return parent::getCurrentUserId();
     }

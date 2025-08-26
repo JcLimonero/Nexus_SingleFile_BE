@@ -15,16 +15,19 @@ import {
   FileStatusResponse,
   FileSubStatusResponse
 } from '../interfaces/document.interface';
-import { environment } from '../../../environments/environment';
+import { ApiBaseService } from './api-base.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
-  private readonly API_URL = `${environment.apiUrl}/document`;
-  private readonly CATALOG_URL = `${environment.apiUrl}`;
+  private readonly API_URL = 'document';
+  private readonly CATALOG_URL = '';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private apiBaseService: ApiBaseService
+  ) { }
 
   /**
    * Obtener todos los documentos con filtros y paginación
@@ -40,49 +43,49 @@ export class DocumentService {
       });
     }
 
-    return this.http.get<DocumentResponse>(this.API_URL, { params: httpParams });
+    return this.http.get<DocumentResponse>(this.apiBaseService.buildApiUrl(this.API_URL), { params: httpParams });
   }
 
   /**
    * Obtener un documento específico por ID
    */
   getDocument(id: number): Observable<any> {
-    return this.http.get(`${this.API_URL}/${id}`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   /**
    * Crear un nuevo documento
    */
   createDocument(document: DocumentCreateRequest): Observable<any> {
-    return this.http.post(this.API_URL, document);
+    return this.http.post(this.apiBaseService.buildApiUrl(this.API_URL), document);
   }
 
   /**
    * Actualizar un documento existente
    */
   updateDocument(id: number, document: DocumentUpdateRequest): Observable<any> {
-    return this.http.put(`${this.API_URL}/${id}`, document);
+    return this.http.put(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, document);
   }
 
   /**
    * Eliminar un documento
    */
   deleteDocument(id: number): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${id}`);
+    return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   /**
    * Cambiar estado (habilitado/deshabilitado) de un documento
    */
   toggleStatus(id: number): Observable<any> {
-    return this.http.patch(`${this.API_URL}/${id}/toggle-status`, {});
+    return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/toggle-status`, {});
   }
 
   /**
    * Obtener documentos por archivo específico
    */
   getDocumentsByFile(fileId: number): Observable<DocumentByFileResponse> {
-    return this.http.get<DocumentByFileResponse>(`${this.API_URL}/by-file/${fileId}`);
+    return this.http.get<DocumentByFileResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/by-file/${fileId}`);
   }
 
   /**
@@ -94,14 +97,14 @@ export class DocumentService {
       params = params.set('limit', limit.toString());
     }
     
-    return this.http.get<DocumentSearchResponse>(`${this.API_URL}/search`, { params });
+    return this.http.get<DocumentSearchResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/search`, { params });
   }
 
   /**
    * Obtener estadísticas de los documentos
    */
   getStats(): Observable<DocumentStatsResponse> {
-    return this.http.get<DocumentStatsResponse>(`${this.API_URL}/stats`);
+    return this.http.get<DocumentStatsResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/stats`);
   }
 
   /**
@@ -145,28 +148,28 @@ export class DocumentService {
    * Obtener estados de archivo de documento
    */
   getDocumentFileStatuses(): Observable<DocumentFileStatusResponse> {
-    return this.http.get<DocumentFileStatusResponse>(`${this.CATALOG_URL}/document-file-status`);
+    return this.http.get<DocumentFileStatusResponse>(`${this.apiBaseService.buildApiUrl('document-file-status')}`);
   }
 
   /**
    * Obtener errores de archivo de documento
    */
   getDocumentFileErrors(): Observable<DocumentFileErrorResponse> {
-    return this.http.get<DocumentFileErrorResponse>(`${this.CATALOG_URL}/document-file-error`);
+    return this.http.get<DocumentFileErrorResponse>(`${this.apiBaseService.buildApiUrl('document-file-error')}`);
   }
 
   /**
    * Obtener estados de archivo
    */
   getFileStatuses(): Observable<FileStatusResponse> {
-    return this.http.get<FileStatusResponse>(`${this.CATALOG_URL}/file-status`);
+    return this.http.get<FileStatusResponse>(`${this.apiBaseService.buildApiUrl('file-status')}`);
   }
 
   /**
    * Obtener sub-estados de archivo
    */
   getFileSubStatuses(): Observable<FileSubStatusResponse> {
-    return this.http.get<FileSubStatusResponse>(`${this.CATALOG_URL}/file-substatus`);
+    return this.http.get<FileSubStatusResponse>(`${this.apiBaseService.buildApiUrl('file-substatus')}`);
   }
 
   // Métodos de utilidad

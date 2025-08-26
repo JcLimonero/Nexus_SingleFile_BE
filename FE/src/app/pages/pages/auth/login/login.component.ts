@@ -70,31 +70,25 @@ export class LoginComponent {
           this.loading = false;
           this.cd.markForCheck();
           
-          console.log('🔐 Respuesta del login:', response);
-          
           if (response.success) {
             const roleInfo = response.user?.role_name || response.user?.role ? ` (${response.user.role_name || response.user.role})` : '';
             this.snackbar.open(`Inicio de sesión exitoso${roleInfo}`, 'OK', {
               duration: 3000
             });
             
-            console.log('🧭 Esperando a que el estado se actualice...');
-            
             // Esperar a que el estado de autenticación se actualice
             this.authService.isAuthenticated$.pipe(take(1)).subscribe(isAuth => {
               if (isAuth) {
-                console.log('✅ Estado actualizado, navegando a /...');
                 this.router.navigate(['/']).then(() => {
-                  console.log('✅ Navegación exitosa a /');
+                  // Navegación exitosa
                 }).catch(error => {
-                  console.error('❌ Error en navegación:', error);
+                  // Error en navegación
                 });
               } else {
-                console.error('❌ Estado no se actualizó correctamente');
+                // Estado no se actualizó correctamente
               }
             });
           } else {
-            console.log('❌ Login fallido:', response.message);
             this.snackbar.open(response.message || 'Error en el inicio de sesión', 'Error', {
               duration: 5000
             });
@@ -104,7 +98,6 @@ export class LoginComponent {
           this.loading = false;
           this.cd.markForCheck();
           
-          console.error('Error en login:', error);
           this.snackbar.open(
             'Error de conexión. Verifica tu conexión a internet.',
             'Error',
@@ -133,7 +126,6 @@ export class LoginComponent {
 
   // Método de prueba temporal
   testLogout() {
-    console.log('🧪 Probando logout desde el componente...');
     this.authService.testLogout();
   }
 }

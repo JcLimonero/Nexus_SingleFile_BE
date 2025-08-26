@@ -196,7 +196,6 @@ class Agency extends BaseController
             // Preparar datos para inserción
             $agencyData = [
                 'Name' => trim($data['Name']),
-                'SubFix' => $data['SubFix'] ?? null,
                 'IdAgency' => $data['IdAgency'] ?? null,
                 'Enabled' => $data['Enabled'] ?? 1,
                 'RegistrationDate' => date('Y-m-d H:i:s'),
@@ -338,7 +337,6 @@ class Agency extends BaseController
             // Preparar datos para actualización
             $updateData = [
                 'Name' => trim($data['Name']),
-                'SubFix' => $data['SubFix'] ?? $existingAgency['SubFix'],
                 'IdAgency' => $data['IdAgency'] ?? $existingAgency['IdAgency'],
                 'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $existingAgency['Enabled'],
                 'UpdateDate' => date('Y-m-d H:i:s'),
@@ -575,41 +573,16 @@ class Agency extends BaseController
     /**
      * GET /api/agency/regions
      * Obtener todas las regiones disponibles
+     * NOTA: Método deshabilitado - columna SubFix no existe
      */
     public function regions()
     {
-        try {
-            $regions = $this->agencyModel
-                ->select('SubFix')
-                ->where('SubFix IS NOT NULL')
-                ->where('SubFix !=', '')
-                ->where('Enabled', 1)
-                ->groupBy('SubFix')
-                ->orderBy('SubFix', 'ASC')
-                ->findAll();
-            
-            $regionList = array_column($regions, 'SubFix');
-            
-            return $this->response
-                ->setStatusCode(200)
-                ->setJSON([
-                    'success' => true,
-                    'message' => 'Regiones obtenidas exitosamente',
-                    'data' => [
-                        'regions' => $regionList,
-                        'count' => count($regionList)
-                    ]
-                ]);
-                
-        } catch (\Exception $e) {
-            return $this->response
-                ->setStatusCode(500)
-                ->setJSON([
-                    'success' => false,
-                    'message' => 'Error interno del servidor',
-                    'error' => $e->getMessage()
-                ]);
-        }
+        return $this->response
+            ->setStatusCode(501)
+            ->setJSON([
+                'success' => false,
+                'message' => 'Funcionalidad de regiones no disponible - columna SubFix removida'
+            ]);
     }
     
     /**
@@ -623,15 +596,8 @@ class Agency extends BaseController
             $enabledAgencies = $this->agencyModel->countEnabledAgencies();
             $disabledAgencies = $totalAgencies - $enabledAgencies;
             
-            // Contar agencias por región
-            $regions = $this->agencyModel
-                ->select('SubFix, COUNT(*) as count')
-                ->where('SubFix IS NOT NULL')
-                ->where('SubFix !=', '')
-                ->where('Enabled', 1)
-                ->groupBy('SubFix')
-                ->orderBy('count', 'DESC')
-                ->findAll();
+            // Contar agencias por región - deshabilitado por columna SubFix removida
+            $regions = [];
             
             return $this->response
                 ->setStatusCode(200)
@@ -641,8 +607,7 @@ class Agency extends BaseController
                     'data' => [
                         'total' => $totalAgencies,
                         'enabled' => $enabledAgencies,
-                        'disabled' => $disabledAgencies,
-                        'regions' => $regions
+                        'disabled' => $disabledAgencies
                     ]
                 ]);
                 
@@ -661,7 +626,7 @@ class Agency extends BaseController
      * Método auxiliar para obtener el ID del usuario actual
      * Ahora utiliza la funcionalidad del BaseController
      */
-    private function getCurrentUserId()
+    protected function getCurrentUserId()
     {
         return parent::getCurrentUserId();
     }

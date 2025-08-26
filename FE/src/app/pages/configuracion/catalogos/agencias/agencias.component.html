@@ -11,12 +11,42 @@
       (click)="openCreateDialog()"
       class="flex items-center gap-2">
       <mat-icon>add_circle</mat-icon>
-      Nueva Agencia
+      Nueva Agencia 
     </button>
   </div>
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-medium text-gray-900">Filtros y Acciones</h3>
+      <!-- Botones de acción -->
+      <div class="flex items-center gap-3">
+        <!-- Botón de Limpiar Filtros -->
+        <button 
+          mat-stroked-button 
+          color="warn" 
+          (click)="clearFilters()"
+          [disabled]="!searchTerm && !statusFilter"
+          matTooltip="Limpiar filtros"
+          class="flex items-center gap-2">
+          <mat-icon>clear_all</mat-icon>
+          Limpiar Filtros
+        </button>
+        
+        <!-- Botón de Reload en filtros -->
+        <button 
+          mat-stroked-button 
+          color="accent" 
+          (click)="refreshData()"
+          [disabled]="loading"
+          matTooltip="Recargar datos"
+          class="flex items-center gap-2">
+          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+          Recargar
+        </button>
+      </div>
+    </div>
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">

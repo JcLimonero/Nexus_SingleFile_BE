@@ -17,11 +17,9 @@ export class LoginGuard implements CanActivate {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
-          console.log('🔒 LoginGuard - Usuario ya autenticado, redirigiendo a /');
           this.router.navigate(['/']);
           return false;
         } else {
-          console.log('✅ LoginGuard - Acceso permitido al login');
           return true;
         }
       })

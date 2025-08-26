@@ -13,11 +13,8 @@ export class NavigationLoaderService {
     new BehaviorSubject<NavigationItem[]>([]);
 
   get items$(): Observable<NavigationItem[]> {
-    console.log('🔍 items$ getter llamado');
-    
     return this.authService.currentUser$.pipe(
       switchMap(user => {
-        console.log('🔍 currentUser$ emitió usuario:', user);
         return this.buildNavigation(user);
       })
     );
@@ -31,16 +28,7 @@ export class NavigationLoaderService {
   }
 
   private buildNavigation(user: any): Observable<NavigationItem[]> {
-    console.log('🔍 buildNavigation llamado con usuario:', user);
-    
     const isConfigUser = this.isConfigUser(user);
-    console.log('🔍 isConfigUser resultado:', isConfigUser);
-    console.log('🔍 Detalles del usuario:', {
-      hasUser: !!user,
-      role_id: user?.role_id,
-      role_name: user?.role_name,
-      role: user?.role
-    });
     
     const navigationItems: NavigationItem[] = [
       {
@@ -60,7 +48,6 @@ export class NavigationLoaderService {
 
     // Solo agregar la sección de configuración si el usuario tiene permisos
     if (isConfigUser) {
-      console.log('✅ Agregando sección CONFIGURACIÓN al menú');
       navigationItems.push({
         type: 'subheading',
         label: 'Configuración',
@@ -116,11 +103,9 @@ export class NavigationLoaderService {
         }
         ]
       });
-    } else {
-      console.log('❌ NO se agrega sección CONFIGURACIÓN - usuario no autorizado');
+        } else {
+      // Usuario no autorizado para configuración
     }
-
-    console.log('🔍 Navegación final construida:', navigationItems);
 
     // Agregar el resto de la navegación
     navigationItems.push(
@@ -227,25 +212,12 @@ export class NavigationLoaderService {
   }
 
   private isConfigUser(user: any): boolean {
-    console.log('🔍 isConfigUser llamado con:', user);
-    console.log('🔍 Verificando role_id:', user?.role_id);
-    console.log('🔍 Tipo de role_id:', typeof user?.role_id);
-    
     // Convertir a number para comparación segura
     const roleId = Number(user?.role_id);
-    console.log('🔍 role_id convertido a number:', roleId);
     
     const is6 = roleId === 6;
     const is7 = roleId === 7;
     const resultado = user && (is6 || is7);
-    
-    console.log('🔍 Comparación:', {
-      role_id_original: user?.role_id,
-      role_id_number: roleId,
-      is6: is6,
-      is7: is7,
-      resultado: resultado
-    });
     
     return resultado;
   }

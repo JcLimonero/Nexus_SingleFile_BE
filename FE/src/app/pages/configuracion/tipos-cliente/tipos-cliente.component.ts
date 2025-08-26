@@ -72,19 +72,14 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   }
 
   loadTiposCliente(): void {
-    console.log('🔄 Cargando tipos de cliente...');
     this.loading = true;
     this.costumerTypeService.getAllCostumerTypes().subscribe({
       next: (response: CostumerTypeResponse) => {
-        console.log('✅ Respuesta del API:', response);
         if (response.success) {
           this.tiposCliente = response.data.costumer_types;
-          console.log('📊 Tipos de cliente cargados:', this.tiposCliente);
           this.dataSource.data = this.tiposCliente;
           this.applyFilter();
-          console.log('🔢 Total de registros en dataSource:', this.dataSource.data.length);
         } else {
-          console.error('❌ Error en respuesta del API:', response.message);
           this.snackBar.open(response.message || 'Error al cargar tipos de cliente', 'Error', {
             duration: 3000
           });
@@ -92,7 +87,6 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('❌ Error loading tipos cliente:', error);
         this.snackBar.open('Error al cargar tipos de cliente', 'Error', {
           duration: 3000
         });
@@ -182,7 +176,6 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
-          console.error('Error deleting costumer type:', error);
           this.snackBar.open('Error al eliminar tipo de cliente', 'Error', {
             duration: 3000
           });
@@ -211,12 +204,11 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
           });
         }
       },
-      error: (error) => {
-        console.error('Error toggling status:', error);
-        this.snackBar.open('Error al cambiar estado', 'Error', {
-          duration: 3000
-        });
-      }
+              error: (error) => {
+          this.snackBar.open('Error al cambiar estado', 'Error', {
+            duration: 3000
+          });
+        }
     });
   }
 

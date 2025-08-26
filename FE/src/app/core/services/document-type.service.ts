@@ -10,15 +10,18 @@ import {
   DocumentTypeSearchResponse,
   DocumentTypeActiveResponse
 } from '../interfaces/document-type.interface';
-import { environment } from '../../../environments/environment';
+import { ApiBaseService } from './api-base.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentTypeService {
-  private readonly API_URL = `${environment.apiUrl}/document-type`;
+  private readonly API_URL = 'document-type';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private apiBaseService: ApiBaseService
+  ) { }
 
   /**
    * Obtener todos los tipos de documento con filtros y paginación
@@ -41,49 +44,49 @@ export class DocumentTypeService {
       });
     }
 
-    return this.http.get<DocumentTypeResponse>(this.API_URL, { params: httpParams });
+    return this.http.get<DocumentTypeResponse>(this.apiBaseService.buildApiUrl(this.API_URL), { params: httpParams });
   }
 
   /**
    * Obtener un tipo de documento específico por ID
    */
   getDocumentType(id: number): Observable<any> {
-    return this.http.get(`${this.API_URL}/${id}`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   /**
    * Crear un nuevo tipo de documento
    */
   createDocumentType(documentType: DocumentTypeCreateRequest): Observable<any> {
-    return this.http.post(this.API_URL, documentType);
+    return this.http.post(this.apiBaseService.buildApiUrl(this.API_URL), documentType);
   }
 
   /**
    * Actualizar un tipo de documento existente
    */
   updateDocumentType(id: number, documentType: DocumentTypeUpdateRequest): Observable<any> {
-    return this.http.put(`${this.API_URL}/${id}`, documentType);
+    return this.http.put(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, documentType);
   }
 
   /**
    * Eliminar un tipo de documento
    */
   deleteDocumentType(id: number): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${id}`);
+    return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   /**
    * Cambiar estado (habilitado/deshabilitado) de un tipo de documento
    */
   toggleStatus(id: number): Observable<any> {
-    return this.http.patch(`${this.API_URL}/${id}/toggle-status`, {});
+    return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/toggle-status`, {});
   }
 
   /**
    * Obtener solo los tipos de documento activos
    */
   getActiveDocumentTypes(): Observable<DocumentTypeActiveResponse> {
-    return this.http.get<DocumentTypeActiveResponse>(`${this.API_URL}/active`);
+    return this.http.get<DocumentTypeActiveResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/active`);
   }
 
   /**
@@ -95,14 +98,14 @@ export class DocumentTypeService {
       params = params.set('limit', limit.toString());
     }
     
-    return this.http.get<DocumentTypeSearchResponse>(`${this.API_URL}/search`, { params });
+    return this.http.get<DocumentTypeSearchResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/search`, { params });
   }
 
   /**
    * Obtener estadísticas de los tipos de documento
    */
   getStats(): Observable<DocumentTypeStatsResponse> {
-    return this.http.get<DocumentTypeStatsResponse>(`${this.API_URL}/stats`);
+    return this.http.get<DocumentTypeStatsResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/stats`);
   }
 
   /**
@@ -130,13 +133,13 @@ export class DocumentTypeService {
    * Obtener estados de archivo activos (File_Status)
    */
   getActiveFileStatuses(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/file-status?enabled=1`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl('file-status')}?enabled=1`);
   }
 
   /**
    * Obtener subprocesos activos
    */
   getActiveSubProcesses(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/process?enabled=1`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl('process')}?enabled=1`);
   }
 }

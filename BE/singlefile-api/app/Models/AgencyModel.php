@@ -14,7 +14,7 @@ class AgencyModel extends Model
     protected $protectFields = true;
     protected $allowedFields = [
         'Id', 'Name', 'RegistrationDate', 'UpdateDate', 
-        'IdLastUserUpdate', 'Enabled', 'SubFix', 'IdAgency'
+        'IdLastUserUpdate', 'Enabled', 'IdAgency'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -33,7 +33,6 @@ class AgencyModel extends Model
     // Validation
     protected $validationRules = [
         'Name' => 'required|min_length[3]|max_length[600]',
-        'SubFix' => 'permit_empty|max_length[50]',
         'IdAgency' => 'permit_empty|max_length[50]',
         'Enabled' => 'permit_empty|in_list[0,1]'
     ];
@@ -44,9 +43,7 @@ class AgencyModel extends Model
             'min_length' => 'El nombre debe tener al menos 3 caracteres',
             'max_length' => 'El nombre no puede exceder 600 caracteres'
         ],
-        'SubFix' => [
-            'max_length' => 'El SubFix no puede exceder 50 caracteres'
-        ],
+
         'IdAgency' => [
             'max_length' => 'El IdAgency no puede exceder 50 caracteres'
         ],
@@ -301,9 +298,7 @@ class AgencyModel extends Model
             $query->like('Name', $filters['name']);
         }
         
-        if (!empty($filters['region'])) {
-            $query->where('SubFix', $filters['region']);
-        }
+        // Filtro por región deshabilitado - columna SubFix removida
         
         if (isset($filters['enabled'])) {
             $query->where('Enabled', $filters['enabled']);
@@ -341,15 +336,11 @@ class AgencyModel extends Model
 
     /**
      * Obtener estadísticas de agencias por región
+     * NOTA: Método deshabilitado - columna SubFix removida
      */
     public function getAgencyStatsByRegion()
     {
-        return $this->select('SubFix, COUNT(*) as total_count, SUM(Enabled) as enabled_count')
-                    ->where('SubFix IS NOT NULL')
-                    ->where('SubFix !=', '')
-                    ->groupBy('SubFix')
-                    ->orderBy('total_count', 'DESC')
-                    ->findAll();
+        return [];
     }
 
     /**
@@ -439,9 +430,7 @@ class AgencyModel extends Model
             $query->like('Name', $filters['name']);
         }
         
-        if (!empty($filters['region'])) {
-            $query->where('SubFix', $filters['region']);
-        }
+        // Filtro por región deshabilitado - columna SubFix removida
         
         if (isset($filters['enabled'])) {
             $query->where('Enabled', $filters['enabled']);

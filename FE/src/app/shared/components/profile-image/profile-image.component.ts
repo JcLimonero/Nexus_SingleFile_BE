@@ -218,7 +218,7 @@ export class ProfileImageComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          console.log('Usuario sin imagen de perfil o error al cargar');
+          // Usuario sin imagen de perfil o error al cargar
           this.loading = false;
         }
       });
@@ -303,7 +303,6 @@ export class ProfileImageComponent implements OnInit, OnDestroy {
   }
   
   onImageError() {
-    console.error('Error al cargar la imagen de perfil');
     this.imageUrl = null;
   }
 }

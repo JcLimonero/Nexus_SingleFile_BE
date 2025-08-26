@@ -17,8 +17,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 
-import { Agencia, AgenciaCreateRequest, AgenciaUpdateRequest } from '../../../../core/interfaces/agencia.interface';
-import { AgenciaService } from '../../../../core/services/agencia.service';
+import { Agency } from '../../../../core/services/agency.service';
+import { AgencyService } from '../../../../core/services/agency.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edit-dialog/agencia-edit-dialog.component';
 
 @Component({
@@ -47,8 +48,8 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
   templateUrl: './agencias.component.html'
 })
 export class AgenciasComponent implements OnInit, AfterViewInit {
-  agencias: Agencia[] = [];
-  dataSource = new MatTableDataSource<Agencia>([]);
+  agencias: Agency[] = [];
+  dataSource = new MatTableDataSource<Agency>([]);
   totalAgencias = 0;
   searchTerm = '';
   statusFilter = '';
@@ -61,14 +62,39 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
-    private agenciaService: AgenciaService,
+    private agencyService: AgencyService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadAgencias();
+    // Verificar autenticación antes de cargar datos
+    if (this.checkAuthentication()) {
+      this.loadAgencias();
+    }
+  }
+
+  /**
+   * Verificar si el usuario está autenticado
+   */
+  private checkAuthentication(): boolean {
+    const isAuthenticated = this.authService.isAuthenticated();
+    const token = this.authService.getToken();
+    
+    if (!isAuthenticated || !token) {
+      this.snackBar.open('Debes iniciar sesión para acceder a esta funcionalidad', 'Error', {
+        duration: 5000
+      });
+      
+      // Aquí podrías redirigir al login
+      // this.router.navigate(['/login']);
+      
+      return false;
+    }
+    
+    return true;
   }
 
   ngAfterViewInit(): void {
@@ -76,21 +102,42 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     this.dataSource.sort = this.sort;
     
     // Configurar filtro personalizado
-    this.dataSource.filterPredicate = (data: Agencia, filter: string) => {
+    this.dataSource.filterPredicate = (data: Agency, filter: string) => {
       const searchTerm = filter.toLowerCase();
-      return data.Name.toLowerCase().includes(searchTerm) ||
-             data.IdAgency.toLowerCase().includes(searchTerm);
+      const matches = data.Name.toLowerCase().includes(searchTerm) ||
+             (data.IdAgency ? data.IdAgency.toLowerCase().includes(searchTerm) : false);
+      
+      return matches;
     };
   }
 
   loadAgencias(): void {
     this.loading = true;
-    this.agenciaService.getAgencias().subscribe({
-      next: (response) => {
+    
+    this.agencyService.getAgencies().subscribe({
+      next: (response: any) => {
+        
         if (response.success && response.data?.agencies) {
-          this.agencias = response.data.agencies;
+          
+          // Convertir a array si no lo es
+          const agenciasArray = Array.isArray(response.data.agencies) 
+            ? response.data.agencies 
+            : Object.values(response.data.agencies);
+          
+          this.agencias = agenciasArray;
           this.totalAgencias = response.data.total;
-          this.dataSource.data = this.agencias;
+          
+          // Asignar al DataSource usando setData o creando un nuevo DataSource
+          this.dataSource = new MatTableDataSource<Agency>(this.agencias);
+          
+          // Reconfigurar paginator y sort
+          if (this.paginator) {
+            this.dataSource.paginator = this.paginator;
+          }
+          if (this.sort) {
+            this.dataSource.sort = this.sort;
+          }
+          
           this.applyFilter();
         } else {
           this.snackBar.open(response.message || 'Error al cargar agencias', 'Error', {
@@ -100,8 +147,8 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
         this.loading = false;
         this.cdr.markForCheck();
       },
-      error: (error) => {
-        console.error('Error loading agencias:', error);
+      error: (error: any) => {
+        
         this.snackBar.open('Error de conexión al cargar agencias', 'Error', {
           duration: 3000
         });
@@ -109,9 +156,11 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       }
     });
+    
   }
 
   applyFilter(): void {
+    
     // Combinar filtros
     let filterValue = '';
     
@@ -124,13 +173,15 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     
     // Aplicar filtro de estado si existe
     if (this.statusFilter !== '') {
-      const status = this.statusFilter === 'true' ? '1' : '0';
+      const status = this.statusFilter === 'true' ? 1 : 0;
+      
       this.dataSource.data = this.agencias.filter(agencia => 
         agencia.Enabled === status &&
         (filterValue === '' || 
          agencia.Name.toLowerCase().includes(filterValue.toLowerCase()) ||
-         agencia.IdAgency.toLowerCase().includes(filterValue.toLowerCase()))
+         (agencia.IdAgency && agencia.IdAgency.toLowerCase().includes(filterValue.toLowerCase())))
       );
+      
     } else {
       this.dataSource.data = this.agencias;
       this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -140,15 +191,83 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    
   }
 
   refreshData(): void {
+    
+    // Mostrar mensaje de recarga
+    this.snackBar.open('Recargando datos...', 'Info', {
+      duration: 1000
+    });
+    
+    // Recargar datos
+    this.loadAgencias();
+  }
+
+  /**
+   * Limpiar todos los filtros aplicados
+   */
+  clearFilters(): void {
+    
+    // Verificar si hay filtros activos
+    const hasActiveFilters = this.searchTerm || this.statusFilter;
+    
+    if (!hasActiveFilters) {
+      this.snackBar.open('No hay filtros activos para limpiar', 'Info', {
+        duration: 2000
+      });
+      return;
+    }
+    
+    // Limpiar filtros
+    this.searchTerm = '';
+    this.statusFilter = '';
+    
+    // Resetear la tabla a su estado original
+    this.dataSource.data = this.agencias;
+    this.dataSource.filter = '';
+    
+    // Resetear paginador a la primera página
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+    
+    // Mostrar mensaje de confirmación
+    this.snackBar.open('Filtros limpiados exitosamente', 'Éxito', {
+      duration: 2000
+    });
+    
+    // Forzar detección de cambios
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Verificar si hay filtros activos
+   */
+  hasActiveFilters(): boolean {
+    return !!(this.searchTerm || this.statusFilter);
+  }
+
+  /**
+   * Recargar datos con confirmación
+   */
+  refreshDataWithConfirmation(): void {
+    if (confirm('¿Estás seguro de que quieres recargar los datos? Esto sobrescribirá cualquier cambio no guardado.')) {
+      this.refreshData();
+    }
+  }
+
+  /**
+   * Recargar datos silenciosamente (sin mensajes)
+   */
+  refreshDataSilent(): void {
     this.loadAgencias();
   }
 
   openCreateDialog(): void {
     const dialogData: AgenciaEditDialogData = {
-      agencia: {} as Agencia,
+      agencia: {} as Agency,
       mode: 'create'
     };
 
@@ -165,7 +284,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  openEditDialog(agencia: Agencia): void {
+  openEditDialog(agencia: Agency): void {
     const dialogData: AgenciaEditDialogData = {
       agencia: agencia,
       mode: 'edit'
@@ -186,10 +305,10 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
 
 
 
-  deleteAgencia(agencia: Agencia): void {
+  deleteAgencia(agencia: Agency): void {
     if (confirm(`¿Estás seguro de que quieres eliminar la agencia "${agencia.Name}"?`)) {
-      this.agenciaService.deleteAgencia(agencia.Id!).subscribe({
-        next: (response) => {
+      this.agencyService.deleteAgency(Number(agencia.Id)).subscribe({
+        next: (response: any) => {
           if (response.success) {
             this.agencias = this.agencias.filter(a => a.Id !== agencia.Id);
             this.applyFilter();
@@ -202,8 +321,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
             });
           }
         },
-        error: (error) => {
-          console.error('Error deleting agencia:', error);
+        error: (error: any) => {
           this.snackBar.open('Error al eliminar agencia', 'Error', {
             duration: 3000
           });

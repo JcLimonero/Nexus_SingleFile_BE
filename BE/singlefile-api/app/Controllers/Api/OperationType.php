@@ -511,7 +511,7 @@ class OperationType extends BaseController
      * Método auxiliar para obtener el ID del usuario actual
      * Implementar según tu lógica de autenticación
      */
-    private function getCurrentUserId()
+    protected function getCurrentUserId()
     {
         // Aquí implementarías la lógica para extraer el user_id del token JWT
         // Por ahora retornamos null para que se implemente según tu sistema

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ApiBaseService } from './api-base.service';
 
 export interface Agency {
   Id: number;
@@ -16,7 +18,6 @@ export interface Agency {
 
 export interface AgencyFilters {
   name?: string;
-  region?: string;
   enabled?: number;
   date_from?: string;
   date_to?: string;
@@ -25,7 +26,6 @@ export interface AgencyFilters {
 export interface AgencySearchParams {
   enabled?: boolean;
   search?: string;
-  region?: string;
   limit?: number;
   offset?: number;
   sort_by?: string;
@@ -55,10 +55,6 @@ export interface AgencyStatsResponse extends AgencyResponse {
     total: number;
     enabled: number;
     disabled: number;
-    regions: Array<{
-      SubFix: string;
-      count: number;
-    }>;
   };
 }
 
@@ -76,9 +72,12 @@ export interface PaginatedAgencyResponse {
   providedIn: 'root'
 })
 export class AgencyService {
-  private readonly API_URL = '/api/agency';
+  private readonly API_URL = 'agency';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private apiBaseService: ApiBaseService
+  ) {}
 
   /**
    * Obtener todas las agencias con filtros y paginación
@@ -92,10 +91,6 @@ export class AgencyService {
 
     if (params.search) {
       httpParams = httpParams.set('search', params.search);
-    }
-
-    if (params.region) {
-      httpParams = httpParams.set('region', params.region);
     }
 
     if (params.limit) {
@@ -114,7 +109,11 @@ export class AgencyService {
       httpParams = httpParams.set('sort_order', params.sort_order);
     }
 
-    return this.http.get<AgencyListResponse>(this.API_URL, { params: httpParams });
+    const url = this.apiBaseService.buildApiUrl(this.API_URL);
+    console.log('🏢 AgencyService - URL construida:', url);
+    console.log('🏢 AgencyService - Parámetros:', httpParams);
+    
+    return this.http.get<AgencyListResponse>(url, { params: httpParams });
   }
 
   /**
@@ -140,15 +139,11 @@ export class AgencyService {
       httpParams = httpParams.set('search', filters.name);
     }
 
-    if (filters.region) {
-      httpParams = httpParams.set('region', filters.region);
-    }
-
     if (filters.enabled !== undefined) {
       httpParams = httpParams.set('enabled', filters.enabled.toString());
     }
 
-    return this.http.get<AgencyListResponse>(this.API_URL, { params: httpParams })
+    return this.http.get<AgencyListResponse>(this.apiBaseService.buildApiUrl(this.API_URL), { params: httpParams })
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -172,21 +167,21 @@ export class AgencyService {
    * Obtener agencia por ID
    */
   getAgencyById(id: number): Observable<AgencyResponse> {
-    return this.http.get<AgencyResponse>(`${this.API_URL}/${id}`);
+    return this.http.get<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   /**
    * Crear nueva agencia
    */
   createAgency(agency: Partial<Agency>): Observable<AgencyResponse> {
-    return this.http.post<AgencyResponse>(this.API_URL, agency);
+    return this.http.post<AgencyResponse>(this.apiBaseService.buildApiUrl(this.API_URL), agency);
   }
 
   /**
    * Actualizar agencia existente
    */
   updateAgency(id: number, agency: Partial<Agency>): Observable<AgencyResponse> {
-    return this.http.put<AgencyResponse>(`${this.API_URL}/${id}`, agency);
+    return this.http.put<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, agency);
   }
 
   /**
@@ -194,14 +189,14 @@ export class AgencyService {
    */
   deleteAgency(id: number, force: boolean = false): Observable<AgencyResponse> {
     const params = force ? new HttpParams().set('force', 'true') : new HttpParams();
-    return this.http.delete<AgencyResponse>(`${this.API_URL}/${id}`, { params });
+    return this.http.delete<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, { params });
   }
 
   /**
    * Cambiar estado de habilitación de una agencia
    */
   toggleAgencyStatus(id: number): Observable<AgencyResponse> {
-    return this.http.patch<AgencyResponse>(`${this.API_URL}/${id}/toggle-status`, {});
+    return this.http.patch<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/toggle-status`, {});
   }
 
   /**
@@ -209,21 +204,16 @@ export class AgencyService {
    */
   searchAgencies(query: string): Observable<AgencyResponse> {
     const params = new HttpParams().set('q', query);
-    return this.http.get<AgencyResponse>(`${this.API_URL}/search`, { params });
+    return this.http.get<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/search`, { params });
   }
 
-  /**
-   * Obtener todas las regiones disponibles
-   */
-  getRegions(): Observable<AgencyResponse> {
-    return this.http.get<AgencyResponse>(`${this.API_URL}/regions`);
-  }
+
 
   /**
    * Obtener estadísticas de agencias
    */
   getAgencyStats(): Observable<AgencyStatsResponse> {
-    return this.http.get<AgencyStatsResponse>(`${this.API_URL}/stats`);
+    return this.http.get<AgencyStatsResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/stats`);
   }
 
   /**
@@ -231,13 +221,6 @@ export class AgencyService {
    */
   getEnabledAgencies(): Observable<AgencyListResponse> {
     return this.getAgencies({ enabled: true, sort_by: 'Name', sort_order: 'ASC' });
-  }
-
-  /**
-   * Obtener agencias por región
-   */
-  getAgenciesByRegion(region: string): Observable<AgencyListResponse> {
-    return this.getAgencies({ region, enabled: true, sort_by: 'Name', sort_order: 'ASC' });
   }
 
   /**
@@ -252,10 +235,6 @@ export class AgencyService {
 
     if (agency.Name && agency.Name.length > 600) {
       errors.push('El nombre no puede exceder 600 caracteres');
-    }
-
-    if (agency.IdAgency && agency.IdAgency.length > 50) {
-      errors.push('El IdAgency no puede exceder 50 caracteres');
     }
 
     if (agency.IdAgency && agency.IdAgency.length > 50) {
@@ -320,6 +299,3 @@ export class AgencyService {
     return response.map(agency => this.mapAgencyResponse(agency));
   }
 }
-
-// Import necesario para el operador map
-import { map } from 'rxjs/operators';

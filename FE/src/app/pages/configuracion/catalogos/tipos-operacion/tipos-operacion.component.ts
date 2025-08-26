@@ -87,7 +87,6 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading tipos operacion:', error);
         this.snackBar.open('Error al cargar tipos de operación', 'Error', {
           duration: 3000
         });
@@ -177,7 +176,6 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
-          console.error('Error deleting tipo operacion:', error);
           this.snackBar.open('Error al eliminar tipo de operación', 'Error', {
             duration: 3000
           });
