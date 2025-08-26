@@ -61,9 +61,21 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    // Usar setTimeout para asegurar que los ViewChild estén completamente inicializados
+    setTimeout(() => {
+      this.setupDataSource();
+    });
+  }
 
+  private setupDataSource(): void {
+    // Asegurar que paginator y sort estén configurados
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
+    if (this.sort) {
+      this.dataSource.sort = this.sort;
+    }
+    
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: CostumerType, filter: string) => {
       const searchTerm = filter.toLowerCase();
@@ -77,7 +89,13 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
       next: (response: CostumerTypeResponse) => {
         if (response.success) {
           this.tiposCliente = response.data.costumer_types;
-          this.dataSource.data = this.tiposCliente;
+          
+          // Crear un nuevo DataSource con los datos
+          this.dataSource = new MatTableDataSource<CostumerType>(this.tiposCliente);
+          
+          // Configurar paginator, sort y filtros
+          this.setupDataSource();
+          
           this.applyFilter();
         } else {
           this.snackBar.open(response.message || 'Error al cargar tipos de cliente', 'Error', {
@@ -98,17 +116,35 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   applyFilter(): void {
     const filterValue = this.searchTerm.trim();
     
+    console.log('Aplicando filtros:', { 
+      searchTerm: this.searchTerm, 
+      statusFilter: this.statusFilter, 
+      totalTiposCliente: this.tiposCliente.length 
+    });
+    
     // Aplicar filtro de estado si existe
     if (this.statusFilter !== '') {
-      const status = this.statusFilter === 'true' ? '1' : '0';
-      this.dataSource.data = this.tiposCliente.filter(tipoCliente => 
-        tipoCliente.Enabled === status &&
+      const filteredData = this.tiposCliente.filter(tipoCliente => 
+        tipoCliente.Enabled === this.statusFilter &&
         (filterValue === '' || 
          tipoCliente.Name.toLowerCase().includes(filterValue.toLowerCase()))
       );
+      
+      console.log('Filtro de estado aplicado:', { 
+        statusFilter: this.statusFilter, 
+        filteredCount: filteredData.length,
+        sampleData: filteredData.slice(0, 3).map(t => ({ id: t.Id, name: t.Name, enabled: t.Enabled }))
+      });
+      
+      // Crear un nuevo DataSource para mantener el ordenamiento
+      this.dataSource = new MatTableDataSource<CostumerType>(filteredData);
+      this.setupDataSource();
     } else {
+      // Si no hay filtro de estado, solo aplicar filtro de búsqueda
       this.dataSource.data = this.tiposCliente;
       this.dataSource.filter = filterValue.trim().toLowerCase();
+      
+      console.log('Solo filtro de búsqueda aplicado');
     }
     
     // Reset paginator to first page
@@ -119,6 +155,27 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
 
   refreshData(): void {
     this.loadTiposCliente();
+  }
+
+  clearFilters(): void {
+    console.log('Limpiando filtros - Antes:', { 
+      searchTerm: this.searchTerm, 
+      statusFilter: this.statusFilter 
+    });
+    
+    this.searchTerm = '';
+    this.statusFilter = '';
+    
+    console.log('Limpiando filtros - Después:', { 
+      searchTerm: this.searchTerm, 
+      statusFilter: this.statusFilter 
+    });
+    
+    this.applyFilter();
+    
+    this.snackBar.open('Filtros limpiados', 'Info', {
+      duration: 2000
+    });
   }
 
   openCreateDialog(): void {

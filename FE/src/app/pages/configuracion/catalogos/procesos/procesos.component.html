@@ -1,6 +1,6 @@
 <div class="p-6">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-4">
     <div>
       <h1 class="text-3xl font-bold text-gray-900">Gestión de Procesos</h1>
       <p class="text-gray-600 mt-1">Administra los procesos del sistema</p>
@@ -23,29 +23,41 @@
     </div>
   </div>
 
-  <!-- Botones de acción -->
-  <div class="flex justify-end gap-2 mb-4">
-    <button 
-      mat-stroked-button 
-      color="accent" 
-      (click)="clearFilters()"
-      class="flex items-center gap-2"
-      [disabled]="!searchTerm && !statusFilter">
-      <mat-icon>clear_all</mat-icon>
-      Limpiar Filtros
-    </button>
-    <button 
-      mat-stroked-button 
-      color="primary" 
-      (click)="refreshData()"
-      class="flex items-center gap-2">
-      <mat-icon>refresh</mat-icon>
-      Recargar
-    </button>
-  </div>
-
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      
+      <!-- Espacio vacío a la izquierda -->
+      <div></div>
+      
+      <!-- Botones de acción a la derecha -->
+      <div class="flex items-center gap-3">
+        <!-- Botón de Limpiar Filtros -->
+        <button 
+          mat-stroked-button 
+          color="warn" 
+          (click)="clearFilters()"
+          [disabled]="!searchTerm && !statusFilter"
+          matTooltip="Limpiar filtros"
+          class="flex items-center gap-2">
+          <mat-icon>clear_all</mat-icon>
+          Limpiar Filtros
+        </button>
+        
+        <!-- Botón de Reload en filtros -->
+        <button 
+          mat-stroked-button 
+          color="accent" 
+          (click)="refreshData()"
+          [disabled]="loading"
+          matTooltip="Recargar datos"
+          class="flex items-center gap-2">
+          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+          Recargar
+        </button>
+      </div>
+    </div>
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">

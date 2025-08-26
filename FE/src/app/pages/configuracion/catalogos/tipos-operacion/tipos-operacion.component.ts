@@ -121,6 +121,16 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     this.loadTiposOperacion();
   }
 
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.applyFilter();
+    
+    this.snackBar.open('Filtros limpiados', 'Info', {
+      duration: 2000
+    });
+  }
+
   openCreateDialog(): void {
     const dialogData = {
       tipoOperacion: {} as TipoOperacion,
