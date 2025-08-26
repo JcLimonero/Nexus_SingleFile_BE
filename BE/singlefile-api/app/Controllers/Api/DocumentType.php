@@ -54,6 +54,14 @@ class DocumentType extends BaseController
             // Obtener tipos de documento con relaciones
             $documentTypes = $this->documentTypeModel->getDocumentTypesWithRelations($filters);
 
+            // Debug: verificar los datos antes de devolver
+            log_message('info', 'DocumentType::index - Datos obtenidos del modelo: ' . json_encode(array_slice($documentTypes, 0, 3)));
+            
+            // Verificar el campo Enabled en los primeros registros
+            foreach (array_slice($documentTypes, 0, 3) as $index => $docType) {
+                log_message('info', "DocumentType::index - Registro $index - ID: {$docType['Id']}, Name: {$docType['Name']}, Enabled: {$docType['Enabled']}, Tipo: " . gettype($docType['Enabled']));
+            }
+
             // Contar total de registros
             $total = $this->documentTypeModel->countDocumentTypesWithFilters($filters);
 

@@ -12,6 +12,9 @@ export const AuthInterceptor: HttpInterceptorFn = (
   // Debug completo de la petición
   console.log('🔍 Interceptor - URL completa:', request.url);
   console.log('🔍 Interceptor - Método:', request.method);
+  console.log('🔍 Interceptor - URL incluye localhost:8080:', request.url.includes('localhost:8080'));
+  console.log('🔍 Interceptor - URL empieza con /api:', request.url.startsWith('/api'));
+  console.log('🔍 Interceptor - URL empieza con http:', request.url.startsWith('http'));
   
   // Obtener el token de autenticación
   const token = authService.getToken();
@@ -44,11 +47,18 @@ export const AuthInterceptor: HttpInterceptorFn = (
     }
   } else if (request.url.startsWith('/api')) {
     console.log('⚠️  Llamada local detectada:', request.url);
+    
+    // Para URLs locales que empiezan con /api, no hacer nada especial
+    // Estas URLs serán procesadas por el navegador como relativas al puerto actual
+    return next(request);
   } else if (request.url.startsWith('http')) {
     console.log('🌐 Llamada a URL externa:', request.url);
+    return next(request);
   } else {
     console.log('❓ URL no reconocida:', request.url);
+    return next(request);
   }
   
+  // Solo llegar aquí si no se procesó la request
   return next(request);
 };

@@ -137,6 +137,13 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   applyFilter(): void {
     const filterValue = this.searchTerm.trim().toLowerCase();
     
+    console.log('🔍 Aplicando filtros en tipos de documento:', { 
+      searchTerm: this.searchTerm, 
+      statusFilter: this.statusFilter, 
+      phaseFilter: this.phaseFilter,
+      totalTiposDocumento: this.tiposDocumento.length 
+    });
+    
     // Aplicar todos los filtros
     this.dataSource.data = this.tiposDocumento.filter(tipoDocumento => {
       // Filtro por búsqueda de texto
@@ -145,12 +152,25 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       
       // Filtro por estado
       const matchesStatus = this.statusFilter === '' || 
-        (this.statusFilter === 'true' && tipoDocumento.Enabled === 1) ||
-        (this.statusFilter === 'false' && tipoDocumento.Enabled === 0);
+        (this.statusFilter === '1' && tipoDocumento.Enabled === '1') ||
+        (this.statusFilter === '0' && tipoDocumento.Enabled === '0');
       
       // Filtro por fase
       const matchesPhase = this.phaseFilter === '' || 
         tipoDocumento.ProcessTypeName === this.phaseFilter;
+      
+      // Debug para el primer elemento
+      if (this.tiposDocumento.indexOf(tipoDocumento) === 0) {
+        console.log('🔍 Primer elemento - Debug:', {
+          id: tipoDocumento.Id,
+          name: tipoDocumento.Name,
+          enabled: tipoDocumento.Enabled,
+          enabledType: typeof tipoDocumento.Enabled,
+          statusFilter: this.statusFilter,
+          statusFilterType: typeof this.statusFilter,
+          matchesStatus: matchesStatus
+        });
+      }
       
       return matchesSearch && matchesStatus && matchesPhase;
     });
@@ -166,9 +186,22 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   }
 
   clearFilters(): void {
+    console.log('🧹 Limpiando filtros - Antes:', { 
+      searchTerm: this.searchTerm, 
+      statusFilter: this.statusFilter,
+      phaseFilter: this.phaseFilter
+    });
+    
     this.searchTerm = '';
     this.statusFilter = '';
     this.phaseFilter = '';
+    
+    console.log('🧹 Limpiando filtros - Después:', { 
+      searchTerm: this.searchTerm, 
+      statusFilter: this.statusFilter,
+      phaseFilter: this.phaseFilter
+    });
+    
     this.applyFilter();
     
     this.snackBar.open('Filtros limpiados', 'Info', {
@@ -260,7 +293,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
           // Actualizar el estado en la lista local
           const index = this.tiposDocumento.findIndex(t => t.Id === documentType.Id);
           if (index !== -1) {
-            this.tiposDocumento[index].Enabled = this.tiposDocumento[index].Enabled === 1 ? 0 : 1;
+            this.tiposDocumento[index].Enabled = this.tiposDocumento[index].Enabled === '1' ? '0' : '1';
             this.applyFilter();
           }
           

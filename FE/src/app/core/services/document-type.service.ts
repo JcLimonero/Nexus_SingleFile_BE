@@ -50,7 +50,7 @@ export class DocumentTypeService {
   /**
    * Obtener un tipo de documento específico por ID
    */
-  getDocumentType(id: number): Observable<any> {
+  getDocumentType(id: string): Observable<any> {
     return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
@@ -64,21 +64,21 @@ export class DocumentTypeService {
   /**
    * Actualizar un tipo de documento existente
    */
-  updateDocumentType(id: number, documentType: DocumentTypeUpdateRequest): Observable<any> {
+  updateDocumentType(id: string, documentType: DocumentTypeUpdateRequest): Observable<any> {
     return this.http.put(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, documentType);
   }
 
   /**
    * Eliminar un tipo de documento
    */
-  deleteDocumentType(id: number): Observable<any> {
+  deleteDocumentType(id: string): Observable<any> {
     return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   /**
    * Cambiar estado (habilitado/deshabilitado) de un tipo de documento
    */
-  toggleStatus(id: number): Observable<any> {
+  toggleStatus(id: string): Observable<any> {
     return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/toggle-status`, {});
   }
 
@@ -92,10 +92,10 @@ export class DocumentTypeService {
   /**
    * Buscar tipos de documento por nombre
    */
-  searchDocumentTypes(query: string, limit?: number): Observable<DocumentTypeSearchResponse> {
+  searchDocumentTypes(query: string, limit?: string): Observable<DocumentTypeSearchResponse> {
     let params = new HttpParams().set('q', query);
     if (limit) {
-      params = params.set('limit', limit.toString());
+      params = params.set('limit', limit);
     }
     
     return this.http.get<DocumentTypeSearchResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/search`, { params });

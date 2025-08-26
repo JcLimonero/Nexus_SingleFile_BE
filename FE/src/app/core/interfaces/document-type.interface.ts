@@ -1,14 +1,14 @@
 export interface DocumentType {
-  Id: number;
+  Id: string;
   Name: string;
-  Enabled: number;
+  Enabled: string; // API devuelve "1" o "0" como strings
   RegistrationDate: string | null;
   UpdateDate: string | null;
-  IdLastUserUpdate: number | null;
-  ReqExpiration: number; // Si requiere fecha de expiración (0/1)
-  IdProcessType: number; // ID del tipo de proceso
-  Required: number; // Si es requerido (0/1)
-  IdSubProcess: number; // ID del subproceso
+  IdLastUserUpdate: string | null;
+  ReqExpiration: string; // API devuelve "1" o "0" como strings
+  IdProcessType: string; // API devuelve IDs como strings
+  Required: string; // API devuelve "1" o "0" como strings
+  IdSubProcess: string; // API devuelve IDs como strings
   LastUserUpdateName?: string;
   ProcessTypeName?: string; // Descripción del File_Status (JOIN con File_Status)
   SubProcessName?: string; // Nombre del subproceso (JOIN con Process)
@@ -31,20 +31,20 @@ export interface DocumentTypeResponse {
 
 export interface DocumentTypeCreateRequest {
   Name: string;
-  Enabled?: number;
-  ReqExpiration?: number;
-  IdProcessType?: number;
-  Required?: number;
-  IdSubProcess?: number;
+  Enabled?: string; // "1" o "0"
+  ReqExpiration?: string; // "1" o "0"
+  IdProcessType?: string; // ID como string
+  Required?: string; // "1" o "0"
+  IdSubProcess?: string; // ID como string
 }
 
 export interface DocumentTypeUpdateRequest {
   Name: string;
-  Enabled?: number;
-  ReqExpiration?: number;
-  IdProcessType?: number;
-  Required?: number;
-  IdSubProcess?: number;
+  Enabled?: string; // "1" o "0"
+  ReqExpiration?: string; // "1" o "0"
+  IdProcessType?: string; // ID como string
+  Required?: string; // "1" o "0"
+  IdSubProcess?: string; // ID como string
 }
 
 export interface DocumentTypeStatsResponse {
@@ -84,15 +84,15 @@ export interface DocumentTypeEditDialogData {
 
 // Interfaces para catálogos relacionados
 export interface FileStatus {
-  Id: number;
+  Id: string;
   Name: string;
-  Enabled: number;
+  Enabled: string; // "1" o "0"
 }
 
 export interface SubProcess {
-  Id: number;
+  Id: string;
   Name: string;
-  Enabled: number;
+  Enabled: string; // "1" o "0"
 }
 
 export interface FileStatusResponse {
