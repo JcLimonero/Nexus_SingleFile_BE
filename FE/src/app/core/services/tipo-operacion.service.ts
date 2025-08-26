@@ -2,44 +2,48 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TipoOperacion, TipoOperacionCreateRequest, TipoOperacionUpdateRequest, TipoOperacionResponse } from '../interfaces/tipo-operacion.interface';
+import { ApiBaseService } from './api-base.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TipoOperacionService {
-  private readonly API_URL = '/api/operation-type';
+  private readonly API_URL = 'operation-type';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private apiBaseService: ApiBaseService
+  ) { }
 
   getTiposOperacion(): Observable<TipoOperacionResponse> {
-    return this.http.get<TipoOperacionResponse>(this.API_URL);
+    return this.http.get<TipoOperacionResponse>(this.apiBaseService.buildApiUrl(this.API_URL));
   }
 
   getTiposOperacionByStatus(enabled: string): Observable<TipoOperacionResponse> {
-    return this.http.get<TipoOperacionResponse>(`${this.API_URL}?enabled=${enabled}`);
+    return this.http.get<TipoOperacionResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}?enabled=${enabled}`);
   }
 
   createTipoOperacion(tipoOperacion: TipoOperacionCreateRequest): Observable<any> {
-    return this.http.post(this.API_URL, tipoOperacion);
+    return this.http.post(this.apiBaseService.buildApiUrl(this.API_URL), tipoOperacion);
   }
 
   updateTipoOperacion(id: string, tipoOperacion: TipoOperacionUpdateRequest): Observable<any> {
-    return this.http.put(`${this.API_URL}/${id}`, tipoOperacion);
+    return this.http.put(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, tipoOperacion);
   }
 
   deleteTipoOperacion(id: string): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${id}`);
+    return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
   toggleEstado(id: string): Observable<any> {
-    return this.http.patch(`${this.API_URL}/${id}/estado`, {});
+    return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/estado`, {});
   }
 
   searchTiposOperacion(query: string): Observable<any> {
-    return this.http.get(`${this.API_URL}/search?q=${query}`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/search?q=${query}`);
   }
 
   getStats(): Observable<any> {
-    return this.http.get(`${this.API_URL}/stats`);
+    return this.http.get(this.apiBaseService.buildApiUrl(`${this.API_URL}/stats`));
   }
 }

@@ -165,6 +165,17 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     this.loadTiposDocumento();
   }
 
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.phaseFilter = '';
+    this.applyFilter();
+    
+    this.snackBar.open('Filtros limpiados', 'Info', {
+      duration: 2000
+    });
+  }
+
   getPageRange(): string {
     if (!this.dataSource.paginator) {
       return '0-0';
