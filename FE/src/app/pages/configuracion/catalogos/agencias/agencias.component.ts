@@ -306,22 +306,29 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
 
 
   deleteAgencia(agencia: Agency): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar la agencia "${agencia.Name}"?`)) {
-      this.agencyService.deleteAgency(Number(agencia.Id)).subscribe({
+    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE la agencia "${agencia.Name}"?\n\nEsta acción no se puede deshacer.`)) {
+      console.log('🗑️ Intentando eliminar agencia:', agencia);
+      
+      this.agencyService.deleteAgency(Number(agencia.Id), true).subscribe({
         next: (response: any) => {
+          console.log('📡 Respuesta del API:', response);
+          
           if (response.success) {
+            console.log('✅ Agencia eliminada exitosamente');
             this.agencias = this.agencias.filter(a => a.Id !== agencia.Id);
             this.applyFilter();
             this.snackBar.open('Agencia eliminada exitosamente', 'Éxito', {
               duration: 2000
             });
           } else {
+            console.log('❌ Error en la respuesta:', response.message);
             this.snackBar.open(response.message || 'Error al eliminar agencia', 'Error', {
               duration: 3000
             });
           }
         },
         error: (error: any) => {
+          console.log('💥 Error en la petición:', error);
           this.snackBar.open('Error al eliminar agencia', 'Error', {
             duration: 3000
           });

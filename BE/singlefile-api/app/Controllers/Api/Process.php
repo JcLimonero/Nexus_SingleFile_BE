@@ -64,7 +64,9 @@ class Process extends BaseController
             }
             
             // Filtrar procesos según el rol del usuario
-            if (!$this->isCurrentUserAdmin()) {
+            $isAdmin = $this->isCurrentUserAdmin();
+            
+            if (!$isAdmin) {
                 // Si no es administrador, filtrar solo los procesos asignados al usuario
                 $userId = $currentUser['user_id'];
                 $db = \Config\Database::connect();
@@ -95,7 +97,7 @@ class Process extends BaseController
             }
             
             // Contar total de registros según el filtro aplicado y los permisos del usuario
-            if ($this->isCurrentUserAdmin()) {
+            if ($isAdmin) {
                 // Administrador ve todos los procesos
                 if ($enabled === 'true') {
                     $total = $this->processModel->countEnabledProcesses();
@@ -382,9 +384,13 @@ class Process extends BaseController
                     ]);
             }
             
+            // Debug: verificar la petición
+            log_message('debug', "DELETE /api/process/{$id} - Iniciando eliminación");
+            
             // Verificar que el proceso existe
             $existingProcess = $this->processModel->find($id);
             if (!$existingProcess) {
+                log_message('debug', "DELETE /api/process/{$id} - Proceso no encontrado");
                 return $this->response
                     ->setStatusCode(404)
                     ->setJSON([
@@ -393,12 +399,18 @@ class Process extends BaseController
                     ]);
             }
             
+            log_message('debug', "DELETE /api/process/{$id} - Proceso encontrado: " . $existingProcess['Name']);
+            
             // Obtener parámetros de la petición
             $forceDelete = $this->request->getGet('force') === 'true';
+            log_message('debug', "DELETE /api/process/{$id} - Force delete: " . ($forceDelete ? 'SÍ' : 'NO'));
             
             if ($forceDelete) {
                 // Hard delete - eliminar permanentemente
+                log_message('debug', "DELETE /api/process/{$id} - Ejecutando HARD DELETE");
+                
                 if ($this->processModel->delete($id)) {
+                    log_message('debug', "DELETE /api/process/{$id} - HARD DELETE exitoso");
                     return $this->response
                         ->setStatusCode(200)
                         ->setJSON([
@@ -406,6 +418,7 @@ class Process extends BaseController
                             'message' => 'Proceso eliminado permanentemente'
                         ]);
                 } else {
+                    log_message('debug', "DELETE /api/process/{$id} - HARD DELETE falló");
                     return $this->response
                         ->setStatusCode(500)
                         ->setJSON([

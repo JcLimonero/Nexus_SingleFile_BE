@@ -18,7 +18,7 @@ export const AuthInterceptor: HttpInterceptorFn = (
   const isAuthenticated = authService.isAuthenticated();
   
   // Solo agregar token a llamadas del backend (puerto 8080)
-  if (request.url.startsWith('http://localhost:8080')) {
+  if (request.url.includes('localhost:8080')) {
     console.log('🔗 Llamada a backend:', request.url);
     
     if (token && isAuthenticated) {

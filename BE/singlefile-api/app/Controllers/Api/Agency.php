@@ -391,9 +391,13 @@ class Agency extends BaseController
                     ]);
             }
             
+            // Debug: verificar la petición
+            log_message('debug', "DELETE /api/agency/{$id} - Iniciando eliminación");
+            
             // Verificar que la agencia existe
             $existingAgency = $this->agencyModel->find($id);
             if (!$existingAgency) {
+                log_message('debug', "DELETE /api/agency/{$id} - Agencia no encontrada");
                 return $this->response
                     ->setStatusCode(404)
                     ->setJSON([
@@ -402,12 +406,18 @@ class Agency extends BaseController
                     ]);
             }
             
+            log_message('debug', "DELETE /api/agency/{$id} - Agencia encontrada: " . $existingAgency['Name']);
+            
             // Obtener parámetros de la petición
             $forceDelete = $this->request->getGet('force') === 'true';
+            log_message('debug', "DELETE /api/agency/{$id} - Force delete: " . ($forceDelete ? 'SÍ' : 'NO'));
             
             if ($forceDelete) {
                 // Hard delete - eliminar permanentemente
+                log_message('debug', "DELETE /api/agency/{$id} - Ejecutando HARD DELETE");
+                
                 if ($this->agencyModel->delete($id)) {
+                    log_message('debug', "DELETE /api/agency/{$id} - HARD DELETE exitoso");
                     return $this->response
                         ->setStatusCode(200)
                         ->setJSON([
@@ -415,6 +425,7 @@ class Agency extends BaseController
                             'message' => 'Agencia eliminada permanentemente'
                         ]);
                 } else {
+                    log_message('debug', "DELETE /api/agency/{$id} - HARD DELETE falló");
                     return $this->response
                         ->setStatusCode(500)
                         ->setJSON([

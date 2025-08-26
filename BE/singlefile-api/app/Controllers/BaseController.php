@@ -102,9 +102,29 @@ abstract class BaseController extends Controller
             return false;
         }
 
-        // Asumiendo que el rol de administrador tiene ID = 1
-        // Puedes ajustar esto según tu estructura de roles
-        return $user['role_id'] == 1;
+        // El rol de administrador tiene ID = 7
+        return $user['role_id'] == 7;
+    }
+
+    /**
+     * Verificar si el usuario tiene un rol específico
+     */
+    protected function hasUserRole($roleId)
+    {
+        $user = $this->getAuthenticatedUser();
+        if (!$user) {
+            return false;
+        }
+
+        return $user['role_id'] == $roleId;
+    }
+
+    /**
+     * Verificar si el usuario tiene permisos de administrador o un rol específico
+     */
+    protected function isUserAdminOrRole($roleId)
+    {
+        return $this->isCurrentUserAdmin() || $this->hasUserRole($roleId);
     }
 
     /**
