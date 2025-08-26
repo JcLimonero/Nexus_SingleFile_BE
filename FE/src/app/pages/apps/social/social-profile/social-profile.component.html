@@ -6,32 +6,35 @@
       </div>
 
       <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Nombre del Usuario -->
         <div class="py-3 flex items-center">
           <div
             @scaleIn
             class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
-            <mat-icon class="icon-sm" svgIcon="mat:phone"></mat-icon>
+            <mat-icon class="icon-sm" svgIcon="mat:person"></mat-icon>
           </div>
 
           <div @fadeInRight>
-            <p class="m-0 body-1">+1 (930) 502-3182</p>
-            <p class="m-0 caption text-hint">Business</p>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.name || 'Nombre no disponible' }}</p>
+            <p class="m-0 caption text-hint">Nombre completo</p>
           </div>
         </div>
 
+        <!-- Usuario DMS -->
         <div class="py-3 flex items-center">
           <div
             @scaleIn
             class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
-            <mat-icon class="icon-sm" svgIcon="mat:work"></mat-icon>
+            <mat-icon class="icon-sm" svgIcon="mat:account_circle"></mat-icon>
           </div>
 
           <div @fadeInRight>
-            <p class="m-0 body-1">Web Developer at IceCube</p>
-            <p class="m-0 caption text-hint">Previously Designer at HotStuff</p>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.username || 'Usuario no disponible' }}</p>
+            <p class="m-0 caption text-hint">Usuario DMS</p>
           </div>
         </div>
 
+        <!-- Email -->
         <div class="py-3 flex items-center">
           <div
             @scaleIn
@@ -40,109 +43,75 @@
           </div>
 
           <div @fadeInRight>
-            <p class="m-0 body-1">david.smith&#64;example.com</p>
-            <p class="m-0 caption text-hint">Business inquiries only</p>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.email || 'Email no disponible' }}</p>
+            <p class="m-0 caption text-hint">Correo electrónico</p>
           </div>
         </div>
 
+        <!-- Rol -->
         <div class="py-3 flex items-center">
           <div
             @scaleIn
             class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
-            <mat-icon class="icon-sm" svgIcon="mat:access_time"></mat-icon>
+            <mat-icon class="icon-sm" svgIcon="mat:security"></mat-icon>
           </div>
 
           <div @fadeInRight>
-            <p class="m-0 body-1">Usually available 9am-5pm</p>
-            <p class="m-0 caption text-hint">
-              Call +1 (930) 242-5186 for important things
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.role_name || 'Rol no disponible' }}</p>
+            <p class="m-0 caption text-hint">Rol en el sistema</p>
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:check_circle"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.enabled ? 'Activo' : 'Inactivo' }}</p>
+            <p class="m-0 caption text-hint">Estado de la cuenta</p>
+          </div>
+        </div>
+
+        <!-- ID de Usuario -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-gray-600/10 text-dark ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:tag"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1 font-mono">{{ (currentUser$ | async)?.id || 'ID no disponible' }}</p>
+            <p class="m-0 caption text-hint">Identificador único</p>
+          </div>
+        </div>
+
+        <!-- Cambiar Contraseña -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-warning-600/10 text-warning-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center cursor-pointer hover:bg-warning-600/20 transition-colors"
+            (click)="openChangePasswordDialog()">
+            <mat-icon class="icon-sm" svgIcon="mat:lock"></mat-icon>
+          </div>
+
+          <div @fadeInRight class="flex-1">
+            <p class="m-0 body-1 cursor-pointer hover:text-primary-600 transition-colors" (click)="openChangePasswordDialog()">
+              Cambiar Contraseña
             </p>
+            <p class="m-0 caption text-hint">Actualiza tu contraseña de acceso</p>
           </div>
-        </div>
-
-        <div class="py-3 flex items-center">
-          <div
-            @scaleIn
-            class="w-10 h-10 rounded-full bg-gray-600/10 text-dark ltr:mr-3 rtl:ml-3 cursor-pointer flex items-center justify-center">
-            <mat-icon class="icon-sm" svgIcon="mat:add"></mat-icon>
-          </div>
-
-          <p @fadeInRight class="m-0 body-1 cursor-pointer">Add an address</p>
-        </div>
-
-        <div class="py-3 flex items-center">
-          <div
-            @scaleIn
-            class="w-10 h-10 rounded-full bg-gray-600/10 text-dark ltr:mr-3 rtl:ml-3 cursor-pointer flex items-center justify-center">
-            <mat-icon class="icon-sm" svgIcon="mat:whatshot"></mat-icon>
-          </div>
-
-          <p @fadeInRight class="m-0 body-1 cursor-pointer">
-            Add social profiles
-          </p>
         </div>
       </div>
+
     </div>
 
-    <div class="card mt-6">
-      <div class="px-6 py-4 border-b">
-        <h2 class="title m-0">Latest Photos</h2>
-      </div>
 
-      <div @stagger class="px-6 py-4 grid grid-cols-2 sm:grid-cols-5 gap-6">
-        <img
-          *ngFor="
-            let i of [
-              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-              20
-            ]
-          "
-          @scaleIn
-          class="rounded w-full"
-          src="assets/img/avatars/{{ i }}.jpg" />
-      </div>
-    </div>
   </div>
 
-  <div
-    class="card max-w-unset md:max-w-xs w-full flex-none md:ltr:ml-6 md:rtl:mr-6 mt-6 md:mt-0">
-    <div class="px-6 py-4 border-b">
-      <h2 class="title m-0">Friend Suggestions</h2>
-    </div>
 
-    <div @stagger class="px-6 py-4 flex flex-col gap-4">
-      <div
-        *ngFor="let friend of suggestions; trackBy: trackByName"
-        class="flex items-center">
-        <img
-          @scaleIn
-          [src]="friend.imageSrc"
-          alt="Profile Picture"
-          class="avatar ltr:mr-3 rtl:ml-3 flex-none" />
-        <div @fadeInRight class="flex-auto">
-          <h4 class="body-2 m-0 leading-snug">{{ friend.name }}</h4>
-          <h5 class="text-secondary m-0 caption leading-none">
-            {{ friend.friends }} mutual friends
-          </h5>
-        </div>
-        <button
-          (click)="addFriend(friend)"
-          *ngIf="!friend.added"
-          color="primary"
-          mat-icon-button
-          type="button">
-          <mat-icon svgIcon="mat:person_add"></mat-icon>
-        </button>
-
-        <button
-          (click)="removeFriend(friend)"
-          *ngIf="friend.added"
-          color="primary"
-          mat-icon-button
-          type="button">
-          <mat-icon svgIcon="mat:check"></mat-icon>
-        </button>
-      </div>
-    </div>
-  </div>
 </div>

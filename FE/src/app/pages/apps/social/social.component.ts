@@ -27,20 +27,6 @@ export class SocialComponent implements OnInit {
       label: 'ABOUT',
       route: './',
       routerLinkActiveOptions: { exact: true }
-    },
-    {
-      label: 'TIMELINE',
-      route: './timeline'
-    },
-    {
-      label: 'FRIENDS',
-      route: '',
-      disabled: true
-    },
-    {
-      label: 'PHOTOS',
-      route: '',
-      disabled: true
     }
   ];
 
