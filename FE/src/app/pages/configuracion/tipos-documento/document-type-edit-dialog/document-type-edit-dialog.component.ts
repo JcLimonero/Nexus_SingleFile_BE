@@ -36,8 +36,12 @@ import { DocumentTypeService } from '../../../../core/services/document-type.ser
 export class DocumentTypeEditDialogComponent implements OnInit {
   documentTypeForm!: FormGroup;
   loading = false;
+  loadingCatalogs = false;
   fileStatuses: any[] = [];
   subProcesses: any[] = [];
+
+  // Propiedad para controlar si la sub fase está habilitada
+  isSubPhaseEnabled: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -51,46 +55,104 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     this.initializeForm();
     this.loadCatalogs();
     this.populateForm();
+    
+    // Escuchar cambios en la fase para habilitar/deshabilitar sub fase
+    this.documentTypeForm.get('IdProcessType')?.valueChanges.subscribe(selectedPhase => {
+      console.log('🔄 Fase cambiada a:', selectedPhase);
+      this.isSubPhaseEnabled = selectedPhase === 'Liberación';
+      console.log('🔒 Sub fase habilitada:', this.isSubPhaseEnabled);
+      
+      if (!this.isSubPhaseEnabled) {
+        // Si la fase no es "Liberación", resetear sub fase a "Sin sub fase"
+        console.log('❌ Fase no es Liberación, reseteando sub fase a "Sin sub fase"');
+        this.documentTypeForm.patchValue({ IdSubProcess: '0' });
+        console.log('🔄 Valor de IdSubProcess establecido a "0" (Sin sub fase)');
+      } else {
+        console.log('✅ Fase es Liberación, sub fase habilitada');
+      }
+    });
   }
 
   private initializeForm(): void {
     this.documentTypeForm = this.fb.group({
       Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
-      Enabled: [1, Validators.required],
-      ReqExpiration: [0],
-      IdProcessType: [0],
-      Required: [1],
-      IdSubProcess: [0]
+      Enabled: ['1', Validators.required],
+      ReqExpiration: ['0'],
+      IdProcessType: ['Liberación'], // Valor por defecto: Liberación
+      Required: ['1'],
+      IdSubProcess: ['0'] // Por defecto "Sin sub fase"
     });
+    
+    // Inicializar el estado de la sub fase
+    this.isSubPhaseEnabled = true; // Por defecto es "Liberación"
+    console.log('🚀 Formulario inicializado, sub fase habilitada:', this.isSubPhaseEnabled);
   }
 
   private loadCatalogs(): void {
-    // Cargar estados de archivo y subprocesos
-    Promise.all([
-      this.documentTypeService.getActiveFileStatuses().toPromise(),
-      this.documentTypeService.getActiveSubProcesses().toPromise()
-    ]).then(([fileStatusesResponse, subProcessesResponse]) => {
-      if (fileStatusesResponse?.success) {
-        this.fileStatuses = fileStatusesResponse.data.file_statuses || [];
+    console.log('🔄 Cargando catálogos...');
+    this.loadingCatalogs = true;
+    
+    // Cargar estados de archivo (File_Status)
+    this.documentTypeService.getActiveFileStatuses().subscribe({
+      next: (fileStatusesResponse) => {
+        console.log('📋 Respuesta de File_Status:', fileStatusesResponse);
+        if (fileStatusesResponse?.success) {
+          this.fileStatuses = fileStatusesResponse.data.file_statuses || [];
+          console.log('✅ Estados de archivo cargados:', this.fileStatuses);
+        } else {
+          console.error('❌ Error en respuesta de File_Status:', fileStatusesResponse);
+        }
+        this.checkCatalogsLoaded();
+      },
+      error: (error) => {
+        console.error('❌ Error cargando estados de archivo:', error);
+        this.checkCatalogsLoaded();
       }
-      if (subProcessesResponse?.success) {
-        this.subProcesses = subProcessesResponse.data.processes || [];
-      }
-    }).catch(error => {
-      // Error loading catalogs
     });
+
+    // Cargar subestados de archivo (File_SubStatus)
+    this.documentTypeService.getActiveSubProcesses().subscribe({
+      next: (subProcessesResponse) => {
+        console.log('📋 Respuesta de File_SubStatus:', subProcessesResponse);
+        if (subProcessesResponse?.success) {
+          this.subProcesses = subProcessesResponse.data.file_sub_statuses || [];
+          console.log('✅ Subestados de archivo cargados:', this.subProcesses);
+        } else {
+          console.error('❌ Error en respuesta de File_SubStatus:', subProcessesResponse);
+        }
+        this.checkCatalogsLoaded();
+      },
+      error: (error) => {
+        console.error('❌ Error cargando subestados de archivo:', error);
+        this.checkCatalogsLoaded();
+      }
+    });
+  }
+
+  private checkCatalogsLoaded(): void {
+    // Verificar si ambos catálogos han terminado de cargar (exitosamente o con error)
+    if (this.fileStatuses.length > 0 || this.subProcesses.length > 0) {
+      this.loadingCatalogs = false;
+      console.log('✅ Catálogos cargados - File_Status:', this.fileStatuses.length, 'File_SubStatus:', this.subProcesses.length);
+    }
   }
 
   private populateForm(): void {
     if (this.data.documentType && this.data.mode === 'edit') {
+      const selectedPhase = this.data.documentType.IdProcessType || '0';
+      
       this.documentTypeForm.patchValue({
         Name: this.data.documentType.Name,
         Enabled: this.data.documentType.Enabled,
-        ReqExpiration: this.data.documentType.ReqExpiration || 0,
-        IdProcessType: this.data.documentType.IdProcessType || 0,
-        Required: this.data.documentType.Required || 1,
-        IdSubProcess: this.data.documentType.IdSubProcess || 0
+        ReqExpiration: this.data.documentType.ReqExpiration || '0',
+        IdProcessType: selectedPhase,
+        Required: this.data.documentType.Required || '1',
+        IdSubProcess: selectedPhase === 'Liberación' ? (this.data.documentType.IdSubProcess || '0') : '0'
       });
+      
+      // Actualizar el estado de la sub fase
+      this.isSubPhaseEnabled = selectedPhase === 'Liberación';
+      console.log('📝 Formulario poblado, sub fase habilitada:', this.isSubPhaseEnabled);
     }
   }
 

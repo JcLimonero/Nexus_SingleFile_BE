@@ -97,6 +97,13 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'DocumentType::toggleStatus/$1');
     });
     
+    // Rutas de estados de archivo (File_Status)
+    $routes->group('file-status', function($routes) {
+        $routes->get('/', 'FileStatus::index');
+        $routes->get('active', 'FileStatus::active');
+        $routes->get('(:num)', 'FileStatus::show/$1');
+    });
+    
     // Rutas de subestados de archivo (File_SubStatus)
     $routes->group('file-sub-status', function($routes) {
         $routes->get('/', 'FileSubStatus::index');

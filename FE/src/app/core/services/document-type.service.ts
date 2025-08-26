@@ -133,7 +133,7 @@ export class DocumentTypeService {
    * Obtener estados de archivo activos (File_Status)
    */
   getActiveFileStatuses(): Observable<any> {
-    return this.http.get(`${this.apiBaseService.buildApiUrl('file-status')}?enabled=1`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl('file-status/active')}`);
   }
 
   /**
