@@ -169,7 +169,7 @@ export class DocumentService {
    * Obtener sub-estados de archivo
    */
   getFileSubStatuses(): Observable<FileSubStatusResponse> {
-    return this.http.get<FileSubStatusResponse>(`${this.apiBaseService.buildApiUrl('file-substatus')}`);
+    return this.http.get<FileSubStatusResponse>(`${this.apiBaseService.buildApiUrl('file-sub-status')}`);
   }
 
   // Métodos de utilidad

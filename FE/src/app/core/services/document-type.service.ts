@@ -137,9 +137,9 @@ export class DocumentTypeService {
   }
 
   /**
-   * Obtener subprocesos activos
+   * Obtener subestados de archivo activos (File_SubStatus)
    */
   getActiveSubProcesses(): Observable<any> {
-    return this.http.get(`${this.apiBaseService.buildApiUrl('process')}?enabled=1`);
+    return this.http.get(`${this.apiBaseService.buildApiUrl('file-sub-status/active')}`);
   }
 }

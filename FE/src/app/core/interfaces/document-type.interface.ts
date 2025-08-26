@@ -11,7 +11,7 @@ export interface DocumentType {
   IdSubProcess: string; // API devuelve IDs como strings
   LastUserUpdateName?: string;
   ProcessTypeName?: string; // Descripción del File_Status (JOIN con File_Status)
-  SubProcessName?: string; // Nombre del subproceso (JOIN con Process)
+  SubProcessName?: string; // Nombre del subestado de archivo (JOIN con File_SubStatus)
 }
 
 export interface DocumentTypeResponse {
