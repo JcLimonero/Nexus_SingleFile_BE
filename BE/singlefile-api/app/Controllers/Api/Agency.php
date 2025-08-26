@@ -22,6 +22,15 @@ class Agency extends BaseController
     public function index()
     {
         try {
+            // Verificar autenticación
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido'
+                ])->setStatusCode(401);
+            }
+
             // Obtener parámetros de consulta
             $enabled = $this->request->getGet('enabled');
             $search = $this->request->getGet('search');
@@ -64,18 +73,63 @@ class Agency extends BaseController
                 }
             }
             
+            // Filtrar agencias según el rol del usuario
+            if (!$this->isCurrentUserAdmin()) {
+                // Si no es administrador, filtrar solo las agencias asignadas al usuario
+                $userId = $currentUser['user_id'];
+                $db = \Config\Database::connect();
+                
+                // Obtener IDs de agencias asignadas al usuario
+                $userAgencies = $db->table('Agency_User')
+                    ->select('IdAgency')
+                    ->where('IdUser', $userId)
+                    ->get()
+                    ->getResultArray();
+                
+                $allowedAgencyIds = array_column($userAgencies, 'IdAgency');
+                
+                // Filtrar las agencias obtenidas
+                if (!empty($allowedAgencyIds)) {
+                    $agencies = array_filter($agencies, function($agency) use ($allowedAgencyIds) {
+                        return in_array($agency['Id'], $allowedAgencyIds);
+                    });
+                } else {
+                    // Si no tiene agencias asignadas, retornar array vacío
+                    $agencies = [];
+                }
+            }
+            
             // Aplicar paginación si se especifica
             if ($limit) {
                 $agencies = array_slice($agencies, $offset, $limit);
             }
             
-            // Contar total de registros según el filtro aplicado
-            if ($enabled === 'true') {
-                $total = $this->agencyModel->countEnabledAgencies();
-            } elseif ($enabled === 'false') {
-                $total = $this->agencyModel->countDisabledAgencies();
+            // Contar total de registros según el filtro aplicado y los permisos del usuario
+            if ($this->isCurrentUserAdmin()) {
+                // Administrador ve todas las agencias
+                if ($enabled === 'true') {
+                    $total = $this->agencyModel->countEnabledAgencies();
+                } elseif ($enabled === 'false') {
+                    $total = $this->agencyModel->countDisabledAgencies();
+                } else {
+                    $total = $this->agencyModel->countAllAgencies();
+                }
             } else {
-                $total = $this->agencyModel->countAllAgencies();
+                // Usuario normal ve solo las agencias asignadas
+                $userId = $currentUser['user_id'];
+                $db = \Config\Database::connect();
+                
+                $builder = $db->table('Agency_User au')
+                    ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                    ->where('au.IdUser', $userId);
+                
+                if ($enabled === 'true') {
+                    $builder->where('a.Enabled', 1);
+                } elseif ($enabled === 'false') {
+                    $builder->where('a.Enabled', 0);
+                }
+                
+                $total = $builder->countAllResults();
             }
             
             return $this->response
@@ -605,12 +659,10 @@ class Agency extends BaseController
     
     /**
      * Método auxiliar para obtener el ID del usuario actual
-     * Implementar según tu lógica de autenticación
+     * Ahora utiliza la funcionalidad del BaseController
      */
     private function getCurrentUserId()
     {
-        // Aquí implementarías la lógica para extraer el user_id del token JWT
-        // Por ahora retornamos null para que se implemente según tu sistema
-        return null;
+        return parent::getCurrentUserId();
     }
 }

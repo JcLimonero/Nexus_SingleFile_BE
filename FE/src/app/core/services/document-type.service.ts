@@ -1,0 +1,142 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { 
+  DocumentType, 
+  DocumentTypeResponse, 
+  DocumentTypeCreateRequest, 
+  DocumentTypeUpdateRequest,
+  DocumentTypeStatsResponse,
+  DocumentTypeSearchResponse,
+  DocumentTypeActiveResponse
+} from '../interfaces/document-type.interface';
+import { environment } from '../../../environments/environment';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DocumentTypeService {
+  private readonly API_URL = `${environment.apiUrl}/document-type`;
+
+  constructor(private http: HttpClient) { }
+
+  /**
+   * Obtener todos los tipos de documento con filtros y paginación
+   */
+  getDocumentTypes(params?: {
+    page?: number;
+    limit?: number | string;
+    enabled?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  }): Observable<DocumentTypeResponse> {
+    let httpParams = new HttpParams();
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          httpParams = httpParams.set(key, value.toString());
+        }
+      });
+    }
+
+    return this.http.get<DocumentTypeResponse>(this.API_URL, { params: httpParams });
+  }
+
+  /**
+   * Obtener un tipo de documento específico por ID
+   */
+  getDocumentType(id: number): Observable<any> {
+    return this.http.get(`${this.API_URL}/${id}`);
+  }
+
+  /**
+   * Crear un nuevo tipo de documento
+   */
+  createDocumentType(documentType: DocumentTypeCreateRequest): Observable<any> {
+    return this.http.post(this.API_URL, documentType);
+  }
+
+  /**
+   * Actualizar un tipo de documento existente
+   */
+  updateDocumentType(id: number, documentType: DocumentTypeUpdateRequest): Observable<any> {
+    return this.http.put(`${this.API_URL}/${id}`, documentType);
+  }
+
+  /**
+   * Eliminar un tipo de documento
+   */
+  deleteDocumentType(id: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/${id}`);
+  }
+
+  /**
+   * Cambiar estado (habilitado/deshabilitado) de un tipo de documento
+   */
+  toggleStatus(id: number): Observable<any> {
+    return this.http.patch(`${this.API_URL}/${id}/toggle-status`, {});
+  }
+
+  /**
+   * Obtener solo los tipos de documento activos
+   */
+  getActiveDocumentTypes(): Observable<DocumentTypeActiveResponse> {
+    return this.http.get<DocumentTypeActiveResponse>(`${this.API_URL}/active`);
+  }
+
+  /**
+   * Buscar tipos de documento por nombre
+   */
+  searchDocumentTypes(query: string, limit?: number): Observable<DocumentTypeSearchResponse> {
+    let params = new HttpParams().set('q', query);
+    if (limit) {
+      params = params.set('limit', limit.toString());
+    }
+    
+    return this.http.get<DocumentTypeSearchResponse>(`${this.API_URL}/search`, { params });
+  }
+
+  /**
+   * Obtener estadísticas de los tipos de documento
+   */
+  getStats(): Observable<DocumentTypeStatsResponse> {
+    return this.http.get<DocumentTypeStatsResponse>(`${this.API_URL}/stats`);
+  }
+
+  /**
+   * Obtener todos los tipos de documento sin paginación
+   */
+  getAllDocumentTypes(): Observable<DocumentTypeResponse> {
+    return this.getDocumentTypes({ limit: 'all' });
+  }
+
+  /**
+   * Obtener tipos de documento habilitados
+   */
+  getEnabledDocumentTypes(): Observable<DocumentTypeResponse> {
+    return this.getDocumentTypes({ enabled: '1', limit: 'all' });
+  }
+
+  /**
+   * Obtener tipos de documento deshabilitados
+   */
+  getDisabledDocumentTypes(): Observable<DocumentTypeResponse> {
+    return this.getDocumentTypes({ enabled: '0', limit: 'all' });
+  }
+
+  /**
+   * Obtener estados de archivo activos (File_Status)
+   */
+  getActiveFileStatuses(): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/file-status?enabled=1`);
+  }
+
+  /**
+   * Obtener subprocesos activos
+   */
+  getActiveSubProcesses(): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/process?enabled=1`);
+  }
+}

@@ -1,0 +1,142 @@
+<div class="p-0">
+  <!-- Header del diálogo -->
+  <div class="flex items-center justify-between p-6 border-b border-gray-200">
+    <h2 class="text-xl font-semibold text-gray-900">
+      {{ dialogTitle }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <form [formGroup]="documentTypeForm" (ngSubmit)="onSubmit()" class="space-y-4 p-6">
+    <!-- Nombre -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Nombre del Tipo de Documento</mat-label>
+      <input 
+        matInput 
+        formControlName="Name" 
+        placeholder="Ej: CEDULA, PASAPORTE, LICENCIA DE CONDUCIR"
+        maxlength="600">
+      <mat-hint>Nombre completo del tipo de documento (máximo 600 caracteres)</mat-hint>
+      <mat-error *ngIf="documentTypeForm.get('Name')?.hasError('required')">
+        El nombre es requerido
+      </mat-error>
+      <mat-error *ngIf="documentTypeForm.get('Name')?.hasError('minlength')">
+        El nombre debe tener al menos 3 caracteres
+      </mat-error>
+      <mat-error *ngIf="documentTypeForm.get('Name')?.hasError('maxlength')">
+        El nombre no puede exceder 600 caracteres
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Fase -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Fase</mat-label>
+      <mat-select formControlName="IdProcessType">
+        <mat-option [value]="0">Sin fase</mat-option>
+        <mat-option *ngFor="let fileStatus of fileStatuses" [value]="fileStatus.Id">
+          {{ fileStatus.Name }}
+        </mat-option>
+      </mat-select>
+      <mat-hint>Fase asociada al documento</mat-hint>
+    </mat-form-field>
+
+    <!-- Subproceso -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Subproceso</mat-label>
+      <mat-select formControlName="IdSubProcess">
+        <mat-option [value]="0">Sin subproceso</mat-option>
+        <mat-option *ngFor="let subProcess of subProcesses" [value]="subProcess.Id">
+          {{ subProcess.Name }}
+        </mat-option>
+      </mat-select>
+      <mat-hint>Subproceso asociado al documento</mat-hint>
+    </mat-form-field>
+
+    <!-- Configuraciones -->
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Requerido -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>¿Es Requerido?</mat-label>
+        <mat-select formControlName="Required">
+          <mat-option [value]="1">Sí</mat-option>
+          <mat-option [value]="0">No</mat-option>
+        </mat-select>
+        <mat-hint>Si el documento es obligatorio</mat-hint>
+      </mat-form-field>
+
+      <!-- Requiere Expiración -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>¿Requiere Fecha de Expiración?</mat-label>
+        <mat-select formControlName="ReqExpiration">
+          <mat-option [value]="1">Sí</mat-option>
+          <mat-option [value]="0">No</mat-option>
+        </mat-select>
+        <mat-hint>Si debe tener fecha de expiración</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Estado -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="Enabled">
+        <mat-option [value]="1">Activo</mat-option>
+        <mat-option [value]="0">Inactivo</mat-option>
+      </mat-select>
+      <mat-hint>Estado actual del tipo de documento</mat-hint>
+    </mat-form-field>
+
+    <!-- Información adicional (solo lectura en modo edición) -->
+    <div *ngIf="data.mode === 'edit'" class="bg-gray-50 p-4 rounded-lg">
+      <h3 class="text-sm font-medium text-gray-700 mb-2">Información del Sistema</h3>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <span class="text-gray-500">ID:</span>
+          <span class="ml-2 font-mono">{{ data.documentType?.Id }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Último Usuario:</span>
+          <span class="ml-2">{{ data.documentType?.LastUserUpdateName || 'N/A' }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Fecha Registro:</span>
+          <span class="ml-2">{{ data.documentType?.RegistrationDate || 'N/A' }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Última Actualización:</span>
+          <span class="ml-2">{{ data.documentType?.UpdateDate || 'N/A' }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Fase:</span>
+          <span class="ml-2">{{ data.documentType?.ProcessTypeName || 'N/A' }}</span>
+        </div>
+        <div>
+          <span class="text-gray-500">Subproceso:</span>
+          <span class="ml-2">{{ data.documentType?.SubProcessName || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-end space-x-3 pt-4 border-t">
+      <button 
+        type="button" 
+        mat-button 
+        (click)="onCancel()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+      <button 
+        type="submit" 
+        mat-raised-button 
+        color="primary"
+        [disabled]="documentTypeForm.invalid || loading">
+        <mat-spinner *ngIf="loading" diameter="20" class="mr-2"></mat-spinner>
+        <mat-icon *ngIf="!loading">{{ data.mode === 'edit' ? 'save' : 'add' }}</mat-icon>
+        {{ submitButtonText }}
+      </button>
+    </div>
+  </form>
+</div>

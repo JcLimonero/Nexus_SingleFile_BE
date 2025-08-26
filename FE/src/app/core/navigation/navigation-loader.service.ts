@@ -77,12 +77,6 @@ export class NavigationLoaderService {
             route: '/configuracion/usuarios',
             icon: 'mat:people'
           },
-          {
-            type: 'link',
-            label: 'Roles y Permisos',
-            route: '/configuracion/roles',
-            icon: 'mat:security'
-          },
                   {
           type: 'dropdown',
           label: 'Catálogos',
@@ -111,6 +105,12 @@ export class NavigationLoaderService {
               label: 'Tipos de Cliente',
               route: '/configuracion/catalogos/tipos-cliente',
               icon: 'mat:person_outline'
+            },
+            {
+              type: 'link',
+              label: 'Tipos de Documento',
+              route: '/configuracion/catalogos/tipos-documento',
+              icon: 'mat:description'
             }
           ]
         }

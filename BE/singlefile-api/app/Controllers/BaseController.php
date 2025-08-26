@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use App\Models\AuthModel;
 
 /**
  * Class BaseController
@@ -54,5 +55,73 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
 
         // E.g.: $this->session = service('session');
+    }
+
+    /**
+     * Obtener información del usuario autenticado desde el token JWT
+     */
+    protected function getAuthenticatedUser()
+    {
+        try {
+            // Obtener token del header Authorization
+            $authHeader = $this->request->getHeader('Authorization');
+            if (!$authHeader) {
+                return null;
+            }
+
+            $token = str_replace('Bearer ', '', $authHeader->getValue());
+            if (!$token) {
+                return null;
+            }
+
+            // Verificar token
+            $authModel = new AuthModel();
+            $result = $authModel->verifyJWT($token);
+            
+            if ($result['success']) {
+                return [
+                    'user_id' => $result['data']->user_id,
+                    'email' => $result['data']->email,
+                    'role_id' => $result['data']->role_id
+                ];
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Verificar si el usuario actual es administrador
+     */
+    protected function isCurrentUserAdmin()
+    {
+        $user = $this->getAuthenticatedUser();
+        if (!$user) {
+            return false;
+        }
+
+        // Asumiendo que el rol de administrador tiene ID = 1
+        // Puedes ajustar esto según tu estructura de roles
+        return $user['role_id'] == 1;
+    }
+
+    /**
+     * Obtener ID del usuario actual
+     */
+    protected function getCurrentUserId()
+    {
+        $user = $this->getAuthenticatedUser();
+        return $user ? $user['user_id'] : null;
+    }
+
+    /**
+     * Obtener rol del usuario actual
+     */
+    protected function getCurrentUserRoleId()
+    {
+        $user = $this->getAuthenticatedUser();
+        return $user ? $user['role_id'] : null;
     }
 }

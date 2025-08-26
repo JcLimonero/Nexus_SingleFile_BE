@@ -215,13 +215,6 @@ export const appRoutes: VexRoutes = [
               import('./pages/configuracion/usuarios/usuarios.component').then(
                 (m) => m.UsuariosComponent
               )
-          },
-          {
-            path: 'roles',
-            loadComponent: () =>
-              import('./pages/configuracion/roles/roles.component').then(
-                (m) => m.RolesComponent
-              )
           }
         ]
       },
@@ -254,6 +247,13 @@ export const appRoutes: VexRoutes = [
               loadComponent: () =>
                 import('./pages/configuracion/tipos-cliente/tipos-cliente.component').then(
                   (m) => m.TiposClienteComponent
+                )
+            },
+            {
+              path: 'tipos-documento',
+              loadComponent: () =>
+                import('./pages/configuracion/tipos-documento/tipos-documento.component').then(
+                  (m) => m.TiposDocumentoComponent
                 )
             }
           ]

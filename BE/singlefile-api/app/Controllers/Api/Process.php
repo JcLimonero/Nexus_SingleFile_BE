@@ -22,6 +22,15 @@ class Process extends BaseController
     public function index()
     {
         try {
+            // Verificar autenticación
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido'
+                ])->setStatusCode(401);
+            }
+
             // Obtener parámetros de consulta
             $enabled = $this->request->getGet('enabled');
             $search = $this->request->getGet('search');
@@ -54,18 +63,63 @@ class Process extends BaseController
                 }
             }
             
+            // Filtrar procesos según el rol del usuario
+            if (!$this->isCurrentUserAdmin()) {
+                // Si no es administrador, filtrar solo los procesos asignados al usuario
+                $userId = $currentUser['user_id'];
+                $db = \Config\Database::connect();
+                
+                // Obtener IDs de procesos asignados al usuario
+                $userProcesses = $db->table('Process_User')
+                    ->select('IdProcess')
+                    ->where('IdUser', $userId)
+                    ->get()
+                    ->getResultArray();
+                
+                $allowedProcessIds = array_column($userProcesses, 'IdProcess');
+                
+                // Filtrar los procesos obtenidos
+                if (!empty($allowedProcessIds)) {
+                    $processes = array_filter($processes, function($process) use ($allowedProcessIds) {
+                        return in_array($process['Id'], $allowedProcessIds);
+                    });
+                } else {
+                    // Si no tiene procesos asignados, retornar array vacío
+                    $processes = [];
+                }
+            }
+            
             // Aplicar paginación si se especifica
             if ($limit) {
                 $processes = array_slice($processes, $offset, $limit);
             }
             
-            // Contar total de registros según el filtro aplicado
-            if ($enabled === 'true') {
-                $total = $this->processModel->countEnabledProcesses();
-            } elseif ($enabled === 'false') {
-                $total = $this->processModel->countDisabledProcesses();
+            // Contar total de registros según el filtro aplicado y los permisos del usuario
+            if ($this->isCurrentUserAdmin()) {
+                // Administrador ve todos los procesos
+                if ($enabled === 'true') {
+                    $total = $this->processModel->countEnabledProcesses();
+                } elseif ($enabled === 'false') {
+                    $total = $this->processModel->countDisabledProcesses();
+                } else {
+                    $total = $this->processModel->countAllProcesses();
+                }
             } else {
-                $total = $this->processModel->countAllProcesses();
+                // Usuario normal ve solo los procesos asignados
+                $userId = $currentUser['user_id'];
+                $db = \Config\Database::connect();
+                
+                $builder = $db->table('Process_User pu')
+                    ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
+                    ->where('pu.IdUser', $userId);
+                
+                if ($enabled === 'true') {
+                    $builder->where('p.Enabled', 1);
+                } elseif ($enabled === 'false') {
+                    $builder->where('p.Enabled', 0);
+                }
+                
+                $total = $builder->countAllResults();
             }
             
             return $this->response
@@ -543,12 +597,10 @@ class Process extends BaseController
     
     /**
      * Método auxiliar para obtener el ID del usuario actual
-     * Implementar según tu lógica de autenticación
+     * Ahora utiliza la funcionalidad del BaseController
      */
     private function getCurrentUserId()
     {
-        // Aquí implementarías la lógica para extraer el user_id del token JWT
-        // Por ahora retornamos null para que se implemente según tu sistema
-        return null;
+        return parent::getCurrentUserId();
     }
 }

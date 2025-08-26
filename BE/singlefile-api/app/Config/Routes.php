@@ -84,6 +84,32 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'CostumerType::toggleStatus/$1');
     });
     
+    // Rutas de tipos de documento (CRUD)
+    $routes->group('document-type', function($routes) {
+        $routes->get('/', 'DocumentType::index');
+        $routes->post('/', 'DocumentType::create');
+        $routes->get('search', 'DocumentType::search');
+        $routes->get('stats', 'DocumentType::stats');
+        $routes->get('active', 'DocumentType::active');
+        $routes->get('(:num)', 'DocumentType::show/$1');
+        $routes->put('(:num)', 'DocumentType::update/$1');
+        $routes->delete('(:num)', 'DocumentType::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'DocumentType::toggleStatus/$1');
+    });
+    
+    // Rutas de documentos (CRUD)
+    $routes->group('document', function($routes) {
+        $routes->get('/', 'Document::index');
+        $routes->post('/', 'Document::create');
+        $routes->get('search', 'Document::search');
+        $routes->get('stats', 'Document::stats');
+        $routes->get('by-file/(:num)', 'Document::getByFile/$1');
+        $routes->get('(:num)', 'Document::show/$1');
+        $routes->put('(:num)', 'Document::update/$1');
+        $routes->delete('(:num)', 'Document::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'Document::toggleStatus/$1');
+    });
+    
     // Rutas de usuarios (CRUD)
     $routes->group('user', function($routes) {
         $routes->get('/', 'User::index');
