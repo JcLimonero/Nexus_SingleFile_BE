@@ -55,7 +55,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['id', 'proceso', 'agencia', 'tipoCliente', 'tipoOperacion', 'documento', 'orden', 'acciones'];
+  displayedColumns: string[] = ['id', 'proceso', 'agencia', 'tipoCliente', 'tipoOperacion', 'documento'];
   dataSource = new MatTableDataSource<any>([]);
   
   loading = false;
