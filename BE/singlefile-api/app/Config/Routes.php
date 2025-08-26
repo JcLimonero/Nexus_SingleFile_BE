@@ -178,6 +178,16 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('remove-image', 'UserProfile::removeImage');
         $routes->get('image/(:num)', 'UserProfile::getProfileImage/$1');
     });
+
+    // Rutas para imágenes de perfil (nuevo controlador)
+    $routes->group('user/profile-image', function($routes) {
+        $routes->post('upload', 'UserProfileImage::uploadProfileImage');
+        $routes->get('get', 'UserProfileImage::getProfileImage');
+        $routes->get('get/(:num)', 'UserProfileImage::getProfileImage/$1');
+        $routes->get('info', 'UserProfileImage::getProfileImageInfo');
+        $routes->get('info/(:num)', 'UserProfileImage::getProfileImageInfo/$1');
+        $routes->delete('remove', 'UserProfileImage::removeProfileImage');
+    });
 });
 
 // Ruta por defecto

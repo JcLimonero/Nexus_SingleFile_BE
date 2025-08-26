@@ -15,6 +15,7 @@ export interface User {
   enabled: boolean;
   profile_image?: string;
   image_type?: string;
+  image_size?: number;
 }
 
 export interface AuthResponse {

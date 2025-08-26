@@ -10,7 +10,9 @@ import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService, User } from '../../../../core/services/auth.service';
-import { Observable } from 'rxjs';
+import { UserProfileImageService, ProfileImageInfo } from '../../../../core/services/user-profile-image.service';
+import { Observable, firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'vex-social-profile',
@@ -23,12 +25,17 @@ import { Observable } from 'rxjs';
 export class SocialProfileComponent implements OnInit {
   suggestions = friendSuggestions;
   currentUser$: Observable<User | null>;
+  profileImageInfo$: Observable<ProfileImageInfo | null>;
 
   constructor(
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private userProfileImageService: UserProfileImageService
   ) {
     this.currentUser$ = this.authService.currentUser$;
+    this.profileImageInfo$ = this.userProfileImageService.getProfileImageInfo().pipe(
+      map(response => response.success ? response.data : null)
+    );
   }
 
   ngOnInit(): void {}
@@ -59,5 +66,62 @@ export class SocialProfileComponent implements OnInit {
         console.log('Contraseña actualizada exitosamente');
       }
     });
+  }
+
+  async uploadProfileImage(event: any): Promise<void> {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar archivo
+    const validation = this.userProfileImageService.validateImageFile(file);
+    if (!validation.valid) {
+      console.error('Archivo no válido:', validation.error);
+      return;
+    }
+
+    try {
+      // Comprimir imagen antes de subir
+      const compressedFile = await this.userProfileImageService.compressImage(file);
+      
+      // Subir imagen
+      const result = await firstValueFrom(this.userProfileImageService.uploadProfileImage(compressedFile));
+      
+      if (result?.success) {
+        // Recargar información del usuario
+        // No es necesario recargar desde el AuthService, solo actualizar la información de imagen
+        this.refreshProfileImageInfo();
+        console.log('Imagen de perfil actualizada correctamente');
+      }
+    } catch (error) {
+      console.error('Error al subir imagen:', error);
+    }
+  }
+
+  async removeProfileImage(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.userProfileImageService.removeProfileImage());
+      
+      if (result?.success) {
+        // Recargar información del usuario
+        // No es necesario recargar desde el AuthService, solo actualizar la información de imagen
+        this.refreshProfileImageInfo();
+        console.log('Imagen de perfil eliminada correctamente');
+      }
+    } catch (error) {
+      console.error('Error al eliminar imagen:', error);
+    }
+  }
+
+  getProfileImageUrl(user: User): string | null {
+    if (user?.profile_image && user?.image_type) {
+      return this.userProfileImageService.getProfileImageUrl(user.profile_image, user.image_type);
+    }
+    return null;
+  }
+
+  private refreshProfileImageInfo(): void {
+    this.profileImageInfo$ = this.userProfileImageService.getProfileImageInfo().pipe(
+      map(response => response.success ? response.data : null)
+    );
   }
 }

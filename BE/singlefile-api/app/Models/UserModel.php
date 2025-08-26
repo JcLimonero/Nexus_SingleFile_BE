@@ -16,7 +16,7 @@ class UserModel extends Model
         'Id', 'Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol',
         'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate',
         'IdUserTotal', 'DefaultAgency', 'password_migrated',
-        'ProfileImage', 'ImageType'
+        'profile_image', 'image_type', 'image_size'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -123,5 +123,55 @@ class UserModel extends Model
     {
         $user = $this->find($userId);
         return $user && $user['password_migrated'] == 1;
+    }
+
+    /**
+     * Actualizar imagen de perfil del usuario
+     */
+    public function updateProfileImage($userId, $imageData, $imageType, $imageSize)
+    {
+        return $this->update($userId, [
+            'profile_image' => $imageData,
+            'image_type' => $imageType,
+            'image_size' => $imageSize,
+            'UpdateDate' => date('Y-m-d H:i:s'),
+            'IdLastUserUpdate' => session()->get('user_id') ?? 0
+        ]);
+    }
+
+    /**
+     * Eliminar imagen de perfil del usuario
+     */
+    public function removeProfileImage($userId)
+    {
+        return $this->update($userId, [
+            'profile_image' => null,
+            'image_type' => null,
+            'image_size' => null,
+            'UpdateDate' => date('Y-m-d H:i:s'),
+            'IdLastUserUpdate' => session()->get('user_id') ?? 0
+        ]);
+    }
+
+    /**
+     * Obtener imagen de perfil del usuario
+     */
+    public function getProfileImage($userId)
+    {
+        $user = $this->select('profile_image, image_type, image_size')->find($userId);
+        return $user ? [
+            'image' => $user['profile_image'],
+            'type' => $user['image_type'],
+            'size' => $user['image_size']
+        ] : null;
+    }
+
+    /**
+     * Verificar si un usuario tiene imagen de perfil
+     */
+    public function hasProfileImage($userId)
+    {
+        $user = $this->select('profile_image')->find($userId);
+        return $user && !empty($user['profile_image']);
     }
 }

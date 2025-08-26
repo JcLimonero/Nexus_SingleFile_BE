@@ -106,6 +106,67 @@
             <p class="m-0 caption text-hint">Actualiza tu contraseña de acceso</p>
           </div>
         </div>
+
+        <!-- Imagen de Perfil -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-blue-600/10 text-blue-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center cursor-pointer hover:bg-blue-600/20 transition-colors">
+            <input 
+              type="file" 
+              accept="image/*" 
+              (change)="uploadProfileImage($event)"
+              style="display: none"
+              #fileInput>
+            <mat-icon 
+              class="icon-sm cursor-pointer" 
+              (click)="fileInput.click()"
+              svgIcon="mat:photo_camera">
+            </mat-icon>
+          </div>
+
+          <div @fadeInRight class="flex-1">
+            <p class="m-0 body-1 cursor-pointer hover:text-primary-600 transition-colors" 
+               (click)="fileInput.click()">
+              Cambiar Foto de Perfil
+            </p>
+            <p class="m-0 caption text-hint">
+              <ng-container *ngIf="profileImageInfo$ | async as imageInfo; else noImage">
+                Imagen actual: {{ imageInfo.image_size_formatted }}
+                <button 
+                  mat-button 
+                  color="warn" 
+                  class="ml-2 text-xs"
+                  (click)="removeProfileImage()">
+                  Eliminar
+                </button>
+              </ng-container>
+              <ng-template #noImage>
+                Sube una nueva imagen de perfil
+              </ng-template>
+            </p>
+          </div>
+        </div>
+
+        <!-- Vista Previa de Imagen -->
+        <div *ngIf="currentUser$ | async as user" class="py-3 flex items-center">
+          <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <ng-container *ngIf="getProfileImageUrl(user); else defaultAvatar">
+              <img 
+                [src]="getProfileImageUrl(user)" 
+                [alt]="'Foto de perfil de ' + user.name"
+                class="w-full h-full object-cover">
+            </ng-container>
+            <ng-template #defaultAvatar>
+              <mat-icon class="text-gray-400 text-2xl">person</mat-icon>
+            </ng-template>
+          </div>
+
+          <div class="flex-1">
+            <p class="m-0 body-1 font-medium">{{ user.name }}</p>
+            <p class="m-0 caption text-hint">{{ user.role_name }}</p>
+          </div>
+        </div>
       </div>
 
     </div>
