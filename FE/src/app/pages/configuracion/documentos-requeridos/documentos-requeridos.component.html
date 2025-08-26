@@ -48,7 +48,7 @@
         <!-- Botón de Nuevo -->
         <button 
           mat-stroked-button 
-          color="primary" 
+          color="accent" 
           (click)="addDocumentoRequerido()"
           [disabled]="!isConfigurationSelected()"
           matTooltip="Agregar nuevo documento"
@@ -56,22 +56,10 @@
           <mat-icon>add_circle</mat-icon>
           Nuevo
         </button>
-
-        <!-- Botón de Modificar -->
-        <button 
-          mat-stroked-button 
-          color="accent" 
-          (click)="editDocumentoRequerido(selectedItem)"
-          [disabled]="!selectedItem"
-          matTooltip="Modificar documento seleccionado"
-          class="flex items-center gap-2">
-          <mat-icon>edit</mat-icon>
-          Modificar
-        </button>
       </div>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <!-- Agencia -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Agencia</mat-label>
@@ -119,6 +107,20 @@
         </mat-select>
         <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
       </mat-form-field>
+
+      <!-- Botón de Modificar -->
+      <div class="flex items-start">
+        <button 
+          mat-stroked-button 
+          color="accent" 
+          (click)="editDocumentoRequerido(selectedItem)"
+          [disabled]="!selectedItem"
+          matTooltip="Modificar documento seleccionado"
+          class="flex items-center gap-2 w-full">
+          <mat-icon>edit</mat-icon>
+          Modificar
+        </button>
+      </div>
     </div>
 
     <!-- Mensaje de estado de catálogos -->
@@ -146,7 +148,7 @@
         <mat-spinner diameter="50"></mat-spinner>
       </div>
 
-      <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
+      <table mat-table [dataSource]="dataSource" matSort class="w-full compact-table" style="line-height: 1;">
         <!-- Columna ID -->
         <ng-container matColumnDef="id">
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
@@ -214,7 +216,7 @@
             *matRowDef="let row; columns: displayedColumns;"
             (click)="onRowClick(row)"
             [class.bg-blue-50]="selectedItem?.id === row.id"
-            class="cursor-pointer hover:bg-gray-50 transition-colors">
+            class="cursor-pointer hover:bg-gray-50 transition-colors !min-h-0 !h-8">
         </tr>
       </table>
 

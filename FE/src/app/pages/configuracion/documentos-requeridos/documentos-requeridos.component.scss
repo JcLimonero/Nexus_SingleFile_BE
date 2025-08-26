@@ -3,6 +3,31 @@
   width: 100%;
 }
 
+// Tabla compacta - mismo estilo que usuarios
+.compact-table {
+  .mat-mdc-header-cell {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  
+  .mat-mdc-cell {
+    padding: 0 8px;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  
+  .mat-mdc-row {
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+  
+  .mat-mdc-header-row {
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+}
+
 .mat-mdc-header-cell {
   font-weight: 600;
   color: #374151;

@@ -54,12 +54,6 @@ export class NavigationLoaderService {
             children: [
               {
                 type: 'link',
-                label: 'Configuración General',
-                route: '/configuracion/general',
-                icon: 'mat:settings'
-              },
-              {
-                type: 'link',
                 label: 'Configuración de Documentos Requeridos',
                 route: '/configuracion/documentos-requeridos',
                 icon: 'mat:assignment'
