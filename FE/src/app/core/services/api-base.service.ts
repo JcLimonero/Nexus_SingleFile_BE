@@ -61,7 +61,7 @@ export class ApiBaseService {
     if (!endpoint.startsWith('/')) {
       endpoint = '/' + endpoint;
     }
-    return environment.apiBaseUrl + '/auth' + endpoint;
+    return environment.apiBaseUrl + '/api/auth' + endpoint;
   }
 
   /**

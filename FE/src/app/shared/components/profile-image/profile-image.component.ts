@@ -177,7 +177,7 @@ import { AuthService } from '../../../core/services/auth.service';
   `]
 })
 export class ProfileImageComponent implements OnInit, OnDestroy {
-  @Input() userId?: number;
+  @Input() userId?: string;
   @Input() showActions: boolean = true;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
   @Input() altText: string = 'Imagen de perfil';

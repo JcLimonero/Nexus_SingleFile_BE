@@ -14,8 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgIf } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { AuthService, LoginRequest, LoginResponse } from '../../../../core/services/auth.service';
-import { take } from 'rxjs/operators';
+import { AuthService, AuthResponse } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'vex-login',
@@ -60,33 +59,25 @@ export class LoginComponent {
       this.loading = true;
       this.cd.markForCheck();
 
-      const credentials: LoginRequest = {
-        email: this.form.get('email')?.value || '',
-        password: this.form.get('password')?.value || ''
-      };
+      const email = this.form.get('email')?.value || '';
+      const password = this.form.get('password')?.value || '';
 
-      this.authService.login(credentials).subscribe({
-        next: (response: LoginResponse) => {
+      this.authService.login(email, password).subscribe({
+        next: (response: AuthResponse) => {
           this.loading = false;
           this.cd.markForCheck();
           
           if (response.success) {
-            const roleInfo = response.user?.role_name || response.user?.role ? ` (${response.user.role_name || response.user.role})` : '';
+            const roleInfo = response.user?.role_name ? ` (${response.user.role_name})` : '';
             this.snackbar.open(`Inicio de sesión exitoso${roleInfo}`, 'OK', {
               duration: 3000
             });
             
-            // Esperar a que el estado de autenticación se actualice
-            this.authService.isAuthenticated$.pipe(take(1)).subscribe(isAuth => {
-              if (isAuth) {
-                this.router.navigate(['/']).then(() => {
-                  // Navegación exitosa
-                }).catch(error => {
-                  // Error en navegación
-                });
-              } else {
-                // Estado no se actualizó correctamente
-              }
+            // Navegar al dashboard después del login exitoso
+            this.router.navigate(['/']).then(() => {
+              console.log('✅ Navegación exitosa al dashboard');
+            }).catch(error => {
+              console.error('❌ Error en navegación:', error);
             });
           } else {
             this.snackbar.open(response.message || 'Error en el inicio de sesión', 'Error', {
@@ -98,16 +89,19 @@ export class LoginComponent {
           this.loading = false;
           this.cd.markForCheck();
           
-          this.snackbar.open(
-            'Error de conexión. Verifica tu conexión a internet.',
-            'Error',
-            { duration: 5000 }
-          );
+          console.error('Error en login:', error);
+          let errorMessage = 'Error en el inicio de sesión';
+          
+          if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          this.snackbar.open(errorMessage, 'Error', {
+            duration: 5000
+          });
         }
-      });
-    } else if (this.form.invalid) {
-      this.snackbar.open('Por favor, completa todos los campos correctamente', 'Error', {
-        duration: 3000
       });
     }
   }
@@ -124,8 +118,27 @@ export class LoginComponent {
     }
   }
 
-  // Método de prueba temporal
+  getErrorMessage(fieldName: string): string {
+    const field = this.form.get(fieldName);
+    if (field?.hasError('required')) {
+      return `${fieldName === 'email' ? 'Email' : 'Contraseña'} es requerido`;
+    }
+    if (field?.hasError('email')) {
+      return 'Email inválido';
+    }
+    return '';
+  }
+
+  // Método para probar logout (solo para desarrollo)
   testLogout() {
-    this.authService.testLogout();
+    this.authService.logout().subscribe({
+      next: () => {
+        this.snackbar.open('Logout exitoso', 'Info', { duration: 3000 });
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        this.snackbar.open('Error en logout', 'Error', { duration: 3000 });
+      }
+    });
   }
 }

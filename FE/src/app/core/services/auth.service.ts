@@ -1,174 +1,277 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { tap, catchError, switchMap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { ApiBaseService } from './api-base.service';
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  success: boolean;
-  message: string;
-  token?: string;
-  user?: any;
-  data?: any; // Added for new logic
-}
-
 export interface User {
-  id?: number;
-  name?: string;
-  email?: string;
-  role?: string;
-  role_name?: string; // Campo real del backend
-  avatar?: string;
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  role_id: string;
+  role_name: string;
+  enabled: boolean;
   profile_image?: string;
   image_type?: string;
-  role_id?: number;
-  username?: string;
-  enabled?: number;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  user: User;
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+export interface RefreshResponse {
+  success: boolean;
+  message: string;
+  access_token: string;
+  expires_in: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'auth';
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private accessTokenSubject = new BehaviorSubject<string | null>(null);
+  private refreshTokenSubject = new BehaviorSubject<string | null>(null);
+  private tokenExpirationSubject = new BehaviorSubject<number | null>(null);
   
-  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public currentUser$ = this.currentUserSubject.asObservable();
+  public accessToken$ = this.accessTokenSubject.asObservable();
+  public refreshToken$ = this.refreshTokenSubject.asObservable();
+  public tokenExpiration$ = this.tokenExpirationSubject.asObservable();
+
+  private isRefreshing = false;
+  private refreshTokenSubject$ = new BehaviorSubject<string | null>(null);
 
   constructor(
     private http: HttpClient,
-    private router: Router,
     private apiBaseService: ApiBaseService
   ) {
-    // Verificar si hay un token guardado al inicializar
-    this.checkAuthStatus();
-    
-    // Suscribirse al observable para debuggear
-    this.isAuthenticated$.subscribe(isAuth => {
-      // Verificar si hay inconsistencias
-      if (isAuth !== this.isAuthenticatedSubject.value) {
-        // Inconsistencia detectada entre observable y subject
+    this.loadStoredAuth();
+  }
+
+  /**
+   * Cargar autenticación almacenada
+   */
+  private loadStoredAuth(): void {
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+    const userStr = localStorage.getItem('current_user');
+    const expirationStr = localStorage.getItem('token_expiration');
+
+    if (accessToken && refreshToken && userStr && expirationStr) {
+      const user = JSON.parse(userStr);
+      const expiration = parseInt(expirationStr);
+      
+      // Verificar si el token no ha expirado
+      if (Date.now() < expiration) {
+        this.accessTokenSubject.next(accessToken);
+        this.refreshTokenSubject.next(refreshToken);
+        this.currentUserSubject.next(user);
+        this.tokenExpirationSubject.next(expiration);
+      } else {
+        // Token expirado, intentar renovar
+        this.refreshAccessToken();
       }
-    });
-    
-    // También suscribirse al observable del usuario
-    this.currentUser$.subscribe(user => {
-      // Usuario actualizado
-    });
-  }
-
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/login`, credentials)
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            // Login exitoso, configurando sesión...
-            
-            // Intentar obtener token de diferentes ubicaciones
-            let token = response.token;
-            let user = response.user;
-            
-            if (!token && response.data) {
-              token = response.data.token || response.data.access_token || response.data.jwt;
-              user = response.data.user || response.data;
-            }
-            
-            if (token) {
-              this.setToken(token);
-              
-              if (user) {
-                // Mapear el rol del campo role_name al campo role para compatibilidad
-                if (user.role_name && !user.role) {
-                  user.role = user.role_name;
-                }
-                
-                this.setCurrentUser(user);
-              }
-              
-              this.isAuthenticatedSubject.next(true);
-              
-              // Estado de autenticación actualizado a: true
-                          } else {
-                // No se pudo encontrar el token en la respuesta
-              }
-            } else {
-              // Login fallido o sin token
-            }
-        })
-      );
-  }
-
-  logout(): void {
-    try {
-      // Limpiar localStorage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('current_user');
-      
-      // Actualizar observables
-      this.isAuthenticatedSubject.next(false);
-      this.currentUserSubject.next(null);
-      
-      // Navegar al login
-      this.router.navigate(['/login']).then(() => {
-        // Navegación al login completada
-      }).catch(error => {
-        // Error en navegación
-      });
-      
-    } catch (error) {
-      // Intentar limpiar de todas formas
-      this.isAuthenticatedSubject.next(false);
-      this.currentUserSubject.next(null);
     }
   }
 
-  private setToken(token: string): void {
-    localStorage.setItem('auth_token', token);
+  /**
+   * Login de usuario
+   */
+  login(email: string, password: string): Observable<AuthResponse> {
+    const url = this.apiBaseService.buildAuthUrl('/login');
+    
+    return this.http.post<AuthResponse>(url, { email, password }).pipe(
+      tap(response => {
+        if (response.success) {
+          this.setAuthData(response);
+        }
+      }),
+      catchError(error => {
+        console.error('Error en login:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
-  private setCurrentUser(user: User): void {
-    localStorage.setItem('current_user', JSON.stringify(user));
-    this.currentUserSubject.next(user);
+  /**
+   * Renovar access token
+   */
+  refreshAccessToken(): Observable<RefreshResponse> {
+    if (this.isRefreshing) {
+      // Si ya se está renovando, esperar
+      return this.refreshTokenSubject$.pipe(
+        switchMap(token => {
+          if (token) {
+            return this.http.post<RefreshResponse>(
+              this.apiBaseService.buildAuthUrl('/refresh'),
+              { refresh_token: token }
+            );
+          } else {
+            return throwError(() => new Error('No refresh token available'));
+          }
+        })
+      );
+    }
+
+    this.isRefreshing = true;
+    const refreshToken = this.getRefreshToken();
+
+    if (!refreshToken) {
+      this.isRefreshing = false;
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.http.post<RefreshResponse>(
+      this.apiBaseService.buildAuthUrl('/refresh'),
+      { refresh_token: refreshToken }
+    ).pipe(
+      tap(response => {
+        if (response.success) {
+          this.updateAccessToken(response.access_token, response.expires_in);
+        }
+        this.isRefreshing = false;
+        this.refreshTokenSubject$.next(response.success ? response.access_token : null);
+      }),
+      catchError(error => {
+        this.isRefreshing = false;
+        this.refreshTokenSubject$.next(null);
+        this.logout(); // Si falla el refresh, hacer logout
+        return throwError(() => error);
+      })
+    );
   }
 
+  /**
+   * Logout de usuario
+   */
+  logout(): Observable<any> {
+    const url = this.apiBaseService.buildAuthUrl('/logout');
+    
+    return this.http.post(url, {}).pipe(
+      tap(() => {
+        this.clearAuthData();
+      }),
+      catchError(error => {
+        // Aunque falle el logout en el backend, limpiar datos locales
+        this.clearAuthData();
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Establecer datos de autenticación
+   */
+  private setAuthData(response: AuthResponse): void {
+    const expiration = Date.now() + (response.expires_in * 1000);
+    
+    localStorage.setItem('access_token', response.access_token);
+    localStorage.setItem('refresh_token', response.refresh_token);
+    localStorage.setItem('current_user', JSON.stringify(response.user));
+    localStorage.setItem('token_expiration', expiration.toString());
+    
+    this.accessTokenSubject.next(response.access_token);
+    this.refreshTokenSubject.next(response.refresh_token);
+    this.currentUserSubject.next(response.user);
+    this.tokenExpirationSubject.next(expiration);
+  }
+
+  /**
+   * Actualizar access token
+   */
+  private updateAccessToken(accessToken: string, expiresIn: number): void {
+    const expiration = Date.now() + (expiresIn * 1000);
+    
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('token_expiration', expiration.toString());
+    
+    this.accessTokenSubject.next(accessToken);
+    this.tokenExpirationSubject.next(expiration);
+  }
+
+  /**
+   * Limpiar datos de autenticación
+   */
+  private clearAuthData(): void {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('current_user');
+    localStorage.removeItem('token_expiration');
+    
+    this.accessTokenSubject.next(null);
+    this.refreshTokenSubject.next(null);
+    this.currentUserSubject.next(null);
+    this.tokenExpirationSubject.next(null);
+  }
+
+  /**
+   * Obtener access token actual
+   */
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return this.accessTokenSubject.value;
   }
 
+  /**
+   * Obtener refresh token actual
+   */
+  getRefreshToken(): string | null {
+    return this.refreshTokenSubject.value;
+  }
+
+  /**
+   * Verificar si el usuario está autenticado
+   */
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    const expiration = this.tokenExpirationSubject.value;
+    
+    if (!token || !expiration) {
+      return false;
+    }
+    
+    // Verificar si el token expira en los próximos 5 minutos
+    const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+    if (expiration < fiveMinutesFromNow) {
+      // Token expira pronto, renovar automáticamente
+      this.refreshAccessToken().subscribe();
+    }
+    
+    return true;
+  }
+
+  /**
+   * Obtener usuario actual
+   */
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  private checkAuthStatus(): void {
-    const token = this.getToken();
-    const userStr = localStorage.getItem('current_user');
+  /**
+   * Verificar si el usuario es administrador
+   */
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user ? user.role_id === '7' : false;
+  }
+
+  /**
+   * Verificar si el token necesita renovación
+   */
+  needsTokenRefresh(): boolean {
+    const expiration = this.tokenExpirationSubject.value;
+    if (!expiration) return true;
     
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        this.currentUserSubject.next(user);
-        this.isAuthenticatedSubject.next(true);
-      } catch (e) {
-        this.logout();
-      }
-    }
-  }
-
-  isAuthenticated(): boolean {
-    const result = this.isAuthenticatedSubject.value;
-    return result;
-  }
-
-  // Método de prueba para debuggear
-  testLogout(): void {
-    this.logout();
+    // Renovar si expira en los próximos 5 minutos
+    const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+    return expiration < fiveMinutesFromNow;
   }
 }

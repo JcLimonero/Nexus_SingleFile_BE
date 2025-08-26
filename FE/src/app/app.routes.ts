@@ -210,6 +210,13 @@ export const appRoutes: VexRoutes = [
               )
           },
           {
+            path: 'documentos-requeridos',
+            loadComponent: () =>
+              import('./pages/configuracion/documentos-requeridos/documentos-requeridos.component').then(
+                (m) => m.DocumentosRequeridosComponent
+              )
+          },
+          {
             path: 'usuarios',
             loadComponent: () =>
               import('./pages/configuracion/usuarios/usuarios.component').then(

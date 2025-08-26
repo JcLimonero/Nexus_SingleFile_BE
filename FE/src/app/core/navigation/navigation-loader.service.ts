@@ -46,25 +46,31 @@ export class NavigationLoaderService {
       }
     ];
 
-    // Solo agregar la sección de configuración si el usuario tiene permisos
-    if (isConfigUser) {
-      navigationItems.push({
-        type: 'subheading',
-        label: 'Configuración',
-        children: [
-          {
-            type: 'link',
-            label: 'Configuración General',
-            route: '/configuracion/general',
-            icon: 'mat:settings'
-          },
-          {
-            type: 'link',
-            label: 'Usuarios',
-            route: '/configuracion/usuarios',
-            icon: 'mat:people'
-          },
-                  {
+            // Solo agregar la sección de configuración si el usuario tiene permisos
+        if (isConfigUser) {
+          navigationItems.push({
+            type: 'subheading',
+            label: 'Configuración',
+            children: [
+              {
+                type: 'link',
+                label: 'Configuración General',
+                route: '/configuracion/general',
+                icon: 'mat:settings'
+              },
+              {
+                type: 'link',
+                label: 'Configuración de Documentos Requeridos',
+                route: '/configuracion/documentos-requeridos',
+                icon: 'mat:assignment'
+              },
+              {
+                type: 'link',
+                label: 'Usuarios',
+                route: '/configuracion/usuarios',
+                icon: 'mat:people'
+              },
+                      {
           type: 'dropdown',
           label: 'Catálogos',
           icon: 'mat:category',
@@ -79,7 +85,7 @@ export class NavigationLoaderService {
               type: 'link',
               label: 'Procesos',
               route: '/configuracion/catalogos/procesos',
-              icon: 'mat:settings'
+              icon: 'mat:assignment'
             },
             {
               type: 'link',

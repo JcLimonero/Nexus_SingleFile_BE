@@ -56,11 +56,10 @@ class Auth extends BaseController
                     ->setJSON([
                         'success' => true,
                         'message' => $result['message'],
-                        'data' => [
-                            'user' => $result['user'],
-                            'token' => $result['token'],
-                            'expires_in' => 3600
-                        ]
+                        'user' => $result['user'],
+                        'access_token' => $result['access_token'],
+                        'refresh_token' => $result['refresh_token'],
+                        'expires_in' => $result['expires_in']
                     ]);
             } else {
                 // Login fallido
@@ -152,87 +151,67 @@ class Auth extends BaseController
     
     /**
      * POST /api/auth/refresh
-     * Renovar token JWT
+     * Renovar access token usando refresh token
      */
     public function refresh()
     {
         try {
-            // Obtener token actual
-            $authHeader = $this->request->getHeader('Authorization');
-            if (!$authHeader) {
-                return $this->response
-                    ->setStatusCode(401)
-                    ->setJSON([
-                        'success' => false,
-                        'message' => 'Token de autorización requerido'
-                    ]);
-            }
+            $refreshToken = $this->request->getPost('refresh_token') ?? $this->request->getJSON()->refresh_token ?? null;
             
-            $token = str_replace('Bearer ', '', $authHeader->getValue());
-            
-            // Verificar token actual
-            $result = $this->authModel->verifyJWT($token);
-            
-            if (!$result['success']) {
-                return $this->response
-                    ->setStatusCode(401)
-                    ->setJSON([
-                        'success' => false,
-                        'message' => 'Token inválido'
-                    ]);
-            }
-            
-            // Obtener usuario y generar nuevo token
-            $user = $this->authModel->getUserById($result['data']->user_id);
-            
-            if (!$user || !$this->authModel->isUserEnabled($user['Id'])) {
-                return $this->response
-                    ->setStatusCode(401)
-                    ->setJSON([
-                        'success' => false,
-                        'message' => 'Usuario no encontrado o deshabilitado'
-                    ]);
-            }
-            
-            // Generar nuevo token
-            $newToken = $this->authModel->generateJWT($user);
-            
-            return $this->response
-                ->setStatusCode(200)
-                ->setJSON([
-                    'success' => true,
-                    'message' => 'Token renovado exitosamente',
-                    'data' => [
-                        'token' => $newToken,
-                        'expires_in' => 3600
-                    ]
-                ]);
-                
-        } catch (\Exception $e) {
-            return $this->response
-                ->setStatusCode(500)
-                ->setJSON([
+            if (!$refreshToken) {
+                return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Error interno del servidor',
-                    'error' => $e->getMessage()
-                ]);
+                    'message' => 'Refresh token requerido'
+                ])->setStatusCode(400);
+            }
+            
+            $authModel = new AuthModel();
+            $result = $authModel->refreshAccessToken($refreshToken);
+            
+            if ($result['success']) {
+                return $this->response->setJSON($result);
+            } else {
+                return $this->response->setJSON($result)->setStatusCode(401);
+            }
+            
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor'
+            ])->setStatusCode(500);
         }
     }
     
     /**
      * POST /api/auth/logout
-     * Logout de usuario (invalidar token)
+     * Cerrar sesión y revocar refresh token
      */
     public function logout()
     {
-        // En JWT, el logout se maneja del lado del cliente
-        // Aquí podrías implementar una blacklist de tokens si es necesario
-        
-        return $this->response
-            ->setStatusCode(200)
-            ->setJSON([
+        try {
+            // Obtener usuario autenticado
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ])->setStatusCode(401);
+            }
+            
+            // Revocar refresh token
+            $authModel = new AuthModel();
+            $authModel->revokeRefreshToken($currentUser['user_id']);
+            
+            return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Logout exitoso'
             ]);
+            
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error en logout'
+            ])->setStatusCode(500);
+        }
     }
 }

@@ -15,6 +15,7 @@ class AuthModel extends Model
     // Configuración de JWT
     private $jwtSecret = 'singlefile-secret-key-2025';
     private $jwtExpiration = 3600; // 1 hora
+    private $refreshTokenExpiration = 2592000; // 30 días
     
     /**
      * Autenticar usuario por email y contraseña
@@ -27,7 +28,8 @@ class AuthModel extends Model
                         ->join('UserRol', 'User.IdUserRol = UserRol.Id', 'left')
                         ->where('User.Mail', $email)
                         ->where('User.Enabled', 1)
-                        ->first();
+                        ->get()
+                        ->getRowArray();
             
             if (!$user) {
                 return [
@@ -39,7 +41,11 @@ class AuthModel extends Model
             // Verificar contraseña
             if ($this->verifyPassword($password, $user['Pass'], $user['UserPass'])) {
                 // Generar token JWT
-                $token = $this->generateJWT($user);
+                $accessToken = $this->generateAccessToken($user);
+                $refreshToken = $this->generateRefreshToken($user);
+                
+                // Guardar refresh token en la base de datos
+                $this->saveRefreshToken($user['Id'], $refreshToken);
                 
                 return [
                     'success' => true,
@@ -55,7 +61,9 @@ class AuthModel extends Model
                         'profile_image' => $user['ProfileImage'] ?? null,
                         'image_type' => $user['ImageType'] ?? null
                     ],
-                    'token' => $token
+                    'access_token' => $accessToken,
+                    'refresh_token' => $refreshToken,
+                    'expires_in' => $this->jwtExpiration
                 ];
             }
             
@@ -105,9 +113,9 @@ class AuthModel extends Model
     }
     
     /**
-     * Generar JWT token
+     * Generar JWT access token
      */
-    private function generateJWT($user)
+    private function generateAccessToken($user)
     {
         $payload = [
             'iss' => 'singlefile-api', // Emisor
@@ -116,10 +124,149 @@ class AuthModel extends Model
             'exp' => time() + $this->jwtExpiration, // Expiración
             'user_id' => $user['Id'],
             'email' => $user['Mail'],
-            'role_id' => $user['IdUserRol']
+            'role_id' => $user['IdUserRol'],
+            'type' => 'access'
         ];
         
         return JWT::encode($payload, $this->jwtSecret, 'HS256');
+    }
+    
+    /**
+     * Generar JWT refresh token
+     */
+    private function generateRefreshToken($user)
+    {
+        $payload = [
+            'iss' => 'singlefile-api', // Emisor
+            'aud' => 'singlefile-client', // Audiencia
+            'iat' => time(), // Tiempo de emisión
+            'exp' => time() + $this->refreshTokenExpiration, // Expiración más larga
+            'user_id' => $user['Id'],
+            'email' => $user['Mail'],
+            'role_id' => $user['IdUserRol'],
+            'type' => 'refresh'
+        ];
+        
+        return JWT::encode($payload, $this->jwtSecret, 'HS256');
+    }
+    
+    /**
+     * Guardar refresh token en la base de datos
+     */
+    private function saveRefreshToken($userId, $refreshToken)
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            // Verificar si ya existe un refresh token para este usuario
+            $existingToken = $db->table('User_RefreshToken')
+                ->where('IdUser', $userId)
+                ->get()
+                ->getRowArray();
+            
+            if ($existingToken) {
+                // Actualizar token existente
+                $db->table('User_RefreshToken')
+                    ->where('IdUser', $userId)
+                    ->update([
+                        'RefreshToken' => $refreshToken,
+                        'ExpirationDate' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
+                        'UpdateDate' => date('Y-m-d H:i:s')
+                    ]);
+            } else {
+                // Insertar nuevo token
+                $db->table('User_RefreshToken')->insert([
+                    'IdUser' => $userId,
+                    'RefreshToken' => $refreshToken,
+                    'ExpirationDate' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
+                    'CreatedDate' => date('Y-m-d H:i:s'),
+                    'UpdateDate' => date('Y-m-d H:i:s')
+                ]);
+            }
+            
+            return true;
+        } catch (\Exception $e) {
+            // Log del error pero no fallar la autenticación
+            log_message('error', 'Error guardando refresh token: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Renovar access token usando refresh token
+     */
+    public function refreshAccessToken($refreshToken)
+    {
+        try {
+            // Verificar que el refresh token sea válido
+            $decoded = JWT::decode($refreshToken, new Key($this->jwtSecret, 'HS256'));
+            
+            // Verificar que sea un refresh token
+            if ($decoded->type !== 'refresh') {
+                return [
+                    'success' => false,
+                    'message' => 'Token inválido: no es un refresh token'
+                ];
+            }
+            
+            // Verificar que el token esté en la base de datos
+            $db = \Config\Database::connect();
+            $storedToken = $db->table('User_RefreshToken')
+                ->where('IdUser', $decoded->user_id)
+                ->where('RefreshToken', $refreshToken)
+                ->where('ExpirationDate >', date('Y-m-d H:i:s'))
+                ->get()
+                ->getRowArray();
+            
+            if (!$storedToken) {
+                return [
+                    'success' => false,
+                    'message' => 'Refresh token no válido o expirado'
+                ];
+            }
+            
+            // Obtener información del usuario
+            $user = $this->find($decoded->user_id);
+            if (!$user || $user['Enabled'] != 1) {
+                return [
+                    'success' => false,
+                    'message' => 'Usuario no encontrado o deshabilitado'
+                ];
+            }
+            
+            // Generar nuevo access token
+            $newAccessToken = $this->generateAccessToken($user);
+            
+            return [
+                'success' => true,
+                'message' => 'Token renovado exitosamente',
+                'access_token' => $newAccessToken,
+                'expires_in' => $this->jwtExpiration
+            ];
+            
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error renovando token: ' . $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Revocar refresh token (logout)
+     */
+    public function revokeRefreshToken($userId)
+    {
+        try {
+            $db = \Config\Database::connect();
+            $db->table('User_RefreshToken')
+                ->where('IdUser', $userId)
+                ->delete();
+            
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
     
     /**

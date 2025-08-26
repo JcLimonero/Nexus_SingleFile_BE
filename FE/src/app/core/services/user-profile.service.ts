@@ -44,14 +44,14 @@ export class UserProfileService {
   /**
    * Obtener URL de imagen de perfil
    */
-  getProfileImageUrl(userId: number): string {
+  getProfileImageUrl(userId: string): string {
     return `${this.API_URL}/image/${userId}`;
   }
 
   /**
    * Obtener imagen de perfil como blob
    */
-  getProfileImage(userId: number): Observable<Blob> {
+  getProfileImage(userId: string): Observable<Blob> {
     return this.http.get(`${this.API_URL}/image/${userId}`, { responseType: 'blob' });
   }
 
