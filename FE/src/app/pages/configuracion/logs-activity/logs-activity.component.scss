@@ -1,0 +1,365 @@
+// Estilos específicos para el componente de logs de actividad
+
+.mat-mdc-table {
+  width: 100%;
+  background: white;
+}
+
+.mat-mdc-row:hover {
+  background-color: #f8fafc;
+}
+
+.mat-mdc-cell {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.mat-mdc-header-cell {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: #374151;
+  padding: 16px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+// Estilos para los chips de acción
+.mat-mdc-chip.mat-mdc-chip-selected.mat-mdc-chip-color-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.mat-mdc-chip.mat-mdc-chip-selected.mat-mdc-chip-color-warn {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.mat-mdc-chip.mat-mdc-chip-selected.mat-mdc-chip-color-primary {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.mat-mdc-chip.mat-mdc-chip-selected.mat-mdc-chip-color-accent {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
+
+// Estilos para los campos de filtro
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+// Estilos para las tarjetas
+.mat-mdc-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.mat-mdc-card-header {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 8px 8px 0 0;
+}
+
+// Estilos para los botones
+.mat-mdc-raised-button {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.mat-mdc-stroked-button {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+// Estilos para la paginación
+.mat-mdc-paginator {
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+// Estilos para los tooltips
+.mat-mdc-tooltip {
+  font-size: 12px;
+  max-width: 300px;
+}
+
+// Estilos para los spinners
+.mat-mdc-progress-spinner {
+  margin: 0 auto;
+}
+
+// Estilos para las estadísticas
+.stats-card {
+  transition: transform 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// Estilos para la tabla responsive
+@media (max-width: 768px) {
+  .mat-mdc-table {
+    font-size: 12px;
+  }
+  
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    padding: 8px 12px;
+  }
+  
+  .mat-mdc-card-content {
+    padding: 16px;
+  }
+}
+
+// Estilos para los campos de fecha
+.mat-mdc-datepicker-toggle {
+  color: #6b7280;
+}
+
+// Estilos para los campos de texto truncados
+.truncated-text {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Estilos para los códigos (IP, etc.)
+.code-block {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background-color: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+// Estilos para los métodos HTTP
+.http-method {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+// Estilos para el estado de carga
+.loading-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+// Estilos para el mensaje de no datos
+.no-data-message {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6b7280;
+  
+  .mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+}
+
+// Estilos para los filtros
+.filters-section {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+// Estilos para la tabla de logs
+.logs-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+// Estilos para las acciones de la tabla
+.table-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+// Estilos para los filtros avanzados
+.advanced-filters {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+// Estilos para los botones de filtro
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+// Estilos para el grid de filtros
+.filters-grid {
+  display: grid;
+  gap: 16px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Estilos para las estadísticas
+.stats-grid {
+  display: grid;
+  gap: 24px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.stat-card {
+  text-align: center;
+  padding: 24px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}
+
+// Estilos para el header principal
+.page-header {
+  margin-bottom: 32px;
+  
+  h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+  }
+  
+  p {
+    font-size: 1.125rem;
+    color: #6b7280;
+  }
+}
+
+// Estilos para el menú desplegable de exportación
+.export-menu-container {
+  position: relative;
+  
+  .export-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    width: 12rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    z-index: 50;
+    overflow: hidden;
+    
+    .export-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 14px;
+      color: #374151;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      
+      &:hover:not(:disabled) {
+        background-color: #f9fafb;
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .menu-item-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+      
+      .menu-item-text {
+        flex: 1;
+        text-align: left;
+      }
+      
+      .menu-item-count {
+        font-size: 12px;
+        color: #6b7280;
+        margin-left: auto;
+      }
+    }
+    
+    .export-menu-divider {
+      height: 1px;
+      background-color: #e5e7eb;
+      margin: 4px 0;
+    }
+  }
+}
+
+// Animaciones para el menú
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Rotación del icono de expandir
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+// Transición suave para el icono
+.transition-transform {
+  transition: transform 0.2s ease;
+}

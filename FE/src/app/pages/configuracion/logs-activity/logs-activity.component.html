@@ -1,0 +1,349 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Logs de Actividad</h1>
+      <p class="text-gray-600 mt-1">Monitoreo completo de todas las acciones realizadas por los usuarios</p>
+    </div>
+    <div class="flex gap-2">
+      <button 
+        mat-raised-button 
+        color="warn" 
+        (click)="cleanOldLogs()"
+        class="flex items-center gap-2">
+        <mat-icon>delete_sweep</mat-icon>
+        Limpiar Logs Antiguos
+      </button>
+      
+      <!-- Menú de exportación -->
+      <div class="export-menu-container" #exportMenuContainer>
+        <button 
+          mat-raised-button 
+          color="accent" 
+          [disabled]="loading"
+          (click)="toggleExportMenu($event)"
+          matTooltip="Exportar logs de actividad a Excel"
+          matTooltipPosition="above"
+          class="flex items-center gap-2">
+          <mat-spinner *ngIf="loading" diameter="16" class="mr-1"></mat-spinner>
+          <mat-icon *ngIf="!loading">download</mat-icon>
+          {{ loading ? 'Exportando...' : 'Exportar' }}
+          <mat-icon class="ml-1 transition-transform" [class.rotate-180]="showExportMenu">expand_more</mat-icon>
+        </button>
+        
+        <!-- Menú desplegable -->
+        <div 
+          *ngIf="showExportMenu"
+          class="export-menu animate-fade-in">
+          <button 
+            (click)="exportLogs()"
+            [disabled]="loading || dataSource.data.length === 0"
+            class="export-menu-item">
+            <mat-icon class="menu-item-icon">table_chart</mat-icon>
+            <span class="menu-item-text">Exportar Página Actual</span>
+            <span class="menu-item-count">({{ dataSource.data.length }} registros)</span>
+          </button>
+          
+          <button 
+            (click)="exportAllLogs()"
+            [disabled]="loading"
+            class="export-menu-item">
+            <mat-icon class="text-sm">cloud_download</mat-icon>
+            <span class="menu-item-text">Exportar Todos los Logs</span>
+            <span class="menu-item-count">({{ totalLogs }} total)</span>
+          </button>
+          
+          <div class="export-menu-divider"></div>
+          
+          <button 
+            (click)="exportLogsByDateRange()"
+            [disabled]="loading || (!filters.start_date && !filters.end_date)"
+            class="export-menu-item">
+            <mat-icon class="menu-item-icon">date_range</mat-icon>
+            <span class="menu-item-text">Exportar por Rango de Fechas</span>
+            <span class="menu-item-count">
+              {{ filters.start_date || filters.end_date ? 'Filtrado' : 'Sin filtros' }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border p-4">
+      <div class="flex items-center">
+        <div class="p-2 bg-blue-100 rounded-lg">
+          <mat-icon class="text-blue-600">history</mat-icon>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-600">Total de Logs</p>
+          <p class="text-2xl font-bold text-gray-900">{{ stats?.total_logs || 0 | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border p-4">
+      <div class="flex items-center">
+        <div class="p-2 bg-green-100 rounded-lg">
+          <mat-icon class="text-green-600">trending_up</mat-icon>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-600">Acción Principal</p>
+          <p class="text-lg font-semibold text-gray-900">{{ stats?.actions_count?.[0]?.action || 'N/A' }}</p>
+          <p class="text-sm text-gray-500">{{ stats?.actions_count?.[0]?.count || 0 }} veces</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border p-4">
+      <div class="flex items-center">
+        <div class="p-2 bg-purple-100 rounded-lg">
+          <mat-icon class="text-purple-600">person</mat-icon>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-600">Usuario Más Activo</p>
+          <p class="text-lg font-semibold text-gray-900">{{ stats?.users_count?.[0]?.username || 'N/A' }}</p>
+          <p class="text-sm text-gray-500">{{ stats?.users_count?.[0]?.count || 0 }} acciones</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border p-4">
+      <div class="flex items-center">
+        <div class="p-2 bg-orange-100 rounded-lg">
+          <mat-icon class="text-orange-600">trending_down</mat-icon>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-600">Acciones Recientes</p>
+          <p class="text-lg font-semibold text-gray-900">{{ dataSource.data.length }}</p>
+          <p class="text-sm text-gray-500">en esta sesión</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <!-- Búsqueda por texto -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Buscar logs</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="filters.user_id" 
+          (ngModelChange)="applyFilters()"
+          placeholder="Buscar por usuario..."
+          maxlength="100">
+        <mat-icon matSuffix>🔍</mat-icon>
+      </mat-form-field>
+
+      <!-- Filtro por acción -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Acción</mat-label>
+        <mat-select [(ngModel)]="filters.action" (ngModelChange)="applyFilters()">
+          <mat-option value="">Todas las acciones</mat-option>
+          <mat-option *ngFor="let action of actionOptions" [value]="action">
+            {{ action }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Filtro por fecha inicio -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Fecha inicio</mat-label>
+        <input matInput [matDatepicker]="startPicker" [(ngModel)]="filters.start_date" (ngModelChange)="applyFilters()">
+        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Filtro por fecha fin -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Fecha fin</mat-label>
+        <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.end_date" (ngModelChange)="applyFilters()">
+        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Filtro por detalles del cambio -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Detalles del cambio</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="filters.change_details" 
+          (ngModelChange)="applyFilters()"
+          placeholder="Buscar en detalles..."
+          maxlength="200">
+      </mat-form-field>
+
+      <!-- Límite de registros -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Registros por página</mat-label>
+        <mat-select [(ngModel)]="filters.limit" (ngModelChange)="applyFilters()">
+          <mat-option value="25">25</mat-option>
+          <mat-option value="50">50</mat-option>
+          <mat-option value="100">100</mat-option>
+          <mat-option value="200">200</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="flex gap-2 mt-4">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="applyFilters()"
+        class="flex items-center gap-2">
+        <mat-icon>filter_list</mat-icon>
+        Aplicar Filtros
+      </button>
+      <button 
+        mat-stroked-button 
+        (click)="clearFilters()"
+        class="flex items-center gap-2">
+        <mat-icon>clear</mat-icon>
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+    <!-- Información de exportación -->
+    <div class="bg-blue-50 border-b border-blue-200 p-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <mat-icon class="text-blue-600 text-sm">info</mat-icon>
+          <span class="text-sm text-blue-800">
+            Mostrando {{ dataSource.data.length }} de {{ totalLogs }} logs totales
+          </span>
+        </div>
+        <div class="text-xs text-blue-600">
+          💡 Usa "Exportar Todos los Logs" para obtener el conjunto completo de datos
+        </div>
+      </div>
+    </div>
+    
+    <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
+      <!-- Columna Timestamp -->
+      <ng-container matColumnDef="timestamp">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Fecha y Hora
+        </th>
+        <td mat-cell *matCellDef="let log" class="text-xs font-mono text-gray-600 py-0 text-center">
+          {{ formatTimestamp(log.created_at) }}
+        </td>
+      </ng-container>
+
+      <!-- Columna Usuario -->
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Usuario
+        </th>
+        <td mat-cell *matCellDef="let log" class="text-xs py-0">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+              <span class="text-xs font-medium text-blue-600">{{ log.username?.charAt(0)?.toUpperCase() }}</span>
+            </div>
+            <span class="font-medium">{{ log.username }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Columna Acción -->
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Acción
+        </th>
+        <td mat-cell *matCellDef="let log" class="text-xs py-0">
+          <div class="flex justify-center items-center">
+            <div class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border"
+                 [ngClass]="getActionColor(log.action).class">
+              <mat-icon class="!text-xs !w-3 !h-3" [ngClass]="getActionColor(log.action).iconClass">
+                {{ getActionColor(log.action).icon }}
+              </mat-icon>
+              <span>{{ log.action }}</span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Columna Descripción -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Descripción
+        </th>
+        <td mat-cell *matCellDef="let log" class="text-xs py-0">
+          <div class="max-w-xs">
+            <span class="text-gray-700" [matTooltip]="log.description || 'Sin descripción'">
+              {{ truncateText(log.description || 'Sin descripción', 50) }}
+            </span>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Columna Detalles del Cambio -->
+      <ng-container matColumnDef="change_details">
+        <th mat-header-cell *matHeaderCellDef class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Detalles del Cambio
+        </th>
+        <td mat-cell *matCellDef="let log" class="text-xs py-0">
+          <div class="max-w-xs">
+            <span class="text-gray-700" [matTooltip]="log.change_details || 'Sin detalles'">
+              {{ truncateText(log.change_details || 'Sin detalles', 60) }}
+            </span>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="!min-h-0 !h-8"></tr>
+    </table>
+
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="flex justify-center items-center py-8">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <!-- Mensaje cuando no hay datos -->
+    <div *ngIf="!loading && dataSource.data.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-500">
+      <mat-icon class="text-6xl text-gray-300 mb-2">history</mat-icon>
+      <p class="text-lg font-medium">No se encontraron logs</p>
+      <p class="text-sm">Intenta ajustar los filtros de búsqueda</p>
+    </div>
+
+    <!-- Paginación -->
+    <mat-paginator 
+      [pageSizeOptions]="[25, 50, 100, 200]"
+      [pageSize]="filters.limit || 100"
+      [length]="totalLogs"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+      class="border-t">
+    </mat-paginator>
+  </div>
+
+  <!-- Información de ayuda para exportación -->
+  <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+    <div class="flex items-start space-x-3">
+      <mat-icon class="text-blue-600 mt-1">help</mat-icon>
+      <div>
+        <h4 class="text-sm font-medium text-gray-900 mb-2">Ayuda para Exportación</h4>
+        <div class="text-xs text-gray-600 space-y-1">
+          <p><strong>• Exportar Página Actual:</strong> Solo los logs visibles en la tabla actual (máximo {{ pageSize }} registros)</p>
+          <p><strong>• Exportar Todos los Logs:</strong> Todos los registros del sistema que coincidan con los filtros aplicados</p>
+          <p><strong>• Exportar por Rango de Fechas:</strong> Registros filtrados por fechas específicas (requiere seleccionar fechas)</p>
+          <p><strong>• Formato:</strong> Los archivos se generan en formato Excel (.xls) compatible con Microsoft Excel y Google Sheets</p>
+          <p><strong>• Filtros:</strong> Los filtros aplicados se incluyen en el archivo exportado para referencia</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contador de resultados -->
+  <div class="mt-4 text-sm text-gray-600 text-center">
+    Mostrando {{ getPageRange() }} de {{ totalLogs }} logs totales
+  </div>
+</div>

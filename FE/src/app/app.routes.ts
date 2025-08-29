@@ -222,6 +222,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/configuracion/usuarios/usuarios.component').then(
                 (m) => m.UsuariosComponent
               )
+          },
+          {
+            path: 'logs-activity',
+            loadComponent: () =>
+              import('./pages/configuracion/logs-activity/logs-activity.component').then(
+                (m) => m.LogsActivityComponent
+              )
           }
         ]
       },

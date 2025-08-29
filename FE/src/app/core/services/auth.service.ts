@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ApiBaseService } from './api-base.service';
+import { ActivityLogService } from './activity-log.service';
 
 export interface User {
   id: string;
@@ -55,7 +56,8 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private apiBaseService: ApiBaseService,
-    private router: Router
+    private router: Router,
+    private activityLogService: ActivityLogService
   ) {
     this.loadStoredAuth();
   }
@@ -96,6 +98,8 @@ export class AuthService {
       tap(response => {
         if (response.success) {
           this.setAuthData(response);
+          // Log de login exitoso
+          this.activityLogService.logLogin(response.user.username || response.user.email);
         }
       }),
       catchError(error => {
@@ -164,6 +168,11 @@ export class AuthService {
     return this.http.post(url, {}).pipe(
       tap(() => {
         console.log('AuthService: Logout exitoso en backend');
+        // Log de logout antes de limpiar datos
+        const currentUser = this.currentUserSubject.value;
+        if (currentUser) {
+          this.activityLogService.logLogout(currentUser.username || currentUser.email);
+        }
         this.clearAuthData();
         console.log('AuthService: Datos limpiados, redirigiendo a login...');
         this.router.navigate(['/login']);

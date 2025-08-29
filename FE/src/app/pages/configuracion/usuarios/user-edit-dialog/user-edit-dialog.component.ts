@@ -65,7 +65,8 @@ export class UserEditDialogComponent implements OnInit {
       Pass: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
       ConfirmPassword: ['', [Validators.required]],
       IdUserRol: ['', Validators.required],
-      DefaultAgency: ['', Validators.required]
+      DefaultAgency: ['', Validators.required],
+      Enabled: ['1'] // Por defecto activo
     }, { validators: this.passwordMatchValidator() });
 
     // En modo edición, la contraseña no es requerida
@@ -95,7 +96,8 @@ export class UserEditDialogComponent implements OnInit {
         User: this.data.user.User,
         Mail: this.data.user.Mail,
         IdUserRol: this.data.user.IdUserRol,
-        DefaultAgency: this.data.user.DefaultAgency
+        DefaultAgency: this.data.user.DefaultAgency,
+        Enabled: this.data.user.Enabled || '1'
       });
       
       // Limpiar campos de contraseña en edición
@@ -157,7 +159,8 @@ export class UserEditDialogComponent implements OnInit {
       User: this.userForm.value.User,
       Mail: this.userForm.value.Mail,
       IdUserRol: this.userForm.value.IdUserRol,
-      DefaultAgency: this.userForm.value.DefaultAgency
+      DefaultAgency: this.userForm.value.DefaultAgency,
+      Enabled: this.userForm.value.Enabled
     };
 
     // Solo incluir contraseña si se proporcionó una nueva
@@ -198,6 +201,43 @@ export class UserEditDialogComponent implements OnInit {
 
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  /**
+   * Manejar cambio de estado del usuario
+   */
+  onStatusChange(checked: boolean): void {
+    const enabledValue = checked ? '1' : '0';
+    const previousValue = this.userForm.get('Enabled')?.value;
+    
+    // Solo mostrar mensaje si realmente cambió el valor
+    if (previousValue !== enabledValue) {
+      this.userForm.patchValue({ Enabled: enabledValue });
+      
+      // Mostrar mensaje informativo
+      const statusMessage = checked ? 
+        'Usuario habilitado - Podrá acceder al sistema' : 
+        'Usuario deshabilitado - No podrá acceder al sistema';
+      
+      this.snackBar.open(statusMessage, 'Info', { 
+        duration: 3000,
+        panelClass: checked ? 'success-snackbar' : 'warning-snackbar'
+      });
+    }
+  }
+
+  /**
+   * Cambiar estado del usuario con confirmación
+   */
+  toggleUserStatus(): void {
+    const currentStatus = this.userForm.get('Enabled')?.value === '1';
+    const newStatus = !currentStatus;
+    const actionText = newStatus ? 'habilitar' : 'deshabilitar';
+    
+    // Confirmar la acción
+    if (confirm(`¿Estás seguro de que quieres ${actionText} al usuario "${this.userForm.get('Name')?.value}"?`)) {
+      this.onStatusChange(newStatus);
+    }
   }
 
   private loadRoles(): void {

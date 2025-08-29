@@ -18,6 +18,7 @@ import { provideNavigation } from './core/navigation/navigation.provider';
 import { vexConfigs } from '@vex/config/vex-configs';
 import { provideQuillConfig } from 'ngx-quill';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { ActivityLogInterceptor } from './core/interceptors/activity-log.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -38,7 +39,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withInterceptorsFromDi(),
-      withInterceptors([AuthInterceptor])
+      withInterceptors([AuthInterceptor, ActivityLogInterceptor])
     ),
 
     provideVex({

@@ -96,6 +96,16 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('(:num)', 'DocumentType::delete/$1');
         $routes->patch('(:num)/toggle-status', 'DocumentType::toggleStatus/$1');
     });
+
+    // Rutas de logs de actividad de usuarios
+    $routes->group('user-activity-logs', function($routes) {
+        $routes->get('/', 'UserActivityLog::index');
+        $routes->post('/', 'UserActivityLog::create');
+        $routes->get('user/(:any)', 'UserActivityLog::getUserLogs/$1');
+        $routes->get('action/(:any)', 'UserActivityLog::getActionLogs/$1');
+        $routes->get('stats', 'UserActivityLog::getStats');
+        $routes->delete('clean', 'UserActivityLog::cleanOldLogs');
+    });
     
     // Rutas de estados de archivo (File_Status)
     $routes->group('file-status', function($routes) {

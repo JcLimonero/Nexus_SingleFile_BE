@@ -64,6 +64,12 @@ export class NavigationLoaderService {
                 route: '/configuracion/usuarios',
                 icon: 'mat:people'
               },
+              {
+                type: 'link',
+                label: 'Logs de Actividad',
+                route: '/configuracion/logs-activity',
+                icon: 'mat:history'
+              },
                       {
           type: 'dropdown',
           label: 'Catálogos',
