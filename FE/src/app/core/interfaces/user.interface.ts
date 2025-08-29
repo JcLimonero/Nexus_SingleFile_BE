@@ -12,6 +12,8 @@ export interface User {
   UpdateDate?: string | null;
   IdLastUserUpdate?: string;
   LastUserUpdateName?: string; // Nombre del último usuario que actualizó
+  AssignedAgencies?: string[]; // Array de IDs de agencias asignadas
+  AssignedAgencyNames?: string[]; // Array de nombres de agencias asignadas
 }
 
 export interface UserCreateRequest {

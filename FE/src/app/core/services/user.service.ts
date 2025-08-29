@@ -80,4 +80,9 @@ export class UserService {
   getAgencies(): Observable<AgencyResponse> {
     return this.http.get<AgencyResponse>(this.apiBaseService.buildApiUrl('agency'));
   }
+
+  // Obtener agencias asignadas a un usuario específico
+  getUserAgencies(userId: string): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl('user')}/${userId}/agencies`);
+  }
 }

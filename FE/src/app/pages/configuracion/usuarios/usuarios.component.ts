@@ -47,11 +47,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   roles: UserRole[] = [];
   agencies: Agency[] = [];
   dataSource = new MatTableDataSource<User>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'User', 'Mail', 'IdUserRol', 'DefaultAgency', 'acciones'];
+  displayedColumns: string[] = ['Id', 'Name', 'User', 'Mail', 'IdUserRol', 'DefaultAgency', 'AssignedAgencies', 'Status', 'acciones'];
   loading = false;
   searchTerm = '';
   roleFilter = '';
   agencyFilter = '';
+  assignedAgencyFilter = '';
+  statusFilter = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -87,14 +89,14 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       next: (response: UserResponse) => {
         if (response.success) {
           this.users = response.data.users;
-          this.dataSource.data = this.users;
-          this.applyFilter();
+          // Obtener agencias asignadas para cada usuario
+          this.loadUserAgencies();
         } else {
           this.snackBar.open(response.message || 'Error al cargar usuarios', 'Error', {
             duration: 3000
           });
+          this.loading = false;
         }
-        this.loading = false;
       },
       error: (error) => {
         this.snackBar.open('Error al cargar usuarios', 'Error', {
@@ -102,6 +104,53 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         });
         this.loading = false;
       }
+    });
+  }
+
+  loadUserAgencies(): void {
+    let usersProcessed = 0;
+    const totalUsers = this.users.length;
+    
+    if (totalUsers === 0) {
+      this.dataSource.data = this.users;
+      this.applyFilter();
+      this.loading = false;
+      return;
+    }
+
+    this.users.forEach((user, index) => {
+      this.userService.getUserAgencies(user.Id).subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            user.AssignedAgencies = response.data.agencies;
+            user.AssignedAgencyNames = response.data.agencies_details.map((agency: any) => agency.AgencyName);
+          } else {
+            user.AssignedAgencies = [];
+            user.AssignedAgencyNames = [];
+          }
+          
+          usersProcessed++;
+          
+          // Cuando se han procesado todos los usuarios, actualizar la tabla
+          if (usersProcessed === totalUsers) {
+            this.dataSource.data = this.users;
+            this.applyFilter();
+            this.loading = false;
+          }
+        },
+        error: (error) => {
+          console.warn(`Error al cargar agencias para usuario ${user.Id}:`, error);
+          user.AssignedAgencies = [];
+          user.AssignedAgencyNames = [];
+          usersProcessed++;
+          
+          if (usersProcessed === totalUsers) {
+            this.dataSource.data = this.users;
+            this.applyFilter();
+            this.loading = false;
+          }
+        }
+      });
     });
   }
 
@@ -146,9 +195,23 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       filteredData = filteredData.filter(user => user.IdUserRol === this.roleFilter);
     }
     
-    // Filtro de agencia
+    // Filtro de agencia predeterminada
     if (this.agencyFilter !== '') {
       filteredData = filteredData.filter(user => user.DefaultAgency === this.agencyFilter);
+    }
+    
+    // Filtro de agencias asignadas
+    if (this.assignedAgencyFilter !== '') {
+      filteredData = filteredData.filter(user => 
+        user.AssignedAgencies && 
+        Array.isArray(user.AssignedAgencies) && 
+        user.AssignedAgencies.includes(this.assignedAgencyFilter)
+      );
+    }
+    
+    // Filtro de estado
+    if (this.statusFilter !== '') {
+      filteredData = filteredData.filter(user => user.Enabled === this.statusFilter);
     }
     
     // Filtro de búsqueda de texto
@@ -176,6 +239,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     this.searchTerm = '';
     this.roleFilter = '';
     this.agencyFilter = '';
+    this.assignedAgencyFilter = '';
+    this.statusFilter = '';
     this.applyFilter();
   }
 
@@ -293,6 +358,24 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     const agency = this.agencies.find(a => a.Id === agencyId);
     return agency ? agency.Name : (agencyId === '0' ? 'Sin agencia' : `Agencia ${agencyId}`);
   }
+
+  getUserStatus(enabled: string): { text: string; class: string; icon: string } {
+    if (enabled === '1') {
+      return {
+        text: 'Activo',
+        class: 'bg-green-100 text-green-800 border-green-200',
+        icon: 'check_circle'
+      };
+    } else {
+      return {
+        text: 'Inactivo',
+        class: 'bg-red-100 text-red-800 border-red-200',
+        icon: 'cancel'
+      };
+    }
+  }
+
+
 
   getPageRange(): string {
     if (!this.paginator || this.dataSource.filteredData.length === 0) {
