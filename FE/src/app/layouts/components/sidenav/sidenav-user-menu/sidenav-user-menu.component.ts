@@ -26,7 +26,23 @@ export class SidenavUserMenuComponent implements OnInit {
   }
 
   logout() {
-    this.authService.logout();
-    this.close();
+    console.log('SidenavUserMenuComponent: Iniciando logout...');
+    try {
+      this.authService.logout().subscribe({
+        next: () => {
+          console.log('SidenavUserMenuComponent: Logout exitoso');
+          this.close();
+          // El servicio ya maneja la redirección
+        },
+        error: (error) => {
+          console.error('SidenavUserMenuComponent: Error en logout:', error);
+          this.close();
+          // El servicio ya maneja la redirección incluso en caso de error
+        }
+      });
+    } catch (error) {
+      console.error('SidenavUserMenuComponent: Error al ejecutar logout:', error);
+      this.close();
+    }
   }
 }

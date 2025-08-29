@@ -9,7 +9,7 @@
       <img
         [src]="imageUrl$ | async"
         alt="Logo"
-        class="w-6 select-none flex-none" />
+        class="w-10 select-none flex-none" />
       <h2 class="vex-sidenav-toolbar__headline flex-auto">
         {{ title$ | async }}
       </h2>
@@ -59,7 +59,7 @@
 
     <div
       class="vex-sidenav-footer flex items-center justify-center opacity-20 px-6 py-6 select-none flex-none">
-      <img [src]="imageUrl$ | async" alt="Logo" class="w-8 select-none" />
+      <img [src]="imageUrl$ | async" alt="Logo" class="w-12 select-none" />
     </div>
   </vex-scrollbar>
 
@@ -71,6 +71,7 @@
       (click)="openProfileMenu(userProfileMenuOriginRef)"
       [class.vex-sidenav-user--open]="userMenuOpen$ | async"
       class="vex-sidenav-user flex items-center"
+      style="cursor: pointer; user-select: none; padding: 12px;"
       matRipple
       matRippleColor="var(--vex-sidenav-item-ripple-color)">
       <img

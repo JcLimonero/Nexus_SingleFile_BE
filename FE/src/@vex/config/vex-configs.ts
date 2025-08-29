@@ -31,8 +31,8 @@ const baseConfig: VexConfig = {
   layout: 'horizontal',
   boxed: false,
   sidenav: {
-    title: 'VEX',
-    imageUrl: 'assets/img/logo/logo.svg',
+    title: 'Expediente Único',
+    imageUrl: 'assets/img/icons/logos/nexusQtech.svg',
     showCollapsePin: true,
     user: {
       visible: true
@@ -64,7 +64,9 @@ export const vexConfigs: VexConfigs = {
     name: 'Poseidon',
     bodyClass: 'vex-layout-poseidon',
     imgSrc: '//vex-landing.visurel.com/assets/img/layouts/poseidon.png',
-    sidenav: {
+          sidenav: {
+        title: 'Nexus Q',
+        imageUrl: 'assets/img/icons/logos/nexusQtech.svg',
       user: {
         visible: true
       },

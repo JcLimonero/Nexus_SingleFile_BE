@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
@@ -53,7 +54,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private apiBaseService: ApiBaseService
+    private apiBaseService: ApiBaseService,
+    private router: Router
   ) {
     this.loadStoredAuth();
   }
@@ -155,15 +157,23 @@ export class AuthService {
    * Logout de usuario
    */
   logout(): Observable<any> {
+    console.log('AuthService: Iniciando logout...');
     const url = this.apiBaseService.buildAuthUrl('/logout');
+    console.log('AuthService: URL de logout:', url);
     
     return this.http.post(url, {}).pipe(
       tap(() => {
+        console.log('AuthService: Logout exitoso en backend');
         this.clearAuthData();
+        console.log('AuthService: Datos limpiados, redirigiendo a login...');
+        this.router.navigate(['/login']);
       }),
       catchError(error => {
+        console.error('AuthService: Error en logout del backend:', error);
         // Aunque falle el logout en el backend, limpiar datos locales
         this.clearAuthData();
+        console.log('AuthService: Datos limpiados por error, redirigiendo a login...');
+        this.router.navigate(['/login']);
         return throwError(() => error);
       })
     );
@@ -203,6 +213,7 @@ export class AuthService {
    * Limpiar datos de autenticación
    */
   private clearAuthData(): void {
+    console.log('AuthService: Limpiando datos de autenticación...');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('current_user');
@@ -212,6 +223,7 @@ export class AuthService {
     this.refreshTokenSubject.next(null);
     this.currentUserSubject.next(null);
     this.tokenExpirationSubject.next(null);
+    console.log('AuthService: Datos de autenticación limpiados');
   }
 
   /**

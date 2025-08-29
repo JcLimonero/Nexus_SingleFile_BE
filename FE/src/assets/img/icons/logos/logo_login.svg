@@ -7,17 +7,17 @@
 
 <defs>
   <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
-    <stop offset="100%" style="stop-color:#4F46E5;stop-opacity:1" />
+    <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
   </linearGradient>
   <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
-    <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
   </linearGradient>
 </defs>
 
 <g transform="translate(0.000000,1024.000000) scale(0.100000,-0.100000)">
-  <!-- Cuerpo principal del logo con gradiente indigo -->
+  <!-- Cuerpo principal del logo con gradiente azul -->
   <path d="M2578 8210 c-180 -32 -332 -133 -428 -282 -113 -174 -124 -414 -27
 -608 69 -140 244 -278 398 -315 115 -27 294 -14 390 29 12 5 63 -37 190 -155
 96 -89 198 -184 227 -211 28 -27 52 -51 52 -54 0 -2 -27 -41 -61 -86 -200
@@ -52,9 +52,9 @@ l-64 73 -378 0 c-208 0 -378 -2 -378 -5 0 -6 120 -140 295 -330 72 -78 204
 -3810 c95 -44 165 -151 165 -251 0 -113 -87 -229 -195 -260 -228 -67 -421 170
 -314 383 66 133 215 189 344 128z m4923 -2 c133 -66 191 -224 133 -360 -90
 -209 -381 -215 -489 -10 -35 67 -37 179 -5 241 71 135 233 193 361 129z" 
-  fill="url(#primaryGradient)" stroke="#3730A3" stroke-width="8"/>
+  fill="url(#primaryGradient)" stroke="#1E40AF" stroke-width="8"/>
   
-  <!-- Detalles del logo con color ámbar -->
+  <!-- Detalles del logo con color azul claro -->
   <path d="M2578 8210 c-180 -32 -332 -133 -428 -282 -113 -174 -124 -414 -27
 -608 69 -140 244 -278 398 -315 115 -27 294 -14 390 29 12 5 63 -37 190 -155
 96 -89 198 -184 227 -211 28 -27 52 -51 52 -54 0 -2 -27 -41 -61 -86 -200

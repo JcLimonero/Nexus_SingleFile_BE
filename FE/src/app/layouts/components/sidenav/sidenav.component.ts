@@ -91,8 +91,9 @@ export class SidenavComponent implements OnInit {
   }
 
   openProfileMenu(origin: HTMLDivElement): void {
-    this.userMenuOpen$ = of(
-      this.popoverService.open({
+    console.log('SidenavComponent: Abriendo menú de perfil...');
+    try {
+      const popoverRef = this.popoverService.open({
         content: SidenavUserMenuComponent,
         origin,
         offsetY: -8,
@@ -105,11 +106,16 @@ export class SidenavComponent implements OnInit {
             overlayY: 'bottom'
           }
         ]
-      })
-    ).pipe(
-      switchMap((popoverRef) => popoverRef.afterClosed$.pipe(map(() => false))),
-      startWith(true)
-    );
+      });
+      
+      this.userMenuOpen$ = of(popoverRef).pipe(
+        switchMap((ref) => ref.afterClosed$.pipe(map(() => false))),
+        startWith(true)
+      );
+      console.log('SidenavComponent: Menú de perfil abierto correctamente');
+    } catch (error) {
+      console.error('SidenavComponent: Error al abrir menú de perfil:', error);
+    }
   }
 
   openSearch(): void {
