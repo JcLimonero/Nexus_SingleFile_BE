@@ -104,6 +104,12 @@ export class NavigationLoaderService {
               label: 'Tipos de Documento',
               route: '/configuracion/catalogos/tipos-documento',
               icon: 'mat:description'
+            },
+            {
+              type: 'link',
+              label: 'Motivos de Aprobación y Rechazo',
+              route: '/configuracion/motivos-rechazo',
+              icon: 'mat:block'
             }
           ]
         }

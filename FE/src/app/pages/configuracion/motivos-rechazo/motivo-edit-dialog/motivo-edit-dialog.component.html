@@ -1,0 +1,71 @@
+<div class="p-6">
+  <!-- Header del diálogo -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">{{ getDialogTitle() }}</h2>
+    <button 
+      mat-icon-button 
+      (click)="cancel()"
+      class="text-gray-400 hover:text-gray-600">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <form (ngSubmit)="saveMotivo()" class="space-y-6">
+    <!-- Campo Nombre -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Nombre del Motivo</mat-label>
+      <input 
+        matInput 
+        [(ngModel)]="motivo.Name" 
+        name="name"
+        placeholder="Ingrese el nombre del motivo"
+        maxlength="500"
+        required>
+      <mat-icon matSuffix>description</mat-icon>
+      <mat-hint>Máximo 500 caracteres</mat-hint>
+    </mat-form-field>
+
+    <!-- Campo Tipo de Razón -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Tipo de Razón</mat-label>
+      <mat-select [(ngModel)]="motivo.IdTypeReason" name="idTypeReason" required>
+        <mat-option *ngFor="let option of tipoRazonOptions" [value]="option.value">
+          {{ option.label }}
+        </mat-option>
+      </mat-select>
+      <mat-icon matSuffix>category</mat-icon>
+    </mat-form-field>
+
+    <!-- Campo Estado -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Estado</mat-label>
+      <mat-select [(ngModel)]="motivo.Enabled" name="enabled">
+        <mat-option [value]="1">Habilitado</mat-option>
+        <mat-option [value]="0">Deshabilitado</mat-option>
+      </mat-select>
+      <mat-icon matSuffix>toggle_on</mat-icon>
+    </mat-form-field>
+
+    <!-- Botones de acción -->
+    <div class="flex justify-end gap-3 pt-4">
+      <button 
+        type="button"
+        mat-stroked-button 
+        (click)="cancel()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+      
+      <button 
+        type="submit"
+        mat-raised-button 
+        color="primary"
+        [disabled]="loading || !motivo.Name?.trim()">
+        <mat-icon *ngIf="loading" class="animate-spin">refresh</mat-icon>
+        <mat-icon *ngIf="!loading">{{ isEdit ? 'save' : 'add' }}</mat-icon>
+        {{ getSaveButtonText() }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -133,6 +133,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('(:num)', 'FileSubStatus::show/$1');
     });
     
+    // Rutas de motivos (File_Reasons)
+    $routes->group('file-reason', function($routes) {
+        $routes->get('/', 'FileReason::index');
+        $routes->post('/', 'FileReason::create');
+        $routes->get('search', 'FileReason::search');
+        $routes->get('stats', 'FileReason::stats');
+        $routes->get('active', 'FileReason::active');
+        $routes->get('(:num)', 'FileReason::show/$1');
+        $routes->put('(:num)', 'FileReason::update/$1');
+        $routes->delete('(:num)', 'FileReason::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'FileReason::toggleStatus/$1');
+    });
+    
     // Rutas de documentos (CRUD)
     $routes->group('document', function($routes) {
         $routes->get('/', 'Document::index');

@@ -229,6 +229,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/configuracion/logs-activity/logs-activity.component').then(
                 (m) => m.LogsActivityComponent
               )
+          },
+          {
+            path: 'motivos-rechazo',
+            loadComponent: () =>
+              import('./pages/configuracion/motivos-rechazo/motivos-rechazo.component').then(
+                (m) => m.MotivosRechazoComponent
+              )
           }
         ]
       },

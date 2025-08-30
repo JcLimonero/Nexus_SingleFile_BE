@@ -1,0 +1,113 @@
+// Estilos específicos para el componente de motivos de rechazo
+
+.mat-mdc-table {
+  .mat-mdc-header-cell {
+    font-weight: 600;
+    color: #374151;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .mat-mdc-cell {
+    padding: 8px 16px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .mat-mdc-row:hover {
+    background-color: #f9fafb;
+  }
+}
+
+// Estilos para los chips de tipo de razón
+.type-reason-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+  
+  &.blue {
+    background-color: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+  }
+  
+  &.green {
+    background-color: #d1fae5;
+    border-color: #6ee7b7;
+    color: #047857;
+  }
+  
+  &.orange {
+    background-color: #fed7aa;
+    border-color: #fdba74;
+    color: #c2410c;
+  }
+  
+  &.red {
+    background-color: #fecaca;
+    border-color: #f87171;
+    color: #dc2626;
+  }
+  
+  &.gray {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+    color: #374151;
+  }
+}
+
+// Estilos para los botones de acción
+.action-button {
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+  }
+}
+
+// Estilos para las tarjetas de estadísticas
+.stats-card {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Estilos para los filtros
+.filters-container {
+  .mat-mdc-form-field {
+    .mat-mdc-form-field-wrapper {
+      padding-bottom: 0;
+    }
+  }
+}
+
+// Estilos para la tabla responsiva
+@media (max-width: 768px) {
+  .mat-mdc-table {
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+    }
+  }
+  
+  .stats-card {
+    padding: 1rem;
+    
+    .text-2xl {
+      font-size: 1.25rem;
+    }
+  }
+}

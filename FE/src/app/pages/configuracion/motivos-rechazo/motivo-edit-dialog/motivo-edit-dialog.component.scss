@@ -1,0 +1,52 @@
+// Estilos para el diálogo de edición/creación de motivos
+
+.mat-mdc-dialog-container {
+  .mat-mdc-dialog-surface {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+}
+
+// Animaciones para los botones
+button {
+  transition: all 0.2s ease-in-out;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Estilos para los campos del formulario
+mat-form-field {
+  .mat-mdc-form-field-wrapper {
+    padding-bottom: 0;
+  }
+}
+
+// Estilos para el botón de cerrar
+.mat-icon-button {
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Estilos para el botón de guardar
+button[type="submit"] {
+  min-width: 120px;
+  
+  mat-icon {
+    margin-right: 8px;
+  }
+}
+
+// Responsive
+@media (max-width: 640px) {
+  .p-6 {
+    padding: 1rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+}
