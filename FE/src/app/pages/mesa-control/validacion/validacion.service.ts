@@ -101,26 +101,35 @@ export class ValidacionService {
     this.loadingSubject.next(true);
     
     let params = new HttpParams();
-    if (filtros.agencia) params = params.set('agencia', filtros.agencia);
-    if (filtros.proceso) params = params.set('proceso', filtros.proceso);
-    if (filtros.estado) params = params.set('estado', filtros.estado);
+    if (filtros.agencia) params = params.set('id', filtros.agencia);
+    if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
+    params = params.set('page', '1');
+    params = params.set('limit', '50');
 
-    return this.http.get<Cliente[]>(`${this.apiUrl}/api/validacion/clientes`, { params });
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
+      map(response => {
+        if (response && response.success && response.data && response.data.clientes) {
+          return response.data.clientes;
+        }
+        return [];
+      })
+    );
   }
 
   /**
-   * Cargar documentos con filtros
+   * Cargar documentos de un cliente específico
    */
-  cargarDocumentos(filtros: FiltrosValidacion = {}): Observable<Documento[]> {
+  cargarDocumentos(clienteId: number): Observable<Documento[]> {
     this.loadingSubject.next(true);
     
-    let params = new HttpParams();
-    if (filtros.agencia) params = params.set('agencia', filtros.agencia);
-    if (filtros.proceso) params = params.set('proceso', filtros.proceso);
-    if (filtros.fase) params = params.set('fase', filtros.fase);
-    if (filtros.estado) params = params.set('estado', filtros.estado);
-
-    return this.http.get<Documento[]>(`${this.apiUrl}/api/validacion/documentos`, { params });
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos/${clienteId}`).pipe(
+      map(response => {
+        if (response && response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      })
+    );
   }
 
   /**
@@ -235,7 +244,18 @@ export class ValidacionService {
   /**
    * Obtener estadísticas
    */
-  obtenerEstadisticas(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/api/validacion/estadisticas`);
+  obtenerEstadisticas(filtros: FiltrosValidacion = {}): Observable<any> {
+    let params = new HttpParams();
+    if (filtros.agencia) params = params.set('id', filtros.agencia);
+    if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
+
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/estadisticas`, { params }).pipe(
+      map(response => {
+        if (response && response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      })
+    );
   }
 }

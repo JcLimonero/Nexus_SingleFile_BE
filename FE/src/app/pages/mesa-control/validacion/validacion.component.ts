@@ -285,110 +285,8 @@ export class ValidacionComponent implements OnInit, OnDestroy {
   }
 
   loadData() {
-    this.loading = true;
-    // Simular carga de datos
-    setTimeout(() => {
-      // Datos de clientes basados en la imagen
-      this.clientesDataSource = [
-        {
-          ndCliente: 197697,
-          ndPedido: 34910,
-          cliente: 'COMERCIALIZADORA AVODICARE SA DE AUTOS NUEVOS',
-          proceso: 'AUTOS NUEVOS',
-          operacion: 'CONTADO',
-          integracion: true,
-          liquidacion: false,
-          liberacion: true,
-          excepcion: false,
-          liberado: false,
-          registro: '29/08/2025'
-        },
-        {
-          ndCliente: 180783,
-          ndPedido: 31959,
-          cliente: 'EDGAR GERARDO AGUAYO NUÑO',
-          proceso: 'AUTOS NUEVOS',
-          operacion: 'HONDA FINANCE',
-          integracion: true,
-          liquidacion: false,
-          liberacion: false,
-          excepcion: false,
-          liberado: false,
-          registro: '08/09/2023'
-        },
-        {
-          ndCliente: 195432,
-          ndPedido: 32876,
-          cliente: 'MARIA ISABEL RODRIGUEZ LOPEZ',
-          proceso: 'AUTOS NUEVOS',
-          operacion: 'CREDITO INTERNO',
-          integracion: false,
-          liquidacion: false,
-          liberacion: false,
-          excepcion: false,
-          liberado: false,
-          registro: '15/08/2025'
-        }
-      ];
-
-      // Datos de documentos basados en la imagen
-      this.documentosDataSource = [
-        {
-          proceso: 'AUTOS NUEVOS',
-          fase: 'Integración',
-          documento: 'ACTA CONSTITUTIVA',
-          estatus: 'info',
-          ver: true,
-          validado: false,
-          eliminar: true,
-          requerido: true,
-          fecha: '29/08/2025',
-          comentario: '',
-          asignado: ''
-        },
-        {
-          proceso: 'AUTOS NUEVOS',
-          fase: 'Integración',
-          documento: 'COMPROBANTE DE DOMICILIO',
-          estatus: 'info',
-          ver: true,
-          validado: true,
-          eliminar: true,
-          requerido: true,
-          fecha: '29/08/2025',
-          comentario: '',
-          asignado: ''
-        },
-        {
-          proceso: 'AUTOS NUEVOS',
-          fase: 'Liquidación',
-          documento: 'FACTURA',
-          estatus: 'info',
-          ver: true,
-          validado: false,
-          eliminar: true,
-          requerido: true,
-          fecha: '29/08/2025',
-          comentario: '',
-          asignado: ''
-        },
-        {
-          proceso: 'AUTOS NUEVOS',
-          fase: 'Liberación',
-          documento: 'LEY ANTILAVADO',
-          estatus: 'info',
-          ver: true,
-          validado: false,
-          eliminar: true,
-          requerido: true,
-          fecha: '29/08/2025',
-          comentario: '',
-          asignado: ''
-        }
-      ];
-
-      this.loading = false;
-    }, 1000);
+    // Los datos se cargarán cuando se seleccione agencia y proceso
+    console.log('🔄 ValidacionComponent - loadData() llamado, esperando selección de agencia y proceso');
   }
 
   // Métodos para estadísticas
@@ -431,8 +329,10 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onAgenciaChange() {
     console.log('🏢 ValidacionComponent - Agencia seleccionada:', this.selectedAgency);
-    // Aquí se puede implementar la lógica para recargar datos
-    // basados en la nueva agencia seleccionada
+    // Si ya hay un proceso seleccionado, cargar clientes
+    if (this.selectedProcess) {
+      this.cargarClientes();
+    }
   }
 
   /**
@@ -440,8 +340,50 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onProcesoChange() {
     console.log('⚙️ ValidacionComponent - Proceso seleccionado:', this.selectedProcess);
-    // Aquí se puede implementar la lógica para recargar datos
-    // basados en el nuevo proceso seleccionado
+    this.cargarClientes();
+  }
+
+  /**
+   * Cargar clientes desde la API
+   */
+  private cargarClientes() {
+    if (!this.selectedAgency || !this.selectedProcess) {
+      console.log('⚠️ ValidacionComponent - No se puede cargar clientes: agencia o proceso no seleccionado');
+      return;
+    }
+
+    console.log('🔄 ValidacionComponent - Cargando clientes para agencia:', this.selectedAgency, 'proceso:', this.selectedProcess);
+    this.loading = true;
+
+    const filtros: FiltrosValidacion = {
+      agencia: this.selectedAgency,
+      proceso: this.selectedProcess
+    };
+
+    this.validacionService.cargarClientes(filtros)
+      .pipe(
+        takeUntil(this.destroy$),
+        timeout(10000),
+        catchError(error => {
+          console.error('❌ ValidacionComponent - Error cargando clientes:', error);
+          this.mostrarError('Error cargando clientes');
+          this.clientesDataSource = [];
+          this.loading = false;
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (clientes) => {
+          console.log('✅ ValidacionComponent - Clientes cargados:', clientes);
+          this.clientesDataSource = clientes;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ ValidacionComponent - Error en subscribe de clientes:', error);
+          this.clientesDataSource = [];
+          this.loading = false;
+        }
+      });
   }
 
   /**
