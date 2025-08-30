@@ -77,13 +77,12 @@
 
   <!-- Tabla de datos -->
   <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-    <div class="relative">
-      <!-- Loading spinner -->
-      <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-        <mat-spinner diameter="40"></mat-spinner>
-      </div>
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="flex justify-center items-center py-8">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
 
-      <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
+    <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;" *ngIf="!loading">
         <!-- Columna ID -->
         <ng-container matColumnDef="id">
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -106,10 +105,10 @@
 
         <!-- Columna Tipo de Razón -->
         <ng-container matColumnDef="idTypeReason">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Tipo de Razón
           </th>
-          <td mat-cell *matCellDef="let reason" class="text-center">
+          <td mat-cell *matCellDef="let reason" class="text-center py-0">
             <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
                   [ngClass]="reason.IdTypeReason == 2 ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'">
               {{ reason.TypeReasonLabel }}
@@ -122,7 +121,7 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-28 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Estado
           </th>
-          <td mat-cell *matCellDef="let reason" class="text-center">
+          <td mat-cell *matCellDef="let reason" class="text-center py-0">
             <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
                   [ngClass]="isEnabled(reason.Enabled) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
               {{ isEnabled(reason.Enabled) ? 'Habilitado' : 'Deshabilitado' }}
@@ -132,7 +131,7 @@
 
         <!-- Columna Acciones -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef class="w-24 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef class="w-28 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Acciones
           </th>
           <td mat-cell *matCellDef="let reason" class="text-center py-0">
@@ -160,14 +159,13 @@
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="!min-h-0 !h-8"></tr>
-      </table>
+    </table>
 
-      <!-- Mensaje cuando no hay datos -->
-      <div *ngIf="!loading && dataSource.data.length === 0" class="p-8 text-center">
-        <mat-icon class="text-gray-400 text-6xl mb-4">inbox</mat-icon>
-        <p class="text-gray-500 text-lg">No se encontraron motivos extraordinarios</p>
-        <p class="text-gray-400">Intenta ajustar los filtros o crear un nuevo motivo</p>
-      </div>
+    <!-- Mensaje cuando no hay datos -->
+    <div *ngIf="!loading && dataSource.data.length === 0" class="p-8 text-center">
+      <mat-icon class="text-gray-400 text-6xl mb-4">inbox</mat-icon>
+      <p class="text-gray-500 text-lg">No se encontraron motivos extraordinarios</p>
+      <p class="text-gray-400">Intenta ajustar los filtros o crear un nuevo motivo</p>
     </div>
 
     <!-- Paginación -->

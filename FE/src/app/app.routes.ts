@@ -284,8 +284,41 @@ export const appRoutes: VexRoutes = [
                   (m) => m.TiposDocumentoComponent
                 )
             }
-          ]
-        },
+                  ]
+      },
+      {
+        path: 'mesa-control',
+        children: [
+          {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./pages/mesa-control/dashboard/dashboard.component').then(
+                (m) => m.DashboardComponent
+              )
+          },
+          {
+            path: 'monitoreo',
+            loadComponent: () =>
+              import('./pages/mesa-control/monitoreo/monitoreo.component').then(
+                (m) => m.MonitoreoComponent
+              )
+          },
+          {
+            path: 'reportes',
+            loadComponent: () =>
+              import('./pages/mesa-control/reportes/reportes.component').then(
+                (m) => m.ReportesComponent
+              )
+          },
+          {
+            path: 'validacion',
+            loadComponent: () =>
+              import('./pages/mesa-control/validacion/validacion.component').then(
+                (m) => m.ValidacionComponent
+              )
+          }
+        ]
+      },
       {
         path: '**',
         loadComponent: () =>

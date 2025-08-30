@@ -1,0 +1,36 @@
+// Estilos específicos para el componente de validación
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.5rem;
+}
+
+.space-y-6 > :first-child {
+  margin-top: 0;
+}
+
+// Estilos para los botones de acción
+.mat-mdc-icon-button {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Estilos para las tarjetas de estadísticas
+.mat-mdc-card {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Estilos para los chips de estado
+.estado-chip {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
