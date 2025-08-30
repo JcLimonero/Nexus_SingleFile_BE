@@ -11,8 +11,10 @@ import { ActivityLogService } from '../services/activity-log.service';
  * - LOGOUT: Cierre de sesión  
  * - CREATE: Creación de registros
  * - UPDATE: Actualización de registros
+ * - DELETE: Eliminación de registros
+ * - EXPORT: Exportación de datos
  * 
- * NO registra: búsquedas, visualizaciones, eliminaciones, estadísticas, etc.
+ * NO registra: búsquedas, visualizaciones, estadísticas, etc.
  */
 export const ActivityLogInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -77,8 +79,20 @@ function determineAction(url: string, method: string): { type: string; descripti
     return { type: 'UPDATE', description: `Actualización de ${entity}` };
   }
 
-  // Solo registrar las acciones especificadas: LOGIN, LOGOUT, CREATE, UPDATE
-  // No registrar: DELETE, SEARCH, VIEW, VIEW_STATS, etc.
+  // Eliminar registros
+  if (method === 'DELETE') {
+    const entity = extractEntityFromUrl(url);
+    return { type: 'DELETE', description: `Eliminación de ${entity}` };
+  }
+
+  // Exportar datos
+  if (url.includes('/export') || url.includes('/download') || url.includes('/excel')) {
+    const entity = extractEntityFromUrl(url);
+    return { type: 'EXPORT', description: `Exportación de ${entity}` };
+  }
+
+  // Solo registrar las acciones especificadas: LOGIN, LOGOUT, CREATE, UPDATE, DELETE, EXPORT
+  // No registrar: SEARCH, VIEW, VIEW_STATS, etc.
   return null;
 }
 
@@ -148,6 +162,14 @@ function getChangeDetails(request: HttpRequest<unknown>, response: HttpResponse<
       case 'UPDATE':
         const updateEntity = extractEntityFromUrl(url);
         return `Actualización de ${updateEntity} - ${JSON.stringify(sanitizeRequestData(requestInfo))}`;
+        
+      case 'DELETE':
+        const deleteEntity = extractEntityFromUrl(url);
+        return `Eliminación de ${deleteEntity} - ${JSON.stringify(sanitizeRequestData(requestInfo))}`;
+        
+      case 'EXPORT':
+        const exportEntity = extractEntityFromUrl(url);
+        return `Exportación de ${exportEntity} - ${JSON.stringify(sanitizeRequestData(requestInfo))}`;
         
       default:
         // Solo registrar las acciones especificadas
