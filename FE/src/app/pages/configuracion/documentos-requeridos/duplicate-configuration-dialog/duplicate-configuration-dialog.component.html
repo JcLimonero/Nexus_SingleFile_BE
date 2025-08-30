@@ -1,0 +1,150 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900">Duplicar Configuración</h2>
+      <p class="text-gray-600 mt-1">Replicar configuración de documentos a otras agencias</p>
+    </div>
+    <button 
+      mat-icon-button 
+      (click)="cancel()"
+      class="text-gray-400 hover:text-gray-600">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Información de la Configuración Actual -->
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+    <h3 class="text-sm font-medium text-blue-900 mb-2">Configuración a Duplicar</h3>
+    <div class="flex flex-wrap gap-x-6 gap-y-1">
+      <div class="flex items-center space-x-1">
+        <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Proceso:</span>
+        <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ data.processName }}</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Agencia:</span>
+        <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ data.currentAgencyName }}</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Cliente:</span>
+        <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ data.customerTypeName }}</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Operación:</span>
+        <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ data.operationTypeName }}</span>
+      </div>
+    </div>
+    
+    <!-- Descripción -->
+    <p class="text-xs text-gray-500 mt-2 italic">
+      Esta configuración será replicada a las agencias seleccionadas
+    </p>
+  </div>
+
+  <!-- Selección de Agencias -->
+  <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-medium text-gray-900">Agencias Destino</h3>
+      <div class="flex items-center gap-2">
+        <button 
+          mat-stroked-button 
+          color="primary" 
+          (click)="selectAllAgencies()"
+          [disabled]="loading || availableAgencies.length === 0"
+          class="text-xs px-3 py-1">
+          Seleccionar Todas
+        </button>
+        <button 
+          mat-stroked-button 
+          color="warn" 
+          (click)="deselectAllAgencies()"
+          [disabled]="loading || selectedAgencies.length === 0"
+          class="text-xs px-3 py-1">
+          Deseleccionar Todas
+        </button>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="mb-3">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Buscar agencias</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="searchTerm" 
+          placeholder="Escribe para filtrar agencias..."
+          class="text-sm">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Lista de Agencias -->
+    <div class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+      <div *ngIf="loading" class="flex items-center justify-center p-6">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span class="ml-2 text-gray-600 text-sm">Cargando agencias...</span>
+      </div>
+
+      <div *ngIf="!loading && filteredAgencies.length === 0" class="p-6 text-center text-gray-500">
+        <mat-icon class="text-3xl text-gray-300 mb-2">business</mat-icon>
+        <p class="text-base font-medium">No hay agencias disponibles</p>
+        <p class="text-xs">Todas las agencias ya tienen esta configuración o no hay agencias para mostrar.</p>
+      </div>
+
+      <div *ngIf="!loading && filteredAgencies.length > 0" class="divide-y divide-gray-100">
+        <div 
+          *ngFor="let agency of filteredAgencies" 
+          class="flex items-center p-2 hover:bg-gray-50 transition-colors">
+          <mat-checkbox
+            [checked]="isAgencySelected(agency.Id)"
+            (change)="onAgencySelectionChange(agency.Id, $event.checked)"
+            [disabled]="loading"
+            color="primary"
+            class="mr-2 scale-90">
+          </mat-checkbox>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-900 text-sm truncate">{{ agency.Name }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contador de seleccionadas -->
+    <div class="mt-2 flex items-center justify-between">
+      <div class="text-xs text-gray-600">
+        <span class="font-medium">{{ selectedAgencies.length }}</span> de {{ availableAgencies.length }} agencias seleccionadas
+      </div>
+      <div *ngIf="selectedAgencies.length > 0" class="flex items-center gap-1">
+        <mat-chip 
+          *ngFor="let agencyId of selectedAgencies.slice(0, 4)" 
+          class="text-xs scale-90">
+          {{ getAgencyName(agencyId) }}
+        </mat-chip>
+        <span *ngIf="selectedAgencies.length > 4" class="text-xs text-gray-500">
+          +{{ selectedAgencies.length - 4 }} más
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+    <button 
+      mat-stroked-button 
+      (click)="cancel()"
+      [disabled]="loading"
+      class="px-6">
+      Cancelar
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="duplicateConfiguration()"
+      [disabled]="!canDuplicate()"
+      [class.loading]="loading"
+      class="px-6 flex items-center gap-2">
+      <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+      <mat-icon *ngIf="!loading">content_copy</mat-icon>
+      {{ loading ? 'Duplicando...' : 'Duplicar Configuración' }}
+    </button>
+  </div>

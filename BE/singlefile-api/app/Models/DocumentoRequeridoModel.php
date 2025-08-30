@@ -8,7 +8,7 @@ class DocumentoRequeridoModel extends Model
 {
     protected $table            = 'ConfigurationProcess_DocumentType';
     protected $primaryKey       = 'Id';
-    protected $useAutoIncrement = true;
+    protected $useAutoIncrement = false;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
@@ -50,8 +50,8 @@ class DocumentoRequeridoModel extends Model
     protected $cleanValidationRules = true;
 
     // Callbacks
-    protected $allowCallbacks = false;
-    protected $beforeInsert   = [];
+    protected $allowCallbacks = true;
+    protected $beforeInsert   = ['generateId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = [];
     protected $afterUpdate    = [];
@@ -59,6 +59,29 @@ class DocumentoRequeridoModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    /**
+     * Generar ID único para nuevo documento requerido
+     */
+    protected function generateId(array $data)
+    {
+        if (empty($data['data']['Id'])) {
+            $data['data']['Id'] = $this->getNextId();
+        }
+        return $data;
+    }
+
+    /**
+     * Obtener el siguiente ID disponible
+     */
+    private function getNextId()
+    {
+        $lastDoc = $this->orderBy('Id', 'DESC')->first();
+        if ($lastDoc) {
+            return (int)$lastDoc['Id'] + 1;
+        }
+        return 1;
+    }
 
     /**
      * Obtener documentos requeridos con filtros y paginación
@@ -203,41 +226,9 @@ class DocumentoRequeridoModel extends Model
      */
     public function getOrCreateConfigurationProcess($idProcess, $idAgency, $idCostumerType, $idOperationType)
     {
-        // Buscar configuración existente
-        $config = $this->db->table('ConfigurationProcess')
-                           ->where('IdProcess', $idProcess)
-                           ->where('IdAgency', $idAgency)
-                           ->where('IdCostumerType', $idCostumerType)
-                           ->where('IdOperationType', $idOperationType)
-                           ->get()
-                           ->getRowArray();
-        
-        if ($config) {
-            return $config['Id'];
-        }
-        
-        // Crear nueva configuración
-        $maxId = $this->db->table('ConfigurationProcess')
-                          ->select('MAX(Id) as max_id')
-                          ->get()
-                          ->getRow()->max_id ?? 0;
-        
-        $newId = $maxId + 1;
-        
-        $insertData = [
-            'Id' => $newId,
-            'IdProcess' => $idProcess,
-            'IdAgency' => $idAgency,
-            'IdCostumerType' => $idCostumerType,
-            'IdOperationType' => $idOperationType,
-            'Enabled' => 1,
-            'RegistrationDate' => date('Y-m-d H:i:s'),
-            'UpdateDate' => null,
-            'IdLastUserUpdate' => 1 // TODO: Obtener ID del usuario actual
-        ];
-        
-        $this->db->table('ConfigurationProcess')->insert($insertData);
-        return $newId;
+        // Usar el modelo ConfigurationProcessModel
+        $configProcessModel = new \App\Models\ConfigurationProcessModel();
+        return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCostumerType, $idOperationType);
     }
 
     /**

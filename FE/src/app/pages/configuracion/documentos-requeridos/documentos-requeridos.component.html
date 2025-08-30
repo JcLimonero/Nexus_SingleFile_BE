@@ -18,6 +18,18 @@
         Nueva Configuración
       </button>
       
+      <!-- Botón Duplicar -->
+      <button 
+        mat-raised-button 
+        color="accent" 
+        (click)="duplicateConfiguration()"
+        [disabled]="!canDuplicateConfiguration() || loading"
+        matTooltip="Duplicar configuración a otras agencias"
+        class="flex items-center gap-2">
+        <mat-icon>content_copy</mat-icon>
+        Duplicar Configuración
+      </button>
+      
       <!-- Indicador de carga -->
       <div *ngIf="loading" class="flex items-center gap-2 text-blue-600">
         <mat-spinner diameter="20"></mat-spinner>
@@ -113,7 +125,7 @@
       </mat-form-field>
 
       <!-- Botón de Modificar -->
-      <div class="flex items-start">
+      <div class="flex flex-col items-start">
         <button 
           mat-stroked-button 
           color="accent" 
@@ -126,13 +138,9 @@
         </button>
         
         <!-- Mensaje informativo -->
-        <div *ngIf="!hasDataForConfiguration()" class="ml-2 text-xs text-gray-500 max-w-48">
+        <div *ngIf="!hasDataForConfiguration()" class="mt-1 text-xs text-gray-500 text-center w-full">
           Para modificar: selecciona todos los filtros
         </div>
-        
-
-        
-
       </div>
       
 
@@ -183,7 +191,7 @@
 
         <!-- Columna Agencia -->
         <ng-container matColumnDef="agencia">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Agencia
           </th>
           <td mat-cell *matCellDef="let element" class="py-0">
@@ -193,7 +201,7 @@
 
         <!-- Columna Proceso -->
         <ng-container matColumnDef="proceso">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Proceso
           </th>
           <td mat-cell *matCellDef="let element" class="py-0">
@@ -203,7 +211,7 @@
 
         <!-- Columna Tipo de Cliente -->
         <ng-container matColumnDef="tipoCliente">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Tipo Cliente
           </th>
           <td mat-cell *matCellDef="let element" class="py-0">
@@ -213,7 +221,7 @@
 
         <!-- Columna Tipo de Operación -->
         <ng-container matColumnDef="tipoOperacion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Tipo Operación
           </th>
           <td mat-cell *matCellDef="let element" class="py-0">
@@ -257,23 +265,6 @@
           </td>
         </ng-container>
 
-        <!-- Columna Estado -->
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
-            Estado
-          </th>
-          <td mat-cell *matCellDef="let element" class="text-center py-0">
-            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                  [ngClass]="element.Enabled === '1' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-              {{ element.Enabled === '1' ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-        </ng-container>
-
-
-
-
-
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row 
             *matRowDef="let row; columns: displayedColumns;"
@@ -308,7 +299,7 @@
     <!-- Paginación -->
     <mat-paginator 
       [pageSizeOptions]="[10, 25, 50, 100, 200, 500, 1000]" 
-      [pageSize]="100"
+      [pageSize]="10"
       showFirstLastButtons 
       aria-label="Seleccionar página de documentos requeridos">
     </mat-paginator>

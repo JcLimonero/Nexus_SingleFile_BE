@@ -32,6 +32,7 @@ import { CostumerType } from '../../../core/interfaces/costumer-type.interface';
 import { TipoOperacion } from '../../../core/interfaces/tipo-operacion.interface';
 import { DocumentoRequerido, DocumentoRequeridoFilters } from '../../../core/interfaces/documento-requerido.interface';
 import { DocumentoRequeridoEditDialogComponent } from './documento-requerido-edit-dialog/documento-requerido-edit-dialog.component';
+import { DuplicateConfigurationDialogComponent } from './duplicate-configuration-dialog/duplicate-configuration-dialog.component';
 
 @Component({
   selector: 'app-documentos-requeridos',
@@ -58,7 +59,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'requerido', 'requiereExpiracion', 'estado'];
+  displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'requerido', 'requiereExpiracion'];
   dataSource = new MatTableDataSource<DocumentoRequerido>([]);
   
   loading = false;
@@ -382,5 +383,61 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   onRowClick(element: DocumentoRequerido): void {
     this.selectedItem = element;
     console.log('Item seleccionado:', element);
+  }
+
+  // Método para verificar si se puede duplicar la configuración
+  canDuplicateConfiguration(): boolean {
+    // Solo se puede duplicar si TODOS los filtros están seleccionados
+    // y hay datos para esa configuración
+    return this.hasDataForConfiguration() && this.dataSource.data.length > 0;
+  }
+
+  // Método para abrir el diálogo de duplicación
+  duplicateConfiguration(): void {
+    if (!this.canDuplicateConfiguration()) {
+      this.snackBar.open('Selecciona una configuración completa para duplicar', 'Warning', { duration: 3000 });
+      return;
+    }
+
+    // Obtener nombres de los elementos seleccionados
+    const currentAgency = this.agencies.find(a => a.Id.toString() === this.selectedAgency);
+    const currentProcess = this.processes.find(p => p.Id.toString() === this.selectedProcess);
+    const currentCustomerType = this.customerTypes.find(c => c.Id.toString() === this.selectedCustomerType);
+    const currentOperationType = this.operationTypes.find(o => o.Id.toString() === this.selectedOperationType);
+
+    if (!currentAgency || !currentProcess || !currentCustomerType || !currentOperationType) {
+      this.snackBar.open('Error obteniendo información de la configuración', 'Error', { duration: 3000 });
+      return;
+    }
+
+    // Crear objeto de configuración con los filtros seleccionados
+    const configuracion = {
+      IdProcess: this.selectedProcess,
+      IdAgency: parseInt(this.selectedAgency),
+      IdCostumerType: this.selectedCustomerType,
+      IdOperationType: this.selectedOperationType
+    };
+
+    const dialogRef = this.dialog.open(DuplicateConfigurationDialogComponent, {
+      width: '800px',
+      data: {
+        configuracion: configuracion,
+        currentAgencyName: currentAgency.Name,
+        processName: currentProcess.Name,
+        customerTypeName: currentCustomerType.Name,
+        operationTypeName: currentOperationType.Name
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.loadData();
+        this.snackBar.open(
+          `Configuración duplicada exitosamente a ${result.agenciesCount} agencia(s)`, 
+          'Éxito', 
+          { duration: 3000 }
+        );
+      }
+    });
   }
 }

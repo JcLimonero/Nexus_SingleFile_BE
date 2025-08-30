@@ -1,0 +1,112 @@
+// Estilos para el diálogo de duplicación
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+// Animaciones para los elementos del diálogo
+.max-h-\[80vh\] {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Estilos para los checkboxes
+mat-checkbox {
+  .mat-checkbox-frame {
+    border-color: #3b82f6;
+  }
+  
+  .mat-checkbox-checkmark-path {
+    stroke: #3b82f6;
+  }
+}
+
+// Estilos para los chips de agencias seleccionadas
+mat-chip {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+  
+  &:hover {
+    background-color: #bfdbfe;
+  }
+}
+
+// Estilos para el hover de las agencias
+.hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+  transition: background-color 0.2s ease;
+}
+
+// Estilos para los botones de acción
+button[mat-raised-button] {
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Estilos para el spinner de carga
+mat-spinner {
+  .mat-progress-spinner-circle {
+    stroke: #3b82f6;
+  }
+}
+
+// Estilos para el campo de búsqueda
+mat-form-field {
+  .mat-form-field-outline {
+    color: #d1d5db;
+  }
+  
+  .mat-form-field-outline-thick {
+    color: #3b82f6;
+  }
+}
+
+// Estilos para la información de configuración
+.bg-blue-50 {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+// Estilos para los contadores
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+// Estilos para el scroll personalizado
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f9fafb;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #9ca3af;
+    }
+  }
+}
