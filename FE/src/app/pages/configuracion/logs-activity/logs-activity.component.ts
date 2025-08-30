@@ -66,14 +66,14 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
 
   // Filtros
   filters: ActivityLogFilters = {
-    limit: 100,
+    limit: 10,
     offset: 0,
     change_details: ''
   };
 
   // Opciones de acciones para el filtro
   actionOptions = [
-    'LOGIN', 'LOGOUT', 'NAVIGATION', 'CREATE', 'UPDATE', 'DELETE', 'SEARCH', 'EXPORT'
+    'CREATE', 'DELETE', 'EXPORT','LOGIN', 'LOGOUT', 'UPDATE'
   ];
 
   // Paginación

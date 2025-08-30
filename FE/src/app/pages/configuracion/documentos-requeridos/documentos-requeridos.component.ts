@@ -250,9 +250,6 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
           next: (response) => {
             if (response.success && response.data) {
               this.dataSource.data = response.data.documentos || [];
-              const total = response.data.total || 0;
-              const loaded = response.data.count || 0;
-              this.snackBar.open(`Se cargaron ${loaded} de ${total} documentos totales`, 'Info', { duration: 3000 });
             } else {
               this.snackBar.open(response.message || 'Error al cargar documentos', 'Error', { duration: 3000 });
               this.dataSource.data = [];
