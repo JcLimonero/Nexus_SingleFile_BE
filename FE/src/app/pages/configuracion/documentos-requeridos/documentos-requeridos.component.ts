@@ -24,11 +24,14 @@ import { ProcesoService } from '../../../core/services/proceso.service';
 import { AgencyService, Agency } from '../../../core/services/agency.service';
 import { CostumerTypeService } from '../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../core/services/tipo-operacion.service';
+import { DocumentoRequeridoService } from '../../../core/services/documento-requerido.service';
 
 // Importar interfaces existentes
 import { Proceso } from '../../../core/interfaces/proceso.interface';
 import { CostumerType } from '../../../core/interfaces/costumer-type.interface';
 import { TipoOperacion } from '../../../core/interfaces/tipo-operacion.interface';
+import { DocumentoRequerido, DocumentoRequeridoFilters } from '../../../core/interfaces/documento-requerido.interface';
+import { DocumentoRequeridoEditDialogComponent } from './documento-requerido-edit-dialog/documento-requerido-edit-dialog.component';
 
 @Component({
   selector: 'app-documentos-requeridos',
@@ -55,8 +58,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['id', 'proceso', 'agencia', 'tipoCliente', 'tipoOperacion', 'documento'];
-  dataSource = new MatTableDataSource<any>([]);
+  displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'requerido', 'requiereExpiracion', 'estado'];
+  dataSource = new MatTableDataSource<DocumentoRequerido>([]);
   
   loading = false;
   loadingCatalogs = false;
@@ -72,7 +75,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   operationTypes: TipoOperacion[] = [];
   
   // Item seleccionado para edición
-  selectedItem: any = null;
+  selectedItem: DocumentoRequerido | null = null;
+  
+  // Estadísticas
+  stats: any = null;
 
   constructor(
     private snackBar: MatSnackBar,
@@ -80,7 +86,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     private procesoService: ProcesoService,
     private agencyService: AgencyService,
     private costumerTypeService: CostumerTypeService,
-    private tipoOperacionService: TipoOperacionService
+    private tipoOperacionService: TipoOperacionService,
+    private documentoRequeridoService: DocumentoRequeridoService
   ) {}
 
   ngOnInit(): void {
@@ -199,82 +206,87 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   }
 
   private checkCatalogsLoaded(): void {
-    if (this.processes.length > 0 || this.agencies.length > 0 || 
-        this.customerTypes.length > 0 || this.operationTypes.length > 0) {
+    // Verificar si todos los catálogos han sido procesados (aunque estén vacíos)
+    const totalCatalogs = 4; // procesos, agencias, tipos de cliente, tipos de operación
+    const catalogsProcessed = (this.processes.length >= 0 ? 1 : 0) + 
+                             (this.agencies.length >= 0 ? 1 : 0) + 
+                             (this.customerTypes.length >= 0 ? 1 : 0) + 
+                             (this.operationTypes.length >= 0 ? 1 : 0);
+    
+    if (catalogsProcessed >= totalCatalogs) {
       this.loadingCatalogs = false;
-      console.log('✅ Catálogos cargados - Procesos:', this.processes.length, 
+      console.log('✅ Catálogos procesados - Procesos:', this.processes.length, 
                   'Agencias:', this.agencies.length, 
                   'Tipos Cliente:', this.customerTypes.length, 
                   'Tipos Operación:', this.operationTypes.length);
+      
+      // Si no hay catálogos, mostrar mensaje de error
+      if (this.processes.length === 0 && this.agencies.length === 0 && 
+          this.customerTypes.length === 0 && this.operationTypes.length === 0) {
+        this.snackBar.open('No se pudieron cargar los catálogos. Verifica la conexión con el backend.', 'Error', { duration: 5000 });
+      }
     }
   }
 
   loadData(): void {
+    if (!this.isConfigurationSelected()) {
+      this.dataSource.data = [];
+      return;
+    }
+
     this.loading = true;
     
-    // TODO: Implementar carga de datos desde el servicio de configuración
-    // Por ahora, datos de ejemplo para mostrar la estructura
-    setTimeout(() => {
-      this.dataSource.data = [
-        {
-          id: 1,
-          proceso: 'AUTOS NUEVOS',
-          agencia: 'MOTONOVA',
-          tipoCliente: 'CONSUMIDOR (MOTO EXCEDE MON)',
-          tipoOperacion: 'CAJA POPULAR',
-          documento: 'AUTORIZACION BANCARIA',
-          orden: 1
-        },
-        {
-          id: 2,
-          proceso: 'AUTOS NUEVOS',
-          agencia: 'MOTONOVA',
-          tipoCliente: 'CONSUMIDOR (MOTO EXCEDE MON)',
-          tipoOperacion: 'CAJA POPULAR',
-          documento: 'COMPROBANTE DE DOMICILIO',
-          orden: 2
-        },
-        {
-          id: 3,
-          proceso: 'AUTOS NUEVOS',
-          agencia: 'MOTONOVA',
-          tipoCliente: 'CONSUMIDOR (MOTO EXCEDE MON)',
-          tipoOperacion: 'CAJA POPULAR',
-          documento: 'IDENTIFICACION OFICIAL',
-          orden: 3
-        },
-        {
-          id: 4,
-          proceso: 'AUTOS NUEVOS',
-          agencia: 'MOTONOVA',
-          tipoCliente: 'PERSONA MORAL (MOTO EX MON)',
-          tipoOperacion: 'CONTADO',
-          documento: 'ACTA CONSTITUTIVA',
-          orden: 1
-        },
-        {
-          id: 5,
-          proceso: 'AUTOS NUEVOS',
-          agencia: 'MOTONOVA',
-          tipoCliente: 'PERSONA MORAL (MOTO EX MON)',
-          tipoOperacion: 'CONTADO',
-          documento: 'CEDULA FISCAL',
-          orden: 2
-        }
-      ];
-      this.loading = false;
-      this.snackBar.open('Datos cargados', 'Info', { duration: 2000 });
-    }, 1000);
+    // Construir filtros solo con los valores seleccionados
+    const filters: DocumentoRequeridoFilters = {};
+    
+    // Solo agregar filtros que estén seleccionados
+    if (this.selectedProcess) filters.IdProcess = this.selectedProcess;
+    if (this.selectedAgency) filters.IdAgency = this.selectedAgency;
+    if (this.selectedCustomerType) filters.IdCostumerType = this.selectedCustomerType;
+    if (this.selectedOperationType) filters.IdOperationType = this.selectedOperationType;
+
+            this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
+          next: (response) => {
+            if (response.success && response.data) {
+              this.dataSource.data = response.data.documentos || [];
+              const total = response.data.total || 0;
+              const loaded = response.data.count || 0;
+              this.snackBar.open(`Se cargaron ${loaded} de ${total} documentos totales`, 'Info', { duration: 3000 });
+            } else {
+              this.snackBar.open(response.message || 'Error al cargar documentos', 'Error', { duration: 3000 });
+              this.dataSource.data = [];
+            }
+            this.loading = false;
+          },
+      error: (error) => {
+        console.error('Error cargando documentos requeridos:', error);
+        this.snackBar.open('Error al cargar documentos requeridos', 'Error', { duration: 3000 });
+        this.dataSource.data = [];
+        this.loading = false;
+      }
+    });
   }
 
   onConfigurationChange(): void {
-    // Cuando cambia cualquier selección, cargar los documentos de esa configuración
-    if (this.selectedProcess && this.selectedAgency && this.selectedCustomerType && this.selectedOperationType) {
-      this.loadData();
-    }
+    // Cargar datos cuando cambia cualquier selección
+    this.loadData();
+    
+    // Limpiar el item seleccionado cuando cambian los filtros
+    this.selectedItem = null;
   }
 
   isConfigurationSelected(): boolean {
+    // Si no hay ninguna selección, considerar como si estuviera todo seleccionado (ver todos los datos)
+    if (!this.selectedProcess && !this.selectedAgency && !this.selectedCustomerType && !this.selectedOperationType) {
+      return true;
+    }
+    // Si hay al menos una selección, permitir mostrar datos
+    return true;
+  }
+
+  hasDataForConfiguration(): boolean {
+    // Para modificar la configuración, solo se requiere que TODOS los filtros estén seleccionados
+    // No es necesario que haya datos, porque se modifica la configuración base
     return !!(this.selectedProcess && this.selectedAgency && this.selectedCustomerType && this.selectedOperationType);
   }
 
@@ -288,42 +300,86 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   }
 
   refreshData(): void {
-    if (this.isConfigurationSelected()) {
-      this.loadData();
-    } else {
-      this.snackBar.open('Selecciona una configuración completa', 'Info', { duration: 2000 });
-    }
+    this.loadData();
   }
 
   addDocumentoRequerido(): void {
-    if (!this.isConfigurationSelected()) {
-      this.snackBar.open('Selecciona una configuración completa', 'Warning', { duration: 3000 });
-      return;
-    }
-    // TODO: Implementar modal para agregar documento requerido
-    this.snackBar.open('Función en desarrollo', 'Info', { duration: 2000 });
+    // Para crear una nueva configuración, no es necesario tener filtros seleccionados
+    // Se puede crear con valores por defecto o vacíos
+    const configuracion = {
+      IdProcess: this.selectedProcess || '',
+      IdAgency: this.selectedAgency || '',
+      IdCostumerType: this.selectedCustomerType || '',
+      IdOperationType: this.selectedOperationType || ''
+    };
+
+    const dialogRef = this.dialog.open(DocumentoRequeridoEditDialogComponent, {
+      width: '800px',
+      data: {
+        mode: 'create',
+        configuracion: configuracion
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadData();
+        this.snackBar.open('Documento requerido creado exitosamente', 'Éxito', { duration: 2000 });
+      }
+    });
   }
 
-  editDocumentoRequerido(item: any): void {
+  editDocumentoRequerido(item: DocumentoRequerido): void {
     if (!item) {
-      this.snackBar.open('Selecciona un documento para editar', 'Warning', { duration: 3000 });
+      this.snackBar.open('Selecciona un documento para editar la configuración', 'Warning', { duration: 3000 });
       return;
     }
-    // TODO: Implementar modal para editar documento requerido
-    this.snackBar.open('Función en desarrollo', 'Info', { duration: 2000 });
+
+    const dialogRef = this.dialog.open(DocumentoRequeridoEditDialogComponent, {
+      width: '800px',
+      data: {
+        mode: 'edit',
+        documento: item
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadData();
+        this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', { duration: 2000 });
+      }
+    });
   }
 
-  deleteDocumentoRequerido(item: any): void {
-    if (!item) {
-      this.snackBar.open('Selecciona un documento para eliminar', 'Warning', { duration: 3000 });
-      return;
-    }
-    // TODO: Implementar modal para eliminar documento requerido
-    this.snackBar.open('Función en desarrollo', 'Info', { duration: 2000 });
+  editConfiguration(): void {
+    // Crear objeto de configuración con los filtros seleccionados
+    const configuracion = {
+      IdProcess: this.selectedProcess,
+      IdAgency: this.selectedAgency,
+      IdCostumerType: this.selectedCustomerType,
+      IdOperationType: this.selectedOperationType
+    };
+
+    const dialogRef = this.dialog.open(DocumentoRequeridoEditDialogComponent, {
+      width: '800px',
+      data: {
+        mode: 'edit',
+        configuracion: configuracion
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadData();
+        this.snackBar.open('Configuración general actualizada exitosamente', 'Éxito', { duration: 2000 });
+      }
+    });
   }
+
+
 
   // Método para seleccionar un item de la tabla
-  onRowClick(element: any): void {
+  onRowClick(element: DocumentoRequerido): void {
     this.selectedItem = element;
     console.log('Item seleccionado:', element);
   }

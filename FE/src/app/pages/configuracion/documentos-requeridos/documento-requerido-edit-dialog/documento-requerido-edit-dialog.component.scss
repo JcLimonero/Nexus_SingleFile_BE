@@ -1,0 +1,184 @@
+// Estilos específicos para el diálogo de documentos requeridos
+
+// Configuración de proceso
+.bg-blue-50 {
+  .bg-blue-50 {
+    background-color: #eff6ff;
+  }
+  
+  .border-blue-200 {
+    border-color: #bfdbfe;
+  }
+  
+  .text-blue-900 {
+    color: #1e3a8a;
+  }
+}
+
+// Configuración del documento
+.bg-green-50 {
+  .bg-green-50 {
+    background-color: #f0fdf4;
+  }
+  
+  .border-green-200 {
+    border-color: #bbf7d0;
+  }
+  
+  .text-green-900 {
+    color: #14532d;
+  }
+}
+
+// Configuraciones adicionales
+.bg-amber-50 {
+  .bg-amber-50 {
+    background-color: #fffbeb;
+  }
+  
+  .border-amber-200 {
+    border-color: #fde68a;
+  }
+  
+  .text-amber-900 {
+    color: #78350f;
+  }
+}
+
+// Estado del documento
+.bg-gray-50 {
+  .bg-gray-50 {
+    background-color: #f9fafb;
+  }
+  
+  .border-gray-200 {
+    border-color: #e5e7eb;
+  }
+  
+  .text-gray-900 {
+    color: #111827;
+  }
+}
+
+// Slide toggles
+.mat-mdc-slide-toggle {
+  .mdc-switch {
+    --mdc-switch-selected-track-color: #3b82f6;
+    --mdc-switch-selected-handle-color: #ffffff;
+    --mdc-switch-unselected-track-color: #d1d5db;
+    --mdc-switch-unselected-handle-color: #ffffff;
+  }
+  
+  &.mat-warn .mdc-switch {
+    --mdc-switch-selected-track-color: #f59e0b;
+  }
+}
+
+// Campos de formulario
+.mat-mdc-form-field {
+  .mat-mdc-form-field-flex {
+    background-color: #ffffff;
+  }
+  
+  &.mat-focused .mat-mdc-form-field-flex {
+    background-color: #f8fafc;
+  }
+}
+
+// Botones
+.mat-mdc-raised-button {
+  border-radius: 6px;
+  font-weight: 500;
+  
+  &.mat-primary {
+    background-color: #3b82f6;
+    color: #ffffff;
+    
+    &:hover:not(:disabled) {
+      background-color: #2563eb;
+    }
+    
+    &:disabled {
+      background-color: #9ca3af;
+      color: #6b7280;
+    }
+  }
+}
+
+.mat-mdc-button {
+  border-radius: 6px;
+  font-weight: 500;
+  
+  &:hover:not(:disabled) {
+    background-color: #f3f4f6;
+  }
+}
+
+// Iconos de carga
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  .p-6 {
+    padding: 1rem;
+  }
+}
+
+// Transiciones
+.transition-colors {
+  transition: all 0.2s ease-in-out;
+}
+
+// Estados de hover
+.hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
+// Estilos para campos deshabilitados
+.mat-mdc-form-field.mat-form-field-disabled {
+  opacity: 0.6;
+  
+  .mat-mdc-form-field-flex {
+    background-color: #f3f4f6;
+  }
+}
+
+// Estilos para mensajes de error
+.mat-mdc-form-field-error {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+// Estilos para hints
+.mat-mdc-form-field-hint {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+// Estilos para el contador de caracteres
+textarea + .mat-mdc-form-field-hint {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}

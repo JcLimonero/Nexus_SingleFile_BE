@@ -2,11 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Vex - Angular 17+ Material Design Admin Template</title>
+  <title>Expediente Unico by Nexus Q Tech</title>
   <base href="/" />
 
   <meta content="width=device-width, initial-scale=1" name="viewport" />
-  <link href="favicon.ico" rel="icon" type="image/x-icon" />
+  
+  <!-- Favicon principal - SVG azul simple -->
+  <link href="assets/img/favicon-blue-square.svg?v=4" rel="icon" type="image/svg+xml" />
+  <link href="assets/img/favicon-blue-square.svg?v=4" rel="shortcut icon" type="image/svg+xml" />
+  
+  <!-- Favicon alternativo - ICO azul -->
+  <link href="assets/img/favicon-blue.ico?v=3" rel="icon" type="image/x-icon" />
+  
+  <!-- Favicon de respaldo - ICO original -->
+  <link href="favicon.ico" rel="alternate icon" type="image/x-icon" />
+  
+  <!-- Meta tags para forzar el favicon -->
+  <meta name="msapplication-TileColor" content="#3B82F6" />
+  <meta name="theme-color" content="#3B82F6" />
+  
+  <!-- Script para forzar el favicon -->
+  <script>
+    // Forzar el cambio del favicon
+    function setFavicon() {
+      const favicon = document.querySelector('link[rel="icon"]');
+      if (favicon) {
+        favicon.href = 'assets/img/favicon-blue-square.svg?v=' + Date.now();
+      }
+      
+      // También cambiar el shortcut icon
+      const shortcutIcon = document.querySelector('link[rel="shortcut icon"]');
+      if (shortcutIcon) {
+        shortcutIcon.href = 'assets/img/favicon-blue-square.svg?v=' + Date.now();
+      }
+    }
+    
+    // Ejecutar cuando se carga la página
+    document.addEventListener('DOMContentLoaded', setFavicon);
+    
+    // También ejecutar inmediatamente
+    setFavicon();
+  </script>
   
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

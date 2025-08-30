@@ -6,6 +6,18 @@
       <p class="text-gray-600 mt-1">Gestiona los documentos requeridos para cada tipo de proceso</p>
     </div>
     <div class="flex items-center gap-3">
+      <!-- Botón Nuevo -->
+              <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="addDocumentoRequerido()"
+        [disabled]="!isConfigurationSelected() || loading"
+        matTooltip="Agregar nueva configuración de documentos"
+        class="flex items-center gap-2">
+        <mat-icon>add</mat-icon>
+        Nueva Configuración
+      </button>
+      
       <!-- Indicador de carga -->
       <div *ngIf="loading" class="flex items-center gap-2 text-blue-600">
         <mat-spinner diameter="20"></mat-spinner>
@@ -18,6 +30,8 @@
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-medium text-gray-900">Selección de Configuración</h3>
+      
+
       
       <!-- Botones de acción a la derecha -->
       <div class="flex items-center gap-3">
@@ -38,24 +52,14 @@
           mat-stroked-button 
           color="accent" 
           (click)="refreshData()"
-          [disabled]="loading || !isConfigurationSelected()"
+          [disabled]="loading"
           matTooltip="Recargar datos"
           class="flex items-center gap-2">
           <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
           Recargar
         </button>
 
-        <!-- Botón de Nuevo -->
-        <button 
-          mat-stroked-button 
-          color="accent" 
-          (click)="addDocumentoRequerido()"
-          [disabled]="!isConfigurationSelected()"
-          matTooltip="Agregar nuevo documento"
-          class="flex items-center gap-2">
-          <mat-icon>add_circle</mat-icon>
-          Nuevo
-        </button>
+
       </div>
     </div>
     
@@ -64,7 +68,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Agencia</mat-label>
         <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-          <mat-option value="">Seleccionar una Agencia</mat-option>
+          <mat-option value="">Seleccionar todas las agencias</mat-option>
           <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
             {{ agency.Name }}
           </mat-option>
@@ -76,7 +80,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Proceso</mat-label>
         <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-          <mat-option value="">Seleccionar un Proceso</mat-option>
+          <mat-option value="">Seleccionar todos los procesos</mat-option>
           <mat-option *ngFor="let process of processes" [value]="process.Id">
             {{ process.Name }}
           </mat-option>
@@ -88,7 +92,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Tipo de Cliente</mat-label>
         <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-          <mat-option value="">Seleccione un Cliente</mat-option>
+          <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
           <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.Id">
             {{ customerType.Name }}
           </mat-option>
@@ -100,7 +104,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Tipo Operación</mat-label>
         <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-          <mat-option value="">Seleccione una Operación</mat-option>
+          <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
           <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.Id">
             {{ operationType.Name }}
           </mat-option>
@@ -113,14 +117,25 @@
         <button 
           mat-stroked-button 
           color="accent" 
-          (click)="editDocumentoRequerido(selectedItem)"
-          [disabled]="!selectedItem"
-          matTooltip="Modificar documento seleccionado"
+          (click)="editConfiguration()"
+          [disabled]="!hasDataForConfiguration()"
+          matTooltip="Modificar configuración general de esta combinación de filtros"
           class="flex items-center gap-2 w-full">
           <mat-icon>edit</mat-icon>
           Modificar
         </button>
+        
+        <!-- Mensaje informativo -->
+        <div *ngIf="!hasDataForConfiguration()" class="ml-2 text-xs text-gray-500 max-w-48">
+          Para modificar: selecciona todos los filtros
+        </div>
+        
+
+        
+
       </div>
+      
+
     </div>
 
     <!-- Mensaje de estado de catálogos -->
@@ -138,10 +153,17 @@
         <span class="text-sm">Algunos catálogos no se pudieron cargar. Verifica la conexión.</span>
       </div>
     </div>
+
+
   </div>
 
   <!-- Tabla -->
   <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+    <!-- Información de registros -->
+    <div *ngIf="!loading && dataSource.data.length > 0" class="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
+      Mostrando {{ dataSource.data.length }} registros
+    </div>
+    
     <div class="relative">
       <!-- Loading Spinner -->
       <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
@@ -151,11 +173,21 @@
       <table mat-table [dataSource]="dataSource" matSort class="w-full compact-table" style="line-height: 1;">
         <!-- Columna ID -->
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-12 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
             ID
           </th>
-          <td mat-cell *matCellDef="let element" class="text-xs font-mono text-gray-600 py-0">
-            {{ element.id }}
+          <td mat-cell *matCellDef="let element" class="text-center text-xs font-mono text-gray-600 py-0">
+            {{ element.Id }}
+          </td>
+        </ng-container>
+
+        <!-- Columna Agencia -->
+        <ng-container matColumnDef="agencia">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+            Agencia
+          </th>
+          <td mat-cell *matCellDef="let element" class="py-0">
+            <span class="text-xs text-gray-700">{{ element.AgenciaName || 'N/A' }}</span>
           </td>
         </ng-container>
 
@@ -164,50 +196,81 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Proceso
           </th>
-          <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
-            {{ element.proceso }}
-          </td>
-        </ng-container>
-
-        <!-- Columna Agencia -->
-        <ng-container matColumnDef="agencia">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
-            Agencia
-          </th>
-          <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
-            {{ element.agencia }}
+          <td mat-cell *matCellDef="let element" class="py-0">
+            <span class="text-xs text-gray-700">{{ element.ProcesoName || 'N/A' }}</span>
           </td>
         </ng-container>
 
         <!-- Columna Tipo de Cliente -->
         <ng-container matColumnDef="tipoCliente">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
-            Tipo de Cliente
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+            Tipo Cliente
           </th>
-          <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
-            {{ element.tipoCliente }}
+          <td mat-cell *matCellDef="let element" class="py-0">
+            <span class="text-xs text-gray-700">{{ element.TipoClienteName || 'N/A' }}</span>
           </td>
         </ng-container>
 
-        <!-- Columna Tipo Operación -->
+        <!-- Columna Tipo de Operación -->
         <ng-container matColumnDef="tipoOperacion">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
             Tipo Operación
           </th>
-          <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
-            {{ element.tipoOperacion }}
+          <td mat-cell *matCellDef="let element" class="py-0">
+            <span class="text-xs text-gray-700">{{ element.TipoOperacionName || 'N/A' }}</span>
           </td>
         </ng-container>
 
-        <!-- Columna Documento -->
-        <ng-container matColumnDef="documento">
-          <th mat-header-cell *matHeaderCellDef class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
-            Documento
+        <!-- Columna Tipo de Documento -->
+        <ng-container matColumnDef="tipoDocumento">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+            Tipo de Documento
           </th>
           <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
-            {{ element.documento }}
+            {{ element.TipoDocumentoName }}
           </td>
         </ng-container>
+
+        <!-- Columna Requerido -->
+        <ng-container matColumnDef="requerido">
+          <th mat-header-cell *matHeaderCellDef class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+            Requerido
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-center py-0">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                  [ngClass]="element.Required === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+              {{ element.Required === '1' ? 'Sí' : 'No' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Columna Requiere Expiración -->
+        <ng-container matColumnDef="requiereExpiracion">
+          <th mat-header-cell *matHeaderCellDef class="w-24 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+            Expiración
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-center py-0">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                  [ngClass]="element.ReqExpiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
+              {{ element.ReqExpiration === '1' ? 'Sí' : 'No' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Columna Estado -->
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+            Estado
+          </th>
+          <td mat-cell *matCellDef="let element" class="text-center py-0">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                  [ngClass]="element.Enabled === '1' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+              {{ element.Enabled === '1' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </ng-container>
+
+
 
 
 
@@ -215,7 +278,7 @@
         <tr mat-row 
             *matRowDef="let row; columns: displayedColumns;"
             (click)="onRowClick(row)"
-            [class.bg-blue-50]="selectedItem?.id === row.id"
+            [class.bg-blue-50]="selectedItem?.Id === row.Id"
             class="cursor-pointer hover:bg-gray-50 transition-colors !min-h-0 !h-8">
         </tr>
       </table>
@@ -224,13 +287,28 @@
       <div *ngIf="dataSource.data.length === 0 && !loading" class="text-center py-8">
         <mat-icon class="text-gray-400 text-6xl mb-4">description</mat-icon>
         <p class="text-gray-500 text-lg">No hay documentos requeridos configurados</p>
-        <p class="text-gray-400">Selecciona una configuración y haz clic en "Nuevo" para comenzar</p>
+        <p class="text-gray-400" *ngIf="!isConfigurationSelected()">
+          <strong>Para comenzar:</strong> Selecciona filtros específicos, deja en "Seleccionar todos" para ver todos los documentos, o crea una nueva configuración
+        </p>
+        <p class="text-gray-400" *ngIf="isConfigurationSelected()">
+          Haz clic en "Nueva Configuración" para agregar la primera configuración de documentos
+        </p>
+        <div *ngIf="!isConfigurationSelected()" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+          <p class="text-blue-700 text-sm font-medium">Estado de los catálogos:</p>
+          <ul class="text-blue-600 text-sm mt-2 space-y-1">
+            <li>• Agencias: {{ agencies.length }} cargadas</li>
+            <li>• Procesos: {{ processes.length }} cargados</li>
+            <li>• Tipos de Cliente: {{ customerTypes.length }} cargados</li>
+            <li>• Tipos de Operación: {{ operationTypes.length }} cargados</li>
+          </ul>
+        </div>
       </div>
     </div>
 
     <!-- Paginación -->
     <mat-paginator 
-      [pageSizeOptions]="[5, 10, 25, 50]" 
+      [pageSizeOptions]="[10, 25, 50, 100, 200, 500, 1000]" 
+      [pageSize]="100"
       showFirstLastButtons 
       aria-label="Seleccionar página de documentos requeridos">
     </mat-paginator>

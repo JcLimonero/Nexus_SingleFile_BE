@@ -97,6 +97,18 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'DocumentType::toggleStatus/$1');
     });
 
+    // Rutas de documentos requeridos
+    $routes->group('documento-requerido', function($routes) {
+        $routes->get('/', 'DocumentoRequerido::index');
+        $routes->post('/', 'DocumentoRequerido::create');
+        $routes->get('stats', 'DocumentoRequerido::stats');
+        $routes->put('reorder', 'DocumentoRequerido::reorder');
+        $routes->post('duplicate', 'DocumentoRequerido::duplicate');
+        $routes->get('(:num)', 'DocumentoRequerido::show/$1');
+        $routes->put('(:num)', 'DocumentoRequerido::update/$1');
+        $routes->delete('(:num)', 'DocumentoRequerido::delete/$1');
+    });
+
     // Rutas de logs de actividad de usuarios
     $routes->group('user-activity-logs', function($routes) {
         $routes->get('/', 'UserActivityLog::index');

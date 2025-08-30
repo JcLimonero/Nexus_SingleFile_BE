@@ -1,0 +1,276 @@
+<div class="p-0">
+  <!-- Header del diálogo -->
+  <div class="flex items-center justify-between p-6 border-b border-gray-200">
+    <h2 class="text-xl font-semibold text-gray-900">
+      {{ getTitle() }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <form [formGroup]="documentoForm" (ngSubmit)="onSubmit()" class="space-y-6 p-6">
+    
+    <!-- Configuración del Proceso y Estado -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-blue-900">Configuración del Proceso</h3>
+        <div class="flex items-center space-x-3">
+          <!-- Estado de la configuración -->
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-medium text-yellow-700 uppercase tracking-wide">Estado:</span>
+            <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-yellow-200 shadow-sm">
+              {{ documentoForm.get('enabled')?.value ? 'Habilitada' : 'Deshabilitada' }}
+            </span>
+            <mat-slide-toggle 
+              formControlName="enabled" 
+              color="primary"
+              [disabled]="loading"
+              class="scale-90">
+            </mat-slide-toggle>
+            <span class="text-xs text-yellow-600">
+              {{ documentoForm.get('enabled')?.value ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Información del proceso -->
+      <div class="flex flex-wrap gap-x-6 gap-y-1">
+        <!-- Proceso -->
+        <div class="flex items-center space-x-1">
+          <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Proceso:</span>
+          <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ getProcessText() }}</span>
+        </div>
+
+        <!-- Agencia -->
+        <div class="flex items-center space-x-1">
+          <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Agencia:</span>
+          <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ getAgencyText() }}</span>
+        </div>
+
+        <!-- Tipo de Cliente -->
+        <div class="flex items-center space-x-1">
+          <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Cliente:</span>
+          <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ getCustomerTypeText() }}</span>
+        </div>
+
+        <!-- Tipo de Operación -->
+        <div class="flex items-center space-x-1">
+          <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Operación:</span>
+          <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ getOperationTypeText() }}</span>
+        </div>
+      </div>
+      
+      <!-- Descripción del estado -->
+      <p class="text-xs text-gray-500 mt-2 italic">
+        Una configuración deshabilitada no se aplicará a nuevos procesos
+      </p>
+    </div>
+
+    <!-- Configuración del Documento -->
+    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+      <h3 class="text-sm font-medium text-green-900 mb-2">Tipos de Documento Requeridos</h3>
+      
+      <!-- Loading spinner para tipos de documento -->
+      <div *ngIf="loadingCatalogs" class="flex items-center justify-center py-4">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span class="ml-2 text-gray-600 text-sm">Cargando tipos de documento...</span>
+      </div>
+      
+
+      
+      <!-- Lista de tipos de documento con checkboxes -->
+      <div *ngIf="!loadingCatalogs" class="space-y-2">
+        <div class="text-xs text-gray-600 mb-2">
+          Selecciona los tipos de documento requeridos:
+        </div>
+        
+        <!-- Filtros de tipos de documento -->
+        <div class="mb-3">
+          <!-- Filtros en línea -->
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <!-- Buscador compacto -->
+            <div class="flex-1 min-w-48">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Buscar</mat-label>
+                <input 
+                  matInput 
+                  [(ngModel)]="searchTerm" 
+                  (ngModelChange)="onSearchChange($event)"
+                  placeholder="Nombre del documento..."
+                  class="text-sm">
+                <mat-icon matSuffix class="text-gray-400">search</mat-icon>
+                <button 
+                  *ngIf="searchTerm" 
+                  matSuffix 
+                  mat-icon-button 
+                  (click)="clearSearch()"
+                  class="text-gray-400 hover:text-gray-600">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </div>
+            
+            <!-- Filtros de fase y subfase compactos -->
+            <mat-form-field appearance="outline" class="w-40">
+              <mat-label>Fase</mat-label>
+              <mat-select [(ngModel)]="selectedPhase" (ngModelChange)="onPhaseChange($event)">
+                <mat-option value="">Todas</mat-option>
+                <mat-option *ngFor="let phase of availablePhases" [value]="phase">
+                  {{ phase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="w-40">
+              <mat-label>Subfase</mat-label>
+              <mat-select [(ngModel)]="selectedSubPhase" (ngModelChange)="onSubPhaseChange($event)" [disabled]="!selectedPhase">
+                <mat-option value="">Todas</mat-option>
+                <mat-option *ngFor="let subPhase of availableSubPhases" [value]="subPhase">
+                  {{ subPhase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <!-- Botón limpiar filtros -->
+            <button 
+              *ngIf="hasActiveFilters()"
+              type="button" 
+              mat-icon-button 
+              (click)="clearAllFilters()"
+              class="text-blue-600 hover:text-blue-800"
+              matTooltip="Limpiar filtros">
+              <mat-icon>clear_all</mat-icon>
+            </button>
+            
+            <!-- Filtro de seleccionados -->
+            <div class="flex items-center space-x-2 ml-2">
+              <mat-slide-toggle 
+                [checked]="showOnlySelected"
+                (change)="onShowOnlySelectedChange($event)"
+                color="primary"
+                class="text-sm">
+                Solo seleccionados
+              </mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+        
+
+        
+        <!-- Mensaje cuando no hay tipos disponibles -->
+        <div *ngIf="filteredTiposDocumento.length === 0 && searchTerm" class="text-center py-4 text-gray-500">
+          <mat-icon class="text-2xl mb-1 text-gray-300">search_off</mat-icon>
+          <p class="text-sm font-medium">No se encontraron resultados</p>
+          <p class="text-xs">Intenta con otros términos de búsqueda</p>
+        </div>
+        
+        <div *ngIf="filteredTiposDocumento.length === 0 && !searchTerm" class="text-center py-4 text-gray-500">
+          <mat-icon class="text-2xl mb-1 text-gray-300">description</mat-icon>
+          <p class="text-sm font-medium">No hay tipos de documento disponibles</p>
+          <p class="text-xs">Verifica la conexión con el servidor</p>
+        </div>
+        
+        <!-- Lista de checkboxes cuando hay tipos disponibles -->
+        <div *ngIf="filteredTiposDocumento.length > 0" class="max-h-48 overflow-y-auto">
+          <div class="grid grid-cols-1 gap-1">
+            <div *ngFor="let tipo of filteredTiposDocumento" class="flex items-center space-x-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50">
+              <mat-checkbox 
+                [value]="tipo.Id"
+                (change)="onDocumentTypeChange($event, tipo.Id)"
+                [checked]="isDocumentTypeSelected(tipo.Id)"
+                color="primary"
+                class="flex-shrink-0">
+              </mat-checkbox>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-700 truncate">{{ tipo.Name }}</div>
+                <div class="text-xs text-gray-500 flex flex-wrap gap-2 mt-1">
+                  <span *ngIf="tipo.ProcessTypeName" class="inline-flex items-center bg-blue-50 px-2 py-1 rounded">
+                    <mat-icon class="text-xs mr-1 text-blue-600">schedule</mat-icon>
+                    {{ tipo.ProcessTypeName }}
+                  </span>
+                  <span *ngIf="tipo.SubProcessName" class="inline-flex items-center bg-green-50 px-2 py-1 rounded">
+                    <mat-icon class="text-xs mr-1 text-green-600">subdirectory_arrow_right</mat-icon>
+                    {{ tipo.SubProcessName }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mensaje de error si no hay tipos seleccionados -->
+        <div *ngIf="documentoForm.get('selectedDocumentTypes')?.hasError('required') && documentoForm.get('selectedDocumentTypes')?.touched" 
+             class="text-red-600 text-sm mt-2">
+          Debes seleccionar al menos un tipo de documento
+        </div>
+        
+        <!-- Contador y filtros activos compactos -->
+        <div class="flex items-center justify-between text-xs text-gray-500 mt-2">
+          <div>
+            {{ getSelectedDocumentTypesCount() }} de {{ tiposDocumento.length }} seleccionados
+            <span *ngIf="hasActiveFilters()" class="text-blue-600 ml-1">
+              ({{ filteredTiposDocumento.length }} filtrados)
+            </span>
+            <span *ngIf="showOnlySelected" class="text-green-600 ml-1">
+              • Solo seleccionados
+            </span>
+          </div>
+          
+          <!-- Filtros activos como chips -->
+          <div *ngIf="hasActiveFilters()" class="flex items-center gap-1">
+            <span class="text-blue-600">Filtros:</span>
+            <span *ngIf="searchTerm" class="inline-flex items-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
+              "{{ searchTerm }}"
+              <button (click)="clearSearch()" class="ml-1 text-blue-500 hover:text-blue-700">×</button>
+            </span>
+            <span *ngIf="selectedPhase" class="inline-flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
+              {{ selectedPhase }}
+              <button (click)="selectedPhase = ''; onPhaseChange('')" class="ml-1 text-green-500 hover:text-green-700">×</button>
+            </span>
+            <span *ngIf="selectedSubPhase" class="inline-flex items-center bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs">
+              {{ selectedSubPhase }}
+              <button (click)="selectedSubPhase = ''; onSubPhaseChange('')" class="ml-1 text-purple-500 hover:text-purple-700">×</button>
+            </span>
+            <span *ngIf="showOnlySelected" class="inline-flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
+              Solo seleccionados
+              <button (click)="clearShowOnlySelectedFilter()" class="ml-1 text-green-500 hover:text-green-700">×</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-end space-x-3 pt-4 mt-4 border-t">
+      <!-- Botón temporal para debug -->
+      <button 
+        *ngIf="data.mode === 'edit'"
+        type="button" 
+        mat-button 
+        (click)="debugFormState()"
+        class="mr-auto">
+        Debug Form
+      </button>
+      
+      <button 
+        type="button" 
+        mat-button 
+        (click)="onCancel()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+      <button 
+        type="submit" 
+        mat-raised-button 
+        color="primary"
+        [disabled]="documentoForm.invalid || loading || loadingCatalogs">
+        <mat-spinner *ngIf="loading" diameter="18" class="mr-2"></mat-spinner>
+        <mat-icon *ngIf="!loading" class="text-sm">{{ data.mode === 'edit' ? 'save' : 'add' }}</mat-icon>
+        {{ getSubmitButtonText() }}
+      </button>
+    </div>
+  </form>
+</div>
