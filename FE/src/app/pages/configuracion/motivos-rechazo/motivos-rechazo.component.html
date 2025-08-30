@@ -1,28 +1,18 @@
 <div class="p-6">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-4">
     <div>
       <h1 class="text-3xl font-bold text-gray-900">Motivos de Aprobación y Rechazo</h1>
       <p class="text-gray-600 mt-1">Gestión de motivos de aprobación y rechazo para archivos del sistema</p>
     </div>
-    <div class="flex gap-2">
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="addFileReason()"
-        class="flex items-center gap-2">
-        <mat-icon>add</mat-icon>
-        Nuevo Motivo
-      </button>
-      
-      <button 
-        mat-stroked-button 
-        (click)="refreshData()"
-        class="flex items-center gap-2">
-        <mat-icon>refresh</mat-icon>
-        Actualizar
-      </button>
-    </div>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="addFileReason()"
+      class="flex items-center gap-2">
+      <mat-icon>add_circle</mat-icon>
+      Nuevo Motivo
+    </button>
   </div>
 
 
@@ -31,9 +21,42 @@
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-    <div class="flex flex-wrap gap-4 items-start">
+    <div class="flex items-center justify-between mb-4">
+      
+      <!-- Espacio vacío a la izquierda -->
+      <div></div>
+      
+      <!-- Botones de acción a la derecha -->
+      <div class="flex items-center gap-3">
+        <!-- Botón de Limpiar Filtros -->
+        <button 
+          mat-stroked-button 
+          color="warn" 
+          (click)="clearFilters()"
+          [disabled]="!filters.search && !filters.id_type_reason"
+          matTooltip="Limpiar filtros"
+          class="flex items-center gap-2">
+          <mat-icon>clear_all</mat-icon>
+          Limpiar Filtros
+        </button>
+        
+        <!-- Botón de Reload en filtros -->
+        <button 
+          mat-stroked-button 
+          color="accent" 
+          (click)="refreshData()"
+          [disabled]="loading"
+          matTooltip="Recargar datos"
+          class="flex items-center gap-2">
+          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+          Recargar
+        </button>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Búsqueda por texto -->
-      <mat-form-field appearance="outline" class="flex-1 min-w-48">
+      <mat-form-field appearance="outline" class="w-full">
         <mat-label>Buscar motivos</mat-label>
         <input 
           matInput 
@@ -45,7 +68,7 @@
       </mat-form-field>
 
       <!-- Filtro por tipo de razón -->
-      <mat-form-field appearance="outline" class="flex-1 min-w-48">
+      <mat-form-field appearance="outline" class="w-full">
         <mat-label>Tipo de Razón</mat-label>
         <mat-select [(ngModel)]="filters.id_type_reason" (ngModelChange)="applyFilters()">
           <mat-option value="">Todos los tipos</mat-option>
@@ -53,21 +76,18 @@
           <mat-option value="5">Rechazo</mat-option>
         </mat-select>
       </mat-form-field>
-
-      <!-- Botón de limpiar filtros -->
-      <button 
-        mat-stroked-button 
-        (click)="clearFilters()"
-        class="flex items-center gap-2">
-        <mat-icon>clear</mat-icon>
-        Limpiar Filtros
-      </button>
     </div>
   </div>
 
   <!-- Tabla -->
   <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-    <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
+    <div class="relative">
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+
+      <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna ID -->
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -147,25 +167,25 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="!min-h-0 !h-8"></tr>
     </table>
 
-    <!-- Loading spinner -->
-    <div *ngIf="loading" class="flex justify-center items-center py-8">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
-
     <!-- Mensaje cuando no hay datos -->
-    <div *ngIf="!loading && dataSource.data.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-500">
-      <mat-icon class="text-6xl text-gray-300 mb-2">list</mat-icon>
-      <p class="text-lg font-medium">No se encontraron motivos de rechazo</p>
-      <p class="text-sm">Intenta ajustar los filtros de búsqueda</p>
+    <div *ngIf="!loading && dataSource.data.length === 0" class="p-8 text-center">
+      <mat-icon class="text-gray-400 text-6xl mb-4">inbox</mat-icon>
+      <p class="text-gray-500 text-lg">No se encontraron motivos de rechazo</p>
+      <p class="text-gray-400">Intenta ajustar los filtros o crear un nuevo motivo</p>
     </div>
 
     <!-- Paginación -->
     <mat-paginator 
       [pageSizeOptions]="[10, 25, 50, 100]"
       [pageSize]="10"
-      [length]="totalReasons"
+      [length]="dataSource.filteredData.length"
       showFirstLastButtons
       class="border-t">
     </mat-paginator>
+  </div>
+
+  <!-- Contador de resultados -->
+  <div class="mt-4 text-sm text-gray-600 text-center">
+    Mostrando {{ getPageRange() }} de {{ dataSource.filteredData.length }} motivos visibles ({{ totalReasons }} total)
   </div>
 </div>

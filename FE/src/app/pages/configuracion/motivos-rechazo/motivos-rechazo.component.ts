@@ -262,4 +262,16 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
     const enabledStr = String(enabledValue).trim();
     return enabledStr === '1' || enabledStr === 'true' || enabledValue === true || enabledValue === 1;
   }
+  
+  /**
+   * Obtener rango de página actual para mostrar en el contador
+   */
+  getPageRange(): string {
+    if (!this.dataSource.paginator) return '0-0';
+    
+    const start = this.dataSource.paginator.pageIndex * this.dataSource.paginator.pageSize + 1;
+    const end = Math.min(start + this.dataSource.paginator.pageSize - 1, this.dataSource.filteredData.length);
+    
+    return `${start}-${end}`;
+  }
 }
