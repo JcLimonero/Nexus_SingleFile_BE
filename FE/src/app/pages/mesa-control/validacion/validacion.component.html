@@ -10,17 +10,33 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Agencia</mat-label>
-        <mat-select [(ngModel)]="selectedAgency">
-          <mat-option value="honda-galeria">HONDA GALERIAS</mat-option>
-          <mat-option value="otra-agencia">Otra Agencia</mat-option>
+        <mat-select [(ngModel)]="selectedAgency" [disabled]="loadingAgencias || agencias.length === 0" (selectionChange)="onAgenciaChange()">
+          <mat-option *ngIf="loadingAgencias" value="" disabled>
+            <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+            Cargando agencias...
+          </mat-option>
+          <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
+            No hay agencias disponibles (debugging)
+          </mat-option>
+          <mat-option *ngFor="let agencia of agencias" [value]="agencia.IdAgency">
+            {{ agencia.Name }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Proceso</mat-label>
-        <mat-select [(ngModel)]="selectedProcess">
-          <mat-option value="autos-nuevos">AUTOS NUEVOS</mat-option>
-          <mat-option value="otros-procesos">Otros Procesos</mat-option>
+        <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos || procesos.length === 0" (selectionChange)="onProcesoChange()">
+          <mat-option *ngIf="loadingProcesos" value="" disabled>
+            <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+            Cargando procesos...
+          </mat-option>
+          <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
+            No hay procesos disponibles
+          </mat-option>
+          <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
+            {{ proceso.Name }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
 
