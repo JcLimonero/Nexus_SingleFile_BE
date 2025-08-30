@@ -100,6 +100,20 @@
       min-height: 32px !important;
       max-height: 32px !important;
     }
+
+    /* Animación de spinner para el botón de recarga */
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
     
     .combo-fase .mat-mdc-text-field-wrapper {
       height: 32px !important;
@@ -229,6 +243,13 @@
         </mat-form-field>
 
         <div class="flex items-start justify-end gap-1">
+          <button mat-icon-button 
+                  class="text-gray-600 hover:text-blue-600 transition-colors" 
+                  (click)="recargarDatos()"
+                  [disabled]="loading || loadingAgencias || loadingProcesos"
+                  matTooltip="Recargar datos">
+            <mat-icon [class.animate-spin]="loading || loadingAgencias || loadingProcesos">refresh</mat-icon>
+          </button>
           <button mat-icon-button class="text-gray-600">
             <mat-icon>settings</mat-icon>
           </button>
@@ -248,8 +269,7 @@
             <mat-spinner diameter="40"></mat-spinner>
           </div>
 
-          <cdk-virtual-scroll-viewport itemSize="40" class="w-full h-[200px]" *ngIf="!loading">
-            <table mat-table [dataSource]="clientesDataSource" matSort class="w-full">
+                        <table mat-table [dataSource]="clientesDataSource" matSort class="w-full" *ngIf="!loading">
             <!-- Columna ND Cliente -->
             <ng-container matColumnDef="ndCliente">
               <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 py-0 bg-gray-50 text-xs font-medium text-gray-700">
@@ -375,10 +395,21 @@
               </td>
             </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" class="!min-h-0 !h-10"></tr>
-          </table>
-        </cdk-virtual-scroll-viewport>
+                              <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" class="!min-h-0 !h-10"></tr>
+                </table>
+                
+                <!-- Paginador -->
+                <mat-paginator 
+                  [length]="totalRecords"
+                  [pageSize]="pageSize"
+                  [pageSizeOptions]="pageSizeOptions"
+                  [pageIndex]="currentPage"
+                  (page)="onPageChange($event)"
+                  (pageSizeChange)="onPageSizeChange($event)"
+                  showFirstLastButtons
+                  aria-label="Seleccionar página de clientes">
+                </mat-paginator>
         </div>
       </mat-card>
 

@@ -33,8 +33,8 @@ export interface Documento {
 }
 
 export interface FiltrosValidacion {
-  agencia?: string;
-  proceso?: string;
+  agencia?: number | null;
+  proceso?: number | null;
   fase?: string;
   estado?: string;
 }
@@ -95,6 +95,20 @@ export class ValidacionService {
   }
 
   /**
+   * Obtener agencia predeterminada del usuario
+   */
+  obtenerAgenciaUsuario(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/user/profile`).pipe(
+      map(response => {
+        if (response && response.success && response.data) {
+          return response.data.DefaultAgency;
+        }
+        return null;
+      })
+    );
+  }
+
+  /**
    * Cargar clientes/procesos con filtros
    */
   cargarClientes(filtros: FiltrosValidacion = {}): Observable<Cliente[]> {
@@ -104,7 +118,7 @@ export class ValidacionService {
     if (filtros.agencia) params = params.set('id', filtros.agencia);
     if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
     params = params.set('page', '1');
-    params = params.set('limit', '50');
+    params = params.set('limit', '100'); // Obtener más registros para paginación local
 
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
       map(response => {

@@ -14,6 +14,70 @@ class UserProfile extends BaseController
     {
         $this->userModel = new UserModel();
     }
+
+    /**
+     * GET /api/user/profile
+     * Obtener perfil del usuario autenticado
+     */
+    public function getProfile()
+    {
+        try {
+            // Obtener ID del usuario del token JWT
+            $userId = $this->getUserIdFromToken();
+            
+            if (!$userId) {
+                return $this->response
+                    ->setStatusCode(401)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'Usuario no autenticado'
+                    ]);
+            }
+            
+            // Obtener datos del usuario
+            $user = $this->userModel->find($userId);
+            
+            if (!$user) {
+                return $this->response
+                    ->setStatusCode(404)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'Usuario no encontrado'
+                    ]);
+            }
+            
+            // Devolver solo los campos necesarios del perfil
+            $profileData = [
+                'Id' => $user['Id'],
+                'Name' => $user['Name'],
+                'User' => $user['User'],
+                'Mail' => $user['Mail'],
+                'DefaultAgency' => $user['DefaultAgency'],
+                'IdUserRol' => $user['IdUserRol'],
+                'Enabled' => $user['Enabled'],
+                'RegistrationDate' => $user['RegistrationDate'],
+                'UpdateDate' => $user['UpdateDate']
+            ];
+            
+            return $this->response
+                ->setStatusCode(200)
+                ->setJSON([
+                    'success' => true,
+                    'message' => 'Perfil obtenido exitosamente',
+                    'data' => $profileData
+                ]);
+                
+        } catch (\Exception $e) {
+            error_log('Error en UserProfile::getProfile: ' . $e->getMessage());
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Error interno del servidor',
+                    'data' => null
+                ]);
+        }
+    }
     
     /**
      * POST /api/user/profile/upload-image
@@ -266,12 +330,10 @@ class UserProfile extends BaseController
     
     /**
      * Método auxiliar para obtener el ID del usuario del token JWT
-     * Implementar según tu lógica de autenticación
+     * Usa el método existente del BaseController
      */
     private function getUserIdFromToken()
     {
-        // Aquí implementarías la lógica para extraer el user_id del token JWT
-        // Por ahora retornamos null para que se implemente según tu sistema
-        return null;
+        return $this->getCurrentUserId();
     }
 }

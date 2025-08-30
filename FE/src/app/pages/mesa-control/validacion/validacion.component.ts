@@ -20,6 +20,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
+import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 
 @Component({
   selector: 'vex-validacion',
@@ -58,9 +59,9 @@ export class ValidacionComponent implements OnInit, OnDestroy {
   error = '';
 
   // Filtros principales
-  selectedAgency = '';
-  selectedProcess = '';
-  selectedFase = '';
+  selectedAgency: number | null = null;
+  selectedProcess: number | null = null;
+  selectedFase: string = '';
 
   // Datos de filtros disponibles
   agencias: any[] = [];
@@ -73,6 +74,13 @@ export class ValidacionComponent implements OnInit, OnDestroy {
     'integracion', 'liquidacion', 'liberacion', 'excepcion', 'liberado', 'registro'
   ];
   clientesDataSource: any[] = [];
+  
+  // Paginación
+  pageSize = 10;
+  pageSizeOptions = [5, 10, 25, 50];
+  currentPage = 0;
+  totalRecords = 0;
+  allClientes: any[] = []; // Todos los clientes para paginación local
 
   // Tabla de documentos
   documentosDisplayedColumns: string[] = [
@@ -83,6 +91,7 @@ export class ValidacionComponent implements OnInit, OnDestroy {
 
   constructor(
     private validacionService: ValidacionService,
+    private defaultAgencyService: DefaultAgencyService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -90,6 +99,18 @@ export class ValidacionComponent implements OnInit, OnDestroy {
     this.cargarAgencias();
     this.cargarProcesos();
     this.loadData();
+    
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$.subscribe(agenciaId => {
+      if (agenciaId !== null) {
+        this.selectedAgency = agenciaId;
+        console.log('🔄 ValidacionComponent - Agencia actualizada desde servicio:', agenciaId);
+        // Si hay proceso seleccionado, cargar clientes
+        if (this.selectedProcess !== null) {
+          this.cargarClientes();
+        }
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -162,9 +183,15 @@ export class ValidacionComponent implements OnInit, OnDestroy {
           if (this.procesos.length > 0) {
             this.selectedProcess = this.procesos[0].Id;
             console.log('🎯 ValidacionComponent - Proceso seleccionado por defecto:', this.selectedProcess);
+            
+            // Si ya hay agencia seleccionada, cargar clientes automáticamente
+            if (this.selectedAgency !== null) {
+              console.log('🔄 ValidacionComponent - Cargando clientes automáticamente con proceso seleccionado');
+              this.cargarClientes();
+            }
           } else {
             console.warn('⚠️ ValidacionComponent - No se encontraron procesos habilitados');
-            this.selectedProcess = '';
+            this.selectedProcess = null;
           }
           
           this.loadingProcesos = false;
@@ -172,116 +199,92 @@ export class ValidacionComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('❌ ValidacionComponent - Error en subscribe de procesos:', error);
           this.procesos = [];
-          this.selectedProcess = '';
+          this.selectedProcess = null;
           this.loadingProcesos = false;
         }
       });
   }
 
   /**
-   * Cargar agencias desde la API (solo activas y con permisos del usuario)
+   * Cargar agencias desde la API usando el servicio compartido
    */
   private cargarAgencias() {
     console.log('🔄 ValidacionComponent - Iniciando carga de agencias...');
     this.loadingAgencias = true;
     
-    this.validacionService.cargarAgencias()
+    this.defaultAgencyService.obtenerAgencias()
       .pipe(
         takeUntil(this.destroy$),
-        timeout(10000), // 10 segundos de timeout
-        catchError(error => {
-          if (error.name === 'TimeoutError') {
-            console.error('⏰ ValidacionComponent - Timeout cargando agencias');
-            this.mostrarError('Timeout: La carga de agencias tardó demasiado');
-          } else {
-            console.error('❌ ValidacionComponent - Error cargando agencias:', error);
-            this.mostrarError('Error cargando agencias');
-          }
-          this.agencias = [];
-          return of([]);
-        })
+        timeout(10000) // 10 segundos de timeout
       )
       .subscribe({
         next: (agencias) => {
-          console.log('📥 ValidacionComponent - Respuesta de agencias recibida:', agencias);
-          
-          // Verificar que agencias sea un array
-          if (!Array.isArray(agencias)) {
-            console.error('❌ ValidacionComponent - La respuesta no es un array:', agencias);
-            this.agencias = [];
-            this.loadingAgencias = false;
-            return;
-          }
-          
-          console.log('📊 ValidacionComponent - Total de agencias recibidas:', agencias.length);
-          
-          console.log('🔍 ValidacionComponent - Todas las agencias recibidas:', agencias);
-          console.log('🔍 ValidacionComponent - Ejemplo de estructura de agencia:', agencias[0]);
-          
-          // TEMPORAL: Para debugging, mostrar todas las agencias primero
-          console.log('🔍 TEMPORAL: Mostrando TODAS las agencias para debugging');
-          this.agencias = agencias.filter(agencia => agencia);
-          
-          // COMENTADO: Filtrado original que se activará después del debugging
-          /*
-          // Mostrar solo agencias habilitadas (Enabled = 1, true, "1", etc.)
-          this.agencias = agencias.filter(agencia => {
-            if (!agencia) return false;
-            
-            const enabled = agencia.Enabled;
-            const isEnabled = enabled === 1 || 
-                            enabled === true || 
-                            enabled === "1" || 
-                            enabled === "true" ||
-                            enabled === "enabled" ||
-                            enabled === "ENABLED";
-            
-            console.log(`🔍 Filtrado agencia "${agencia.Name}":`, {
-              enabled: enabled,
-              isEnabled: isEnabled,
-              type: typeof enabled
-            });
-            
-            return isEnabled;
-          });
-          */
-          
-          console.log('✅ ValidacionComponent - Solo agencias habilitadas:', this.agencias);
-          console.log('📊 ValidacionComponent - Total de agencias habilitadas:', this.agencias.length);
-          
-          // Debug: mostrar el estado de cada agencia
-          agencias.forEach((agencia, index) => {
-            console.log(`🔍 Agencia ${index}:`, {
-              id: agencia.IdAgency,
-              name: agencia.Name,
-              enabled: agencia.Enabled,
-              enabledType: typeof agencia.Enabled,
-              enabledString: String(agencia.Enabled),
-              enabledBoolean: Boolean(agencia.Enabled),
-              enabledNumber: Number(agencia.Enabled),
-              // Mostrar todos los campos disponibles para debugging
-              allFields: agencia
-            });
-          });
-          
-          // Seleccionar la primera agencia por defecto si hay alguna
-          if (this.agencias.length > 0) {
-            this.selectedAgency = this.agencias[0].IdAgency;
-            console.log('🎯 ValidacionComponent - Agencia seleccionada por defecto:', this.selectedAgency);
-          } else {
-            console.warn('⚠️ ValidacionComponent - No se encontraron agencias activas');
-            this.selectedAgency = '';
-          }
-          
+          console.log('📥 ValidacionComponent - Agencias cargadas desde servicio compartido:', agencias);
+          this.agencias = agencias;
           this.loadingAgencias = false;
+          
+          // Esperar un momento para asegurar que las agencias estén disponibles en el servicio
+          setTimeout(() => {
+            // Establecer agencia predeterminada usando el servicio compartido
+            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+              next: (agenciaId) => {
+                if (agenciaId) {
+                  console.log('✅ ValidacionComponent - Agencia predeterminada establecida:', agenciaId);
+                } else {
+                  console.warn('⚠️ ValidacionComponent - No se pudo establecer agencia predeterminada');
+                }
+              },
+              error: (error) => {
+                console.error('❌ ValidacionComponent - Error estableciendo agencia predeterminada:', error);
+                // Si falla, intentar seleccionar la primera agencia disponible
+                if (this.agencias.length > 0) {
+                  const primeraAgencia = this.agencias[0];
+                  console.log('🔄 ValidacionComponent - Seleccionando primera agencia disponible como fallback:', primeraAgencia);
+                  this.selectedAgency = primeraAgencia.Id;
+                  this.defaultAgencyService.seleccionarAgencia(primeraAgencia.Id);
+                }
+              }
+            });
+          }, 100);
         },
         error: (error) => {
-          console.error('❌ ValidacionComponent - Error en subscribe:', error);
+          console.error('❌ ValidacionComponent - Error cargando agencias:', error);
+          this.mostrarError('Error cargando agencias');
           this.agencias = [];
-          this.selectedAgency = '';
+          this.selectedAgency = null;
           this.loadingAgencias = false;
         }
       });
+  }
+
+  /**
+   * Recargar todos los datos del componente
+   */
+  recargarDatos() {
+    console.log('🔄 ValidacionComponent - Recargando todos los datos...');
+    
+    // Resetear estados de carga
+    this.loading = true;
+    this.loadingAgencias = true;
+    this.loadingProcesos = true;
+    
+    // Limpiar datos existentes
+    this.allClientes = [];
+    this.clientesDataSource = [];
+    this.procesos = [];
+    this.selectedAgency = null;
+    this.selectedProcess = null;
+    
+    // Recargar agencias y procesos
+    this.cargarAgencias();
+    this.cargarProcesos();
+    
+    // Mostrar mensaje de recarga
+    this.snackBar.open('Recargando datos...', 'Cerrar', {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
   }
 
   loadData() {
@@ -329,6 +332,10 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onAgenciaChange() {
     console.log('🏢 ValidacionComponent - Agencia seleccionada:', this.selectedAgency);
+    // Actualizar la agencia en el servicio compartido
+    if (this.selectedAgency !== null) {
+      this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
+    }
     // Si ya hay un proceso seleccionado, cargar clientes
     if (this.selectedProcess) {
       this.cargarClientes();
@@ -340,14 +347,16 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onProcesoChange() {
     console.log('⚙️ ValidacionComponent - Proceso seleccionado:', this.selectedProcess);
-    this.cargarClientes();
+    if (this.selectedProcess !== null) {
+      this.cargarClientes();
+    }
   }
 
   /**
    * Cargar clientes desde la API
    */
   private cargarClientes() {
-    if (!this.selectedAgency || !this.selectedProcess) {
+    if (this.selectedAgency === null || this.selectedProcess === null) {
       console.log('⚠️ ValidacionComponent - No se puede cargar clientes: agencia o proceso no seleccionado');
       return;
     }
@@ -375,7 +384,10 @@ export class ValidacionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (clientes) => {
           console.log('✅ ValidacionComponent - Clientes cargados:', clientes);
-          this.clientesDataSource = clientes;
+          this.allClientes = clientes; // Guardar todos los clientes
+          this.totalRecords = clientes.length;
+          this.currentPage = 0; // Volver a la primera página
+          this.updatePaginatedData(); // Aplicar paginación
           this.loading = false;
         },
         error: (error) => {
@@ -396,5 +408,33 @@ export class ValidacionComponent implements OnInit, OnDestroy {
       verticalPosition: 'top',
       panelClass: ['error-snackbar']
     });
+  }
+
+  /**
+   * Manejar cambio de página
+   */
+  onPageChange(event: any) {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.updatePaginatedData();
+  }
+
+  /**
+   * Actualizar datos paginados
+   */
+  private updatePaginatedData() {
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.clientesDataSource = this.allClientes.slice(startIndex, endIndex);
+    this.totalRecords = this.allClientes.length;
+  }
+
+  /**
+   * Cambiar tamaño de página
+   */
+  onPageSizeChange(event: any) {
+    this.pageSize = event.value;
+    this.currentPage = 0; // Volver a la primera página
+    this.updatePaginatedData();
   }
 }
