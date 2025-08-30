@@ -296,7 +296,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     this.selectedAgency = '';
     this.selectedCustomerType = '';
     this.selectedOperationType = '';
-    this.dataSource.data = [];
+    this.selectedItem = null; // También limpiar el item seleccionado
+    this.loadData(); // Recargar todos los datos después de limpiar filtros
     this.snackBar.open('Filtros limpiados', 'Info', { duration: 2000 });
   }
 
