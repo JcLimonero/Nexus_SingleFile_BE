@@ -173,17 +173,15 @@
     <!-- Paginación -->
     <mat-paginator 
       [pageSizeOptions]="[10, 25, 50, 100]"
-      [pageSize]="filters.limit || 10"
-      [pageIndex]="getCurrentPageIndex()"
-      [length]="totalItems"
-      (page)="onPageChange($event)"
+      [pageSize]="10"
+      [length]="dataSource.filteredData.length"
       showFirstLastButtons
       class="border-t">
     </mat-paginator>
   </div>
 
   <!-- Contador de resultados -->
-  <div class="mt-4 text-sm text-gray-600 text-center">
-    Mostrando {{ getPageRange() }} de {{ totalItems }} motivos totales
+  <div class="mt-4 text-sm text-sm text-gray-600 text-center">
+    Mostrando {{ getPageRange() }} de {{ dataSource.filteredData.length }} motivos visibles ({{ totalItems }} total)
   </div>
 </div>

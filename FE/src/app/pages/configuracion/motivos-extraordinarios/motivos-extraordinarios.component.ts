@@ -53,7 +53,7 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
     id_type_reason: undefined,
     sort_by: 'Name',
     sort_order: 'ASC',
-    limit: 10,
+    limit: 0, // 0 = sin límite (paginación del cliente)
     offset: 0
   };
 
@@ -71,11 +71,11 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     
-    // Configurar el paginador con el estado actual
-    if (this.paginator) {
-      this.paginator.pageIndex = this.getCurrentPageIndex();
-      this.paginator.pageSize = this.filters.limit || 10;
-    }
+    // Configurar filtro personalizado para búsqueda
+    this.dataSource.filterPredicate = (data: any, filter: string) => {
+      const searchTerm = filter.toLowerCase();
+      return data.Name.toLowerCase().includes(searchTerm);
+    };
   }
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -87,16 +87,20 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
   loadData(): void {
     this.loading = true;
     
-    this.fileExtraordinaryReasonService.getFileExtraordinaryReasons(this.filters).subscribe({
+    // Crear filtros para obtener todos los datos
+    const loadFilters = {
+      ...this.filters,
+      limit: 0, // Sin límite para obtener todos los datos
+      offset: 0
+    };
+    
+    this.fileExtraordinaryReasonService.getFileExtraordinaryReasons(loadFilters).subscribe({
       next: (response: any) => {
         this.dataSource.data = response.data.file_extraordinary_reasons;
         this.totalItems = response.data.total;
         
-        // Sincronizar el paginador con el estado actual
-        if (this.paginator) {
-          this.paginator.pageIndex = this.getCurrentPageIndex();
-          this.paginator.pageSize = this.filters.limit || 10;
-        }
+        // Aplicar filtros locales
+        this.applyLocalFilters();
         
         this.loading = false;
       },
@@ -112,14 +116,56 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
    * Aplicar filtros
    */
   applyFilters(): void {
-    this.filters.offset = 0;
+    this.applyLocalFilters();
+  }
+  
+  /**
+   * Aplicar filtros locales (paginación del cliente)
+   */
+  applyLocalFilters(): void {
+    // Aplicar filtro de búsqueda
+    if (this.filters.search) {
+      this.dataSource.filter = this.filters.search.trim().toLowerCase();
+    } else {
+      this.dataSource.filter = '';
+    }
     
-    // Resetear el paginador a la primera página
+    // Aplicar filtro de tipo de razón
+    if (this.filters.id_type_reason !== undefined) {
+      this.dataSource.data = this.dataSource.data.filter(reason => 
+        reason.IdTypeReason === this.filters.id_type_reason
+      );
+    }
+    
+    // Resetear paginador a primera página
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+  
+  /**
+   * Resetear paginación
+   */
+  resetPagination(): void {
+    this.filters.offset = 0;
     if (this.paginator) {
       this.paginator.pageIndex = 0;
     }
+  }
+  
+  /**
+   * Verificar estado actual de la paginación
+   */
+  getCurrentPaginationState(): any {
+    if (!this.paginator) return null;
     
-    this.loadData();
+    return {
+      pageIndex: this.paginator.pageIndex,
+      pageSize: this.paginator.pageSize,
+      length: this.paginator.length,
+      filters: { ...this.filters },
+      totalItems: this.totalItems
+    };
   }
 
   /**
@@ -131,26 +177,15 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
       id_type_reason: undefined,
       sort_by: 'Name',
       sort_order: 'ASC',
-      limit: 10,
+      limit: 0,
       offset: 0
     };
     
-    // Resetear el paginador a la primera página
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
-    }
-    
-    this.loadData();
+    // Aplicar filtros locales
+    this.applyLocalFilters();
   }
 
-  /**
-   * Manejar cambio de página
-   */
-  onPageChange(event: any): void {
-    this.filters.offset = event.pageIndex * event.pageSize;
-    this.filters.limit = event.pageSize;
-    this.loadData();
-  }
+  // Nota: onPageChange ya no se necesita con paginación del cliente
 
   /**
    * Manejar cambio de ordenamiento
@@ -269,6 +304,31 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
    */
   getCurrentPageIndex(): number {
     if (!this.filters.offset || !this.filters.limit) return 0;
-    return Math.floor(this.filters.offset / this.filters.limit);
+    const pageIndex = Math.floor(this.filters.offset / this.filters.limit);
+    // Asegurar que el índice esté dentro de los límites válidos
+    return Math.max(0, Math.min(pageIndex, Math.ceil(this.totalItems / this.filters.limit) - 1));
+  }
+  
+  /**
+   * Validar y corregir el estado del paginador
+   */
+  validatePaginatorState(): void {
+    if (!this.paginator) return;
+    
+    const maxPageIndex = Math.ceil(this.totalItems / this.paginator.pageSize) - 1;
+    const currentPageIndex = this.paginator.pageIndex;
+    
+    // Si el índice de página está fuera de rango, corregirlo
+    if (currentPageIndex > maxPageIndex) {
+      console.log('validatePaginatorState - Corrigiendo pageIndex:', {
+        current: currentPageIndex,
+        max: maxPageIndex,
+        totalItems: this.totalItems,
+        pageSize: this.paginator.pageSize
+      });
+      
+      this.paginator.pageIndex = Math.max(0, maxPageIndex);
+      this.filters.offset = this.paginator.pageIndex * this.paginator.pageSize;
+    }
   }
 }
