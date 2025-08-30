@@ -17,6 +17,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
 
@@ -41,7 +42,8 @@ import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './vali
     MatDialogModule,
     MatTooltipModule,
     MatChipsModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    ScrollingModule
   ],
   templateUrl: './validacion.component.html',
   styleUrl: './validacion.component.scss'

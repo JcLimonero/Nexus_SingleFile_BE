@@ -9,6 +9,7 @@
     <mat-icon svgIcon="mat:menu"></mat-icon>
   </button>
 
+  <!-- Logo y Título - Layout Vertical -->
   <a
     *ngIf="isVerticalLayout$ | async"
     [routerLink]="['/']"
@@ -20,9 +21,18 @@
     <h1
       [class.hidden]="isDesktop$ | async"
       class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none">
-      {{ title$ | async }}
+      {{ dynamicTitle$ | async }}
     </h1>
   </a>
+
+  <!-- Título - Layout Horizontal -->
+  <div
+    *ngIf="isHorizontalLayout$ | async"
+    class="ltr:mr-4 rtl:ml-4 flex items-center">
+    <h1 class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none text-gray-900">
+      {{ dynamicTitle$ | async }}
+    </h1>
+  </div>
 
   <div
     *ngIf="(isVerticalLayout$ | async) && (isNavbarInToolbar$ | async)"

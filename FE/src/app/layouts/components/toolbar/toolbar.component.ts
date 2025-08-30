@@ -72,6 +72,18 @@ export class ToolbarComponent implements OnInit {
     (config) => config.sidenav.title
   );
 
+  // Título dinámico basado en la ruta actual
+  dynamicTitle$: Observable<string> = this.router.events.pipe(
+    filter((event) => event instanceof NavigationEnd),
+    startWith(null),
+    map(() => {
+      const title = this.getPageTitle();
+      console.log('🔄 ToolbarComponent - Título generado:', title);
+      return title;
+    }),
+    startWith('SingleFile')
+  );
+
   isDesktop$: Observable<boolean> = this.layoutService.isDesktop$;
   megaMenuOpen$: Observable<boolean> = of(false);
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
@@ -96,6 +108,11 @@ export class ToolbarComponent implements OnInit {
           this.router.routerState.root.snapshot,
           (data) => data.toolbarShadowEnabled ?? false
         );
+        
+        // Debug: mostrar el título actual
+        const currentTitle = this.getPageTitle();
+        console.log('🔄 ToolbarComponent - Título actual:', currentTitle);
+        console.log('🔄 ToolbarComponent - URL actual:', this.router.url);
       });
   }
 
@@ -136,5 +153,63 @@ export class ToolbarComponent implements OnInit {
 
   openSearch(): void {
     this.layoutService.openSearch();
+  }
+
+  /**
+   * Obtener el título de la página basado en la ruta actual
+   */
+  private getPageTitle(): string {
+    const url = this.router.url;
+    
+    // Mesa de Control
+    if (url.includes('/mesa-control')) {
+      if (url.includes('/validacion')) {
+        return 'Mesa de Control - Validación';
+      } else if (url.includes('/dashboard')) {
+        return 'Mesa de Control - Dashboard Principal';
+      } else if (url.includes('/monitoreo')) {
+        return 'Mesa de Control - Monitoreo en Tiempo Real';
+      } else if (url.includes('/reportes')) {
+        return 'Mesa de Control - Reportes';
+      } else {
+        return 'Mesa de Control';
+      }
+    }
+    
+    // Configuración
+    if (url.includes('/configuracion')) {
+      if (url.includes('/agencias')) {
+        return 'Configuración - Agencias';
+      } else if (url.includes('/usuarios')) {
+        return 'Configuración - Usuarios';
+      } else if (url.includes('/motivos-extraordinarios')) {
+        return 'Configuración - Motivos Extraordinarios';
+      } else if (url.includes('/motivos-rechazo')) {
+        return 'Configuración - Motivos de Aprobación y Rechazo';
+      } else if (url.includes('/documentos-requeridos')) {
+        return 'Configuración - Documentos Requeridos';
+      } else if (url.includes('/tipos-documento')) {
+        return 'Configuración - Tipos de Documento';
+      } else if (url.includes('/tipos-cliente')) {
+        return 'Configuración - Tipos de Cliente';
+      } else if (url.includes('/catalogos')) {
+        return 'Configuración - Catálogos';
+      } else {
+        return 'Configuración';
+      }
+    }
+    
+    // Dashboard
+    if (url.includes('/dashboards')) {
+      return 'Dashboard';
+    }
+    
+    // Página principal
+    if (url === '/' || url === '') {
+      return 'SingleFile';
+    }
+    
+    // Por defecto
+    return 'SingleFile';
   }
 }
