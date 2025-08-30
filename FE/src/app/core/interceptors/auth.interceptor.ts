@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, switchMap, filter, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 export const AuthInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -26,8 +27,8 @@ export const AuthInterceptor: HttpInterceptorFn = (
   console.log('🔐 Interceptor - Usuario autenticado:', isAuthenticated);
   console.log('🔐 Interceptor - Usuario actual:', authService.getCurrentUser());
   
-  // Solo agregar token a llamadas del backend (puerto 8080)
-  if (request.url.includes('localhost:8080')) {
+  // Solo agregar token a llamadas del backend (usando environment)
+  if (request.url.includes(environment.apiBaseUrl.replace('http://', ''))) {
     console.log('🔗 Llamada a backend:', request.url);
     
     if (token && isAuthenticated) {

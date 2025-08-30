@@ -1,0 +1,75 @@
+<div class="p-6">
+  <!-- Header del diálogo -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold text-gray-900">
+      {{ isEdit ? 'Editar' : 'Crear' }} Motivo Extraordinario
+    </h2>
+    <button
+      mat-icon-button
+      (click)="cancel()"
+      class="text-gray-400 hover:text-gray-600">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Formulario -->
+  <form (ngSubmit)="saveMotivo()" class="space-y-4">
+    <!-- Nombre del motivo -->
+    <mat-form-field class="w-full">
+      <mat-label>Nombre del Motivo</mat-label>
+      <input
+        matInput
+        [(ngModel)]="motivo.Name"
+        name="name"
+        placeholder="Ingrese el nombre del motivo"
+        required
+        maxlength="500">
+      <mat-hint>Máximo 500 caracteres</mat-hint>
+      <mat-error *ngIf="!motivo.Name">El nombre del motivo es requerido</mat-error>
+    </mat-form-field>
+
+    <!-- Tipo de Razón -->
+    <mat-form-field class="w-full">
+      <mat-label>Tipo de Razón</mat-label>
+      <mat-select [(ngModel)]="motivo.IdTypeReason" name="idTypeReason" required>
+        <mat-option *ngFor="let option of tipoRazonOptions" [value]="option.value">
+          {{ option.label }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="!motivo.IdTypeReason">El tipo de razón es requerido</mat-error>
+    </mat-form-field>
+
+    <!-- Estado -->
+    <mat-form-field class="w-full">
+      <mat-label>Estado</mat-label>
+      <mat-select [(ngModel)]="motivo.Enabled" name="enabled" required>
+        <mat-option [value]="1">Habilitado</mat-option>
+        <mat-option [value]="0">Deshabilitado</mat-option>
+      </mat-select>
+      <mat-error *ngIf="motivo.Enabled === undefined">El estado es requerido</mat-error>
+    </mat-form-field>
+
+    <!-- Botones de acción -->
+    <div class="flex justify-end gap-3 pt-4">
+      <button
+        type="button"
+        mat-stroked-button
+        (click)="cancel()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+      
+      <button
+        type="submit"
+        mat-raised-button
+        color="primary"
+        [disabled]="loading || !motivo.Name?.trim()">
+        <mat-spinner *ngIf="loading" diameter="20" class="mr-2"></mat-spinner>
+        <mat-icon *ngIf="!loading" class="mr-2">
+          {{ isEdit ? 'save' : 'add' }}
+        </mat-icon>
+        {{ isEdit ? 'Actualizar' : 'Crear' }}
+      </button>
+    </div>
+  </form>
+</div>

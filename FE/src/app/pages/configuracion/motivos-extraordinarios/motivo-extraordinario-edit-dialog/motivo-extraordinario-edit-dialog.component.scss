@@ -1,0 +1,65 @@
+// Estilos para el diálogo de edición de motivos extraordinarios
+
+// Personalización de campos de formulario
+.mat-mdc-form-field {
+  width: 100%;
+  
+  .mat-mdc-form-field-wrapper {
+    padding-bottom: 0;
+  }
+}
+
+// Estilos para los botones
+.mat-mdc-button {
+  min-width: 100px;
+  
+  &.mat-mdc-raised-button {
+    padding: 8px 24px;
+  }
+}
+
+// Estilos para el spinner de carga
+.mat-mdc-progress-spinner {
+  display: inline-block;
+}
+
+// Responsive adjustments
+@media (max-width: 600px) {
+  .p-6 {
+    padding: 1rem;
+  }
+  
+  .flex.justify-end {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .mat-mdc-button {
+    width: 100%;
+  }
+}
+
+// Animaciones
+.form-field {
+  transition: all 0.3s ease;
+  
+  &:focus-within {
+    transform: translateY(-2px);
+  }
+}
+
+// Estilos para el header
+h2 {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+// Estilos para los hints y errores
+.mat-mdc-form-field-hint,
+.mat-mdc-form-field-error {
+  font-size: 0.75rem;
+}
+
+.mat-mdc-form-field-error {
+  color: #dc2626;
+}

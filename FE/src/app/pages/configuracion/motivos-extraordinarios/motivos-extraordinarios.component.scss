@@ -1,0 +1,74 @@
+// Estilos específicos para el componente de motivos extraordinarios
+
+// Personalización de la tabla
+.mat-mdc-table {
+  .mat-mdc-header-row {
+    background-color: #f9fafb;
+    
+    .mat-mdc-header-cell {
+      font-weight: 500;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+    }
+  }
+  
+  .mat-mdc-row {
+    &:hover {
+      background-color: #f9fafb;
+    }
+    
+    .mat-mdc-cell {
+      border-bottom: 1px solid #f3f4f6;
+      padding: 8px 16px;
+    }
+  }
+}
+
+// Estilos para los chips de tipo de razón
+.tipo-excepcion {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.tipo-cancelacion {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+}
+
+// Estilos para los botones de acción
+.mat-mdc-icon-button {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .flex-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .min-w-48 {
+    min-width: auto;
+  }
+  
+  .w-48 {
+    width: 100%;
+  }
+}
+
+// Estilos para el estado
+.estado-habilitado {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.estado-deshabilitado {
+  background-color: #fee2e2;
+  color: #991b1b;
+}

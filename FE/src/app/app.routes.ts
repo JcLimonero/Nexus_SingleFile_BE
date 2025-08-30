@@ -236,6 +236,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/configuracion/motivos-rechazo/motivos-rechazo.component').then(
                 (m) => m.MotivosRechazoComponent
               )
+          },
+          {
+            path: 'motivos-extraordinarios',
+            loadComponent: () =>
+              import('./pages/configuracion/motivos-extraordinarios/motivos-extraordinarios.component').then(
+                (m) => m.MotivosExtraordinariosComponent
+              )
           }
         ]
       },

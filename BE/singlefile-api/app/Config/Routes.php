@@ -146,6 +146,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'FileReason::toggleStatus/$1');
     });
     
+    // Rutas de motivos extraordinarios (File_Extraordinary_Reasons)
+    $routes->group('file-extraordinary-reason', function($routes) {
+        $routes->get('/', 'FileExtraordinaryReason::index');
+        $routes->post('/', 'FileExtraordinaryReason::create');
+        $routes->get('search', 'FileExtraordinaryReason::search');
+        $routes->get('stats', 'FileExtraordinaryReason::stats');
+        $routes->get('active', 'FileExtraordinaryReason::active');
+        $routes->get('(:num)', 'FileExtraordinaryReason::show/$1');
+        $routes->put('(:num)', 'FileExtraordinaryReason::update/$1');
+        $routes->delete('(:num)', 'FileExtraordinaryReason::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'FileExtraordinaryReason::toggleStatus/$1');
+    });
+    
     // Rutas de documentos (CRUD)
     $routes->group('document', function($routes) {
         $routes->get('/', 'Document::index');

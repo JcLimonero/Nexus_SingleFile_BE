@@ -110,6 +110,12 @@ export class NavigationLoaderService {
               label: 'Motivos de Aprobación y Rechazo',
               route: '/configuracion/motivos-rechazo',
               icon: 'mat:block'
+            },
+            {
+              type: 'link',
+              label: 'Motivos Extraordinarios',
+              route: '/configuracion/motivos-extraordinarios',
+              icon: 'mat:warning'
             }
           ]
         }
