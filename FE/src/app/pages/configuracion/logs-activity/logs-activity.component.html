@@ -126,7 +126,18 @@
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+    <!-- Botón Limpiar Filtros arriba -->
+    <div class="flex justify-end mb-4">
+      <button 
+        mat-stroked-button 
+        (click)="clearFilters()"
+        class="flex items-center gap-2">
+        <mat-icon>clear</mat-icon>
+        Limpiar Filtros
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Buscar logs</mat-label>
@@ -158,74 +169,29 @@
         <mat-datepicker #startPicker></mat-datepicker>
       </mat-form-field>
 
-      <!-- Filtro por fecha fin -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Fecha fin</mat-label>
-        <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.end_date" (ngModelChange)="applyFilters()">
-        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-        <mat-datepicker #endPicker></mat-datepicker>
-      </mat-form-field>
-
-      <!-- Filtro por detalles del cambio -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Detalles del cambio</mat-label>
-        <input 
-          matInput 
-          [(ngModel)]="filters.change_details" 
-          (ngModelChange)="applyFilters()"
-          placeholder="Buscar en detalles..."
-          maxlength="200">
-      </mat-form-field>
-
-      <!-- Límite de registros -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Registros por página</mat-label>
-        <mat-select [(ngModel)]="filters.limit" (ngModelChange)="applyFilters()">
-          <mat-option value="25">25</mat-option>
-          <mat-option value="50">50</mat-option>
-          <mat-option value="100">100</mat-option>
-          <mat-option value="200">200</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <!-- Botones de acción -->
-    <div class="flex gap-2 mt-4">
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="applyFilters()"
-        class="flex items-center gap-2">
-        <mat-icon>filter_list</mat-icon>
-        Aplicar Filtros
-      </button>
-      <button 
-        mat-stroked-button 
-        (click)="clearFilters()"
-        class="flex items-center gap-2">
-        <mat-icon>clear</mat-icon>
-        Limpiar Filtros
-      </button>
+            <!-- Filtro por fecha fin y botón aplicar filtros -->
+      <div class="flex gap-2">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Fecha fin</mat-label>
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.end_date" (ngModelChange)="applyFilters()">
+          <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+        
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="applyFilters()"
+          class="flex items-center gap-2">
+          <mat-icon>filter_list</mat-icon>
+          Aplicar Filtros
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Tabla -->
   <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-    <!-- Información de exportación -->
-    <div class="bg-blue-50 border-b border-blue-200 p-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <mat-icon class="text-blue-600 text-sm">info</mat-icon>
-          <span class="text-sm text-blue-800">
-            Mostrando {{ dataSource.data.length }} de {{ totalLogs }} logs totales
-          </span>
-        </div>
-        <div class="text-xs text-blue-600">
-          💡 Usa "Exportar Todos los Logs" para obtener el conjunto completo de datos
-        </div>
-      </div>
-    </div>
-    
     <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna Timestamp -->
       <ng-container matColumnDef="timestamp">
@@ -316,8 +282,8 @@
 
     <!-- Paginación -->
     <mat-paginator 
-      [pageSizeOptions]="[25, 50, 100, 200]"
-      [pageSize]="filters.limit || 100"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      [pageSize]="10"
       [length]="totalLogs"
       (page)="onPageChange($event)"
       showFirstLastButtons
@@ -333,17 +299,11 @@
         <h4 class="text-sm font-medium text-gray-900 mb-2">Ayuda para Exportación</h4>
         <div class="text-xs text-gray-600 space-y-1">
           <p><strong>• Exportar Página Actual:</strong> Solo los logs visibles en la tabla actual (máximo {{ pageSize }} registros)</p>
-          <p><strong>• Exportar Todos los Logs:</strong> Todos los registros del sistema que coincidan con los filtros aplicados</p>
           <p><strong>• Exportar por Rango de Fechas:</strong> Registros filtrados por fechas específicas (requiere seleccionar fechas)</p>
           <p><strong>• Formato:</strong> Los archivos se generan en formato Excel (.xls) compatible con Microsoft Excel y Google Sheets</p>
           <p><strong>• Filtros:</strong> Los filtros aplicados se incluyen en el archivo exportado para referencia</p>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Contador de resultados -->
-  <div class="mt-4 text-sm text-gray-600 text-center">
-    Mostrando {{ getPageRange() }} de {{ totalLogs }} logs totales
   </div>
 </div>

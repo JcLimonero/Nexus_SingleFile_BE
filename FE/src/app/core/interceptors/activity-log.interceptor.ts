@@ -4,6 +4,16 @@ import { tap } from 'rxjs/operators';
 import { inject } from '@angular/core';
 import { ActivityLogService } from '../services/activity-log.service';
 
+/**
+ * Interceptor para registrar actividades del usuario
+ * SOLO registra las siguientes acciones:
+ * - LOGIN: Inicio de sesión
+ * - LOGOUT: Cierre de sesión  
+ * - CREATE: Creación de registros
+ * - UPDATE: Actualización de registros
+ * 
+ * NO registra: búsquedas, visualizaciones, eliminaciones, estadísticas, etc.
+ */
 export const ActivityLogInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
@@ -67,30 +77,8 @@ function determineAction(url: string, method: string): { type: string; descripti
     return { type: 'UPDATE', description: `Actualización de ${entity}` };
   }
 
-  // Eliminar registros
-  if (method === 'DELETE') {
-    const entity = extractEntityFromUrl(url);
-    return { type: 'DELETE', description: `Eliminación de ${entity}` };
-  }
-
-  // Búsquedas
-  if (url.includes('/search') && method === 'GET') {
-    const entity = extractEntityFromUrl(url);
-    return { type: 'SEARCH', description: `Búsqueda en ${entity}` };
-  }
-
-  // Estadísticas
-  if (url.includes('/stats') && method === 'GET') {
-    const entity = extractEntityFromUrl(url);
-    return { type: 'VIEW_STATS', description: `Visualización de estadísticas de ${entity}` };
-  }
-
-  // Navegación a recursos específicos
-  if (method === 'GET' && isResourceUrl(url)) {
-    const entity = extractEntityFromUrl(url);
-    return { type: 'VIEW', description: `Visualización de ${entity}` };
-  }
-
+  // Solo registrar las acciones especificadas: LOGIN, LOGOUT, CREATE, UPDATE
+  // No registrar: DELETE, SEARCH, VIEW, VIEW_STATS, etc.
   return null;
 }
 
@@ -161,45 +149,9 @@ function getChangeDetails(request: HttpRequest<unknown>, response: HttpResponse<
         const updateEntity = extractEntityFromUrl(url);
         return `Actualización de ${updateEntity} - ${JSON.stringify(sanitizeRequestData(requestInfo))}`;
         
-      case 'DELETE':
-        const deleteEntity = extractEntityFromUrl(url);
-        return `Eliminación de ${deleteEntity} - ${JSON.stringify(sanitizeRequestData(requestInfo))}`;
-        
-      case 'SEARCH':
-        const searchEntity = extractEntityFromUrl(url);
-        return `Búsqueda en ${searchEntity} - ${JSON.stringify(sanitizeRequestData(requestInfo))}`;
-        
-      case 'VIEW':
-        const viewEntity = extractEntityFromUrl(url);
-        const viewInfo = {
-          action: 'VIEW',
-          entity: viewEntity,
-          timestamp: new Date().toISOString(),
-          url: url,
-          method: method
-        };
-        return `Visualización de ${viewEntity} - ${JSON.stringify(viewInfo)}`;
-        
-      case 'VIEW_STATS':
-        const statsEntity = extractEntityFromUrl(url);
-        const statsInfo = {
-          action: 'VIEW_STATS',
-          entity: statsEntity,
-          timestamp: new Date().toISOString(),
-          url: url,
-          method: method
-        };
-        return `Visualización de estadísticas de ${statsEntity} - ${JSON.stringify(statsInfo)}`;
-        
       default:
-        const defaultInfo = {
-          action: action.type,
-          description: action.description,
-          timestamp: new Date().toISOString(),
-          url: url,
-          method: method
-        };
-        return `Acción: ${action.description} - ${JSON.stringify(defaultInfo)}`;
+        // Solo registrar las acciones especificadas
+        return `Acción: ${action.description}`;
     }
   } catch (error) {
     return `Acción: ${action.description}`;

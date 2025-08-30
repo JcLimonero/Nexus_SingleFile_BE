@@ -17,6 +17,37 @@
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-medium text-gray-900">Filtros de Búsqueda</h3>
+      
+      <!-- Botones de acción -->
+      <div class="flex items-center gap-3">
+        <!-- Botón de Limpiar Filtros -->
+        <button 
+          mat-stroked-button 
+          color="warn" 
+          (click)="clearFilters()"
+          [disabled]="!searchTerm && !roleFilter && !agencyFilter && !assignedAgencyFilter && !statusFilter"
+          matTooltip="Limpiar todos los filtros"
+          class="flex items-center gap-2">
+          <mat-icon>clear_all</mat-icon>
+          Limpiar Selección
+        </button>
+        
+        <!-- Botón de Reload -->
+        <button 
+          mat-stroked-button 
+          color="accent" 
+          (click)="refreshData()"
+          [disabled]="loading"
+          matTooltip="Recargar datos"
+          class="flex items-center gap-2">
+          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+          Recargar
+        </button>
+      </div>
+    </div>
+    
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">
@@ -26,52 +57,74 @@
           [(ngModel)]="searchTerm" 
           (ngModelChange)="applyFilter()"
           placeholder="Buscar por nombre, usuario o email..."
-          maxlength="100">
-        <mat-icon matSuffix>🔍</mat-icon>
+          maxlength="100"
+          [disabled]="loadingCatalogs">
+        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+        <mat-icon *ngIf="!loadingCatalogs" matSuffix>🔍</mat-icon>
       </mat-form-field>
 
       <!-- Filtro por rol -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Rol</mat-label>
-        <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()">
+        <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todos los roles</mat-option>
           <mat-option *ngFor="let role of roles" [value]="role.Id">
             {{ role.Name }}
           </mat-option>
         </mat-select>
+        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
       </mat-form-field>
 
       <!-- Filtro por agencia -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Agencia Predeterminada</mat-label>
-        <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()">
+        <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todas las agencias</mat-option>
           <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
             {{ agency.Name }}
           </mat-option>
         </mat-select>
+        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
       </mat-form-field>
 
       <!-- Filtro por agencias asignadas -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Agencias Asignadas</mat-label>
-        <mat-select [(ngModel)]="assignedAgencyFilter" (ngModelChange)="applyFilter()">
+        <mat-select [(ngModel)]="assignedAgencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todas las agencias asignadas</mat-option>
           <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
             {{ agency.Name }}
           </mat-option>
         </mat-select>
+        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
       </mat-form-field>
 
       <!-- Filtro por estado -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Estado</mat-label>
-        <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
+        <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todos los estados</mat-option>
           <mat-option value="1">Activo</mat-option>
           <mat-option value="0">Inactivo</mat-option>
         </mat-select>
+        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
       </mat-form-field>
+    </div>
+
+    <!-- Mensaje de estado de catálogos -->
+    <div *ngIf="loadingCatalogs" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div class="flex items-center gap-2 text-blue-700">
+        <mat-spinner diameter="20"></mat-spinner>
+        <span class="text-sm font-medium">Cargando catálogos...</span>
+      </div>
+    </div>
+
+    <div *ngIf="!loadingCatalogs && (roles.length === 0 || agencies.length === 0)" 
+         class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div class="flex items-center gap-2 text-yellow-700">
+        <mat-icon>warning</mat-icon>
+        <span class="text-sm">Algunos catálogos no se pudieron cargar. Verifica la conexión.</span>
+      </div>
     </div>
   </div>
 

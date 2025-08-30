@@ -49,6 +49,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<User>([]);
   displayedColumns: string[] = ['Id', 'Name', 'User', 'Mail', 'IdUserRol', 'DefaultAgency', 'AssignedAgencies', 'Status', 'acciones'];
   loading = false;
+  loadingCatalogs = false;
   searchTerm = '';
   roleFilter = '';
   agencyFilter = '';
@@ -155,33 +156,65 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   loadRoles(): void {
+    this.loadingCatalogs = true;
     this.userService.getUserRoles().subscribe({
       next: (response: UserRoleResponse) => {
         if (response.success) {
           this.roles = response.data.roles;
         } else {
-          // Error al cargar roles
+          this.snackBar.open(response.message || 'Error al cargar roles', 'Error', {
+            duration: 3000
+          });
         }
+        this.checkCatalogsLoaded();
       },
       error: (error) => {
-        // Error loading roles
+        this.snackBar.open('Error al cargar roles', 'Error', {
+          duration: 3000
+        });
+        this.checkCatalogsLoaded();
       }
     });
   }
 
   loadAgencies(): void {
+    this.loadingCatalogs = true;
     this.userService.getAgencies().subscribe({
       next: (response: AgencyResponse) => {
         if (response.success) {
           this.agencies = response.data.agencies.filter(agency => agency.Enabled === '1');
         } else {
-          // Error al cargar agencias
+          this.snackBar.open(response.message || 'Error al cargar agencias', 'Error', {
+            duration: 3000
+          });
         }
+        this.checkCatalogsLoaded();
       },
       error: (error) => {
-        // Error loading agencies
+        this.snackBar.open('Error al cargar agencias', 'Error', {
+          duration: 3000
+        });
+        this.checkCatalogsLoaded();
       }
     });
+  }
+
+  private checkCatalogsLoaded(): void {
+    // Verificar si todos los catálogos han sido procesados
+    const totalCatalogs = 2; // roles y agencias
+    const catalogsProcessed = (this.roles.length >= 0 ? 1 : 0) + 
+                             (this.agencies.length >= 0 ? 1 : 0);
+    
+    if (catalogsProcessed >= totalCatalogs) {
+      this.loadingCatalogs = false;
+      console.log('✅ Catálogos procesados - Roles:', this.roles.length, 
+                  'Agencias:', this.agencies.length);
+      
+      // Si no hay catálogos, mostrar mensaje de error
+      if (this.roles.length === 0 && this.agencies.length === 0) {
+        this.snackBar.open('No se pudieron cargar los catálogos. Verifica la conexión con el backend.', 'Error', { duration: 5000 });
+      }
+    }
   }
 
   applyFilter(): void {
