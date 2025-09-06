@@ -99,7 +99,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Tabla de documentos
   documentosDisplayedColumns: string[] = [
     'proceso', 'fase', 'documento', 'estatus', 'ver', 'validar', 
-    'eliminar', 'requerido', 'fecha', 'comentario', 'asignado'
+    'eliminar', 'requerido', 'requiereExpiracion', 'fecha', 'fechaExpiracion', 'comentario', 'asignado'
   ];
   documentosDataSource: any[] = [];
   

@@ -594,6 +594,19 @@
               </td>
             </ng-container>
 
+            <!-- Columna Requiere Expiración -->
+            <ng-container matColumnDef="requiereExpiracion">
+              <th mat-header-cell *matHeaderCellDef class="w-28 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Requiere Expiración
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <span class="px-2 py-1 rounded-full text-xs font-medium" 
+                      [class]="item.ReqExpiration == 1 || item.ReqExpiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
+                  {{ item.ReqExpiration == 1 || item.ReqExpiration === '1' ? 'Sí' : 'No' }}
+                </span>
+              </td>
+            </ng-container>
+
             <!-- Columna Fecha -->
             <ng-container matColumnDef="fecha">
               <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
@@ -601,6 +614,21 @@
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
                 {{ item.fecha }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Fecha de Expiración -->
+            <ng-container matColumnDef="fechaExpiracion">
+              <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Fecha Expiración
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+                <span *ngIf="item.fechaExpiracion; else noFechaExpiracion" class="text-blue-600 font-medium">
+                  {{ item.fechaExpiracion | date:'dd/MM/yyyy' }}
+                </span>
+                <ng-template #noFechaExpiracion>
+                  <span class="text-gray-400">-</span>
+                </ng-template>
               </td>
             </ng-container>
 
