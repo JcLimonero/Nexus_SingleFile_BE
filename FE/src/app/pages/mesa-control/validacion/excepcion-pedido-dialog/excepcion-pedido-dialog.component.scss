@@ -1,0 +1,26 @@
+// Estilos específicos para el diálogo de excepción
+.mat-mdc-dialog-container {
+  .mat-mdc-dialog-title {
+    color: #f59e0b; // Color naranja para excepción
+  }
+}
+
+// Estilos para el botón de confirmación
+.mat-mdc-raised-button.mat-accent {
+  background-color: #f59e0b;
+  color: white;
+  
+  &:hover {
+    background-color: #d97706;
+  }
+  
+  &:disabled {
+    background-color: #9ca3af;
+    color: #6b7280;
+  }
+}
+
+// Estilos para el icono de advertencia
+.text-orange-600 {
+  color: #ea580c;
+}

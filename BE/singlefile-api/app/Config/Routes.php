@@ -244,6 +244,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('estadisticas', 'Validacion::getEstadisticas');
         $routes->get('documentos', 'Validacion::getDocumentos');
         $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
+        $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');
     });
 });
 

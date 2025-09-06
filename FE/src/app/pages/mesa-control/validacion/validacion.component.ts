@@ -20,6 +20,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CancelarPedidoDialogComponent, CancelarPedidoData, CancelarPedidoResult } from './cancelar-pedido-dialog/cancelar-pedido-dialog.component';
+import { ExcepcionPedidoDialogComponent, ExcepcionPedidoData, ExcepcionPedidoResult } from './excepcion-pedido-dialog/excepcion-pedido-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -187,8 +188,58 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onExcepcion(cliente: any): void {
     console.log('Excepción para cliente:', cliente);
-    // Implementar lógica de excepción
-    this.snackBar.open(`Creando excepción para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+
+    const dialogData: ExcepcionPedidoData = {
+      cliente: cliente
+    };
+
+    const dialogRef = this.dialog.open(ExcepcionPedidoDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((result: ExcepcionPedidoResult) => {
+      if (result) {
+        console.log('Resultado de excepción:', result);
+        this.procesarExcepcion(cliente, result);
+      }
+    });
+  }
+
+  private procesarExcepcion(cliente: any, result: ExcepcionPedidoResult): void {
+    console.log('Procesando excepción:', {
+      cliente: cliente,
+      motivoId: result.motivoId,
+      comentario: result.comentario
+    });
+
+    // Llamar al servicio para crear la excepción
+    this.validacionService.excepcionPedido(
+      parseInt(cliente.ndCliente), 
+      result.motivoId, 
+      result.comentario
+    ).subscribe({
+      next: (response) => {
+        console.log('Excepción creada exitosamente:', response);
+        this.snackBar.open(
+          `Excepción creada para el pedido ${cliente.ndPedido}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+        
+        // Recargar los datos para reflejar el cambio
+        this.cargarClientes();
+      },
+      error: (error) => {
+        console.error('Error creando excepción:', error);
+        this.snackBar.open(
+          `Error al crear la excepción: ${error.message || 'Error desconocido'}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+      }
+    });
   }
 
   onAdministrar(cliente: any): void {

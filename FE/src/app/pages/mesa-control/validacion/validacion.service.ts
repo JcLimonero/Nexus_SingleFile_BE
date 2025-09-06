@@ -235,7 +235,32 @@ export class ValidacionService {
   }
 
   /**
-   * Crear excepción
+   * Crear excepción en pedido
+   */
+  excepcionPedido(clienteId: number, motivoId: number, comentario: string): Observable<any> {
+    const data = {
+      clienteId: clienteId,
+      motivoId: motivoId,
+      comentario: comentario
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/excepcion-pedido`, data).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Error al crear la excepción');
+        }
+      }),
+      catchError(error => {
+        console.error('Error creando excepción:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Crear excepción (método legacy)
    */
   crearExcepcion(clienteId: string, datos: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/api/validacion/excepcion`, {

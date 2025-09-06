@@ -206,6 +206,69 @@ class Validacion extends BaseController
     }
 
     /**
+     * Crear excepción en pedido
+     * POST /api/clients-validation/excepcion-pedido
+     */
+    public function excepcionPedido()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+            
+            // Validar datos requeridos
+            if (empty($data['clienteId']) || empty($data['motivoId']) || empty($data['comentario'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Los parámetros clienteId, motivoId y comentario son requeridos',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            $clienteId = $data['clienteId'];
+            $motivoId = $data['motivoId'];
+            $comentario = $data['comentario'];
+            
+            // Actualizar el registro en la tabla File
+            $updateData = [
+                'IdCurrentState' => 6, // Estado excepción
+                'Description' => $comentario,
+                'UpdateDate' => date('Y-m-d H:i:s'),
+                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+            ];
+            
+            $result = $this->db->table('File')
+                ->where('Id', $clienteId)
+                ->update($updateData);
+            
+            if ($result) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Excepción creada exitosamente',
+                    'data' => [
+                        'clienteId' => $clienteId,
+                        'motivoId' => $motivoId,
+                        'comentario' => $comentario,
+                        'fechaExcepcion' => $updateData['UpdateDate']
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo crear la excepción',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::excepcionPedido: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Obtener estadísticas de estados para la agencia y proceso seleccionados
      * GET /api/validacion/estadisticas
      */
