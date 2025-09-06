@@ -306,13 +306,13 @@
             <mat-spinner diameter="40"></mat-spinner>
           </div>
 
-                        <table mat-table [dataSource]="clientesDataSource" matSort class="w-full" *ngIf="!loading">
+                        <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table" *ngIf="!loading">
             <!-- Columna ND Cliente -->
             <ng-container matColumnDef="ndCliente">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
-                <span class="flex items-center gap-1">ND Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef  class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                ND Cliente
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 <div class="flex items-center">
                   <span *ngIf="item.tieneDocumentosPendientes == 1" class="text-yellow-500 mr-1">★</span>
                   {{ item.ndCliente }}
@@ -322,20 +322,20 @@
 
             <!-- Columna ND Pedido -->
             <ng-container matColumnDef="ndPedido">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef  class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center gap-1">ND Pedido <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 {{ item.ndPedido }}
               </td>
             </ng-container>
 
             <!-- Columna Cliente -->
             <ng-container matColumnDef="cliente">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef  class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center gap-1">Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
                 <span class="block truncate" [matTooltip]="item.cliente" matTooltipPosition="above">
                   {{ item.cliente }}
                 </span>
@@ -344,30 +344,30 @@
 
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef  class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center gap-1">Proceso <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
                 {{ item.proceso }}
               </td>
             </ng-container>
 
             <!-- Columna Operación -->
             <ng-container matColumnDef="operacion">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef  class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center gap-1">Operación <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
                 {{ item.operacion }}
               </td>
             </ng-container>
 
             <!-- Columna Fase -->
             <ng-container matColumnDef="fase">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef  class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center gap-1">Fase <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
                 <span class="px-2 py-1 rounded-full text-xs font-medium"
                       [ngClass]="{
                         'bg-green-100 text-green-800': item.fase === 'Integración',
@@ -383,20 +383,20 @@
 
             <!-- Columna Registro -->
             <ng-container matColumnDef="registro">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef  class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center gap-1">Registro <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
                 {{ item.registro }}
               </td>
             </ng-container>
 
             <!-- Columna Acciones -->
             <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 <span class="flex items-center">Acciones</span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
                 <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="text-gray-600 hover:text-blue-600" (click)="onActionsClick($event)">
                   <mat-icon class="text-sm">more_vert</mat-icon>
                 </button>
@@ -479,13 +479,13 @@
               Mostrando {{ documentosDataSource.length }} documentos para el cliente {{ selectedCliente.cliente }} (Pedido: {{ selectedCliente.ndPedido }})
             </div>
 
-                      <table mat-table [dataSource]="documentosDataSource" matSort class="w-full" *ngIf="documentosDataSource.length > 0">
+                      <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table" *ngIf="documentosDataSource.length > 0">
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
               <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Proceso
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 {{ item.proceso }}
               </td>
             </ng-container>
@@ -495,7 +495,7 @@
               <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Fase
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 {{ item.fase }}
               </td>
             </ng-container>
@@ -505,7 +505,7 @@
               <th mat-header-cell *matHeaderCellDef class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Documento
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 <span class="block truncate" [matTooltip]="item.documento" matTooltipPosition="above">
                   {{ item.documento }}
                 </span>
@@ -612,7 +612,7 @@
               <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Fecha
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 <span class="truncate block" [matTooltip]="item.fecha" matTooltipPosition="above">
                   {{ item.fecha }}
                 </span>
@@ -624,7 +624,7 @@
               <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Fecha Expiración
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 <span *ngIf="item.fechaExpiracion; else noFechaExpiracion" class="text-blue-600 font-medium truncate block" [matTooltip]="getFechaExpiracionTooltip(item.fechaExpiracion)" matTooltipPosition="above">
                   {{ item.fechaExpiracion | date:'dd/MM/yyyy' }}
                 </span>
@@ -639,7 +639,7 @@
               <th mat-header-cell *matHeaderCellDef class="w-51 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Comentario
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 <span class="block truncate" [matTooltip]="item.comentario" matTooltipPosition="above">
                   {{ item.comentario }}
                 </span>
@@ -651,7 +651,7 @@
               <th mat-header-cell *matHeaderCellDef class="w-45 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Asignado
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
                 <span class="block truncate" [matTooltip]="item.asignado" matTooltipPosition="above">
                   {{ item.asignado }}
                 </span>

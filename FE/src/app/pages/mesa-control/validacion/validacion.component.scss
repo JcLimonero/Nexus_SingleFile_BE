@@ -35,43 +35,238 @@
   }
 }
 
-// Estilos para tabla compacta en pantallas grandes
-.compact-table {
-  // Reducir altura de filas en pantallas grandes
-  @media (min-width: 1024px) {
+// Estilos directos para las clases del HTML
+.py-2 {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+.text-xs {
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+// Estilos específicos para las tablas
+:host ::ng-deep {
+  // Aplicar a TODAS las tablas del componente
+  mat-table {
+    .mat-mdc-table {
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+      width: 100% !important;
+    }
+    
+    // Altura ultra-pequeña para TODAS las filas
     .mat-mdc-row {
-      min-height: 40px !important;
+      min-height: 8px !important;
+      height: 8px !important;
+      max-height: 8px !important;
+      border-bottom: 1px solid rgba(0,0,0,.12) !important;
+      display: table-row !important;
     }
     
     .mat-mdc-header-row {
-      min-height: 40px !important;
+      min-height: 8px !important;
+      height: 8px !important;
+      max-height: 8px !important;
+      border-bottom: 1px solid rgba(0,0,0,.12) !important;
+      display: table-row !important;
     }
     
+    // Padding cero para TODAS las celdas
     .mat-mdc-cell {
-      padding: 8px 12px !important;
+      padding: 0px !important;
+      vertical-align: middle !important;
+      line-height: 1 !important;
+      font-size: 12px !important;
+      border: none !important;
+      height: 8px !important;
+      max-height: 8px !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      text-align: left !important;
     }
     
     .mat-mdc-header-cell {
-      padding: 8px 12px !important;
+      padding: 0px !important;
+      vertical-align: middle !important;
+      line-height: 1 !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      border: none !important;
+      height: 8px !important;
+      max-height: 8px !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      text-align: left !important;
+    }
+    
+    // Eliminar cualquier espaciado extra
+    .mat-mdc-cell, .mat-mdc-header-cell {
+      margin: 0 !important;
+      border-spacing: 0 !important;
     }
   }
   
-  // En pantallas muy grandes, hacer aún más compacta
+  // Estilos específicos para elementos que puedan estar causando diferencias
+  .mat-mdc-table-container {
+    overflow: hidden !important;
+  }
+  
+  .mat-mdc-table-wrapper {
+    overflow: hidden !important;
+  }
+  
+  // Estilos específicos para elementos internos que puedan estar afectando la altura
+  .mat-mdc-cell div,
+  .mat-mdc-cell span,
+  .mat-mdc-header-cell div,
+  .mat-mdc-header-cell span {
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+  }
+}
+
+// Estilos adicionales para forzar altura específica
+:host ::ng-deep {
+  // Forzar altura específica en todas las filas de tabla
+  .mat-mdc-row,
+  .mat-mdc-header-row {
+    height: 8px !important;
+    min-height: 8px !important;
+    max-height: 8px !important;
+  }
+  
+  // Forzar altura específica en todas las celdas
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    height: 8px !important;
+    min-height: 8px !important;
+    max-height: 8px !important;
+    padding: 0px !important;
+    margin: 0px !important;
+    text-align: left !important;
+  }
+  
+  // Estilos específicos para elementos que puedan estar causando altura extra
+  .mat-mdc-cell *,
+  .mat-mdc-header-cell * {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: auto !important;
+    line-height: 1 !important;
+    margin: 0px !important;
+    padding: 0px !important;
+  }
+  
+  // Centrar contenido de columnas específicas
+  .mat-mdc-cell:nth-child(4), // estatus
+  .mat-mdc-cell:nth-child(5), // ver
+  .mat-mdc-cell:nth-child(6), // validar
+  .mat-mdc-cell:nth-child(7), // eliminar
+  .mat-mdc-cell:nth-child(8), // requerido
+  .mat-mdc-cell:nth-child(9), // requiereExpiracion
+  .mat-mdc-header-cell:nth-child(4), // estatus header
+  .mat-mdc-header-cell:nth-child(5), // ver header
+  .mat-mdc-header-cell:nth-child(6), // validar header
+  .mat-mdc-header-cell:nth-child(7), // eliminar header
+  .mat-mdc-header-cell:nth-child(8), // requerido header
+  .mat-mdc-header-cell:nth-child(9) { // requiereExpiracion header
+    text-align: center !important;
+  }
+}
+
+// Estilos específicos para el paginador para que no afecte la tabla
+::ng-deep .mat-mdc-paginator {
+  min-height: 48px !important;
+  height: 48px !important;
+  margin-top: 0 !important;
+  padding: 0 8px !important;
+  
+  .mat-mdc-paginator-container {
+    min-height: 48px !important;
+    height: 48px !important;
+  }
+  
+  .mat-mdc-paginator-page-size {
+    min-height: 48px !important;
+    height: 48px !important;
+  }
+  
+  .mat-mdc-paginator-range-label {
+    min-height: 48px !important;
+    height: 48px !important;
+    line-height: 48px !important;
+  }
+  
+  .mat-mdc-paginator-navigation-previous,
+  .mat-mdc-paginator-navigation-next {
+    min-height: 48px !important;
+    height: 48px !important;
+  }
+}
+
+// Estilos para tabla compacta - aplicar a ambas tablas
+.compact-table {
+  // Forzar altura uniforme para todas las filas
+  .mat-mdc-row {
+    min-height: 32px !important;
+    height: 32px !important;
+    max-height: 32px !important;
+  }
+  
+  .mat-mdc-header-row {
+    min-height: 32px !important;
+    height: 32px !important;
+    max-height: 32px !important;
+  }
+  
+  .mat-mdc-cell {
+    padding: 4px 8px !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
+  }
+  
+  .mat-mdc-header-cell {
+    padding: 4px 8px !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
+  }
+  
+  // Forzar que el contenido no haga crecer las filas
+  .mat-mdc-cell, .mat-mdc-header-cell {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+  
+  // En pantallas muy grandes, mantener el mismo tamaño
   @media (min-width: 1440px) {
     .mat-mdc-row {
-      min-height: 36px !important;
+      min-height: 32px !important;
+      height: 32px !important;
+      max-height: 32px !important;
     }
     
     .mat-mdc-header-row {
-      min-height: 36px !important;
+      min-height: 32px !important;
+      height: 32px !important;
+      max-height: 32px !important;
     }
     
     .mat-mdc-cell {
-      padding: 6px 10px !important;
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
     }
     
     .mat-mdc-header-cell {
-      padding: 6px 10px !important;
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
     }
   }
 }
