@@ -442,6 +442,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
+   * Seleccionar cliente programáticamente (para selección automática)
+   */
+  private seleccionarCliente(cliente: any): void {
+    console.log('🤖 ValidacionComponent - Selección automática del primer cliente:', cliente);
+    this.onClienteSelect(cliente);
+  }
+
+  /**
    * Limpiar la selección del cliente
    */
   clearSelection(): void {
@@ -763,6 +771,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       this.totalRecords = this.allClientes.length;
       this.currentPage = 0;
       this.updatePaginatedData();
+      
+      // Seleccionar automáticamente el primer registro si hay clientes
+      if (this.clientesOriginales.length > 0) {
+        this.seleccionarCliente(this.clientesOriginales[0]);
+      } else {
+        this.selectedCliente = null;
+      }
       return;
     }
 
@@ -791,6 +806,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.totalRecords = clientesFiltrados.length;
     this.currentPage = 0; // Volver a la primera página
     this.updatePaginatedData(); // Aplicar paginación con el tamaño de página configurado
+    
+    // Seleccionar automáticamente el primer registro filtrado si hay resultados
+    if (clientesFiltrados.length > 0) {
+      this.seleccionarCliente(clientesFiltrados[0]);
+    } else {
+      this.selectedCliente = null;
+    }
   }
 
   /**
@@ -838,6 +860,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             this.aplicarFiltroFase();
           } else {
             this.updatePaginatedData(); // Aplicar paginación normal
+          }
+          
+          // Seleccionar automáticamente el primer registro si hay clientes
+          if (clientes.length > 0) {
+            this.seleccionarCliente(clientes[0]);
+          } else {
+            this.selectedCliente = null;
           }
           
           this.loading = false;
