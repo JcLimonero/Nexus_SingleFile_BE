@@ -1,0 +1,11 @@
+// Estilos específicos para el dialog de ver documento
+.mat-dialog-container {
+  padding: 0 !important;
+}
+
+// Asegurar que los iconos tengan el tamaño correcto
+mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}

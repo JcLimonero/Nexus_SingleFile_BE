@@ -72,24 +72,37 @@ class Validacion extends BaseController
             // Query principal usando SQL directo para evitar problemas con Query Builder
             $sql = "
                 SELECT 
-                    f.Id as ndCliente,
+                    f.Id as idFile,
+                    MIN(ctr.IdTotalDealer) as ndCliente,
                     f.IdOrder as ndPedido,
                     TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
                     p.Name as proceso,
                     ot.Name as operacion,
                     f.RegistrationDate as registro,
                     fs.Name as fase,
-                    f.IdCurrentState
+                    f.IdCurrentState,
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 
+                            FROM DocumentByFile dbf 
+                            INNER JOIN DocumentFile_Status dfs ON dbf.IdCurrentStatus = dfs.Id 
+                            WHERE dbf.IdFile = f.Id 
+                            AND dfs.Id = 2
+                        ) THEN 1 
+                        ELSE 0 
+                    END as tieneDocumentosPendientes
                 FROM File f
                 INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
                 WHERE f.IdAgency = ?
                 AND f.IdProcess = ?
                 AND p.Enabled = 1
                 AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+                GROUP BY f.Id, f.IdOrder, c.Name, c.LastName, c.MotherLastName, p.Name, ot.Name, f.RegistrationDate, fs.Name, f.IdCurrentState
             ";
             
             $params = [$idAgency, $idProcess];
@@ -102,7 +115,7 @@ class Validacion extends BaseController
                 $sql .= " AND f.IdCurrentState != 5";
             }
             
-            $sql .= " ORDER BY f.RegistrationDate DESC LIMIT ? OFFSET ?";
+            $sql .= " ORDER BY tieneDocumentosPendientes DESC, ndCliente ASC, ndPedido ASC LIMIT ? OFFSET ?";
             $params[] = $limit;
             $params[] = $offset;
 
@@ -551,21 +564,20 @@ class Validacion extends BaseController
     }
 
     /**
-     * Obtener documentos de un cliente y pedido específicos
-     * GET /api/validacion/documentos?clienteId=123&pedidoId=456
+     * Obtener documentos de un archivo específico
+     * GET /api/validacion/documentos?idFile=123
      */
     public function getDocumentos()
     {
         try {
             // Obtener parámetros de la petición
-            $clienteId = $this->request->getGet('clienteId');
-            $pedidoId = $this->request->getGet('pedidoId');
+            $idFile = $this->request->getGet('idFile');
 
             // Validar parámetros requeridos
-            if (!$clienteId || !$pedidoId) {
+            if (!$idFile) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Los parámetros clienteId y pedidoId son requeridos',
+                    'message' => 'El parámetro idFile es requerido',
                     'data' => null
                 ])->setStatusCode(400);
             }
@@ -590,9 +602,10 @@ class Validacion extends BaseController
                 ->join('File_Status fs', 'dt.IdProcessType = fs.Id', 'inner')
                 ->join('DocumentFile_Status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
                 ->join('User u', 'dbf.IdLastUserUpdate = u.Id', 'left')
-                ->where('f.Id', $clienteId)
-                ->where('f.IdOrder', $pedidoId)
-                ->orderBy('dbf.RegistrationDate', 'DESC');
+                ->where('dbf.IdFile', $idFile)
+                ->orderBy('p.Name', 'ASC')
+                ->orderBy('fs.Name', 'ASC')
+                ->orderBy('dt.Name', 'ASC');
 
             $results = $query->get()->getResultArray();
 
@@ -605,6 +618,300 @@ class Validacion extends BaseController
         } catch (\Exception $e) {
             error_log("Error en Validacion::getDocumentos: " . $e->getMessage());
             
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Validar documento - cambiar estatus de "3" a "4"
+     * POST /api/clients-validation/validar-documento
+     */
+    public function validarDocumento()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+            
+            // Validar datos requeridos
+            if (empty($data['idDocumentByFile'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idDocumentByFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            $idDocumentByFile = $data['idDocumentByFile'];
+            
+            // Verificar que el documento existe y tiene estatus "3"
+            $documento = $this->db->table('DocumentByFile')
+                ->where('Id', $idDocumentByFile)
+                ->where('IdCurrentStatus', 3)
+                ->get()
+                ->getRowArray();
+            
+            if (!$documento) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El documento no existe o no está listo para validar',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            // Actualizar el estatus del documento a "4" (Validado y aprobado)
+            $updateData = [
+                'IdCurrentStatus' => 4,
+                'UpdateDate' => date('Y-m-d H:i:s'),
+                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+            ];
+            
+            $result = $this->db->table('DocumentByFile')
+                ->where('Id', $idDocumentByFile)
+                ->update($updateData);
+            
+            if ($result) {
+                // Registrar actividad en el log
+                $this->logActivity(
+                    'VALIDAR_DOCUMENTO',
+                    "Documento {$idDocumentByFile} validado",
+                    [
+                        'documento_id' => $idDocumentByFile,
+                        'estado_anterior' => 'Listo para validar (3)',
+                        'estado_nuevo' => 'Validado y aprobado (4)',
+                        'fecha_validacion' => $updateData['UpdateDate']
+                    ],
+                    $idDocumentByFile
+                );
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Documento validado exitosamente',
+                    'data' => [
+                        'idDocumentByFile' => $idDocumentByFile,
+                        'estadoAnterior' => 3,
+                        'estadoNuevo' => 4,
+                        'fechaValidacion' => $updateData['UpdateDate']
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo validar el documento',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::validarDocumento: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Aprobar/Rechazar documento - cambiar estatus a "4" (aprobado) o "5" (rechazado)
+     * POST /api/clients-validation/aprobar-documento
+     */
+    public function aprobarDocumento()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+            
+            // Validar datos requeridos
+            if (empty($data['idDocumentByFile']) || empty($data['nuevoEstatus'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Los parámetros idDocumentByFile y nuevoEstatus son requeridos',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            $idDocumentByFile = $data['idDocumentByFile'];
+            $nuevoEstatus = $data['nuevoEstatus'];
+            $comentario = $data['comentario'] ?? null;
+            $fechaExpiracion = $data['fechaExpiracion'] ?? null;
+            
+            // Validar que el nuevo estatus sea válido (4 = Aprobado, 5 = Rechazado)
+            if (!in_array($nuevoEstatus, [4, 5])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El nuevo estatus debe ser 4 (Aprobado) o 5 (Rechazado)',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            // Verificar que el documento existe y tiene estatus "3"
+            $documento = $this->db->table('DocumentByFile')
+                ->where('Id', $idDocumentByFile)
+                ->where('IdCurrentStatus', 3)
+                ->get()
+                ->getRowArray();
+            
+            if (!$documento) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El documento no existe o no está listo para aprobar/rechazar',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            // Actualizar el estatus del documento
+            $updateData = [
+                'IdCurrentStatus' => $nuevoEstatus,
+                'UpdateDate' => date('Y-m-d H:i:s'),
+                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+            ];
+            
+            // Si hay comentario, actualizarlo también
+            if ($comentario) {
+                $updateData['Comment'] = $comentario;
+            }
+            
+            // Si hay fecha de expiración, actualizarla también
+            if ($fechaExpiracion) {
+                $updateData['ExperationDate'] = $fechaExpiracion;
+            }
+            
+            $result = $this->db->table('DocumentByFile')
+                ->where('Id', $idDocumentByFile)
+                ->update($updateData);
+            
+            if ($result) {
+                $estadoAnterior = 'Listo para validar (3)';
+                $estadoNuevo = $nuevoEstatus == 4 ? 'Aprobado (4)' : 'Rechazado (5)';
+                $accion = $nuevoEstatus == 4 ? 'APROBAR_DOCUMENTO' : 'RECHAZAR_DOCUMENTO';
+                $mensaje = $nuevoEstatus == 4 ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
+                
+                // Registrar actividad en el log
+                $this->logActivity(
+                    $accion,
+                    "Documento {$idDocumentByFile} " . ($nuevoEstatus == 4 ? 'aprobado' : 'rechazado'),
+                    [
+                        'documento_id' => $idDocumentByFile,
+                        'estado_anterior' => $estadoAnterior,
+                        'estado_nuevo' => $estadoNuevo,
+                        'comentario' => $comentario,
+                        'fecha_procesamiento' => $updateData['UpdateDate']
+                    ],
+                    $idDocumentByFile
+                );
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => $mensaje,
+                    'data' => [
+                        'idDocumentByFile' => $idDocumentByFile,
+                        'estadoAnterior' => 3,
+                        'estadoNuevo' => $nuevoEstatus,
+                        'comentario' => $comentario,
+                        'fechaExpiracion' => $fechaExpiracion,
+                        'fechaProcesamiento' => $updateData['UpdateDate']
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo procesar el documento',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::aprobarDocumento: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Preparar documento para validación - cambiar estatus de "2" a "3"
+     * POST /api/clients-validation/preparar-documento
+     */
+    public function prepararDocumento()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+            
+            // Validar datos requeridos
+            if (empty($data['idDocumentByFile'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idDocumentByFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            $idDocumentByFile = $data['idDocumentByFile'];
+            
+            // Verificar que el documento existe y tiene estatus "2"
+            $documento = $this->db->table('DocumentByFile')
+                ->where('Id', $idDocumentByFile)
+                ->where('IdCurrentStatus', 2)
+                ->get()
+                ->getRowArray();
+            
+            if (!$documento) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El documento no existe o no está pendiente de validación',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            // Actualizar el estatus del documento a "3" (Listo para validar)
+            $updateData = [
+                'IdCurrentStatus' => 3,
+                'UpdateDate' => date('Y-m-d H:i:s'),
+                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+            ];
+            
+            $result = $this->db->table('DocumentByFile')
+                ->where('Id', $idDocumentByFile)
+                ->update($updateData);
+            
+            if ($result) {
+                // Registrar actividad en el log
+                $this->logActivity(
+                    'PREPARAR_DOCUMENTO',
+                    "Documento {$idDocumentByFile} preparado para validación",
+                    [
+                        'documento_id' => $idDocumentByFile,
+                        'estado_anterior' => 'Pendiente de validación (2)',
+                        'estado_nuevo' => 'Listo para validar (3)',
+                        'fecha_preparacion' => $updateData['UpdateDate']
+                    ],
+                    $idDocumentByFile
+                );
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Documento preparado para validación exitosamente',
+                    'data' => [
+                        'idDocumentByFile' => $idDocumentByFile,
+                        'estadoAnterior' => 2,
+                        'estadoNuevo' => 3,
+                        'fechaPreparacion' => $updateData['UpdateDate']
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo preparar el documento',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::prepararDocumento: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage(),

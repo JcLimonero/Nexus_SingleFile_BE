@@ -5,6 +5,7 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
 export interface Cliente {
+  idFile: number;
   ndCliente: number;
   ndPedido: number;
   cliente: string;
@@ -13,6 +14,7 @@ export interface Cliente {
   fase: string;
   registro: string;
   IdCurrentState: number;
+  tieneDocumentosPendientes: number;
 }
 
 export interface Documento {
@@ -122,14 +124,13 @@ export class ValidacionService {
   }
 
   /**
-   * Cargar documentos de un cliente y pedido específicos
+   * Cargar documentos de un archivo específico
    */
-  cargarDocumentos(clienteId: number, pedidoId: number): Observable<Documento[]> {
+  cargarDocumentos(idFile: number): Observable<Documento[]> {
     this.loadingSubject.next(true);
     
     let params = new HttpParams();
-    params = params.set('clienteId', clienteId.toString());
-    params = params.set('pedidoId', pedidoId.toString());
+    params = params.set('idFile', idFile.toString());
     
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos`, { params }).pipe(
       map(response => {
@@ -140,6 +141,7 @@ export class ValidacionService {
       })
     );
   }
+
 
   /**
    * Cargar procesos disponibles
@@ -170,13 +172,76 @@ export class ValidacionService {
   }
 
   /**
-   * Validar un documento
+   * Validar un documento - cambiar estatus de "2" a "3"
    */
-  validarDocumento(documentoId: string, comentario?: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/validacion/validar`, {
-      documentoId,
-      comentario
-    });
+  validarDocumento(idDocumentByFile: number): Observable<any> {
+    const data = {
+      idDocumentByFile: idDocumentByFile
+    };
+    
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/validar-documento`, data).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Error al validar el documento');
+      }),
+      catchError(error => {
+        console.error('Error en validarDocumento:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Preparar documento para validación - cambiar estatus de "2" a "3"
+   */
+  prepararDocumento(idDocumentByFile: number): Observable<any> {
+    const data = {
+      idDocumentByFile: idDocumentByFile
+    };
+    
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/preparar-documento`, data).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Error al preparar el documento');
+      }),
+      catchError(error => {
+        console.error('Error en prepararDocumento:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Aprobar/Rechazar documento - cambiar estatus a "4" (aprobado) o "5" (rechazado)
+   */
+  aprobarDocumento(idDocumentByFile: number, nuevoEstatus: number, comentario?: string, fechaExpiracion?: Date): Observable<any> {
+    const data: any = {
+      idDocumentByFile: idDocumentByFile,
+      nuevoEstatus: nuevoEstatus,
+      comentario: comentario
+    };
+
+    // Si hay fecha de expiración, agregarla al payload
+    if (fechaExpiracion) {
+      data.fechaExpiracion = fechaExpiracion.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    }
+    
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/aprobar-documento`, data).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        }
+        throw new Error(response.message || 'Error al procesar el documento');
+      }),
+      catchError(error => {
+        console.error('Error en aprobarDocumento:', error);
+        throw error;
+      })
+    );
   }
 
   /**

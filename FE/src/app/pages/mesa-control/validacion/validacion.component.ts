@@ -23,6 +23,8 @@ import { CancelarPedidoDialogComponent, CancelarPedidoData, CancelarPedidoResult
 import { ExcepcionPedidoDialogComponent, ExcepcionPedidoData, ExcepcionPedidoResult } from './excepcion-pedido-dialog/excepcion-pedido-dialog.component';
 import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult } from './eliminar-pedido-dialog/eliminar-pedido-dialog.component';
 import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
+import { VerDocumentoDialogComponent } from './ver-documento-dialog/ver-documento-dialog.component';
+import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -53,7 +55,9 @@ import { DefaultAgencyService, Agencia } from '../../../core/services/default-ag
     MatCheckboxModule,
     MatMenuModule,
     MatSlideToggleModule,
-    ScrollingModule
+    ScrollingModule,
+    VerDocumentoDialogComponent,
+    AprobarDocumentoDialogComponent
   ],
   templateUrl: './validacion.component.html',
   styleUrl: './validacion.component.scss'
@@ -113,11 +117,136 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     return userRole === 'gerente' || userRole === 'administrador';
   }
 
+
   // Métodos para las acciones del menú
   onDescargarArchivo(cliente: any): void {
     console.log('Descargar archivo para cliente:', cliente);
     // Implementar lógica de descarga
     this.snackBar.open(`Descargando archivo para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+  }
+
+  /**
+   * Validar documento - abrir dialog para aprobar/rechazar
+   */
+  onValidarDocumento(documento: any): void {
+    console.log('Validar documento:', documento);
+    
+    // Verificar que el estatus actual sea "3"
+    if (documento.idEstatus !== '3') {
+      this.snackBar.open('Solo se pueden validar documentos con estatus listo para validar', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // Crear dialog para aprobar/rechazar documento
+    const dialogData: AprobarDocumentoData = {
+      documento: documento
+    };
+
+    const dialogRef = this.dialog.open(AprobarDocumentoDialogComponent, {
+      width: '600px',
+      data: dialogData
+    });
+
+    dialogRef.afterClosed().subscribe((result: AprobarDocumentoResult) => {
+      if (result) {
+        console.log('Resultado del dialog:', result);
+        this.procesarAprobacionDocumento(documento, result);
+      }
+    });
+  }
+
+  /**
+   * Ver documento - mostrar información del documento y validar si estatus es "2"
+   */
+  onVerDocumento(documento: any): void {
+    console.log('Ver documento:', documento);
+    
+    // Si el estatus es "2", validar el documento automáticamente
+    if (documento.idEstatus === '2') {
+      this.validarDocumentoInterno(documento);
+      return;
+    }
+    
+    // Crear un dialog para mostrar la información del documento
+    const dialogRef = this.dialog.open(VerDocumentoDialogComponent, {
+      width: '500px',
+      data: {
+        documento: documento
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Dialog cerrado:', result);
+      }
+    });
+  }
+
+  /**
+   * Procesar aprobación/rechazo de documento
+   */
+  private procesarAprobacionDocumento(documento: any, resultado: AprobarDocumentoResult): void {
+    console.log('Procesando aprobación de documento:', documento, resultado);
+    
+    const nuevoEstatus = resultado.aprobado ? 4 : 5; // 4 = Aprobado, 5 = Rechazado
+    
+    this.validacionService.aprobarDocumento(documento.idDocumentByFile, nuevoEstatus, resultado.comentario, resultado.fechaExpiracion)
+      .pipe(
+        takeUntil(this.destroy$),
+        timeout(10000)
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Documento procesado exitosamente:', response);
+          const mensaje = resultado.aprobado ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
+          this.snackBar.open(mensaje, 'Cerrar', { duration: 3000 });
+          
+          // Recargar documentos para reflejar el cambio
+          if (this.selectedCliente) {
+            this.cargarDocumentosCliente(this.selectedCliente.idFile);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error procesando documento:', error);
+          this.snackBar.open(
+            `Error al procesar el documento: ${error.message || 'Error desconocido'}`, 
+            'Cerrar', 
+            { duration: 5000 }
+          );
+        }
+      });
+  }
+
+  /**
+   * Método interno para preparar documento (reutilizable)
+   */
+  private validarDocumentoInterno(documento: any): void {
+    console.log('Preparando documento desde botón Ver:', documento);
+    
+    this.validacionService.prepararDocumento(documento.idDocumentByFile)
+      .pipe(
+        takeUntil(this.destroy$),
+        timeout(10000)
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Documento preparado exitosamente desde botón Ver:', response);
+          this.snackBar.open('Documento preparado para validación exitosamente', 'Cerrar', { duration: 3000 });
+          
+          // Recargar documentos para reflejar el cambio
+          if (this.selectedCliente) {
+            this.cargarDocumentosCliente(this.selectedCliente.idFile);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error preparando documento desde botón Ver:', error);
+          this.snackBar.open(
+            `Error al preparar el documento: ${error.message || 'Error desconocido'}`, 
+            'Cerrar', 
+            { duration: 5000 }
+          );
+        }
+      });
   }
 
   // Método para prevenir la propagación del evento en el botón de acciones
@@ -437,8 +566,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Guardar el cliente seleccionado
     this.selectedCliente = cliente;
     
-    // Cargar los documentos del cliente y pedido específicos
-    this.cargarDocumentosCliente(cliente.ndCliente, cliente.ndPedido);
+    // Cargar los documentos del archivo específico
+    this.cargarDocumentosCliente(cliente.idFile);
   }
 
   /**
@@ -459,13 +588,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Cargar documentos de un cliente y pedido específicos
+   * Cargar documentos de un archivo específico
    */
-  private cargarDocumentosCliente(clienteId: number, pedidoId: number): void {
-    console.log('📄 ValidacionComponent - Cargando documentos para cliente:', clienteId, 'pedido:', pedidoId);
+  private cargarDocumentosCliente(idFile: number): void {
+    console.log('📄 ValidacionComponent - Cargando documentos para archivo:', idFile);
     this.loading = true;
     
-    this.validacionService.cargarDocumentos(clienteId, pedidoId)
+    this.validacionService.cargarDocumentos(idFile)
       .pipe(
         takeUntil(this.destroy$),
         timeout(10000)
@@ -478,7 +607,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error('❌ ValidacionComponent - Error cargando documentos:', error);
-          this.mostrarError('Error cargando documentos del cliente y pedido');
+          this.mostrarError('Error cargando documentos del archivo');
           this.documentosDataSource = [];
           this.loading = false;
         }
@@ -755,7 +884,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // Si hay un cliente seleccionado, recargar sus documentos
     if (this.selectedCliente) {
-      this.cargarDocumentosCliente(this.selectedCliente.ndCliente, this.selectedCliente.ndPedido);
+      this.cargarDocumentosCliente(this.selectedCliente.idFile);
     }
   }
 

@@ -1,0 +1,17 @@
+// Estilos específicos para el dialog de aprobar documento
+.mat-dialog-container {
+  padding: 0 !important;
+}
+
+// Asegurar que los iconos tengan el tamaño correcto
+mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+// Estilos para el textarea
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}

@@ -316,7 +316,7 @@
               </th>
               <td mat-cell *matCellDef="let item" class="py-1 text-xs font-medium text-gray-900">
                 <div class="flex items-center">
-                  <span class="text-yellow-500 mr-1">★</span>
+                  <span *ngIf="item.tieneDocumentosPendientes == 1" class="text-yellow-500 mr-1">★</span>
                   {{ item.ndCliente }}
                 </div>
               </td>
@@ -543,7 +543,9 @@
                 Ver
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button mat-icon-button color="primary" class="!w-6 !h-6 !min-h-6 !p-0">
+                <button mat-icon-button color="primary" class="!w-6 !h-6 !min-h-6 !p-0"
+                        (click)="onVerDocumento(item); $event.stopPropagation()"
+                        matTooltip="Ver información del documento">
                   <mat-icon class="!text-sm">visibility</mat-icon>
                 </button>
               </td>
@@ -555,12 +557,15 @@
                 Validar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <div class="relative">
-                  <button mat-icon-button class="!w-6 !h-6 !min-h-6 !p-0 text-gray-400">
+                <div class="relative" *ngIf="item.idEstatus === '3'">
+                  <button mat-icon-button class="!w-6 !h-6 !min-h-6 !p-0 text-gray-400" 
+                          (click)="onValidarDocumento(item); $event.stopPropagation()"
+                          matTooltip="Validar documento">
                     <mat-icon class="!text-sm">mail</mat-icon>
                   </button>
                   <mat-icon *ngIf="item.validado" class="absolute -top-1 -right-1 text-green-600 text-sm">check_circle</mat-icon>
                 </div>
+                <span *ngIf="item.idEstatus !== '3'" class="text-xs text-gray-400">-</span>
               </td>
             </ng-container>
 
