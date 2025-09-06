@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -7,7 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -49,7 +50,7 @@ import { DefaultAgencyService, Agencia } from '../../../core/services/default-ag
   templateUrl: './validacion.component.html',
   styleUrl: './validacion.component.scss'
 })
-export class ValidacionComponent implements OnInit, OnDestroy {
+export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
 
   // Estado del componente
@@ -70,17 +71,17 @@ export class ValidacionComponent implements OnInit, OnDestroy {
 
   // Tabla de clientes
   clientesDisplayedColumns: string[] = [
-    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 
-    'integracion', 'liquidacion', 'liberacion', 'excepcion', 'liberado', 'registro'
+    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'registro'
   ];
-  clientesDataSource: any[] = [];
+  clientesDataSource = new MatTableDataSource<any>([]);
   
   // Paginación
-  pageSize = 10;
+  pageSize = 5;
   pageSizeOptions = [5, 10, 25, 50];
   currentPage = 0;
   totalRecords = 0;
   allClientes: any[] = []; // Todos los clientes para paginación local
+  clientesOriginales: any[] = []; // Copia de respaldo de todos los clientes originales
 
   // Tabla de documentos
   documentosDisplayedColumns: string[] = [
@@ -88,14 +89,26 @@ export class ValidacionComponent implements OnInit, OnDestroy {
     'eliminar', 'requerido', 'fecha', 'comentario', 'asignado'
   ];
   documentosDataSource: any[] = [];
+  
+  // Cliente seleccionado
+  selectedCliente: any = null;
+
+  // Búsqueda
+  searchTerm: string = '';
+
+  // ViewChild para ordenamiento
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private validacionService: ValidacionService,
     private defaultAgencyService: DefaultAgencyService,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+    console.log('🔧 ValidacionComponent - Constructor ejecutado');
+  }
 
   ngOnInit() {
+    console.log('🔧 ValidacionComponent - ngOnInit ejecutado');
     this.cargarAgencias();
     this.cargarProcesos();
     this.loadData();
@@ -116,6 +129,83 @@ export class ValidacionComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  ngAfterViewInit() {
+    // Configurar ordenamiento después de que la vista esté inicializada
+    console.log('🔧 ValidacionComponent - ngAfterViewInit ejecutado');
+    console.log('🔧 ValidacionComponent - MatSort disponible:', this.sort);
+    console.log('🔧 ValidacionComponent - Tipo de MatSort:', typeof this.sort);
+    console.log('🔧 ValidacionComponent - MatSort propiedades:', Object.keys(this.sort || {}));
+    
+    if (this.sort) {
+      console.log('✅ ValidacionComponent - MatSort configurado correctamente');
+      console.log('🔧 ValidacionComponent - Configurando suscripción a sortChange...');
+      
+      this.sort.sortChange.subscribe((sortEvent) => {
+        console.log('🔄 ValidacionComponent - Evento de ordenamiento detectado:', sortEvent);
+        console.log('🔧 ValidacionComponent - Evento completo:', JSON.stringify(sortEvent));
+        this.aplicarOrdenamiento();
+      });
+      
+      console.log('✅ ValidacionComponent - Suscripción a sortChange configurada');
+      
+      // Conectar MatSort al MatTableDataSource
+      this.clientesDataSource.sort = this.sort;
+      console.log('✅ ValidacionComponent - MatSort conectado al MatTableDataSource');
+      
+    } else {
+      console.error('❌ ValidacionComponent - MatSort no está disponible');
+    }
+  }
+
+  /**
+   * Manejar la selección de un cliente de la tabla superior
+   */
+  onClienteSelect(cliente: any): void {
+    console.log('🔍 ValidacionComponent - Cliente seleccionado:', cliente);
+    
+    // Guardar el cliente seleccionado
+    this.selectedCliente = cliente;
+    
+    // Cargar los documentos del cliente y pedido específicos
+    this.cargarDocumentosCliente(cliente.ndCliente, cliente.ndPedido);
+  }
+
+  /**
+   * Limpiar la selección del cliente
+   */
+  clearSelection(): void {
+    console.log('🧹 ValidacionComponent - Limpiando selección de cliente');
+    this.selectedCliente = null;
+    this.documentosDataSource = [];
+  }
+
+  /**
+   * Cargar documentos de un cliente y pedido específicos
+   */
+  private cargarDocumentosCliente(clienteId: number, pedidoId: number): void {
+    console.log('📄 ValidacionComponent - Cargando documentos para cliente:', clienteId, 'pedido:', pedidoId);
+    this.loading = true;
+    
+    this.validacionService.cargarDocumentos(clienteId, pedidoId)
+      .pipe(
+        takeUntil(this.destroy$),
+        timeout(10000)
+      )
+      .subscribe({
+        next: (documentos) => {
+          console.log('📥 ValidacionComponent - Documentos recibidos:', documentos);
+          this.documentosDataSource = documentos;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ ValidacionComponent - Error cargando documentos:', error);
+          this.mostrarError('Error cargando documentos del cliente y pedido');
+          this.documentosDataSource = [];
+          this.loading = false;
+        }
+      });
   }
 
   /**
@@ -270,14 +360,20 @@ export class ValidacionComponent implements OnInit, OnDestroy {
     
     // Limpiar datos existentes
     this.allClientes = [];
-    this.clientesDataSource = [];
+    this.clientesOriginales = [];
+    this.clientesDataSource.data = [];
     this.procesos = [];
     this.selectedAgency = null;
     this.selectedProcess = null;
+    this.selectedFase = '';
+    this.searchTerm = '';
     
     // Recargar agencias y procesos
     this.cargarAgencias();
     this.cargarProcesos();
+    
+    // Limpiar selección de cliente y documentos
+    this.clearSelection();
     
     // Mostrar mensaje de recarga
     this.snackBar.open('Recargando datos...', 'Cerrar', {
@@ -294,11 +390,11 @@ export class ValidacionComponent implements OnInit, OnDestroy {
 
   // Métodos para estadísticas
   getIntegradosCount(): number {
-    return this.clientesDataSource.filter(item => item.integracion).length;
+    return this.clientesDataSource.data.filter(item => item.integracion).length;
   }
 
   getPendientesCount(): number {
-    return this.clientesDataSource.filter(item => !item.integracion).length;
+    return this.clientesDataSource.data.filter(item => !item.integracion).length;
   }
 
   // Métodos de acción
@@ -332,6 +428,11 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onAgenciaChange() {
     console.log('🏢 ValidacionComponent - Agencia seleccionada:', this.selectedAgency);
+    
+    // Limpiar filtros y búsqueda cuando se cambia la agencia
+    this.selectedFase = '';
+    this.searchTerm = '';
+    
     // Actualizar la agencia en el servicio compartido
     if (this.selectedAgency !== null) {
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
@@ -340,6 +441,8 @@ export class ValidacionComponent implements OnInit, OnDestroy {
     if (this.selectedProcess) {
       this.cargarClientes();
     }
+    // Limpiar selección de cliente y documentos
+    this.clearSelection();
   }
 
   /**
@@ -347,9 +450,78 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onProcesoChange() {
     console.log('⚙️ ValidacionComponent - Proceso seleccionado:', this.selectedProcess);
+    
+    // Limpiar filtros y búsqueda cuando se cambia el proceso
+    this.selectedFase = '';
+    this.searchTerm = '';
+    
     if (this.selectedProcess !== null) {
       this.cargarClientes();
     }
+    // Limpiar selección de cliente y documentos
+    this.clearSelection();
+  }
+
+  /**
+   * Manejar cambio en la selección de fase
+   */
+  onFaseChange(): void {
+    console.log('🔄 ValidacionComponent - Fase seleccionada:', this.selectedFase);
+    
+    // Si hay búsqueda activa, aplicar búsqueda (que incluye filtro de fase)
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      this.aplicarBusqueda();
+    } else {
+      // Solo aplicar filtro de fase
+      this.aplicarFiltroFase();
+    }
+    
+    // Si hay un cliente seleccionado, recargar sus documentos
+    if (this.selectedCliente) {
+      this.cargarDocumentosCliente(this.selectedCliente.ndCliente, this.selectedCliente.ndPedido);
+    }
+  }
+
+  /**
+   * Aplicar filtro de fase a la tabla de clientes
+   */
+  private aplicarFiltroFase(): void {
+    console.log('🔍 ValidacionComponent - Aplicando filtro de fase:', this.selectedFase);
+    
+    if (!this.selectedFase || this.selectedFase === '') {
+      // Sin filtro, restaurar todos los clientes originales
+      this.allClientes = [...this.clientesOriginales];
+      this.totalRecords = this.allClientes.length;
+      this.currentPage = 0;
+      this.updatePaginatedData();
+      return;
+    }
+
+    // Filtrar clientes por fase desde los datos originales
+    const clientesFiltrados = this.clientesOriginales.filter(cliente => {
+      switch (this.selectedFase) {
+        case 'integracion':
+          return cliente.fase === 'Integración';
+        case 'liquidacion':
+          return cliente.fase === 'Liquidación';
+        case 'liberacion':
+          return cliente.fase === 'Liberación';
+        case 'excepcion':
+          return cliente.fase === 'Excepción';
+        case 'liberado':
+          return cliente.fase === 'Liberado';
+        default:
+          return true;
+      }
+    });
+
+    console.log('📊 ValidacionComponent - Clientes filtrados:', clientesFiltrados.length, 'de', this.clientesOriginales.length);
+    
+    // Actualizar los datos filtrados y aplicar paginación
+    this.allClientes = [...clientesFiltrados];
+    this.totalRecords = clientesFiltrados.length;
+    this.currentPage = 0; // Volver a la primera página
+    this.updatePaginatedData(); // Aplicar paginación con el tamaño de página configurado
   }
 
   /**
@@ -376,7 +548,7 @@ export class ValidacionComponent implements OnInit, OnDestroy {
         catchError(error => {
           console.error('❌ ValidacionComponent - Error cargando clientes:', error);
           this.mostrarError('Error cargando clientes');
-          this.clientesDataSource = [];
+          this.clientesDataSource.data = [];
           this.loading = false;
           return of([]);
         })
@@ -384,15 +556,25 @@ export class ValidacionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (clientes) => {
           console.log('✅ ValidacionComponent - Clientes cargados:', clientes);
-          this.allClientes = clientes; // Guardar todos los clientes
-          this.totalRecords = clientes.length;
+          console.log('🔍 ValidacionComponent - Primer cliente (si existe):', clientes.length > 0 ? clientes[0] : 'No hay clientes');
+          console.log('🔍 ValidacionComponent - Campos del primer cliente:', clientes.length > 0 ? Object.keys(clientes[0]) : 'No hay clientes');
+          
+          this.clientesOriginales = [...clientes]; // Guardar copia de respaldo
+          this.allClientes = [...clientes]; // Guardar todos los clientes
           this.currentPage = 0; // Volver a la primera página
-          this.updatePaginatedData(); // Aplicar paginación
+          
+          // Aplicar filtro de fase si está seleccionado
+          if (this.selectedFase && this.selectedFase !== '') {
+            this.aplicarFiltroFase();
+          } else {
+            this.updatePaginatedData(); // Aplicar paginación normal
+          }
+          
           this.loading = false;
         },
         error: (error) => {
           console.error('❌ ValidacionComponent - Error en subscribe de clientes:', error);
-          this.clientesDataSource = [];
+          this.clientesDataSource.data = [];
           this.loading = false;
         }
       });
@@ -414,8 +596,10 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    * Manejar cambio de página
    */
   onPageChange(event: any) {
+    console.log('🔄 ValidacionComponent - Cambio de página:', event);
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    console.log('📊 ValidacionComponent - Nueva página:', this.currentPage, 'Tamaño:', this.pageSize);
     this.updatePaginatedData();
   }
 
@@ -425,7 +609,7 @@ export class ValidacionComponent implements OnInit, OnDestroy {
   private updatePaginatedData() {
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.clientesDataSource = this.allClientes.slice(startIndex, endIndex);
+    this.clientesDataSource.data = this.allClientes.slice(startIndex, endIndex);
     this.totalRecords = this.allClientes.length;
   }
 
@@ -434,6 +618,216 @@ export class ValidacionComponent implements OnInit, OnDestroy {
    */
   onPageSizeChange(event: any) {
     this.pageSize = event.value;
+    this.currentPage = 0; // Volver a la primera página
+    this.updatePaginatedData();
+  }
+
+  /**
+   * Aplicar ordenamiento a los datos
+   */
+  private aplicarOrdenamiento() {
+    console.log('🔄 ValidacionComponent - Aplicando ordenamiento...');
+    console.log('🔧 ValidacionComponent - MatSort disponible:', !!this.sort);
+    console.log('🔧 ValidacionComponent - Total de clientes:', this.allClientes.length);
+    
+    if (!this.sort || !this.allClientes.length) {
+      console.warn('⚠️ ValidacionComponent - No se puede aplicar ordenamiento:', {
+        sort: !!this.sort,
+        clientes: this.allClientes.length
+      });
+      return;
+    }
+
+    const direction = this.sort.direction;
+    const active = this.sort.active;
+    
+    console.log('🔧 ValidacionComponent - Columna activa:', active);
+    console.log('🔧 ValidacionComponent - Dirección:', direction);
+
+    if (direction === '') {
+      console.log('🔄 ValidacionComponent - Sin dirección, actualizando paginación');
+      this.updatePaginatedData();
+      return;
+    }
+
+    console.log('🔄 ValidacionComponent - Iniciando ordenamiento de', this.allClientes.length, 'registros');
+    
+    // Ordenar todos los datos
+    this.allClientes.sort((a, b) => {
+      let aValue = this.getSortValue(a, active);
+      let bValue = this.getSortValue(b, active);
+
+      if (aValue === null || aValue === undefined) aValue = '';
+      if (bValue === null || bValue === undefined) bValue = '';
+
+      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    console.log('✅ ValidacionComponent - Ordenamiento completado');
+    console.log('🔧 ValidacionComponent - Primer registro después del ordenamiento:', this.allClientes[0]);
+    console.log('🔧 ValidacionComponent - Último registro después del ordenamiento:', this.allClientes[this.allClientes.length - 1]);
+
+    // Actualizar datos paginados
+    this.currentPage = 0;
+    this.updatePaginatedData();
+  }
+
+  /**
+   * Obtener valor para ordenamiento de una columna específica
+   */
+  private getSortValue(item: any, column: string): any {
+    switch (column) {
+      case 'ndCliente':
+        return item.ndCliente;
+      case 'ndPedido':
+        return item.ndPedido;
+      case 'cliente':
+        return item.cliente;
+      case 'proceso':
+        return item.proceso;
+      case 'operacion':
+        return item.operacion;
+      case 'fase':
+        return item.fase;
+      case 'registro':
+        return new Date(item.registro);
+      default:
+        return item[column];
+    }
+  }
+
+  /**
+   * Método de prueba para verificar que el ordenamiento funciona
+   */
+  probarOrdenamiento() {
+    console.log('🧪 ValidacionComponent - Probando ordenamiento...');
+    console.log('🔧 ValidacionComponent - MatSort disponible:', !!this.sort);
+    console.log('🔧 ValidacionComponent - Total de clientes:', this.allClientes.length);
+    
+    if (this.sort) {
+      // Simular un evento de ordenamiento
+      console.log('🧪 ValidacionComponent - Simulando ordenamiento por ND Cliente ascendente');
+      
+      // Opción 1: Intentar con el método sort
+      try {
+        this.sort.sort({
+          id: 'ndCliente',
+          start: 'asc',
+          disableClear: false
+        });
+        console.log('✅ ValidacionComponent - Método sort() ejecutado');
+      } catch (error) {
+        console.error('❌ ValidacionComponent - Error en sort():', error);
+      }
+      
+      // Opción 2: Llamar directamente al método de ordenamiento
+      console.log('🧪 ValidacionComponent - Llamando directamente a aplicarOrdenamiento()');
+      this.aplicarOrdenamiento();
+      
+    } else {
+      console.error('❌ ValidacionComponent - MatSort no está disponible para la prueba');
+    }
+    
+    // Mostrar información sobre la selección actual
+    if (this.selectedCliente) {
+      console.log('👤 ValidacionComponent - Cliente seleccionado:', this.selectedCliente);
+      console.log('📄 ValidacionComponent - Documentos cargados:', this.documentosDataSource.length);
+      console.log('🔍 ValidacionComponent - Filtros aplicados: Cliente ID:', this.selectedCliente.ndCliente, 'Pedido ID:', this.selectedCliente.ndPedido);
+    } else {
+      console.log('ℹ️ ValidacionComponent - No hay cliente seleccionado');
+    }
+  }
+
+  /**
+   * Manejar cambio en el término de búsqueda
+   */
+  onSearchChange(): void {
+    console.log('🔍 ValidacionComponent - Término de búsqueda:', this.searchTerm);
+    this.aplicarBusqueda();
+  }
+
+  /**
+   * Limpiar búsqueda
+   */
+  clearSearch(): void {
+    console.log('🧹 ValidacionComponent - Limpiando búsqueda');
+    this.searchTerm = '';
+    this.aplicarBusqueda();
+  }
+
+  /**
+   * Aplicar búsqueda a los datos
+   */
+  private aplicarBusqueda(): void {
+    console.log('🔍 ValidacionComponent - Aplicando búsqueda:', this.searchTerm);
+    
+    if (!this.searchTerm || this.searchTerm.trim() === '') {
+      // Sin búsqueda, aplicar solo filtro de fase si existe
+      if (this.selectedFase && this.selectedFase !== '') {
+        this.aplicarFiltroFase();
+      } else {
+        this.updatePaginatedData();
+      }
+      return;
+    }
+
+    const terminoBusqueda = this.searchTerm.toLowerCase().trim();
+    console.log('🔍 ValidacionComponent - Término de búsqueda normalizado:', terminoBusqueda);
+
+    // Filtrar clientes por término de búsqueda
+    let clientesFiltrados = this.clientesOriginales.filter(cliente => {
+      // Buscar en número de cliente
+      const ndCliente = String(cliente.ndCliente).toLowerCase();
+      if (ndCliente.includes(terminoBusqueda)) {
+        return true;
+      }
+
+      // Buscar en número de pedido
+      const ndPedido = String(cliente.ndPedido).toLowerCase();
+      if (ndPedido.includes(terminoBusqueda)) {
+        return true;
+      }
+
+      // Buscar en nombre del cliente
+      const nombreCliente = cliente.cliente.toLowerCase();
+      if (nombreCliente.includes(terminoBusqueda)) {
+        return true;
+      }
+
+      return false;
+    });
+
+    console.log('📊 ValidacionComponent - Clientes encontrados en búsqueda:', clientesFiltrados.length);
+
+    // Si hay filtro de fase, aplicarlo también
+    if (this.selectedFase && this.selectedFase !== '') {
+      clientesFiltrados = clientesFiltrados.filter(cliente => {
+        switch (this.selectedFase) {
+          case 'integracion':
+            return cliente.fase === 'Integración';
+          case 'liquidacion':
+            return cliente.fase === 'Liquidación';
+          case 'liberacion':
+            return cliente.fase === 'Liberación';
+          case 'excepcion':
+            return cliente.fase === 'Excepción';
+          case 'liberado':
+            return cliente.fase === 'Liberado';
+          default:
+            return true;
+        }
+      });
+      console.log('📊 ValidacionComponent - Clientes después de filtro de fase:', clientesFiltrados.length);
+    }
+
+    // Actualizar datos paginados con los resultados de búsqueda
+    this.allClientes = [...clientesFiltrados];
+    this.totalRecords = clientesFiltrados.length;
     this.currentPage = 0; // Volver a la primera página
     this.updatePaginatedData();
   }

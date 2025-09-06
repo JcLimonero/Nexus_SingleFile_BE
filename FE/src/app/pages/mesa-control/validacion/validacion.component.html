@@ -44,8 +44,7 @@
       padding-bottom: 0 !important;
     }
     
-
- no n    /* Estilos ultra compactos para TODOS los combos del filtro */
+    /* Estilos ultra compactos para TODOS los combos del filtro */
     .filtro-container .mat-mdc-form-field-infix {
       padding-top: 1px !important;
       padding-bottom: 1px !important;
@@ -209,8 +208,8 @@
 
         <!-- Filtros Principales -->
     <div class="bg-white rounded-lg shadow-sm border p-1 mb-2 filtro-container">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-1 filtro-grid">
-        <mat-form-field appearance="outline" class="w-full">
+      <div class="flex flex-wrap items-center justify-between gap-2.5 filtro-grid">
+        <mat-form-field appearance="outline" class="min-w-0 mr-2.5" style="width: 250px;">
           <mat-label>Agencia</mat-label>
           <mat-select [(ngModel)]="selectedAgency" [disabled]="loadingAgencias || agencias.length === 0" (selectionChange)="onAgenciaChange()">
             <mat-option *ngIf="loadingAgencias" value="" disabled>
@@ -226,7 +225,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="w-full ml-[15px]">
+        <mat-form-field appearance="outline" class="min-w-0 mr-2.5" style="width: 206px;">
           <mat-label>Proceso</mat-label>
           <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos || procesos.length === 0" (selectionChange)="onProcesoChange()">
             <mat-option *ngIf="loadingProcesos" value="" disabled>
@@ -242,21 +241,50 @@
           </mat-select>
         </mat-form-field>
 
-        <div class="flex items-start justify-end gap-1">
-          <button mat-icon-button 
-                  class="text-gray-600 hover:text-blue-600 transition-colors" 
+        <mat-form-field appearance="outline" class="min-w-0 mr-2.5" style="width: 206px;">
+          <mat-label>Fase</mat-label>
+          <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
+            <mat-option value="">Todas las fases</mat-option>
+            <mat-option value="integracion">Integración</mat-option>
+            <mat-option value="liquidacion">Liquidación</mat-option>
+            <mat-option value="liberacion">Liberación</mat-option>
+            <mat-option value="excepcion">Excepción</mat-option>
+            <mat-option value="liberado">Liberado</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Buscador integrado -->
+        <mat-form-field appearance="outline" class="flex-1 min-w-0 mr-2.5">
+          <mat-label>Buscar</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm" 
+                 (input)="onSearchChange()"
+                 placeholder="Pedido, cliente o nombre"
+                 class="text-sm">
+          <mat-icon matSuffix class="text-gray-400">search</mat-icon>
+        </mat-form-field>
+
+        <div class="flex items-center justify-center gap-2">
+          <button mat-icon-button
+                  *ngIf="searchTerm"
+                  (click)="clearSearch()"
+                  class="text-gray-500 hover:text-red-600 !w-8 !h-8"
+                  matTooltip="Limpiar búsqueda">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <button mat-icon-button
+                  class="text-gray-600 hover:text-blue-600 transition-colors"
                   (click)="recargarDatos()"
                   [disabled]="loading || loadingAgencias || loadingProcesos"
                   matTooltip="Recargar datos">
             <mat-icon [class.animate-spin]="loading || loadingAgencias || loadingProcesos">refresh</mat-icon>
           </button>
-          <button mat-icon-button class="text-gray-600">
-            <mat-icon>settings</mat-icon>
-          </button>
-          <button mat-icon-button class="text-gray-600">
-            <mat-icon>link</mat-icon>
-          </button>
         </div>
+      </div>
+
+      <!-- Contador de resultados de búsqueda -->
+      <div class="text-xs text-gray-500 mt-1 px-1" *ngIf="searchTerm">
+        Mostrando {{ clientesDataSource.data.length }} de {{ totalRecords }} registros
       </div>
     </div>
 
@@ -265,6 +293,7 @@
         <div class="p-2">
           <!-- Título de tabla removido -->
           
+          
           <div *ngIf="loading" class="flex justify-center items-center py-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
@@ -272,10 +301,8 @@
                         <table mat-table [dataSource]="clientesDataSource" matSort class="w-full" *ngIf="!loading">
             <!-- Columna ND Cliente -->
             <ng-container matColumnDef="ndCliente">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                ND Cliente
-                <mat-icon class="ml-1 text-gray-400">unfold_more</mat-icon>
-                <mat-icon class="ml-1 text-gray-400">search</mat-icon>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-0 bg-gray-50 text-xs font-medium text-gray-700">
+                <span class="flex items-center justify-center gap-1">ND Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
               <td mat-cell *matCellDef="let item" class="py-0 text-xs font-medium text-gray-900">
                 <div class="flex items-center">
@@ -287,10 +314,8 @@
 
             <!-- Columna ND Pedido -->
             <ng-container matColumnDef="ndPedido">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                ND Pedido
-                <mat-icon class="ml-1 text-gray-400">unfold_more</mat-icon>
-                <mat-icon class="ml-1 text-gray-400">search</mat-icon>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-0 bg-gray-50 text-xs font-medium text-gray-700">
+                <span class="flex items-center justify-center gap-1">ND Pedido <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
               <td mat-cell *matCellDef="let item" class="py-0 text-xs font-medium text-gray-900">
                 {{ item.ndPedido }}
@@ -300,9 +325,7 @@
             <!-- Columna Cliente -->
             <ng-container matColumnDef="cliente">
               <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                Cliente
-                <mat-icon class="ml-1 text-gray-400">unfold_more</mat-icon>
-                <mat-icon class="ml-1 text-gray-400">search</mat-icon>
+                <span class="flex items-center gap-1">Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
               <td mat-cell *matCellDef="let item" class="py-0 text-xs text-gray-700">
                 {{ item.cliente }}
@@ -311,92 +334,57 @@
 
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700">
-                Proceso
-                <mat-icon class="ml-1 text-gray-400">unfold_more</mat-icon>
-                <mat-icon class="ml-1 text-gray-400">search</mat-icon>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <span class="flex items-center justify-center gap-1">Proceso <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700">
                 {{ item.proceso }}
               </td>
             </ng-container>
 
             <!-- Columna Operación -->
             <ng-container matColumnDef="operacion">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-36 py-2 bg-gray-50 text-xs font-medium text-gray-700">
-                Operación
-                <mat-icon class="ml-1 text-gray-400">unfold_more</mat-icon>
-                <mat-icon class="ml-1 text-gray-400">search</mat-icon>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <span class="flex items-center justify-center gap-1">Operación <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700">
                 {{ item.operacion }}
               </td>
             </ng-container>
 
-            <!-- Columna Integración -->
-            <ng-container matColumnDef="integracion">
-              <th mat-header-cell *matHeaderCellDef class="w-16 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                Integración
+            <!-- Columna Fase -->
+            <ng-container matColumnDef="fase">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-28 py-0 bg-gray-50 text-xs font-medium text-gray-700">
+                <span class="flex items-center justify-center gap-1">Fase <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
               <td mat-cell *matCellDef="let item" class="py-0 text-center">
-                <mat-icon *ngIf="item.integracion" class="text-green-600 text-lg">check_circle</mat-icon>
-              </td>
-            </ng-container>
-
-            <!-- Columna Liquidación -->
-            <ng-container matColumnDef="liquidacion">
-              <th mat-header-cell *matHeaderCellDef class="w-16 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                Liquidación
-              </th>
-              <td mat-cell *matCellDef="let item" class="py-0 text-center">
-                <mat-icon *ngIf="item.liquidacion" class="text-green-600 text-lg">check_circle</mat-icon>
-              </td>
-            </ng-container>
-
-            <!-- Columna Liberación -->
-            <ng-container matColumnDef="liberacion">
-              <th mat-header-cell *matHeaderCellDef class="w-16 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                Liberación
-              </th>
-              <td mat-cell *matCellDef="let item" class="py-0 text-center">
-                <mat-icon *ngIf="item.liberacion" class="text-green-600 text-lg">check_circle</mat-icon>
-              </td>
-            </ng-container>
-
-            <!-- Columna Excepción -->
-            <ng-container matColumnDef="excepcion">
-              <th mat-header-cell *matHeaderCellDef class="w-16 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                Excepción
-              </th>
-              <td mat-cell *matCellDef="let item" class="py-0 text-center">
-                <mat-icon *ngIf="item.excepcion" class="text-red-600 text-lg">cancel</mat-icon>
-              </td>
-            </ng-container>
-
-            <!-- Columna Liberado -->
-            <ng-container matColumnDef="liberado">
-              <th mat-header-cell *matHeaderCellDef class="w-16 py-0 bg-gray-50 text-xs font-medium text-gray-700">
-                Liberado
-              </th>
-              <td mat-cell *matCellDef="let item" class="py-0 text-center">
-                <mat-icon *ngIf="item.liberado" class="text-green-600 text-lg">check_circle</mat-icon>
+                <span class="px-2 py-1 rounded-full text-xs font-medium"
+                      [ngClass]="{
+                        'bg-green-100 text-green-800': item.fase === 'Integración',
+                        'bg-blue-100 text-blue-800': item.fase === 'Liquidación',
+                        'bg-purple-100 text-purple-800': item.fase === 'Liberación',
+                        'bg-red-100 text-red-800': item.fase === 'Excepción',
+                        'bg-indigo-100 text-indigo-800': item.fase === 'Liberado'
+                      }">
+                  {{ item.fase }}
+                </span>
               </td>
             </ng-container>
 
             <!-- Columna Registro -->
             <ng-container matColumnDef="registro">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-28 py-2 bg-gray-50 text-xs font-medium text-gray-700">
-                Registro
-                <mat-icon class="ml-1 text-gray-400">unfold_more</mat-icon>
-                <mat-icon class="ml-1 text-gray-400">search</mat-icon>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <span class="flex items-center justify-center gap-1">Registro <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700 text-center">
                 {{ item.registro }}
               </td>
             </ng-container>
 
                               <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" class="!min-h-0 !h-10"></tr>
+                  <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" 
+                      (click)="onClienteSelect(row)"
+                      [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.ndCliente === row.ndCliente}"></tr>
                 </table>
                 
                 <!-- Paginador -->
@@ -413,33 +401,33 @@
         </div>
       </mat-card>
 
-      <!-- Filtro de Fase - Entre las dos tablas -->
-      <div class="bg-white rounded-lg shadow-sm border p-1 mb-2 filtro-container">
-        <div class="grid grid-cols-1 gap-1">
-          <mat-form-field appearance="outline" class="w-64">
-            <mat-label>Fase</mat-label>
-            <mat-select [(ngModel)]="selectedFase">
-              <mat-option value="">Seleccionar un Estatus</mat-option>
-              <mat-option value="integracion">Integración</mat-option>
-              <mat-option value="liquidacion">Liquidación</mat-option>
-              <mat-option value="liberacion">Liberación</mat-option>
-              <mat-option value="excepcion">Excepción</mat-option>
-              <mat-option value="liberado">Liberado</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </div>
 
       <!-- Tabla de Documentos -->
       <mat-card class="mb-4">
         <div class="p-2">
           <!-- Título de tabla removido -->
           
-          <div *ngIf="loading" class="flex justify-center items-center py-8">
+          <!-- Mensaje cuando no hay cliente seleccionado -->
+          <div *ngIf="!selectedCliente" class="flex justify-center items-center py-8 text-gray-500">
+            <div class="text-center">
+              <mat-icon class="text-gray-400 text-4xl mb-2">info</mat-icon>
+              <p class="text-sm">Selecciona un cliente/pedido de la tabla superior para ver sus documentos</p>
+            </div>
+          </div>
+          
+          <!-- Loading cuando se están cargando documentos -->
+          <div *ngIf="loading && selectedCliente" class="flex justify-center items-center py-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
+          
+          <!-- Tabla de documentos cuando hay cliente seleccionado -->
+          <div *ngIf="selectedCliente && !loading">
+            <!-- Información de documentos -->
+            <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600">
+              Mostrando {{ documentosDataSource.length }} documentos para el cliente {{ selectedCliente.cliente }} (Pedido: {{ selectedCliente.ndPedido }})
+            </div>
 
-          <table mat-table [dataSource]="documentosDataSource" matSort class="w-full" *ngIf="!loading">
+                      <table mat-table [dataSource]="documentosDataSource" matSort class="w-full" *ngIf="documentosDataSource.length > 0">
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
               <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700">
@@ -564,6 +552,15 @@
             <tr mat-header-row *matHeaderRowDef="documentosDisplayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: documentosDisplayedColumns;" class="!min-h-0 !h-10"></tr>
           </table>
+          
+          <!-- Mensaje cuando no hay documentos -->
+          <div *ngIf="documentosDataSource.length === 0" class="flex justify-center items-center py-8 text-gray-500">
+            <div class="text-center">
+              <mat-icon class="text-gray-400 text-4xl mb-2">folder_open</mat-icon>
+              <p class="text-sm">No hay documentos disponibles para este cliente y pedido</p>
+            </div>
+          </div>
+          </div>
         </div>
       </mat-card>
 

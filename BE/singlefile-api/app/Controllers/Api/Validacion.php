@@ -43,11 +43,11 @@ class Validacion extends BaseController
                 ->select('
                     f.Id as ndCliente,
                     f.IdOrder as ndPedido,
-                    c.Name as cliente,
+                    TRIM(CONCAT(COALESCE(c.Name, ""), " ", COALESCE(c.LastName, ""), " ", COALESCE(c.MotherLastName, ""))) as cliente,
                     p.Name as proceso,
                     ot.Name as operacion,
                     f.RegistrationDate as registro,
-                    fs.Name as estado_actual,
+                    fs.Name as fase,
                     f.IdCurrentState
                 ')
                 ->join('HeaderClient hc', 'f.IdClient = hc.Id', 'inner')
@@ -58,20 +58,12 @@ class Validacion extends BaseController
                 ->where('f.IdAgency', $idAgency)
                 ->where('f.IdProcess', $idProcess)
                 ->where('p.Enabled', 1)
+                ->where('(c.Name IS NOT NULL AND c.Name != "") OR (c.LastName IS NOT NULL AND c.LastName != "") OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != "")')
                 ->orderBy('f.RegistrationDate', 'DESC')
                 ->limit($limit, $offset);
 
             // Ejecutar query principal
             $results = $query->get()->getResultArray();
-
-            // Calcular campos CASE WHEN en PHP
-            foreach ($results as &$row) {
-                $row['integracion'] = ($row['IdCurrentState'] == 1) ? 1 : 0;
-                $row['liquidacion'] = ($row['IdCurrentState'] == 2) ? 1 : 0;
-                $row['liberacion'] = ($row['IdCurrentState'] == 3) ? 1 : 0;
-                $row['excepcion'] = ($row['IdCurrentState'] == 5) ? 1 : 0;
-                $row['liberado'] = (in_array($row['IdCurrentState'], [4, 6])) ? 1 : 0;
-            }
 
             // Query para contar total de registros
             $countQuery = $this->db->table('File f')
@@ -83,7 +75,8 @@ class Validacion extends BaseController
                 ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
                 ->where('f.IdAgency', $idAgency)
                 ->where('f.IdProcess', $idProcess)
-                ->where('p.Enabled', 1);
+                ->where('p.Enabled', 1)
+                ->where('(c.Name IS NOT NULL AND c.Name != "") OR (c.LastName IS NOT NULL AND c.LastName != "") OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != "")');
 
             $totalResult = $countQuery->get()->getRowArray();
             $total = $totalResult ? $totalResult['total'] : 0;
@@ -172,16 +165,21 @@ class Validacion extends BaseController
     }
 
     /**
-     * Obtener documentos de un cliente específico
-     * GET /api/validacion/documentos/:idCliente
+     * Obtener documentos de un cliente y pedido específicos
+     * GET /api/validacion/documentos?clienteId=123&pedidoId=456
      */
-    public function getDocumentos($idCliente = null)
+    public function getDocumentos()
     {
         try {
-            if (!$idCliente) {
+            // Obtener parámetros de la petición
+            $clienteId = $this->request->getGet('clienteId');
+            $pedidoId = $this->request->getGet('pedidoId');
+
+            // Validar parámetros requeridos
+            if (!$clienteId || !$pedidoId) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'El ID del cliente es requerido',
+                    'message' => 'Los parámetros clienteId y pedidoId son requeridos',
                     'data' => null
                 ])->setStatusCode(400);
             }
@@ -194,14 +192,16 @@ class Validacion extends BaseController
                     dbf.Comment as comentario,
                     dbf.RegistrationDate as fecha,
                     u.Name as asignado,
-                    CASE WHEN dbf.Enabled = 1 THEN 1 ELSE 0 END as requerido
+                    CASE WHEN dbf.Enabled = 1 THEN 1 ELSE 0 END as requerido,
+                    dbf.IdCurrentStatus as idEstatus
                 ')
                 ->join('File f', 'dbf.IdFile = f.Id', 'inner')
                 ->join('Process p', 'f.IdProcess = p.Id', 'inner')
                 ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
                 ->join('File_Status fs', 'dbf.IdCurrentStatus = fs.Id', 'inner')
                 ->join('User u', 'dbf.IdLastUserUpdate = u.Id', 'left')
-                ->where('f.Id', $idCliente)
+                ->where('f.Id', $clienteId)
+                ->where('f.IdOrder', $pedidoId)
                 ->orderBy('dbf.RegistrationDate', 'DESC');
 
             $results = $query->get()->getResultArray();

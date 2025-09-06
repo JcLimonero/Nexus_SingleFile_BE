@@ -10,12 +10,9 @@ export interface Cliente {
   cliente: string;
   proceso: string;
   operacion: string;
-  integracion: boolean;
-  liquidacion: boolean;
-  liberacion: boolean;
-  excepcion: boolean;
-  liberado: boolean;
+  fase: string;
   registro: string;
+  IdCurrentState: number;
 }
 
 export interface Documento {
@@ -30,6 +27,7 @@ export interface Documento {
   fecha: string;
   comentario: string;
   asignado: string;
+  idEstatus: number;
 }
 
 export interface FiltrosValidacion {
@@ -61,35 +59,19 @@ export class ValidacionService {
    * Cargar agencias disponibles (solo activas y con permisos del usuario)
    */
   cargarAgencias(): Observable<any[]> {
-    console.log('🔄 ValidacionService - Iniciando carga de agencias...');
     const url = `${this.apiUrl}/api/agency`;
-    console.log('🔄 ValidacionService - URL:', url);
     
     return this.http.get<any>(url).pipe(
-      map(response => {
-        console.log('🔄 ValidacionService - Respuesta completa recibida:', response);
-        
-        // Verificar si la respuesta tiene la estructura esperada
+      map((response: any) => {
         if (response && response.success && response.data && response.data.agencies) {
-          console.log('✅ ValidacionService - Estructura correcta encontrada, agencias:', response.data.agencies);
           return response.data.agencies;
-        }
-        
-        // Si no tiene la estructura esperada, devolver la respuesta tal como viene
-        if (Array.isArray(response)) {
-          console.log('✅ ValidacionService - Respuesta es array directo:', response);
+        } else if (response && Array.isArray(response)) {
           return response;
-        }
-        
-        // Si es un objeto simple, intentar extraer las agencias
-        if (response && response.agencies && Array.isArray(response.agencies)) {
-          console.log('✅ ValidacionService - Agencias extraídas del objeto:', response.agencies);
+        } else if (response && response.agencies) {
           return response.agencies;
+        } else {
+          return [];
         }
-        
-        // Si nada funciona, devolver array vacío
-        console.warn('⚠️ ValidacionService - Respuesta de API inesperada:', response);
-        return [];
       })
     );
   }
@@ -118,25 +100,36 @@ export class ValidacionService {
     if (filtros.agencia) params = params.set('id', filtros.agencia);
     if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
     params = params.set('page', '1');
-    params = params.set('limit', '100'); // Obtener más registros para paginación local
+    params = params.set('limit', '10000'); // Obtener más registros para paginación local
 
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
       map(response => {
+        console.log('🔍 ValidacionService - Respuesta completa del API:', response);
+        console.log('🔍 ValidacionService - URL llamada:', `${this.apiUrl}/api/clients-validation/clientes`);
+        console.log('🔍 ValidacionService - Parámetros:', params.toString());
+        
         if (response && response.success && response.data && response.data.clientes) {
+          console.log('✅ ValidacionService - Clientes extraídos:', response.data.clientes);
+          console.log('🔍 ValidacionService - Primer cliente:', response.data.clientes.length > 0 ? response.data.clientes[0] : 'No hay clientes');
           return response.data.clientes;
         }
+        console.log('⚠️ ValidacionService - No se encontraron clientes en la respuesta');
         return [];
       })
     );
   }
 
   /**
-   * Cargar documentos de un cliente específico
+   * Cargar documentos de un cliente y pedido específicos
    */
-  cargarDocumentos(clienteId: number): Observable<Documento[]> {
+  cargarDocumentos(clienteId: number, pedidoId: number): Observable<Documento[]> {
     this.loadingSubject.next(true);
     
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos/${clienteId}`).pipe(
+    let params = new HttpParams();
+    params = params.set('clienteId', clienteId.toString());
+    params = params.set('pedidoId', pedidoId.toString());
+    
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos`, { params }).pipe(
       map(response => {
         if (response && response.success && response.data) {
           return response.data;
@@ -150,35 +143,19 @@ export class ValidacionService {
    * Cargar procesos disponibles
    */
   cargarProcesos(): Observable<any[]> {
-    console.log('🔄 ValidacionService - Iniciando carga de procesos...');
     const url = `${this.apiUrl}/api/process`;
-    console.log('🔄 ValidacionService - URL procesos:', url);
     
     return this.http.get<any>(url).pipe(
-      map(response => {
-        console.log('🔄 ValidacionService - Respuesta procesos recibida:', response);
-        
-        // Verificar si la respuesta tiene la estructura esperada
+      map((response: any) => {
         if (response && response.success && response.data && response.data.processes) {
-          console.log('✅ ValidacionService - Estructura correcta encontrada, procesos:', response.data.processes);
           return response.data.processes;
-        }
-        
-        // Si no tiene la estructura esperada, devolver la respuesta tal como viene
-        if (Array.isArray(response)) {
-          console.log('✅ ValidacionService - Respuesta es array directo:', response);
+        } else if (response && Array.isArray(response)) {
           return response;
-        }
-        
-        // Si es un objeto simple, intentar extraer los procesos
-        if (response && response.processes && Array.isArray(response.processes)) {
-          console.log('✅ ValidacionService - Procesos extraídos del objeto:', response.processes);
+        } else if (response && response.processes) {
           return response.processes;
+        } else {
+          return [];
         }
-        
-        // Si nada funciona, devolver array vacío
-        console.warn('⚠️ ValidacionService - Respuesta de API inesperada para procesos:', response);
-        return [];
       })
     );
   }

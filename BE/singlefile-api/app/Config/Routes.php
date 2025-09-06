@@ -242,7 +242,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     $routes->group('clients-validation', function($routes) {
         $routes->get('clientes', 'Validacion::getClientes');
         $routes->get('estadisticas', 'Validacion::getEstadisticas');
-        $routes->get('documentos/(:num)', 'Validacion::getDocumentos/$1');
+        $routes->get('documentos', 'Validacion::getDocumentos');
     });
 });
 
