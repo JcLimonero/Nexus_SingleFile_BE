@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
 export interface Cliente {
@@ -207,6 +207,31 @@ export class ValidacionService {
       clienteId,
       motivo
     });
+  }
+
+  /**
+   * Cancelar pedido
+   */
+  cancelarPedido(clienteId: number, motivoId: number, comentario: string): Observable<any> {
+    const data = {
+      clienteId: clienteId,
+      motivoId: motivoId,
+      comentario: comentario
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/cancelar-pedido`, data).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Error al cancelar el pedido');
+        }
+      }),
+      catchError(error => {
+        console.error('Error cancelando pedido:', error);
+        throw error;
+      })
+    );
   }
 
   /**

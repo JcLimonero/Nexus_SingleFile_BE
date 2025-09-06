@@ -1,0 +1,50 @@
+// Estilos específicos para el diálogo de cancelar pedido
+.mat-mdc-dialog-container {
+  max-width: 600px;
+  width: 100%;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-text-field-wrapper {
+  background-color: white;
+}
+
+// Estilos para el área de información del cliente
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+// Estilos para los botones
+.mat-mdc-button,
+.mat-mdc-raised-button {
+  min-width: 120px;
+}
+
+.mat-mdc-raised-button[color="warn"] {
+  background-color: #dc2626;
+  color: white;
+}
+
+.mat-mdc-raised-button[color="warn"]:hover {
+  background-color: #b91c1c;
+}
+
+// Estilos para el spinner
+.mat-mdc-progress-spinner {
+  display: inline-block;
+}
+
+// Estilos para el hint
+.mat-mdc-form-field-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+// Estilos para el textarea
+textarea.mat-mdc-input-element {
+  resize: vertical;
+  min-height: 80px;
+}

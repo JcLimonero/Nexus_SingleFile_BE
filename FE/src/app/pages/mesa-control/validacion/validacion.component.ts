@@ -13,12 +13,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { CancelarPedidoDialogComponent, CancelarPedidoData, CancelarPedidoResult } from './cancelar-pedido-dialog/cancelar-pedido-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -130,8 +131,58 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onCancelar(cliente: any): void {
     console.log('Cancelar para cliente:', cliente);
-    // Implementar lógica de cancelación
-    this.snackBar.open(`Cancelando proceso para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+    
+    const dialogData: CancelarPedidoData = {
+      cliente: cliente
+    };
+
+    const dialogRef = this.dialog.open(CancelarPedidoDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((result: CancelarPedidoResult) => {
+      if (result) {
+        console.log('Resultado de cancelación:', result);
+        this.procesarCancelacion(cliente, result);
+      }
+    });
+  }
+
+  private procesarCancelacion(cliente: any, result: CancelarPedidoResult): void {
+    console.log('Procesando cancelación:', {
+      cliente: cliente,
+      motivoId: result.motivoId,
+      comentario: result.comentario
+    });
+
+    // Llamar al servicio para cancelar el pedido
+    this.validacionService.cancelarPedido(
+      parseInt(cliente.ndCliente), 
+      result.motivoId, 
+      result.comentario
+    ).subscribe({
+      next: (response) => {
+        console.log('Pedido cancelado exitosamente:', response);
+        this.snackBar.open(
+          `Pedido ${cliente.ndPedido} cancelado exitosamente`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+        
+        // Recargar los datos para reflejar el cambio
+        this.cargarClientes();
+      },
+      error: (error) => {
+        console.error('Error cancelando pedido:', error);
+        this.snackBar.open(
+          `Error al cancelar el pedido: ${error.message || 'Error desconocido'}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+      }
+    });
   }
 
   onExcepcion(cliente: any): void {
@@ -164,7 +215,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private validacionService: ValidacionService,
     private defaultAgencyService: DefaultAgencyService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     console.log('🔧 ValidacionComponent - Constructor ejecutado');
   }

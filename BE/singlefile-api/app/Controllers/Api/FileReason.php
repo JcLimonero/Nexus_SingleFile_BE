@@ -26,7 +26,7 @@ class FileReason extends BaseController
             $limit = $this->request->getGet('limit') ?? null;
             $search = $this->request->getGet('search');
             $idTypeReason = $this->request->getGet('id_type_reason');
-            $sortBy = $this->request->getGet('sort_by') ?? 'Description';
+            $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
             // Si no se especifica límite o es 0, obtener todos los registros

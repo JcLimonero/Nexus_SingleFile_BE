@@ -243,6 +243,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('clientes', 'Validacion::getClientes');
         $routes->get('estadisticas', 'Validacion::getEstadisticas');
         $routes->get('documentos', 'Validacion::getDocumentos');
+        $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
     });
 });
 

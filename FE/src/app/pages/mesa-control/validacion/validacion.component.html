@@ -405,15 +405,15 @@
                     <mat-icon>download</mat-icon>
                     <span>Descargar archivo</span>
                   </button>
-                  <button mat-menu-item *ngIf="item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
+                  <button mat-menu-item (click)="onCancelar(item); $event.stopPropagation()">
                     <mat-icon>cancel</mat-icon>
-                    <span>Cancelar</span>
+                    <span>Cancelar pedido</span>
                   </button>
-                  <button mat-menu-item *ngIf="item.fase !== 'Liberado'" (click)="onExcepcion(item); $event.stopPropagation()">
+                  <button mat-menu-item (click)="onExcepcion(item); $event.stopPropagation()">
                     <mat-icon>warning</mat-icon>
-                    <span>Excepción</span>
+                    <span>Excepción en el pedido</span>
                   </button>
-                  <button mat-menu-item *ngIf="isManagerOrAdmin" (click)="onAdministrar(item); $event.stopPropagation()">
+                  <button mat-menu-item (click)="onAdministrar(item); $event.stopPropagation()">
                     <mat-icon>admin_panel_settings</mat-icon>
                     <span>Administrar</span>
                   </button>
