@@ -17,6 +17,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -45,6 +47,8 @@ import { DefaultAgencyService, Agencia } from '../../../core/services/default-ag
     MatTooltipModule,
     MatChipsModule,
     MatCheckboxModule,
+    MatMenuModule,
+    MatSlideToggleModule,
     ScrollingModule
   ],
   templateUrl: './validacion.component.html',
@@ -63,6 +67,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedAgency: number | null = null;
   selectedProcess: number | null = null;
   selectedFase: string = '';
+  showCancelledOrders: boolean = false;
 
   // Datos de filtros disponibles
   agencias: any[] = [];
@@ -71,7 +76,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Tabla de clientes
   clientesDisplayedColumns: string[] = [
-    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'registro'
+    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'registro', 'acciones'
   ];
   clientesDataSource = new MatTableDataSource<any>([]);
   
@@ -95,6 +100,63 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Búsqueda
   searchTerm: string = '';
+
+  // Verificar si el usuario es gerente o administrador
+  get isManagerOrAdmin(): boolean {
+    // Aquí deberías obtener el rol del usuario desde tu servicio de autenticación
+    // Por ahora retorno true para mostrar la opción, pero deberías implementar la lógica real
+    const userRole = this.getCurrentUserRole(); // Implementar esta función
+    return userRole === 'gerente' || userRole === 'administrador';
+  }
+
+  // Métodos para las acciones del menú
+  onDescargarArchivo(cliente: any): void {
+    console.log('Descargar archivo para cliente:', cliente);
+    // Implementar lógica de descarga
+    this.snackBar.open(`Descargando archivo para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+  }
+
+  // Método para prevenir la propagación del evento en el botón de acciones
+  onActionsClick(event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
+  // Método para manejar el toggle de pedidos cancelados
+  onToggleCancelledOrders(): void {
+    console.log('🔄 ValidacionComponent - Toggle pedidos cancelados:', this.showCancelledOrders);
+    this.cargarClientes();
+  }
+
+  onCancelar(cliente: any): void {
+    console.log('Cancelar para cliente:', cliente);
+    // Implementar lógica de cancelación
+    this.snackBar.open(`Cancelando proceso para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+  }
+
+  onExcepcion(cliente: any): void {
+    console.log('Excepción para cliente:', cliente);
+    // Implementar lógica de excepción
+    this.snackBar.open(`Creando excepción para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+  }
+
+  onAdministrar(cliente: any): void {
+    console.log('Administrar para cliente:', cliente);
+    // Implementar lógica de administración
+    this.snackBar.open(`Abriendo administración para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+  }
+
+  // Método temporal para obtener el rol del usuario
+  private getCurrentUserRole(): string {
+    // Implementar la lógica real para obtener el rol del usuario
+    // Por ahora retorno 'gerente' para mostrar la opción
+    return 'gerente';
+  }
+
+  // Verificar si las opciones de cancelar y excepción están disponibles
+  canCancelOrCreateException(cliente: any): boolean {
+    return cliente.fase !== 'Liberado';
+  }
 
   // ViewChild para ordenamiento
   @ViewChild(MatSort) sort!: MatSort;
@@ -538,7 +600,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const filtros: FiltrosValidacion = {
       agencia: this.selectedAgency,
-      proceso: this.selectedProcess
+      proceso: this.selectedProcess,
+      showCancelled: this.showCancelledOrders
     };
 
     this.validacionService.cargarClientes(filtros)

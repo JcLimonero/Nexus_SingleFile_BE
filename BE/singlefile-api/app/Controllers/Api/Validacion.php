@@ -25,6 +25,10 @@ class Validacion extends BaseController
             // Obtener parámetros de la petición
             $idAgency = $this->request->getGet('id');
             $idProcess = $this->request->getGet('idProcess');
+            $showCancelledParam = $this->request->getGet('showCancelled');
+            $showCancelled = ($showCancelledParam === 'true');
+            
+            
             $page = (int) $this->request->getGet('page') ?: 1;
             $limit = (int) $this->request->getGet('limit') ?: 10;
             $offset = ($page - 1) * $limit;
@@ -38,47 +42,68 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Query principal usando Query Builder
-            $query = $this->db->table('File f')
-                ->select('
+            // Query principal usando SQL directo para evitar problemas con Query Builder
+            $sql = "
+                SELECT 
                     f.Id as ndCliente,
                     f.IdOrder as ndPedido,
-                    TRIM(CONCAT(COALESCE(c.Name, ""), " ", COALESCE(c.LastName, ""), " ", COALESCE(c.MotherLastName, ""))) as cliente,
+                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
                     p.Name as proceso,
                     ot.Name as operacion,
                     f.RegistrationDate as registro,
                     fs.Name as fase,
                     f.IdCurrentState
-                ')
-                ->join('HeaderClient hc', 'f.IdClient = hc.Id', 'inner')
-                ->join('Client c', 'hc.IdClient = c.Id', 'inner')
-                ->join('Process p', 'f.IdProcess = p.Id', 'inner')
-                ->join('OperationType ot', 'f.IdOperation = ot.Id', 'inner')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
-                ->where('f.IdAgency', $idAgency)
-                ->where('f.IdProcess', $idProcess)
-                ->where('p.Enabled', 1)
-                ->where('(c.Name IS NOT NULL AND c.Name != "") OR (c.LastName IS NOT NULL AND c.LastName != "") OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != "")')
-                ->orderBy('f.RegistrationDate', 'DESC')
-                ->limit($limit, $offset);
+                FROM File f
+                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN OperationType ot ON f.IdOperation = ot.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE f.IdAgency = ?
+                AND f.IdProcess = ?
+                AND p.Enabled = 1
+                AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+            ";
+            
+            $params = [$idAgency, $idProcess];
+            
+            // Aplicar filtro de pedidos cancelados 
+            if ($showCancelled) {
+                $sql .= " AND f.IdCurrentState = 5";
+            }
+            
+            $sql .= " ORDER BY f.RegistrationDate DESC LIMIT ? OFFSET ?";
+            $params[] = $limit;
+            $params[] = $offset;
 
             // Ejecutar query principal
-            $results = $query->get()->getResultArray();
+            $query = $this->db->query($sql, $params);
+            $results = $query->getResultArray();
 
-            // Query para contar total de registros
-            $countQuery = $this->db->table('File f')
-                ->select('COUNT(*) as total')
-                ->join('HeaderClient hc', 'f.IdClient = hc.Id', 'inner')
-                ->join('Client c', 'hc.IdClient = c.Id', 'inner')
-                ->join('Process p', 'f.IdProcess = p.Id', 'inner')
-                ->join('OperationType ot', 'f.IdOperation = ot.Id', 'inner')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
-                ->where('f.IdAgency', $idAgency)
-                ->where('f.IdProcess', $idProcess)
-                ->where('p.Enabled', 1)
-                ->where('(c.Name IS NOT NULL AND c.Name != "") OR (c.LastName IS NOT NULL AND c.LastName != "") OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != "")');
+            // Query para contar total de registros usando SQL directo
+            $countSql = "
+                SELECT COUNT(*) as total
+                FROM File f
+                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN OperationType ot ON f.IdOperation = ot.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE f.IdAgency = ?
+                AND f.IdProcess = ?
+                AND p.Enabled = 1
+                AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+            ";
+            
+            $countParams = [$idAgency, $idProcess];
+            
+            // Aplicar el mismo filtro de pedidos cancelados a la query de conteo
+            if ($showCancelled) {
+                $countSql .= " AND f.IdCurrentState = 5";
+            }
 
-            $totalResult = $countQuery->get()->getRowArray();
+            $countQuery = $this->db->query($countSql, $countParams);
+            $totalResult = $countQuery->getRowArray();
             $total = $totalResult ? $totalResult['total'] : 0;
 
             // Calcular información de paginación
@@ -192,13 +217,13 @@ class Validacion extends BaseController
                     dbf.Comment as comentario,
                     dbf.RegistrationDate as fecha,
                     u.Name as asignado,
-                    CASE WHEN dbf.Enabled = 1 THEN 1 ELSE 0 END as requerido,
+                    dbf.Enabled as requerido,
                     dbf.IdCurrentStatus as idEstatus
                 ')
                 ->join('File f', 'dbf.IdFile = f.Id', 'inner')
                 ->join('Process p', 'f.IdProcess = p.Id', 'inner')
                 ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-                ->join('File_Status fs', 'dbf.IdCurrentStatus = fs.Id', 'inner')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
                 ->join('User u', 'dbf.IdLastUserUpdate = u.Id', 'left')
                 ->where('f.Id', $clienteId)
                 ->where('f.IdOrder', $pedidoId)
