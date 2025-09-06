@@ -482,7 +482,7 @@
                       <table mat-table [dataSource]="documentosDataSource" matSort class="w-full" *ngIf="documentosDataSource.length > 0">
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
-              <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Proceso
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
@@ -492,7 +492,7 @@
 
             <!-- Columna Fase -->
             <ng-container matColumnDef="fase">
-              <th mat-header-cell *matHeaderCellDef class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Fase
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
@@ -502,29 +502,44 @@
 
             <!-- Columna Documento -->
             <ng-container matColumnDef="documento">
-              <th mat-header-cell *matHeaderCellDef class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Documento
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
-                {{ item.documento }}
+                <span class="block truncate" [matTooltip]="item.documento" matTooltipPosition="above">
+                  {{ item.documento }}
+                </span>
               </td>
             </ng-container>
 
             <!-- Columna Estatus -->
             <ng-container matColumnDef="estatus">
-              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Estatus
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <div class="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center mx-auto">
-                  <span class="text-white text-xs font-bold">i</span>
+                <!-- Icono según el estatus del documento -->
+                <div *ngIf="item.idEstatus === '2'" class="flex items-center justify-center mx-auto cursor-help" 
+                     matTooltip="Documento pendiente de validación" 
+                     matTooltipPosition="above">
+                  <mat-icon class="text-orange-500" style="font-size: 20px; width: 20px; height: 20px;">pending_actions</mat-icon>
+                </div>
+                <div *ngIf="item.idEstatus === '4'" class="flex items-center justify-center mx-auto cursor-help" 
+                     matTooltip="Documento validado y aprobado" 
+                     matTooltipPosition="above">
+                  <mat-icon class="text-green-500" style="font-size: 20px; width: 20px; height: 20px;">verified</mat-icon>
+                </div>
+                <div *ngIf="item.idEstatus !== '2' && item.idEstatus !== '4'" class="flex items-center justify-center mx-auto cursor-help" 
+                     matTooltip="Documento en proceso de revisión" 
+                     matTooltipPosition="above">
+                  <mat-icon class="text-blue-500" style="font-size: 20px; width: 20px; height: 20px;">hourglass_empty</mat-icon>
                 </div>
               </td>
             </ng-container>
 
             <!-- Columna Ver -->
             <ng-container matColumnDef="ver">
-              <th mat-header-cell *matHeaderCellDef class="w-16 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-16 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Ver
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
@@ -536,7 +551,7 @@
 
             <!-- Columna Validar -->
             <ng-container matColumnDef="validar">
-              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Validar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
@@ -551,29 +566,32 @@
 
             <!-- Columna Eliminar -->
             <ng-container matColumnDef="eliminar">
-              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Eliminar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button mat-icon-button color="warn" class="!w-6 !h-6 !min-h-6 !p-0">
+                <button *ngIf="isManagerOrAdmin" mat-icon-button color="warn" class="!w-6 !h-6 !min-h-6 !p-0">
                   <mat-icon class="!text-sm">remove_circle</mat-icon>
                 </button>
+                <span *ngIf="!isManagerOrAdmin" class="text-xs text-gray-400">-</span>
               </td>
             </ng-container>
 
             <!-- Columna Requerido -->
             <ng-container matColumnDef="requerido">
-              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Requerido
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <mat-checkbox [checked]="item.requerido" class="!w-4 !h-4"></mat-checkbox>
+                <span class="text-xs font-medium" [ngClass]="item.requerido == 1 ? 'text-green-600' : 'text-gray-400'">
+                  {{ item.requerido == 1 ? 'Sí' : 'No' }}
+                </span>
               </td>
             </ng-container>
 
             <!-- Columna Fecha -->
             <ng-container matColumnDef="fecha">
-              <th mat-header-cell *matHeaderCellDef class="w-28 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Fecha
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
@@ -583,21 +601,25 @@
 
             <!-- Columna Comentario -->
             <ng-container matColumnDef="comentario">
-              <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-51 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Comentario
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
-                {{ item.comentario }}
+                <span class="block truncate" [matTooltip]="item.comentario" matTooltipPosition="above">
+                  {{ item.comentario }}
+                </span>
               </td>
             </ng-container>
 
             <!-- Columna Asignado -->
             <ng-container matColumnDef="asignado">
-              <th mat-header-cell *matHeaderCellDef class="w-28 py-2 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef class="w-45 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Asignado
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700">
-                {{ item.asignado }}
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+                <span class="block truncate" [matTooltip]="item.asignado" matTooltipPosition="above">
+                  {{ item.asignado }}
+                </span>
               </td>
             </ng-container>
 

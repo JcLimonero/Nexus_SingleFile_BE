@@ -361,7 +361,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Verificar si las opciones de cancelar y excepción están disponibles
   canCancelOrCreateException(cliente: any): boolean {
-    return cliente.fase !== 'Liberado';
+    return cliente.IdCurrentState !== 3; // Liberado
   }
 
   // ViewChild para ordenamiento
@@ -781,19 +781,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Filtrar clientes por fase desde los datos originales
+    // Filtrar clientes por fase desde los datos originales usando ID
     const clientesFiltrados = this.clientesOriginales.filter(cliente => {
       switch (this.selectedFase) {
         case 'integracion':
-          return cliente.fase === 'Integración';
+          return cliente.IdCurrentState === 1; // Integración
         case 'liquidacion':
-          return cliente.fase === 'Liquidación';
+          return cliente.IdCurrentState === 7; // Liquidación
         case 'liberacion':
-          return cliente.fase === 'Liberación';
+          return cliente.IdCurrentState === 4; // Liberación
         case 'excepcion':
-          return cliente.fase === 'Excepción';
+          return cliente.IdCurrentState === 6; // Excepción
         case 'liberado':
-          return cliente.fase === 'Liberado';
+          return cliente.IdCurrentState === 3; // Liberado
         default:
           return true;
       }
@@ -1108,15 +1108,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       clientesFiltrados = clientesFiltrados.filter(cliente => {
         switch (this.selectedFase) {
           case 'integracion':
-            return cliente.fase === 'Integración';
+            return cliente.IdCurrentState === 1; // Integración
           case 'liquidacion':
-            return cliente.fase === 'Liquidación';
+            return cliente.IdCurrentState === 7; // Liquidación
           case 'liberacion':
-            return cliente.fase === 'Liberación';
+            return cliente.IdCurrentState === 4; // Liberación
           case 'excepcion':
-            return cliente.fase === 'Excepción';
+            return cliente.IdCurrentState === 6; // Excepción
           case 'liberado':
-            return cliente.fase === 'Liberado';
+            return cliente.IdCurrentState === 3; // Liberado
           default:
             return true;
         }

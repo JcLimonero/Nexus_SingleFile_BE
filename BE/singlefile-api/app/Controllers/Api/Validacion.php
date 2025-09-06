@@ -572,19 +572,23 @@ class Validacion extends BaseController
 
             $query = $this->db->table('DocumentByFile dbf')
                 ->select('
+                    dbf.Id as idDocumentByFile,
                     p.Name as proceso,
                     fs.Name as fase,
                     dt.Name as documento,
                     dbf.Comment as comentario,
                     dbf.RegistrationDate as fecha,
                     u.Name as asignado,
-                    dbf.Enabled as requerido,
-                    dbf.IdCurrentStatus as idEstatus
+                    dt.Required as requerido,
+                    dfs.Id as idEstatus,
+                    dfs.Name as EstatusName,
+                    dt.ReqExpiration as ReqExpiration
                 ')
                 ->join('File f', 'dbf.IdFile = f.Id', 'inner')
                 ->join('Process p', 'f.IdProcess = p.Id', 'inner')
                 ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+                ->join('File_Status fs', 'dt.IdProcessType = fs.Id', 'inner')
+                ->join('DocumentFile_Status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
                 ->join('User u', 'dbf.IdLastUserUpdate = u.Id', 'left')
                 ->where('f.Id', $clienteId)
                 ->where('f.IdOrder', $pedidoId)
