@@ -118,6 +118,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     return userRole === 'gerente' || userRole === 'administrador';
   }
 
+  // Método auxiliar para el tooltip de fecha de expiración
+  getFechaExpiracionTooltip(fechaExpiracion: string | null): string {
+    return fechaExpiracion ? fechaExpiracion : '';
+  }
+
 
   // Métodos para las acciones del menú
   onDescargarArchivo(cliente: any): void {

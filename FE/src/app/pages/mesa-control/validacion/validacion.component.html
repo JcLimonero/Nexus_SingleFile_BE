@@ -613,7 +613,9 @@
                 Fecha
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
-                {{ item.fecha }}
+                <span class="truncate block" [matTooltip]="item.fecha" matTooltipPosition="above">
+                  {{ item.fecha }}
+                </span>
               </td>
             </ng-container>
 
@@ -623,7 +625,7 @@
                 Fecha Expiración
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
-                <span *ngIf="item.fechaExpiracion; else noFechaExpiracion" class="text-blue-600 font-medium">
+                <span *ngIf="item.fechaExpiracion; else noFechaExpiracion" class="text-blue-600 font-medium truncate block" [matTooltip]="getFechaExpiracionTooltip(item.fechaExpiracion)" matTooltipPosition="above">
                   {{ item.fechaExpiracion | date:'dd/MM/yyyy' }}
                 </span>
                 <ng-template #noFechaExpiracion>
