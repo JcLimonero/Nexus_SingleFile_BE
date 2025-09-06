@@ -245,6 +245,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('documentos', 'Validacion::getDocumentos');
         $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
         $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');
+        $routes->delete('eliminar-pedido', 'Validacion::eliminarPedido');
     });
 });
 

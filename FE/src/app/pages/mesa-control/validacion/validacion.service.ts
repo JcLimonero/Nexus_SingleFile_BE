@@ -260,6 +260,29 @@ export class ValidacionService {
   }
 
   /**
+   * Eliminar pedido y sus relaciones
+   */
+  eliminarPedido(clienteId: number): Observable<any> {
+    const data = {
+      clienteId: clienteId
+    };
+
+    return this.http.delete<any>(`${this.apiUrl}/api/clients-validation/eliminar-pedido`, { body: data }).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Error al eliminar el pedido');
+        }
+      }),
+      catchError(error => {
+        console.error('Error eliminando pedido:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
    * Crear excepción (método legacy)
    */
   crearExcepcion(clienteId: string, datos: any): Observable<any> {

@@ -21,6 +21,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CancelarPedidoDialogComponent, CancelarPedidoData, CancelarPedidoResult } from './cancelar-pedido-dialog/cancelar-pedido-dialog.component';
 import { ExcepcionPedidoDialogComponent, ExcepcionPedidoData, ExcepcionPedidoResult } from './excepcion-pedido-dialog/excepcion-pedido-dialog.component';
+import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult } from './eliminar-pedido-dialog/eliminar-pedido-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -244,8 +245,61 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onAdministrar(cliente: any): void {
     console.log('Administrar para cliente:', cliente);
-    // Implementar lógica de administración
-    this.snackBar.open(`Abriendo administración para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+    // Este método ya no se usa directamente, ahora abre el submenú
+  }
+
+  onEliminar(cliente: any): void {
+    console.log('Eliminar para cliente:', cliente);
+
+    const dialogData: EliminarPedidoData = {
+      cliente: cliente
+    };
+
+    const dialogRef = this.dialog.open(EliminarPedidoDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((result: EliminarPedidoResult) => {
+      if (result && result.confirmado) {
+        console.log('Confirmación de eliminación:', result);
+        this.procesarEliminacion(cliente);
+      }
+    });
+  }
+
+  private procesarEliminacion(cliente: any): void {
+    console.log('Procesando eliminación:', cliente);
+
+    // Llamar al servicio para eliminar el pedido
+    this.validacionService.eliminarPedido(parseInt(cliente.ndCliente)).subscribe({
+      next: (response) => {
+        console.log('Pedido eliminado exitosamente:', response);
+        this.snackBar.open(
+          `Pedido ${cliente.ndPedido} eliminado exitosamente`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+        
+        // Recargar los datos para reflejar el cambio
+        this.cargarClientes();
+      },
+      error: (error) => {
+        console.error('Error eliminando pedido:', error);
+        this.snackBar.open(
+          `Error al eliminar el pedido: ${error.message || 'Error desconocido'}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+      }
+    });
+  }
+
+  onCambiarEstatus(cliente: any): void {
+    console.log('Cambiar estatus para cliente:', cliente);
+    // Implementar lógica de cambio de estatus
+    this.snackBar.open(`Cambiando estatus del pedido ${cliente.ndPedido}`, 'Cerrar', { duration: 3000 });
   }
 
   // Método temporal para obtener el rol del usuario

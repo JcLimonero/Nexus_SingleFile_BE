@@ -70,6 +70,9 @@ class Validacion extends BaseController
             // Aplicar filtro de pedidos cancelados 
             if ($showCancelled) {
                 $sql .= " AND f.IdCurrentState = 5";
+            } else {
+                // Cuando no se muestran cancelados, excluir solo cancelados (5), pero mostrar excepciones (6)
+                $sql .= " AND f.IdCurrentState != 5";
             }
             
             $sql .= " ORDER BY f.RegistrationDate DESC LIMIT ? OFFSET ?";
@@ -100,6 +103,9 @@ class Validacion extends BaseController
             // Aplicar el mismo filtro de pedidos cancelados a la query de conteo
             if ($showCancelled) {
                 $countSql .= " AND f.IdCurrentState = 5";
+            } else {
+                // Cuando no se muestran cancelados, excluir solo cancelados (5), pero mostrar excepciones (6)
+                $countSql .= " AND f.IdCurrentState != 5";
             }
 
             $countQuery = $this->db->query($countSql, $countParams);
@@ -260,6 +266,73 @@ class Validacion extends BaseController
             
         } catch (\Exception $e) {
             error_log("Error en Validacion::excepcionPedido: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Eliminar pedido y sus relaciones
+     * DELETE /api/clients-validation/eliminar-pedido
+     */
+    public function eliminarPedido()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+            
+            // Validar datos requeridos
+            if (empty($data['clienteId'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro clienteId es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            $clienteId = $data['clienteId'];
+            
+            // Iniciar transacción para asegurar consistencia
+            $this->db->transStart();
+            
+            // 1. Eliminar documentos relacionados (DocumentByFile)
+            $this->db->table('DocumentByFile')
+                ->where('IdFile', $clienteId)
+                ->delete();
+            
+            // 2. Eliminar el registro principal de File
+            $result = $this->db->table('File')
+                ->where('Id', $clienteId)
+                ->delete();
+            
+            // Verificar si la transacción fue exitosa
+            if ($this->db->transStatus() === false || !$result) {
+                $this->db->transRollback();
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo eliminar el pedido',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            
+            // Confirmar transacción
+            $this->db->transComplete();
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Pedido eliminado exitosamente',
+                'data' => [
+                    'clienteId' => $clienteId,
+                    'fechaEliminacion' => date('Y-m-d H:i:s')
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            // Rollback en caso de error
+            $this->db->transRollback();
+            error_log("Error en Validacion::eliminarPedido: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage(),
