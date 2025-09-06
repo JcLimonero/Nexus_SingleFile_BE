@@ -85,7 +85,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Tabla de clientes
   clientesDisplayedColumns: string[] = [
-    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'registro', 'acciones'
+    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'
   ];
   clientesDataSource = new MatTableDataSource<any>([]);
   
@@ -568,6 +568,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           case 'operacion': return item.operacion;
           case 'fase': return item.fase;
           case 'registro': return new Date(item.registro);
+          case 'fechaLiberacion': return new Date(item.fechaLiberacion);
           default: return item[property];
         }
       };
@@ -1225,6 +1226,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         return item.fase;
       case 'registro':
         return new Date(item.registro);
+      case 'fechaLiberacion':
+        return new Date(item.fechaLiberacion);
       default:
         return item[column];
     }

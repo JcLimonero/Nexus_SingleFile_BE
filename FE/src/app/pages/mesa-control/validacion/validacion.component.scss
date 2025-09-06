@@ -186,9 +186,13 @@
   .mat-mdc-cell:nth-child(4), // proceso (tabla clientes)
   .mat-mdc-cell:nth-child(5), // operación (tabla clientes)
   .mat-mdc-cell:nth-child(6), // fase (tabla clientes)
+  .mat-mdc-cell:nth-child(7), // fechaLiberacion (tabla clientes)
+  .mat-mdc-cell:nth-child(8), // registro (tabla clientes)
   .mat-mdc-header-cell:nth-child(4), // proceso header (tabla clientes)
   .mat-mdc-header-cell:nth-child(5), // operación header (tabla clientes)
-  .mat-mdc-header-cell:nth-child(6) { // fase header (tabla clientes)
+  .mat-mdc-header-cell:nth-child(6), // fase header (tabla clientes)
+  .mat-mdc-header-cell:nth-child(7), // fechaLiberacion header (tabla clientes)
+  .mat-mdc-header-cell:nth-child(8) { // registro header (tabla clientes)
     text-align: left !important;
   }
   

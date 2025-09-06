@@ -81,6 +81,7 @@ class Validacion extends BaseController
                     f.RegistrationDate as registro,
                     fs.Name as fase,
                     f.IdCurrentState,
+                    f.AgendDate as fechaLiberacion,
                     CASE 
                         WHEN EXISTS (
                             SELECT 1 
@@ -102,7 +103,7 @@ class Validacion extends BaseController
                 AND f.IdProcess = ?
                 AND p.Enabled = 1
                 AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
-                GROUP BY f.Id, f.IdOrder, c.Name, c.LastName, c.MotherLastName, p.Name, ot.Name, f.RegistrationDate, fs.Name, f.IdCurrentState
+                GROUP BY f.Id, f.IdOrder, c.Name, c.LastName, c.MotherLastName, p.Name, ot.Name, f.RegistrationDate, fs.Name, f.IdCurrentState, f.AgendDate
             ";
             
             $params = [$idAgency, $idProcess];

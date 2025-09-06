@@ -50,24 +50,6 @@ export class NavigationLoaderService {
         children: [
           {
             type: 'link',
-            label: 'Dashboard Principal',
-            route: '/mesa-control/dashboard',
-            icon: 'mat:dashboard'
-          },
-          {
-            type: 'link',
-            label: 'Monitoreo en Tiempo Real',
-            route: '/mesa-control/monitoreo',
-            icon: 'mat:monitor'
-          },
-          {
-            type: 'link',
-            label: 'Reportes',
-            route: '/mesa-control/reportes',
-            icon: 'mat:assessment'
-          },
-          {
-            type: 'link',
             label: 'Validación',
             route: '/mesa-control/validacion',
             icon: 'mat:verified'
