@@ -245,11 +245,9 @@
           <mat-label>Fase</mat-label>
           <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
             <mat-option value="">Todas las fases</mat-option>
-            <mat-option value="integracion">Integración</mat-option>
-            <mat-option value="liquidacion">Liquidación</mat-option>
-            <mat-option value="liberacion">Liberación</mat-option>
-            <mat-option value="excepcion">Excepción</mat-option>
-            <mat-option value="liberado">Liberado</mat-option>
+            <mat-option *ngFor="let fase of fases" [value]="fase.value">
+              {{ fase.name }}
+            </mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -308,13 +306,13 @@
             <mat-spinner diameter="40"></mat-spinner>
           </div>
 
-                        <table mat-table [dataSource]="clientesDataSource" matSort class="w-full compact-table" *ngIf="!loading">
+                        <table mat-table [dataSource]="clientesDataSource" matSort class="w-full" *ngIf="!loading">
             <!-- Columna ND Cliente -->
             <ng-container matColumnDef="ndCliente">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center gap-1">ND Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center gap-1">ND Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-xs font-medium text-gray-900">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-left">
                 <div class="flex items-center">
                   <span *ngIf="item.tieneDocumentosPendientes == 1" class="text-yellow-500 mr-1">★</span>
                   {{ item.ndCliente }}
@@ -324,50 +322,52 @@
 
             <!-- Columna ND Pedido -->
             <ng-container matColumnDef="ndPedido">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center gap-1">ND Pedido <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center gap-1">ND Pedido <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-xs font-medium text-gray-900">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-left">
                 {{ item.ndPedido }}
               </td>
             </ng-container>
 
             <!-- Columna Cliente -->
             <ng-container matColumnDef="cliente">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
                 <span class="flex items-center gap-1">Cliente <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700">
-                {{ item.cliente }}
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+                <span class="block truncate" [matTooltip]="item.cliente" matTooltipPosition="above">
+                  {{ item.cliente }}
+                </span>
               </td>
             </ng-container>
 
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center gap-1">Proceso <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center gap-1">Proceso <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
                 {{ item.proceso }}
               </td>
             </ng-container>
 
             <!-- Columna Operación -->
             <ng-container matColumnDef="operacion">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center gap-1">Operación <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center gap-1">Operación <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
                 {{ item.operacion }}
               </td>
             </ng-container>
 
             <!-- Columna Fase -->
             <ng-container matColumnDef="fase">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center gap-1">Fase <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center gap-1">Fase <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-left">
                 <span class="px-2 py-1 rounded-full text-xs font-medium"
                       [ngClass]="{
                         'bg-green-100 text-green-800': item.fase === 'Integración',
@@ -383,22 +383,22 @@
 
             <!-- Columna Registro -->
             <ng-container matColumnDef="registro">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center gap-1">Registro <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
+              <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center gap-1">Registro <mat-icon class="text-gray-400">unfold_more</mat-icon></span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
                 {{ item.registro }}
               </td>
             </ng-container>
 
             <!-- Columna Acciones -->
             <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef class="w-24 py-1 bg-gray-50 text-xs font-medium text-gray-700">
-                <span class="flex items-center justify-center">Acciones</span>
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                <span class="flex items-center">Acciones</span>
               </th>
-              <td mat-cell *matCellDef="let item" class="py-1 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-left">
                 <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="text-gray-600 hover:text-blue-600" (click)="onActionsClick($event)">
-                  <mat-icon>more_vert</mat-icon>
+                  <mat-icon class="text-sm">more_vert</mat-icon>
                 </button>
                 <mat-menu #actionsMenu="matMenu">
                   <button mat-menu-item (click)="onDescargarArchivo(item); $event.stopPropagation()">

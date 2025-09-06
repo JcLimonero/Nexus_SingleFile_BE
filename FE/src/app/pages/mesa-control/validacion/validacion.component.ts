@@ -25,6 +25,7 @@ import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult
 import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
 import { VerDocumentoDialogComponent } from './ver-documento-dialog/ver-documento-dialog.component';
 import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
+import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -80,7 +81,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Datos de filtros disponibles
   agencias: any[] = [];
   procesos: any[] = [];
-  fases: any[] = [];
+  fases: CatalogItem[] = FASES_CATALOG;
 
   // Tabla de clientes
   clientesDisplayedColumns: string[] = [
@@ -873,12 +874,17 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   onFaseChange(): void {
     console.log('🔄 ValidacionComponent - Fase seleccionada:', this.selectedFase);
+    console.log('🔄 ValidacionComponent - Tipo de fase seleccionada:', typeof this.selectedFase);
+    console.log('🔄 ValidacionComponent - Clientes originales disponibles:', this.clientesOriginales.length);
+    console.log('🔄 ValidacionComponent - Búsqueda activa:', this.searchTerm);
     
     // Si hay búsqueda activa, aplicar búsqueda (que incluye filtro de fase)
     if (this.searchTerm && this.searchTerm.trim() !== '') {
+      console.log('🔄 ValidacionComponent - Aplicando búsqueda con filtro de fase');
       this.aplicarBusqueda();
     } else {
       // Solo aplicar filtro de fase
+      console.log('🔄 ValidacionComponent - Aplicando solo filtro de fase');
       this.aplicarFiltroFase();
     }
     
@@ -893,39 +899,90 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private aplicarFiltroFase(): void {
     console.log('🔍 ValidacionComponent - Aplicando filtro de fase:', this.selectedFase);
+    console.log('🔍 ValidacionComponent - Clientes originales:', this.clientesOriginales.length);
     
     if (!this.selectedFase || this.selectedFase === '') {
+      console.log('🔍 ValidacionComponent - Sin filtro de fase, restaurando todos los clientes');
       // Sin filtro, restaurar todos los clientes originales
-      this.allClientes = [...this.clientesOriginales];
+      let clientesRestaurados = [...this.clientesOriginales];
+      
+      // Aplicar filtro de cancelados
+      if (this.showCancelledOrders) {
+        // Solo mostrar cancelados
+        clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) === '5');
+        console.log('🔍 ValidacionComponent - Mostrando solo cancelados (sin filtro de fase):', clientesRestaurados.length);
+      } else {
+        // Excluir cancelados
+        clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) !== '5');
+        console.log('🔍 ValidacionComponent - Excluyendo cancelados (sin filtro de fase):', clientesRestaurados.length);
+      }
+      
+      this.allClientes = clientesRestaurados;
       this.totalRecords = this.allClientes.length;
       this.currentPage = 0;
       this.updatePaginatedData();
       
       // Seleccionar automáticamente el primer registro si hay clientes
-      if (this.clientesOriginales.length > 0) {
-        this.seleccionarCliente(this.clientesOriginales[0]);
+      if (this.allClientes.length > 0) {
+        this.seleccionarCliente(this.allClientes[0]);
       } else {
         this.selectedCliente = null;
       }
       return;
     }
 
+    console.log('🔍 ValidacionComponent - Filtrando clientes por fase:', this.selectedFase);
     // Filtrar clientes por fase desde los datos originales usando ID
     const clientesFiltrados = this.clientesOriginales.filter(cliente => {
-      switch (this.selectedFase) {
-        case 'integracion':
-          return cliente.IdCurrentState === 1; // Integración
-        case 'liquidacion':
-          return cliente.IdCurrentState === 7; // Liquidación
-        case 'liberacion':
-          return cliente.IdCurrentState === 4; // Liberación
-        case 'excepcion':
-          return cliente.IdCurrentState === 6; // Excepción
-        case 'liberado':
-          return cliente.IdCurrentState === 3; // Liberado
-        default:
-          return true;
+      console.log(`🔍 ValidacionComponent - Cliente ${cliente.ndCliente} - IdCurrentState: ${cliente.IdCurrentState} (tipo: ${typeof cliente.IdCurrentState})`);
+      
+      // Aplicar filtro de cancelados
+      if (this.showCancelledOrders) {
+        // Solo mostrar cancelados
+        if (String(cliente.IdCurrentState) !== '5') {
+          console.log(`🔍 ValidacionComponent - Excluyendo cliente no cancelado ${cliente.ndCliente} (toggle activado)`);
+          return false;
+        }
+      } else {
+        // Excluir cancelados
+        if (String(cliente.IdCurrentState) === '5') {
+          console.log(`🔍 ValidacionComponent - Excluyendo cliente cancelado ${cliente.ndCliente} (toggle desactivado)`);
+          return false;
+        }
       }
+      
+      let resultado = false;
+      switch (this.selectedFase) {
+        case '1':
+          resultado = String(cliente.IdCurrentState) === '1'; // Integración
+          console.log(`🔍 ValidacionComponent - Integración: ${cliente.IdCurrentState} === '1' = ${resultado}`);
+          break;
+        case '2':
+          resultado = String(cliente.IdCurrentState) === '2'; // Liquidación
+          console.log(`🔍 ValidacionComponent - Liquidación: ${cliente.IdCurrentState} === '2' = ${resultado}`);
+          break;
+        case '3':
+          resultado = String(cliente.IdCurrentState) === '3'; // Liberación
+          console.log(`🔍 ValidacionComponent - Liberación: ${cliente.IdCurrentState} === '3' = ${resultado}`);
+          break;
+        case '4':
+          resultado = String(cliente.IdCurrentState) === '4'; // Liberado
+          console.log(`🔍 ValidacionComponent - Liberado: ${cliente.IdCurrentState} === '4' = ${resultado}`);
+          break;
+        case '5':
+          resultado = String(cliente.IdCurrentState) === '5'; // Cancelado
+          console.log(`🔍 ValidacionComponent - Cancelado: ${cliente.IdCurrentState} === '5' = ${resultado}`);
+          break;
+        case '6':
+          resultado = String(cliente.IdCurrentState) === '6'; // Liberado por Excepción
+          console.log(`🔍 ValidacionComponent - Excepción: ${cliente.IdCurrentState} === '6' = ${resultado}`);
+          break;
+        default:
+          resultado = true;
+          console.log(`🔍 ValidacionComponent - Default: ${resultado}`);
+          break;
+      }
+      return resultado;
     });
 
     console.log('📊 ValidacionComponent - Clientes filtrados:', clientesFiltrados.length, 'de', this.clientesOriginales.length);
@@ -980,6 +1037,16 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('🔍 ValidacionComponent - Primer cliente (si existe):', clientes.length > 0 ? clientes[0] : 'No hay clientes');
           console.log('🔍 ValidacionComponent - Campos del primer cliente:', clientes.length > 0 ? Object.keys(clientes[0]) : 'No hay clientes');
           
+          // Verificar específicamente el campo IdCurrentState
+          if (clientes.length > 0) {
+            console.log('🔍 ValidacionComponent - IdCurrentState del primer cliente:', clientes[0].IdCurrentState);
+            console.log('🔍 ValidacionComponent - Tipo de IdCurrentState:', typeof clientes[0].IdCurrentState);
+            
+            // Mostrar todos los IdCurrentState únicos
+            const estadosUnicos = [...new Set(clientes.map(c => c.IdCurrentState))];
+            console.log('🔍 ValidacionComponent - Estados únicos encontrados:', estadosUnicos);
+          }
+          
           this.clientesOriginales = [...clientes]; // Guardar copia de respaldo
           this.allClientes = [...clientes]; // Guardar todos los clientes
           this.currentPage = 0; // Volver a la primera página
@@ -988,12 +1055,22 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           if (this.selectedFase && this.selectedFase !== '') {
             this.aplicarFiltroFase();
           } else {
+            // Aplicar filtro de cancelados
+            if (this.showCancelledOrders) {
+              // Solo mostrar cancelados
+              this.allClientes = this.allClientes.filter(cliente => String(cliente.IdCurrentState) === '5');
+              console.log('🔍 ValidacionComponent - Mostrando solo cancelados:', this.allClientes.length);
+            } else {
+              // Excluir cancelados
+              this.allClientes = this.allClientes.filter(cliente => String(cliente.IdCurrentState) !== '5');
+              console.log('🔍 ValidacionComponent - Excluyendo cancelados:', this.allClientes.length);
+            }
             this.updatePaginatedData(); // Aplicar paginación normal
           }
           
-          // Seleccionar automáticamente el primer registro si hay clientes
-          if (clientes.length > 0) {
-            this.seleccionarCliente(clientes[0]);
+          // Seleccionar automáticamente el primer registro si hay clientes (usar datos filtrados)
+          if (this.allClientes.length > 0) {
+            this.seleccionarCliente(this.allClientes[0]);
           } else {
             this.selectedCliente = null;
           }
@@ -1235,22 +1312,48 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Si hay filtro de fase, aplicarlo también
     if (this.selectedFase && this.selectedFase !== '') {
       clientesFiltrados = clientesFiltrados.filter(cliente => {
+        // Aplicar filtro de cancelados
+        if (this.showCancelledOrders) {
+          // Solo mostrar cancelados
+          if (String(cliente.IdCurrentState) !== '5') {
+            return false;
+          }
+        } else {
+          // Excluir cancelados
+          if (String(cliente.IdCurrentState) === '5') {
+            return false;
+          }
+        }
+        
         switch (this.selectedFase) {
-          case 'integracion':
-            return cliente.IdCurrentState === 1; // Integración
-          case 'liquidacion':
-            return cliente.IdCurrentState === 7; // Liquidación
-          case 'liberacion':
-            return cliente.IdCurrentState === 4; // Liberación
-          case 'excepcion':
-            return cliente.IdCurrentState === 6; // Excepción
-          case 'liberado':
-            return cliente.IdCurrentState === 3; // Liberado
+          case '1':
+            return String(cliente.IdCurrentState) === '1'; // Integración
+          case '2':
+            return String(cliente.IdCurrentState) === '2'; // Liquidación
+          case '3':
+            return String(cliente.IdCurrentState) === '3'; // Liberación
+          case '4':
+            return String(cliente.IdCurrentState) === '4'; // Liberado
+          case '5':
+            return String(cliente.IdCurrentState) === '5'; // Cancelado
+          case '6':
+            return String(cliente.IdCurrentState) === '6'; // Liberado por Excepción
           default:
             return true;
         }
       });
       console.log('📊 ValidacionComponent - Clientes después de filtro de fase:', clientesFiltrados.length);
+    } else {
+      // Si no hay filtro de fase, aplicar filtro de cancelados
+      if (this.showCancelledOrders) {
+        // Solo mostrar cancelados
+        clientesFiltrados = clientesFiltrados.filter(cliente => String(cliente.IdCurrentState) === '5');
+        console.log('📊 ValidacionComponent - Mostrando solo cancelados (sin filtro de fase):', clientesFiltrados.length);
+      } else {
+        // Excluir cancelados
+        clientesFiltrados = clientesFiltrados.filter(cliente => String(cliente.IdCurrentState) !== '5');
+        console.log('📊 ValidacionComponent - Excluyendo cancelados (sin filtro de fase):', clientesFiltrados.length);
+      }
     }
 
     // Actualizar datos paginados con los resultados de búsqueda
