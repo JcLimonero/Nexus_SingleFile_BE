@@ -163,20 +163,57 @@
     padding: 0px !important;
   }
   
-  // Centrar contenido de columnas específicas
-  .mat-mdc-cell:nth-child(4), // estatus
-  .mat-mdc-cell:nth-child(5), // ver
-  .mat-mdc-cell:nth-child(6), // validar
-  .mat-mdc-cell:nth-child(7), // eliminar
-  .mat-mdc-cell:nth-child(8), // requerido
-  .mat-mdc-cell:nth-child(9), // requiereExpiracion
-  .mat-mdc-header-cell:nth-child(4), // estatus header
-  .mat-mdc-header-cell:nth-child(5), // ver header
-  .mat-mdc-header-cell:nth-child(6), // validar header
-  .mat-mdc-header-cell:nth-child(7), // eliminar header
-  .mat-mdc-header-cell:nth-child(8), // requerido header
-  .mat-mdc-header-cell:nth-child(9) { // requiereExpiracion header
+  // Centrar contenido de columnas específicas (solo iconos y valores Sí/No de la tabla de documentos)
+  .mat-mdc-cell:nth-child(4), // estatus (tabla documentos)
+  .mat-mdc-cell:nth-child(5), // ver (tabla documentos)
+  .mat-mdc-cell:nth-child(6), // validar (tabla documentos)
+  .mat-mdc-cell:nth-child(7), // eliminar (tabla documentos)
+  .mat-mdc-cell:nth-child(8), // requerido (tabla documentos)
+  .mat-mdc-cell:nth-child(9), // requiereExpiracion (tabla documentos)
+  .mat-mdc-header-cell:nth-child(4), // estatus header (tabla documentos)
+  .mat-mdc-header-cell:nth-child(5), // ver header (tabla documentos)
+  .mat-mdc-header-cell:nth-child(6), // validar header (tabla documentos)
+  .mat-mdc-header-cell:nth-child(7), // eliminar header (tabla documentos)
+  .mat-mdc-header-cell:nth-child(8), // requerido header (tabla documentos)
+  .mat-mdc-header-cell:nth-child(9) { // requiereExpiracion header (tabla documentos)
     text-align: center !important;
+  }
+}
+
+// Estilos específicos para la tabla de clientes (tabla superior)
+:host ::ng-deep {
+  // Alinear a la izquierda las columnas de texto en la tabla de clientes
+  .mat-mdc-cell:nth-child(4), // proceso (tabla clientes)
+  .mat-mdc-cell:nth-child(5), // operación (tabla clientes)
+  .mat-mdc-cell:nth-child(6), // fase (tabla clientes)
+  .mat-mdc-header-cell:nth-child(4), // proceso header (tabla clientes)
+  .mat-mdc-header-cell:nth-child(5), // operación header (tabla clientes)
+  .mat-mdc-header-cell:nth-child(6) { // fase header (tabla clientes)
+    text-align: left !important;
+  }
+  
+  // Mostrar iconos de ordenamiento en los headers
+  .mat-sort-header-arrow {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+  }
+  
+  .mat-sort-header-stem {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .mat-sort-header-indicator {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  // Estilos para los iconos de ordenamiento
+  .mat-sort-header-button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 }
 

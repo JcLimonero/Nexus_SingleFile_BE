@@ -90,8 +90,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   clientesDataSource = new MatTableDataSource<any>([]);
   
   // Paginación
-  pageSize = 5;
-  pageSizeOptions = [5, 10, 25, 50];
+  pageSize = 7;
+  pageSizeOptions = [5, 7, 10, 25, 50];
   currentPage = 0;
   totalRecords = 0;
   allClientes: any[] = []; // Todos los clientes para paginación local
@@ -557,6 +557,20 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       // Conectar MatSort al MatTableDataSource
       this.clientesDataSource.sort = this.sort;
       console.log('✅ ValidacionComponent - MatSort conectado al MatTableDataSource');
+      
+      // Configurar ordenamiento automático
+      this.clientesDataSource.sortingDataAccessor = (item, property) => {
+        switch (property) {
+          case 'ndCliente': return item.idFile;
+          case 'ndPedido': return item.ndPedido;
+          case 'cliente': return item.cliente;
+          case 'proceso': return item.proceso;
+          case 'operacion': return item.operacion;
+          case 'fase': return item.fase;
+          case 'registro': return new Date(item.registro);
+          default: return item[property];
+        }
+      };
       
     } else {
       console.error('❌ ValidacionComponent - MatSort no está disponible');
@@ -1121,6 +1135,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     const endIndex = startIndex + this.pageSize;
     this.clientesDataSource.data = this.allClientes.slice(startIndex, endIndex);
     this.totalRecords = this.allClientes.length;
+    
+    // Aplicar ordenamiento si está configurado
+    if (this.sort) {
+      this.clientesDataSource.sort = this.sort;
+    }
   }
 
   /**
