@@ -292,7 +292,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Llamar al servicio para cancelar el pedido
     this.validacionService.cancelarPedido(
-      parseInt(cliente.ndCliente), 
+      cliente.idFile, 
       result.motivoId, 
       result.comentario
     ).subscribe({
@@ -348,7 +348,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Llamar al servicio para crear la excepción
     this.validacionService.excepcionPedido(
-      parseInt(cliente.ndCliente), 
+      cliente.idFile, 
       result.motivoId, 
       result.comentario
     ).subscribe({
@@ -404,7 +404,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('Procesando eliminación:', cliente);
 
     // Llamar al servicio para eliminar el pedido
-    this.validacionService.eliminarPedido(parseInt(cliente.ndCliente)).subscribe({
+    this.validacionService.eliminarPedido(cliente.idFile).subscribe({
       next: (response) => {
         console.log('Pedido eliminado exitosamente:', response);
         this.snackBar.open(
@@ -457,7 +457,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Llamar al servicio para cambiar el estatus
     this.validacionService.cambiarEstatus(
-      parseInt(cliente.ndCliente), 
+      cliente.idFile, 
       result.nuevoIdCurrentState
     ).subscribe({
       next: (response) => {
@@ -934,19 +934,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🔍 ValidacionComponent - Filtrando clientes por fase:', this.selectedFase);
     // Filtrar clientes por fase desde los datos originales usando ID
     const clientesFiltrados = this.clientesOriginales.filter(cliente => {
-      console.log(`🔍 ValidacionComponent - Cliente ${cliente.ndCliente} - IdCurrentState: ${cliente.IdCurrentState} (tipo: ${typeof cliente.IdCurrentState})`);
+      console.log(`🔍 ValidacionComponent - Cliente ${cliente.idFile} - IdCurrentState: ${cliente.IdCurrentState} (tipo: ${typeof cliente.IdCurrentState})`);
       
       // Aplicar filtro de cancelados
       if (this.showCancelledOrders) {
         // Solo mostrar cancelados
         if (String(cliente.IdCurrentState) !== '5') {
-          console.log(`🔍 ValidacionComponent - Excluyendo cliente no cancelado ${cliente.ndCliente} (toggle activado)`);
+          console.log(`🔍 ValidacionComponent - Excluyendo cliente no cancelado ${cliente.idFile} (toggle activado)`);
           return false;
         }
       } else {
         // Excluir cancelados
         if (String(cliente.IdCurrentState) === '5') {
-          console.log(`🔍 ValidacionComponent - Excluyendo cliente cancelado ${cliente.ndCliente} (toggle desactivado)`);
+          console.log(`🔍 ValidacionComponent - Excluyendo cliente cancelado ${cliente.idFile} (toggle desactivado)`);
           return false;
         }
       }
@@ -1188,7 +1188,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private getSortValue(item: any, column: string): any {
     switch (column) {
       case 'ndCliente':
-        return item.ndCliente;
+        return item.idFile;
       case 'ndPedido':
         return item.ndPedido;
       case 'cliente':
@@ -1242,7 +1242,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.selectedCliente) {
       console.log('👤 ValidacionComponent - Cliente seleccionado:', this.selectedCliente);
       console.log('📄 ValidacionComponent - Documentos cargados:', this.documentosDataSource.length);
-      console.log('🔍 ValidacionComponent - Filtros aplicados: Cliente ID:', this.selectedCliente.ndCliente, 'Pedido ID:', this.selectedCliente.ndPedido);
+      console.log('🔍 ValidacionComponent - Filtros aplicados: File ID:', this.selectedCliente.idFile, 'Pedido ID:', this.selectedCliente.ndPedido);
     } else {
       console.log('ℹ️ ValidacionComponent - No hay cliente seleccionado');
     }
@@ -1286,9 +1286,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Filtrar clientes por término de búsqueda
     let clientesFiltrados = this.clientesOriginales.filter(cliente => {
-      // Buscar en número de cliente
-      const ndCliente = String(cliente.ndCliente).toLowerCase();
-      if (ndCliente.includes(terminoBusqueda)) {
+      // Buscar en ID de archivo
+      const idFile = String(cliente.idFile).toLowerCase();
+      if (idFile.includes(terminoBusqueda)) {
         return true;
       }
 

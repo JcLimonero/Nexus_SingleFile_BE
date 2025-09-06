@@ -436,7 +436,7 @@
                               <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
                   <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" 
                       (click)="onClienteSelect(row)"
-                      [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.ndCliente === row.ndCliente}"></tr>
+                      [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.idFile === row.idFile}"></tr>
                 </table>
                 
                 <!-- Paginador -->
