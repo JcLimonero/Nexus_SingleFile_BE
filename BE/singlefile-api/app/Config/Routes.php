@@ -246,6 +246,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
         $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');
         $routes->delete('eliminar-pedido', 'Validacion::eliminarPedido');
+        $routes->put('cambiar-estatus', 'Validacion::cambiarEstatus');
     });
 });
 

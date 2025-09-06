@@ -283,6 +283,30 @@ export class ValidacionService {
   }
 
   /**
+   * Cambiar estatus del pedido
+   */
+  cambiarEstatus(clienteId: number, nuevoIdCurrentState: number): Observable<any> {
+    const data = {
+      clienteId: clienteId,
+      nuevoIdCurrentState: nuevoIdCurrentState
+    };
+
+    return this.http.put<any>(`${this.apiUrl}/api/clients-validation/cambiar-estatus`, data).pipe(
+      map(response => {
+        if (response && response.success) {
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Error al cambiar el estatus');
+        }
+      }),
+      catchError(error => {
+        console.error('Error cambiando estatus:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
    * Crear excepción (método legacy)
    */
   crearExcepcion(clienteId: string, datos: any): Observable<any> {

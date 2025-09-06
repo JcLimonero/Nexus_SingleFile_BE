@@ -22,6 +22,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CancelarPedidoDialogComponent, CancelarPedidoData, CancelarPedidoResult } from './cancelar-pedido-dialog/cancelar-pedido-dialog.component';
 import { ExcepcionPedidoDialogComponent, ExcepcionPedidoData, ExcepcionPedidoResult } from './excepcion-pedido-dialog/excepcion-pedido-dialog.component';
 import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult } from './eliminar-pedido-dialog/eliminar-pedido-dialog.component';
+import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -298,8 +299,57 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onCambiarEstatus(cliente: any): void {
     console.log('Cambiar estatus para cliente:', cliente);
-    // Implementar lógica de cambio de estatus
-    this.snackBar.open(`Cambiando estatus del pedido ${cliente.ndPedido}`, 'Cerrar', { duration: 3000 });
+
+    const dialogData: CambiarEstatusData = {
+      cliente: cliente
+    };
+
+    const dialogRef = this.dialog.open(CambiarEstatusDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe((result: CambiarEstatusResult) => {
+      if (result) {
+        console.log('Resultado de cambio de estatus:', result);
+        this.procesarCambioEstatus(cliente, result);
+      }
+    });
+  }
+
+  private procesarCambioEstatus(cliente: any, result: CambiarEstatusResult): void {
+    console.log('Procesando cambio de estatus:', {
+      cliente: cliente,
+      nuevoEstatus: result.nuevoEstatus,
+      nuevoIdCurrentState: result.nuevoIdCurrentState
+    });
+
+    // Llamar al servicio para cambiar el estatus
+    this.validacionService.cambiarEstatus(
+      parseInt(cliente.ndCliente), 
+      result.nuevoIdCurrentState
+    ).subscribe({
+      next: (response) => {
+        console.log('Estatus cambiado exitosamente:', response);
+        this.snackBar.open(
+          `Estatus del pedido ${cliente.ndPedido} cambiado a ${result.nuevoEstatus}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+        
+        // Recargar los datos para reflejar el cambio
+        this.cargarClientes();
+      },
+      error: (error) => {
+        console.error('Error cambiando estatus:', error);
+        this.snackBar.open(
+          `Error al cambiar el estatus: ${error.message || 'Error desconocido'}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+      }
+    });
   }
 
   // Método temporal para obtener el rol del usuario

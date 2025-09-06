@@ -5,14 +5,41 @@ namespace App\Controllers\Api;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
+use App\Models\UserActivityLogModel;
 
 class Validacion extends BaseController
 {
     protected $db;
+    protected $userActivityLogModel;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
+        $this->userActivityLogModel = new UserActivityLogModel();
+    }
+
+    /**
+     * Registrar actividad en el log
+     */
+    private function logActivity($action, $description, $changeDetails = null, $entityId = null)
+    {
+        try {
+            // Obtener información del usuario desde el token JWT
+            $userId = 1; // TODO: Obtener del token JWT
+            $username = 'admin'; // TODO: Obtener del token JWT
+            
+            $logData = [
+                'user_id' => $userId,
+                'username' => $username,
+                'action' => $action,
+                'description' => $description,
+                'change_details' => $changeDetails ? json_encode($changeDetails) : null
+            ];
+
+            $this->userActivityLogModel->createLog($logData);
+        } catch (\Exception $e) {
+            error_log("Error logging activity: " . $e->getMessage());
+        }
     }
 
     /**
@@ -183,6 +210,21 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
+                // Registrar actividad en el log
+                $this->logActivity(
+                    'CANCELAR_PEDIDO',
+                    "Pedido {$clienteId} cancelado",
+                    [
+                        'cliente_id' => $clienteId,
+                        'motivo_id' => $motivoId,
+                        'comentario' => $comentario,
+                        'estado_anterior' => 'Activo',
+                        'estado_nuevo' => 'Cancelado',
+                        'fecha_cancelacion' => $updateData['UpdateDate']
+                    ],
+                    $clienteId
+                );
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Pedido cancelado exitosamente',
@@ -246,6 +288,21 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
+                // Registrar actividad en el log
+                $this->logActivity(
+                    'CREAR_EXCEPCION',
+                    "Excepción creada para pedido {$clienteId}",
+                    [
+                        'cliente_id' => $clienteId,
+                        'motivo_id' => $motivoId,
+                        'comentario' => $comentario,
+                        'estado_anterior' => 'Activo',
+                        'estado_nuevo' => 'Liberado por Excepción',
+                        'fecha_excepcion' => $updateData['UpdateDate']
+                    ],
+                    $clienteId
+                );
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Excepción creada exitosamente',
@@ -320,6 +377,19 @@ class Validacion extends BaseController
             // Confirmar transacción
             $this->db->transComplete();
             
+            // Registrar actividad en el log
+            $this->logActivity(
+                'ELIMINAR_PEDIDO',
+                "Pedido {$clienteId} eliminado permanentemente",
+                [
+                    'cliente_id' => $clienteId,
+                    'accion' => 'Eliminación completa',
+                    'tablas_afectadas' => ['File', 'DocumentByFile'],
+                    'fecha_eliminacion' => date('Y-m-d H:i:s')
+                ],
+                $clienteId
+            );
+            
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Pedido eliminado exitosamente',
@@ -333,6 +403,98 @@ class Validacion extends BaseController
             // Rollback en caso de error
             $this->db->transRollback();
             error_log("Error en Validacion::eliminarPedido: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Cambiar estatus del pedido
+     * PUT /api/clients-validation/cambiar-estatus
+     */
+    public function cambiarEstatus()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+            
+            // Validar datos requeridos
+            if (empty($data['clienteId']) || empty($data['nuevoIdCurrentState'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Los parámetros clienteId y nuevoIdCurrentState son requeridos',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            $clienteId = $data['clienteId'];
+            $nuevoIdCurrentState = $data['nuevoIdCurrentState'];
+            
+            // Validar que el nuevo estado sea válido
+            $estadosValidos = [1, 4, 7]; // Integración, Liberación, Liquidación
+            if (!in_array($nuevoIdCurrentState, $estadosValidos)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El estado seleccionado no es válido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            
+            // Actualizar el registro en la tabla File
+            $updateData = [
+                'IdCurrentState' => $nuevoIdCurrentState,
+                'UpdateDate' => date('Y-m-d H:i:s'),
+                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+            ];
+            
+            $result = $this->db->table('File')
+                ->where('Id', $clienteId)
+                ->update($updateData);
+            
+            if ($result) {
+                // Obtener el nombre del nuevo estado
+                $estadoQuery = $this->db->table('File_Status')
+                    ->where('Id', $nuevoIdCurrentState)
+                    ->get();
+                $estadoResult = $estadoQuery->getRowArray();
+                $nombreEstado = $estadoResult ? $estadoResult['Name'] : 'Desconocido';
+                
+                // Registrar actividad en el log
+                $this->logActivity(
+                    'CAMBIAR_ESTATUS',
+                    "Estatus del pedido {$clienteId} cambiado a {$nombreEstado}",
+                    [
+                        'cliente_id' => $clienteId,
+                        'estado_anterior_id' => null, // TODO: Obtener estado anterior
+                        'estado_nuevo_id' => $nuevoIdCurrentState,
+                        'estado_nuevo_nombre' => $nombreEstado,
+                        'fecha_cambio' => $updateData['UpdateDate']
+                    ],
+                    $clienteId
+                );
+                
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Estatus cambiado exitosamente',
+                    'data' => [
+                        'clienteId' => $clienteId,
+                        'nuevoIdCurrentState' => $nuevoIdCurrentState,
+                        'nombreEstado' => $nombreEstado,
+                        'fechaCambio' => $updateData['UpdateDate']
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo cambiar el estatus del pedido',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::cambiarEstatus: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage(),
