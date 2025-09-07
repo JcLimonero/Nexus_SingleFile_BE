@@ -215,10 +215,16 @@
       [agencyId]="selectedAgencyId" 
       class="mb-6"></vex-widget-agency-metrics>
 
-    <!-- Gráfico de tendencia de expedientes -->
+  <!-- Gráfico de tendencia de expedientes -->
     <vex-widget-trend-chart 
       [agencyId]="selectedAgencyId" 
+      [userId]="selectedUserId"
       class="mb-6"></vex-widget-trend-chart>
+
+    <!-- Métricas de distribución de expedientes -->
+    <vex-widget-distribution-metrics 
+      [agencyId]="selectedAgencyId" 
+      class="mb-6"></vex-widget-distribution-metrics>
 
     <!-- Gráficos de actividad -->
     <vex-widget-large-chart

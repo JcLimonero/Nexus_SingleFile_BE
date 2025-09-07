@@ -58,6 +58,25 @@ export interface SystemMetrics {
   averageResponseTime: number;
 }
 
+export interface DistributionMetrics {
+  entregados: {
+    total: number;
+    porcentaje: number;
+  };
+  canceladas: {
+    total: number;
+    porcentaje: number;
+  };
+  proceso: {
+    total: number;
+    porcentaje: number;
+  };
+  total: number;
+  month: string;
+  year: string;
+  agency_id: number | null;
+}
+
 export interface AgencyMetrics {
   todayCases: number;
   monthlyCases: number;
@@ -117,7 +136,7 @@ export class AnalyticsService {
   // Métodos para obtener estadísticas de documentos
   getDocumentStats(filters?: AnalyticsFilters): Observable<DocumentStats> {
     const params = this.buildParams(filters);
-    return this.http.get<any>(`${this.baseUrl}/document/stats`, { params })
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-document-statistics`, { params })
       .pipe(
         map(response => response.data || response),
         tap(data => console.log('Document Stats:', data))
@@ -127,7 +146,7 @@ export class AnalyticsService {
   // Métodos para obtener estadísticas de procesos
   getProcessStats(filters?: AnalyticsFilters): Observable<ProcessStats> {
     const params = this.buildParams(filters);
-    return this.http.get<any>(`${this.baseUrl}/process/stats`, { params })
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-process-statistics`, { params })
       .pipe(
         map(response => response.data || response),
         tap(data => console.log('Process Stats:', data))
@@ -137,7 +156,7 @@ export class AnalyticsService {
   // Métodos para obtener estadísticas de agencias
   getAgencyStats(filters?: AnalyticsFilters): Observable<AgencyStats> {
     const params = this.buildParams(filters);
-    return this.http.get<any>(`${this.baseUrl}/agency/stats`, { params })
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-statistics`, { params })
       .pipe(
         map(response => response.data || response),
         tap(data => console.log('Agency Stats:', data))
@@ -147,20 +166,38 @@ export class AnalyticsService {
   // Métodos para obtener métricas específicas de agencia
   getAgencyMetrics(filters?: AnalyticsFilters): Observable<AgencyMetrics> {
     const params = this.buildParams(filters);
-    return this.http.get<any>(`${this.baseUrl}/analytics/agency-metrics`, { params })
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-specific-metrics`, { params })
       .pipe(
         map(response => response.data || response),
         tap(data => console.log('Agency Metrics:', data))
       );
   }
 
+  getDistributionMetrics(filters?: AnalyticsFilters): Observable<DistributionMetrics> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-distribution-metrics`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Distribution Metrics:', data))
+      );
+  }
+
+  getTrendData(filters?: any): Observable<any> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-trend-chart`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Trend Data:', data))
+      );
+  }
+
   // Métodos para obtener métricas del sistema
   getSystemMetrics(): Observable<SystemMetrics> {
     return combineLatest([
-      this.http.get<any>(`${this.baseUrl}/user/stats`),
-      this.http.get<any>(`${this.baseUrl}/document/stats`),
-      this.http.get<any>(`${this.baseUrl}/process/stats`),
-      this.http.get<any>(`${this.baseUrl}/agency/stats`)
+      this.http.get<any>(`${this.baseUrl}/analytics/widget-system-overview-metrics`),
+      this.http.get<any>(`${this.baseUrl}/analytics/widget-document-statistics`),
+      this.http.get<any>(`${this.baseUrl}/analytics/widget-process-statistics`),
+      this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-statistics`)
     ]).pipe(
       map(([userStats, docStats, processStats, agencyStats]) => {
         return {
@@ -214,7 +251,7 @@ export class AnalyticsService {
   }
 
   // Método auxiliar para construir parámetros de consulta
-  private buildParams(filters?: AnalyticsFilters): HttpParams {
+  private buildParams(filters?: any): HttpParams {
     let params = new HttpParams();
     
     if (filters) {
@@ -229,6 +266,9 @@ export class AnalyticsService {
       
       if (filters.userId) params = params.set('user_id', filters.userId.toString());
       if (filters.agencyId) params = params.set('agency_id', filters.agencyId.toString());
+      if (filters.agency_id) params = params.set('agency_id', filters.agency_id.toString()); // Agregado para compatibilidad
+      if (filters.idSeller) params = params.set('idSeller', filters.idSeller.toString()); // Agregado para trend chart
+      if (filters.year) params = params.set('year', filters.year.toString()); // Agregado para trend chart
       if (filters.processId) params = params.set('process_id', filters.processId.toString());
       if (filters.documentTypeId) params = params.set('document_type_id', filters.documentTypeId.toString());
     }

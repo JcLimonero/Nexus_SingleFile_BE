@@ -120,22 +120,25 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     });
 
     // Rutas de analytics
-    $routes->group('analytics', function($routes) {
-        $routes->get('dashboard', 'Analytics::getDashboardData');
-        $routes->get('documents/stats', 'Analytics::getDocumentStats');
-        $routes->get('processes/stats', 'Analytics::getProcessStats');
-        $routes->get('agencies/stats', 'Analytics::getAgencyStats');
-        $routes->get('agency-metrics', 'Analytics::getAgencyMetrics');
-        $routes->get('debug-file-structure', 'Analytics::debugFileStructure');
-        $routes->get('debug-server-date', 'Analytics::debugServerDate');
-        $routes->get('debug-today-files', 'Analytics::debugTodayFiles');
-        $routes->get('debug-agency-users', 'Analytics::debugAgencyUsers');
-        $routes->get('debug-file-dates', 'Analytics::debugFileDates');
-        $routes->get('system/metrics', 'Analytics::getSystemMetrics');
-        $routes->get('export', 'Analytics::exportAnalytics');
-    });
-    
-    // Rutas de estados de archivo (File_Status)
+        $routes->group('analytics', function($routes) {
+            $routes->get('dashboard', 'Analytics::getDashboardData');
+            $routes->get('widget-document-statistics', 'Analytics::getDocumentStats');
+            $routes->get('widget-process-statistics', 'Analytics::getProcessStats');
+            $routes->get('widget-agency-statistics', 'Analytics::getAgencyStats');
+            $routes->get('widget-agency-specific-metrics', 'Analytics::getAgencyMetrics');
+            $routes->get('widget-file-trend-chart', 'Analytics::getTrendData');
+            $routes->get('widget-file-distribution-metrics', 'Analytics::getDistributionMetrics');
+            $routes->get('debug-file-structure', 'Analytics::debugFileStructure');
+            $routes->get('debug-file-status', 'Analytics::debugFileStatus');
+            $routes->get('debug-trend-january-2025', 'Analytics::debugTrendJanuary2025');
+            $routes->get('debug-sql-queries', 'Analytics::debugSqlQueries');
+            $routes->get('debug-server-date', 'Analytics::debugServerDate');
+            $routes->get('debug-today-files', 'Analytics::debugTodayFiles');
+            $routes->get('debug-agency-users', 'Analytics::debugAgencyUsers');
+            $routes->get('debug-file-dates', 'Analytics::debugFileDates');
+            $routes->get('widget-system-overview-metrics', 'Analytics::getSystemMetrics');
+            $routes->get('export', 'Analytics::exportAnalytics');
+        });
     $routes->group('file-status', function($routes) {
         $routes->get('/', 'FileStatus::index');
         $routes->get('active', 'FileStatus::active');

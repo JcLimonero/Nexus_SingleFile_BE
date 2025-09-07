@@ -1,0 +1,217 @@
+.widget-distribution-metrics {
+  .card {
+    height: 100%;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .distribution-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .total-section {
+    text-align: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .category-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  // Estilos para las barras de progreso
+  .progress-bar-green {
+    ::ng-deep .mat-progress-bar-fill::after {
+      background-color: #10b981;
+    }
+  }
+
+  .progress-bar-blue {
+    ::ng-deep .mat-progress-bar-fill::after {
+      background-color: #3b82f6;
+    }
+  }
+
+  .progress-bar-red {
+    ::ng-deep .mat-progress-bar-fill::after {
+      background-color: #ef4444;
+    }
+  }
+
+  ::ng-deep .mat-progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background-color: #f3f4f6;
+  }
+
+  ::ng-deep .mat-progress-bar-fill::after {
+    border-radius: 3px;
+  }
+
+  // Centrado específico para iconos Material
+  ::ng-deep .mat-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  // Utilidades comunes
+  .flex {
+    display: flex;
+  }
+
+  .items-center {
+    align-items: center;
+  }
+
+  .justify-center {
+    justify-content: center;
+  }
+
+  .flex-auto {
+    flex: 1 1 auto;
+  }
+
+  .flex-none {
+    flex: none;
+  }
+
+  .w-6 {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .h-6 {
+    height: 1.5rem;
+  }
+
+  .h-24 {
+    height: 6rem;
+  }
+
+  .p-3 {
+    padding: 0.75rem;
+  }
+
+  .p-4 {
+    padding: 1rem;
+  }
+
+  .px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .mb-1 {
+    margin-bottom: 0.25rem;
+  }
+
+  .border-b {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .rounded-full {
+    border-radius: 9999px;
+  }
+
+  .bg-green-100 {
+    background-color: #dcfce7;
+  }
+
+  .bg-blue-100 {
+    background-color: #dbeafe;
+  }
+
+  .bg-red-100 {
+    background-color: #fee2e2;
+  }
+
+  .text-green-600 {
+    color: #059669;
+  }
+
+  .text-blue-600 {
+    color: #2563eb;
+  }
+
+  .text-red-600 {
+    color: #dc2626;
+  }
+
+  .text-gray-500 {
+    color: #6b7280;
+  }
+
+  .text-gray-600 {
+    color: #4b5563;
+  }
+
+  .text-gray-900 {
+    color: #111827;
+  }
+
+  .text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .font-medium {
+    font-weight: 500;
+  }
+
+  .font-bold {
+    font-weight: 700;
+  }
+
+  .m-0 {
+    margin: 0;
+  }
+}

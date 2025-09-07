@@ -13,6 +13,7 @@ import { WidgetQuickLineChartComponent } from '../components/widgets/widget-quic
 import { WidgetAssistantComponent } from '../components/widgets/widget-assistant/widget-assistant.component';
 import { WidgetAgencyMetricsComponent } from '../components/widgets/widget-agency-metrics/widget-agency-metrics.component';
 import { WidgetTrendChartComponent } from '../components/widgets/widget-trend-chart/widget-trend-chart.component';
+import { WidgetDistributionMetricsComponent } from '../components/widgets/widget-distribution-metrics/widget-distribution-metrics.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -31,7 +32,7 @@ import { AgencyService } from '../../../core/services/agency.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'vex-dashboard-analytics',
@@ -48,8 +49,9 @@ import { Subject, takeUntil } from 'rxjs';
                 WidgetLargeGoalChartComponent,
                 WidgetLargeChartComponent,
                 WidgetTableComponent,
-                WidgetAgencyMetricsComponent,
-                WidgetTrendChartComponent,
+    WidgetAgencyMetricsComponent,
+    WidgetTrendChartComponent,
+    WidgetDistributionMetricsComponent,
                 AgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,
@@ -106,6 +108,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   tableData = tableSalesData;
 
   private destroy$ = new Subject<void>();
+  private filtersChange$ = new Subject<void>();
 
   @ViewChild('userSelect') userSelect!: MatSelect;
 
@@ -122,6 +125,21 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       startDate: new FormControl(null),
       endDate: new FormControl(null)
     });
+    
+    // Configurar debounce para evitar llamadas múltiples
+    this.setupFiltersDebounce();
+  }
+
+  private setupFiltersDebounce(): void {
+    this.filtersChange$
+      .pipe(
+        debounceTime(300), // Esperar 300ms después del último cambio
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.loadDashboardData();
+      });
   }
 
   ngOnInit(): void {
@@ -192,7 +210,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       console.log('👤 Usuario NO es gerente/admin, no se aplica selección automática');
     }
     
-    this.loadDashboardData();
+    this.filtersChange$.next();
   }
 
   onDateRangeChange(): void {
@@ -208,14 +226,14 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         ...this.currentFilters, 
         dateRange: dateRange 
       };
-      this.loadDashboardData();
+      this.filtersChange$.next();
     } else {
       this.selectedDateRange = null;
       this.currentFilters = { 
         ...this.currentFilters, 
         dateRange: undefined 
       };
-      this.loadDashboardData();
+      this.filtersChange$.next();
     }
   }
 
@@ -411,7 +429,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     console.log('🔄 selectedUserId actualizado a:', this.selectedUserId);
     this.currentFilters = { ...this.currentFilters, userId: userId || undefined };
     console.log('🔄 currentFilters actualizado:', this.currentFilters);
-    this.loadDashboardData();
+    this.filtersChange$.next();
   }
 
   // Método para verificar el estado actual del filtro
@@ -512,7 +530,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   searchData(): void {
     console.log('🔍 Buscando con filtros actuales:', this.currentFilters);
-    this.loadDashboardData();
+    this.filtersChange$.next();
   }
 
   hasAnyFilter(): boolean {
@@ -540,7 +558,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     this.currentFilters = {};
     
     // Recargar datos
-    this.loadDashboardData();
+    this.filtersChange$.next();
     
     this.snackBar.open('Todos los filtros han sido limpiados', 'Cerrar', {
       duration: 2000
@@ -549,7 +567,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   onFiltersChange(filters: AnalyticsFilters): void {
     this.currentFilters = filters;
-    this.loadDashboardData();
+    this.filtersChange$.next();
   }
 
   onExportRequest(event: { format: 'pdf' | 'excel'; filters: AnalyticsFilters }): void {

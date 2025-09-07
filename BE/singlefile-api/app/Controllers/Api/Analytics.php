@@ -60,51 +60,64 @@ class Analytics extends BaseController
     }
 
     /**
-     * GET /api/analytics/documents/stats
+     * GET /api/analytics/widget-document-statistics
      * Obtener estadísticas de documentos
      */
-    public function getDocumentStats($filters = [])
+    public function getDocumentStats()
     {
         try {
+            $filters = $this->getFiltersFromRequest();
+            
+            // Debug: verificar que el modelo funciona
+            log_message('debug', 'DocumentModel loaded: ' . get_class($this->documentModel));
+            
+            // Debug: verificar la tabla
+            $tableName = $this->documentModel->table;
+            log_message('debug', 'Table name: ' . $tableName);
+            
             $builder = $this->documentModel->builder();
             
             // Aplicar filtros
             if (!empty($filters['start_date'])) {
-                $builder->where('created_at >=', $filters['start_date']);
+                $builder->where('RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('created_at <=', $filters['end_date']);
+                $builder->where('RegistrationDate <=', $filters['end_date']);
             }
             if (!empty($filters['agency_id'])) {
-                $builder->where('agency_id', $filters['agency_id']);
+                $builder->join('File f', 'f.Id = DocumentByFile.IdFile')
+                        ->where('f.IdAgency', $filters['agency_id']);
             }
             if (!empty($filters['document_type_id'])) {
-                $builder->where('document_type_id', $filters['document_type_id']);
+                $builder->where('IdDocumentType', $filters['document_type_id']);
             }
 
             // Estadísticas básicas
             $totalDocuments = $builder->countAllResults(false);
+            
+            log_message('debug', 'Total documents: ' . $totalDocuments);
 
             // Documentos por tipo
             $documentsByType = $this->documentModel->builder()
-                ->select('dt.name as type, COUNT(*) as count')
-                ->join('document_types dt', 'dt.id = documents.document_type_id')
-                ->groupBy('dt.name')
+                ->select('dt.Name as type, COUNT(*) as count')
+                ->join('DocumentType dt', 'dt.Id = DocumentByFile.IdDocumentType')
+                ->groupBy('dt.Name')
                 ->get()
                 ->getResultArray();
 
             // Documentos por estado
             $documentsByStatus = $this->documentModel->builder()
-                ->select('status, COUNT(*) as count')
-                ->groupBy('status')
+                ->select('IdCurrentStatus as status, COUNT(*) as count')
+                ->groupBy('IdCurrentStatus')
                 ->get()
                 ->getResultArray();
 
             // Documentos por agencia
             $documentsByAgency = $this->documentModel->builder()
-                ->select('a.name as agency, COUNT(*) as count')
-                ->join('agencies a', 'a.id = documents.agency_id')
-                ->groupBy('a.name')
+                ->select('a.Name as agency, COUNT(*) as count')
+                ->join('File f', 'f.Id = DocumentByFile.IdFile')
+                ->join('Agency a', 'a.Id = f.IdAgency')
+                ->groupBy('a.Name')
                 ->orderBy('count', 'DESC')
                 ->limit(10)
                 ->get()
@@ -112,24 +125,31 @@ class Analytics extends BaseController
 
             // Tendencia mensual
             $monthlyTrend = $this->documentModel->builder()
-                ->select("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
-                ->where('created_at >=', date('Y-m-01', strtotime('-12 months')))
+                ->select("DATE_FORMAT(RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
+                ->where('RegistrationDate >=', date('Y-m-01', strtotime('-12 months')))
                 ->groupBy('month')
                 ->orderBy('month', 'ASC')
                 ->get()
                 ->getResultArray();
 
-            return [
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
                 'totalDocuments' => $totalDocuments,
                 'documentsByType' => $documentsByType,
                 'documentsByStatus' => $documentsByStatus,
                 'documentsByAgency' => $documentsByAgency,
                 'monthlyTrend' => $monthlyTrend
-            ];
+                ]
+            ]);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en Analytics::getDocumentStats: ' . $e->getMessage());
-            throw $e;
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ])->setStatusCode(500);
         }
     }
 
@@ -137,17 +157,18 @@ class Analytics extends BaseController
      * GET /api/analytics/processes/stats
      * Obtener estadísticas de procesos
      */
-    public function getProcessStats($filters = [])
+    public function getProcessStats()
     {
         try {
+            $filters = $this->getFiltersFromRequest();
             $builder = $this->processModel->builder();
             
             // Aplicar filtros
             if (!empty($filters['start_date'])) {
-                $builder->where('created_at >=', $filters['start_date']);
+                $builder->where('RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('created_at <=', $filters['end_date']);
+                $builder->where('RegistrationDate <=', $filters['end_date']);
             }
             if (!empty($filters['agency_id'])) {
                 $builder->where('agency_id', $filters['agency_id']);
@@ -156,50 +177,46 @@ class Analytics extends BaseController
             // Estadísticas básicas
             $totalProcesses = $builder->countAllResults(false);
 
-            // Procesos por estado
+            // Procesos por estado (usando Enabled)
             $processesByStatus = $this->processModel->builder()
-                ->select('status, COUNT(*) as count')
-                ->groupBy('status')
+                ->select('Enabled as status, COUNT(*) as count')
+                ->groupBy('Enabled')
                 ->get()
                 ->getResultArray();
 
-            // Procesos por agencia
-            $processesByAgency = $this->processModel->builder()
-                ->select('a.name as agency, COUNT(*) as count')
-                ->join('agencies a', 'a.id = processes.agency_id')
-                ->groupBy('a.name')
-                ->orderBy('count', 'DESC')
-                ->limit(10)
-                ->get()
-                ->getResultArray();
+            // Procesos por agencia (simplificado - la tabla Process no tiene relación directa con agencias)
+            $processesByAgency = [];
 
-            // Tiempo promedio de procesamiento
-            $averageProcessingTime = $this->processModel->builder()
-                ->select('AVG(TIMESTAMPDIFF(MINUTE, created_at, updated_at)) as avg_time')
-                ->where('status', 'completed')
-                ->get()
-                ->getRow()->avg_time ?? 0;
+            // Tiempo promedio de procesamiento (simplificado)
+            $averageProcessingTime = 0;
 
             // Tendencia mensual
             $monthlyTrend = $this->processModel->builder()
-                ->select("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
-                ->where('created_at >=', date('Y-m-01', strtotime('-12 months')))
+                ->select("DATE_FORMAT(RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
+                ->where('RegistrationDate >=', date('Y-m-01', strtotime('-12 months')))
                 ->groupBy('month')
                 ->orderBy('month', 'ASC')
                 ->get()
                 ->getResultArray();
 
-            return [
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
                 'totalProcesses' => $totalProcesses,
                 'processesByStatus' => $processesByStatus,
                 'processesByAgency' => $processesByAgency,
-                'averageProcessingTime' => (int)$averageProcessingTime,
+                    'averageProcessingTime' => $averageProcessingTime,
                 'monthlyTrend' => $monthlyTrend
-            ];
+                ]
+            ]);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en Analytics::getProcessStats: ' . $e->getMessage());
-            throw $e;
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ])->setStatusCode(500);
         }
     }
 
@@ -207,43 +224,47 @@ class Analytics extends BaseController
      * GET /api/analytics/agencies/stats
      * Obtener estadísticas de agencias
      */
-    public function getAgencyStats($filters = [])
+    public function getAgencyStats()
     {
         try {
+            $filters = $this->getFiltersFromRequest();
+            
             // Estadísticas básicas
             $totalAgencies = $this->agencyModel->countAllResults();
-            $activeAgencies = $this->agencyModel->where('status', 'active')->countAllResults();
+            $activeAgencies = $this->agencyModel->where('Enabled', 1)->countAllResults();
 
-            // Agencias por región
-            $agenciesByRegion = $this->agencyModel->builder()
-                ->select('region, COUNT(*) as count')
-                ->groupBy('region')
+            // Agencias por estado (usando Enabled)
+            $agenciesByStatus = $this->agencyModel->builder()
+                ->select('Enabled as status, COUNT(*) as count')
+                ->groupBy('Enabled')
                 ->get()
                 ->getResultArray();
 
-            // Top agencias por rendimiento
-            $topPerformingAgencies = $this->agencyModel->builder()
-                ->select('a.name as agency, 
-                         COUNT(DISTINCT d.id) as documents,
-                         COUNT(DISTINCT p.id) as processes')
-                ->join('documents d', 'd.agency_id = a.id', 'left')
-                ->join('processes p', 'p.agency_id = a.id', 'left')
-                ->groupBy('a.id, a.name')
-                ->orderBy('documents', 'DESC')
+            // Top agencias (simplificado - solo por nombre)
+            $topAgencies = $this->agencyModel->builder()
+                ->select('Name as agency, Id as id')
+                ->orderBy('Name', 'ASC')
                 ->limit(10)
                 ->get()
                 ->getResultArray();
 
-            return [
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
                 'totalAgencies' => $totalAgencies,
                 'activeAgencies' => $activeAgencies,
-                'agenciesByRegion' => $agenciesByRegion,
-                'topPerformingAgencies' => $topPerformingAgencies
-            ];
+                    'agenciesByStatus' => $agenciesByStatus,
+                    'topAgencies' => $topAgencies
+                ]
+            ]);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en Analytics::getAgencyStats: ' . $e->getMessage());
-            throw $e;
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ])->setStatusCode(500);
         }
     }
 
@@ -251,16 +272,20 @@ class Analytics extends BaseController
      * GET /api/analytics/system/metrics
      * Obtener métricas del sistema
      */
-    public function getSystemMetrics($filters = [])
+    public function getSystemMetrics()
     {
         try {
+            $filters = $this->getFiltersFromRequest();
+            
             $totalUsers = $this->userModel->countAllResults();
-            $activeUsers = $this->userModel->where('status', 'active')->countAllResults();
+            $activeUsers = $this->userModel->where('Enabled', 1)->countAllResults();
             $totalDocuments = $this->documentModel->countAllResults();
             $totalProcesses = $this->processModel->countAllResults();
             $totalAgencies = $this->agencyModel->countAllResults();
 
-            return [
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
                 'totalUsers' => $totalUsers,
                 'activeUsers' => $activeUsers,
                 'totalDocuments' => $totalDocuments,
@@ -268,11 +293,16 @@ class Analytics extends BaseController
                 'totalAgencies' => $totalAgencies,
                 'systemUptime' => 99.9, // Esto debería calcularse desde logs del sistema
                 'averageResponseTime' => 150 // Esto debería calcularse desde logs de performance
-            ];
+                ]
+            ]);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en Analytics::getSystemMetrics: ' . $e->getMessage());
-            throw $e;
+            return $this->response->setJSON([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ])->setStatusCode(500);
         }
     }
 
@@ -373,6 +403,357 @@ class Analytics extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener métricas de agencia',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/trend-data
+     * Obtener datos de tendencia por mes para un año específico
+     */
+    public function getTrendData()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $year = $filters['year'] ?? date('Y');
+            $agencyId = $filters['agency_id'] ?? null;
+            $idSeller = $filters['idSeller'] ?? null;
+
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Inicializar arrays para los 12 meses
+            $entregados = array_fill(0, 12, 0);
+            $canceladas = array_fill(0, 12, 0);
+            $proceso = array_fill(0, 12, 0);
+
+            // Consultar datos por mes para el año especificado
+            for ($month = 1; $month <= 12; $month++) {
+                $monthIndex = $month - 1; // Para el array (0-11)
+
+                // Expedientes entregados (estados 4 "Liberado" y 6 "Liberado por Excepción")
+                $entregadosQuery = $db->table('File')
+                    ->where('YEAR(RegistrationDate)', $year)
+                    ->where('MONTH(RegistrationDate)', $month)
+                    ->whereIn('IdCurrentState', [4, 6]);
+                
+                if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                    $entregadosQuery->where('IdAgency', $agencyId);
+                }
+                
+                if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                    $entregadosQuery->where('idSeller', $idSeller);
+                }
+                
+                $entregados[$monthIndex] = $entregadosQuery->countAllResults();
+
+                // Expedientes cancelados (estado 5 "Cancelado")
+                $canceladasQuery = $db->table('File')
+                    ->where('YEAR(RegistrationDate)', $year)
+                    ->where('MONTH(RegistrationDate)', $month)
+                    ->where('IdCurrentState', 5);
+                
+                if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                    $canceladasQuery->where('IdAgency', $agencyId);
+                }
+                
+                if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                    $canceladasQuery->where('idSeller', $idSeller);
+                }
+                
+                $canceladas[$monthIndex] = $canceladasQuery->countAllResults();
+
+                // Expedientes en proceso (estados 1 "Integración", 2 "Liquidación", 3 "Liberación")
+                $procesoQuery = $db->table('File')
+                    ->where('YEAR(RegistrationDate)', $year)
+                    ->where('MONTH(RegistrationDate)', $month)
+                    ->whereIn('IdCurrentState', [1, 2, 3]);
+                
+                if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                    $procesoQuery->where('IdAgency', $agencyId);
+                }
+                
+                if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                    $procesoQuery->where('idSeller', $idSeller);
+                }
+                
+                $proceso[$monthIndex] = $procesoQuery->countAllResults();
+            }
+
+            $data = [
+                'entregados' => $entregados,
+                'canceladas' => $canceladas,
+                'proceso' => $proceso,
+                'year' => $year,
+                'agency_id' => $agencyId
+            ];
+
+
+            return $this->response->setJSON(['success' => true, 'data' => $data]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getTrendData: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos de tendencia',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/distribution-metrics
+     * Obtener métricas de distribución de expedientes del mes actual
+     */
+    public function getDistributionMetrics()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Base query para el mes actual
+            $baseQuery = $db->table('File')
+                ->where('YEAR(RegistrationDate)', date('Y'))
+                ->where('MONTH(RegistrationDate)', date('m'));
+
+            // Aplicar filtro de agencia si está presente
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $baseQuery->where('IdAgency', $agencyId);
+            }
+
+            // Expedientes entregados (estados 4 "Liberado" y 6 "Liberado por Excepción")
+            $entregadosQuery = clone $baseQuery;
+            $entregados = $entregadosQuery->whereIn('IdCurrentState', [4, 6])->countAllResults();
+
+            // Expedientes cancelados (estado 5 "Cancelado")
+            $canceladasQuery = clone $baseQuery;
+            $canceladas = $canceladasQuery->where('IdCurrentState', 5)->countAllResults();
+
+            // Expedientes en proceso (estados 1 "Integración", 2 "Liquidación", 3 "Liberación")
+            $procesoQuery = clone $baseQuery;
+            $proceso = $procesoQuery->whereIn('IdCurrentState', [1, 2, 3])->countAllResults();
+
+            // Total de expedientes del mes
+            $total = $entregados + $canceladas + $proceso;
+
+            // Calcular porcentajes
+            $entregadosPorcentaje = $total > 0 ? round(($entregados / $total) * 100, 1) : 0;
+            $canceladasPorcentaje = $total > 0 ? round(($canceladas / $total) * 100, 1) : 0;
+            $procesoPorcentaje = $total > 0 ? round(($proceso / $total) * 100, 1) : 0;
+
+            $data = [
+                'entregados' => [
+                    'total' => $entregados,
+                    'porcentaje' => $entregadosPorcentaje
+                ],
+                'canceladas' => [
+                    'total' => $canceladas,
+                    'porcentaje' => $canceladasPorcentaje
+                ],
+                'proceso' => [
+                    'total' => $proceso,
+                    'porcentaje' => $procesoPorcentaje
+                ],
+                'total' => $total,
+                'month' => date('F'),
+                'year' => date('Y'),
+                'agency_id' => $agencyId
+            ];
+
+            return $this->response->setJSON(['success' => true, 'data' => $data]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getDistributionMetrics: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener métricas de distribución',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/debug-file-status
+     * Endpoint de debug para verificar los estados de los archivos
+     */
+    public function debugFileStatus()
+    {
+        try {
+            $db = \Config\Database::connect();
+
+            // Verificar si existe la tabla File_Status
+            $fileStatusExists = $db->tableExists('File_Status');
+
+            $data = [
+                'file_status_table_exists' => $fileStatusExists
+            ];
+
+            if ($fileStatusExists) {
+                // Obtener todos los estados disponibles
+                $statuses = $db->table('File_Status')->get()->getResultArray();
+                $data['file_statuses'] = $statuses;
+            }
+
+            // Obtener distribución de estados en la tabla File
+            $currentStates = $db->table('File')
+                ->select('IdCurrentState, COUNT(*) as count')
+                ->groupBy('IdCurrentState')
+                ->orderBy('count', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            $data['current_states_distribution'] = $currentStates;
+
+            // Obtener algunos ejemplos de archivos con diferentes estados
+            $sampleFiles = $db->table('File')
+                ->select('Id, IdCurrentState, RegistrationDate, CloseDate')
+                ->limit(10)
+                ->get()
+                ->getResultArray();
+
+            $data['sample_files'] = $sampleFiles;
+
+            return $this->response->setJSON(['success' => true, 'data' => $data]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::debugFileStatus: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener información de estados',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/debug-trend-january-2025
+     * Endpoint de debug específico para enero 2025
+     */
+    public function debugTrendJanuary2025()
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            // Consulta base para enero 2025
+            $baseQuery = $db->table('File')
+                ->where('YEAR(RegistrationDate)', 2025)
+                ->where('MONTH(RegistrationDate)', 1);
+
+            // Total de archivos en enero 2025
+            $totalFiles = $baseQuery->countAllResults();
+
+            // Expedientes entregados (estados 4 "Liberado" y 6 "Liberado por Excepción")
+            $entregadosQuery = clone $baseQuery;
+            $entregados = $entregadosQuery->whereIn('IdCurrentState', [4, 6])->countAllResults();
+
+            // Expedientes cancelados (estado 5 "Cancelado")
+            $canceladasQuery = clone $baseQuery;
+            $canceladas = $canceladasQuery->where('IdCurrentState', 5)->countAllResults();
+
+            // Expedientes en proceso (estados 1 "Integración", 2 "Liquidación", 3 "Liberación")
+            $procesoQuery = clone $baseQuery;
+            $proceso = $procesoQuery->whereIn('IdCurrentState', [1, 2, 3])->countAllResults();
+
+            // Distribución por estado
+            $distributionByState = $db->table('File')
+                ->select('IdCurrentState, COUNT(*) as count')
+                ->where('YEAR(RegistrationDate)', 2025)
+                ->where('MONTH(RegistrationDate)', 1)
+                ->groupBy('IdCurrentState')
+                ->orderBy('count', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            // Algunos ejemplos de archivos de enero 2025
+            $sampleFiles = $db->table('File')
+                ->select('Id, IdCurrentState, RegistrationDate, CloseDate')
+                ->where('YEAR(RegistrationDate)', 2025)
+                ->where('MONTH(RegistrationDate)', 1)
+                ->limit(10)
+                ->get()
+                ->getResultArray();
+
+            $data = [
+                'total_files_january_2025' => $totalFiles,
+                'entregados' => $entregados,
+                'canceladas' => $canceladas,
+                'proceso' => $proceso,
+                'distribution_by_state' => $distributionByState,
+                'sample_files' => $sampleFiles
+            ];
+
+            return $this->response->setJSON(['success' => true, 'data' => $data]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::debugTrendJanuary2025: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener información de enero 2025',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/debug-sql-queries
+     * Endpoint para mostrar las consultas SQL exactas
+     */
+    public function debugSqlQueries()
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            // Consulta para expedientes entregados en enero 2025
+            $entregados = $db->table('File')
+                ->where('YEAR(RegistrationDate)', 2025)
+                ->where('MONTH(RegistrationDate)', 1)
+                ->whereIn('IdCurrentState', [4, 6])
+                ->countAllResults();
+
+            // Consulta para distribución por estado
+            $distributionByState = $db->table('File')
+                ->select('IdCurrentState, COUNT(*) as count')
+                ->where('YEAR(RegistrationDate)', 2025)
+                ->where('MONTH(RegistrationDate)', 1)
+                ->groupBy('IdCurrentState')
+                ->orderBy('count', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            // Mostrar las consultas SQL manualmente
+            $sqlQueries = [
+                'entregados_query' => "SELECT COUNT(*) FROM `File` WHERE YEAR(RegistrationDate) = 2025 AND MONTH(RegistrationDate) = 1 AND IdCurrentState IN (4, 6)",
+                'distribution_query' => "SELECT IdCurrentState, COUNT(*) as count FROM `File` WHERE YEAR(RegistrationDate) = 2025 AND MONTH(RegistrationDate) = 1 GROUP BY IdCurrentState ORDER BY count DESC"
+            ];
+
+            $data = [
+                'entregados_january_2025' => $entregados,
+                'distribution_by_state' => $distributionByState,
+                'sql_queries' => $sqlQueries
+            ];
+
+            return $this->response->setJSON(['success' => true, 'data' => $data]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::debugSqlQueries: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener consultas SQL',
                 'error' => $e->getMessage()
             ])->setStatusCode(500);
         }
@@ -704,9 +1085,11 @@ class Analytics extends BaseController
             'start_date' => $this->request->getGet('start_date'),
             'end_date' => $this->request->getGet('end_date'),
             'user_id' => $this->request->getGet('user_id'),
+            'idSeller' => $this->request->getGet('idSeller'),
             'agency_id' => $this->request->getGet('agency_id'),
             'process_id' => $this->request->getGet('process_id'),
-            'document_type_id' => $this->request->getGet('document_type_id')
+            'document_type_id' => $this->request->getGet('document_type_id'),
+            'year' => $this->request->getGet('year')
         ];
     }
 
