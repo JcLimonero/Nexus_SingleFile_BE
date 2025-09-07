@@ -12,6 +12,7 @@ import { WidgetLargeGoalChartComponent } from '../components/widgets/widget-larg
 import { WidgetQuickLineChartComponent } from '../components/widgets/widget-quick-line-chart/widget-quick-line-chart.component';
 import { WidgetAssistantComponent } from '../components/widgets/widget-assistant/widget-assistant.component';
 import { WidgetAgencyMetricsComponent } from '../components/widgets/widget-agency-metrics/widget-agency-metrics.component';
+import { WidgetTrendChartComponent } from '../components/widgets/widget-trend-chart/widget-trend-chart.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -48,6 +49,7 @@ import { Subject, takeUntil } from 'rxjs';
                 WidgetLargeChartComponent,
                 WidgetTableComponent,
                 WidgetAgencyMetricsComponent,
+                WidgetTrendChartComponent,
                 AgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,
