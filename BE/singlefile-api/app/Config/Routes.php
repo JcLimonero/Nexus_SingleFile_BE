@@ -278,6 +278,12 @@ $routes->group('client', function($routes) {
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
 });
+
+// Rutas de documentos
+$routes->group('documents', function($routes) {
+    $routes->get('required', 'Documents::getRequiredDocuments');
+    $routes->post('upload', 'Documents::uploadDocument');
+});
     
     // Rutas de validación de clientes (Mesa de Control)
     $routes->group('clients-validation', function($routes) {

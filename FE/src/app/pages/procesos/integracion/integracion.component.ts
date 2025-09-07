@@ -79,6 +79,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   // User permissions
   userRole: string = '';
   isManagerOrAdmin: boolean = false;
+
+  // Document management properties
+  selectedFile: any = null;
+  requiredDocuments: any[] = [];
+  documentsLoading = false;
+  selectedFiles: { [key: string]: File } = {};
   
   // Dialog properties
   displayedColumns: string[] = ['ndCliente', 'cliente', 'rfc', 'email', 'actions'];
@@ -431,5 +437,138 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.snackBar.open(`Agregando nuevo pedido para cliente ${this.selectedClient.ndCliente}`, 'Cerrar', {
       duration: 3000
     });
+  }
+
+  // Métodos para manejo de documentos
+  selectFile(file: any): void {
+    this.selectedFile = file;
+    this.loadRequiredDocuments(file.fileId); // Usar fileId en lugar de numeroPedido
+  }
+
+  loadRequiredDocuments(fileId: string): void {
+    this.documentsLoading = true;
+    this.requiredDocuments = [];
+
+    let params = new HttpParams();
+    params = params.set('fileId', fileId);
+    params = params.set('status', 'Integración'); // Solo documentos para pedidos en integración
+
+    this.http.get<any>(`${environment.apiBaseUrl}/api/documents/required`, { params })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('📄 Documentos requeridos:', response);
+          
+          if (response && response.success && response.data && response.data.documents) {
+            this.requiredDocuments = response.data.documents;
+          } else {
+            this.requiredDocuments = [];
+          }
+          
+          this.documentsLoading = false;
+        },
+        error: (error) => {
+          console.error('❌ Error cargando documentos:', error);
+          this.requiredDocuments = [];
+          this.documentsLoading = false;
+          this.snackBar.open('Error al cargar documentos requeridos', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
+  }
+
+  onFileSelected(event: any, documentId: string): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFiles[documentId] = file;
+    }
+  }
+
+  uploadDocument(document: any): void {
+    if (!this.selectedFiles[document.documentId]) {
+      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('fileId', this.selectedFile.fileId); // Usar fileId en lugar de numeroPedido
+    formData.append('documentTypeId', document.documentId);
+    formData.append('document', this.selectedFiles[document.documentId]);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/documents/upload`, formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('📤 Documento subido:', response);
+          this.snackBar.open(`Documento ${document.documentName} subido exitosamente`, 'Cerrar', {
+            duration: 3000
+          });
+          // Recargar documentos
+          this.loadRequiredDocuments(this.selectedFile.fileId); // Usar fileId
+          // Limpiar archivo seleccionado
+          delete this.selectedFiles[document.documentId];
+        },
+        error: (error) => {
+          console.error('❌ Error subiendo documento:', error);
+          this.snackBar.open('Error al subir documento', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
+  }
+
+  viewDocument(document: any): void {
+    if (document.filePath) {
+      window.open(`${environment.apiBaseUrl}/${document.filePath}`, '_blank');
+    }
+  }
+
+  getDocumentStatusIcon(status: string, idCurrentStatus?: string): string {
+    // Si tenemos idCurrentStatus, usamos ese para determinar el icono
+    if (idCurrentStatus) {
+      switch (idCurrentStatus) {
+        case '1': return 'fiber_new'; // Nuevo
+        case '2': return 'upload_file'; // Documento cargado
+        case '3': return 'visibility'; // En revisión
+        case '4': return 'check_circle'; // Revisado y OK
+        case '5': return 'cancel'; // Rechazado
+        case '6': return 'error'; // Documento no válido
+        default: return 'help';
+      }
+    }
+    
+    // Fallback al status calculado si no hay idCurrentStatus
+    switch (status) {
+      case 'uploaded': return 'check_circle';
+      case 'required': return 'info';
+      case 'optional': return 'help';
+      default: return 'help';
+    }
+  }
+
+  getDocumentStatusColor(status: string, idCurrentStatus?: string): string {
+    // Si tenemos idCurrentStatus, usamos ese para determinar el color
+    if (idCurrentStatus) {
+      switch (idCurrentStatus) {
+        case '1': return 'text-blue-600'; // Nuevo - Azul
+        case '2': return 'text-orange-600'; // Documento cargado - Naranja
+        case '3': return 'text-yellow-600'; // En revisión - Amarillo
+        case '4': return 'text-green-600'; // Revisado y OK - Verde
+        case '5': return 'text-red-600'; // Rechazado - Rojo
+        case '6': return 'text-red-800'; // Documento no válido - Rojo oscuro
+        default: return 'text-gray-600';
+      }
+    }
+    
+    // Fallback al status calculado si no hay idCurrentStatus
+    switch (status) {
+      case 'uploaded': return 'text-green-600';
+      case 'required': return 'text-yellow-600';
+      case 'optional': return 'text-gray-600';
+      default: return 'text-gray-600';
+    }
   }
 }

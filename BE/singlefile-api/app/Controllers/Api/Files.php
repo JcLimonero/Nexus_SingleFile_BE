@@ -28,32 +28,33 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Query para obtener los files/pedidos del cliente
-            $sql = "
-                SELECT 
-                    f.IdOrderTotal as numeroPedido,
-                    f.IdInventary as numeroInventario,
-                    p.Name as proceso,
-                    ot.Name as operacion,
-                    ct.Name as tipoCliente,
-                    obc.CarType as vehiculo,
-                    obc.Year as year,
-                    obc.Modelo as modelo,
-                    obc.VIN as vin,
-                    a.Name as agencia,
-                    f.RegistrationDate as fechaRegistro,
-                    fs.Name as estatus
-                FROM File f
-                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
-                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                LEFT JOIN Process p ON f.IdProcess = p.Id
-                LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
-                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
-                LEFT JOIN Agency a ON f.IdAgency = a.Id
-                LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
-                WHERE ctr.IdTotalDealer = ?
-            ";
+                        // Query para obtener los files/pedidos del cliente
+                        $sql = "
+                            SELECT 
+                                f.Id as fileId,
+                                f.IdOrderTotal as numeroPedido,
+                                f.IdInventary as numeroInventario,
+                                p.Name as proceso,
+                                ot.Name as operacion,
+                                ct.Name as tipoCliente,
+                                obc.CarType as vehiculo,
+                                obc.Year as year,
+                                obc.Modelo as modelo,
+                                obc.VIN as vin,
+                                a.Name as agencia,
+                                f.RegistrationDate as fechaRegistro,
+                                fs.Name as estatus
+                            FROM File f
+                            INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+                            LEFT JOIN Process p ON f.IdProcess = p.Id
+                            LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
+                            LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                            LEFT JOIN Agency a ON f.IdAgency = a.Id
+                            LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                            LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
+                            WHERE ctr.IdTotalDealer = ?
+                        ";
 
             $params = [$ndCliente];
 
