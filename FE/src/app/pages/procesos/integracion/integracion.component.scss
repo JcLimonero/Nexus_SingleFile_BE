@@ -1,7 +1,8 @@
 .integracion-container {
   padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
 
   .page-header {
     margin-bottom: 2rem;
@@ -134,6 +135,145 @@
       margin-top: 1rem;
       color: #6b7280;
       font-size: 1rem;
+    }
+  }
+
+  .client-info-section {
+    .field-group {
+      margin-bottom: 0.5rem;
+      
+      .field-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .field-value {
+        background-color: #f9fafb;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: #111827;
+        font-weight: 500;
+        min-height: 2rem;
+        display: flex;
+        align-items: center;
+        word-break: break-word;
+        
+        &:empty::before {
+          content: 'N/A';
+          color: #9ca3af;
+          font-style: italic;
+        }
+      }
+    }
+  }
+
+  .client-card {
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    
+    &:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+  }
+
+  .files-section {
+    .files-table {
+      // Estilos específicos para la tabla de pedidos (tomados de validación)
+      :host ::ng-deep {
+        mat-table {
+          .mat-mdc-table {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            width: 100% !important;
+          }
+          
+          // Altura compacta para las filas
+          .mat-mdc-row {
+            min-height: 32px !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            border-bottom: 1px solid rgba(0,0,0,.12) !important;
+            display: table-row !important;
+            
+            &:hover {
+              background-color: #f1f5f9 !important;
+            }
+          }
+          
+          .mat-mdc-header-row {
+            min-height: 32px !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            border-bottom: 1px solid rgba(0,0,0,.12) !important;
+            display: table-row !important;
+            background-color: #f8fafc !important;
+          }
+          
+          // Padding compacto para las celdas
+          .mat-mdc-cell {
+            padding: 4px 8px !important;
+            vertical-align: middle !important;
+            line-height: 1.2 !important;
+            font-size: 12px !important;
+            border: none !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            overflow: hidden !important;
+            white-space: nowrap !important;
+            text-overflow: ellipsis !important;
+            text-align: left !important;
+          }
+          
+          .mat-mdc-header-cell {
+            padding: 4px 8px !important;
+            vertical-align: middle !important;
+            line-height: 1.2 !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            border: none !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            overflow: hidden !important;
+            white-space: nowrap !important;
+            text-overflow: ellipsis !important;
+            text-align: left !important;
+          }
+          
+          // Eliminar cualquier espaciado extra
+          .mat-mdc-cell, .mat-mdc-header-cell {
+            margin: 0 !important;
+            border-spacing: 0 !important;
+          }
+        }
+        
+        // Estilos específicos para elementos que puedan estar causando diferencias
+        .mat-mdc-table-container {
+          overflow: hidden !important;
+        }
+        
+        .mat-mdc-table-wrapper {
+          overflow: hidden !important;
+        }
+        
+        // Estilos específicos para elementos internos
+        .mat-mdc-cell div,
+        .mat-mdc-cell span,
+        .mat-mdc-header-cell div,
+        .mat-mdc-header-cell span {
+          line-height: 1.2 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-size: 12px !important;
+        }
+      }
     }
   }
 }

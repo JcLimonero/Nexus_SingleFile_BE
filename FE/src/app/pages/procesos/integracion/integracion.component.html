@@ -1,12 +1,309 @@
 <div class="integracion-container">
-  <div class="page-header">
-    <h1 class="page-title">
-      <mat-icon class="mr-3 text-blue-600">sync</mat-icon>
-      Integración de Expediente
-    </h1>
-    <p class="page-subtitle">
-      Gestiona y monitorea el proceso de integración de expediente
-    </p>
+
+  <!-- Filtros de Agencia y Cliente -->
+  <div class="filters-section mb-4">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-3">
+        <div class="flex items-center justify-between gap-3">
+          <!-- Filtro de Agencia -->
+          <div class="flex items-center space-x-3">
+            <mat-form-field appearance="outline" class="min-w-48">
+              <mat-label>Agencia</mat-label>
+              <mat-select 
+                [value]="selectedAgencyId" 
+                (selectionChange)="onAgencyChange($event.value)"
+                [disabled]="agenciesLoading || !hasAgencies()">
+                <mat-option [value]="null">Todas las agencias</mat-option>
+                <mat-option 
+                  *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
+                  [value]="agency.Id">
+                  {{ agency.Name }}
+                </mat-option>
+              </mat-select>
+              <mat-hint *ngIf="agenciesLoading">Cargando...</mat-hint>
+              <mat-hint *ngIf="!agenciesLoading && !hasAgencies()">Sin agencias</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Filtro de Cliente y Botones -->
+          <div class="flex items-center space-x-3 flex-1">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Buscar Cliente</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="clientSearchTerm"
+                (keyup.enter)="searchClients()"
+                placeholder="Buscar por número de cliente o nombre completo"
+                autocomplete="off">
+              <mat-hint *ngIf="clientsLoading">Buscando...</mat-hint>
+              <mat-hint *ngIf="!clientsLoading && showClientResults">Se encontraron {{ clients.length }} clientes</mat-hint>
+              <mat-hint *ngIf="!clientsLoading && !showClientResults && clientSearchTerm.length > 0 && clientSearchTerm.length < 3">Ingresa al menos 3 caracteres para buscar</mat-hint>
+            </mat-form-field>
+            
+            <!-- Contenedor de botones alineados -->
+            <div class="flex items-center space-x-2">
+              <!-- Botón de buscar -->
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="searchClients()"
+                [disabled]="clientsLoading || clientSearchTerm.trim().length < 3"
+                matTooltip="Buscar cliente"
+                style="height: 40px; min-height: 40px;">
+                <mat-icon>search</mat-icon>
+                Buscar
+              </button>
+              
+              <!-- Botón de limpiar búsqueda -->
+              <button 
+                *ngIf="clientSearchTerm"
+                mat-raised-button 
+                color="warn" 
+                (click)="clearClientSearch()"
+                matTooltip="Limpiar búsqueda"
+                style="height: 40px; min-height: 40px;">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin resultados -->
+        <div *ngIf="showClientResults && clients.length === 0 && !clientsLoading" class="mt-3 text-center py-6">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">search_off</mat-icon>
+          <p class="text-gray-500">No se encontraron clientes con el término de búsqueda</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Información del Cliente Seleccionado -->
+  <div *ngIf="selectedClient" class="client-info-section mb-4">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-header>
+        <mat-card-title class="flex items-center">
+          <mat-icon class="mr-2 text-blue-600">person</mat-icon>
+          Información del Cliente
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="field-group">
+            <label class="field-label">N° Cliente</label>
+            <div class="field-value">{{ selectedClient.ndCliente || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Razón Social</label>
+            <div class="field-value">{{ selectedClient.razonSocial || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">RFC</label>
+            <div class="field-value">{{ selectedClient.rfc || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Correo</label>
+            <div class="field-value">{{ selectedClient.email || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Teléfono</label>
+            <div class="field-value">{{ selectedClient.telefono || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Teléfono 2</label>
+            <div class="field-value">{{ selectedClient.telefono2 || 'N/A' }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Tabla de Pedidos del Cliente -->
+  <div *ngIf="selectedClient" class="files-section mb-4">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-header>
+        <mat-card-title class="flex items-center justify-between">
+          <div class="flex items-center">
+            <mat-icon class="mr-2 text-green-600">description</mat-icon>
+            Pedidos en Integración
+          </div>
+          <button 
+            mat-icon-button 
+            color="primary"
+            (click)="agregarPedidoIntegracion()"
+            matTooltip="Agregar nuevo pedido de integración"
+            *ngIf="isManagerOrAdmin">
+            <mat-icon>add</mat-icon>
+          </button>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-4">
+        <!-- Loading spinner -->
+        <div *ngIf="filesLoading" class="flex justify-center py-8">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <!-- Tabla de pedidos -->
+        <div *ngIf="!filesLoading" class="overflow-x-auto">
+          <table mat-table [dataSource]="files" class="w-full files-table">
+            <!-- Número de Pedido -->
+            <ng-container matColumnDef="numeroPedido">
+              <th mat-header-cell *matHeaderCellDef>N° Pedido</th>
+              <td mat-cell *matCellDef="let file">
+                <div class="flex items-center">
+                  <mat-icon class="mr-1 text-blue-600" style="font-size: 14px;">receipt</mat-icon>
+                  <span class="font-medium">{{ file.numeroPedido }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Número de Inventario -->
+            <ng-container matColumnDef="numeroInventario">
+              <th mat-header-cell *matHeaderCellDef>N° Inventario</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.numeroInventario; else noInventory" class="text-sm">{{ file.numeroInventario }}</span>
+                <ng-template #noInventory>
+                  <span class="text-gray-400 italic text-sm">Sin inventario</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Proceso -->
+            <ng-container matColumnDef="proceso">
+              <th mat-header-cell *matHeaderCellDef>Proceso</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.proceso; else noProcess" class="text-sm">{{ file.proceso }}</span>
+                <ng-template #noProcess>
+                  <span class="text-gray-400 italic text-sm">Sin proceso</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Operación -->
+            <ng-container matColumnDef="operacion">
+              <th mat-header-cell *matHeaderCellDef>Operación</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.operacion; else noOperation" class="text-sm">{{ file.operacion }}</span>
+                <ng-template #noOperation>
+                  <span class="text-gray-400 italic text-sm">Sin operación</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Tipo de Cliente -->
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef>Tipo Cliente</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.tipoCliente; else noClientType" class="text-sm">{{ file.tipoCliente }}</span>
+                <ng-template #noClientType>
+                  <span class="text-gray-400 italic text-sm">Sin tipo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Vehículo -->
+            <ng-container matColumnDef="vehiculo">
+              <th mat-header-cell *matHeaderCellDef>Vehículo</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.vehiculo; else noVehicle" class="text-sm">{{ file.vehiculo }}</span>
+                <ng-template #noVehicle>
+                  <span class="text-gray-400 italic text-sm">Sin vehículo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Año -->
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef>Año</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.year; else noYear" class="text-sm">{{ file.year }}</span>
+                <ng-template #noYear>
+                  <span class="text-gray-400 italic text-sm">-</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Modelo -->
+            <ng-container matColumnDef="modelo">
+              <th mat-header-cell *matHeaderCellDef>Modelo</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.modelo; else noModel" class="text-sm">{{ file.modelo }}</span>
+                <ng-template #noModel>
+                  <span class="text-gray-400 italic text-sm">Sin modelo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- VIN -->
+            <ng-container matColumnDef="vin">
+              <th mat-header-cell *matHeaderCellDef>VIN</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.vin; else noVin" class="text-sm font-mono">{{ file.vin }}</span>
+                <ng-template #noVin>
+                  <span class="text-gray-400 italic text-sm">Sin VIN</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Agencia -->
+            <ng-container matColumnDef="agencia">
+              <th mat-header-cell *matHeaderCellDef>Agencia</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.agencia; else noAgency" class="text-sm">{{ file.agencia }}</span>
+                <ng-template #noAgency>
+                  <span class="text-gray-400 italic text-sm">Sin agencia</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Fecha de Registro -->
+            <ng-container matColumnDef="fechaRegistro">
+              <th mat-header-cell *matHeaderCellDef>Fecha Registro</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.fechaRegistro; else noDate" class="text-sm">{{ file.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</span>
+                <ng-template #noDate>
+                  <span class="text-gray-400 italic text-sm">Sin fecha</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Acciones (solo para gerentes y administradores) -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let file">
+                <button 
+                  mat-icon-button 
+                  [matMenuTriggerFor]="actionsMenu"
+                  *ngIf="isManagerOrAdmin"
+                  matTooltip="Opciones del pedido">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item (click)="cancelarPedido(file)">
+                    <mat-icon>cancel</mat-icon>
+                    <span>Cancelar</span>
+                  </button>
+                  <button mat-menu-item (click)="excepcionPedido(file)">
+                    <mat-icon>warning</mat-icon>
+                    <span>Excepción</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="filesDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: filesDisplayedColumns;" 
+                class="hover:bg-gray-50"></tr>
+          </table>
+        </div>
+
+        <!-- Sin pedidos -->
+        <div *ngIf="!filesLoading && files.length === 0" class="text-center py-8">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">folder_open</mat-icon>
+          <p class="text-gray-500">No se encontraron pedidos en estatus de integración para este cliente</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <!-- Estado de la Integración -->
@@ -32,26 +329,6 @@
                 Última actualización: {{ lastUpdate.toLocaleString() }}
               </div>
             </div>
-          </div>
-          <div class="status-actions">
-            <button 
-              *ngIf="integrationStatus !== 'active'"
-              mat-raised-button 
-              color="primary" 
-              (click)="startIntegration()"
-              [disabled]="loading">
-              <mat-icon>play_arrow</mat-icon>
-              Iniciar Integración
-            </button>
-            <button 
-              *ngIf="integrationStatus === 'active'"
-              mat-raised-button 
-              color="warn" 
-              (click)="stopIntegration()"
-              [disabled]="loading">
-              <mat-icon>stop</mat-icon>
-              Detener Integración
-            </button>
           </div>
         </div>
       </mat-card-content>
@@ -122,24 +399,9 @@
           <p class="text-gray-600 mb-4">
             Configura los parámetros del proceso de integración de expediente para optimizar el rendimiento y la precisión.
           </p>
-          <div class="config-actions">
-            <button mat-raised-button color="primary">
-              <mat-icon>edit</mat-icon>
-              Editar Configuración
-            </button>
-            <button mat-button>
-              <mat-icon>history</mat-icon>
-              Ver Historial
-            </button>
-          </div>
         </div>
       </mat-card-content>
     </mat-card>
   </div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-overlay">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p class="loading-text">Procesando...</p>
-  </div>
 </div>

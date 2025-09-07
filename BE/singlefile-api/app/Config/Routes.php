@@ -269,6 +269,16 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('remove', 'UserProfileImage::removeProfileImage');
     });
 
+// Rutas de clientes
+$routes->group('client', function($routes) {
+    $routes->get('search', 'Client::search');
+});
+
+// Rutas de files/pedidos
+$routes->group('files', function($routes) {
+    $routes->get('by-client', 'Files::getByClient');
+});
+    
     // Rutas de validación de clientes (Mesa de Control)
     $routes->group('clients-validation', function($routes) {
         $routes->get('clientes', 'Validacion::getClientes');

@@ -58,7 +58,7 @@ export class NavigationLoaderService {
             type: 'link',
             label: 'Gestión de Procesos',
             route: '/procesos/gestion',
-            icon: 'mat:workflow'
+            icon: 'mat:settings'
           }
         ]
       },
