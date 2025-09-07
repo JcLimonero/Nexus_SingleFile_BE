@@ -339,17 +339,14 @@
                 {{ getDocumentStatusIcon(document.status, document.idCurrentStatus) }}
               </mat-icon>
               
-              <!-- Nombre del documento -->
-              <div class="flex-1">
-                <div class="font-medium text-gray-900">{{ document.documentName }}</div>
-                <div *ngIf="document.hasExpiration === '1' && document.expirationDate" 
-                     class="text-sm text-gray-500">
-                  Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
+                <!-- Nombre del documento -->
+                <div class="flex-1">
+                  <div class="font-medium text-gray-900">{{ document.documentName }}</div>
+                  <div *ngIf="document.hasExpiration === '1' && document.expirationDate" 
+                       class="text-sm text-gray-500">
+                    Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
+                  </div>
                 </div>
-                <div *ngIf="document.fileName" class="text-sm text-green-600">
-                  Archivo: {{ document.fileName }}
-                </div>
-              </div>
             </div>
 
             <!-- Controles de archivo -->
