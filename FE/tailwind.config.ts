@@ -17,7 +17,7 @@ export const themes: VexThemes = {
           darker: '700'
         },
         palette: {
-          ...colors.indigo
+          ...colors.blue
         }
       },
       'on-primary': {
