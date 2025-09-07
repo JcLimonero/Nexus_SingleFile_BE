@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, of } from 'rxjs';
 import { takeUntil, map, catchError } from 'rxjs/operators';
 import { AnalyticsService } from '../../../../../core/services/analytics.service';
@@ -8,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AttentionPeriodDialogComponent, AttentionPeriodDialogData } from './attention-period-dialog/attention-period-dialog.component';
 
 export interface AttentionPeriodData {
   range: string;
@@ -42,7 +44,7 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
   error: string | null = null;
   totalCases = 0;
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(private analyticsService: AnalyticsService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -96,5 +98,24 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
   getPercentage(count: number): number {
     if (this.totalCases === 0) return 0;
     return Math.round((count / this.totalCases) * 100);
+  }
+
+  openAttentionPeriodDialog(item: AttentionPeriodData): void {
+    const dialogData: AttentionPeriodDialogData = {
+      range: item.range,
+      label: item.label,
+      count: item.count,
+      color: item.color,
+      agencyId: this.agencyId,
+      userId: this.userId
+    };
+
+    this.dialog.open(AttentionPeriodDialogComponent, {
+      width: '90vw',
+      maxWidth: '1200px',
+      height: '80vh',
+      data: dialogData,
+      disableClose: false
+    });
   }
 }

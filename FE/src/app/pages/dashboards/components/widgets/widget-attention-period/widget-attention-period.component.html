@@ -48,7 +48,9 @@
             *ngFor="let item of attentionData" 
             class="attention-block"
             [style.background-color]="item.color"
-            [matTooltip]="item.label + ': ' + item.count + ' expedientes (' + getPercentage(item.count) + '%)'">
+            [class.disabled]="item.count === 0"
+            [matTooltip]="item.count > 0 ? (item.label + ': ' + item.count + ' expedientes (' + getPercentage(item.count) + '%) - Click para ver detalles') : (item.label + ': ' + item.count + ' expedientes - Sin datos disponibles')"
+            (click)="item.count > 0 ? openAttentionPeriodDialog(item) : null">
             <div class="block-value">{{ item.count }}</div>
             <div class="block-label">{{ item.label }}</div>
           </div>

@@ -1,0 +1,9 @@
+.widget-total-liberated {
+  .metric-card {
+    @apply transition-all duration-200 hover:shadow-md;
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+}

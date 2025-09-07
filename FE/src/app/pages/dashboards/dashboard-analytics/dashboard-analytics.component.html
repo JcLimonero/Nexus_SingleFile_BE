@@ -210,10 +210,34 @@
 
   <!-- Dashboard principal -->
   <div *ngIf="!loading && !error">
-    <!-- Métricas específicas de agencia (solo aplica filtro de agencia) -->
-    <vex-widget-agency-metrics 
-      [agencyId]="selectedAgencyId" 
-      class="mb-6"></vex-widget-agency-metrics>
+    <!-- Métricas específicas de agencia y expedientes liberados -->
+    <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
+      <!-- Métricas específicas de agencia (solo aplica filtro de agencia) - 3 columnas -->
+      <div class="lg:col-span-3">
+        <vex-widget-agency-metrics 
+          [agencyId]="selectedAgencyId"></vex-widget-agency-metrics>
+      </div>
+
+      <!-- Widget de Expedientes Liberados del Mes Actual - 1 columna -->
+      <div class="lg:col-span-1">
+        <vex-widget-current-month-liberated 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"></vex-widget-current-month-liberated>
+      </div>
+
+      <!-- Widget de Expedientes Liberados Totales - 1 columna -->
+      <div class="lg:col-span-1">
+        <vex-widget-total-liberated 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"></vex-widget-total-liberated>
+      </div>
+
+      <!-- Widget de Usuarios de la Agencia - 1 columna -->
+      <div class="lg:col-span-1">
+        <vex-widget-agency-users 
+          [agencyId]="selectedAgencyId"></vex-widget-agency-users>
+      </div>
+    </div>
 
   <!-- Gráfico de tendencia de expedientes -->
     <vex-widget-trend-chart 
@@ -282,15 +306,5 @@
       [monthsToShow]="6"
       class="mb-6"></vex-widget-previous-months> -->
 
-    <!-- Gráficos de actividad -->
-    <vex-widget-large-chart
-      [series]="userSessionsSeries"
-      class="sm:col-span-2"></vex-widget-large-chart>
-
-    <!-- Tabla de datos -->
-    <vex-widget-table
-      [columns]="tableColumns"
-      [data]="tableData"
-      class="sm:col-span-2"></vex-widget-table>
   </div>
 </div>

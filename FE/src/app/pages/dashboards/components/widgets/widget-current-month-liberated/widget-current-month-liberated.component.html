@@ -1,0 +1,41 @@
+<mat-card class="widget-card">
+  <mat-card-content class="widget-content">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-container">
+      <mat-icon color="warn">error</mat-icon>
+      <span class="error-text">{{ error }}</span>
+    </div>
+
+    <!-- Data State -->
+    <div *ngIf="!loading && !error && data" class="data-container">
+      <!-- Icon Container -->
+      <div class="icon-container">
+        <mat-icon class="widget-icon">check_circle</mat-icon>
+      </div>
+
+      <!-- Content Container -->
+      <div class="content-container">
+        <div class="main-number">{{ data.total }}</div>
+        <div class="main-label">Expedientes</div>
+        <div class="sub-label">Liberados {{ getMonthName() }}</div>
+      </div>
+    </div>
+
+    <!-- No Data State -->
+    <div *ngIf="!loading && !error && data && data.total === 0" class="no-data-container">
+      <div class="icon-container">
+        <mat-icon class="widget-icon no-data">check_circle</mat-icon>
+      </div>
+      <div class="content-container">
+        <div class="main-number">0</div>
+        <div class="main-label">Expedientes</div>
+        <div class="sub-label">Liberados {{ getMonthName() }}</div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

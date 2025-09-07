@@ -8,7 +8,7 @@
     <p>{{ error }}</p>
   </div>
 
-  <div *ngIf="agencyMetrics && !loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div *ngIf="agencyMetrics && !loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <!-- Expedientes Hoy -->
     <mat-card class="metric-card">
       <div class="flex items-center space-x-4 p-4">
@@ -57,20 +57,5 @@
       </div>
     </mat-card>
 
-    <!-- Usuarios de la Agencia -->
-    <mat-card class="metric-card">
-      <div class="flex items-center space-x-4 p-4">
-        <div class="flex-shrink-0">
-          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-            <mat-icon class="text-purple-600 text-2xl">group</mat-icon>
-          </div>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-2xl font-bold text-blue-500">{{ agencyMetrics.totalUsers }}</div>
-          <div class="text-sm font-medium text-gray-700">Usuarios</div>
-          <div class="text-xs text-gray-500">Agencia</div>
-        </div>
-      </div>
-    </mat-card>
   </div>
 </div>

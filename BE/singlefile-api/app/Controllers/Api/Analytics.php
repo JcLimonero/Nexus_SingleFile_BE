@@ -1089,7 +1089,10 @@ class Analytics extends BaseController
             'agency_id' => $this->request->getGet('agency_id'),
             'process_id' => $this->request->getGet('process_id'),
             'document_type_id' => $this->request->getGet('document_type_id'),
-            'year' => $this->request->getGet('year')
+            'year' => $this->request->getGet('year'),
+            'range' => $this->request->getGet('range'),
+            'current_month' => $this->request->getGet('current_month'),
+            'liberated_only' => $this->request->getGet('liberated_only') // ← NUEVO PARÁMETRO
         ];
     }
 
@@ -1654,12 +1657,10 @@ class Analytics extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Primero verificar si existen expedientes con AttentionDate y CloseDate
+            // Primero verificar si existen expedientes con RegistrationDate
             $countQuery = $db->table('File f')
                 ->select('COUNT(f.Id) as total')
-                ->where('f.AttentionDate IS NOT NULL')
-                ->where('f.CloseDate IS NOT NULL')
-                ->where('f.CloseDate >= f.AttentionDate');
+                ->where('f.RegistrationDate IS NOT NULL');
 
             if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
                 $countQuery->where('f.IdAgency', $agencyId);
@@ -1687,28 +1688,36 @@ class Analytics extends BaseController
                 ]);
             }
 
-            // Consulta principal con rangos
-            $query = $db->table('File f')
-                ->select('
-                    CASE 
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0-5"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5-10"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10-15"
-                        ELSE "15+"
-                    END as period_range,
-                    CASE 
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0 - 5 Días"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5 - 10 Días"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10 - 15 Días"
-                        ELSE "> 15 Días"
-                    END as period_label,
-                    COUNT(f.Id) as count
-                ')
-                ->where('f.AttentionDate IS NOT NULL')
-                ->where('f.CloseDate IS NOT NULL')
-                ->where('f.CloseDate >= f.AttentionDate')
-                ->groupBy('period_range, period_label')
-                ->orderBy('period_range', 'ASC');
+        // Consulta principal con rangos usando RegistrationDate y CloseDate (o fecha actual si es NULL)
+        $query = $db->table('File f')
+            ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+            ->join('HeaderClient hc', 'f.IdClient = hc.Id', 'inner')
+            ->join('Client c', 'hc.IdClient = c.Id', 'inner')
+            ->join('Process p', 'f.IdProcess = p.Id', 'inner')
+            ->join('OperationType ot', 'f.IdOperation = ot.Id', 'inner')
+            ->join('Client_Total_Relation ctr', 'hc.Id = ctr.idHeaderClient', 'inner')
+            ->select('
+                CASE 
+                    WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5 THEN "0-5"
+                    WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 10 THEN "5-10"
+                    WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 15 THEN "10-15"
+                    ELSE "15+"
+                END as period_range,
+                CASE 
+                    WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5 THEN "0 - 5 Días"
+                    WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 10 THEN "5 - 10 Días"
+                    WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 15 THEN "10 - 15 Días"
+                    ELSE "> 15 Días"
+                END as period_label,
+                COUNT(f.Id) as count
+            ')
+            ->where('f.RegistrationDate IS NOT NULL')
+            ->where('COALESCE(f.CloseDate, CURDATE()) >= f.RegistrationDate')
+            ->where('fs.Name !=', 'Liberado')  // ← EXCLUIR PEDIDOS LIBERADOS
+            ->where('p.Enabled', 1)
+            ->where('((c.Name IS NOT NULL AND c.Name != \'\') OR (c.LastName IS NOT NULL AND c.LastName != \'\') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != \'\'))')
+            ->groupBy('period_range, period_label')
+            ->orderBy('period_range', 'ASC');
 
             // Aplicar filtros
             if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
@@ -1808,14 +1817,12 @@ class Analytics extends BaseController
             $currentYear = date('Y');
             $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
 
-            // Primero verificar si existen expedientes con AttentionDate y CloseDate del mes actual
+            // Primero verificar si existen expedientes con RegistrationDate del mes actual
             $countQuery = $db->table('File f')
                 ->select('COUNT(f.Id) as total')
-                ->where('f.AttentionDate IS NOT NULL')
-                ->where('f.CloseDate IS NOT NULL')
-                ->where('f.CloseDate >= f.AttentionDate')
-                ->where('YEAR(f.AttentionDate)', $currentYear)
-                ->where('MONTH(f.AttentionDate)', $currentMonth);
+                ->where('f.RegistrationDate IS NOT NULL')
+                ->where('YEAR(f.RegistrationDate)', $currentYear)
+                ->where('MONTH(f.RegistrationDate)', $currentMonth);
 
             if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
                 $countQuery->where('f.IdAgency', $agencyId);
@@ -1843,28 +1850,36 @@ class Analytics extends BaseController
                 ]);
             }
 
-            // Consulta principal con rangos para el mes actual
+            // Consulta principal con rangos para el mes actual usando RegistrationDate y CloseDate (o fecha actual si es NULL)
             $query = $db->table('File f')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+                ->join('HeaderClient hc', 'f.IdClient = hc.Id', 'inner')
+                ->join('Client c', 'hc.IdClient = c.Id', 'inner')
+                ->join('Process p', 'f.IdProcess = p.Id', 'inner')
+                ->join('OperationType ot', 'f.IdOperation = ot.Id', 'inner')
+                ->join('Client_Total_Relation ctr', 'hc.Id = ctr.idHeaderClient', 'inner')
                 ->select('
                     CASE 
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0-5"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5-10"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10-15"
+                        WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5 THEN "0-5"
+                        WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 10 THEN "5-10"
+                        WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 15 THEN "10-15"
                         ELSE "15+"
                     END as period_range,
                     CASE 
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0 - 5 Días"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5 - 10 Días"
-                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10 - 15 Días"
+                        WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5 THEN "0 - 5 Días"
+                        WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 10 THEN "5 - 10 Días"
+                        WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 15 THEN "10 - 15 Días"
                         ELSE "> 15 Días"
                     END as period_label,
                     COUNT(f.Id) as count
                 ')
-                ->where('f.AttentionDate IS NOT NULL')
-                ->where('f.CloseDate IS NOT NULL')
-                ->where('f.CloseDate >= f.AttentionDate')
-                ->where('YEAR(f.AttentionDate)', $currentYear)
-                ->where('MONTH(f.AttentionDate)', $currentMonth)
+                ->where('f.RegistrationDate IS NOT NULL')
+                ->where('COALESCE(f.CloseDate, CURDATE()) >= f.RegistrationDate')
+                ->where('fs.Name !=', 'Liberado')  // ← EXCLUIR PEDIDOS LIBERADOS
+                ->where('p.Enabled', 1)
+                ->where('((c.Name IS NOT NULL AND c.Name != \'\') OR (c.LastName IS NOT NULL AND c.LastName != \'\') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != \'\'))')
+                ->where('YEAR(f.RegistrationDate)', $currentYear)
+                ->where('MONTH(f.RegistrationDate)', $currentMonth)
                 ->groupBy('period_range, period_label')
                 ->orderBy('period_range', 'ASC');
 
@@ -1940,6 +1955,265 @@ class Analytics extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de período de atención del mes actual: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+
+    /**
+     * GET /api/analytics/current-month-liberated
+     * Obtener datos de expedientes liberados del mes actual
+     */
+    public function getCurrentMonthLiberated()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $userId = $filters['user_id'] ?? null;
+
+            log_message('info', 'getCurrentMonthLiberated - agencyId: ' . $agencyId . ', userId: ' . $userId);
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener mes y año actual
+            $currentYear = date('Y');
+            $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
+
+            // Consulta para obtener expedientes liberados del mes actual
+            $query = $db->table('File f')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+                ->select('COUNT(f.Id) as total')
+                ->where('f.RegistrationDate IS NOT NULL')
+                ->where('fs.Name', 'Liberado')
+                ->where('YEAR(f.RegistrationDate)', $currentYear)
+                ->where('MONTH(f.RegistrationDate)', $currentMonth);
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $query->where('f.idSeller', $userId);
+            }
+
+            $result = $query->get()->getRowArray();
+            $total = (int)($result['total'] ?? 0);
+
+            // Obtener nombre del mes
+            $monthNames = [
+                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            ];
+            $monthName = $monthNames[$currentMonth];
+
+            $data = [
+                'total' => $total,
+                'month' => $monthName,
+                'year' => $currentYear
+            ];
+
+            log_message('info', 'Datos de expedientes liberados del mes actual: ' . json_encode($data));
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getCurrentMonthLiberated: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos de expedientes liberados del mes actual: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/total-liberated
+     * Obtener datos de expedientes liberados totales (toda la historia)
+     */
+    public function getTotalLiberated()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $userId = $filters['user_id'] ?? null;
+
+            log_message('info', 'getTotalLiberated - agencyId: ' . $agencyId . ', userId: ' . $userId);
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Consulta para obtener expedientes liberados de toda la historia
+            $query = $db->table('File f')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+                ->select('COUNT(f.Id) as total')
+                ->where('f.RegistrationDate IS NOT NULL')
+                ->where('fs.Name', 'Liberado');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $query->where('f.idSeller', $userId);
+            }
+
+            $result = $query->get()->getRowArray();
+            $total = (int)($result['total'] ?? 0);
+
+            $data = [
+                'total' => $total
+            ];
+
+            log_message('info', 'Datos de expedientes liberados totales: ' . json_encode($data));
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getTotalLiberated: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos de expedientes liberados totales: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/orders-by-attention-period
+     * Obtener pedidos específicos por rango de período de atención
+     */
+    public function getOrdersByAttentionPeriod()
+    {
+        try {
+        $filters = $this->getFiltersFromRequest();
+        $range = $filters['range'] ?? null;
+        $agencyId = $filters['agency_id'] ?? null;
+        $userId = $filters['user_id'] ?? null;
+        $currentMonth = $filters['current_month'] ?? null;
+        $liberatedOnly = $filters['liberated_only'] ?? null; // ← NUEVO PARÁMETRO
+
+        log_message('info', 'getOrdersByAttentionPeriod - range: ' . $range . ', agencyId: ' . $agencyId . ', userId: ' . $userId . ', currentMonth: ' . $currentMonth . ', liberatedOnly: ' . $liberatedOnly);
+
+            if (!$range) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro range es requerido'
+                ])->setStatusCode(400);
+            }
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Construir condición WHERE para el rango de días usando RegistrationDate y CloseDate (o fecha actual si es NULL)
+            $dayCondition = '';
+            switch ($range) {
+                case '0-5':
+                    $dayCondition = 'DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5';
+                    break;
+                case '5-10':
+                    $dayCondition = 'DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) > 5 AND DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 10';
+                    break;
+                case '10-15':
+                    $dayCondition = 'DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) > 10 AND DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 15';
+                    break;
+                case '15+':
+                    $dayCondition = 'DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) > 15';
+                    break;
+                default:
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Rango de días no válido'
+                    ])->setStatusCode(400);
+            }
+
+            $sql = "
+                SELECT 
+                    f.Id as idFile,
+                    MIN(ctr.IdTotalDealer) as ndCliente,
+                    f.IdOrder as ndPedido,
+                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
+                    p.Name as proceso,
+                    ot.Name as operacion,
+                    fs.Name as fase,
+                    f.RegistrationDate as fechaAtencion,
+                    f.CloseDate as fechaCierre,
+                    DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) as diasAtencion,
+                    fs.Name as estado
+                FROM File f
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN OperationType ot ON f.IdOperation = ot.Id
+                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+            WHERE f.RegistrationDate IS NOT NULL
+            AND COALESCE(f.CloseDate, CURDATE()) >= f.RegistrationDate
+            AND {$dayCondition}
+            AND p.Enabled = 1
+            AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+        ";
+
+        // Agregar filtro de mes si se especifica
+        if ($currentMonth === 'true') {
+            $currentYear = date('Y');
+            $currentMonthNum = date('n');
+            $sql .= " AND YEAR(f.RegistrationDate) = {$currentYear} AND MONTH(f.RegistrationDate) = {$currentMonthNum}";
+        }
+
+        // Agregar filtro de pedidos liberados si se especifica
+        if ($liberatedOnly === 'true') {
+            $sql .= " AND fs.Name = 'Liberado'";
+        } else {
+            $sql .= " AND fs.Name != 'Liberado'";
+        }
+
+        $params = [];
+
+            // Aplicar filtros de agencia y usuario
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $sql .= " AND f.IdAgency = ?";
+                $params[] = $agencyId;
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $sql .= " AND f.idSeller = ?";
+                $params[] = $userId;
+            }
+
+            $sql .= " GROUP BY f.Id ORDER BY f.CloseDate DESC";
+
+            $query = $db->query($sql, $params);
+            $results = $query->getResultArray();
+
+            log_message('info', 'Pedidos encontrados para rango ' . $range . ': ' . count($results));
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $results
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getOrdersByAttentionPeriod: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener pedidos por período de atención: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }

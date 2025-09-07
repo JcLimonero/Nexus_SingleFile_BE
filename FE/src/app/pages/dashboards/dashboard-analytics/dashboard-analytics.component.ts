@@ -1,13 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { defaultChartOptions } from '@vex/utils/default-chart-options';
-import {
-  Order,
-  tableSalesData
-} from '../../../../static-data/table-sales-data';
-import { TableColumn } from '@vex/interfaces/table-column.interface';
-import { WidgetTableComponent } from '../components/widgets/widget-table/widget-table.component';
-import { WidgetLargeChartComponent } from '../components/widgets/widget-large-chart/widget-large-chart.component';
+import { AnalyticsService, AnalyticsFilters } from '../../../core/services/analytics.service';
 import { WidgetLargeGoalChartComponent } from '../components/widgets/widget-large-goal-chart/widget-large-goal-chart.component';
 import { WidgetQuickLineChartComponent } from '../components/widgets/widget-quick-line-chart/widget-quick-line-chart.component';
 import { WidgetAssistantComponent } from '../components/widgets/widget-assistant/widget-assistant.component';
@@ -23,6 +17,9 @@ import { WidgetAdvisorDistributionComponent } from '../components/widgets/widget
 import { WidgetWeeklyChartComponent } from '../components/widgets/widget-weekly-chart/widget-weekly-chart.component';
 import { WidgetAttentionPeriodComponent } from '../components/widgets/widget-attention-period/widget-attention-period.component';
 import { WidgetCurrentMonthAttentionComponent } from '../components/widgets/widget-current-month-attention/widget-current-month-attention.component';
+import { WidgetCurrentMonthLiberatedComponent } from '../components/widgets/widget-current-month-liberated/widget-current-month-liberated.component';
+import { WidgetTotalLiberatedComponent } from '../components/widgets/widget-total-liberated/widget-total-liberated.component';
+import { WidgetAgencyUsersComponent } from '../components/widgets/widget-agency-users/widget-agency-users.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -36,7 +33,6 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { AnalyticsService, AnalyticsFilters } from '../../../core/services/analytics.service';
 import { AgencyService } from '../../../core/services/agency.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { UserService } from '../../../core/services/user.service';
@@ -56,8 +52,6 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
                 WidgetAssistantComponent,
                 WidgetQuickLineChartComponent,
                 WidgetLargeGoalChartComponent,
-                WidgetLargeChartComponent,
-                WidgetTableComponent,
     WidgetAgencyMetricsComponent,
     WidgetTrendChartComponent,
     WidgetDistributionMetricsDonutComponent,
@@ -69,7 +63,10 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
     WidgetAdvisorDistributionComponent,
     WidgetWeeklyChartComponent,
     WidgetAttentionPeriodComponent,
-    WidgetCurrentMonthAttentionComponent,
+        WidgetCurrentMonthAttentionComponent,
+        WidgetCurrentMonthLiberatedComponent,
+        WidgetTotalLiberatedComponent,
+        WidgetAgencyUsersComponent,
     AgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,
@@ -97,33 +94,6 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   activeDateRange: string | null = null;
   currentUser: any = null;
   isUserFilterDisabled = false;
-
-  // Datos de ejemplo para mantener compatibilidad
-  tableColumns: TableColumn<Order>[] = [
-    {
-      label: '',
-      property: 'status',
-      type: 'badge'
-    },
-    {
-      label: 'PRODUCT',
-      property: 'name',
-      type: 'text'
-    },
-    {
-      label: '$ PRICE',
-      property: 'price',
-      type: 'text',
-      cssClasses: ['font-medium']
-    },
-    {
-      label: 'DATE',
-      property: 'timestamp',
-      type: 'text',
-      cssClasses: ['text-secondary']
-    }
-  ];
-  tableData = tableSalesData;
 
   private destroy$ = new Subject<void>();
   private filtersChange$ = new Subject<void>();
@@ -623,17 +593,6 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     {
       name: 'Subscribers',
       data: [28, 40, 36, 0, 52, 38, 60, 55, 67, 33, 89, 44]
-    }
-  ];
-
-  userSessionsSeries: ApexAxisChartSeries = [
-    {
-      name: 'Users',
-      data: [10, 50, 26, 50, 38, 60, 50, 25, 61, 80, 40, 60]
-    },
-    {
-      name: 'Sessions',
-      data: [5, 21, 42, 70, 41, 20, 35, 50, 10, 15, 30, 50]
     }
   ];
 

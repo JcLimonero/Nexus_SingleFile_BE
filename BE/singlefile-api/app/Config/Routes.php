@@ -137,6 +137,9 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
             $routes->get('weekly-data', 'Analytics::getWeeklyData');
             $routes->get('attention-period', 'Analytics::getAttentionPeriod');
             $routes->get('current-month-attention', 'Analytics::getCurrentMonthAttention');
+            $routes->get('current-month-liberated', 'Analytics::getCurrentMonthLiberated');
+            $routes->get('total-liberated', 'Analytics::getTotalLiberated');
+            $routes->get('orders-by-attention-period', 'Analytics::getOrdersByAttentionPeriod');
             $routes->get('debug-file-structure', 'Analytics::debugFileStructure');
             $routes->get('debug-file-status', 'Analytics::debugFileStatus');
             $routes->get('debug-trend-january-2025', 'Analytics::debugTrendJanuary2025');

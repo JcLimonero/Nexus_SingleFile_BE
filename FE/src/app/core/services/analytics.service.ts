@@ -115,6 +115,30 @@ export interface CurrentMonthAttentionData {
   color: string;
 }
 
+export interface CurrentMonthLiberatedData {
+  total: number;
+  month: string;
+  year: number;
+}
+
+export interface TotalLiberatedData {
+  total: number;
+}
+
+export interface OrderByPeriod {
+  idFile: number;
+  ndCliente: number;
+  ndPedido: number;
+  cliente: string;
+  proceso: string;
+  operacion: string;
+  fase: string;
+  fechaAtencion: string;
+  fechaCierre: string;
+  diasAtencion: number;
+  estado: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -474,6 +498,100 @@ export class AnalyticsService {
         }),
         catchError(error => {
           console.error('Error en getCurrentMonthAttentionData:', error);
+          return of([]);
+        })
+      );
+  }
+
+  /**
+   * Obtener datos de expedientes liberados del mes actual
+   */
+  getCurrentMonthLiberated(agencyId?: string | null, userId?: string | null): Observable<CurrentMonthLiberatedData> {
+    let params = new HttpParams();
+
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/analytics/current-month-liberated`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            return response.data;
+          }
+          return { total: 0, month: '', year: new Date().getFullYear() };
+        }),
+        catchError(error => {
+          console.error('Error en getCurrentMonthLiberated:', error);
+          return of({ total: 0, month: '', year: new Date().getFullYear() });
+        })
+      );
+  }
+
+  /**
+   * Obtener datos de expedientes liberados totales (toda la historia)
+   */
+  getTotalLiberated(agencyId?: string | null, userId?: string | null): Observable<TotalLiberatedData> {
+    let params = new HttpParams();
+
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/analytics/total-liberated`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            return response.data;
+          }
+          return { total: 0 };
+        }),
+        catchError(error => {
+          console.error('Error en getTotalLiberated:', error);
+          return of({ total: 0 });
+        })
+      );
+  }
+
+  getOrdersByAttentionPeriod(range: string, agencyId?: string | null, userId?: string | null, currentMonth?: boolean, liberatedOnly?: boolean): Observable<OrderByPeriod[]> {
+    let params = new HttpParams();
+    
+    params = params.set('range', range);
+    
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+    
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+    
+    if (currentMonth) {
+      params = params.set('current_month', 'true');
+    }
+    
+    if (liberatedOnly) {
+      params = params.set('liberated_only', 'true');
+    }
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/orders-by-attention-period`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error en getOrdersByAttentionPeriod:', error);
           return of([]);
         })
       );
