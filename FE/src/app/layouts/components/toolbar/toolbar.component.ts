@@ -81,7 +81,7 @@ export class ToolbarComponent implements OnInit {
       console.log('🔄 ToolbarComponent - Título generado:', title);
       return title;
     }),
-    startWith('SingleFile')
+    startWith('Dashboard Analytics')
   );
 
   isDesktop$: Observable<boolean> = this.layoutService.isDesktop$;
@@ -199,6 +199,32 @@ export class ToolbarComponent implements OnInit {
       }
     }
     
+    // Procesos
+    if (url.includes('/procesos')) {
+      if (url.includes('/integracion')) {
+        return 'Integración de Expediente';
+      } else if (url.includes('/gestion')) {
+        return 'Gestión de Procesos';
+      } else {
+        return 'Procesos';
+      }
+    }
+    
+    // Mesa de Control
+    if (url.includes('/mesa-control')) {
+      if (url.includes('/validacion')) {
+        return 'Mesa de Control - Validación';
+      } else if (url.includes('/monitoreo')) {
+        return 'Mesa de Control - Monitoreo';
+      } else if (url.includes('/reportes')) {
+        return 'Mesa de Control - Reportes';
+      } else if (url.includes('/dashboard')) {
+        return 'Mesa de Control - Dashboard';
+      } else {
+        return 'Mesa de Control';
+      }
+    }
+    
     // Dashboard
     if (url.includes('/dashboards')) {
       return 'Dashboard';
@@ -206,10 +232,10 @@ export class ToolbarComponent implements OnInit {
     
     // Página principal
     if (url === '/' || url === '') {
-      return 'SingleFile';
+      return 'Dashboard Analytics';
     }
     
     // Por defecto
-    return 'SingleFile';
+    return 'Dashboard Analytics';
   }
 }

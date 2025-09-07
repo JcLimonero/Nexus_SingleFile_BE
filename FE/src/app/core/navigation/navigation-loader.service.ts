@@ -46,6 +46,24 @@ export class NavigationLoaderService {
       },
       {
         type: 'subheading',
+        label: 'Procesos',
+        children: [
+          {
+            type: 'link',
+            label: 'Integración de Expediente',
+            route: '/procesos/integracion',
+            icon: 'mat:sync'
+          },
+          {
+            type: 'link',
+            label: 'Gestión de Procesos',
+            route: '/procesos/gestion',
+            icon: 'mat:workflow'
+          }
+        ]
+      },
+      {
+        type: 'subheading',
         label: 'Mesa de Control',
         children: [
           {

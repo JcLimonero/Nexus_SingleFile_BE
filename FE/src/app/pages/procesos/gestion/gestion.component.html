@@ -1,0 +1,29 @@
+<div class="gestion-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="mr-3 text-blue-600">workflow</mat-icon>
+      Gestión de Procesos
+    </h1>
+    <p class="page-subtitle">
+      Administra y configura todos los procesos del sistema
+    </p>
+  </div>
+
+  <div class="content-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Procesos Disponibles</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="text-gray-600">
+          Esta sección estará disponible próximamente para gestionar todos los procesos del sistema.
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="loading-text">Cargando...</p>
+  </div>
+</div>

@@ -294,6 +294,25 @@ export const appRoutes: VexRoutes = [
                   ]
       },
       {
+        path: 'procesos',
+        children: [
+          {
+            path: 'integracion',
+            loadComponent: () =>
+              import('./pages/procesos/integracion/integracion.component').then(
+                (m) => m.IntegracionComponent
+              )
+          },
+          {
+            path: 'gestion',
+            loadComponent: () =>
+              import('./pages/procesos/gestion/gestion.component').then(
+                (m) => m.GestionComponent
+              )
+          }
+        ]
+      },
+      {
         path: 'mesa-control',
         children: [
           {

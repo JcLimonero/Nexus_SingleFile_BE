@@ -1,0 +1,145 @@
+<div class="integracion-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <mat-icon class="mr-3 text-blue-600">sync</mat-icon>
+      Integración de Expediente
+    </h1>
+    <p class="page-subtitle">
+      Gestiona y monitorea el proceso de integración de expediente
+    </p>
+  </div>
+
+  <!-- Estado de la Integración -->
+  <div class="status-section mb-6">
+    <mat-card class="status-card">
+      <mat-card-header>
+        <mat-card-title class="flex items-center">
+          <mat-icon class="mr-2">monitor</mat-icon>
+          Estado de la Integración de Expediente
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="status-indicator">
+              <mat-icon [class]="getStatusColor()">{{ getStatusIcon() }}</mat-icon>
+            </div>
+            <div>
+              <div class="status-text" [class]="getStatusColor()">
+                {{ getStatusText() }}
+              </div>
+              <div class="status-description text-gray-600">
+                Última actualización: {{ lastUpdate.toLocaleString() }}
+              </div>
+            </div>
+          </div>
+          <div class="status-actions">
+            <button 
+              *ngIf="integrationStatus !== 'active'"
+              mat-raised-button 
+              color="primary" 
+              (click)="startIntegration()"
+              [disabled]="loading">
+              <mat-icon>play_arrow</mat-icon>
+              Iniciar Integración
+            </button>
+            <button 
+              *ngIf="integrationStatus === 'active'"
+              mat-raised-button 
+              color="warn" 
+              (click)="stopIntegration()"
+              [disabled]="loading">
+              <mat-icon>stop</mat-icon>
+              Detener Integración
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Métricas de Integración -->
+  <div class="metrics-grid mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Registros Procesados -->
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <div class="flex items-center space-x-4">
+            <div class="metric-icon bg-blue-100">
+              <mat-icon class="text-blue-600">description</mat-icon>
+            </div>
+            <div>
+              <div class="metric-value">1,247</div>
+              <div class="metric-label">Registros Procesados</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tasa de Éxito -->
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <div class="flex items-center space-x-4">
+            <div class="metric-icon bg-green-100">
+              <mat-icon class="text-green-600">check_circle</mat-icon>
+            </div>
+            <div>
+              <div class="metric-value">98.5%</div>
+              <div class="metric-label">Tasa de Éxito</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tiempo Promedio -->
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <div class="flex items-center space-x-4">
+            <div class="metric-icon bg-orange-100">
+              <mat-icon class="text-orange-600">schedule</mat-icon>
+            </div>
+            <div>
+              <div class="metric-value">2.3s</div>
+              <div class="metric-label">Tiempo Promedio</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Configuración de Integración -->
+  <div class="config-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title class="flex items-center">
+          <mat-icon class="mr-2">settings</mat-icon>
+          Configuración de Integración de Expediente
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="config-content">
+          <p class="text-gray-600 mb-4">
+            Configura los parámetros del proceso de integración de expediente para optimizar el rendimiento y la precisión.
+          </p>
+          <div class="config-actions">
+            <button mat-raised-button color="primary">
+              <mat-icon>edit</mat-icon>
+              Editar Configuración
+            </button>
+            <button mat-button>
+              <mat-icon>history</mat-icon>
+              Ver Historial
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="loading-text">Procesando...</p>
+  </div>
+</div>
