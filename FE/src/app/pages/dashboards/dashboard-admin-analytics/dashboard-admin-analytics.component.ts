@@ -1,16 +1,10 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { defaultChartOptions } from '@vex/utils/default-chart-options';
-import {
-  Order,
-  tableSalesData
-} from '../../../../static-data/table-sales-data';
-import { TableColumn } from '@vex/interfaces/table-column.interface';
-import { WidgetTableComponent } from '../components/widgets/widget-table/widget-table.component';
-import { WidgetLargeChartComponent } from '../components/widgets/widget-large-chart/widget-large-chart.component';
-import { WidgetLargeGoalChartComponent } from '../components/widgets/widget-large-goal-chart/widget-large-goal-chart.component';
-import { WidgetQuickLineChartComponent } from '../components/widgets/widget-quick-line-chart/widget-quick-line-chart.component';
-import { WidgetAssistantComponent } from '../components/widgets/widget-assistant/widget-assistant.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { WidgetAgencyMetricsComponent } from '../components/widgets/widget-agency-metrics/widget-agency-metrics.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
@@ -22,31 +16,26 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelect } from '@angular/material/select';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { AnalyticsService, AnalyticsFilters } from '../../../core/services/analytics.service';
 import { AgencyService } from '../../../core/services/agency.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { RealTimeAnalyticsService } from '../../../core/services/real-time-analytics.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-  selector: 'vex-dashboard-analytics',
-  templateUrl: './dashboard-analytics.component.html',
-  styleUrls: ['./dashboard-analytics.component.scss'],
+  selector: 'vex-dashboard-admin-analytics',
+  templateUrl: './dashboard-admin-analytics.component.html',
+  styleUrls: ['./dashboard-admin-analytics.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
-    MatButtonModule,
     MatIconModule,
+    MatButtonModule,
+    MatCardModule,
+    MatTabsModule,
     MatSnackBarModule,
-                WidgetAssistantComponent,
-                WidgetQuickLineChartComponent,
-                WidgetLargeGoalChartComponent,
-                WidgetLargeChartComponent,
-                WidgetTableComponent,
                 WidgetAgencyMetricsComponent,
                 AgencyFilterComponent,
                 DateRangeFilterComponent,
@@ -59,8 +48,7 @@ import { Subject, takeUntil } from 'rxjs';
                 ReactiveFormsModule
   ]
 })
-export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
-  // Datos del dashboard
+export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {
   dashboardData: any = null;
   loading = true;
   error: string | null = null;
@@ -75,33 +63,36 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   activeDateRange: string | null = null;
   currentUser: any = null;
   isUserFilterDisabled = false;
+  selectedTab = 0;
 
-  // Datos de ejemplo para mantener compatibilidad
-  tableColumns: TableColumn<Order>[] = [
-    {
-      label: '',
-      property: 'status',
-      type: 'badge'
+  // Métricas específicas para administradores
+  adminMetrics = {
+    systemHealth: {
+      uptime: 99.9,
+      responseTime: 150,
+      memoryUsage: 65,
+      cpuUsage: 45,
+      diskUsage: 78
     },
-    {
-      label: 'PRODUCT',
-      property: 'name',
-      type: 'text'
+    securityMetrics: {
+      failedLogins: 12,
+      suspiciousActivity: 3,
+      blockedIPs: 5,
+      lastSecurityScan: new Date()
     },
-    {
-      label: '$ PRICE',
-      property: 'price',
-      type: 'text',
-      cssClasses: ['font-medium']
+    performanceMetrics: {
+      averageLoadTime: 1.2,
+      peakConcurrentUsers: 156,
+      databaseConnections: 23,
+      cacheHitRate: 94.5
     },
-    {
-      label: 'DATE',
-      property: 'timestamp',
-      type: 'text',
-      cssClasses: ['text-secondary']
+    businessMetrics: {
+      totalRevenue: 125000,
+      monthlyGrowth: 12.5,
+      customerSatisfaction: 4.6,
+      supportTickets: 45
     }
-  ];
-  tableData = tableSalesData;
+  };
 
   private destroy$ = new Subject<void>();
 
@@ -113,6 +104,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     private defaultAgencyService: DefaultAgencyService,
     private userService: UserService,
     private authService: AuthService,
+    private realTimeService: RealTimeAnalyticsService,
     private snackBar: MatSnackBar,
     private changeDetector: ChangeDetectorRef
   ) {
@@ -123,7 +115,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('🚀 Iniciando DashboardAnalyticsComponent...');
+    console.log('🚀 Iniciando DashboardAdminAnalyticsComponent...');
     
     // Cargar usuario actual PRIMERO
     this.loadCurrentUser();
@@ -131,6 +123,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     // Luego cargar datos del dashboard
     this.loadDashboardData();
     this.loadAgencies();
+    this.initializeRealTimeConnection();
     
     // Establecer "Este mes" como período por defecto
     this.setThisMonth();
@@ -148,7 +141,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadDashboardData(): void {
+  private loadDashboardData(): void {
     this.loading = true;
     this.error = null;
 
@@ -160,11 +153,15 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading dashboard data:', error);
-          this.error = 'Error al cargar datos del dashboard';
+          console.error('Error loading admin dashboard data:', error);
+          this.error = 'Error al cargar datos del dashboard de administración';
           this.loading = false;
         }
       });
+  }
+
+  private initializeRealTimeConnection(): void {
+    this.realTimeService.connect();
   }
 
   onAgencyChange(agencyId: number | null): void {
@@ -558,20 +555,20 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = `analytics-report.${event.format === 'pdf' ? 'pdf' : 'xlsx'}`;
+          link.download = `admin-analytics-report.${event.format === 'pdf' ? 'pdf' : 'xlsx'}`;
           link.click();
           window.URL.revokeObjectURL(url);
           
           this.snackBar.open(
-            `Reporte exportado exitosamente como ${event.format.toUpperCase()}`,
+            `Reporte de administración exportado como ${event.format.toUpperCase()}`,
             'Cerrar',
             { duration: 3000 }
           );
         },
         error: (error) => {
-          console.error('Error exporting analytics:', error);
+          console.error('Error exporting admin analytics:', error);
           this.snackBar.open(
-            'Error al exportar el reporte',
+            'Error al exportar el reporte de administración',
             'Cerrar',
             { duration: 3000 }
           );
@@ -579,50 +576,34 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       });
   }
 
-  series: ApexAxisChartSeries = [
-    {
-      name: 'Subscribers',
-      data: [28, 40, 36, 0, 52, 38, 60, 55, 67, 33, 89, 44]
-    }
-  ];
+  refreshData(): void {
+    this.loadDashboardData();
+  }
 
-  userSessionsSeries: ApexAxisChartSeries = [
-    {
-      name: 'Users',
-      data: [10, 50, 26, 50, 38, 60, 50, 25, 61, 80, 40, 60]
-    },
-    {
-      name: 'Sessions',
-      data: [5, 21, 42, 70, 41, 20, 35, 50, 10, 15, 30, 50]
-    }
-  ];
+  getHealthStatusColor(metric: number, thresholds: { warning: number; critical: number }): string {
+    if (metric >= thresholds.critical) return 'text-red-600';
+    if (metric >= thresholds.warning) return 'text-yellow-600';
+    return 'text-green-600';
+  }
 
-  salesSeries: ApexAxisChartSeries = [
-    {
-      name: 'Sales',
-      data: [28, 40, 36, 0, 52, 38, 60, 55, 99, 54, 38, 87]
-    }
-  ];
+  getHealthStatusIcon(metric: number, thresholds: { warning: number; critical: number }): string {
+    if (metric >= thresholds.critical) return 'mat:error';
+    if (metric >= thresholds.warning) return 'mat:warning';
+    return 'mat:check_circle';
+  }
 
-  pageViewsSeries: ApexAxisChartSeries = [
-    {
-      name: 'Page Views',
-      data: [405, 800, 200, 600, 105, 788, 600, 204]
-    }
-  ];
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 
-  uniqueUsersSeries: ApexAxisChartSeries = [
-    {
-      name: 'Unique Users',
-      data: [356, 806, 600, 754, 432, 854, 555, 1004]
-    }
-  ];
-
-  uniqueUsersOptions = defaultChartOptions({
-    chart: {
-      type: 'area',
-      height: 100
-    },
-    colors: ['#ff9800']
-  });
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
+  }
 }

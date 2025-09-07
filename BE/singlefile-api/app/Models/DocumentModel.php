@@ -290,36 +290,120 @@ class DocumentModel extends Model
     /**
      * Obtener estadísticas de documentos
      */
-    public function getDocumentStats()
+    public function getDocumentStats($filters = [])
     {
-        $total = $this->countAll();
-        $enabled = $this->where('Enabled', 1)->countAllResults();
-        $disabled = $this->where('Enabled', 0)->countAllResults();
-        
-        // Estadísticas por tipo de documento
-        $byType = $this->db->table('DocumentByFile d')
-            ->select('dt.Name as DocumentType, COUNT(*) as Count')
-            ->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left')
-            ->groupBy('d.IdDocumentType, dt.Name')
-            ->orderBy('Count', 'DESC')
-            ->get()
-            ->getResultArray();
+        try {
+            $builder = $this->builder();
+            
+            // Aplicar filtros básicos
+            if (!empty($filters['start_date'])) {
+                $builder->where('RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $builder->where('RegistrationDate <=', $filters['end_date']);
+            }
+            if (!empty($filters['document_type_id'])) {
+                $builder->where('IdDocumentType', $filters['document_type_id']);
+            }
+            if (!empty($filters['user_id'])) {
+                $builder->where('IdLastUserUpdate', $filters['user_id']);
+            }
 
-        // Estadísticas por estado
-        $byStatus = $this->db->table('DocumentByFile d')
-            ->select('dfs.Description as Status, COUNT(*) as Count')
-            ->join('DocumentFile_Status dfs', 'dfs.Id = d.IdCurrentStatus', 'left')
-            ->groupBy('d.IdCurrentStatus, dfs.Description')
-            ->orderBy('Count', 'DESC')
-            ->get()
-            ->getResultArray();
+            // Por ahora, ignoramos el filtro de agencia hasta que confirmemos la estructura de la tabla
+            // TODO: Implementar filtro por agencia una vez que confirmemos la estructura de la tabla File
 
-        return [
-            'total' => $total,
-            'enabled' => $enabled,
-            'disabled' => $disabled,
-            'by_type' => $byType,
-            'by_status' => $byStatus
-        ];
+            $total = $builder->countAllResults(false);
+            
+            // Resetear el builder para las siguientes consultas
+            $builder = $this->builder();
+            if (!empty($filters['start_date'])) {
+                $builder->where('RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $builder->where('RegistrationDate <=', $filters['end_date']);
+            }
+            if (!empty($filters['document_type_id'])) {
+                $builder->where('IdDocumentType', $filters['document_type_id']);
+            }
+            if (!empty($filters['user_id'])) {
+                $builder->where('IdLastUserUpdate', $filters['user_id']);
+            }
+            
+            $enabled = $builder->where('Enabled', 1)->countAllResults(false);
+            
+            $builder = $this->builder();
+            if (!empty($filters['start_date'])) {
+                $builder->where('RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $builder->where('RegistrationDate <=', $filters['end_date']);
+            }
+            if (!empty($filters['document_type_id'])) {
+                $builder->where('IdDocumentType', $filters['document_type_id']);
+            }
+            if (!empty($filters['user_id'])) {
+                $builder->where('IdLastUserUpdate', $filters['user_id']);
+            }
+            
+            $disabled = $builder->where('Enabled', 0)->countAllResults(false);
+            
+            // Estadísticas por tipo de documento
+            $byTypeBuilder = $this->db->table('DocumentByFile d')
+                ->select('dt.Name as DocumentType, COUNT(*) as Count')
+                ->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
+                
+            if (!empty($filters['start_date'])) {
+                $byTypeBuilder->where('d.RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $byTypeBuilder->where('d.RegistrationDate <=', $filters['end_date']);
+            }
+            if (!empty($filters['document_type_id'])) {
+                $byTypeBuilder->where('d.IdDocumentType', $filters['document_type_id']);
+            }
+            if (!empty($filters['user_id'])) {
+                $byTypeBuilder->where('d.IdLastUserUpdate', $filters['user_id']);
+            }
+            
+            $byType = $byTypeBuilder->groupBy('d.IdDocumentType, dt.Name')
+                ->orderBy('Count', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            // Estadísticas por estado
+            $byStatusBuilder = $this->db->table('DocumentByFile d')
+                ->select('dfs.Description as Status, COUNT(*) as Count')
+                ->join('DocumentFile_Status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+                
+            if (!empty($filters['start_date'])) {
+                $byStatusBuilder->where('d.RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $byStatusBuilder->where('d.RegistrationDate <=', $filters['end_date']);
+            }
+            if (!empty($filters['document_type_id'])) {
+                $byStatusBuilder->where('d.IdDocumentType', $filters['document_type_id']);
+            }
+            if (!empty($filters['user_id'])) {
+                $byStatusBuilder->where('d.IdLastUserUpdate', $filters['user_id']);
+            }
+            
+            $byStatus = $byStatusBuilder->groupBy('d.IdCurrentStatus, dfs.Description')
+                ->orderBy('Count', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            return [
+                'total' => $total,
+                'enabled' => $enabled,
+                'disabled' => $disabled,
+                'by_type' => $byType,
+                'by_status' => $byStatus
+            ];
+            
+        } catch (\Exception $e) {
+            log_message('error', 'Error en DocumentModel::getDocumentStats: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }

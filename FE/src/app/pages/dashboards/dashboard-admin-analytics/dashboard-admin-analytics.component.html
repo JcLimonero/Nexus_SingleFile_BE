@@ -1,5 +1,4 @@
-
-<div class="w-full p-6 space-y-4">
+            <div class="w-full p-6 space-y-4">
               <!-- Filtros unificados -->
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 w-full">
                 <div class="flex items-center justify-between gap-4 w-full">
@@ -195,7 +194,7 @@
   <div *ngIf="loading" class="flex justify-center py-12">
     <div class="text-center">
       <mat-icon class="text-4xl text-gray-400 mb-4" svgIcon="mat:hourglass_empty"></mat-icon>
-      <p class="text-gray-600">Cargando datos de analytics...</p>
+      <p class="text-gray-600">Cargando datos de administración...</p>
     </div>
   </div>
 
@@ -203,27 +202,152 @@
   <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
     <mat-icon class="text-red-500 mb-2" svgIcon="mat:error"></mat-icon>
     <p class="text-red-600">{{ error }}</p>
-    <button mat-button color="primary" (click)="loadDashboardData()">
+    <button mat-button color="primary" (click)="refreshData()">
       Reintentar
     </button>
   </div>
 
-  <!-- Dashboard principal -->
+  <!-- Dashboard de administración -->
   <div *ngIf="!loading && !error">
-    <!-- Métricas específicas de agencia (solo aplica filtro de agencia) -->
-    <vex-widget-agency-metrics 
-      [agencyId]="selectedAgencyId" 
-      class="mb-6"></vex-widget-agency-metrics>
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="admin-tabs">
+      
+      <!-- Pestaña de Métricas del Sistema -->
+      <mat-tab label="Sistema">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          
+          <!-- Salud del Sistema -->
+          <mat-card class="system-health-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-green-600" svgIcon="mat:health_and_safety"></mat-icon>
+                <span>Salud del Sistema</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Uptime</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.uptime, {warning: 95, critical: 90})">
+                  {{ adminMetrics.systemHealth.uptime }}%
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Tiempo de Respuesta</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.responseTime, {warning: 200, critical: 500})">
+                  {{ adminMetrics.systemHealth.responseTime }}ms
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Uso de Memoria</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.memoryUsage, {warning: 80, critical: 90})">
+                  {{ adminMetrics.systemHealth.memoryUsage }}%
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Uso de CPU</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.cpuUsage, {warning: 70, critical: 85})">
+                  {{ adminMetrics.systemHealth.cpuUsage }}%
+                </span>
+              </div>
+            </mat-card-content>
+          </mat-card>
 
-    <!-- Gráficos de actividad -->
-    <vex-widget-large-chart
-      [series]="userSessionsSeries"
-      class="sm:col-span-2"></vex-widget-large-chart>
+          <!-- Métricas de Seguridad -->
+          <mat-card class="security-metrics-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-red-600" svgIcon="mat:security"></mat-icon>
+                <span>Seguridad</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Logins Fallidos</span>
+                <span class="font-semibold text-red-600">{{ adminMetrics.securityMetrics.failedLogins }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Actividad Sospechosa</span>
+                <span class="font-semibold text-yellow-600">{{ adminMetrics.securityMetrics.suspiciousActivity }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">IPs Bloqueadas</span>
+                <span class="font-semibold text-red-600">{{ adminMetrics.securityMetrics.blockedIPs }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Último Escaneo</span>
+                <span class="text-xs text-gray-500">{{ adminMetrics.securityMetrics.lastSecurityScan | date:'short' }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
 
-    <!-- Tabla de datos -->
-    <vex-widget-table
-      [columns]="tableColumns"
-      [data]="tableData"
-      class="sm:col-span-2"></vex-widget-table>
+          <!-- Métricas de Rendimiento -->
+          <mat-card class="performance-metrics-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-blue-600" svgIcon="mat:speed"></mat-icon>
+                <span>Rendimiento</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Tiempo Promedio</span>
+                <span class="font-semibold">{{ adminMetrics.performanceMetrics.averageLoadTime }}s</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Usuarios Concurrentes</span>
+                <span class="font-semibold">{{ adminMetrics.performanceMetrics.peakConcurrentUsers }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Conexiones DB</span>
+                <span class="font-semibold">{{ adminMetrics.performanceMetrics.databaseConnections }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Cache Hit Rate</span>
+                <span class="font-semibold text-green-600">{{ adminMetrics.performanceMetrics.cacheHitRate }}%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Métricas de Negocio -->
+          <mat-card class="business-metrics-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-purple-600" svgIcon="mat:trending_up"></mat-icon>
+                <span>Negocio</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Ingresos Totales</span>
+                <span class="font-semibold text-green-600">{{ formatCurrency(adminMetrics.businessMetrics.totalRevenue) }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Crecimiento Mensual</span>
+                <span class="font-semibold text-green-600">+{{ adminMetrics.businessMetrics.monthlyGrowth }}%</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Satisfacción</span>
+                <span class="font-semibold text-blue-600">{{ adminMetrics.businessMetrics.customerSatisfaction }}/5</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Tickets Soporte</span>
+                <span class="font-semibold">{{ adminMetrics.businessMetrics.supportTickets }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </mat-tab>
+
+      <!-- Pestaña de Métricas Detalladas -->
+      <mat-tab label="Detalladas">
+        <!-- Métricas específicas de agencia (solo aplica filtro de agencia) -->
+        <div class="mt-6">
+          <vex-widget-agency-metrics 
+            [agencyId]="selectedAgencyId" 
+            [showDetails]="true"></vex-widget-agency-metrics>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
   </div>
 </div>

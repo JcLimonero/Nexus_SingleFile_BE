@@ -279,4 +279,58 @@ class ProcessModel extends Model
                     ->orderBy("Process.{$sortBy}", $sortOrder)
                     ->findAll();
     }
+
+    /**
+     * Obtener estadísticas de procesos
+     */
+    public function getProcessStats($filters = [])
+    {
+        $builder = $this->builder();
+        
+        // Aplicar filtros básicos
+        if (!empty($filters['start_date'])) {
+            $builder->where('RegistrationDate >=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $builder->where('RegistrationDate <=', $filters['end_date']);
+        }
+        if (!empty($filters['user_id'])) {
+            $builder->where('IdLastUserUpdate', $filters['user_id']);
+        }
+
+        $total = $builder->countAllResults(false);
+        
+        // Resetear el builder para las siguientes consultas
+        $builder = $this->builder();
+        if (!empty($filters['start_date'])) {
+            $builder->where('RegistrationDate >=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $builder->where('RegistrationDate <=', $filters['end_date']);
+        }
+        if (!empty($filters['user_id'])) {
+            $builder->where('IdLastUserUpdate', $filters['user_id']);
+        }
+        
+        $enabled = $builder->where('Enabled', 1)->countAllResults(false);
+        
+        $builder = $this->builder();
+        if (!empty($filters['start_date'])) {
+            $builder->where('RegistrationDate >=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $builder->where('RegistrationDate <=', $filters['end_date']);
+        }
+        if (!empty($filters['user_id'])) {
+            $builder->where('IdLastUserUpdate', $filters['user_id']);
+        }
+        
+        $disabled = $builder->where('Enabled', 0)->countAllResults(false);
+
+        return [
+            'total' => $total,
+            'enabled' => $enabled,
+            'disabled' => $disabled
+        ];
+    }
 }

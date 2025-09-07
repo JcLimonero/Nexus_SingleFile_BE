@@ -1,0 +1,87 @@
+/* Estilos compactos para el componente de filtro de rango de fechas */
+.compact-field {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+
+  .mat-form-field-infix {
+    padding: 8px 0;
+    border-top: none;
+  }
+
+  .mat-form-field-label {
+    font-size: 12px;
+    transform: translateY(-1.28125em) scale(0.75);
+  }
+
+  .mat-input-element {
+    font-size: 14px;
+    padding: 4px 0;
+  }
+
+  .mat-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+/* Botones compactos */
+.text-xs {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.px-2 {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.py-1 {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* Espaciado reducido */
+.gap-1 {
+  gap: 4px;
+}
+
+.mb-3 {
+  margin-bottom: 12px;
+}
+
+/* Grid compacto */
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+/* Animación para el toggle de fechas manuales */
+.manual-date-inputs {
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+/* Estilos para el botón de toggle */
+.toggle-button {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+  
+  mat-icon {
+    transition: transform 0.2s ease-in-out;
+  }
+}
+
+/* Animación del ícono de flecha */
+.arrow-icon {
+  transition: transform 0.2s ease-in-out;
+  
+  &.expanded {
+    transform: rotate(180deg);
+  }
+}

@@ -465,7 +465,27 @@ class Document extends BaseController
     public function stats()
     {
         try {
-            $stats = $this->documentModel->getDocumentStats();
+            // Obtener filtros de la petición
+            $filters = [
+                'start_date' => $this->request->getGet('start_date'),
+                'end_date' => $this->request->getGet('end_date'),
+                'agency_id' => $this->request->getGet('agency_id'),
+                'document_type_id' => $this->request->getGet('document_type_id'),
+                'user_id' => $this->request->getGet('user_id')
+            ];
+
+            // Método simplificado para debug
+            $total = $this->documentModel->countAllResults();
+            $enabled = $this->documentModel->where('Enabled', 1)->countAllResults();
+            $disabled = $this->documentModel->where('Enabled', 0)->countAllResults();
+
+            $stats = [
+                'total' => $total,
+                'enabled' => $enabled,
+                'disabled' => $disabled,
+                'by_type' => [],
+                'by_status' => []
+            ];
 
             return $this->response->setJSON([
                 'success' => true,
@@ -477,7 +497,9 @@ class Document extends BaseController
             log_message('error', 'Error en Document::stats: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
+                'message' => 'Error al obtener estadísticas: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ])->setStatusCode(500);
         }
     }

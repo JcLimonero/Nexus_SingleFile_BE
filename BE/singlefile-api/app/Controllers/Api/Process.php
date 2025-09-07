@@ -581,29 +581,42 @@ class Process extends BaseController
     public function stats()
     {
         try {
-            $totalProcesses = $this->processModel->countAllProcesses();
-            $enabledProcesses = $this->processModel->countEnabledProcesses();
-            $disabledProcesses = $totalProcesses - $enabledProcesses;
-            
+            // Obtener filtros de la petición
+            $filters = [
+                'start_date' => $this->request->getGet('start_date'),
+                'end_date' => $this->request->getGet('end_date'),
+                'agency_id' => $this->request->getGet('agency_id'),
+                'user_id' => $this->request->getGet('user_id')
+            ];
+
+            // Método simplificado para debug
+            $total = $this->processModel->countAllResults();
+            $enabled = $this->processModel->where('Enabled', 1)->countAllResults();
+            $disabled = $this->processModel->where('Enabled', 0)->countAllResults();
+
+            $stats = [
+                'total' => $total,
+                'enabled' => $enabled,
+                'disabled' => $disabled
+            ];
+
             return $this->response
                 ->setStatusCode(200)
                 ->setJSON([
                     'success' => true,
                     'message' => 'Estadísticas obtenidas exitosamente',
-                    'data' => [
-                        'total' => $totalProcesses,
-                        'enabled' => $enabledProcesses,
-                        'disabled' => $disabledProcesses
-                    ]
+                    'data' => $stats
                 ]);
                 
         } catch (\Exception $e) {
+            log_message('error', 'Error en Process::stats: ' . $e->getMessage());
             return $this->response
                 ->setStatusCode(500)
                 ->setJSON([
                     'success' => false,
                     'message' => 'Error interno del servidor',
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
                 ]);
         }
     }

@@ -85,4 +85,10 @@ export class UserService {
   getUserAgencies(userId: string): Observable<any> {
     return this.http.get(`${this.apiBaseService.buildApiUrl('user')}/${userId}/agencies`);
   }
+
+  // Obtener usuarios por agencia
+  getUsersByAgency(agencyId?: number): Observable<UserResponse> {
+    const params = agencyId ? `?default_agency=${agencyId}` : '';
+    return this.http.get<UserResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}${params}`);
+  }
 }

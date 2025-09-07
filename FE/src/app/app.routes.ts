@@ -44,6 +44,13 @@ export const appRoutes: VexRoutes = [
         pathMatch: 'full'
       },
       {
+        path: 'dashboards/admin-analytics',
+        loadComponent: () =>
+          import(
+            './pages/dashboards/dashboard-admin-analytics/dashboard-admin-analytics.component'
+          ).then((m) => m.DashboardAdminAnalyticsComponent)
+      },
+      {
         path: '',
         loadComponent: () =>
           import(

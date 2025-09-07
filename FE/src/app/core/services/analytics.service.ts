@@ -1,0 +1,256 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+
+export interface AnalyticsFilters {
+  startDate?: string;
+  endDate?: string;
+  userId?: number;
+  agencyId?: number;
+  processId?: number;
+  documentTypeId?: number;
+  dateRange?: {
+    startDate: Date | null;
+    endDate: Date | null;
+  };
+}
+
+export interface UserActivityStats {
+  totalLogs: number;
+  uniqueUsers: number;
+  topActions: Array<{ action: string; count: number }>;
+  dailyActivity: Array<{ date: string; count: number }>;
+  userActivity: Array<{ userId: number; username: string; count: number }>;
+}
+
+export interface DocumentStats {
+  totalDocuments: number;
+  documentsByType: Array<{ type: string; count: number }>;
+  documentsByStatus: Array<{ status: string; count: number }>;
+  documentsByAgency: Array<{ agency: string; count: number }>;
+  monthlyTrend: Array<{ month: string; count: number }>;
+}
+
+export interface ProcessStats {
+  totalProcesses: number;
+  processesByStatus: Array<{ status: string; count: number }>;
+  processesByAgency: Array<{ agency: string; count: number }>;
+  averageProcessingTime: number;
+  monthlyTrend: Array<{ month: string; count: number }>;
+}
+
+export interface AgencyStats {
+  totalAgencies: number;
+  activeAgencies: number;
+  agenciesByRegion: Array<{ region: string; count: number }>;
+  topPerformingAgencies: Array<{ agency: string; documents: number; processes: number }>;
+}
+
+export interface SystemMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  totalDocuments: number;
+  totalProcesses: number;
+  totalAgencies: number;
+  systemUptime: number;
+  averageResponseTime: number;
+}
+
+export interface AgencyMetrics {
+  todayCases: number;
+  monthlyCases: number;
+  totalCases: number;
+  totalUsers: number;
+  monthlyAgencyCases: number;
+  monthlyName: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AnalyticsService {
+  private readonly baseUrl = `${environment.apiBaseUrl}/api`;
+  
+  // Subjects para manejar estado reactivo
+  private filtersSubject = new BehaviorSubject<AnalyticsFilters>({});
+  public filters$ = this.filtersSubject.asObservable();
+
+  constructor(private http: HttpClient) {}
+
+  // Métodos para manejar filtros
+  setFilters(filters: AnalyticsFilters): void {
+    this.filtersSubject.next(filters);
+  }
+
+  getFilters(): AnalyticsFilters {
+    return this.filtersSubject.value;
+  }
+
+  clearFilters(): void {
+    this.filtersSubject.next({});
+  }
+
+  // Métodos para obtener estadísticas de actividad de usuarios
+  getUserActivityStats(filters?: AnalyticsFilters): Observable<UserActivityStats> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/user-activity-logs/stats`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('User Activity Stats:', data))
+      );
+  }
+
+  getUserActivityLogs(filters?: AnalyticsFilters, limit = 100, offset = 0): Observable<any> {
+    const params = this.buildParams(filters);
+    params.set('limit', limit.toString());
+    params.set('offset', offset.toString());
+    
+    return this.http.get<any>(`${this.baseUrl}/user-activity-logs`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('User Activity Logs:', data))
+      );
+  }
+
+  // Métodos para obtener estadísticas de documentos
+  getDocumentStats(filters?: AnalyticsFilters): Observable<DocumentStats> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/document/stats`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Document Stats:', data))
+      );
+  }
+
+  // Métodos para obtener estadísticas de procesos
+  getProcessStats(filters?: AnalyticsFilters): Observable<ProcessStats> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/process/stats`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Process Stats:', data))
+      );
+  }
+
+  // Métodos para obtener estadísticas de agencias
+  getAgencyStats(filters?: AnalyticsFilters): Observable<AgencyStats> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/agency/stats`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Agency Stats:', data))
+      );
+  }
+
+  // Métodos para obtener métricas específicas de agencia
+  getAgencyMetrics(filters?: AnalyticsFilters): Observable<AgencyMetrics> {
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/analytics/agency-metrics`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Agency Metrics:', data))
+      );
+  }
+
+  // Métodos para obtener métricas del sistema
+  getSystemMetrics(): Observable<SystemMetrics> {
+    return combineLatest([
+      this.http.get<any>(`${this.baseUrl}/user/stats`),
+      this.http.get<any>(`${this.baseUrl}/document/stats`),
+      this.http.get<any>(`${this.baseUrl}/process/stats`),
+      this.http.get<any>(`${this.baseUrl}/agency/stats`)
+    ]).pipe(
+      map(([userStats, docStats, processStats, agencyStats]) => {
+        return {
+          totalUsers: userStats.data?.totalUsers || 0,
+          activeUsers: userStats.data?.activeUsers || 0,
+          totalDocuments: docStats.data?.totalDocuments || 0,
+          totalProcesses: processStats.data?.totalProcesses || 0,
+          totalAgencies: agencyStats.data?.totalAgencies || 0,
+          systemUptime: 99.9, // Esto debería venir del backend
+          averageResponseTime: 150 // Esto debería venir del backend
+        };
+      }),
+      tap(data => console.log('System Metrics:', data))
+    );
+  }
+
+  // Método para obtener datos combinados del dashboard
+  getDashboardData(filters?: AnalyticsFilters): Observable<{
+    userActivity: UserActivityStats;
+    documents: DocumentStats;
+    processes: ProcessStats;
+    agencies: AgencyStats;
+    system: SystemMetrics;
+  }> {
+    return combineLatest([
+      this.getUserActivityStats(filters),
+      this.getDocumentStats(filters),
+      this.getProcessStats(filters),
+      this.getAgencyStats(filters),
+      this.getSystemMetrics()
+    ]).pipe(
+      map(([userActivity, documents, processes, agencies, system]) => ({
+        userActivity,
+        documents,
+        processes,
+        agencies,
+        system
+      }))
+    );
+  }
+
+  // Método para exportar datos
+  exportAnalytics(format: 'pdf' | 'excel', filters?: AnalyticsFilters): Observable<Blob> {
+    const params = this.buildParams(filters);
+    params.set('format', format);
+    
+    return this.http.get(`${this.baseUrl}/analytics/export`, { 
+      params,
+      responseType: 'blob'
+    });
+  }
+
+  // Método auxiliar para construir parámetros de consulta
+  private buildParams(filters?: AnalyticsFilters): HttpParams {
+    let params = new HttpParams();
+    
+    if (filters) {
+      // Manejar filtros de fecha (prioridad: dateRange > startDate/endDate individuales)
+      if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) {
+        params = params.set('start_date', filters.dateRange.startDate.toISOString().split('T')[0]);
+        params = params.set('end_date', filters.dateRange.endDate.toISOString().split('T')[0]);
+      } else {
+        if (filters.startDate) params = params.set('start_date', filters.startDate);
+        if (filters.endDate) params = params.set('end_date', filters.endDate);
+      }
+      
+      if (filters.userId) params = params.set('user_id', filters.userId.toString());
+      if (filters.agencyId) params = params.set('agency_id', filters.agencyId.toString());
+      if (filters.processId) params = params.set('process_id', filters.processId.toString());
+      if (filters.documentTypeId) params = params.set('document_type_id', filters.documentTypeId.toString());
+    }
+    
+    return params;
+  }
+
+  // Métodos para obtener datos en tiempo real (para futuras implementaciones con WebSockets)
+  getRealTimeMetrics(): Observable<any> {
+    // Esto se implementará cuando agreguemos WebSockets
+    return new Observable(observer => {
+      // Placeholder para implementación futura
+      observer.next({});
+    });
+  }
+
+  // Método para obtener métricas de rendimiento
+  getPerformanceMetrics(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/analytics/performance`)
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('Performance Metrics:', data))
+      );
+  }
+}

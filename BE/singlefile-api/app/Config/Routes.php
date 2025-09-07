@@ -118,6 +118,22 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('stats', 'UserActivityLog::getStats');
         $routes->delete('clean', 'UserActivityLog::cleanOldLogs');
     });
+
+    // Rutas de analytics
+    $routes->group('analytics', function($routes) {
+        $routes->get('dashboard', 'Analytics::getDashboardData');
+        $routes->get('documents/stats', 'Analytics::getDocumentStats');
+        $routes->get('processes/stats', 'Analytics::getProcessStats');
+        $routes->get('agencies/stats', 'Analytics::getAgencyStats');
+        $routes->get('agency-metrics', 'Analytics::getAgencyMetrics');
+        $routes->get('debug-file-structure', 'Analytics::debugFileStructure');
+        $routes->get('debug-server-date', 'Analytics::debugServerDate');
+        $routes->get('debug-today-files', 'Analytics::debugTodayFiles');
+        $routes->get('debug-agency-users', 'Analytics::debugAgencyUsers');
+        $routes->get('debug-file-dates', 'Analytics::debugFileDates');
+        $routes->get('system/metrics', 'Analytics::getSystemMetrics');
+        $routes->get('export', 'Analytics::exportAnalytics');
+    });
     
     // Rutas de estados de archivo (File_Status)
     $routes->group('file-status', function($routes) {

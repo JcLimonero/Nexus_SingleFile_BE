@@ -1,0 +1,34 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <mat-form-field appearance="outline" class="min-w-48">
+        <mat-label>Agencia</mat-label>
+        <mat-select 
+          [value]="selectedAgencyId" 
+          (selectionChange)="onAgencyChange($event.value)"
+          [disabled]="loading || !hasAgencies()">
+          <mat-option [value]="null">Todas las agencias</mat-option>
+          <mat-option 
+            *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
+            [value]="agency.Id">
+            {{ agency.Name }}
+          </mat-option>
+        </mat-select>
+        <mat-hint *ngIf="loading">Cargando...</mat-hint>
+        <mat-hint *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
+      </mat-form-field>
+    </div>
+    
+    <div class="flex items-center space-x-2">
+      <button 
+        *ngIf="selectedAgencyId"
+        mat-icon-button 
+        color="warn" 
+        size="small"
+        (click)="clearFilter()"
+        matTooltip="Limpiar filtro de agencia">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
