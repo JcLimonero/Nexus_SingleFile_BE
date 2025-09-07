@@ -20,6 +20,9 @@ import { WidgetCurrentMonthAttentionComponent } from '../components/widgets/widg
 import { WidgetCurrentMonthLiberatedComponent } from '../components/widgets/widget-current-month-liberated/widget-current-month-liberated.component';
 import { WidgetTotalLiberatedComponent } from '../components/widgets/widget-total-liberated/widget-total-liberated.component';
 import { WidgetAgencyUsersComponent } from '../components/widgets/widget-agency-users/widget-agency-users.component';
+import { WidgetTodayCasesComponent } from '../components/widgets/widget-today-cases/widget-today-cases.component';
+import { WidgetMonthlyCasesComponent } from '../components/widgets/widget-monthly-cases/widget-monthly-cases.component';
+import { WidgetTotalCasesComponent } from '../components/widgets/widget-total-cases/widget-total-cases.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -67,6 +70,9 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
         WidgetCurrentMonthLiberatedComponent,
         WidgetTotalLiberatedComponent,
         WidgetAgencyUsersComponent,
+        WidgetTodayCasesComponent,
+        WidgetMonthlyCasesComponent,
+        WidgetTotalCasesComponent,
     AgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,

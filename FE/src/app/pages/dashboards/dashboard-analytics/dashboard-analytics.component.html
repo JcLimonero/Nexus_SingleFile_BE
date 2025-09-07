@@ -1,5 +1,5 @@
 
-<div class="w-full p-6 space-y-4">
+<div class="w-full p-6 space-y-4 dashboard-analytics">
               <!-- Filtros unificados -->
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 w-full">
                 <div class="flex items-center justify-between gap-4 w-full">
@@ -43,9 +43,9 @@
                     </mat-form-field>
                   </div>
                   
-                  <!-- Filtros de Fechas -->
+                  <!-- Filtros de Fechas - OCULTOS -->
+                  <!--
                   <div class="flex items-center space-x-2">
-                    <!-- Botones de rangos rápidos -->
                     <div class="flex flex-wrap gap-1">
                       <button 
                         mat-stroked-button 
@@ -97,7 +97,6 @@
                       </button>
                     </div>
                     
-                    <!-- Botón toggle para fechas manuales -->
                     <button 
                       mat-icon-button 
                       size="small"
@@ -109,7 +108,6 @@
                       </mat-icon>
                     </button>
                     
-                    <!-- Botón buscar -->
                     <button 
                       mat-icon-button 
                       color="primary" 
@@ -119,7 +117,6 @@
                       <mat-icon>search</mat-icon>
                     </button>
                     
-                    <!-- Botón limpiar fechas -->
                     <button 
                       *ngIf="hasDateRange()"
                       mat-icon-button 
@@ -129,43 +126,13 @@
                       matTooltip="Limpiar filtro de fechas">
                       <mat-icon>clear</mat-icon>
                     </button>
-                    
-                    <!-- Botón limpiar agencia -->
-                    <button 
-                      *ngIf="selectedAgencyId"
-                      mat-icon-button 
-                      color="warn" 
-                      size="small"
-                      (click)="clearAgencyFilter()"
-                      matTooltip="Limpiar filtro de agencia">
-                      <mat-icon>clear</mat-icon>
-                    </button>
-                    
-                    <!-- Botón limpiar usuario -->
-                    <button 
-                      *ngIf="selectedUserId"
-                      mat-icon-button 
-                      color="warn" 
-                      size="small"
-                      (click)="clearUserFilter()"
-                      matTooltip="Limpiar filtro de usuario">
-                      <mat-icon>clear</mat-icon>
-                    </button>
-                    
-                    <!-- Botón limpiar todo -->
-                    <button 
-                      *ngIf="hasAnyFilter()"
-                      mat-icon-button 
-                      color="warn" 
-                      size="small"
-                      (click)="clearAllFilters()"
-                      matTooltip="Limpiar todos los filtros">
-                      <mat-icon>refresh</mat-icon>
-                    </button>
+                  </div>
+                  -->
                   </div>
                 </div>
                 
-                <!-- Selectores de fecha manuales (se muestran cuando showManualDateInputs es true) -->
+                <!-- Selectores de fecha manuales - OCULTOS -->
+                <!--
                 <div *ngIf="showManualDateInputs" class="grid grid-cols-2 gap-2 mt-4 manual-date-inputs">
                   <mat-form-field appearance="outline" class="compact-field">
                     <mat-label>Inicio</mat-label>
@@ -189,6 +156,7 @@
                     <mat-datepicker #endPicker></mat-datepicker>
                   </mat-form-field>
                 </div>
+                -->
               </div>
 
   <!-- Estado de carga -->
@@ -210,94 +178,162 @@
 
   <!-- Dashboard principal -->
   <div *ngIf="!loading && !error">
-    <!-- Métricas específicas de agencia y expedientes liberados -->
-    <div class="grid grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-      <!-- Métricas específicas de agencia (solo aplica filtro de agencia) - 3 columnas -->
-      <div class="lg:col-span-3">
-        <vex-widget-agency-metrics 
-          [agencyId]="selectedAgencyId"></vex-widget-agency-metrics>
-      </div>
+    
+    <!-- ===== SECCIÓN 1: MÉTRICAS PRINCIPALES ===== -->
+    <div class="dashboard-section">
+      <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
+        <mat-icon class="mr-2 text-blue-600">dashboard</mat-icon>
+        Métricas Principales
+      </h2>
+      
+      <!-- Métricas específicas de agencia y expedientes liberados -->
+      <div class="flex flex-row gap-4 w-full p-2.5 items-stretch">
+        <!-- Expedientes del Día -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-today-cases 
+            [agencyId]="selectedAgencyId"></vex-widget-today-cases>
+        </div>
 
-      <!-- Widget de Expedientes Liberados del Mes Actual - 1 columna -->
-      <div class="lg:col-span-1">
-        <vex-widget-current-month-liberated 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-current-month-liberated>
-      </div>
+        <!-- Expedientes del Mes -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-monthly-cases 
+            [agencyId]="selectedAgencyId"></vex-widget-monthly-cases>
+        </div>
 
-      <!-- Widget de Expedientes Liberados Totales - 1 columna -->
-      <div class="lg:col-span-1">
-        <vex-widget-total-liberated 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-total-liberated>
-      </div>
+        <!-- Expedientes Totales -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-total-cases 
+            [agencyId]="selectedAgencyId"></vex-widget-total-cases>
+        </div>
 
-      <!-- Widget de Usuarios de la Agencia - 1 columna -->
-      <div class="lg:col-span-1">
-        <vex-widget-agency-users 
-          [agencyId]="selectedAgencyId"></vex-widget-agency-users>
+        <!-- Widget de Expedientes Liberados del Mes Actual -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-current-month-liberated 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-current-month-liberated>
+        </div>
+
+        <!-- Widget de Expedientes Liberados Totales -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-total-liberated 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-total-liberated>
+        </div>
+
+        <!-- Widget de Usuarios de la Agencia -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-agency-users 
+            [agencyId]="selectedAgencyId"></vex-widget-agency-users>
+        </div>
       </div>
     </div>
 
-  <!-- Gráfico de tendencia de expedientes -->
-    <vex-widget-trend-chart 
-      [agencyId]="selectedAgencyId" 
-      [userId]="selectedUserId"
-      class="mb-6"></vex-widget-trend-chart>
-
-    <!-- Widgets de Distribución en la misma fila -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <!-- Distribución de expedientes por proceso -->
-      <vex-widget-process-distribution 
-        [agencyId]="selectedAgencyId" 
-        [userId]="selectedUserId"></vex-widget-process-distribution>
-
-      <!-- Métricas de distribución de expedientes -->
-      <vex-widget-distribution-metrics-donut 
-        [agencyId]="selectedAgencyId"></vex-widget-distribution-metrics-donut>
-    </div>
-
-    <!-- Widgets de Estatus en la misma fila -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-      <!-- Distribución de expedientes por estatus -->
-      <vex-widget-status-distribution 
-        [agencyId]="selectedAgencyId" 
-        [userId]="selectedUserId"></vex-widget-status-distribution>
-
-      <!-- Distribución de expedientes por estatus - Mes Actual -->
-      <vex-widget-current-month-status 
-        [agencyId]="selectedAgencyId" 
-        [userId]="selectedUserId"></vex-widget-current-month-status>
-
-      <!-- Widget de Estatus Histórico -->
-      <vex-widget-historical-status 
-        [agencyId]="selectedAgencyId" 
-        [userId]="selectedUserId"></vex-widget-historical-status>
-    </div>
-
-        <!-- Widget de Distribución por Asesor -->
-        <vex-widget-advisor-distribution 
+    <!-- ===== SECCIÓN 2: ANÁLISIS TEMPORAL ===== -->
+    <div class="dashboard-section">
+      <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
+        <mat-icon class="mr-2 text-green-600">trending_up</mat-icon>
+        Análisis Temporal
+      </h2>
+      
+      <!-- Gráfico de tendencia de expedientes -->
+      <div class="chart-container mb-6">
+        <vex-widget-trend-chart 
           [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"
-          class="mb-6"></vex-widget-advisor-distribution>
+          [userId]="selectedUserId"></vex-widget-trend-chart>
+      </div>
 
-        <!-- Widget de Expedientes por Día - Semana Actual -->
+      <!-- Widget de Expedientes por Día - Semana Actual -->
+      <div class="chart-container">
         <vex-widget-weekly-chart 
           [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"
-          class="mb-6"></vex-widget-weekly-chart>
+          [userId]="selectedUserId"></vex-widget-weekly-chart>
+      </div>
+    </div>
 
-        <!-- Widget de Período de Atención de Expedientes -->
+    <!-- ===== SECCIÓN 3: DISTRIBUCIÓN Y ESTADOS ===== -->
+    <div class="dashboard-section">
+      <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
+        <mat-icon class="mr-2 text-purple-600">pie_chart</mat-icon>
+        Distribución y Estados
+      </h2>
+      
+      <!-- Widgets de Distribución en la misma fila -->
+      <div class="distribution-grid mb-6">
+        <!-- Distribución de expedientes por proceso -->
+        <div class="widget-container">
+          <vex-widget-process-distribution 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-process-distribution>
+        </div>
+
+        <!-- Métricas de distribución de expedientes -->
+        <div class="widget-container">
+          <vex-widget-distribution-metrics-donut 
+            [agencyId]="selectedAgencyId"></vex-widget-distribution-metrics-donut>
+        </div>
+      </div>
+
+      <!-- Widgets de Estatus en la misma fila -->
+      <div class="status-grid">
+        <!-- Distribución de expedientes por estatus -->
+        <div class="widget-container">
+          <vex-widget-status-distribution 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-status-distribution>
+        </div>
+
+        <!-- Distribución de expedientes por estatus - Mes Actual -->
+        <div class="widget-container">
+          <vex-widget-current-month-status 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-current-month-status>
+        </div>
+
+        <!-- Widget de Estatus Histórico -->
+        <div class="widget-container">
+          <vex-widget-historical-status 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-historical-status>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SECCIÓN 4: ANÁLISIS DE RENDIMIENTO ===== -->
+    <div class="dashboard-section">
+      <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
+        <mat-icon class="mr-2 text-orange-600">analytics</mat-icon>
+        Análisis de Rendimiento
+      </h2>
+      
+      <!-- Widget de Distribución por Asesor -->
+      <div class="chart-container">
+        <vex-widget-advisor-distribution 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"></vex-widget-advisor-distribution>
+      </div>
+    </div>
+
+    <!-- ===== SECCIÓN 5: PERÍODOS DE ATENCIÓN ===== -->
+    <div class="dashboard-section">
+      <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
+        <mat-icon class="mr-2 text-red-600">schedule</mat-icon>
+        Períodos de Atención
+      </h2>
+      
+      <!-- Widget de Período de Atención de Expedientes -->
+      <div class="chart-container mb-6">
         <vex-widget-attention-period 
           [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"
-          class="mb-6"></vex-widget-attention-period>
+          [userId]="selectedUserId"></vex-widget-attention-period>
+      </div>
 
-        <!-- Widget de Período de Atención - Mes Actual -->
+      <!-- Widget de Período de Atención - Mes Actual -->
+      <div class="chart-container">
         <vex-widget-current-month-attention 
           [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"
-          class="mb-6"></vex-widget-current-month-attention>
+          [userId]="selectedUserId"></vex-widget-current-month-attention>
+      </div>
+    </div>
 
     <!-- Widget de Meses Anteriores - OCULTO -->
     <!-- <vex-widget-previous-months 
@@ -307,4 +343,3 @@
       class="mb-6"></vex-widget-previous-months> -->
 
   </div>
-</div>
