@@ -166,10 +166,14 @@ export class AnalyticsService {
   // Métodos para obtener métricas específicas de agencia
   getAgencyMetrics(filters?: AnalyticsFilters): Observable<AgencyMetrics> {
     const params = this.buildParams(filters);
+    console.log('🔧 AnalyticsService: getAgencyMetrics called with filters:', filters);
+    console.log('🔧 AnalyticsService: Built params:', params.toString());
+    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-agency-specific-metrics?${params.toString()}`);
+    
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-specific-metrics`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Agency Metrics:', data))
+        tap(data => console.log('🔧 AnalyticsService: Received Agency Metrics:', data))
       );
   }
 

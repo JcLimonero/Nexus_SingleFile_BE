@@ -189,7 +189,9 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   onAgencyChange(agencyId: number | null): void {
     console.log('🏢 onAgencyChange llamado con agencyId:', agencyId);
+    console.log('🏢 selectedAgencyId ANTES del cambio:', this.selectedAgencyId);
     this.selectedAgencyId = agencyId;
+    console.log('🏢 selectedAgencyId DESPUÉS del cambio:', this.selectedAgencyId);
     this.currentFilters = { ...this.currentFilters, agencyId: agencyId || undefined };
     
     // Cargar usuarios para la agencia seleccionada
