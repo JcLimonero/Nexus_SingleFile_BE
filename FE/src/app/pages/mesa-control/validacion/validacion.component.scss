@@ -332,6 +332,7 @@
     .mat-mdc-form-field-subscript-wrapper {
       margin-top: 2px !important;
       min-height: 0 !important;
+      display: none !important;
     }
     
     .mat-mdc-text-field-wrapper {
@@ -351,6 +352,7 @@
       
       .mat-mdc-form-field-subscript-wrapper {
         margin-top: 1px !important;
+        display: none !important;
       }
       
       .mat-mdc-text-field-wrapper {
@@ -367,6 +369,7 @@
       
       .mat-mdc-form-field-subscript-wrapper {
         margin-top: 0px !important;
+        display: none !important;
       }
       
       .mat-mdc-text-field-wrapper {

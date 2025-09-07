@@ -20,8 +20,6 @@
                   {{ agency.Name }}
                 </mat-option>
               </mat-select>
-              <mat-hint *ngIf="agenciesLoading">Cargando...</mat-hint>
-              <mat-hint *ngIf="!agenciesLoading && !hasAgencies()">Sin agencias</mat-hint>
             </mat-form-field>
           </div>
 
@@ -35,9 +33,6 @@
                 (keyup.enter)="searchClients()"
                 placeholder="Buscar por número de cliente o nombre completo"
                 autocomplete="off">
-              <mat-hint *ngIf="clientsLoading">Buscando...</mat-hint>
-              <mat-hint *ngIf="!clientsLoading && showClientResults">Se encontraron {{ clients.length }} clientes</mat-hint>
-              <mat-hint *ngIf="!clientsLoading && !showClientResults && clientSearchTerm.length > 0 && clientSearchTerm.length < 3">Ingresa al menos 3 caracteres para buscar</mat-hint>
             </mat-form-field>
             
             <!-- Contenedor de botones alineados -->

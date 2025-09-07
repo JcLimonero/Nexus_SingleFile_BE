@@ -53,12 +53,6 @@ export class NavigationLoaderService {
             label: 'Integración de Expediente',
             route: '/procesos/integracion',
             icon: 'mat:sync'
-          },
-          {
-            type: 'link',
-            label: 'Gestión de Procesos',
-            route: '/procesos/gestion',
-            icon: 'mat:settings'
           }
         ]
       },
