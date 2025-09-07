@@ -221,10 +221,66 @@
       [userId]="selectedUserId"
       class="mb-6"></vex-widget-trend-chart>
 
-    <!-- Métricas de distribución de expedientes -->
-    <vex-widget-distribution-metrics 
+    <!-- Widgets de Distribución en la misma fila -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Distribución de expedientes por proceso -->
+      <vex-widget-process-distribution 
+        [agencyId]="selectedAgencyId" 
+        [userId]="selectedUserId"></vex-widget-process-distribution>
+
+      <!-- Métricas de distribución de expedientes -->
+      <vex-widget-distribution-metrics-donut 
+        [agencyId]="selectedAgencyId"></vex-widget-distribution-metrics-donut>
+    </div>
+
+    <!-- Widgets de Estatus en la misma fila -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Distribución de expedientes por estatus -->
+      <vex-widget-status-distribution 
+        [agencyId]="selectedAgencyId" 
+        [userId]="selectedUserId"></vex-widget-status-distribution>
+
+      <!-- Distribución de expedientes por estatus - Mes Actual -->
+      <vex-widget-current-month-status 
+        [agencyId]="selectedAgencyId" 
+        [userId]="selectedUserId"></vex-widget-current-month-status>
+
+      <!-- Widget de Estatus Histórico -->
+      <vex-widget-historical-status 
+        [agencyId]="selectedAgencyId" 
+        [userId]="selectedUserId"></vex-widget-historical-status>
+    </div>
+
+        <!-- Widget de Distribución por Asesor -->
+        <vex-widget-advisor-distribution 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"
+          class="mb-6"></vex-widget-advisor-distribution>
+
+        <!-- Widget de Expedientes por Día - Semana Actual -->
+        <vex-widget-weekly-chart 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"
+          class="mb-6"></vex-widget-weekly-chart>
+
+        <!-- Widget de Período de Atención de Expedientes -->
+        <vex-widget-attention-period 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"
+          class="mb-6"></vex-widget-attention-period>
+
+        <!-- Widget de Período de Atención - Mes Actual -->
+        <vex-widget-current-month-attention 
+          [agencyId]="selectedAgencyId" 
+          [userId]="selectedUserId"
+          class="mb-6"></vex-widget-current-month-attention>
+
+    <!-- Widget de Meses Anteriores - OCULTO -->
+    <!-- <vex-widget-previous-months 
       [agencyId]="selectedAgencyId" 
-      class="mb-6"></vex-widget-distribution-metrics>
+      [userId]="selectedUserId"
+      [monthsToShow]="6"
+      class="mb-6"></vex-widget-previous-months> -->
 
     <!-- Gráficos de actividad -->
     <vex-widget-large-chart

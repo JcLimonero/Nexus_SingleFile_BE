@@ -1,0 +1,59 @@
+<div class="vex-widget-current-month-attention">
+  <mat-card class="vex-card">
+    <mat-card-header class="vex-card-header">
+      <mat-card-title class="vex-card-title">
+        <mat-icon class="vex-card-title-icon">schedule</mat-icon>
+        <span>Período de Atención - {{ currentMonth }}</span>
+      </mat-card-title>
+      
+      <div class="vex-card-actions" *ngIf="showDetails">
+        <button mat-icon-button (click)="refresh()" [disabled]="loading" matTooltip="Recargar datos">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content class="vex-card-content">
+      <div class="widget-content">
+        <!-- Loading State -->
+        <div *ngIf="loading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Cargando datos del mes actual...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="!loading && error" class="error-container">
+          <mat-icon color="warn">error_outline</mat-icon>
+          <p>{{ error }}</p>
+          <button mat-button color="primary" (click)="refresh()">Reintentar</button>
+        </div>
+
+        <!-- No Data State -->
+        <div *ngIf="!loading && !error && attentionData.length === 0" class="no-data-container">
+          <mat-icon>info_outline</mat-icon>
+          <p>No hay datos de período de atención para {{ currentMonth }}.</p>
+        </div>
+
+        <!-- Summary Stats -->
+        <div *ngIf="!loading && !error && attentionData.length > 0" class="summary-stats">
+          <div class="stat-item">
+            <span class="stat-label">Total {{ currentMonth }}:</span>
+            <span class="stat-value">{{ totalCases }}</span>
+          </div>
+        </div>
+
+        <!-- Attention Period Blocks -->
+        <div *ngIf="!loading && !error && attentionData.length > 0" class="attention-blocks">
+          <div 
+            *ngFor="let item of attentionData" 
+            class="attention-block"
+            [style.background-color]="item.color"
+            [matTooltip]="item.label + ': ' + item.count + ' expedientes (' + getPercentage(item.count) + '%)'">
+            <div class="block-value">{{ item.count }}</div>
+            <div class="block-label">{{ item.label }}</div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

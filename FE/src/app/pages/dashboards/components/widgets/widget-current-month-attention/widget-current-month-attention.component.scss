@@ -1,0 +1,165 @@
+.vex-widget-current-month-attention {
+  .vex-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vex-card-header {
+    padding: 1.5rem 1.5rem 0;
+    flex-shrink: 0;
+  }
+
+  .vex-card-title {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+
+    .vex-card-title-icon {
+      margin-right: 0.75rem;
+      color: #3b82f6;
+    }
+  }
+
+  .vex-card-actions {
+    margin-left: auto;
+  }
+
+  .vex-card-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .widget-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loading-container,
+  .error-container,
+  .no-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    padding: 2rem;
+
+    mat-icon {
+      font-size: 3rem;
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 1rem;
+      color: #6b7280;
+    }
+
+    p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    button {
+      margin-top: 1rem;
+    }
+  }
+
+  .summary-stats {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+      }
+
+      .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+      }
+    }
+  }
+
+  .attention-blocks {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+    align-items: stretch;
+
+    .attention-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      border-radius: 0.5rem;
+      min-height: 120px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .block-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .block-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: white;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        line-height: 1.2;
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    .attention-blocks {
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .attention-block {
+        min-height: 80px;
+        padding: 1rem 0.75rem;
+
+        .block-value {
+          font-size: 1.5rem;
+        }
+
+        .block-label {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+}

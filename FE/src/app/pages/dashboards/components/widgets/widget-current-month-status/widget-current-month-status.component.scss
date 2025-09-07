@@ -1,0 +1,152 @@
+.vex-widget-current-month-status {
+  .vex-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vex-card-header {
+    padding: 1.5rem 1.5rem 0;
+    border-bottom: 1px solid var(--vex-border-color);
+    margin-bottom: 1rem;
+
+    .vex-card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--vex-text-primary);
+      margin: 0;
+
+      .vex-card-title-icon {
+        color: var(--vex-primary-500);
+        font-size: 1.25rem;
+      }
+    }
+
+    .vex-card-actions {
+      margin-left: auto;
+    }
+  }
+
+  .vex-card-content {
+    flex: 1;
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .widget-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    flex: 1;
+
+    .loading-text {
+      margin-top: 1rem;
+      color: var(--vex-text-secondary);
+      font-size: 0.875rem;
+    }
+  }
+
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    flex: 1;
+    text-align: center;
+
+    .error-icon {
+      font-size: 3rem;
+      color: var(--vex-error-500);
+      margin-bottom: 1rem;
+    }
+
+    .error-text {
+      color: var(--vex-text-secondary);
+      margin-bottom: 1rem;
+    }
+  }
+
+  .chart-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .no-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    flex: 1;
+    text-align: center;
+
+    .no-data-icon {
+      font-size: 3rem;
+      color: var(--vex-text-disabled);
+      margin-bottom: 1rem;
+    }
+
+    .no-data-text {
+      color: var(--vex-text-secondary);
+      font-size: 0.875rem;
+    }
+  }
+
+  .chart-wrapper {
+    flex: 1;
+    min-height: 300px;
+  }
+
+  .summary-stats {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-top: 1px solid var(--vex-border-color);
+    margin-top: 1rem;
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--vex-text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--vex-text-primary);
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .vex-widget-current-month-status {
+    .summary-stats {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+}

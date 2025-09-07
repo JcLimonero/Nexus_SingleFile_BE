@@ -1,0 +1,59 @@
+<div class="vex-widget-weekly-chart">
+  <mat-card class="vex-card">
+    <mat-card-header class="vex-card-header">
+      <mat-card-title class="vex-card-title">
+        <mat-icon class="vex-card-title-icon">show_chart</mat-icon>
+        <span>Expedientes por Día - Semana Actual</span>
+      </mat-card-title>
+      
+      <div class="vex-card-actions" *ngIf="showDetails">
+        <button mat-icon-button (click)="refresh()" [disabled]="loading" matTooltip="Recargar datos">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content class="vex-card-content">
+      <div class="widget-content">
+        <!-- Loading State -->
+        <div *ngIf="loading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Cargando datos semanales...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="!loading && error" class="error-container">
+          <mat-icon color="warn">error_outline</mat-icon>
+          <p>{{ error }}</p>
+          <button mat-button color="primary" (click)="refresh()">Reintentar</button>
+        </div>
+
+        <!-- No Data State -->
+        <div *ngIf="!loading && !error && weeklyData.length === 0" class="no-data-container">
+          <mat-icon>info_outline</mat-icon>
+          <p>No hay datos de expedientes para la semana actual.</p>
+        </div>
+
+        <!-- Summary Stats -->
+        <div *ngIf="!loading && !error && weeklyData.length > 0" class="summary-stats">
+          <div class="stat-item">
+            <span class="stat-label">Total Semana:</span>
+            <span class="stat-value">{{ totalCases }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Días con Datos:</span>
+            <span class="stat-value">{{ totalAdvisors }}</span>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-wrapper">
+          <vex-chart
+            [series]="series"
+            [options]="options">
+          </vex-chart>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

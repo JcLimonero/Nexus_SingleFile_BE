@@ -13,7 +13,16 @@ import { WidgetQuickLineChartComponent } from '../components/widgets/widget-quic
 import { WidgetAssistantComponent } from '../components/widgets/widget-assistant/widget-assistant.component';
 import { WidgetAgencyMetricsComponent } from '../components/widgets/widget-agency-metrics/widget-agency-metrics.component';
 import { WidgetTrendChartComponent } from '../components/widgets/widget-trend-chart/widget-trend-chart.component';
-import { WidgetDistributionMetricsComponent } from '../components/widgets/widget-distribution-metrics/widget-distribution-metrics.component';
+import { WidgetDistributionMetricsDonutComponent } from '../components/widgets/widget-distribution-metrics-donut/widget-distribution-metrics-donut.component';
+import { WidgetProcessDistributionComponent } from '../components/widgets/widget-process-distribution/widget-process-distribution.component';
+import { WidgetStatusDistributionComponent } from '../components/widgets/widget-status-distribution/widget-status-distribution.component';
+import { WidgetCurrentMonthStatusComponent } from '../components/widgets/widget-current-month-status/widget-current-month-status.component';
+import { WidgetPreviousMonthsComponent } from '../components/widgets/widget-previous-months/widget-previous-months.component';
+import { WidgetHistoricalStatusComponent } from '../components/widgets/widget-historical-status/widget-historical-status.component';
+import { WidgetAdvisorDistributionComponent } from '../components/widgets/widget-advisor-distribution/widget-advisor-distribution.component';
+import { WidgetWeeklyChartComponent } from '../components/widgets/widget-weekly-chart/widget-weekly-chart.component';
+import { WidgetAttentionPeriodComponent } from '../components/widgets/widget-attention-period/widget-attention-period.component';
+import { WidgetCurrentMonthAttentionComponent } from '../components/widgets/widget-current-month-attention/widget-current-month-attention.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -51,8 +60,17 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
                 WidgetTableComponent,
     WidgetAgencyMetricsComponent,
     WidgetTrendChartComponent,
-    WidgetDistributionMetricsComponent,
-                AgencyFilterComponent,
+    WidgetDistributionMetricsDonutComponent,
+    WidgetProcessDistributionComponent,
+    WidgetStatusDistributionComponent,
+    WidgetCurrentMonthStatusComponent,
+    WidgetPreviousMonthsComponent,
+    WidgetHistoricalStatusComponent,
+    WidgetAdvisorDistributionComponent,
+    WidgetWeeklyChartComponent,
+    WidgetAttentionPeriodComponent,
+    WidgetCurrentMonthAttentionComponent,
+    AgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,
                 MatSelectModule,

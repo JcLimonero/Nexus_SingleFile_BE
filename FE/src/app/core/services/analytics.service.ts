@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface AnalyticsFilters {
@@ -84,6 +85,34 @@ export interface AgencyMetrics {
   totalUsers: number;
   monthlyAgencyCases: number;
   monthlyName: string;
+}
+
+export interface AdvisorDistributionData {
+  advisorName: string;
+  approved: number;
+  pending: number;
+  rejected: number;
+  total: number;
+}
+
+export interface WeeklyData {
+  day: string;
+  dayName: string;
+  count: number;
+}
+
+export interface AttentionPeriodData {
+  range: string;
+  label: string;
+  count: number;
+  color: string;
+}
+
+export interface CurrentMonthAttentionData {
+  range: string;
+  label: string;
+  count: number;
+  color: string;
 }
 
 @Injectable({
@@ -186,6 +215,71 @@ export class AnalyticsService {
       );
   }
 
+  getProcessDistribution(filters?: any): Observable<any[]> {
+    const params = this.buildParams(filters);
+    console.log('🔧 AnalyticsService: getProcessDistribution called with filters:', filters);
+    console.log('🔧 AnalyticsService: Built params:', params.toString());
+    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-process-distribution?${params.toString()}`);
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-process-distribution`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('🔧 AnalyticsService: Received Process Distribution:', data))
+      );
+  }
+
+  getStatusDistribution(filters?: any): Observable<any[]> {
+    const params = this.buildParams(filters);
+    console.log('🔧 AnalyticsService: getStatusDistribution called with filters:', filters);
+    console.log('🔧 AnalyticsService: Built params:', params.toString());
+    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-status-distribution?${params.toString()}`);
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-status-distribution`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('🔧 AnalyticsService: Received Status Distribution:', data))
+      );
+  }
+
+  getCurrentMonthStatusDistribution(filters?: any): Observable<any[]> {
+    const params = this.buildParams(filters);
+    console.log('🔧 AnalyticsService: getCurrentMonthStatusDistribution called with filters:', filters);
+    console.log('🔧 AnalyticsService: Built params:', params.toString());
+    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-current-month-status?${params.toString()}`);
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-current-month-status`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('🔧 AnalyticsService: Received Current Month Status Distribution:', data))
+      );
+  }
+
+  getPreviousMonthsData(filters?: any): Observable<any[]> {
+    const params = this.buildParams(filters);
+    console.log('🔧 AnalyticsService: getPreviousMonthsData called with filters:', filters);
+    console.log('🔧 AnalyticsService: Built params:', params.toString());
+    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-previous-months?${params.toString()}`);
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-previous-months`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('🔧 AnalyticsService: Received Previous Months Data:', data))
+      );
+  }
+
+  getHistoricalStatusDistribution(filters?: any): Observable<any[]> {
+    const params = this.buildParams(filters);
+    console.log('🔧 AnalyticsService: getHistoricalStatusDistribution called with filters:', filters);
+    console.log('🔧 AnalyticsService: Built params:', params.toString());
+    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-historical-status?${params.toString()}`);
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-historical-status`, { params })
+      .pipe(
+        map(response => response.data || response),
+        tap(data => console.log('🔧 AnalyticsService: Received Historical Status Distribution:', data))
+      );
+  }
+
   getTrendData(filters?: any): Observable<any> {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-trend-chart`, { params })
@@ -278,6 +372,111 @@ export class AnalyticsService {
     }
     
     return params;
+  }
+
+  // Método para obtener distribución de expedientes por asesor
+  getAdvisorDistribution(agencyId?: string | null, userId?: string | null): Observable<AdvisorDistributionData[]> {
+    let params = new HttpParams();
+    
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+    
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/advisor-distribution`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error en getAdvisorDistribution:', error);
+          return of([]);
+        })
+      );
+  }
+
+  getWeeklyData(agencyId?: string | null, userId?: string | null): Observable<WeeklyData[]> {
+    let params = new HttpParams();
+    
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+    
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/weekly-data`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error en getWeeklyData:', error);
+          return of([]);
+        })
+      );
+  }
+
+  getAttentionPeriodData(agencyId?: string | null, userId?: string | null): Observable<AttentionPeriodData[]> {
+    let params = new HttpParams();
+    
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+    
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/attention-period`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error en getAttentionPeriodData:', error);
+          return of([]);
+        })
+      );
+  }
+
+  getCurrentMonthAttentionData(agencyId?: string | null, userId?: string | null): Observable<CurrentMonthAttentionData[]> {
+    let params = new HttpParams();
+    
+    if (agencyId) {
+      params = params.set('agency_id', agencyId);
+    }
+    
+    if (userId) {
+      params = params.set('user_id', userId);
+    }
+    
+    return this.http.get<any>(`${this.baseUrl}/analytics/current-month-attention`, { params })
+      .pipe(
+        map(response => {
+          if (response && response.success && Array.isArray(response.data)) {
+            return response.data;
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.error('Error en getCurrentMonthAttentionData:', error);
+          return of([]);
+        })
+      );
   }
 
   // Métodos para obtener datos en tiempo real (para futuras implementaciones con WebSockets)

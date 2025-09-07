@@ -128,6 +128,15 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
             $routes->get('widget-agency-specific-metrics', 'Analytics::getAgencyMetrics');
             $routes->get('widget-file-trend-chart', 'Analytics::getTrendData');
             $routes->get('widget-file-distribution-metrics', 'Analytics::getDistributionMetrics');
+            $routes->get('widget-process-distribution', 'Analytics::getProcessDistribution');
+            $routes->get('widget-status-distribution', 'Analytics::getStatusDistribution');
+            $routes->get('widget-current-month-status', 'Analytics::getCurrentMonthStatusDistribution');
+            $routes->get('widget-previous-months', 'Analytics::getPreviousMonthsData');
+            $routes->get('widget-historical-status', 'Analytics::getHistoricalStatusDistribution');
+            $routes->get('advisor-distribution', 'Analytics::getAdvisorDistribution');
+            $routes->get('weekly-data', 'Analytics::getWeeklyData');
+            $routes->get('attention-period', 'Analytics::getAttentionPeriod');
+            $routes->get('current-month-attention', 'Analytics::getCurrentMonthAttention');
             $routes->get('debug-file-structure', 'Analytics::debugFileStructure');
             $routes->get('debug-file-status', 'Analytics::debugFileStatus');
             $routes->get('debug-trend-january-2025', 'Analytics::debugTrendJanuary2025');

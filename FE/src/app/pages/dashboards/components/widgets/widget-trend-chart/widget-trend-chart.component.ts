@@ -64,7 +64,7 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
     },
     chart: {
       type: 'line',
-      height: 269, // Reducido de 384 a 269 (30% menos)
+      height: 350, // Altura estándar para todos los widgets
       sparkline: {
         enabled: false
       },
@@ -104,6 +104,26 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
       itemMargin: {
         horizontal: 4,
         vertical: 4
+      }
+    },
+    tooltip: {
+      enabled: true,
+      style: {
+        fontSize: '14px',
+        fontFamily: 'Inter, sans-serif'
+      },
+      fillSeriesColor: false,
+      theme: 'light',
+      shared: true,
+      intersect: false,
+      y: {
+        formatter: function (val: number, opts: any) {
+          const seriesName = opts.w.config.series[opts.seriesIndex].name;
+          return `<div style="padding: 4px;">
+                    <div style="font-weight: 600; margin-bottom: 2px;">${seriesName}</div>
+                    <div style="color: #6b7280;">${val} expedientes</div>
+                  </div>`;
+        }
       }
     }
   });

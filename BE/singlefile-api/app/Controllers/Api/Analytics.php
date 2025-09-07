@@ -1109,6 +1109,358 @@ class Analytics extends BaseController
     }
 
     /**
+     * GET /api/analytics/widget-process-distribution
+     * Obtener distribución de expedientes por proceso
+     */
+    public function getProcessDistribution()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $idSeller = $filters['idSeller'] ?? null;
+
+            $db = \Config\Database::connect();
+
+            // Consulta para obtener distribución por proceso
+            $query = $db->table('File f')
+                ->select('p.Name as processName, COUNT(f.Id) as totalCases')
+                ->join('Process p', 'f.IdProcess = p.Id', 'left')
+                ->groupBy('p.Id, p.Name')
+                ->orderBy('totalCases', 'DESC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                $query->where('f.idSeller', $idSeller);
+            }
+
+            $results = $query->get()->getResultArray();
+
+            // Calcular total para porcentajes
+            $totalCases = array_sum(array_column($results, 'totalCases'));
+
+            // Formatear datos con porcentajes
+            $processDistribution = [];
+            foreach ($results as $row) {
+                $percentage = $totalCases > 0 ? round(($row['totalCases'] / $totalCases) * 100, 1) : 0;
+                
+                $processDistribution[] = [
+                    'processName' => $row['processName'] ?: 'Sin Proceso',
+                    'totalCases' => (int)$row['totalCases'],
+                    'percentage' => $percentage
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $processDistribution
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getProcessDistribution: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener distribución por proceso',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/widget-status-distribution
+     * Obtener distribución de expedientes por estatus
+     */
+    public function getStatusDistribution()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $idSeller = $filters['idSeller'] ?? null;
+
+            $db = \Config\Database::connect();
+
+            // Consulta para obtener distribución por estatus
+            $query = $db->table('File f')
+                ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->groupBy('fs.Id, fs.Name')
+                ->orderBy('totalCases', 'DESC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                $query->where('f.idSeller', $idSeller);
+            }
+
+            $results = $query->get()->getResultArray();
+
+            // Calcular total para porcentajes
+            $totalCases = array_sum(array_column($results, 'totalCases'));
+
+            // Formatear datos con porcentajes
+            $statusDistribution = [];
+            foreach ($results as $row) {
+                $percentage = $totalCases > 0 ? round(($row['totalCases'] / $totalCases) * 100, 1) : 0;
+                
+                $statusDistribution[] = [
+                    'statusName' => $row['statusName'] ?: 'Sin Estatus',
+                    'totalCases' => (int)$row['totalCases'],
+                    'percentage' => $percentage
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $statusDistribution
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getStatusDistribution: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener distribución por estatus',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/widget-current-month-status
+     * Obtener distribución de expedientes por estatus del mes actual
+     */
+    public function getCurrentMonthStatusDistribution()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $idSeller = $filters['idSeller'] ?? null;
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener mes y año actual
+            $currentYear = date('Y');
+            $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
+
+            // Consulta para obtener distribución por estatus del mes actual
+            $query = $db->table('File f')
+                ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->where('YEAR(f.RegistrationDate)', $currentYear)
+                ->where('MONTH(f.RegistrationDate)', $currentMonth)
+                ->groupBy('fs.Id, fs.Name')
+                ->orderBy('totalCases', 'DESC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                $query->where('f.idSeller', $idSeller);
+            }
+
+            $results = $query->get()->getResultArray();
+
+            // Calcular total para porcentajes
+            $totalCases = array_sum(array_column($results, 'totalCases'));
+
+            // Formatear datos con porcentajes
+            $statusDistribution = [];
+            foreach ($results as $row) {
+                $percentage = $totalCases > 0 ? round(($row['totalCases'] / $totalCases) * 100, 1) : 0;
+                
+                $statusDistribution[] = [
+                    'statusName' => $row['statusName'] ?: 'Sin Estatus',
+                    'totalCases' => (int)$row['totalCases'],
+                    'percentage' => $percentage
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $statusDistribution
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getCurrentMonthStatusDistribution: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener distribución por estatus del mes actual',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/widget-previous-months
+     * Obtener datos de meses anteriores al actual
+     */
+    public function getPreviousMonthsData()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $idSeller = $filters['idSeller'] ?? null;
+            $monthsToShow = $filters['months_to_show'] ?? 6;
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener mes y año actual
+            $currentYear = date('Y');
+            $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
+
+            $previousMonthsData = [];
+            $monthNames = [
+                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            ];
+
+            // Generar datos para los meses anteriores
+            for ($i = 1; $i <= $monthsToShow; $i++) {
+                $targetMonth = $currentMonth - $i;
+                $targetYear = $currentYear;
+
+                // Ajustar año si el mes es negativo
+                if ($targetMonth <= 0) {
+                    $targetMonth += 12;
+                    $targetYear--;
+                }
+
+                // Consulta para obtener datos del mes específico
+                $query = $db->table('File f')
+                    ->select('
+                        COUNT(f.Id) as totalCases,
+                        SUM(CASE WHEN f.IdCurrentState IN (4, 6) THEN 1 ELSE 0 END) as deliveredCases,
+                        SUM(CASE WHEN f.IdCurrentState = 2 THEN 1 ELSE 0 END) as inProcessCases,
+                        SUM(CASE WHEN f.IdCurrentState = 3 THEN 1 ELSE 0 END) as cancelledCases
+                    ')
+                    ->where('YEAR(f.RegistrationDate)', $targetYear)
+                    ->where('MONTH(f.RegistrationDate)', $targetMonth);
+
+                // Aplicar filtros
+                if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                    $query->where('f.IdAgency', $agencyId);
+                }
+                
+                if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                    $query->where('f.idSeller', $idSeller);
+                }
+
+                $result = $query->get()->getRowArray();
+
+                $previousMonthsData[] = [
+                    'month' => $monthNames[$targetMonth],
+                    'year' => $targetYear,
+                    'totalCases' => (int)($result['totalCases'] ?? 0),
+                    'deliveredCases' => (int)($result['deliveredCases'] ?? 0),
+                    'inProcessCases' => (int)($result['inProcessCases'] ?? 0),
+                    'cancelledCases' => (int)($result['cancelledCases'] ?? 0)
+                ];
+            }
+
+            // Ordenar por fecha (más reciente primero)
+            usort($previousMonthsData, function($a, $b) {
+                if ($a['year'] == $b['year']) {
+                    return $b['month'] <=> $a['month'];
+                }
+                return $b['year'] <=> $a['year'];
+            });
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $previousMonthsData
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getPreviousMonthsData: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos de meses anteriores',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/widget-historical-status
+     * Obtener distribución de expedientes por estatus en todo el tiempo excepto el mes actual
+     */
+    public function getHistoricalStatusDistribution()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $idSeller = $filters['idSeller'] ?? null;
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener mes y año actual
+            $currentYear = date('Y');
+            $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
+
+            $query = $db->table('File f')
+                ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->groupBy('fs.Id, fs.Name')
+                ->orderBy('totalCases', 'DESC');
+
+            // Excluir el mes actual
+            $query->where('NOT (YEAR(f.RegistrationDate) = ' . $currentYear . ' AND MONTH(f.RegistrationDate) = ' . $currentMonth . ')');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($idSeller && $idSeller !== 'null' && $idSeller !== null) {
+                $query->where('f.idSeller', $idSeller);
+            }
+
+            $results = $query->get()->getResultArray();
+            $totalCases = array_sum(array_column($results, 'totalCases'));
+            $statusDistribution = [];
+            
+            foreach ($results as $row) {
+                $percentage = $totalCases > 0 ? round(($row['totalCases'] / $totalCases) * 100, 1) : 0;
+                $statusDistribution[] = [
+                    'statusName' => $row['statusName'] ?: 'Sin Estatus',
+                    'totalCases' => (int)$row['totalCases'],
+                    'percentage' => $percentage
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $statusDistribution
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Analytics::getHistoricalStatusDistribution: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener distribución histórica por estatus',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Generar reporte Excel
      */
     private function generateExcelReport($data)
@@ -1121,5 +1473,474 @@ class Analytics extends BaseController
             ->setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->setBody('Excel content placeholder');
+    }
+
+    /**
+     * GET /api/advisor-distribution
+     * Obtener distribución de expedientes por asesor para el mes actual
+     */
+    public function getAdvisorDistribution()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $userId = $filters['user_id'] ?? null;
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener mes y año actual
+            $currentYear = date('Y');
+            $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
+
+            $query = $db->table('File f')
+                ->select('u.Name as advisorName, 
+                         SUM(CASE WHEN fs.Name = "Entregado" OR fs.Name = "Liberado" OR fs.Name = "Completado" THEN 1 ELSE 0 END) as approved,
+                         SUM(CASE WHEN fs.Name = "En Proceso" OR fs.Name = "Pendiente" OR fs.Name = "Liberación" OR fs.Name = "Integración" THEN 1 ELSE 0 END) as pending,
+                         SUM(CASE WHEN fs.Name = "Cancelado" OR fs.Name = "Rechazado" THEN 1 ELSE 0 END) as rejected,
+                         COUNT(f.Id) as total')
+                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->join('User u', 'f.idSeller = u.Id', 'left')
+                ->where('YEAR(f.RegistrationDate)', $currentYear)
+                ->where('MONTH(f.RegistrationDate)', $currentMonth)
+                ->groupBy('u.Id, u.Name')
+                ->having('total > 0')
+                ->orderBy('total', 'DESC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $query->where('f.idSeller', $userId);
+            }
+
+            $results = $query->get()->getResultArray();
+            $advisorDistribution = [];
+            
+            foreach ($results as $row) {
+                $advisorDistribution[] = [
+                    'advisorName' => $row['advisorName'] ?: 'Sin Asesor',
+                    'approved' => (int)$row['approved'],
+                    'pending' => (int)$row['pending'],
+                    'rejected' => (int)$row['rejected'],
+                    'total' => (int)$row['total']
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $advisorDistribution
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getAdvisorDistribution: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener distribución de asesores: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/weekly-data
+     * Obtener datos de expedientes por día de la semana actual
+     */
+    public function getWeeklyData()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $userId = $filters['user_id'] ?? null;
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener el lunes de la semana actual
+            $currentDate = date('Y-m-d');
+            $dayOfWeek = date('N', strtotime($currentDate)); // 1 = lunes, 7 = domingo
+            $mondayOfWeek = date('Y-m-d', strtotime('-' . ($dayOfWeek - 1) . ' days', strtotime($currentDate)));
+            $sundayOfWeek = date('Y-m-d', strtotime('+' . (7 - $dayOfWeek) . ' days', strtotime($currentDate)));
+
+            $query = $db->table('File f')
+                ->select('DATE(f.RegistrationDate) as day, 
+                         DAYNAME(f.RegistrationDate) as dayName,
+                         COUNT(f.Id) as count')
+                ->where('DATE(f.RegistrationDate) >=', $mondayOfWeek)
+                ->where('DATE(f.RegistrationDate) <=', $sundayOfWeek)
+                ->groupBy('DATE(f.RegistrationDate), DAYNAME(f.RegistrationDate)')
+                ->orderBy('DATE(f.RegistrationDate)', 'ASC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $query->where('f.idSeller', $userId);
+            }
+
+            $results = $query->get()->getResultArray();
+            
+            // Crear array con todos los días de la semana
+            $daysOfWeek = [
+                'Monday' => 'Lunes',
+                'Tuesday' => 'Martes', 
+                'Wednesday' => 'Miércoles',
+                'Thursday' => 'Jueves',
+                'Friday' => 'Viernes',
+                'Saturday' => 'Sábado',
+                'Sunday' => 'Domingo'
+            ];
+
+            $weeklyData = [];
+            $currentMonday = strtotime($mondayOfWeek);
+            
+            for ($i = 0; $i < 7; $i++) {
+                $currentDay = date('Y-m-d', strtotime('+' . $i . ' days', $currentMonday));
+                $dayName = date('l', strtotime($currentDay)); // Nombre en inglés
+                $dayNameSpanish = $daysOfWeek[$dayName];
+                
+                // Buscar si hay datos para este día
+                $dayData = null;
+                foreach ($results as $row) {
+                    if ($row['day'] === $currentDay) {
+                        $dayData = $row;
+                        break;
+                    }
+                }
+                
+                $weeklyData[] = [
+                    'day' => $currentDay,
+                    'dayName' => $dayNameSpanish,
+                    'count' => $dayData ? (int)$dayData['count'] : 0
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $weeklyData
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getWeeklyData: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos semanales: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/attention-period
+     * Obtener datos de período de atención de expedientes basado en la diferencia entre attentiondate y closedate
+     */
+    public function getAttentionPeriod()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $userId = $filters['user_id'] ?? null;
+
+            log_message('info', 'getAttentionPeriod - agencyId: ' . $agencyId . ', userId: ' . $userId);
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Primero verificar si existen expedientes con AttentionDate y CloseDate
+            $countQuery = $db->table('File f')
+                ->select('COUNT(f.Id) as total')
+                ->where('f.AttentionDate IS NOT NULL')
+                ->where('f.CloseDate IS NOT NULL')
+                ->where('f.CloseDate >= f.AttentionDate');
+
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $countQuery->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $countQuery->where('f.idSeller', $userId);
+            }
+
+            $totalCount = $countQuery->get()->getRowArray();
+            log_message('info', 'Total expedientes con fechas válidas: ' . $totalCount['total']);
+
+            // Si no hay datos, retornar rangos vacíos
+            if ($totalCount['total'] == 0) {
+                $finalData = [
+                    ['range' => '0-5', 'label' => '0 - 5 Días', 'count' => 0, 'color' => '#10b981'],
+                    ['range' => '5-10', 'label' => '5 - 10 Días', 'count' => 0, 'color' => '#f59e0b'],
+                    ['range' => '10-15', 'label' => '10 - 15 Días', 'count' => 0, 'color' => '#f97316'],
+                    ['range' => '15+', 'label' => '> 15 Días', 'count' => 0, 'color' => '#ef4444']
+                ];
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'data' => $finalData
+                ]);
+            }
+
+            // Consulta principal con rangos
+            $query = $db->table('File f')
+                ->select('
+                    CASE 
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0-5"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5-10"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10-15"
+                        ELSE "15+"
+                    END as period_range,
+                    CASE 
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0 - 5 Días"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5 - 10 Días"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10 - 15 Días"
+                        ELSE "> 15 Días"
+                    END as period_label,
+                    COUNT(f.Id) as count
+                ')
+                ->where('f.AttentionDate IS NOT NULL')
+                ->where('f.CloseDate IS NOT NULL')
+                ->where('f.CloseDate >= f.AttentionDate')
+                ->groupBy('period_range, period_label')
+                ->orderBy('period_range', 'ASC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $query->where('f.idSeller', $userId);
+            }
+
+            $results = $query->get()->getResultArray();
+            log_message('info', 'Resultados de la consulta: ' . json_encode($results));
+            
+            // Definir colores para cada rango
+            $colors = [
+                '0-5' => '#10b981',    // Verde
+                '5-10' => '#f59e0b',   // Amarillo/Naranja
+                '10-15' => '#f97316',  // Naranja
+                '15+' => '#ef4444'     // Rojo
+            ];
+
+            $attentionData = [];
+            
+            foreach ($results as $row) {
+                $attentionData[] = [
+                    'range' => $row['period_range'],
+                    'label' => $row['period_label'],
+                    'count' => (int)$row['count'],
+                    'color' => $colors[$row['period_range']] ?? '#6b7280'
+                ];
+            }
+
+            // Asegurar que todos los rangos estén presentes, incluso con 0 casos
+            $allRanges = [
+                ['range' => '0-5', 'label' => '0 - 5 Días', 'color' => '#10b981'],
+                ['range' => '5-10', 'label' => '5 - 10 Días', 'color' => '#f59e0b'],
+                ['range' => '10-15', 'label' => '10 - 15 Días', 'color' => '#f97316'],
+                ['range' => '15+', 'label' => '> 15 Días', 'color' => '#ef4444']
+            ];
+
+            $finalData = [];
+            foreach ($allRanges as $range) {
+                $found = false;
+                foreach ($attentionData as $item) {
+                    if ($item['range'] === $range['range']) {
+                        $finalData[] = $item;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $finalData[] = [
+                        'range' => $range['range'],
+                        'label' => $range['label'],
+                        'count' => 0,
+                        'color' => $range['color']
+                    ];
+                }
+            }
+
+            log_message('info', 'Datos finales: ' . json_encode($finalData));
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $finalData
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getAttentionPeriod: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos de período de atención: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/analytics/current-month-attention
+     * Obtener datos de período de atención de expedientes del mes actual
+     */
+    public function getCurrentMonthAttention()
+    {
+        try {
+            $filters = $this->getFiltersFromRequest();
+            $agencyId = $filters['agency_id'] ?? null;
+            $userId = $filters['user_id'] ?? null;
+
+            log_message('info', 'getCurrentMonthAttention - agencyId: ' . $agencyId . ', userId: ' . $userId);
+
+            // Configurar zona horaria de Guadalajara (GMT-6)
+            date_default_timezone_set('America/Mexico_City');
+
+            $db = \Config\Database::connect();
+
+            // Obtener mes y año actual
+            $currentYear = date('Y');
+            $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
+
+            // Primero verificar si existen expedientes con AttentionDate y CloseDate del mes actual
+            $countQuery = $db->table('File f')
+                ->select('COUNT(f.Id) as total')
+                ->where('f.AttentionDate IS NOT NULL')
+                ->where('f.CloseDate IS NOT NULL')
+                ->where('f.CloseDate >= f.AttentionDate')
+                ->where('YEAR(f.AttentionDate)', $currentYear)
+                ->where('MONTH(f.AttentionDate)', $currentMonth);
+
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $countQuery->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $countQuery->where('f.idSeller', $userId);
+            }
+
+            $totalCount = $countQuery->get()->getRowArray();
+            log_message('info', 'Total expedientes del mes actual con fechas válidas: ' . $totalCount['total']);
+
+            // Si no hay datos, retornar rangos vacíos
+            if ($totalCount['total'] == 0) {
+                $finalData = [
+                    ['range' => '0-5', 'label' => '0 - 5 Días', 'count' => 0, 'color' => '#10b981'],
+                    ['range' => '5-10', 'label' => '5 - 10 Días', 'count' => 0, 'color' => '#f59e0b'],
+                    ['range' => '10-15', 'label' => '10 - 15 Días', 'count' => 0, 'color' => '#f97316'],
+                    ['range' => '15+', 'label' => '> 15 Días', 'count' => 0, 'color' => '#ef4444']
+                ];
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'data' => $finalData
+                ]);
+            }
+
+            // Consulta principal con rangos para el mes actual
+            $query = $db->table('File f')
+                ->select('
+                    CASE 
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0-5"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5-10"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10-15"
+                        ELSE "15+"
+                    END as period_range,
+                    CASE 
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 5 THEN "0 - 5 Días"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 10 THEN "5 - 10 Días"
+                        WHEN DATEDIFF(f.CloseDate, f.AttentionDate) <= 15 THEN "10 - 15 Días"
+                        ELSE "> 15 Días"
+                    END as period_label,
+                    COUNT(f.Id) as count
+                ')
+                ->where('f.AttentionDate IS NOT NULL')
+                ->where('f.CloseDate IS NOT NULL')
+                ->where('f.CloseDate >= f.AttentionDate')
+                ->where('YEAR(f.AttentionDate)', $currentYear)
+                ->where('MONTH(f.AttentionDate)', $currentMonth)
+                ->groupBy('period_range, period_label')
+                ->orderBy('period_range', 'ASC');
+
+            // Aplicar filtros
+            if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
+                $query->where('f.IdAgency', $agencyId);
+            }
+            
+            if ($userId && $userId !== 'null' && $userId !== null) {
+                $query->where('f.idSeller', $userId);
+            }
+
+            $results = $query->get()->getResultArray();
+            log_message('info', 'Resultados del mes actual: ' . json_encode($results));
+            
+            // Definir colores para cada rango
+            $colors = [
+                '0-5' => '#10b981',    // Verde
+                '5-10' => '#f59e0b',   // Amarillo/Naranja
+                '10-15' => '#f97316',  // Naranja
+                '15+' => '#ef4444'     // Rojo
+            ];
+
+            $attentionData = [];
+            
+            foreach ($results as $row) {
+                $attentionData[] = [
+                    'range' => $row['period_range'],
+                    'label' => $row['period_label'],
+                    'count' => (int)$row['count'],
+                    'color' => $colors[$row['period_range']] ?? '#6b7280'
+                ];
+            }
+
+            // Asegurar que todos los rangos estén presentes, incluso con 0 casos
+            $allRanges = [
+                ['range' => '0-5', 'label' => '0 - 5 Días', 'color' => '#10b981'],
+                ['range' => '5-10', 'label' => '5 - 10 Días', 'color' => '#f59e0b'],
+                ['range' => '10-15', 'label' => '10 - 15 Días', 'color' => '#f97316'],
+                ['range' => '15+', 'label' => '> 15 Días', 'color' => '#ef4444']
+            ];
+
+            $finalData = [];
+            foreach ($allRanges as $range) {
+                $found = false;
+                foreach ($attentionData as $item) {
+                    if ($item['range'] === $range['range']) {
+                        $finalData[] = $item;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $finalData[] = [
+                        'range' => $range['range'],
+                        'label' => $range['label'],
+                        'count' => 0,
+                        'color' => $range['color']
+                    ];
+                }
+            }
+
+            log_message('info', 'Datos finales del mes actual: ' . json_encode($finalData));
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $finalData
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en getCurrentMonthAttention: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener datos de período de atención del mes actual: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
     }
 }
