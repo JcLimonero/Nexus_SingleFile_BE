@@ -114,7 +114,8 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
     dataLabels: {
       enabled: true,
       formatter: function (val: string, opts: any) {
-        return opts.w.config.series[opts.seriesIndex] + ' (' + val + '%)';
+        const percentage = parseFloat(val).toFixed(2);
+        return opts.w.config.series[opts.seriesIndex] + ' (' + percentage + '%)';
       },
       style: {
         fontSize: '12px',
@@ -134,7 +135,7 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
         formatter: function (val: number, opts: any) {
           const seriesName = opts.w.config.labels[opts.seriesIndex];
           const total = opts.w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
-          const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+          const percentage = total > 0 ? ((val / total) * 100).toFixed(2) : '0.00';
           return `${seriesName}: ${val} expedientes (${percentage}%)`;
         }
       }
