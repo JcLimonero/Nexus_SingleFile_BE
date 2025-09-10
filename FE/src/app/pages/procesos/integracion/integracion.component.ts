@@ -94,6 +94,18 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
+  // Headers para Backblaze (incluyendo CORS)
+  private getBackblazeHeaders() {
+    return {
+      'X-Provider-Token': environment.backblaze.providerToken,
+      'Content-Type': 'multipart/form-data',
+      'Accept': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Provider-Token'
+    };
+  }
+
   constructor(
     private snackBar: MatSnackBar,
     private defaultAgencyService: DefaultAgencyService,
@@ -493,37 +505,124 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Preparar datos para Backblaze
     const formData = new FormData();
-    formData.append('fileId', this.selectedFile.fileId); // Usar fileId en lugar de numeroPedido
+    formData.append('file', this.selectedFiles[document.documentId]);
+    formData.append('fileName', this.selectedFiles[document.documentId].name);
+    formData.append('fileId', this.selectedFile.fileId);
     formData.append('documentTypeId', document.documentId);
-    formData.append('document', this.selectedFiles[document.documentId]);
+    formData.append('documentName', document.documentName);
 
-    this.http.post<any>(`${environment.apiBaseUrl}/api/documents/upload`, formData)
+    // Usar API de Backblaze con header de autenticación
+    this.http.post<any>(`${environment.backblaze.apiUrl}/backblaze/upload`, formData, { headers: this.getBackblazeHeaders() })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📤 Documento subido:', response);
-          this.snackBar.open(`Documento ${document.documentName} subido exitosamente`, 'Cerrar', {
+          console.log('📤 Documento subido a Backblaze:', response);
+          
+          // Guardar información del archivo en Backblaze en la base de datos local
+          this.saveDocumentInfo(document, response);
+          
+          this.snackBar.open(`Documento ${document.documentName} subido exitosamente a Backblaze`, 'Cerrar', {
             duration: 3000
           });
+          
           // Recargar documentos
-          this.loadRequiredDocuments(this.selectedFile.fileId); // Usar fileId
+          this.loadRequiredDocuments(this.selectedFile.fileId);
           // Limpiar archivo seleccionado
           delete this.selectedFiles[document.documentId];
         },
         error: (error) => {
-          console.error('❌ Error subiendo documento:', error);
-          this.snackBar.open('Error al subir documento', 'Cerrar', {
-            duration: 3000
+          console.error('❌ Error subiendo documento a Backblaze:', error);
+          
+          let errorMessage = 'Error desconocido';
+          
+          if (error.status === 0) {
+            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Backblaze. Verifique la configuración del servidor.';
+          } else if (error.status === 400) {
+            errorMessage = 'Error 400: Solicitud inválida. Verifique los parámetros enviados.';
+          } else if (error.status === 401) {
+            errorMessage = 'Error 401: Token de autenticación inválido.';
+          } else if (error.status === 403) {
+            errorMessage = 'Error 403: Acceso denegado.';
+          } else if (error.status === 404) {
+            errorMessage = 'Error 404: Endpoint no encontrado.';
+          } else if (error.status === 500) {
+            errorMessage = 'Error 500: Error interno del servidor.';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', {
+            duration: 8000
           });
         }
       });
   }
 
+  private saveDocumentInfo(document: any, backblazeResponse: any): void {
+    const documentData = {
+      fileId: this.selectedFile.fileId,
+      documentTypeId: document.documentId,
+      fileName: backblazeResponse.fileName || this.selectedFiles[document.documentId].name,
+      filePath: backblazeResponse.filePath,
+      backblazeFileId: backblazeResponse.fileId,
+      backblazeUrl: backblazeResponse.url,
+      uploadDate: new Date().toISOString(),
+      status: 'uploaded'
+    };
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/documents/save-backblaze-info`, documentData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('📝 Información del documento guardada:', response);
+        },
+        error: (error) => {
+          console.error('❌ Error guardando información del documento:', error);
+        }
+      });
+  }
+
   viewDocument(document: any): void {
-    if (document.filePath) {
+    if (document.backblazeUrl) {
+      // Si tiene URL de Backblaze, usarla directamente
+      window.open(document.backblazeUrl, '_blank');
+    } else if (document.backblazeFileId) {
+      // Si tiene fileId de Backblaze, obtener URL privada
+      this.getBackblazePrivateUrl(document.backblazeFileId, document);
+    } else if (document.filePath) {
+      // Fallback al método anterior
       window.open(`${environment.apiBaseUrl}/${document.filePath}`, '_blank');
+    } else {
+      this.snackBar.open('No se puede visualizar el documento', 'Cerrar', {
+        duration: 3000
+      });
     }
+  }
+
+  private getBackblazePrivateUrl(fileId: string, document: any): void {
+    this.http.get<any>(`${environment.backblaze.apiUrl}/backblaze/private-url/${fileId}`, { headers: this.getBackblazeHeaders() })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.url) {
+            window.open(response.url, '_blank');
+          } else {
+            this.snackBar.open('No se pudo obtener la URL del documento', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error obteniendo URL privada de Backblaze:', error);
+          this.snackBar.open('Error al obtener URL del documento', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
   }
 
   getDocumentStatusIcon(status: string, idCurrentStatus?: string): string {

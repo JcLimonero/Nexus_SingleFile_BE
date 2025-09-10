@@ -1,0 +1,154 @@
+// Estilos compartidos para todos los widgets de métricas principales
+// Este archivo asegura consistencia visual entre todos los widgets
+
+// Estilos base para todos los widgets de métricas
+%metric-widget-base {
+  .metric-card,
+  .widget-card {
+    height: 100%;
+    min-height: 100px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+    background: white;
+    
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+  }
+
+  // Contenedor de iconos estandarizado
+  .icon-container {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  // Iconos estandarizados
+  .widget-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    line-height: 1;
+  }
+
+  // Iconos específicos para checkmark (más pequeños para evitar cortes)
+  .widget-total-liberated,
+  .widget-current-month-liberated {
+    .widget-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+  }
+
+  // Números estandarizados
+  .text-2xl,
+  .main-number {
+    font-size: 24px !important;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  // Etiquetas estandarizadas
+  .text-sm,
+  .main-label {
+    font-size: 13px !important;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  // Subtítulos estandarizados
+  .text-xs,
+  .sub-label {
+    font-size: 11px !important;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  // Padding interno estandarizado
+  .p-4,
+  .widget-content {
+    padding: 1.25rem !important;
+  }
+
+  // Espaciado entre elementos estandarizado
+  .space-x-4,
+  .data-container,
+  .no-data-container {
+    gap: 0.75rem !important;
+  }
+}
+
+// Aplicar estilos base a todos los widgets de métricas
+.widget-today-cases,
+.widget-monthly-cases,
+.widget-total-cases,
+.widget-current-month-liberated,
+.widget-total-liberated,
+.widget-agency-users {
+  @extend %metric-widget-base;
+}
+
+// Responsive adjustments para todos los widgets
+@media (max-width: 768px) {
+  .widget-today-cases,
+  .widget-monthly-cases,
+  .widget-total-cases,
+  .widget-current-month-liberated,
+  .widget-total-liberated,
+  .widget-agency-users {
+    .icon-container {
+      width: 32px !important;
+      height: 32px !important;
+    }
+
+    .widget-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+    }
+
+    // Iconos específicos para checkmark en móviles
+    .widget-total-liberated,
+    .widget-current-month-liberated {
+      .widget-icon {
+        font-size: 14px !important;
+        width: 14px !important;
+        height: 14px !important;
+      }
+    }
+
+    .text-2xl,
+    .main-number {
+      font-size: 20px !important;
+    }
+
+    .text-sm,
+    .main-label {
+      font-size: 12px !important;
+    }
+
+    .text-xs,
+    .sub-label {
+      font-size: 10px !important;
+    }
+
+    .p-4,
+    .widget-content {
+      padding: 0.75rem !important;
+    }
+
+    .space-x-4,
+    .data-container,
+    .no-data-container {
+      gap: 0.5rem !important;
+    }
+  }
+}
