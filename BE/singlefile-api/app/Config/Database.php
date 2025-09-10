@@ -3,6 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Database\Config;
+use App\Libraries\ConfigLoader;
 
 /**
  * Database Configuration
@@ -198,6 +199,48 @@ class Database extends Config
         // we don't overwrite live data on accident.
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
+        }
+        
+        // Cargar configuración desde archivo JSON externo si existe
+        $this->loadExternalConfig();
+    }
+    
+    /**
+     * Carga la configuración desde el archivo JSON externo
+     */
+    private function loadExternalConfig()
+    {
+        try {
+            // Inicializar ConfigLoader
+            ConfigLoader::init();
+            
+            // Verificar si existe el archivo de configuración externa
+            if (ConfigLoader::validateConfigFile()) {
+                // Cargar configuración de base de datos
+                $dbConfig = ConfigLoader::loadDatabaseConfig();
+                
+                // Actualizar configuración por defecto
+                $this->default = array_merge($this->default, [
+                    'hostname' => $dbConfig['hostname'] ?? $this->default['hostname'],
+                    'username' => $dbConfig['username'] ?? $this->default['username'],
+                    'password' => $dbConfig['password'] ?? $this->default['password'],
+                    'database' => $dbConfig['database'] ?? $this->default['database'],
+                    'DBDriver' => $dbConfig['driver'] ?? $this->default['DBDriver'],
+                    'DBPrefix' => $dbConfig['prefix'] ?? $this->default['DBPrefix'],
+                    'port' => $dbConfig['port'] ?? $this->default['port'],
+                    'charset' => $dbConfig['charset'] ?? $this->default['charset'],
+                    'DBCollat' => $dbConfig['collation'] ?? $this->default['DBCollat'],
+                    'DBDebug' => $dbConfig['debug'] ?? $this->default['DBDebug'],
+                    'strictOn' => $dbConfig['strict'] ?? $this->default['strictOn'],
+                    'encrypt' => $dbConfig['encrypt'] ?? $this->default['encrypt'],
+                    'compress' => $dbConfig['compress'] ?? $this->default['compress'],
+                ]);
+                
+                log_message('info', 'Configuración de base de datos cargada desde archivo externo');
+            }
+        } catch (\Exception $e) {
+            // Si hay error, usar configuración por defecto
+            log_message('warning', 'Error al cargar configuración externa: ' . $e->getMessage());
         }
     }
 }

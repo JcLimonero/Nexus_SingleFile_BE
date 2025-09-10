@@ -1,5 +1,5 @@
 
-<div class="w-full p-6 space-y-4 dashboard-analytics">
+<div class="w-full p-4 space-y-3 dashboard-analytics">
               <!-- Filtros unificados -->
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 w-full">
                 <div class="flex items-center justify-between gap-4 w-full">
@@ -187,40 +187,40 @@
       </h2>
       
       <!-- Métricas específicas de agencia y expedientes liberados -->
-      <div class="flex flex-row gap-4 w-full p-2.5 items-stretch">
-        <!-- Expedientes del Día -->
+      <div class="flex flex-row gap-3 w-full p-2 items-stretch">
+        <!-- 1. Expedientes del Día -->
         <div class="flex-1 min-w-0 h-full">
           <vex-widget-today-cases 
             [agencyId]="selectedAgencyId"></vex-widget-today-cases>
         </div>
 
-        <!-- Expedientes del Mes -->
-        <div class="flex-1 min-w-0 h-full">
-          <vex-widget-monthly-cases 
-            [agencyId]="selectedAgencyId"></vex-widget-monthly-cases>
-        </div>
-
-        <!-- Expedientes Totales -->
+        <!-- 2. Expedientes Totales -->
         <div class="flex-1 min-w-0 h-full">
           <vex-widget-total-cases 
             [agencyId]="selectedAgencyId"></vex-widget-total-cases>
         </div>
 
-        <!-- Widget de Expedientes Liberados del Mes Actual -->
-        <div class="flex-1 min-w-0 h-full">
-          <vex-widget-current-month-liberated 
-            [agencyId]="selectedAgencyId" 
-            [userId]="selectedUserId"></vex-widget-current-month-liberated>
-        </div>
-
-        <!-- Widget de Expedientes Liberados Totales -->
+        <!-- 3. Expedientes Liberados Totales -->
         <div class="flex-1 min-w-0 h-full">
           <vex-widget-total-liberated 
             [agencyId]="selectedAgencyId" 
             [userId]="selectedUserId"></vex-widget-total-liberated>
         </div>
 
-        <!-- Widget de Usuarios de la Agencia -->
+        <!-- 4. Expedientes del Mes -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-monthly-cases 
+            [agencyId]="selectedAgencyId"></vex-widget-monthly-cases>
+        </div>
+
+        <!-- 5. Expedientes Liberados del Mes Actual -->
+        <div class="flex-1 min-w-0 h-full">
+          <vex-widget-current-month-liberated 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-current-month-liberated>
+        </div>
+
+        <!-- 6. Usuarios Activos -->
         <div class="flex-1 min-w-0 h-full">
           <vex-widget-agency-users 
             [agencyId]="selectedAgencyId"></vex-widget-agency-users>
@@ -235,18 +235,21 @@
         Análisis Temporal
       </h2>
       
-      <!-- Gráfico de tendencia de expedientes -->
-      <div class="chart-container mb-6">
-        <vex-widget-trend-chart 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-trend-chart>
-      </div>
+      <!-- Gráficos de análisis temporal en la misma fila -->
+      <div class="temporal-grid">
+        <!-- Gráfico de tendencia de expedientes -->
+        <div class="chart-container">
+          <vex-widget-trend-chart 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-trend-chart>
+        </div>
 
-      <!-- Widget de Expedientes por Día - Semana Actual -->
-      <div class="chart-container">
-        <vex-widget-weekly-chart 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-weekly-chart>
+        <!-- Widget de Expedientes por Día - Semana Actual -->
+        <div class="chart-container">
+          <vex-widget-weekly-chart 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-weekly-chart>
+        </div>
       </div>
     </div>
 
@@ -258,7 +261,7 @@
       </h2>
       
       <!-- Widgets de Distribución en la misma fila -->
-      <div class="distribution-grid mb-6">
+      <div class="distribution-grid mb-4">
         <!-- Distribución de expedientes por proceso -->
         <div class="widget-container">
           <vex-widget-process-distribution 
@@ -298,33 +301,28 @@
       </div>
     </div>
 
-    <!-- ===== SECCIÓN 4: ANÁLISIS DE RENDIMIENTO ===== -->
+    <!-- ===== SECCIÓN 4: ANÁLISIS DE RENDIMIENTO Y PERÍODOS DE ATENCIÓN ===== -->
     <div class="dashboard-section">
       <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
         <mat-icon class="mr-2 text-orange-600">analytics</mat-icon>
-        Análisis de Rendimiento
+        Análisis de Rendimiento y Períodos de Atención
       </h2>
       
-      <!-- Widget de Distribución por Asesor -->
-      <div class="chart-container">
-        <vex-widget-advisor-distribution 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-advisor-distribution>
-      </div>
-    </div>
+      <!-- Widgets de rendimiento y atención en la misma fila -->
+      <div class="performance-grid">
+        <!-- Widget de Distribución por Asesor -->
+        <div class="chart-container">
+          <vex-widget-advisor-distribution 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-advisor-distribution>
+        </div>
 
-    <!-- ===== SECCIÓN 5: PERÍODOS DE ATENCIÓN ===== -->
-    <div class="dashboard-section">
-      <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
-        <mat-icon class="mr-2 text-red-600">schedule</mat-icon>
-        Períodos de Atención
-      </h2>
-      
-      <!-- Widget de Período de Atención de Expedientes -->
-      <div class="chart-container mb-6">
-        <vex-widget-attention-period 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-attention-period>
+        <!-- Widget de Período de Atención de Expedientes -->
+        <div class="chart-container">
+          <vex-widget-attention-period 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-attention-period>
+        </div>
       </div>
 
       <!-- Widget de Período de Atención - Mes Actual -->

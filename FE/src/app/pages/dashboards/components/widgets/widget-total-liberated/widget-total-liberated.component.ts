@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,7 +18,7 @@ import { Subject, takeUntil } from 'rxjs';
     MatProgressSpinnerModule
   ]
 })
-export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy {
+export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy, OnChanges {
   @Input() agencyId: number | null = null;
   @Input() userId: number | null = null;
 
@@ -32,6 +32,14 @@ export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
+        (changes['userId'] && !changes['userId'].firstChange)) {
+      console.log('🔄 WidgetTotalLiberated: filtros cambiaron, recargando datos...');
+      this.loadData();
+    }
   }
 
   ngOnDestroy(): void {

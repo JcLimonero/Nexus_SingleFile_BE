@@ -14,7 +14,7 @@ class DocumentTypeModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate',
-        'ReqExpiration', 'IdProcessType', 'Required', 'IdSubProcess'
+        'ReqExpiration', 'IdProcessType', 'Required', 'IdSubProcess', 'AvailableToClient'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -103,6 +103,7 @@ class DocumentTypeModel extends Model
             dt.IdProcessType,
             dt.Required,
             dt.IdSubProcess,
+            dt.AvailableToClient,
             u.Name as LastUserUpdateName,
             fs.Name as ProcessTypeName,
             sp.Name as SubProcessName
@@ -216,6 +217,7 @@ class DocumentTypeModel extends Model
             dt.IdProcessType,
             dt.Required,
             dt.IdSubProcess,
+            dt.AvailableToClient,
             u.Name as LastUserUpdateName,
             fs.Name as ProcessTypeName,
             sp.Name as SubProcessName

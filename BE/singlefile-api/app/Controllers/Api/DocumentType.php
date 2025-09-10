@@ -128,6 +128,7 @@ class DocumentType extends BaseController
                 'IdProcessType' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : 0,
                 'Required' => isset($data['Required']) ? (int)$data['Required'] : 1,
                 'IdSubProcess' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : 0,
+                'AvailableToClient' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : 1,
                 'RegistrationDate' => date('Y-m-d H:i:s'),
                 'UpdateDate' => null,
                 'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
@@ -251,6 +252,7 @@ class DocumentType extends BaseController
                 'IdProcessType' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : $documentType['IdProcessType'],
                 'Required' => isset($data['Required']) ? (int)$data['Required'] : $documentType['Required'],
                 'IdSubProcess' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : $documentType['IdSubProcess'],
+                'AvailableToClient' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : ($documentType['AvailableToClient'] ?? 1),
                 'UpdateDate' => date('Y-m-d H:i:s'),
                 'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
             ];

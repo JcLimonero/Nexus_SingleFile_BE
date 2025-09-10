@@ -64,7 +64,7 @@
       </mat-form-field>
 
     <!-- Configuraciones -->
-    <div class="grid grid-cols-2 gap-6">
+    <div class="grid grid-cols-3 gap-6">
       <!-- Requerido -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>¿Es Requerido?</mat-label>
@@ -83,6 +83,16 @@
           <mat-option [value]="'0'">No</mat-option>
         </mat-select>
         <mat-hint>Si debe tener fecha de expiración</mat-hint>
+      </mat-form-field>
+
+      <!-- Disponible al Cliente -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>¿Disponible al Cliente?</mat-label>
+        <mat-select formControlName="AvailableToClient">
+          <mat-option [value]="'1'">Sí</mat-option>
+          <mat-option [value]="'0'">No</mat-option>
+        </mat-select>
+        <mat-hint>Si está disponible para el cliente</mat-hint>
       </mat-form-field>
     </div>
 

@@ -42,7 +42,7 @@ import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/doc
 export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   tiposDocumento: DocumentType[] = [];
   dataSource = new MatTableDataSource<DocumentType>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'acciones'];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -59,6 +59,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     'SubProcessName': 'Sub Fase',
     'Required': 'Requerido',
     'ReqExpiration': 'Requiere expiración',
+    'AvailableToClient': 'Disponible al cliente',
     'Enabled': 'Estado',
     'acciones': 'Acciones'
   };

@@ -1,153 +1,59 @@
-.widget-card {
-  height: 100%;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
-  &.clickable {
-    cursor: pointer;
+.widget-current-month-liberated {
+  .metric-card {
+    @apply transition-all duration-200 hover:shadow-md;
     
     &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
     }
   }
-}
 
-.widget-content {
-  padding: 20px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100px;
-}
-
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100px;
-  color: #f44336;
-
-  .error-text {
-    margin-top: 8px;
-    font-size: 12px;
-    text-align: center;
-  }
-}
-
-.data-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 16px;
-}
-
-.no-data-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 16px;
-  opacity: 0.6;
-}
-
-.icon-container {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-  flex-shrink: 0;
-
-  .widget-icon {
-    font-size: 24px;
-    width: 24px;
-    height: 24px;
-    color: #4caf50;
-
-    &.no-data {
-      color: #9e9e9e;
-    }
-  }
-}
-
-.content-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.main-number {
-  font-size: 28px;
-  font-weight: 700;
-  color: #4caf50;
-  line-height: 1;
-}
-
-.main-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #424242;
-  line-height: 1.2;
-}
-
-.sub-label {
-  font-size: 12px;
-  font-weight: 400;
-  color: #757575;
-  line-height: 1.2;
-}
-
-.details-icon {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  color: #9e9e9e;
-  cursor: help;
-}
-
-// Responsive adjustments
-@media (max-width: 768px) {
-  .widget-content {
-    padding: 16px;
-  }
-
+  // Estilos específicos para el contenedor del icono
   .icon-container {
-    width: 40px;
-    height: 40px;
-
-    .widget-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
-  .main-number {
-    font-size: 24px;
+  // Estilos específicos para el icono
+  .widget-icon {
+    font-size: 18px !important; // Reducido para evitar cortes
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 1;
   }
 
-  .main-label {
-    font-size: 13px;
+  // Estandarizar números
+  .text-2xl {
+    font-size: 24px !important;
+    font-weight: 700;
+    line-height: 1;
   }
 
-  .sub-label {
-    font-size: 11px;
+  // Estandarizar etiquetas
+  .text-sm {
+    font-size: 13px !important;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  // Estandarizar subtítulos
+  .text-xs {
+    font-size: 11px !important;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  // Estandarizar padding interno
+  .p-4 {
+    padding: 1.25rem !important;
+  }
+
+  // Estandarizar espaciado entre elementos
+  .space-x-4 {
+    gap: 0.75rem !important;
   }
 }

@@ -1,41 +1,46 @@
-<mat-card class="widget-card">
-  <mat-card-content class="widget-content">
-    <!-- Loading State -->
-    <div *ngIf="loading" class="loading-container">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
+<div class="widget-current-month-liberated">
+  <div *ngIf="loading" class="flex justify-center items-center h-32">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
 
-    <!-- Error State -->
-    <div *ngIf="error && !loading" class="error-container">
-      <mat-icon color="warn">error</mat-icon>
-      <span class="error-text">{{ error }}</span>
-    </div>
+  <div *ngIf="error" class="text-center text-red-600 p-4">
+    <mat-icon class="text-red-500 mb-2">error</mat-icon>
+    <p>{{ error }}</p>
+  </div>
 
-    <!-- Data State -->
-    <div *ngIf="!loading && !error && data" class="data-container">
-      <!-- Icon Container -->
-      <div class="icon-container">
-        <mat-icon class="widget-icon">check_circle</mat-icon>
+  <div *ngIf="!loading && !error && data">
+    <!-- Expedientes Liberados del Mes Actual -->
+    <mat-card class="metric-card">
+      <div class="flex items-center space-x-4 p-4">
+        <div class="flex-shrink-0">
+          <div class="icon-container bg-green-100 rounded-lg flex items-center justify-center">
+            <mat-icon class="text-green-600 widget-icon">check_circle</mat-icon>
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-2xl font-bold text-blue-500">{{ data.total }}</div>
+          <div class="text-sm font-medium text-gray-700">Expedientes</div>
+          <div class="text-xs text-gray-500">Liberados {{ getMonthName() }}</div>
+        </div>
       </div>
+    </mat-card>
+  </div>
 
-      <!-- Content Container -->
-      <div class="content-container">
-        <div class="main-number">{{ data.total }}</div>
-        <div class="main-label">Expedientes</div>
-        <div class="sub-label">Liberados {{ getMonthName() }}</div>
+  <!-- No Data State -->
+  <div *ngIf="!loading && !error && data && data.total === 0">
+    <mat-card class="metric-card">
+      <div class="flex items-center space-x-4 p-4">
+        <div class="flex-shrink-0">
+          <div class="icon-container bg-gray-100 rounded-lg flex items-center justify-center">
+            <mat-icon class="text-gray-400 widget-icon">check_circle</mat-icon>
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-2xl font-bold text-gray-400">0</div>
+          <div class="text-sm font-medium text-gray-500">Expedientes</div>
+          <div class="text-xs text-gray-400">Liberados {{ getMonthName() }}</div>
+        </div>
       </div>
-    </div>
-
-    <!-- No Data State -->
-    <div *ngIf="!loading && !error && data && data.total === 0" class="no-data-container">
-      <div class="icon-container">
-        <mat-icon class="widget-icon no-data">check_circle</mat-icon>
-      </div>
-      <div class="content-container">
-        <div class="main-number">0</div>
-        <div class="main-label">Expedientes</div>
-        <div class="sub-label">Liberados {{ getMonthName() }}</div>
-      </div>
-    </div>
-  </mat-card-content>
-</mat-card>
+    </mat-card>
+  </div>
+</div>

@@ -9,6 +9,7 @@ export interface DocumentType {
   IdProcessType: string; // API devuelve IDs como strings
   Required: string; // API devuelve "1" o "0" como strings
   IdSubProcess: string; // API devuelve IDs como strings
+  AvailableToClient: string; // API devuelve "1" o "0" como strings
   LastUserUpdateName?: string;
   ProcessTypeName?: string; // Descripción del File_Status (JOIN con File_Status)
   SubProcessName?: string; // Nombre del subestado de archivo (JOIN con File_SubStatus)
@@ -36,6 +37,7 @@ export interface DocumentTypeCreateRequest {
   IdProcessType?: string; // ID como string
   Required?: string; // "1" o "0"
   IdSubProcess?: string; // ID como string
+  AvailableToClient?: string; // "1" o "0"
 }
 
 export interface DocumentTypeUpdateRequest {
@@ -45,6 +47,7 @@ export interface DocumentTypeUpdateRequest {
   IdProcessType?: string; // ID como string
   Required?: string; // "1" o "0"
   IdSubProcess?: string; // ID como string
+  AvailableToClient?: string; // "1" o "0"
 }
 
 export interface DocumentTypeStatsResponse {

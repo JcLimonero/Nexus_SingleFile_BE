@@ -1,19 +1,30 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { ConfigLoaderService } from './config-loader.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiBaseService {
 
-  constructor() { }
+  constructor(private configLoader: ConfigLoaderService) { }
 
   /**
    * Obtiene la URL base de la API
    */
   getApiBaseUrl(): string {
+    // Intentar obtener la URL desde la configuración externa primero
+    const externalBaseUrl = this.configLoader.getApiBaseUrl();
+    
+    // Si la configuración externa está disponible, usarla
+    if (externalBaseUrl && externalBaseUrl !== 'http://localhost:402') {
+      console.log('🔍 ApiBaseService - Usando configuración externa:', externalBaseUrl);
+      return externalBaseUrl;
+    }
+    
+    // Fallback a la configuración del environment
     const baseUrl = environment.apiBaseUrl;
-    console.log('🔍 ApiBaseService - getApiBaseUrl llamado:', baseUrl);
+    console.log('🔍 ApiBaseService - Usando configuración de environment:', baseUrl);
     console.log('🔍 ApiBaseService - Environment completo:', environment);
     
     if (!baseUrl || !baseUrl.startsWith('http')) {
@@ -35,13 +46,16 @@ export class ApiBaseService {
       endpoint = '/' + endpoint;
     }
     
+    // Obtener la URL base (desde configuración externa o environment)
+    const baseUrl = this.getApiBaseUrl();
+    
     // Construir URL absoluta completa
-    const fullUrl = environment.apiBaseUrl + '/api' + endpoint;
+    const fullUrl = baseUrl + '/api' + endpoint;
     
     // Debug: verificar que la URL sea absoluta
     console.log(`🔗 Construyendo URL: ${endpoint} -> ${fullUrl}`);
     console.log(`🔍 URL es absoluta: ${fullUrl.startsWith('http')}`);
-    console.log(`🔍 Environment: ${environment.apiBaseUrl}`);
+    console.log(`🔍 Base URL: ${baseUrl}`);
     
     // Forzar URL absoluta - verificar que no haya problemas de construcción
     if (!fullUrl.startsWith('http')) {
@@ -61,7 +75,8 @@ export class ApiBaseService {
     if (!endpoint.startsWith('/')) {
       endpoint = '/' + endpoint;
     }
-    return environment.apiBaseUrl + '/api/auth' + endpoint;
+    const baseUrl = this.getApiBaseUrl();
+    return baseUrl + '/api/auth' + endpoint;
   }
 
   /**
@@ -73,6 +88,7 @@ export class ApiBaseService {
     if (!endpoint.startsWith('/')) {
       endpoint = '/' + endpoint;
     }
-    return environment.apiBaseUrl.replace('http', 'ws') + endpoint;
+    const baseUrl = this.getApiBaseUrl();
+    return baseUrl.replace('http', 'ws') + endpoint;
   }
 }

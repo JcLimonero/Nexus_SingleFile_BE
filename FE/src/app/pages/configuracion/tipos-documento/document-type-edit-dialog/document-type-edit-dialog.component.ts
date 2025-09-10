@@ -54,7 +54,6 @@ export class DocumentTypeEditDialogComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.loadCatalogs();
-    this.populateForm();
     
     // Escuchar cambios en la fase para habilitar/deshabilitar sub fase
     this.documentTypeForm.get('IdProcessType')?.valueChanges.subscribe(selectedPhase => {
@@ -80,7 +79,8 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       ReqExpiration: ['0'],
       IdProcessType: ['Liberación'], // Valor por defecto: Liberación
       Required: ['1'],
-      IdSubProcess: ['0'] // Por defecto "Sin sub fase"
+      IdSubProcess: ['0'], // Por defecto "Sin sub fase"
+      AvailableToClient: ['1'] // Por defecto disponible al cliente
     });
     
     // Inicializar el estado de la sub fase
@@ -134,6 +134,9 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     if (this.fileStatuses.length > 0 || this.subProcesses.length > 0) {
       this.loadingCatalogs = false;
       console.log('✅ Catálogos cargados - File_Status:', this.fileStatuses.length, 'File_SubStatus:', this.subProcesses.length);
+      
+      // Poblar el formulario después de que los catálogos estén listos
+      this.populateForm();
     }
   }
 
@@ -141,14 +144,17 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     if (this.data.documentType && this.data.mode === 'edit') {
       const selectedPhase = this.data.documentType.IdProcessType || '0';
       
+      
       this.documentTypeForm.patchValue({
         Name: this.data.documentType.Name,
         Enabled: this.data.documentType.Enabled,
         ReqExpiration: this.data.documentType.ReqExpiration || '0',
         IdProcessType: selectedPhase,
         Required: this.data.documentType.Required || '1',
-        IdSubProcess: selectedPhase === 'Liberación' ? (this.data.documentType.IdSubProcess || '0') : '0'
+        IdSubProcess: selectedPhase === 'Liberación' ? (this.data.documentType.IdSubProcess || '0') : '0',
+        AvailableToClient: this.data.documentType.AvailableToClient !== undefined ? this.data.documentType.AvailableToClient : '1'
       });
+      
       
       // Actualizar el estado de la sub fase
       this.isSubPhaseEnabled = selectedPhase === 'Liberación';
@@ -159,6 +165,7 @@ export class DocumentTypeEditDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.documentTypeForm.valid) {
       this.loading = true;
+
 
       if (this.data.mode === 'create') {
         this.createDocumentType();
@@ -175,8 +182,10 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       ReqExpiration: this.documentTypeForm.value.ReqExpiration,
       IdProcessType: this.documentTypeForm.value.IdProcessType,
       Required: this.documentTypeForm.value.Required,
-      IdSubProcess: this.documentTypeForm.value.IdSubProcess
+      IdSubProcess: this.documentTypeForm.value.IdSubProcess,
+      AvailableToClient: this.documentTypeForm.value.AvailableToClient
     };
+
 
     this.documentTypeService.createDocumentType(documentTypeData).subscribe({
       next: (response) => {
@@ -208,8 +217,10 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       ReqExpiration: this.documentTypeForm.value.ReqExpiration,
       IdProcessType: this.documentTypeForm.value.IdProcessType,
       Required: this.documentTypeForm.value.Required,
-      IdSubProcess: this.documentTypeForm.value.IdSubProcess
+      IdSubProcess: this.documentTypeForm.value.IdSubProcess,
+      AvailableToClient: this.documentTypeForm.value.AvailableToClient
     };
+
 
     this.documentTypeService.updateDocumentType(this.data.documentType!.Id!, documentTypeData).subscribe({
       next: (response) => {
