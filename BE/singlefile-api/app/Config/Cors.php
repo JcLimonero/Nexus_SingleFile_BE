@@ -34,7 +34,7 @@ class Cors extends BaseConfig
          *   - ['http://localhost:8080']
          *   - ['https://www.example.com']
          */
-        'allowedOrigins' => ['http://localhost:3600', 'http://localhost:4200', 'http://localhost:3000', 'http://localhost:8081', 'http://localhost:8082'],
+        'allowedOrigins' => ['*'],
 
         /**
          * Origin regex patterns for the `Access-Control-Allow-Origin` header.
@@ -47,7 +47,7 @@ class Cors extends BaseConfig
          * E.g.:
          *   - ['https://\w+\.example\.com']
          */
-        'allowedOriginsPatterns' => ['http://localhost:\d+'],
+        'allowedOriginsPatterns' => [],
 
         /**
          * Weather to send the `Access-Control-Allow-Credentials` header.
@@ -57,7 +57,7 @@ class Cors extends BaseConfig
          *
          * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
          */
-        'supportsCredentials' => true,
+        'supportsCredentials' => false,
 
         /**
          * Set headers to allow.
@@ -68,7 +68,7 @@ class Cors extends BaseConfig
          *
          * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
          */
-        'allowedHeaders' => ['Content-Type', 'Authorization', 'X-Requested-With'],
+        'allowedHeaders' => ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
 
         /**
          * Set headers to expose.

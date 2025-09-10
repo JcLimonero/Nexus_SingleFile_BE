@@ -8,7 +8,12 @@ use CodeIgniter\Router\RouteCollection;
 
 // Manejar solicitudes OPTIONS para CORS
 $routes->options('(:any)', function() {
-    return '';
+    $response = service('response');
+    $response->setHeader('Access-Control-Allow-Origin', '*');
+    $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+    $response->setHeader('Access-Control-Max-Age', '7200');
+    return $response->setStatusCode(200);
 });
 
 // Rutas de la API
@@ -16,7 +21,12 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     
     // Manejar OPTIONS para todas las rutas de API
     $routes->options('(:any)', function() {
-        return '';
+        $response = service('response');
+        $response->setHeader('Access-Control-Allow-Origin', '*');
+        $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+        $response->setHeader('Access-Control-Max-Age', '7200');
+        return $response->setStatusCode(200);
     });
     
         // Rutas de autenticación

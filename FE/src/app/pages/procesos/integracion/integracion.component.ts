@@ -49,6 +49,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   // Agency filter properties
   agencies: any[] = [];
   selectedAgencyId: number | null = null;
+  selectedAgency: any = null;
   agenciesLoading = true;
   
   // Client search properties
@@ -94,15 +95,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
-  // Headers para Backblaze (incluyendo CORS)
+  // Headers para Backblaze
   private getBackblazeHeaders() {
     return {
-      'X-Provider-Token': environment.backblaze.providerToken,
-      'Content-Type': 'multipart/form-data',
-      'Accept': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Provider-Token'
+      'X-Provider-Token': environment.backblaze.providerToken
     };
   }
 
@@ -242,12 +238,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   onAgencyChange(agencyId: number | null): void {
     this.selectedAgencyId = agencyId;
+    // Encontrar y guardar el objeto agencia completo
+    this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
     // Aquí puedes agregar lógica adicional cuando cambie la agencia seleccionada
-    console.log('Selected agency:', agencyId);
+    console.log('Selected agency:', agencyId, 'Agency object:', this.selectedAgency);
   }
 
   clearAgencyFilter(): void {
     this.selectedAgencyId = null;
+    this.selectedAgency = null;
   }
 
   hasAgencies(): boolean {
@@ -316,12 +315,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               // Si hay solo un resultado, seleccionarlo automáticamente
               this.selectClient(this.clients[0]);
             } else {
-              // Sin resultados
-              this.showClientResults = true;
+              // Sin resultados en el sistema local, buscar en Vanguardia
+              this.searchClientInVanguardia();
             }
           } else {
-            this.clients = [];
-            this.showClientResults = true;
+            // Sin resultados en el sistema local, buscar en Vanguardia
+            this.searchClientInVanguardia();
           }
           
           this.clientsLoading = false;
@@ -332,6 +331,90 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.clientsLoading = false;
           this.snackBar.open('Error al buscar clientes', 'Cerrar', {
             duration: 3000
+          });
+        }
+      });
+  }
+
+  private searchClientInVanguardia(): void {
+    console.log('🔍 Buscando cliente en Vanguardia...');
+    
+    // Verificar que tenemos la agencia seleccionada con IdAgency
+    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+      this.snackBar.open('Error: No se encontró la información de IdAgency de la agencia seleccionada', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    let params = new HttpParams();
+    params = params.set('idAgency', this.selectedAgency.IdAgency);
+    params = params.set('ndDMS', this.clientSearchTerm.trim());
+
+    this.http.get<any>(environment.vanguardia.apiUrl, { 
+      params,
+      headers: this.getBackblazeHeaders()
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('🔍 Cliente encontrado en Vanguardia:', response);
+          
+          if (response && response.success && response.data) {
+            // Convertir respuesta de Vanguardia al formato esperado
+            const vanguardiaClient = {
+              ndCliente: response.data.ndCliente || response.data.id,
+              cliente: response.data.cliente || response.data.nombre || response.data.name,
+              rfc: response.data.rfc || '',
+              email: response.data.email || '',
+              telefono: response.data.telefono || response.data.phone || '',
+              direccion: response.data.direccion || response.data.address || '',
+              // Marcar como cliente de Vanguardia para referencia
+              isVanguardiaClient: true,
+              vanguardiaData: response.data
+            };
+            
+            this.clients = [vanguardiaClient];
+            this.selectClient(vanguardiaClient);
+            
+            this.snackBar.open(`Cliente encontrado en Vanguardia: ${vanguardiaClient.cliente}`, 'Cerrar', {
+              duration: 3000
+            });
+          } else {
+            this.clients = [];
+            this.showClientResults = true;
+            this.snackBar.open('Cliente no encontrado en el sistema ni en Vanguardia', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error buscando cliente en Vanguardia:', error);
+          this.clients = [];
+          this.showClientResults = true;
+          
+          let errorMessage = 'Error desconocido al buscar en Vanguardia';
+          
+          if (error.status === 0) {
+            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia.';
+          } else if (error.status === 400) {
+            errorMessage = 'Error 400: Solicitud inválida a Vanguardia.';
+          } else if (error.status === 401) {
+            errorMessage = 'Error 401: Token de autenticación inválido para Vanguardia.';
+          } else if (error.status === 403) {
+            errorMessage = 'Error 403: Acceso denegado a Vanguardia.';
+          } else if (error.status === 404) {
+            errorMessage = 'Error 404: Endpoint de Vanguardia no encontrado.';
+          } else if (error.status === 500) {
+            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          this.snackBar.open(`Error buscando en Vanguardia: ${errorMessage}`, 'Cerrar', {
+            duration: 5000
           });
         }
       });
@@ -445,10 +528,135 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   agregarPedidoIntegracion(): void {
     console.log('Agregando nuevo pedido de integración para cliente:', this.selectedClient.ndCliente);
-    // Aquí implementarías la lógica para agregar un nuevo pedido
-    this.snackBar.open(`Agregando nuevo pedido para cliente ${this.selectedClient.ndCliente}`, 'Cerrar', {
-      duration: 3000
-    });
+    
+    // Verificar que tenemos cliente y agencia seleccionados
+    if (!this.selectedClient || !this.selectedClient.ndCliente) {
+      this.snackBar.open('Debe seleccionar un cliente primero', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+      this.snackBar.open('Debe seleccionar una agencia primero', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    // Llamar al API de Vanguardia para obtener pedidos
+    this.loadOrdersFromVanguardia();
+  }
+
+  private loadOrdersFromVanguardia(): void {
+    console.log('🔍 Cargando pedidos desde Vanguardia...');
+    
+    let params = new HttpParams();
+    params = params.set('customerDMS', this.selectedClient.ndCliente);
+    params = params.set('idAgency', this.selectedAgency.IdAgency);
+
+    this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
+      params,
+      headers: this.getBackblazeHeaders()
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('🔍 Pedidos encontrados en Vanguardia:', response);
+          
+          if (response && response.success && response.data) {
+            // Procesar los pedidos de Vanguardia
+            this.processVanguardiaOrders(response.data);
+            
+            this.snackBar.open(`Pedidos cargados desde Vanguardia exitosamente`, 'Cerrar', {
+              duration: 3000
+            });
+          } else {
+            this.snackBar.open('No se encontraron pedidos en Vanguardia para este cliente', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando pedidos desde Vanguardia:', error);
+          
+          let errorMessage = 'Error desconocido al cargar pedidos desde Vanguardia';
+          
+          if (error.status === 0) {
+            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia.';
+          } else if (error.status === 400) {
+            errorMessage = 'Error 400: Solicitud inválida a Vanguardia.';
+          } else if (error.status === 401) {
+            errorMessage = 'Error 401: Token de autenticación inválido para Vanguardia.';
+          } else if (error.status === 403) {
+            errorMessage = 'Error 403: Acceso denegado a Vanguardia.';
+          } else if (error.status === 404) {
+            errorMessage = 'Error 404: Endpoint de Vanguardia no encontrado.';
+          } else if (error.status === 500) {
+            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
+          this.snackBar.open(`Error cargando pedidos: ${errorMessage}`, 'Cerrar', {
+            duration: 5000
+          });
+        }
+      });
+  }
+
+  private processVanguardiaOrders(ordersData: any): void {
+    // Convertir los pedidos de Vanguardia al formato esperado por el sistema
+    if (Array.isArray(ordersData)) {
+      const processedOrders = ordersData.map(order => ({
+        numeroPedido: order.numeroPedido || order.orderNumber || order.id,
+        numeroInventario: order.numeroInventario || order.inventoryNumber || '',
+        proceso: order.proceso || order.process || 'Integración',
+        operacion: order.operacion || order.operation || '',
+        tipoCliente: order.tipoCliente || order.clientType || '',
+        vehiculo: order.vehiculo || order.vehicle || '',
+        year: order.year || order.year || '',
+        modelo: order.modelo || order.model || '',
+        vin: order.vin || order.vin || '',
+        agencia: order.agencia || order.agency || this.selectedAgency.Name,
+        fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
+        fileId: order.fileId || order.id,
+        // Marcar como pedido de Vanguardia
+        isVanguardiaOrder: true,
+        vanguardiaData: order
+      }));
+      
+      // Agregar los nuevos pedidos a la lista existente
+      this.files = [...this.files, ...processedOrders];
+      
+      console.log('📁 Pedidos procesados y agregados:', processedOrders);
+    } else if (ordersData && typeof ordersData === 'object') {
+      // Si es un solo pedido
+      const processedOrder = {
+        numeroPedido: ordersData.numeroPedido || ordersData.orderNumber || ordersData.id,
+        numeroInventario: ordersData.numeroInventario || ordersData.inventoryNumber || '',
+        proceso: ordersData.proceso || ordersData.process || 'Integración',
+        operacion: ordersData.operacion || ordersData.operation || '',
+        tipoCliente: ordersData.tipoCliente || ordersData.clientType || '',
+        vehiculo: ordersData.vehiculo || ordersData.vehicle || '',
+        year: ordersData.year || ordersData.year || '',
+        modelo: ordersData.modelo || ordersData.model || '',
+        vin: ordersData.vin || ordersData.vin || '',
+        agencia: ordersData.agencia || ordersData.agency || this.selectedAgency.Name,
+        fechaRegistro: ordersData.fechaRegistro || ordersData.registrationDate || new Date(),
+        fileId: ordersData.fileId || ordersData.id,
+        // Marcar como pedido de Vanguardia
+        isVanguardiaOrder: true,
+        vanguardiaData: ordersData
+      };
+      
+      // Agregar el pedido a la lista
+      this.files = [...this.files, processedOrder];
+      
+      console.log('📁 Pedido procesado y agregado:', processedOrder);
+    }
   }
 
   // Métodos para manejo de documentos
@@ -505,16 +713,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Preparar datos para Backblaze
+    // Preparar datos para Backblaze según documentación API
     const formData = new FormData();
-    formData.append('file', this.selectedFiles[document.documentId]);
-    formData.append('fileName', this.selectedFiles[document.documentId].name);
-    formData.append('fileId', this.selectedFile.fileId);
-    formData.append('documentTypeId', document.documentId);
-    formData.append('documentName', document.documentName);
+    formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
+    formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
+    formData.append('idDocumentFile', document.documentId.toString()); // Integer: ID del documento (IdDocumentByFile)
 
     // Usar API de Backblaze con header de autenticación
-    this.http.post<any>(`${environment.backblaze.apiUrl}/backblaze/upload`, formData, { headers: this.getBackblazeHeaders() })
+    this.http.post<any>(`${environment.backblaze.apiUrl}/upload`, formData, { headers: this.getBackblazeHeaders() })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -604,7 +810,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private getBackblazePrivateUrl(fileId: string, document: any): void {
-    this.http.get<any>(`${environment.backblaze.apiUrl}/backblaze/private-url/${fileId}`, { headers: this.getBackblazeHeaders() })
+    this.http.get<any>(`${environment.backblaze.apiUrl}/private-url/${fileId}`, { headers: this.getBackblazeHeaders() })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
