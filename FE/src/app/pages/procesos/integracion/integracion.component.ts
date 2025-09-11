@@ -627,89 +627,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.showOrderSelectionDialog(testOrders);
   }
 
-  private loadAllOrdersFromVanguardia(firstPageData: any): void {
-    console.log('🔄 Cargando todas las páginas de pedidos...');
-    const totalPages = firstPageData.total_pages;
-    const allOrders = [...firstPageData.data]; // Empezar con los datos de la primera página
-    
-    console.log('📊 Total de páginas a cargar:', totalPages);
-    console.log('📊 Empezando con', allOrders.length, 'pedidos de la primera página');
-    
-    // Crear un array de promesas para cargar todas las páginas restantes
-    const pagePromises = [];
-    
-    for (let page = 2; page <= totalPages; page++) {
-      const pagePromise = this.loadSinglePageFromVanguardia(page);
-      pagePromises.push(pagePromise);
-    }
-    
-    // Esperar a que todas las páginas se carguen
-    Promise.all(pagePromises)
-      .then(pageResults => {
-        console.log('✅ Todas las páginas cargadas:', pageResults.length);
-        console.log('📊 Resultados de páginas:', pageResults);
-        
-        // Combinar todos los resultados
-        pageResults.forEach((pageData, index) => {
-          console.log(`🔍 Procesando página ${index + 2}:`, pageData);
-          if (pageData && pageData.data && Array.isArray(pageData.data)) {
-            console.log(`📊 Página ${index + 2}: ${pageData.data.length} pedidos`);
-            console.log(`📊 Datos de página ${index + 2}:`, pageData.data);
-            allOrders.push(...pageData.data);
-            console.log(`📊 Total acumulado después de página ${index + 2}: ${allOrders.length}`);
-          } else {
-            console.log(`❌ Página ${index + 2} no tiene datos válidos:`, pageData);
-          }
-        });
-        
-        console.log('🎉 Total de pedidos obtenidos:', allOrders.length);
-        console.log('📊 Primeros pedidos:', allOrders.slice(0, 3));
-        console.log('📊 Últimos pedidos:', allOrders.slice(-3));
-        
-        // Mostrar el diálogo con todos los pedidos
-        this.showOrderSelectionDialogDirectly(allOrders);
-        
-        this.snackBar.open(`${allOrders.length} pedidos cargados desde Vanguardia`, 'Cerrar', {
-          duration: 3000
-        });
-      })
-      .catch(error => {
-        console.error('❌ Error cargando todas las páginas:', error);
-        // Si hay error, mostrar al menos los datos de la primera página
-        this.showOrderSelectionDialogDirectly(allOrders);
-        this.snackBar.open('Error cargando algunas páginas, mostrando datos parciales', 'Cerrar', {
-          duration: 3000
-        });
-      });
-  }
-
-  private loadSinglePageFromVanguardia(page: number): Promise<any> {
-    console.log(`📄 Cargando página ${page}...`);
-    
-    let params = new HttpParams();
-    params = params.set('customerDMS', this.selectedClient.ndCliente);
-    params = params.set('idAgency', this.selectedAgency.IdAgency);
-    params = params.set('page', page.toString());
-
-    console.log(`📄 Parámetros para página ${page}:`, {
-      customerDMS: this.selectedClient.ndCliente,
-      idAgency: this.selectedAgency.IdAgency,
-      page: page.toString()
-    });
-
-    return this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
-      params,
-      headers: this.getBackblazeHeaders()
-    }).toPromise()
-    .then(response => {
-      console.log(`✅ Página ${page} cargada exitosamente:`, response);
-      return response;
-    })
-    .catch(error => {
-      console.error(`❌ Error cargando página ${page}:`, error);
-      throw error;
-    });
-  }
 
   private loadOrdersFromVanguardia(): void {
     console.log('🔍 Cargando pedidos desde Vanguardia...');
@@ -717,6 +634,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     let params = new HttpParams();
     params = params.set('customerDMS', this.selectedClient.ndCliente);
     params = params.set('idAgency', this.selectedAgency.IdAgency);
+    params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
     this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
       params,
@@ -736,9 +654,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           } else if (response && response.status === 200 && response.data) {
             // Estructura de Vanguardia: { status: 200, message: "...", data: [...] }
             console.log('📊 Detectada estructura de Vanguardia, data:', response.data);
-            console.log('📊 Tipo de data:', typeof response.data);
-            console.log('📊 Es array data?', Array.isArray(response.data));
-            console.log('📊 Propiedades de data:', Object.keys(response.data || {}));
             
             // Verificar si data contiene un array de pedidos
             if (Array.isArray(response.data)) {
@@ -750,28 +665,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             } else if (response.data && Array.isArray(response.data.data)) {
               console.log('✅ Data contiene data, cantidad:', response.data.data.length);
               console.log('📊 Total de registros disponibles:', response.data.total_rows);
-              console.log('📊 Páginas totales:', response.data.total_pages);
-              console.log('📊 Página actual:', response.data.page);
-              
-              // Si hay más páginas, necesitamos obtener todos los datos
-              if (response.data.total_pages > 1) {
-                console.log('🔄 Hay múltiples páginas, obteniendo todos los datos...');
-                this.loadAllOrdersFromVanguardia(response.data);
-                return; // Salir aquí, el método loadAllOrdersFromVanguardia manejará el resto
-              } else {
-                ordersData = response.data.data;
-              }
+              ordersData = response.data.data;
             } else if (response.data && Array.isArray(response.data.results)) {
               console.log('✅ Data contiene results, cantidad:', response.data.results.length);
               ordersData = response.data.results;
             } else {
               console.log('⚠️ Data es objeto único, convirtiendo a array');
-              // Si data es un objeto, intentar convertirlo a array
               ordersData = [response.data];
             }
-            
-            console.log('📊 OrdersData final:', ordersData);
-            console.log('📊 Cantidad final de ordersData:', ordersData?.length || 0);
           } else if (response && Array.isArray(response)) {
             // Estructura directa: [...]
             ordersData = response;
@@ -788,9 +689,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           
           if (ordersData && Array.isArray(ordersData) && ordersData.length > 0) {
             console.log('📁 Datos de pedidos encontrados:', ordersData);
-            console.log('📊 Estructura del primer pedido:', ordersData[0]);
+            console.log('📊 Cantidad total de pedidos:', ordersData.length);
             
-            // Mostrar directamente el diálogo con los datos del API sin procesamiento adicional
+            // Mostrar directamente el diálogo con todos los datos
             this.showOrderSelectionDialogDirectly(ordersData);
             
             this.snackBar.open(`${ordersData.length} pedidos encontrados en Vanguardia`, 'Cerrar', {
@@ -991,9 +892,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     try {
       console.log('🚀 Abriendo diálogo con datos directos del API...');
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
-        width: '95vw',
-        height: '80vh',
-        maxWidth: '1400px',
+        width: 'auto',
+        height: 'auto',
+        maxWidth: '90vw',
+        maxHeight: '80vh',
         data: { orders: apiOrders }
       });
 
@@ -1039,9 +941,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     try {
       console.log('🚀 Abriendo diálogo de selección...');
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
-        width: '95vw',
-        height: '80vh',
-        maxWidth: '1400px',
+        width: 'auto',
+        height: 'auto',
+        maxWidth: '90vw',
+        maxHeight: '80vh',
         data: { orders: orders }
       });
 

@@ -183,9 +183,9 @@ import { FormsModule } from '@angular/forms';
     
     // Contenedor principal del diálogo
     .dialog-container {
-      width: calc(100% - 20px);
-      height: calc(100% - 20px);
-      margin: 10px;
+      width: 100%;
+      min-width: 800px;
+      max-width: 1200px;
       padding: 0;
       display: flex;
       flex-direction: column;
@@ -297,7 +297,8 @@ import { FormsModule } from '@angular/forms';
     
     // Estilos para el diálogo
     .dialog-content {
-      max-height: 70vh;
+      max-height: 60vh;
+      min-height: 400px;
       overflow-y: auto;
     }
     
@@ -364,7 +365,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   searchTerm: string = '';
   filteredOrders: any[] = [];
   paginatedOrders: any[] = [];
-  pageSize: number = 10;
+  pageSize: number = 5;
   currentPage: number = 0;
 
   constructor(
