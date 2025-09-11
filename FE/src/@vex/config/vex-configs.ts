@@ -13,7 +13,7 @@ const baseConfig: VexConfig = {
   name: 'Apollo',
   bodyClass: 'vex-layout-apollo',
   style: {
-    themeClassName: VexTheme.DEFAULT,
+    themeClassName: 'vex-theme-gray',
     colorScheme: VexColorScheme.LIGHT,
     borderRadius: {
       value: 0.5,
