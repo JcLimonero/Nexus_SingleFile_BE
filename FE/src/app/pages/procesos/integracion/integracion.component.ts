@@ -1356,4 +1356,72 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private updateFilesDisplay(): void {
     this.filterAndPaginateFiles();
   }
+
+  eliminarPedido(file: any): void {
+    console.log('🗑️ Eliminando pedido:', file);
+    console.log('🔍 File ID encontrado:', file.fileId);
+    
+    if (!file.fileId) {
+      console.error('❌ No se encontró fileId en el objeto file');
+      this.snackBar.open('Error: No se pudo identificar el ID del pedido', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    // Confirmar eliminación
+    const confirmMessage = `¿Estás seguro de que deseas eliminar el pedido ${file.numeroPedido}?\n\nEsta acción eliminará:\n- El file completo\n- Todos los documentos asociados\n- El registro en OrderByCar\n\nEsta acción no se puede deshacer.`;
+    
+    if (confirm(confirmMessage)) {
+      this.deleteFileFromServer(file.fileId);
+    }
+  }
+
+  private deleteFileFromServer(fileId: string): void {
+    console.log('🔄 Eliminando file del servidor:', fileId);
+    
+    const requestData = { fileId: fileId };
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/files/delete`, requestData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ File eliminado exitosamente:', response);
+          
+          if (response.success) {
+            this.snackBar.open(
+              `Pedido eliminado exitosamente. Documentos eliminados: ${response.data.documentsDeleted}`, 
+              'Cerrar', 
+              { duration: 4000 }
+            );
+            
+            // Recargar la lista de files
+            this.loadClientFiles();
+          } else {
+            this.snackBar.open(
+              `Error al eliminar el pedido: ${response.message}`, 
+              'Cerrar', 
+              { duration: 4000 }
+            );
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error eliminando file:', error);
+          
+          let errorMessage = 'Error desconocido al eliminar el pedido';
+          
+          if (error.status === 403) {
+            errorMessage = 'No tienes permisos para eliminar pedidos';
+          } else if (error.status === 401) {
+            errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          }
+          
+          this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
+            duration: 5000
+          });
+        }
+      });
+  }
 }

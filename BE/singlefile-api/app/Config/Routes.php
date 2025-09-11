@@ -298,6 +298,7 @@ $routes->group('files', function($routes) {
     $routes->post('create-from-vanguardia-new', 'Files::createFromVanguardiaNew');
     $routes->post('create-file-test', 'Files::createFileTest');
     $routes->post('check-existing-orders', 'Files::checkExistingOrders');
+    $routes->post('delete', 'Files::deleteFile');
 });
 
 

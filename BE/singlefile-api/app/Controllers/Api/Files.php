@@ -840,4 +840,115 @@ class Files extends BaseController
             return null;
         }
     }
+
+    /**
+     * Eliminar file completo con todas sus relaciones
+     */
+    public function deleteFile()
+    {
+        try {
+            // Verificar permisos de usuario
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ])->setStatusCode(401);
+            }
+
+            // Verificar que el usuario tenga permisos (administrador, gerente o coordinador)
+            $userRole = $currentUser['role_id'] ?? null;
+            $allowedRoles = [5, 6, 7]; // Coordinador de Operacion, Gerente, Administrador
+            
+            if (!in_array($userRole, $allowedRoles)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No tienes permisos para eliminar files'
+                ])->setStatusCode(403);
+            }
+
+            // Intentar obtener fileId desde POST o JSON
+            $fileId = $this->request->getPost('fileId');
+            if (!$fileId) {
+                $jsonData = $this->request->getJSON(true);
+                $fileId = $jsonData['fileId'] ?? null;
+            }
+            
+            if (!$fileId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El ID del file es requerido'
+                ])->setStatusCode(400);
+            }
+
+            error_log("=== INICIANDO ELIMINACIÓN DE FILE ===");
+            error_log("File ID a eliminar: $fileId");
+            error_log("Usuario que elimina: " . $currentUser['user_id']);
+
+            // Iniciar transacción
+            $this->db->transStart();
+
+            // 1. Eliminar documentos relacionados (DocumentByFile)
+            $documentsDeleted = $this->db->table('DocumentByFile')
+                ->where('IdFile', $fileId)
+                ->delete();
+            
+            error_log("Documentos eliminados: $documentsDeleted");
+
+            // 2. Eliminar registros relacionados (OrderByCar)
+            // Primero obtener el order_dms del file para encontrar el registro en OrderByCar
+            $fileQuery = $this->db->query("SELECT IdOrderTotal FROM File WHERE Id = ?", [$fileId]);
+            $file = $fileQuery->getRow();
+            
+            $orderByCarDeleted = 0;
+            if ($file && $file->IdOrderTotal) {
+                $orderByCarDeleted = $this->db->table('OrderByCar')
+                    ->where('Number', $file->IdOrderTotal)
+                    ->delete();
+                error_log("Registros OrderByCar eliminados: $orderByCarDeleted");
+            }
+
+            // 3. Eliminar el file principal
+            $fileDeleted = $this->db->table('File')
+                ->where('Id', $fileId)
+                ->delete();
+
+            error_log("File eliminado: $fileDeleted");
+
+            if ($fileDeleted) {
+                $this->db->transComplete();
+                
+                error_log("=== ELIMINACIÓN COMPLETADA EXITOSAMENTE ===");
+                
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'File eliminado exitosamente',
+                    'data' => [
+                        'fileId' => $fileId,
+                        'documentsDeleted' => $documentsDeleted,
+                        'orderByCarDeleted' => $orderByCarDeleted
+                    ]
+                ]);
+            } else {
+                $this->db->transRollback();
+                
+                error_log("ERROR: No se pudo eliminar el file");
+                
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo eliminar el file'
+                ])->setStatusCode(500);
+            }
+
+        } catch (Exception $e) {
+            $this->db->transRollback();
+            
+            error_log("ERROR en deleteFile: " . $e->getMessage());
+            
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al eliminar el file: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
 }
