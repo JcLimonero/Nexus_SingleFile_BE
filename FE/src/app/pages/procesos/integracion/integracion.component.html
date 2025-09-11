@@ -415,7 +415,7 @@
                   [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
                   class="text-xs">
                   <mat-icon class="mr-1" style="font-size: 14px;">attach_file</mat-icon>
-                  {{ selectedFiles[document.documentId] ? selectedFiles[document.documentId].name : 'Seleccionar archivo' }}
+                  {{ selectedFiles[document.documentId] ? selectedFiles[document.documentId].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
                 </button>
               </div>
 
@@ -427,7 +427,7 @@
                 [disabled]="!selectedFiles[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
                 class="text-xs">
                 <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
-                CARGAR
+                {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
               </button>
 
               <!-- Botón Ver -->
@@ -435,7 +435,7 @@
                 mat-raised-button 
                 color="accent"
                 (click)="viewDocument(document)"
-                [disabled]="!document.filePath"
+                [disabled]="!document.filePath && !document.backblazeUrl && !document.backblazeFileId && !document.documentContainer"
                 class="text-xs">
                 <mat-icon class="mr-1" style="font-size: 14px;">visibility</mat-icon>
                 VER

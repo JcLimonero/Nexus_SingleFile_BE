@@ -1139,6 +1139,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Mostrar mensaje diferente si se está reemplazando
+    const isReplacing = document.idCurrentStatus === '2';
+    const actionText = isReplacing ? 'reemplazando' : 'cargando';
+
     // Preparar datos para Backblaze según documentación API
     const formData = new FormData();
     formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
@@ -1155,7 +1159,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           // Guardar información del archivo en Backblaze en la base de datos local
           this.saveDocumentInfo(document, response);
           
-          this.snackBar.open(`Documento ${document.documentName} subido exitosamente a Backblaze`, 'Cerrar', {
+          this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
             duration: 3000
           });
           
@@ -1219,12 +1223,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   viewDocument(document: any): void {
-    if (document.backblazeUrl) {
+    if (document.documentContainer) {
+      // Usar documentContainer para obtener URL privada de Backblaze
+      this.getBackblazePrivateUrl(document.documentContainer, document);
+    } else if (document.backblazeUrl) {
       // Si tiene URL de Backblaze, usarla directamente
       window.open(document.backblazeUrl, '_blank');
-    } else if (document.backblazeFileId) {
-      // Si tiene fileId de Backblaze, obtener URL privada
-      this.getBackblazePrivateUrl(document.backblazeFileId, document);
     } else if (document.filePath) {
       // Fallback al método anterior
       window.open(`${environment.apiBaseUrl}/${document.filePath}`, '_blank');
@@ -1235,11 +1239,17 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getBackblazePrivateUrl(fileId: string, document: any): void {
-    this.http.get<any>(`${environment.backblaze.apiUrl}/private-url/${fileId}`, { headers: this.getBackblazeHeaders() })
+  private getBackblazePrivateUrl(fileName: string, document: any): void {
+    const requestData = {
+      file: fileName,
+      duration: 300 // 5 minutos por defecto
+    };
+
+    this.http.post<any>(`${environment.backblaze.apiUrl}/get-private-url`, requestData, { headers: this.getBackblazeHeaders() })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('🔗 URL privada obtenida:', response);
           if (response.url) {
             window.open(response.url, '_blank');
           } else {

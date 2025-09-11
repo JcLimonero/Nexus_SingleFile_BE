@@ -37,6 +37,8 @@ class Documents extends BaseController
                     df.Id as fileDocumentId,
                     df.Name as fileName,
                     df.PathDocument as filePath,
+                    df.ServerPath as backblazeUrl,
+                    df.IdDocumentContainer as backblazeFileId,
                     df.RegistrationDate as uploadDate,
                     dt.ReqExpiration as hasExpiration,
                     df.ExperationDate as expirationDate,
