@@ -65,7 +65,7 @@ export const vexConfigs: VexConfigs = {
     bodyClass: 'vex-layout-poseidon',
     imgSrc: '//vex-landing.visurel.com/assets/img/layouts/poseidon.png',
           sidenav: {
-        title: 'Nexus Q',
+        title: 'Grupo Vanguardia',
         imageUrl: 'assets/img/icons/logos/nexusQtech.svg',
       user: {
         visible: true

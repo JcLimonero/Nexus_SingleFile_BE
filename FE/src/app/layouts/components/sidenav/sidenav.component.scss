@@ -94,7 +94,7 @@
 }
 
 .vex-sidenav-toolbar__headline {
-  @apply text-2xl font-bold tracking-wide select-none transition-all duration-400 ease-out-swift;
+  @apply text-sm font-bold tracking-wide select-none transition-all duration-400 ease-out-swift;
   padding-inline-start: var(--vex-sidenav-item-icon-gap);
 }
 

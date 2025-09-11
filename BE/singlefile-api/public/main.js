@@ -971,7 +971,7 @@ const vexConfigs = {
     bodyClass: 'vex-layout-poseidon',
     imgSrc: '//vex-landing.visurel.com/assets/img/layouts/poseidon.png',
     sidenav: {
-      title: 'Nexus Q',
+      title: 'Grupo Vanguardia',
       imageUrl: 'assets/img/icons/logos/nexusQtech.svg',
       user: {
         visible: true
@@ -3648,13 +3648,13 @@ class FooterComponent {
     features: [_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵStandaloneFeature"]],
     decls: 6,
     vars: 0,
-    consts: [[1, "flex-auto", "flex", "items-center", "container"], [1, "font-medium", "ltr:ml-4", "rtl:mr-4", "hidden", "sm:block", "flex", "items-center"], ["href", "https://nexusqtech.com", "target", "_blank", 1, "flex", "items-center", "hover:opacity-80", "transition-opacity"], ["src", "assets/img/icons/logos/nexusQtech.svg", "alt", "Nexus Q Tech", 1, "h-6", "w-auto", "mr-2"]],
+    consts: [[1, "flex-auto", "flex", "items-center", "container"], [1, "font-medium", "ltr:ml-4", "rtl:mr-4", "hidden", "sm:block", "flex", "items-center"], ["href", "https://nexusqtech.com", "target", "_blank", 1, "flex", "items-center", "hover:opacity-80", "transition-opacity"], ["src", "assets/img/icons/logos/nexusQtech.svg", "alt", "Grupo Vanguardia", 1, "h-6", "w-auto", "mr-2"]],
     template: function FooterComponent_Template(rf, ctx) {
       if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "div", 0)(1, "div", 1)(2, "a", 2);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelement"](3, "img", 3);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](4, "span");
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](5, "Powered by Nexus Q Tech - Innovaci\u00F3n tecnol\u00F3gica para tu negocio.");
+        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](5, "Powered by Grupo Vanguardia - Innovaci\u00F3n tecnol\u00F3gica para tu negocio.");
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]()()()();
       }
     },
