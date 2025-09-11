@@ -290,6 +290,11 @@ $routes->group('client', function($routes) {
     $routes->get('search', 'Client::search');
 });
 
+// Rutas de Backblaze
+$routes->group('backblaze', function($routes) {
+    $routes->get('get-private-url', 'BackblazeController::getPrivateUrl');
+});
+
 // Rutas de files/pedidos (Principal)
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');

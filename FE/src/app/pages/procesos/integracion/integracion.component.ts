@@ -121,6 +121,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🚀 IntegracionComponent inicializado');
     this.loadIntegrationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
@@ -1223,16 +1224,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   viewDocument(document: any): void {
+    console.log('🖱️ CLICK EN BOTÓN VER - viewDocument ejecutándose');
+    console.log('🔍 viewDocument llamado con:', document);
+    
     if (document.documentContainer) {
+      console.log('📁 Usando documentContainer:', document.documentContainer);
       // Usar documentContainer para obtener URL privada de Backblaze
       this.getBackblazePrivateUrl(document.documentContainer, document);
-    } else if (document.backblazeUrl) {
-      // Si tiene URL de Backblaze, usarla directamente
-      window.open(document.backblazeUrl, '_blank');
-    } else if (document.filePath) {
-      // Fallback al método anterior
-      window.open(`${environment.apiBaseUrl}/${document.filePath}`, '_blank');
     } else {
+      console.log('❌ No hay documentContainer disponible');
       this.snackBar.open('No se puede visualizar el documento', 'Cerrar', {
         duration: 3000
       });
@@ -1240,19 +1240,36 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private getBackblazePrivateUrl(fileName: string, document: any): void {
-    const requestData = {
+    console.log('🔍 getBackblazePrivateUrl llamado con:', { fileName, document });
+    
+    const duration = 3600; // 1 hora por defecto
+    const params = new URLSearchParams({
       file: fileName,
-      duration: 300 // 5 minutos por defecto
-    };
+      duration: duration.toString()
+    });
 
-    this.http.post<any>(`${environment.backblaze.apiUrl}/get-private-url`, requestData, { headers: this.getBackblazeHeaders() })
+    const url = `${environment.backblaze.apiUrl}/get-private-url?${params.toString()}`;
+    console.log('🔗 URL completa:', url);
+    console.log('🔑 Headers:', this.getBackblazeHeaders());
+
+    this.http.get<any>(url, { headers: this.getBackblazeHeaders() })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           console.log('🔗 URL privada obtenida:', response);
-          if (response.url) {
-            window.open(response.url, '_blank');
+          if (response.data && response.data.url) {
+            console.log('🌐 Abriendo URL en nueva pestaña:', response.data.url);
+            const newWindow = window.open(response.data.url, '_blank');
+            if (newWindow) {
+              console.log('✅ Nueva pestaña abierta correctamente');
+            } else {
+              console.error('❌ No se pudo abrir nueva pestaña (posible bloqueador de pop-ups)');
+              this.snackBar.open('No se pudo abrir el documento. Verifica que no tengas bloqueado el navegador de pop-ups.', 'Cerrar', {
+                duration: 5000
+              });
+            }
           } else {
+            console.error('❌ Respuesta sin URL válida:', response);
             this.snackBar.open('No se pudo obtener la URL del documento', 'Cerrar', {
               duration: 3000
             });

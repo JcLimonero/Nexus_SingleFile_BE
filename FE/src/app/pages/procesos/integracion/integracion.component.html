@@ -435,7 +435,7 @@
                 mat-raised-button 
                 color="accent"
                 (click)="viewDocument(document)"
-                [disabled]="!document.filePath && !document.backblazeUrl && !document.backblazeFileId && !document.documentContainer"
+                [disabled]="!document.documentContainer"
                 class="text-xs">
                 <mat-icon class="mr-1" style="font-size: 14px;">visibility</mat-icon>
                 VER

@@ -186,3 +186,4 @@ class ConfigurationService
             ->update($data);
     }
 }
+
