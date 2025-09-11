@@ -13,11 +13,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
+import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
 
 @Component({
   selector: 'vex-integracion',
@@ -36,7 +38,8 @@ import { ClientSelectionDialogComponent } from './client-selection-dialog.compon
     MatInputModule,
     MatDialogModule,
     MatTableModule,
-    MatMenuModule
+    MatMenuModule,
+    MatPaginatorModule
   ],
   templateUrl: './integracion.component.html',
   styleUrls: ['./integracion.component.scss']
@@ -76,6 +79,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     'fechaRegistro',
     'actions'
   ];
+
+  // Paginación y búsqueda de pedidos
+  orderSearchTerm = '';
+  filteredFiles: any[] = [];
+  paginatedFiles: any[] = [];
+  pageSize = 5;
+  currentPage = 0;
+  totalItems = 0;
 
   // User permissions
   userRole: string = '';
@@ -425,6 +436,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.clients = [];
     this.showClientResults = false;
     this.selectedClient = null;
+    // Limpiar documentos requeridos cuando se limpia la búsqueda de cliente
+    this.requiredDocuments = [];
+    this.selectedFile = null;
+    this.selectedFiles = {};
   }
 
   selectClient(client: any): void {
@@ -433,7 +448,16 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.showClientResults = false; // Ocultar resultados después de seleccionar
     this.clientSearchTerm = ''; // Limpiar el campo de búsqueda
     
-    // Cargar los files/pedidos del cliente seleccionado
+    // Limpiar documentos requeridos al cambiar de cliente
+    this.requiredDocuments = [];
+    this.selectedFile = null;
+    this.selectedFiles = {};
+    
+    // Limpiar búsqueda y paginación de pedidos
+    this.orderSearchTerm = '';
+    this.currentPage = 0;
+    
+    // Cargar automáticamente los pedidos de integración del cliente seleccionado
     this.loadClientFiles();
     
     this.snackBar.open(`Cliente seleccionado: ${client.cliente}`, 'Cerrar', {
@@ -462,6 +486,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   clearClientSelection(): void {
     this.selectedClient = null;
     this.files = []; // Limpiar también los files
+    // Limpiar documentos requeridos cuando se limpia la selección de cliente
+    this.requiredDocuments = [];
+    this.selectedFile = null;
+    this.selectedFiles = {};
+    // Limpiar búsqueda y paginación
+    this.orderSearchTerm = '';
+    this.currentPage = 0;
+    this.updateFilesDisplay();
     this.snackBar.open('Selección de cliente limpiada', 'Cerrar', {
       duration: 2000
     });
@@ -480,11 +512,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('status', 'Integracion'); // Filtrar por estatus de integración
     params = params.set('limit', '100');
 
+    // Cargar solo pedidos que ya están en la tabla de file (no desde Vanguardia)
     this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-client`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📁 Files encontrados:', response);
+          console.log('📁 Files encontrados en tabla file:', response);
           
           if (response && response.success && response.data && response.data.files) {
             this.files = response.data.files;
@@ -492,6 +525,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             this.files = [];
           }
           
+          this.updateFilesDisplay();
           this.filesLoading = false;
         },
         error: (error) => {
@@ -527,10 +561,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   agregarPedidoIntegracion(): void {
-    console.log('Agregando nuevo pedido de integración para cliente:', this.selectedClient.ndCliente);
+    console.log('🚀 Iniciando proceso de agregar pedidos...');
+    console.log('📊 Cliente seleccionado:', this.selectedClient);
+    console.log('📊 Agencia seleccionada:', this.selectedAgency);
     
     // Verificar que tenemos cliente y agencia seleccionados
     if (!this.selectedClient || !this.selectedClient.ndCliente) {
+      console.log('❌ No hay cliente seleccionado');
       this.snackBar.open('Debe seleccionar un cliente primero', 'Cerrar', {
         duration: 3000
       });
@@ -538,14 +575,140 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
     
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+      console.log('❌ No hay agencia seleccionada');
       this.snackBar.open('Debe seleccionar una agencia primero', 'Cerrar', {
         duration: 3000
       });
       return;
     }
     
+    console.log('✅ Validaciones pasadas, cargando pedidos desde Vanguardia...');
+    
     // Llamar al API de Vanguardia para obtener pedidos
     this.loadOrdersFromVanguardia();
+  }
+
+  // MÉTODO TEMPORAL PARA PRUEBAS
+  private testOrderDialog(): void {
+    console.log('🧪 Probando diálogo con datos de prueba...');
+    const testOrders = [
+      {
+        numeroPedido: 'TEST-001',
+        numeroInventario: 'INV-001',
+        proceso: 'Integración',
+        operacion: 'Venta',
+        tipoCliente: 'Individual',
+        vehiculo: 'Sedán',
+        year: '2024',
+        modelo: 'Modelo Test',
+        vin: 'VIN123456789',
+        agencia: 'Agencia Test',
+        fechaRegistro: new Date(),
+        fileId: 'file-test-1',
+        isVanguardiaOrder: true
+      },
+      {
+        numeroPedido: 'TEST-002',
+        numeroInventario: 'INV-002',
+        proceso: 'Integración',
+        operacion: 'Compra',
+        tipoCliente: 'Empresarial',
+        vehiculo: 'SUV',
+        year: '2024',
+        modelo: 'Modelo Test 2',
+        vin: 'VIN987654321',
+        agencia: 'Agencia Test',
+        fechaRegistro: new Date(),
+        fileId: 'file-test-2',
+        isVanguardiaOrder: true
+      }
+    ];
+    
+    this.showOrderSelectionDialog(testOrders);
+  }
+
+  private loadAllOrdersFromVanguardia(firstPageData: any): void {
+    console.log('🔄 Cargando todas las páginas de pedidos...');
+    const totalPages = firstPageData.total_pages;
+    const allOrders = [...firstPageData.data]; // Empezar con los datos de la primera página
+    
+    console.log('📊 Total de páginas a cargar:', totalPages);
+    console.log('📊 Empezando con', allOrders.length, 'pedidos de la primera página');
+    
+    // Crear un array de promesas para cargar todas las páginas restantes
+    const pagePromises = [];
+    
+    for (let page = 2; page <= totalPages; page++) {
+      const pagePromise = this.loadSinglePageFromVanguardia(page);
+      pagePromises.push(pagePromise);
+    }
+    
+    // Esperar a que todas las páginas se carguen
+    Promise.all(pagePromises)
+      .then(pageResults => {
+        console.log('✅ Todas las páginas cargadas:', pageResults.length);
+        console.log('📊 Resultados de páginas:', pageResults);
+        
+        // Combinar todos los resultados
+        pageResults.forEach((pageData, index) => {
+          console.log(`🔍 Procesando página ${index + 2}:`, pageData);
+          if (pageData && pageData.data && Array.isArray(pageData.data)) {
+            console.log(`📊 Página ${index + 2}: ${pageData.data.length} pedidos`);
+            console.log(`📊 Datos de página ${index + 2}:`, pageData.data);
+            allOrders.push(...pageData.data);
+            console.log(`📊 Total acumulado después de página ${index + 2}: ${allOrders.length}`);
+          } else {
+            console.log(`❌ Página ${index + 2} no tiene datos válidos:`, pageData);
+          }
+        });
+        
+        console.log('🎉 Total de pedidos obtenidos:', allOrders.length);
+        console.log('📊 Primeros pedidos:', allOrders.slice(0, 3));
+        console.log('📊 Últimos pedidos:', allOrders.slice(-3));
+        
+        // Mostrar el diálogo con todos los pedidos
+        this.showOrderSelectionDialogDirectly(allOrders);
+        
+        this.snackBar.open(`${allOrders.length} pedidos cargados desde Vanguardia`, 'Cerrar', {
+          duration: 3000
+        });
+      })
+      .catch(error => {
+        console.error('❌ Error cargando todas las páginas:', error);
+        // Si hay error, mostrar al menos los datos de la primera página
+        this.showOrderSelectionDialogDirectly(allOrders);
+        this.snackBar.open('Error cargando algunas páginas, mostrando datos parciales', 'Cerrar', {
+          duration: 3000
+        });
+      });
+  }
+
+  private loadSinglePageFromVanguardia(page: number): Promise<any> {
+    console.log(`📄 Cargando página ${page}...`);
+    
+    let params = new HttpParams();
+    params = params.set('customerDMS', this.selectedClient.ndCliente);
+    params = params.set('idAgency', this.selectedAgency.IdAgency);
+    params = params.set('page', page.toString());
+
+    console.log(`📄 Parámetros para página ${page}:`, {
+      customerDMS: this.selectedClient.ndCliente,
+      idAgency: this.selectedAgency.IdAgency,
+      page: page.toString()
+    });
+
+    return this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
+      params,
+      headers: this.getBackblazeHeaders()
+    }).toPromise()
+    .then(response => {
+      console.log(`✅ Página ${page} cargada exitosamente:`, response);
+      return response;
+    })
+    .catch(error => {
+      console.error(`❌ Error cargando página ${page}:`, error);
+      throw error;
+    });
   }
 
   private loadOrdersFromVanguardia(): void {
@@ -562,16 +725,79 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('🔍 Pedidos encontrados en Vanguardia:', response);
+          console.log('🔍 Respuesta completa de Vanguardia:', response);
+          
+          // Verificar diferentes estructuras de respuesta posibles
+          let ordersData = null;
           
           if (response && response.success && response.data) {
-            // Procesar los pedidos de Vanguardia
-            this.processVanguardiaOrders(response.data);
+            // Estructura estándar: { success: true, data: [...] }
+            ordersData = response.data;
+          } else if (response && response.status === 200 && response.data) {
+            // Estructura de Vanguardia: { status: 200, message: "...", data: [...] }
+            console.log('📊 Detectada estructura de Vanguardia, data:', response.data);
+            console.log('📊 Tipo de data:', typeof response.data);
+            console.log('📊 Es array data?', Array.isArray(response.data));
+            console.log('📊 Propiedades de data:', Object.keys(response.data || {}));
             
-            this.snackBar.open(`Pedidos cargados desde Vanguardia exitosamente`, 'Cerrar', {
+            // Verificar si data contiene un array de pedidos
+            if (Array.isArray(response.data)) {
+              console.log('✅ Data es array directo, cantidad:', response.data.length);
+              ordersData = response.data;
+            } else if (response.data && Array.isArray(response.data.orders)) {
+              console.log('✅ Data contiene orders, cantidad:', response.data.orders.length);
+              ordersData = response.data.orders;
+            } else if (response.data && Array.isArray(response.data.data)) {
+              console.log('✅ Data contiene data, cantidad:', response.data.data.length);
+              console.log('📊 Total de registros disponibles:', response.data.total_rows);
+              console.log('📊 Páginas totales:', response.data.total_pages);
+              console.log('📊 Página actual:', response.data.page);
+              
+              // Si hay más páginas, necesitamos obtener todos los datos
+              if (response.data.total_pages > 1) {
+                console.log('🔄 Hay múltiples páginas, obteniendo todos los datos...');
+                this.loadAllOrdersFromVanguardia(response.data);
+                return; // Salir aquí, el método loadAllOrdersFromVanguardia manejará el resto
+              } else {
+                ordersData = response.data.data;
+              }
+            } else if (response.data && Array.isArray(response.data.results)) {
+              console.log('✅ Data contiene results, cantidad:', response.data.results.length);
+              ordersData = response.data.results;
+            } else {
+              console.log('⚠️ Data es objeto único, convirtiendo a array');
+              // Si data es un objeto, intentar convertirlo a array
+              ordersData = [response.data];
+            }
+            
+            console.log('📊 OrdersData final:', ordersData);
+            console.log('📊 Cantidad final de ordersData:', ordersData?.length || 0);
+          } else if (response && Array.isArray(response)) {
+            // Estructura directa: [...]
+            ordersData = response;
+          } else if (response && response.data && Array.isArray(response.data)) {
+            // Estructura con data directa: { data: [...] }
+            ordersData = response.data;
+          } else if (response && response.orders && Array.isArray(response.orders)) {
+            // Estructura con orders: { orders: [...] }
+            ordersData = response.orders;
+          } else if (response && response.results && Array.isArray(response.results)) {
+            // Estructura con results: { results: [...] }
+            ordersData = response.results;
+          }
+          
+          if (ordersData && Array.isArray(ordersData) && ordersData.length > 0) {
+            console.log('📁 Datos de pedidos encontrados:', ordersData);
+            console.log('📊 Estructura del primer pedido:', ordersData[0]);
+            
+            // Mostrar directamente el diálogo con los datos del API sin procesamiento adicional
+            this.showOrderSelectionDialogDirectly(ordersData);
+            
+            this.snackBar.open(`${ordersData.length} pedidos encontrados en Vanguardia`, 'Cerrar', {
               duration: 3000
             });
           } else {
+            console.log('⚠️ No se encontraron pedidos válidos en la respuesta:', response);
             this.snackBar.open('No se encontraron pedidos en Vanguardia para este cliente', 'Cerrar', {
               duration: 3000
             });
@@ -608,34 +834,41 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private processVanguardiaOrders(ordersData: any): void {
+    console.log('🔄 Iniciando procesamiento de pedidos de Vanguardia...');
+    console.log('📊 Datos recibidos para procesar:', ordersData);
+    console.log('📊 Tipo de datos:', typeof ordersData);
+    console.log('📊 Es array?', Array.isArray(ordersData));
+    
     // Convertir los pedidos de Vanguardia al formato esperado por el sistema
+    let processedOrders: any[] = [];
+    
     if (Array.isArray(ordersData)) {
-      const processedOrders = ordersData.map(order => ({
-        numeroPedido: order.numeroPedido || order.orderNumber || order.id,
-        numeroInventario: order.numeroInventario || order.inventoryNumber || '',
-        proceso: order.proceso || order.process || 'Integración',
-        operacion: order.operacion || order.operation || '',
-        tipoCliente: order.tipoCliente || order.clientType || '',
-        vehiculo: order.vehiculo || order.vehicle || '',
-        year: order.year || order.year || '',
-        modelo: order.modelo || order.model || '',
-        vin: order.vin || order.vin || '',
-        agencia: order.agencia || order.agency || this.selectedAgency.Name,
-        fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
-        fileId: order.fileId || order.id,
-        // Marcar como pedido de Vanguardia
-        isVanguardiaOrder: true,
-        vanguardiaData: order
-      }));
-      
-      // Agregar los nuevos pedidos a la lista existente
-      this.files = [...this.files, ...processedOrders];
-      
-      console.log('📁 Pedidos procesados y agregados:', processedOrders);
+      console.log('📋 Procesando array de pedidos, cantidad:', ordersData.length);
+      processedOrders = ordersData.map((order, index) => {
+        console.log(`📋 Procesando pedido ${index + 1}:`, order);
+        return {
+          numeroPedido: order.numeroPedido || order.orderNumber || order.id || `PED-${index + 1}`,
+          numeroInventario: order.numeroInventario || order.inventoryNumber || '',
+          proceso: order.proceso || order.process || 'Integración',
+          operacion: order.operacion || order.operation || '',
+          tipoCliente: order.tipoCliente || order.clientType || '',
+          vehiculo: order.vehiculo || order.vehicle || '',
+          year: order.year || order.year || '',
+          modelo: order.modelo || order.model || '',
+          vin: order.vin || order.vin || '',
+          agencia: order.agencia || order.agency || this.selectedAgency?.Name || 'Sin agencia',
+          fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
+          fileId: order.fileId || order.id || `file-${index + 1}`,
+          // Marcar como pedido de Vanguardia
+          isVanguardiaOrder: true,
+          vanguardiaData: order
+        };
+      });
     } else if (ordersData && typeof ordersData === 'object') {
+      console.log('📋 Procesando objeto único:', ordersData);
       // Si es un solo pedido
-      const processedOrder = {
-        numeroPedido: ordersData.numeroPedido || ordersData.orderNumber || ordersData.id,
+      processedOrders = [{
+        numeroPedido: ordersData.numeroPedido || ordersData.orderNumber || ordersData.id || 'PED-1',
         numeroInventario: ordersData.numeroInventario || ordersData.inventoryNumber || '',
         proceso: ordersData.proceso || ordersData.process || 'Integración',
         operacion: ordersData.operacion || ordersData.operation || '',
@@ -644,19 +877,231 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         year: ordersData.year || ordersData.year || '',
         modelo: ordersData.modelo || ordersData.model || '',
         vin: ordersData.vin || ordersData.vin || '',
-        agencia: ordersData.agencia || ordersData.agency || this.selectedAgency.Name,
+        agencia: ordersData.agencia || ordersData.agency || this.selectedAgency?.Name || 'Sin agencia',
         fechaRegistro: ordersData.fechaRegistro || ordersData.registrationDate || new Date(),
-        fileId: ordersData.fileId || ordersData.id,
+        fileId: ordersData.fileId || ordersData.id || 'file-1',
         // Marcar como pedido de Vanguardia
         isVanguardiaOrder: true,
         vanguardiaData: ordersData
-      };
-      
-      // Agregar el pedido a la lista
-      this.files = [...this.files, processedOrder];
-      
-      console.log('📁 Pedido procesado y agregado:', processedOrder);
+      }];
+    } else {
+      console.error('❌ Datos de pedidos no válidos:', ordersData);
+      this.snackBar.open('Error: Formato de datos de pedidos no válido', 'Cerrar', {
+        duration: 3000
+      });
+      return;
     }
+    
+    console.log('✅ Pedidos procesados exitosamente:', processedOrders);
+    console.log('📊 Cantidad de pedidos procesados:', processedOrders.length);
+    
+    // Cargar pedidos existentes en file para comparar
+    this.loadClientFilesForComparison(processedOrders);
+  }
+
+  private loadClientFilesForComparison(vanguardiaOrders: any[]): void {
+    console.log('🔄 Iniciando comparación con pedidos existentes...');
+    console.log('📊 Pedidos de Vanguardia recibidos:', vanguardiaOrders);
+    console.log('📊 Cliente seleccionado:', this.selectedClient);
+    
+    if (!this.selectedClient || !this.selectedClient.ndCliente) {
+      console.log('⚠️ No hay cliente seleccionado, mostrando todos los pedidos de Vanguardia');
+      // Si no hay cliente seleccionado, mostrar todos los pedidos de Vanguardia
+      this.showOrderSelectionDialog(vanguardiaOrders);
+      return;
+    }
+
+    console.log('🔍 Cliente seleccionado:', this.selectedClient.ndCliente);
+    let params = new HttpParams();
+    params = params.set('ndCliente', this.selectedClient.ndCliente);
+    params = params.set('status', 'Integracion');
+    params = params.set('limit', '100');
+
+    console.log('🌐 Consultando API de files existentes...');
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-client`, { params })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('📁 Respuesta de files existentes:', response);
+          
+          let existingFiles: any[] = [];
+          if (response && response.success && response.data && response.data.files) {
+            existingFiles = response.data.files;
+          }
+          
+          console.log('📊 Files existentes encontrados:', existingFiles);
+          console.log('📊 Cantidad de files existentes:', existingFiles.length);
+          
+          // Filtrar pedidos de Vanguardia que no existen en la tabla de file
+          const newOrders = this.filterNewOrders(vanguardiaOrders, existingFiles);
+          console.log('📊 Pedidos nuevos después del filtrado:', newOrders);
+          console.log('📊 Cantidad de pedidos nuevos:', newOrders.length);
+          
+          if (newOrders.length > 0) {
+            console.log('✅ Hay pedidos nuevos, mostrando diálogo...');
+            this.showOrderSelectionDialog(newOrders);
+          } else {
+            console.log('ℹ️ No hay pedidos nuevos, todos ya existen');
+            this.snackBar.open('Todos los pedidos de Vanguardia ya existen en el sistema', 'Cerrar', {
+              duration: 3000
+            });
+            // Cargar pedidos existentes en la tabla
+            this.loadClientFiles();
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando files para comparación:', error);
+          console.log('⚠️ Error en comparación, mostrando todos los pedidos de Vanguardia');
+          // Si hay error, mostrar todos los pedidos de Vanguardia
+          this.showOrderSelectionDialog(vanguardiaOrders);
+        }
+      });
+  }
+
+  private filterNewOrders(vanguardiaOrders: any[], existingFiles: any[]): any[] {
+    // Crear un Set con los números de pedido existentes para búsqueda rápida
+    const existingOrderNumbers = new Set(
+      existingFiles.map(file => file.numeroPedido?.toString().toLowerCase())
+    );
+    
+    // Filtrar pedidos de Vanguardia que no existen en la tabla de file
+    return vanguardiaOrders.filter(order => {
+      const orderNumber = order.numeroPedido?.toString().toLowerCase();
+      return !existingOrderNumbers.has(orderNumber);
+    });
+  }
+
+  private showOrderSelectionDialogDirectly(apiOrders: any[]): void {
+    console.log('🎯 Mostrando diálogo directamente con datos del API...');
+    console.log('📊 Datos originales del API:', apiOrders);
+    console.log('📊 Cantidad de pedidos:', apiOrders?.length || 0);
+    console.log('📊 Primer pedido (ejemplo):', apiOrders?.[0]);
+    
+    if (!apiOrders || apiOrders.length === 0) {
+      console.error('❌ No hay pedidos del API para mostrar');
+      this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    console.log('✅ Datos válidos, abriendo diálogo con', apiOrders.length, 'pedidos');
+
+    // Mostrar los datos tal como vienen del API, sin procesamiento adicional
+    try {
+      console.log('🚀 Abriendo diálogo con datos directos del API...');
+      const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
+        width: '95vw',
+        height: '80vh',
+        maxWidth: '1400px',
+        data: { orders: apiOrders }
+      });
+
+      console.log('✅ Diálogo abierto exitosamente con datos del API');
+
+      dialogRef.afterClosed().subscribe(result => {
+        console.log('🔚 Diálogo cerrado, resultado:', result);
+        if (result && result.length > 0) {
+          console.log('✅ Pedidos seleccionados del API:', result);
+          // Procesar los pedidos seleccionados antes de agregarlos
+          const processedOrders = this.processSelectedOrders(result);
+          this.addSelectedOrdersToTable(processedOrders);
+          this.snackBar.open(`${result.length} pedidos agregados exitosamente`, 'Cerrar', {
+            duration: 3000
+          });
+        } else {
+          console.log('❌ Diálogo cancelado o sin selección');
+          // Si se canceló el diálogo, cargar pedidos existentes
+          this.loadClientFiles();
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error abriendo diálogo:', error);
+      this.snackBar.open('Error al abrir el diálogo de selección', 'Cerrar', {
+        duration: 3000
+      });
+    }
+  }
+
+  private showOrderSelectionDialog(orders: any[]): void {
+    console.log('🎯 Intentando mostrar diálogo de selección de pedidos...');
+    console.log('📊 Pedidos para mostrar en diálogo:', orders);
+    console.log('📊 Cantidad de pedidos:', orders?.length || 0);
+    
+    if (!orders || orders.length === 0) {
+      console.error('❌ No hay pedidos para mostrar en el diálogo');
+      this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      console.log('🚀 Abriendo diálogo de selección...');
+      const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
+        width: '95vw',
+        height: '80vh',
+        maxWidth: '1400px',
+        data: { orders: orders }
+      });
+
+      console.log('✅ Diálogo abierto exitosamente');
+
+      dialogRef.afterClosed().subscribe(result => {
+        console.log('🔚 Diálogo cerrado, resultado:', result);
+        if (result && result.length > 0) {
+          console.log('✅ Pedidos seleccionados:', result);
+          // Agregar los pedidos seleccionados a la tabla
+          this.addSelectedOrdersToTable(result);
+          this.snackBar.open(`${result.length} pedidos agregados exitosamente`, 'Cerrar', {
+            duration: 3000
+          });
+        } else {
+          console.log('❌ Diálogo cancelado o sin selección');
+          // Si se canceló el diálogo, cargar pedidos existentes
+          this.loadClientFiles();
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error abriendo diálogo:', error);
+      this.snackBar.open('Error al abrir el diálogo de selección', 'Cerrar', {
+        duration: 3000
+      });
+    }
+  }
+
+  private processSelectedOrders(selectedOrders: any[]): any[] {
+    console.log('🔄 Procesando pedidos seleccionados...');
+    console.log('📊 Pedidos seleccionados:', selectedOrders);
+    
+    return selectedOrders.map((order, index) => {
+      console.log(`📋 Procesando pedido seleccionado ${index + 1}:`, order);
+      return {
+        numeroPedido: order.numeroPedido || order.orderNumber || order.id || `PED-${index + 1}`,
+        numeroInventario: order.numeroInventario || order.inventoryNumber || '',
+        proceso: order.proceso || order.process || 'Integración',
+        operacion: order.operacion || order.operation || '',
+        tipoCliente: order.tipoCliente || order.clientType || '',
+        vehiculo: order.vehiculo || order.vehicle || '',
+        year: order.year || order.year || '',
+        modelo: order.modelo || order.model || '',
+        vin: order.vin || order.vin || '',
+        agencia: order.agencia || order.agency || this.selectedAgency?.Name || 'Sin agencia',
+        fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
+        fileId: order.fileId || order.id || `file-${index + 1}`,
+        // Marcar como pedido de Vanguardia
+        isVanguardiaOrder: true,
+        vanguardiaData: order
+      };
+    });
+  }
+
+  private addSelectedOrdersToTable(selectedOrders: any[]): void {
+    console.log('📁 Agregando pedidos seleccionados a la tabla...');
+    console.log('📊 Pedidos a agregar:', selectedOrders);
+    
+    // Recargar los pedidos desde el servidor para obtener la lista actualizada sin duplicados
+    this.loadClientFiles();
   }
 
   // Métodos para manejo de documentos
@@ -671,7 +1116,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
     let params = new HttpParams();
     params = params.set('fileId', fileId);
-    params = params.set('status', 'Integración'); // Solo documentos para pedidos en integración
+    params = params.set('idProcessType', '1'); // Filtro por integración usando ID = 1
 
     this.http.get<any>(`${environment.apiBaseUrl}/api/documents/required`, { params })
       .pipe(takeUntil(this.destroy$))
@@ -875,5 +1320,59 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       case 'optional': return 'text-gray-600';
       default: return 'text-gray-600';
     }
+  }
+
+  // Métodos para paginación y búsqueda de pedidos
+  onOrderSearchChange(): void {
+    this.currentPage = 0; // Resetear a la primera página
+    this.filterAndPaginateFiles();
+  }
+
+  clearOrderSearch(): void {
+    this.orderSearchTerm = '';
+    this.currentPage = 0;
+    this.filterAndPaginateFiles();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.filterAndPaginateFiles();
+  }
+
+  private filterAndPaginateFiles(): void {
+    // Eliminar duplicados basándose en numeroPedido antes de filtrar
+    const uniqueFiles = this.files.filter((file, index, self) => 
+      index === self.findIndex(f => f.numeroPedido === file.numeroPedido)
+    );
+
+    // Filtrar archivos por término de búsqueda
+    if (this.orderSearchTerm.trim()) {
+      this.filteredFiles = uniqueFiles.filter(file => 
+        file.numeroPedido?.toString().toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.numeroInventario?.toString().toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.proceso?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.operacion?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.tipoCliente?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.vehiculo?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.modelo?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.vin?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
+        file.agencia?.toLowerCase().includes(this.orderSearchTerm.toLowerCase())
+      );
+    } else {
+      this.filteredFiles = [...uniqueFiles];
+    }
+
+    // Actualizar total de elementos
+    this.totalItems = this.filteredFiles.length;
+
+    // Calcular elementos para la página actual
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedFiles = this.filteredFiles.slice(startIndex, endIndex);
+  }
+
+  private updateFilesDisplay(): void {
+    this.filterAndPaginateFiles();
   }
 }

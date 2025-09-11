@@ -17,7 +17,7 @@ class Documents extends BaseController
     {
         try {
             $fileId = $this->request->getGet('fileId');
-            $status = $this->request->getGet('status');
+            $idProcessType = $this->request->getGet('idProcessType') ?: '1'; // Por defecto integración (ID = 1)
 
             if (!$fileId) {
                 return $this->response->setJSON([
@@ -27,38 +27,43 @@ class Documents extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Query simplificado - Solo documentos relacionados al file específico
+            // Query corregido - Solo documentos requeridos para el proceso específico
             $sql = "
                 SELECT DISTINCT
                     dt.Id as documentId,
                     dt.Name as documentName,
                     dt.Name as documentDescription,
                     dt.Required as isRequired,
-                    dt.ReqExpiration as hasExpiration,
-                    dt.ReqExpiration as requiresExpiration,
-                    30 as expirationDays,
-                    CASE 
-                        WHEN df.Id IS NOT NULL THEN 'uploaded'
-                        WHEN df.Id IS NULL AND dt.Required = 1 THEN 'required'
-                        ELSE 'optional'
-                    END as status,
                     df.Id as fileDocumentId,
                     df.Name as fileName,
                     df.PathDocument as filePath,
                     df.RegistrationDate as uploadDate,
+                    dt.ReqExpiration as hasExpiration,
                     df.ExperationDate as expirationDate,
-                    df.IdCurrentStatus as statusId,
+                    CASE 
+                        WHEN ISNULL(dt.ReqExpiration) THEN FALSE
+                        WHEN dt.ReqExpiration = 0 THEN FALSE
+                        WHEN dt.ReqExpiration = 1 AND df.ExperationDate < CURDATE() THEN TRUE
+                        ELSE FALSE
+                    END as hasExpired,    
+                    dt.IdProcessType as documentProcessId,
+                    fs.Name as documentProcessName,
+                    dfs.Id as fileStatusId,
+                    dfs.Name as fileStatusName,
+                    df.IdDocumentContainer as documentContainer,
                     df.IdCurrentStatus as idCurrentStatus
                 FROM File f
-                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN DocumentByFile df ON f.Id = df.IdFile
                 INNER JOIN DocumentType dt ON df.IdDocumentType = dt.Id
+                INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id 
+                INNER JOIN DocumentFile_Status dfs ON dfs.Id = df.IdCurrentStatus 
                 WHERE f.Id = ?
-                AND fs.Name = 'Integración'
+                AND dt.IdProcessType = ?
+                AND f.IdCurrentState = 1
                 ORDER BY dt.Required DESC, dt.Name ASC
             ";
 
-            $params = [$fileId];
+            $params = [$fileId, $idProcessType];
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 

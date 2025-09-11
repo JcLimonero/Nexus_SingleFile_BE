@@ -132,6 +132,31 @@
           </button>
         </mat-card-title>
       </mat-card-header>
+      
+      <!-- Buscador de pedidos -->
+      <div class="px-2 pb-2">
+        <div class="flex items-center space-x-2">
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Buscar pedido</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="orderSearchTerm"
+              (input)="onOrderSearchChange()"
+              placeholder="Buscar por número de pedido, inventario, proceso, operación, vehículo, modelo, VIN o agencia"
+              autocomplete="off">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+          
+          <button 
+            *ngIf="orderSearchTerm"
+            mat-icon-button 
+            color="warn"
+            (click)="clearOrderSearch()"
+            matTooltip="Limpiar búsqueda">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+      </div>
       <mat-card-content class="p-2">
         <!-- Loading spinner -->
         <div *ngIf="filesLoading" class="flex justify-center py-8">
@@ -140,7 +165,7 @@
 
         <!-- Tabla de pedidos -->
         <div *ngIf="!filesLoading" class="overflow-x-auto">
-          <table mat-table [dataSource]="files" class="w-full files-table">
+          <table mat-table [dataSource]="paginatedFiles" class="w-full files-table">
             <!-- Número de Pedido -->
             <ng-container matColumnDef="numeroPedido">
               <th mat-header-cell *matHeaderCellDef>N° Pedido</th>
@@ -291,12 +316,37 @@
                 class="hover:bg-gray-50 cursor-pointer"
                 (click)="selectFile(row)"></tr>
           </table>
+          
+          <!-- Paginación -->
+          <mat-paginator 
+            *ngIf="!filesLoading && totalItems > 0"
+            [length]="totalItems"
+            [pageSize]="pageSize"
+            [pageIndex]="currentPage"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [showFirstLastButtons]="true"
+            (page)="onPageChange($event)"
+            class="mt-2">
+          </mat-paginator>
         </div>
 
         <!-- Sin pedidos -->
         <div *ngIf="!filesLoading && files.length === 0" class="text-center py-8">
           <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">folder_open</mat-icon>
           <p class="text-gray-500">No se encontraron pedidos en estatus de integración para este cliente</p>
+        </div>
+        
+        <!-- Sin resultados de búsqueda -->
+        <div *ngIf="!filesLoading && files.length > 0 && filteredFiles.length === 0" class="text-center py-8">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">search_off</mat-icon>
+          <p class="text-gray-500">No se encontraron pedidos que coincidan con la búsqueda</p>
+          <button 
+            mat-button 
+            color="primary" 
+            (click)="clearOrderSearch()"
+            class="mt-2">
+            Limpiar búsqueda
+          </button>
         </div>
       </mat-card-content>
     </mat-card>
