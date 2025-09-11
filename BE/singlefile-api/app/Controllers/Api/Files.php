@@ -298,7 +298,7 @@ class Files extends BaseController
             $this->db->transStart();
 
             // Crear file
-            $fileId = $this->createFile($order, $process, $costumerType, $operationType, $client->Id, $internalAgencyId, $currentUser['user_id'], $sellerId);
+            $fileId = $this->createFile($order, $process, $costumerType, $operationType, $client->Id, $agencyId, $currentUser['user_id'], $sellerId);
 
             if (!$fileId) {
                 $this->db->transRollback();
@@ -316,6 +316,17 @@ class Files extends BaseController
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Error al crear los documentos del file'
+                ])->setStatusCode(500);
+            }
+
+            // Crear registro en OrderByCar
+            $orderByCarCreated = $this->createOrderByCar($order, $currentUser['user_id']);
+
+            if (!$orderByCarCreated) {
+                $this->db->transRollback();
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Error al crear el registro en OrderByCar'
                 ])->setStatusCode(500);
             }
 
@@ -620,5 +631,137 @@ class Files extends BaseController
         // TEMPORAL: Usar usuario admin como fallback para evitar problemas de inserción
         error_log("No se encontró usuario asesor para ndConsultant: " . $ndConsultant . ", usando usuario admin como fallback");
         return 1; // Usuario admin
+    }
+
+    /**
+     * Crear registro en OrderByCar con los datos del pedido
+     */
+    private function createOrderByCar($order, $userId)
+    {
+        error_log("=== INICIANDO createOrderByCar ===");
+        error_log("Datos del order: " . json_encode($order));
+        
+        // Obtener el siguiente ID disponible para OrderByCar
+        $nextIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM OrderByCar");
+        $nextIdResult = $nextIdQuery->getRow();
+        $nextId = $nextIdResult->nextId;
+        
+        error_log("Siguiente ID disponible para OrderByCar: " . $nextId);
+        
+        $currentDate = date('Y-m-d H:i:s');
+        
+        $orderByCarData = [
+            'Id' => $nextId,
+            'Number' => $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null,
+            'CarType' => $order['version'] ?? null,
+            'Year' => $order['year'] ?? null,
+            'VIN' => $order['vin'] ?? null,
+            'RegistrationDate' => $currentDate,
+            'UpdateDate' => $currentDate,
+            'IdLastUserUpdate' => $userId,
+            'Modelo' => $order['model'] ?? null,
+            'Asesor' => $order['ndConsultant'] ?? null,
+            'IdTotalDealer' => $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null
+        ];
+
+        error_log("Datos de OrderByCar a insertar: " . json_encode($orderByCarData));
+
+        try {
+            $this->db->table('OrderByCar')->insert($orderByCarData);
+            $insertId = $this->db->insertID();
+            error_log("OrderByCar insertado exitosamente. Insert ID: " . $insertId);
+            return true;
+        } catch (Exception $e) {
+            error_log("ERROR al insertar OrderByCar: " . $e->getMessage());
+            error_log("Error completo: " . json_encode($e));
+            return false;
+        }
+    }
+
+    /**
+     * Verificar qué pedidos ya existen en la tabla File
+     * Recibe una lista de pedidos y devuelve cuáles ya existen
+     */
+    public function checkExistingOrders()
+    {
+        try {
+            $input = $this->request->getJSON(true);
+            
+            if (!$input || !isset($input['orders']) || !is_array($input['orders'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Se requiere un array de pedidos en el campo "orders"',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $orders = $input['orders'];
+            $agencyId = $input['agencyId'] ?? null;
+
+            if (!$agencyId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro agencyId es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            error_log("=== VERIFICANDO PEDIDOS EXISTENTES ===");
+            error_log("AgencyId: " . $agencyId);
+            error_log("Cantidad de pedidos a verificar: " . count($orders));
+
+            $existingOrders = [];
+            $newOrders = [];
+
+            foreach ($orders as $order) {
+                $orderDms = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+                
+                if (!$orderDms) {
+                    error_log("Pedido sin order_dms, saltando: " . json_encode($order));
+                    continue;
+                }
+
+                error_log("Verificando pedido: " . $orderDms);
+
+                // Buscar si ya existe este pedido para esta agencia
+                $sql = "SELECT Id, IdOrderTotal FROM File WHERE IdAgency = ? AND IdOrderTotal = ?";
+                $query = $this->db->query($sql, [$agencyId, $orderDms]);
+                $existingFile = $query->getRow();
+
+                if ($existingFile) {
+                    error_log("Pedido EXISTENTE: " . $orderDms . " (File ID: " . $existingFile->Id . ")");
+                    $existingOrders[] = [
+                        'order_dms' => $orderDms,
+                        'fileId' => $existingFile->Id,
+                        'order' => $order
+                    ];
+                } else {
+                    error_log("Pedido NUEVO: " . $orderDms);
+                    $newOrders[] = $order;
+                }
+            }
+
+            error_log("Resultado: " . count($existingOrders) . " existentes, " . count($newOrders) . " nuevos");
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Verificación completada',
+                'data' => [
+                    'existingOrders' => $existingOrders,
+                    'newOrders' => $newOrders,
+                    'totalChecked' => count($orders),
+                    'existingCount' => count($existingOrders),
+                    'newCount' => count($newOrders)
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            error_log("ERROR en checkExistingOrders: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al verificar pedidos existentes: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
     }
 }

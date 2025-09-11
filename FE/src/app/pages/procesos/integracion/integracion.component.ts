@@ -886,25 +886,84 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('✅ Datos válidos, abriendo diálogo con', apiOrders.length, 'pedidos');
+    console.log('✅ Datos válidos, verificando pedidos existentes antes de mostrar diálogo...');
 
-    // Mostrar los datos tal como vienen del API, sin procesamiento adicional
+    // Verificar qué pedidos ya existen en la base de datos
+    this.checkExistingOrders(apiOrders);
+  }
+
+  private checkExistingOrders(apiOrders: any[]): void {
+    console.log('🔍 Verificando pedidos existentes en la base de datos...');
+    
+    const requestData = {
+      orders: apiOrders,
+      agencyId: this.selectedAgencyId
+    };
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/files/check-existing-orders`, requestData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Respuesta de verificación de pedidos:', response);
+          
+          if (response.success && response.data) {
+            const { existingOrders, newOrders, existingCount, newCount } = response.data;
+            
+            console.log(`📊 Resultado: ${existingCount} pedidos existentes, ${newCount} pedidos nuevos`);
+            
+            if (existingCount > 0) {
+              console.log('📋 Pedidos existentes:', existingOrders);
+              this.snackBar.open(
+                `${existingCount} pedidos ya existen en el sistema. Se mostrarán solo los ${newCount} pedidos nuevos.`, 
+                'Cerrar', 
+                { duration: 4000 }
+              );
+            }
+            
+            if (newOrders.length === 0) {
+              console.log('ℹ️ No hay pedidos nuevos para mostrar');
+              this.snackBar.open('Todos los pedidos de Vanguardia ya existen en el sistema', 'Cerrar', {
+                duration: 3000
+              });
+              return;
+            }
+            
+            // Mostrar solo los pedidos nuevos en el diálogo
+            this.openOrderSelectionDialog(newOrders);
+          } else {
+            console.error('❌ Error en la respuesta de verificación:', response);
+            this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error verificando pedidos existentes:', error);
+          this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
+  }
+
+  private openOrderSelectionDialog(orders: any[]): void {
+    console.log('🚀 Abriendo diálogo con pedidos filtrados:', orders.length, 'pedidos nuevos');
+    
     try {
-      console.log('🚀 Abriendo diálogo con datos directos del API...');
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
         width: 'auto',
         height: 'auto',
         maxWidth: '90vw',
         maxHeight: '80vh',
-        data: { orders: apiOrders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
+        data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
       });
 
-      console.log('✅ Diálogo abierto exitosamente con datos del API');
+      console.log('✅ Diálogo abierto exitosamente');
 
       dialogRef.afterClosed().subscribe(result => {
         console.log('🔚 Diálogo cerrado, resultado:', result);
         if (result && result.length > 0) {
-          console.log('✅ Pedidos seleccionados del API:', result);
+          console.log('✅ Pedidos seleccionados:', result);
           // Procesar los pedidos seleccionados antes de agregarlos
           const processedOrders = this.processSelectedOrders(result);
           this.addSelectedOrdersToTable(processedOrders);
