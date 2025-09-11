@@ -523,6 +523,9 @@ class Files extends BaseController
             
             error_log("Siguiente ID para DocumentByFile: " . $nextDocId);
             
+            // Verificar si hay documentos existentes del mismo cliente para copiar
+            $existingDocumentData = $this->findExistingDocumentToCopy($fileId, $document['IdDocumentType'], $userId);
+            
             $documentData = [
                 'Id' => $nextDocId, // Especificar el ID explícitamente
                 'IdFile' => $fileId,
@@ -534,6 +537,13 @@ class Files extends BaseController
                 'IdCurrentStatus' => 1, // Documento nuevo
                 'IdLastUserUpdate' => $userId
             ];
+            
+            // Si se encontró un documento existente válido, copiar los campos
+            if ($existingDocumentData) {
+                error_log("Copiando datos de documento existente: " . json_encode($existingDocumentData));
+                $documentData['IdDocumentContainer'] = $existingDocumentData['IdDocumentContainer'];
+                $documentData['ServerPath'] = $existingDocumentData['ServerPath'];
+            }
 
             error_log("Datos del documento a insertar: " . json_encode($documentData));
 
@@ -762,6 +772,72 @@ class Files extends BaseController
                 'message' => 'Error al verificar pedidos existentes: ' . $e->getMessage(),
                 'data' => null
             ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Buscar un documento existente del mismo cliente para copiar datos
+     */
+    private function findExistingDocumentToCopy($fileId, $documentTypeId, $userId)
+    {
+        error_log("=== BUSCANDO DOCUMENTO EXISTENTE PARA COPIAR ===");
+        error_log("fileId: $fileId, documentTypeId: $documentTypeId, userId: $userId");
+        
+        // Verificar si IdLastUserUpdate está activado (no es null/vacío)
+        if (!$userId || $userId == '') {
+            error_log("IdLastUserUpdate no está activado, no se buscarán documentos existentes");
+            return null;
+        }
+        
+        // Obtener el cliente del file actual
+        $fileQuery = $this->db->query("SELECT IdClient FROM File WHERE Id = ?", [$fileId]);
+        $file = $fileQuery->getRow();
+        
+        if (!$file) {
+            error_log("No se encontró el file con ID: $fileId");
+            return null;
+        }
+        
+        $clientId = $file->IdClient;
+        error_log("Cliente encontrado: $clientId");
+        
+        // Buscar documentos del mismo cliente en otros files anteriores
+        $sql = "SELECT dbf.IdDocumentContainer, dbf.ServerPath, dbf.IdFile, dbf.RegistrationDate
+                FROM DocumentByFile dbf
+                INNER JOIN File f ON dbf.IdFile = f.Id
+                WHERE f.IdClient = ? 
+                AND dbf.IdDocumentType = ?
+                AND dbf.IdFile != ?
+                AND (
+                    (dbf.ServerPath IS NOT NULL AND dbf.ServerPath != '') 
+                    OR 
+                    (dbf.IdDocumentContainer IS NOT NULL AND dbf.IdDocumentContainer != '')
+                )
+                AND dbf.IdCurrentStatus = 4
+                ORDER BY dbf.RegistrationDate DESC
+                LIMIT 1";
+        
+        error_log("SQL para buscar documento existente: " . $sql);
+        error_log("Parámetros: [$clientId, $documentTypeId, $fileId]");
+        
+        $query = $this->db->query($sql, [$clientId, $documentTypeId, $fileId]);
+        
+        if (!$query) {
+            error_log("ERROR en la consulta SQL: " . $this->db->error()['message']);
+            return null;
+        }
+        
+        $existingDocument = $query->getRow();
+        
+        if ($existingDocument) {
+            error_log("Documento existente encontrado: " . json_encode($existingDocument));
+            return [
+                'IdDocumentContainer' => $existingDocument->IdDocumentContainer,
+                'ServerPath' => $existingDocument->ServerPath
+            ];
+        } else {
+            error_log("No se encontró documento existente válido para copiar");
+            return null;
         }
     }
 }
