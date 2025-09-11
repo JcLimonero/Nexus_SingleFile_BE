@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -29,6 +30,7 @@ import { environment } from '../../../../environments/environment';
     MatPaginatorModule,
     MatRadioModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     FormsModule
   ],
   template: `
@@ -172,6 +174,72 @@ import { environment } from '../../../../environments/environment';
           <p class="text-sm text-gray-400 mt-2">No hay pedidos nuevos para agregar</p>
         </div>
         </div>
+
+        <!-- Configuración del File (solo cuando hay pedido seleccionado) -->
+        <div *ngIf="selectedOrder && !loading" class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+            <mat-icon class="mr-2">settings</mat-icon>
+            Configuración del File
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Proceso -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Proceso</mat-label>
+              <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" required>
+                <mat-option *ngFor="let process of processes" [value]="process">
+                  {{ process.Name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>business</mat-icon>
+            </mat-form-field>
+
+            <!-- Tipo de Cliente -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Tipo de Cliente</mat-label>
+              <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" required>
+                <mat-option *ngFor="let costumerType of availableCostumerTypes" [value]="costumerType">
+                  {{ costumerType.Name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>person</mat-icon>
+            </mat-form-field>
+
+            <!-- Tipo de Operación -->
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Tipo de Operación</mat-label>
+              <mat-select [(ngModel)]="selectedOperationType" required>
+                <mat-option *ngFor="let operationType of availableOperationTypes" [value]="operationType">
+                  {{ operationType.Name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>build</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Resumen de selección -->
+          <div class="mt-4 p-3 bg-white rounded border">
+            <h4 class="font-medium text-gray-700 mb-2">Resumen de configuración:</h4>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p><strong>Pedido:</strong> {{ selectedOrder.order_dms || selectedOrder.orderDMS || selectedOrder.numeroPedido }}</p>
+              <p><strong>Proceso:</strong> {{ selectedProcess?.Name || 'No seleccionado' }}</p>
+              <p><strong>Tipo Cliente:</strong> {{ selectedCostumerType?.Name || 'No seleccionado' }}</p>
+              <p><strong>Operación:</strong> {{ selectedOperationType?.Name || 'No seleccionado' }}</p>
+            </div>
+            
+            <!-- Estado de validación -->
+            <div *ngIf="selectedProcess && selectedCostumerType && selectedOperationType" class="mt-3 pt-2 border-t">
+              <div *ngIf="isConfigurationValid()" class="flex items-center text-green-600">
+                <mat-icon class="mr-2" style="font-size: 16px;">check_circle</mat-icon>
+                <span class="text-sm font-medium">Configuración válida</span>
+              </div>
+              <div *ngIf="!isConfigurationValid()" class="flex items-center text-red-600">
+                <mat-icon class="mr-2" style="font-size: 16px;">error</mat-icon>
+                <span class="text-sm font-medium">Esta combinación no está habilitada</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div mat-dialog-actions class="flex justify-between items-center">
@@ -187,10 +255,10 @@ import { environment } from '../../../../environments/environment';
             mat-raised-button 
             color="primary" 
             (click)="onConfirm()" 
-            [disabled]="!selectedOrder"
+            [disabled]="!isFormValid()"
             class="text-sm">
             <mat-icon class="mr-1" style="font-size: 16px;">add</mat-icon>
-            Agregar Pedido Seleccionado
+            Crear File
           </button>
         </div>
       </div>
@@ -390,6 +458,21 @@ export class OrderSelectionDialogComponent implements OnInit {
   loading: boolean = true;
   originalOrders: any[] = [];
 
+  // Datos para los combos
+  processes: any[] = [];
+  costumerTypes: any[] = [];
+  operationTypes: any[] = [];
+  allConfigurations: any[] = []; // Todas las configuraciones habilitadas
+
+  // Selecciones del usuario
+  selectedProcess: any = null;
+  selectedCostumerType: any = null;
+  selectedOperationType: any = null;
+
+  // Opciones filtradas disponibles
+  availableCostumerTypes: any[] = [];
+  availableOperationTypes: any[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<OrderSelectionDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { orders: any[], agencyId: number, ndCliente?: string },
@@ -405,6 +488,9 @@ export class OrderSelectionDialogComponent implements OnInit {
     
     this.originalOrders = [...this.data.orders];
     this.loading = true;
+    
+    // Cargar datos para los combos
+    this.loadComboData();
     
     // Verificar pedidos existentes antes de mostrar la tabla
     this.checkExistingOrders();
@@ -504,13 +590,190 @@ export class OrderSelectionDialogComponent implements OnInit {
     this.selectedOrder = order;
   }
 
-  onConfirm(): void {
-    if (this.selectedOrder) {
-      this.dialogRef.close([this.selectedOrder]);
-    }
-  }
-
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  private loadComboData(): void {
+    console.log('🔄 Cargando configuraciones habilitadas...');
+    
+    // Cargar configuraciones habilitadas filtradas por agencia
+    const url = `${environment.apiBaseUrl}/api/configuration-process/enabled-by-agency/${this.data.agencyId}`;
+    this.http.get<any>(url)
+      .subscribe({
+        next: (response) => {
+          if (response && response.success && response.data) {
+            this.processes = response.data.processes || [];
+            this.costumerTypes = response.data.costumerTypes || [];
+            this.operationTypes = response.data.operationTypes || [];
+            this.allConfigurations = response.data.configurations || [];
+            
+            // Inicializar opciones disponibles
+            this.availableCostumerTypes = [...this.costumerTypes];
+            this.availableOperationTypes = [...this.operationTypes];
+            
+            console.log('✅ Configuraciones cargadas:');
+            console.log('  - Procesos:', this.processes.length);
+            console.log('  - Tipos de cliente:', this.costumerTypes.length);
+            console.log('  - Tipos de operación:', this.operationTypes.length);
+            console.log('  - Configuraciones totales:', this.allConfigurations.length);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando configuraciones:', error);
+          // Fallback: cargar datos individuales si falla el endpoint de configuraciones
+          this.loadIndividualComboData();
+        }
+      });
+  }
+
+  private loadIndividualComboData(): void {
+    console.log('🔄 Cargando datos individuales como fallback...');
+    
+    // Cargar procesos
+    this.http.get<any>(`${environment.apiBaseUrl}/api/process?enabled=1`)
+      .subscribe({
+        next: (response) => {
+          if (response && response.success && response.data) {
+            this.processes = response.data.processes || response.data;
+            console.log('✅ Procesos cargados:', this.processes.length);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando procesos:', error);
+        }
+      });
+
+    // Cargar tipos de cliente
+    this.http.get<any>(`${environment.apiBaseUrl}/api/costumer-type?enabled=1`)
+      .subscribe({
+        next: (response) => {
+          if (response && response.success && response.data) {
+            this.costumerTypes = response.data.costumerTypes || response.data;
+            console.log('✅ Tipos de cliente cargados:', this.costumerTypes.length);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando tipos de cliente:', error);
+        }
+      });
+
+    // Cargar tipos de operación
+    this.http.get<any>(`${environment.apiBaseUrl}/api/operation-type?enabled=1`)
+      .subscribe({
+        next: (response) => {
+          if (response && response.success && response.data) {
+            this.operationTypes = response.data.operationTypes || response.data;
+            console.log('✅ Tipos de operación cargados:', this.operationTypes.length);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando tipos de operación:', error);
+        }
+      });
+  }
+
+  onProcessChange(): void {
+    console.log('🔄 Proceso seleccionado:', this.selectedProcess);
+    
+    // Limpiar selecciones dependientes
+    this.selectedCostumerType = null;
+    this.selectedOperationType = null;
+    
+    // Filtrar tipos de cliente disponibles para este proceso
+    this.filterCostumerTypesByProcess();
+    
+    // Resetear tipos de operación
+    this.availableOperationTypes = [];
+  }
+
+  onCostumerTypeChange(): void {
+    console.log('🔄 Tipo de cliente seleccionado:', this.selectedCostumerType);
+    
+    // Limpiar selección de operación
+    this.selectedOperationType = null;
+    
+    // Filtrar tipos de operación disponibles para esta combinación proceso + tipo cliente
+    this.filterOperationTypesByProcessAndCostumerType();
+  }
+
+  private filterCostumerTypesByProcess(): void {
+    if (!this.selectedProcess) {
+      this.availableCostumerTypes = [...this.costumerTypes];
+      return;
+    }
+
+    // Buscar configuraciones que tengan este proceso
+    const configurationsWithProcess = this.allConfigurations.filter(config => 
+      config.IdProcess === this.selectedProcess.Id
+    );
+
+    // Extraer tipos de cliente únicos
+    const costumerTypeIds = [...new Set(configurationsWithProcess.map(config => config.IdCostumerType))];
+    
+    // Filtrar tipos de cliente disponibles
+    this.availableCostumerTypes = this.costumerTypes.filter(costumerType => 
+      costumerTypeIds.includes(costumerType.Id)
+    );
+
+    console.log(`📋 Tipos de cliente disponibles para proceso "${this.selectedProcess.Name}":`, this.availableCostumerTypes.length);
+  }
+
+  private filterOperationTypesByProcessAndCostumerType(): void {
+    if (!this.selectedProcess || !this.selectedCostumerType) {
+      this.availableOperationTypes = [...this.operationTypes];
+      return;
+    }
+
+    // Buscar configuraciones que tengan esta combinación proceso + tipo cliente
+    const configurationsWithProcessAndCostumer = this.allConfigurations.filter(config => 
+      config.IdProcess === this.selectedProcess.Id && 
+      config.IdCostumerType === this.selectedCostumerType.Id
+    );
+
+    // Extraer tipos de operación únicos
+    const operationTypeIds = [...new Set(configurationsWithProcessAndCostumer.map(config => config.IdOperationType))];
+    
+    // Filtrar tipos de operación disponibles
+    this.availableOperationTypes = this.operationTypes.filter(operationType => 
+      operationTypeIds.includes(operationType.Id)
+    );
+
+    console.log(`📋 Tipos de operación disponibles para "${this.selectedProcess.Name}" + "${this.selectedCostumerType.Name}":`, this.availableOperationTypes.length);
+  }
+
+  isFormValid(): boolean {
+    return this.selectedOrder && 
+           this.selectedProcess && 
+           this.selectedCostumerType && 
+           this.selectedOperationType &&
+           this.isConfigurationValid();
+  }
+
+  isConfigurationValid(): boolean {
+    if (!this.selectedProcess || !this.selectedCostumerType || !this.selectedOperationType) {
+      return false;
+    }
+
+    // Verificar que esta combinación existe en las configuraciones habilitadas
+    const validConfiguration = this.allConfigurations.find(config => 
+      config.IdProcess === this.selectedProcess.Id &&
+      config.IdCostumerType === this.selectedCostumerType.Id &&
+      config.IdOperationType === this.selectedOperationType.Id
+    );
+
+    return !!validConfiguration;
+  }
+
+  onConfirm(): void {
+    if (this.isFormValid()) {
+      const fileData = {
+        order: this.selectedOrder,
+        process: this.selectedProcess,
+        costumerType: this.selectedCostumerType,
+        operationType: this.selectedOperationType
+      };
+      this.dialogRef.close(fileData);
+    }
   }
 }

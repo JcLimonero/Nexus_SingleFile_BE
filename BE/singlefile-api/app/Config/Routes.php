@@ -119,6 +119,12 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('(:num)', 'DocumentoRequerido::delete/$1');
     });
 
+    // Rutas de configuración de procesos
+    $routes->group('configuration-process', function($routes) {
+        $routes->get('enabled', 'ConfigurationProcess::getEnabledConfigurations');
+        $routes->get('enabled-by-agency/(:num)', 'ConfigurationProcess::getEnabledConfigurationsByAgency/$1');
+    });
+
     // Rutas de logs de actividad de usuarios
     $routes->group('user-activity-logs', function($routes) {
         $routes->get('/', 'UserActivityLog::index');
