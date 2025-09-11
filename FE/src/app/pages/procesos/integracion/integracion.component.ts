@@ -952,16 +952,35 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
       dialogRef.afterClosed().subscribe(result => {
         console.log('🔚 Diálogo cerrado, resultado:', result);
-        if (result && result.length > 0) {
+        
+        if (result && result.success) {
+          // File creado exitosamente
+          console.log('✅ File creado exitosamente:', result);
+          this.snackBar.open(`File creado exitosamente con ${result.documentsCreated} documentos`, 'Cerrar', {
+            duration: 5000
+          });
+          
+          // Recargar los files del cliente para mostrar el nuevo file
+          this.loadClientFiles();
+          
+        } else if (result && result.success === false) {
+          // Error al crear el file
+          console.error('❌ Error al crear file:', result.message);
+          this.snackBar.open(`Error: ${result.message}`, 'Cerrar', {
+            duration: 5000
+          });
+          
+        } else if (result && result.length > 0) {
+          // Formato anterior (pedidos seleccionados directamente)
           console.log('✅ Pedidos seleccionados:', result);
-          // Agregar los pedidos seleccionados a la tabla
           this.addSelectedOrdersToTable(result);
           this.snackBar.open(`${result.length} pedidos agregados exitosamente`, 'Cerrar', {
             duration: 3000
           });
+          
         } else {
+          // Diálogo cancelado
           console.log('❌ Diálogo cancelado o sin selección');
-          // Si se canceló el diálogo, cargar pedidos existentes
           this.loadClientFiles();
         }
       });

@@ -290,11 +290,15 @@ $routes->group('client', function($routes) {
     $routes->get('search', 'Client::search');
 });
 
-// Rutas de files/pedidos
+// Rutas de files/pedidos (Principal)
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
     $routes->get('by-agency', 'Files::getByAgency');
+    $routes->post('create-from-vanguardia', 'Files::createFromVanguardiaNew');
+    $routes->post('create-from-vanguardia-new', 'Files::createFromVanguardiaNew');
+    $routes->post('create-file-test', 'Files::createFileTest');
 });
+
 
 // Rutas de documentos
 $routes->group('documents', function($routes) {

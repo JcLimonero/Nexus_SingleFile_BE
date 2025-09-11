@@ -767,13 +767,50 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   onConfirm(): void {
     if (this.isFormValid()) {
-      const fileData = {
-        order: this.selectedOrder,
-        process: this.selectedProcess,
-        costumerType: this.selectedCostumerType,
-        operationType: this.selectedOperationType
-      };
-      this.dialogRef.close(fileData);
+      this.createFileFromVanguardia();
     }
+  }
+
+  private createFileFromVanguardia(): void {
+    console.log('🔄 Creando file desde Vanguardia...');
+    
+    const requestData = {
+      order: this.selectedOrder,
+      process: this.selectedProcess,
+      costumerType: this.selectedCostumerType,
+      operationType: this.selectedOperationType,
+      clientId: this.data.ndCliente, // ID del cliente
+      agencyId: this.data.agencyId   // ID de la agencia
+    };
+
+    console.log('📤 Datos enviados:', requestData);
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/files/create-from-vanguardia-new`, requestData)
+      .subscribe({
+        next: (response) => {
+          if (response && response.success) {
+            console.log('✅ File creado exitosamente:', response.data);
+            this.dialogRef.close({
+              success: true,
+              fileId: response.data.fileId,
+              documentsCreated: response.data.documentsCreated,
+              message: response.message
+            });
+          } else {
+            console.error('❌ Error en la respuesta:', response);
+            this.dialogRef.close({
+              success: false,
+              message: response.message || 'Error al crear el file'
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error al crear file:', error);
+          this.dialogRef.close({
+            success: false,
+            message: error.error?.message || 'Error de conexión al crear el file'
+          });
+        }
+      });
   }
 }
