@@ -287,6 +287,7 @@ $routes->group('client', function($routes) {
 // Rutas de files/pedidos
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
+    $routes->get('by-agency', 'Files::getByAgency');
 });
 
 // Rutas de documentos

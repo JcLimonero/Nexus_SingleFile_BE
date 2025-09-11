@@ -9,7 +9,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-order-selection-dialog',
@@ -25,6 +28,7 @@ import { FormsModule } from '@angular/forms';
     MatInputModule,
     MatPaginatorModule,
     MatRadioModule,
+    MatProgressSpinnerModule,
     FormsModule
   ],
   template: `
@@ -35,23 +39,31 @@ import { FormsModule } from '@angular/forms';
       </h2>
       
       <div mat-dialog-content class="mb-6 dialog-content">
-        <!-- Buscador -->
-        <div class="mb-4">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Buscar por número de orden</mat-label>
-            <input 
-              matInput 
-              [(ngModel)]="searchTerm"
-              (input)="applyFilter()"
-              placeholder="Ingresa el número de orden para buscar"
-              autocomplete="off">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
+        <!-- Loading spinner -->
+        <div *ngIf="loading" class="flex justify-center py-8">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p class="ml-4 text-gray-600">Verificando pedidos existentes...</p>
         </div>
-        
-        <p class="text-gray-600 mb-4 order-info">
-          Se encontraron {{ filteredOrders.length }} pedidos disponibles. Selecciona uno:
-        </p>
+
+        <!-- Contenido principal -->
+        <div *ngIf="!loading">
+          <!-- Buscador -->
+          <div class="mb-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Buscar por número de orden</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="searchTerm"
+                (input)="applyFilter()"
+                placeholder="Ingresa el número de orden para buscar"
+                autocomplete="off">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+          </div>
+          
+          <p class="text-gray-600 mb-4 order-info">
+            Se encontraron {{ filteredOrders.length }} pedidos nuevos disponibles. Selecciona uno:
+          </p>
         
         <div class="overflow-x-auto table-container">
           <table mat-table [dataSource]="paginatedOrders" class="w-full">
@@ -151,6 +163,14 @@ import { FormsModule } from '@angular/forms';
             (page)="onPageChange($event)"
             showFirstLastButtons>
           </mat-paginator>
+        </div>
+
+        <!-- Sin pedidos nuevos -->
+        <div *ngIf="!loading && filteredOrders.length === 0" class="text-center py-8">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
+          <p class="text-gray-500">Todos los pedidos de Vanguardia ya existen en el sistema</p>
+          <p class="text-sm text-gray-400 mt-2">No hay pedidos nuevos para agregar</p>
+        </div>
         </div>
       </div>
 
@@ -367,30 +387,87 @@ export class OrderSelectionDialogComponent implements OnInit {
   paginatedOrders: any[] = [];
   pageSize: number = 5;
   currentPage: number = 0;
+  loading: boolean = true;
+  originalOrders: any[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<OrderSelectionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { orders: any[] }
+    @Inject(MAT_DIALOG_DATA) public data: { orders: any[], agencyId: number, ndCliente?: string },
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     console.log('🎯 OrderSelectionDialogComponent ngOnInit');
     console.log('📊 Datos recibidos en el diálogo:', this.data);
     console.log('📊 Cantidad de orders:', this.data.orders?.length || 0);
+    console.log('📊 Agency ID:', this.data.agencyId);
     console.log('📊 Primer order (ejemplo):', this.data.orders?.[0]);
     
-    this.filteredOrders = [...this.data.orders];
-    console.log('📊 FilteredOrders inicial:', this.filteredOrders.length);
-    this.updatePaginatedOrders();
-    console.log('📊 PaginatedOrders inicial:', this.paginatedOrders.length);
+    this.originalOrders = [...this.data.orders];
+    this.loading = true;
+    
+    // Verificar pedidos existentes antes de mostrar la tabla
+    this.checkExistingOrders();
+  }
+
+  private checkExistingOrders(): void {
+    console.log('🔍 Verificando pedidos existentes en la tabla file...');
+    
+    // Obtener todos los pedidos existentes para la agencia
+    let params = new HttpParams();
+    params = params.set('agencyId', this.data.agencyId.toString());
+    params = params.set('statusId', '1'); // ID para Integración
+    params = params.set('ndCliente', this.data.ndCliente || '');
+
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
+      .subscribe({
+        next: (response) => {
+          console.log('📁 Files existentes encontrados:', response);
+          
+          let existingFiles: any[] = [];
+          if (response && response.success && response.data && response.data.files) {
+            existingFiles = response.data.files;
+          }
+          
+          console.log('📊 Files existentes:', existingFiles.length);
+          
+          // Filtrar pedidos de Vanguardia que no existen en la tabla de file
+          const newOrders = this.filterNewOrders(existingFiles);
+          console.log('📊 Pedidos nuevos después del filtrado:', newOrders.length);
+          
+          this.filteredOrders = newOrders;
+          this.loading = false;
+          this.updatePaginatedOrders();
+        },
+        error: (error) => {
+          console.error('❌ Error verificando pedidos existentes:', error);
+          // Si hay error, mostrar todos los pedidos
+          this.filteredOrders = [...this.originalOrders];
+          this.loading = false;
+          this.updatePaginatedOrders();
+        }
+      });
+  }
+
+  private filterNewOrders(existingFiles: any[]): any[] {
+    // Crear un Set con los order_dms existentes para búsqueda rápida
+    const existingOrderDms = new Set(
+      existingFiles.map(file => file.order_dms?.toString().toLowerCase())
+    );
+    
+    // Filtrar pedidos de Vanguardia que no existen en la tabla de file
+    return this.originalOrders.filter(order => {
+      const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+      return !existingOrderDms.has(orderDms);
+    });
   }
 
   applyFilter(): void {
     if (!this.searchTerm.trim()) {
-      this.filteredOrders = [...this.data.orders];
+      this.filteredOrders = [...this.originalOrders];
     } else {
       const searchLower = this.searchTerm.toLowerCase();
-      this.filteredOrders = this.data.orders.filter(order => {
+      this.filteredOrders = this.originalOrders.filter(order => {
         const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
         return orderDms.includes(searchLower);
       });

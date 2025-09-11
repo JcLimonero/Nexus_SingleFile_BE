@@ -350,7 +350,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private searchClientInVanguardia(): void {
     console.log('🔍 Buscando cliente en Vanguardia...');
     
-    // Verificar que tenemos la agencia seleccionada con IdAgency
+    // Verificar que tenemos la agencia seleccionada
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
       this.snackBar.open('Error: No se encontró la información de IdAgency de la agencia seleccionada', 'Cerrar', {
         duration: 3000
@@ -508,12 +508,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.filesLoading = true;
 
     let params = new HttpParams();
+    params = params.set('agencyId', this.selectedAgency.IdAgency);
     params = params.set('ndCliente', this.selectedClient.ndCliente);
-    params = params.set('status', 'Integracion'); // Filtrar por estatus de integración
-    params = params.set('limit', '100');
+    params = params.set('statusId', '1'); // ID para Integración
 
     // Cargar solo pedidos que ya están en la tabla de file (no desde Vanguardia)
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-client`, { params })
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -814,12 +814,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
     console.log('🔍 Cliente seleccionado:', this.selectedClient.ndCliente);
     let params = new HttpParams();
+    params = params.set('agencyId', this.selectedAgency.IdAgency);
     params = params.set('ndCliente', this.selectedClient.ndCliente);
-    params = params.set('status', 'Integracion');
-    params = params.set('limit', '100');
+    params = params.set('statusId', '1'); // ID para Integración
 
     console.log('🌐 Consultando API de files existentes...');
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-client`, { params })
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -896,7 +896,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         height: 'auto',
         maxWidth: '90vw',
         maxHeight: '80vh',
-        data: { orders: apiOrders }
+        data: { orders: apiOrders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
       });
 
       console.log('✅ Diálogo abierto exitosamente con datos del API');
@@ -945,7 +945,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         height: 'auto',
         maxWidth: '90vw',
         maxHeight: '80vh',
-        data: { orders: orders }
+        data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
       });
 
       console.log('✅ Diálogo abierto exitosamente');
