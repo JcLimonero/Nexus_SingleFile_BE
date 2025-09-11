@@ -2,7 +2,27 @@ import { CSSValue } from '../interfaces/css-value.type';
 
 export enum VexTheme {
   DEFAULT = 'vex-theme-default',
-  TEAL = 'vex-theme-teal'
+  TEAL = 'vex-theme-teal',
+  BLACK = 'vex-theme-black',
+  GREEN = 'vex-theme-green',
+  PURPLE = 'vex-theme-purple',
+  RED = 'vex-theme-red',
+  ORANGE = 'vex-theme-orange',
+  
+  BLUE = 'vex-theme-blue',
+  PINK = 'vex-theme-pink',
+  BROWN = 'vex-theme-brown',
+  GRAY = 'vex-theme-gray',
+  SILVER = 'vex-theme-silver',
+  GOLD = 'vex-theme-gold',
+  
+  LIME = 'vex-theme-lime',
+  MAROON = 'vex-theme-maroson',
+  NAVY = 'vex-theme-navy',
+  OLIVE = 'vex-theme-olive',
+  
+  VIOLET = 'vex-theme-violet',
+  YELLOW = 'vex-theme-yellow'
 }
 
 export enum VexConfigName {
