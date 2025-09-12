@@ -17,6 +17,8 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
+import { VanguardiaClientService, VanguardiaResponse } from '../../../core/services/vanguardia-client.service';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
@@ -117,7 +119,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private defaultAgencyService: DefaultAgencyService,
     private http: HttpClient,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private clientSearchService: ClientSearchService,
+    private vanguardiaClientService: VanguardiaClientService
   ) {}
 
   ngOnInit(): void {
@@ -126,6 +130,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.loadAgencies();
     this.checkUserPermissions();
   }
+
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -279,8 +284,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   searchClients(): void {
-    if (this.clientSearchTerm.trim().length < 3) {
-      this.snackBar.open('Debe ingresar al menos 3 caracteres para buscar', 'Cerrar', {
+    if (this.clientSearchTerm.trim().length < 1) {
+      this.snackBar.open('Debe ingresar al menos 1 carácter para buscar', 'Cerrar', {
         duration: 3000
       });
       return;
@@ -306,16 +311,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.clientsLoading = true;
     this.showClientResults = true;
 
-    let params = new HttpParams();
-    params = params.set('id', this.selectedAgencyId.toString());
-    params = params.set('search', this.clientSearchTerm.trim());
-    params = params.set('limit', '50');
-
-    this.http.get<any>(`${environment.apiBaseUrl}/api/client/search`, { params })
+    // Usar el Id de la agencia seleccionada (que corresponde a File.IdAgency en la vista)
+    this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          console.log('🔍 Clientes encontrados:', response);
+        next: (response: ClientSearchResponse) => {
+          console.log('🔍 Clientes encontrados con vista:', response);
           
           if (response && response.success && response.data && response.data.clientes) {
             this.clients = response.data.clientes;
@@ -328,16 +329,18 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               this.selectClient(this.clients[0]);
             } else {
               // Sin resultados en el sistema local, buscar en Vanguardia
+              console.log('🔍 No se encontraron clientes en el sistema local, buscando en Vanguardia...');
               this.searchClientInVanguardia();
             }
           } else {
             // Sin resultados en el sistema local, buscar en Vanguardia
+            console.log('🔍 No se encontraron clientes en el sistema local, buscando en Vanguardia...');
             this.searchClientInVanguardia();
           }
           
           this.clientsLoading = false;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('❌ Error buscando clientes:', error);
           this.clients = [];
           this.clientsLoading = false;
@@ -351,86 +354,64 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private searchClientInVanguardia(): void {
     console.log('🔍 Buscando cliente en Vanguardia...');
     
-    // Verificar que tenemos la agencia seleccionada
-    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
-      this.snackBar.open('Error: No se encontró la información de IdAgency de la agencia seleccionada', 'Cerrar', {
+    // Obtener el IdAgency de la agencia seleccionada para enviar a Vanguardia
+    const selectedAgency = this.agencies.find(agency => agency.Id === this.selectedAgencyId);
+    if (!selectedAgency) {
+      this.snackBar.open('Agencia no encontrada para búsqueda en Vanguardia', 'Cerrar', {
         duration: 3000
       });
       return;
     }
-    
-    let params = new HttpParams();
-    params = params.set('idAgency', this.selectedAgency.IdAgency);
-    params = params.set('ndDMS', this.clientSearchTerm.trim());
 
-    this.http.get<any>(environment.vanguardia.apiUrl, { 
-      params,
-      headers: this.getBackblazeHeaders()
-    })
+    // Realizar búsqueda en el API de Vanguardia usando los parámetros correctos
+    // idAgency=1&ndDMS=10004
+    this.vanguardiaClientService.searchClients(selectedAgency.IdAgency, this.clientSearchTerm.trim())
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          console.log('🔍 Cliente encontrado en Vanguardia:', response);
+        next: (response: VanguardiaResponse) => {
+          console.log('🔍 Respuesta de Vanguardia:', response);
           
-          if (response && response.success && response.data) {
-            // Convertir respuesta de Vanguardia al formato esperado
-            const vanguardiaClient = {
-              ndCliente: response.data.ndCliente || response.data.id,
-              cliente: response.data.cliente || response.data.nombre || response.data.name,
-              rfc: response.data.rfc || '',
-              email: response.data.email || '',
-              telefono: response.data.telefono || response.data.phone || '',
-              direccion: response.data.direccion || response.data.address || '',
-              // Marcar como cliente de Vanguardia para referencia
-              isVanguardiaClient: true,
-              vanguardiaData: response.data
-            };
+          if (response && response.status === 200 && response.data && response.data.data) {
+            // Convertir los datos de Vanguardia al formato estándar
+            this.clients = response.data.data.map(client => 
+              this.vanguardiaClientService.convertVanguardiaClient(client)
+            );
             
-            this.clients = [vanguardiaClient];
-            this.selectClient(vanguardiaClient);
-            
-            this.snackBar.open(`Cliente encontrado en Vanguardia: ${vanguardiaClient.cliente}`, 'Cerrar', {
-              duration: 3000
-            });
+            if (this.clients.length > 0) {
+              // Mostrar mensaje de que se encontraron en Vanguardia
+              this.snackBar.open(`Se encontraron ${this.clients.length} cliente(s) en Vanguardia`, 'Cerrar', {
+                duration: 4000
+              });
+              
+              // Si hay múltiples resultados, mostrar diálogo
+              if (this.clients.length > 1) {
+                this.showClientSelectionDialog();
+              } else if (this.clients.length === 1) {
+                // Si hay solo un resultado, seleccionarlo automáticamente
+                this.selectClient(this.clients[0]);
+              }
+            } else {
+              // Sin resultados en Vanguardia tampoco
+              this.snackBar.open('No se encontraron clientes en el sistema local ni en Vanguardia', 'Cerrar', {
+                duration: 4000
+              });
+            }
           } else {
-            this.clients = [];
-            this.showClientResults = true;
-            this.snackBar.open('Cliente no encontrado en el sistema ni en Vanguardia', 'Cerrar', {
-              duration: 3000
+            // Sin resultados en Vanguardia
+            this.snackBar.open('No se encontraron clientes en el sistema local ni en Vanguardia', 'Cerrar', {
+              duration: 4000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error buscando cliente en Vanguardia:', error);
-          this.clients = [];
-          this.showClientResults = true;
-          
-          let errorMessage = 'Error desconocido al buscar en Vanguardia';
-          
-          if (error.status === 0) {
-            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia.';
-          } else if (error.status === 400) {
-            errorMessage = 'Error 400: Solicitud inválida a Vanguardia.';
-          } else if (error.status === 401) {
-            errorMessage = 'Error 401: Token de autenticación inválido para Vanguardia.';
-          } else if (error.status === 403) {
-            errorMessage = 'Error 403: Acceso denegado a Vanguardia.';
-          } else if (error.status === 404) {
-            errorMessage = 'Error 404: Endpoint de Vanguardia no encontrado.';
-          } else if (error.status === 500) {
-            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
-          } else if (error.error && error.error.message) {
-            errorMessage = error.error.message;
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-          
-          this.snackBar.open(`Error buscando en Vanguardia: ${errorMessage}`, 'Cerrar', {
-            duration: 5000
+          console.error('❌ Error buscando en Vanguardia:', error);
+          this.snackBar.open('Error al buscar en Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
+            duration: 4000
           });
         }
       });
   }
+
 
   clearClientSearch(): void {
     this.clientSearchTerm = '';

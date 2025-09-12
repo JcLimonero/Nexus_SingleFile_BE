@@ -42,7 +42,7 @@
                 mat-raised-button 
                 color="primary" 
                 (click)="searchClients()"
-                [disabled]="clientsLoading || clientSearchTerm.trim().length < 3"
+                [disabled]="clientsLoading || clientSearchTerm.trim().length < 1"
                 matTooltip="Buscar cliente"
                 style="height: 40px; min-height: 40px;">
                 <mat-icon>search</mat-icon>

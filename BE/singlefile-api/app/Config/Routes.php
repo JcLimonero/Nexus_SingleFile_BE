@@ -58,6 +58,13 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'Agency::toggleStatus/$1');
     });
     
+    // Rutas de búsqueda de clientes usando vista
+    $routes->group('client-search', function($routes) {
+        $routes->get('search', 'ClientSearch::search');
+        $routes->get('by-agency/(:num)', 'ClientSearch::getByAgency/$1');
+        $routes->get('(:num)', 'ClientSearch::getById/$1');
+    });
+    
     // Rutas de procesos
     $routes->group('process', function($routes) {
         $routes->get('/', 'Process::index');

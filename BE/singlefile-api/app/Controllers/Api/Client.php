@@ -67,23 +67,63 @@ class Client extends BaseController
             // Aplicar filtro de búsqueda si se proporciona
             if ($searchTerm && trim($searchTerm) !== '') {
                 $searchTerm = trim($searchTerm);
-                $sql .= " AND (
-                    ctr.IdTotalDealer LIKE ? 
-                    OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
-                )";
                 
-                $searchPattern = "%{$searchTerm}%";
-                $params[] = $searchPattern;
-                $params[] = $searchPattern;
+                // Si es un número, buscar también por ID de cliente directamente
+                if (is_numeric($searchTerm)) {
+                    $sql .= " AND (
+                        ctr.IdTotalDealer LIKE ? 
+                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
+                        OR c.Id = ?
+                    )";
+                    
+                    $searchPattern = "%{$searchTerm}%";
+                    $params[] = $searchPattern;
+                    $params[] = $searchPattern;
+                    $params[] = (int)$searchTerm;
+                } else {
+                    $sql .= " AND (
+                        ctr.IdTotalDealer LIKE ? 
+                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
+                    )";
+                    
+                    $searchPattern = "%{$searchTerm}%";
+                    $params[] = $searchPattern;
+                    $params[] = $searchPattern;
+                }
             }
             
             $sql .= " GROUP BY c.Id, ctr.IdTotalDealer, c.Name, c.LastName, c.MotherLastName, c.RFC, c.Email, c.TelNumber, c.TelNumber2, c.RazonSocial, c.CURP, c.Adviser, c.AgencyOrigin, c.RegistrationDate, c.UpdateDate";
             $sql .= " ORDER BY ndCliente ASC LIMIT ?";
             $params[] = $limit;
 
+            // Debug: Log de la consulta
+            error_log("Client::search - SQL: " . $sql);
+            error_log("Client::search - Params: " . json_encode($params));
+            
             // Ejecutar query
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
+            
+            // Debug: Log de resultados
+            error_log("Client::search - Results count: " . count($results));
+
+            // Debug: Si no hay resultados, hacer una consulta más simple
+            if (empty($results) && $searchTerm) {
+                $debugSql = "
+                    SELECT 
+                        c.Id as idCliente,
+                        c.Name as nombre,
+                        c.LastName as apellidoPaterno,
+                        c.MotherLastName as apellidoMaterno
+                    FROM Client c
+                    WHERE c.Id = ?
+                ";
+                
+                $debugQuery = $this->db->query($debugSql, [$searchTerm]);
+                $debugResults = $debugQuery->getResultArray();
+                
+                error_log("Client::search - Debug query results: " . json_encode($debugResults));
+            }
 
             return $this->response->setJSON([
                 'success' => true,

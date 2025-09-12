@@ -1,33 +1,19 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
-import { ConfigLoaderService } from './config-loader.service';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiBaseService {
 
-  constructor(private configLoader: ConfigLoaderService) { }
+  constructor() { }
 
   /**
-   * Obtiene la URL base de la API (síncrono)
+   * Obtiene la URL base de la API desde el environment
    */
   getApiBaseUrl(): string {
-    // Intentar obtener la URL desde la configuración externa primero
-    const externalBaseUrl = this.configLoader.getApiBaseUrl();
-    
-    // Si la configuración externa está disponible, usarla (sin restricciones)
-    if (externalBaseUrl) {
-      console.log('🔍 ApiBaseService - Usando configuración externa:', externalBaseUrl);
-      return externalBaseUrl;
-    }
-    
-    // Fallback a la configuración del environment
     const baseUrl = environment.apiBaseUrl;
-    console.log('🔍 ApiBaseService - Usando configuración de environment:', baseUrl);
-    console.log('🔍 ApiBaseService - Environment completo:', environment);
+    console.log('🔍 ApiBaseService - URL desde environment:', baseUrl);
     
     if (!baseUrl || !baseUrl.startsWith('http')) {
       console.error('❌ ERROR: Environment apiBaseUrl no es válido:', baseUrl);
@@ -35,37 +21,6 @@ export class ApiBaseService {
     }
     
     return baseUrl;
-  }
-
-  /**
-   * Fuerza la recarga de la configuración y obtiene la URL base
-   */
-  forceReloadAndGetApiBaseUrl(): Observable<string> {
-    return this.configLoader.forceReloadConfig().pipe(
-      map(config => {
-        const baseUrl = config.api.baseUrl;
-        console.log('🔍 ApiBaseService - URL después de recarga forzada:', baseUrl);
-        return baseUrl;
-      })
-    );
-  }
-
-  /**
-   * Obtiene la URL base de la API de forma asíncrona
-   */
-  getApiBaseUrlAsync(): Observable<string> {
-    return this.configLoader.getConfigObservable().pipe(
-      map(config => {
-        if (config?.api.baseUrl) {
-          console.log('🔍 ApiBaseService (Async) - Usando configuración externa:', config.api.baseUrl);
-          return config.api.baseUrl;
-        }
-        
-        const baseUrl = environment.apiBaseUrl;
-        console.log('🔍 ApiBaseService (Async) - Usando configuración de environment:', baseUrl);
-        return baseUrl;
-      })
-    );
   }
 
   /**
@@ -79,7 +34,7 @@ export class ApiBaseService {
       endpoint = '/' + endpoint;
     }
     
-    // Obtener la URL base (desde configuración externa o environment)
+    // Obtener la URL base desde el environment
     const baseUrl = this.getApiBaseUrl();
     
     // Construir URL absoluta completa
