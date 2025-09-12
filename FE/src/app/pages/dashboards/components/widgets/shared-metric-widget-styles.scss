@@ -1,40 +1,44 @@
 // Estilos compartidos para todos los widgets de métricas principales
 // Este archivo asegura consistencia visual entre todos los widgets
 
-// Estilos base para todos los widgets de métricas
+// Estilos base para todos los widgets de métricas - Optimizados para mejor uso del espacio
 %metric-widget-base {
   .metric-card,
   .widget-card {
     height: 100%;
-    min-height: 100px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    border: 1px solid #e0e0e0;
+    min-height: 80px; // Reducido de 100px
+    border-radius: 8px; // Reducido de 12px
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); // Sombra más sutil
+    transition: all 0.2s ease; // Transición más rápida
+    border: 1px solid #e5e5e5; // Borde más sutil
     background: white;
+    position: relative; // Evitar superposición
+    z-index: 1; // Asegurar orden de apilamiento
+    overflow: hidden; // Evitar desbordamiento
     
     &:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); // Hover más sutil
+      transform: translateY(-1px); // Movimiento más sutil
+      z-index: 2; // Elevar en hover
     }
   }
 
-  // Contenedor de iconos estandarizado
+  // Contenedor de iconos optimizado
   .icon-container {
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 12px;
+    width: 32px !important; // Reducido de 40px
+    height: 32px !important; // Reducido de 40px
+    border-radius: 8px; // Reducido de 12px
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
   }
 
-  // Iconos estandarizados
+  // Iconos optimizados
   .widget-icon {
-    font-size: 20px !important;
-    width: 20px !important;
-    height: 20px !important;
+    font-size: 16px !important; // Reducido de 20px
+    width: 16px !important; // Reducido de 20px
+    height: 16px !important; // Reducido de 20px
     line-height: 1;
   }
 
@@ -42,47 +46,47 @@
   .widget-total-liberated,
   .widget-current-month-liberated {
     .widget-icon {
-      font-size: 18px !important;
-      width: 18px !important;
-      height: 18px !important;
+      font-size: 14px !important; // Reducido de 18px
+      width: 14px !important; // Reducido de 18px
+      height: 14px !important; // Reducido de 18px
     }
   }
 
-  // Números estandarizados
+  // Números optimizados
   .text-2xl,
   .main-number {
-    font-size: 24px !important;
+    font-size: 20px !important; // Reducido de 24px
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1; // Ligeramente más compacto
   }
 
-  // Etiquetas estandarizadas
+  // Etiquetas optimizadas
   .text-sm,
   .main-label {
-    font-size: 13px !important;
-    font-weight: 500;
-    line-height: 1.2;
+    font-size: 11px !important; // Reducido de 13px
+    font-weight: 600; // Más bold
+    line-height: 1.1; // Más compacto
   }
 
-  // Subtítulos estandarizados
+  // Subtítulos optimizados
   .text-xs,
   .sub-label {
-    font-size: 11px !important;
+    font-size: 9px !important; // Reducido de 11px
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1.1; // Más compacto
   }
 
-  // Padding interno estandarizado
+  // Padding interno optimizado
   .p-4,
   .widget-content {
-    padding: 1.25rem !important;
+    padding: 0.75rem !important; // Reducido de 1.25rem
   }
 
-  // Espaciado entre elementos estandarizado
+  // Espaciado entre elementos optimizado
   .space-x-4,
   .data-container,
   .no-data-container {
-    gap: 0.75rem !important;
+    gap: 0.5rem !important; // Reducido de 0.75rem
   }
 }
 
@@ -96,7 +100,7 @@
   @extend %metric-widget-base;
 }
 
-// Responsive adjustments para todos los widgets
+// Responsive adjustments para todos los widgets - Optimizados para mejor uso del espacio
 @media (max-width: 768px) {
   .widget-today-cases,
   .widget-monthly-cases,
@@ -105,50 +109,50 @@
   .widget-total-liberated,
   .widget-agency-users {
     .icon-container {
-      width: 32px !important;
-      height: 32px !important;
+      width: 28px !important; // Reducido de 32px
+      height: 28px !important; // Reducido de 32px
     }
 
     .widget-icon {
-      font-size: 16px !important;
-      width: 16px !important;
-      height: 16px !important;
+      font-size: 14px !important; // Reducido de 16px
+      width: 14px !important; // Reducido de 16px
+      height: 14px !important; // Reducido de 16px
     }
 
     // Iconos específicos para checkmark en móviles
     .widget-total-liberated,
     .widget-current-month-liberated {
       .widget-icon {
-        font-size: 14px !important;
-        width: 14px !important;
-        height: 14px !important;
+        font-size: 12px !important; // Reducido de 14px
+        width: 12px !important; // Reducido de 14px
+        height: 12px !important; // Reducido de 14px
       }
     }
 
     .text-2xl,
     .main-number {
-      font-size: 20px !important;
+      font-size: 18px !important; // Reducido de 20px
     }
 
     .text-sm,
     .main-label {
-      font-size: 12px !important;
+      font-size: 10px !important; // Reducido de 12px
     }
 
     .text-xs,
     .sub-label {
-      font-size: 10px !important;
+      font-size: 8px !important; // Reducido de 10px
     }
 
     .p-4,
     .widget-content {
-      padding: 0.75rem !important;
+      padding: 0.5rem !important; // Reducido de 0.75rem
     }
 
     .space-x-4,
     .data-container,
     .no-data-container {
-      gap: 0.5rem !important;
+      gap: 0.375rem !important; // Reducido de 0.5rem
     }
   }
 }

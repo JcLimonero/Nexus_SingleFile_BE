@@ -8,39 +8,29 @@
     <p>{{ error }}</p>
   </div>
 
-  <div *ngIf="data && !loading" class="grid grid-cols-1 gap-4">
-    <!-- Expedientes Liberados Total Histórico -->
-    <mat-card class="metric-card">
-      <div class="flex items-center space-x-4 p-4">
-        <div class="flex-shrink-0">
-          <div class="icon-container bg-green-100 rounded-lg flex items-center justify-center">
-            <mat-icon class="text-green-600 widget-icon">check_circle</mat-icon>
-          </div>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-2xl font-bold text-blue-500">{{ data.total | number }}</div>
-          <div class="text-sm font-medium text-gray-700">Expedientes</div>
-          <div class="text-xs text-gray-500">Liberados Total</div>
+  <!-- Single card for all states -->
+  <mat-card *ngIf="!loading && !error && data" class="metric-card">
+    <div class="flex items-center space-x-4 p-4">
+      <div class="flex-shrink-0">
+        <div class="icon-container rounded-lg flex items-center justify-center"
+             [class.bg-green-100]="data.total > 0"
+             [class.bg-gray-100]="data.total === 0">
+          <mat-icon class="widget-icon"
+                    [class.text-green-600]="data.total > 0"
+                    [class.text-gray-400]="data.total === 0">check_circle</mat-icon>
         </div>
       </div>
-    </mat-card>
-  </div>
-
-  <!-- No Data State -->
-  <div *ngIf="!loading && !error && data && data.total === 0" class="grid grid-cols-1 gap-4">
-    <mat-card class="metric-card">
-      <div class="flex items-center space-x-4 p-4">
-        <div class="flex-shrink-0">
-          <div class="icon-container bg-gray-100 rounded-lg flex items-center justify-center">
-            <mat-icon class="text-gray-400 widget-icon">check_circle</mat-icon>
-          </div>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-2xl font-bold text-gray-400">0</div>
-          <div class="text-sm font-medium text-gray-500">Expedientes</div>
-          <div class="text-xs text-gray-400">Liberados Total</div>
-        </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-2xl font-bold"
+             [class.text-blue-500]="data.total > 0"
+             [class.text-gray-400]="data.total === 0">{{ data.total | number }}</div>
+        <div class="text-sm font-medium"
+             [class.text-gray-700]="data.total > 0"
+             [class.text-gray-500]="data.total === 0">Expedientes</div>
+        <div class="text-xs"
+             [class.text-gray-500]="data.total > 0"
+             [class.text-gray-400]="data.total === 0">Liberados Total</div>
       </div>
-    </mat-card>
-  </div>
+    </div>
+  </mat-card>
 </div>

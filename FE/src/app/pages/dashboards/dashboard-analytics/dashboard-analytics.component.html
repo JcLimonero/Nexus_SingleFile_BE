@@ -1,11 +1,11 @@
 
-<div class="w-full p-4 space-y-3 dashboard-analytics">
+<div class="w-full space-y-3 dashboard-analytics">
               <!-- Filtros unificados -->
-              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 w-full">
-                <div class="flex items-center justify-between gap-4 w-full">
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-4 w-full filters-container">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
                   <!-- Filtro por Agencia -->
-                  <div class="flex items-center space-x-4">
-                    <mat-form-field appearance="outline" class="min-w-48">
+                  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+                    <mat-form-field appearance="outline" class="w-full sm:w-48 lg:w-48">
                       <mat-label>Agencia</mat-label>
                       <mat-select 
                         [value]="selectedAgencyId" 
@@ -23,7 +23,7 @@
                     </mat-form-field>
 
                     <!-- Filtro por Usuario -->
-                    <mat-form-field appearance="outline" class="min-w-96">
+                    <mat-form-field appearance="outline" class="w-full sm:w-64 lg:w-96">
                       <mat-label>Usuario</mat-label>
                       <mat-select 
                         #userSelect
@@ -187,41 +187,41 @@
       </h2>
       
       <!-- Métricas específicas de agencia y expedientes liberados -->
-      <div class="flex flex-row gap-3 w-full p-2 items-stretch">
+      <div class="metrics-main-grid">
         <!-- 1. Expedientes del Día -->
-        <div class="flex-1 min-w-0 h-full">
+        <div class="widget-container">
           <vex-widget-today-cases 
             [agencyId]="selectedAgencyId"></vex-widget-today-cases>
         </div>
 
         <!-- 2. Expedientes Totales -->
-        <div class="flex-1 min-w-0 h-full">
+        <div class="widget-container">
           <vex-widget-total-cases 
             [agencyId]="selectedAgencyId"></vex-widget-total-cases>
         </div>
 
         <!-- 3. Expedientes Liberados Totales -->
-        <div class="flex-1 min-w-0 h-full">
+        <div class="widget-container">
           <vex-widget-total-liberated 
             [agencyId]="selectedAgencyId" 
             [userId]="selectedUserId"></vex-widget-total-liberated>
         </div>
 
         <!-- 4. Expedientes del Mes -->
-        <div class="flex-1 min-w-0 h-full">
+        <div class="widget-container">
           <vex-widget-monthly-cases 
             [agencyId]="selectedAgencyId"></vex-widget-monthly-cases>
         </div>
 
         <!-- 5. Expedientes Liberados del Mes Actual -->
-        <div class="flex-1 min-w-0 h-full">
+        <div class="widget-container">
           <vex-widget-current-month-liberated 
             [agencyId]="selectedAgencyId" 
             [userId]="selectedUserId"></vex-widget-current-month-liberated>
         </div>
 
         <!-- 6. Usuarios Activos -->
-        <div class="flex-1 min-w-0 h-full">
+        <div class="widget-container">
           <vex-widget-agency-users 
             [agencyId]="selectedAgencyId"></vex-widget-agency-users>
         </div>
