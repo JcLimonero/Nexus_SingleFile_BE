@@ -1,6 +1,6 @@
 <div class="card h-full">
-  <div class="flex-none border-b py-2 px-6 flex items-center">
-    <h2 class="m-0 title flex-auto">Tendencia de Expedientes</h2>
+  <div class="flex-none border-b py-1 px-4 flex items-center"> <!-- Reducido py-2 a py-1 y px-6 a px-4 -->
+    <h2 class="m-0 title flex-auto text-sm font-semibold">Tendencia de Expedientes</h2> <!-- Agregado text-sm -->
     
     <!-- Filtro de año -->
     <mat-form-field appearance="outline" class="year-filter">
@@ -13,14 +13,14 @@
     </mat-form-field>
   </div>
 
-  <div class="flex-1 pt-3 pr-4">
-    <div *ngIf="loading" class="flex justify-center items-center h-64">
-      <mat-spinner diameter="40"></mat-spinner>
+  <div class="flex-1 pt-1 pr-2"> <!-- Reducido pt-3 a pt-1 y pr-4 a pr-2 -->
+    <div *ngIf="loading" class="flex justify-center items-center h-48"> <!-- Reducido h-64 a h-48 -->
+      <mat-spinner diameter="32"></mat-spinner> <!-- Reducido diameter de 40 a 32 -->
     </div>
 
-    <div *ngIf="error" class="text-center text-red-600 p-4">
-      <mat-icon class="text-red-500 mb-2">error</mat-icon>
-      <p>{{ error }}</p>
+    <div *ngIf="error" class="text-center text-red-600 p-3"> <!-- Reducido p-4 a p-3 -->
+      <mat-icon class="text-red-500 mb-1 text-lg">error</mat-icon> <!-- Reducido mb-2 a mb-1 y agregado text-lg -->
+      <p class="text-sm">{{ error }}</p> <!-- Agregado text-sm -->
     </div>
 
     <vex-chart *ngIf="!loading && !error" [options]="options" [series]="series"></vex-chart>

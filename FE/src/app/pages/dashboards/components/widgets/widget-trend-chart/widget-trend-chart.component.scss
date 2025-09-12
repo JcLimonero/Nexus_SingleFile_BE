@@ -1,15 +1,36 @@
-// Estilos mínimos ya que el gráfico usa ApexCharts con el estilo estándar
+// Estilos optimizados para mejor uso del espacio
 .widget-trend-chart {
   .card {
     height: 100%;
+    min-height: 200px; // Reducido para ocupar menos espacio
   }
 
   .year-filter {
-    min-width: 100px;
-    margin-left: 1rem;
+    min-width: 80px; // Reducido de 100px
+    margin-left: 0.5rem; // Reducido de 1rem
     
     .mat-mdc-form-field {
-      font-size: 14px;
+      font-size: 12px; // Reducido de 14px
+      
+      .mat-mdc-form-field-wrapper {
+        padding-bottom: 0.5em; // Reducir padding interno
+      }
+      
+      .mat-mdc-form-field-infix {
+        padding: 0.5em 0; // Reducir padding interno
+      }
     }
+  }
+
+  // Optimizar el título
+  .title {
+    font-size: 0.875rem; // Reducido para ocupar menos espacio
+    line-height: 1.2;
+  }
+
+  // Optimizar el gráfico
+  .vex-chart {
+    height: 100%;
+    min-height: 200px; // Reducido para ocupar menos espacio
   }
 }

@@ -43,7 +43,7 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
   options: ApexOptions = {
     chart: {
       type: 'line',
-      height: 350,
+      height: 280, // Reducido de 350 para ocupar menos espacio
       sparkline: {
         enabled: false
       }
@@ -54,21 +54,21 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
       width: 3
     },
     markers: {
-      size: 6,
+      size: 5, // Reducido de 6
       colors: ['#3b82f6'],
       strokeColors: '#ffffff',
       strokeWidth: 2,
       hover: {
-        size: 8
+        size: 7 // Reducido de 8
       }
     },
     dataLabels: {
       enabled: true,
       formatter: function (val: number) {
-        return val.toString();
+        return Math.round(val).toString(); // Quitar decimales
       },
       style: {
-        fontSize: '12px',
+        fontSize: '10px', // Reducido de 12px
         fontWeight: 600,
         colors: ['#3b82f6']
       }
@@ -79,7 +79,7 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
       intersect: false,
       y: {
         formatter: function (val: number) {
-          return val.toString();
+          return Math.round(val).toString(); // Quitar decimales
         }
       }
     },
@@ -87,7 +87,7 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
       categories: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
       labels: {
         style: {
-          fontSize: '12px',
+          fontSize: '11px', // Reducido de 12px
           fontWeight: 500
         }
       }
@@ -95,14 +95,23 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
     yaxis: {
       labels: {
         style: {
-          fontSize: '12px',
+          fontSize: '11px', // Reducido de 12px
           fontWeight: 500
+        },
+        formatter: function (val: number) {
+          return Math.round(val).toString(); // Quitar decimales del eje Y
         }
       }
     },
     grid: {
       borderColor: '#f1f5f9',
-      strokeDashArray: 4
+      strokeDashArray: 3, // Reducido de 4
+      padding: {
+        left: 16,
+        top: 8,    // Reducido para ocupar menos espacio
+        right: 8,  // Reducido para ocupar menos espacio
+        bottom: 8  // Reducido para ocupar menos espacio
+      }
     }
   };
 

@@ -59,12 +59,15 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
       show: true,
       strokeDashArray: 3,
       padding: {
-        left: 16
+        left: 16,
+        top: 8,    // Reducido de 20
+        right: 8,  // Reducido de 20
+        bottom: 8  // Reducido de 20
       }
     },
     chart: {
       type: 'line',
-      height: 350, // Altura estándar para todos los widgets
+      height: 280, // Reducido de 350 para ocupar menos espacio
       sparkline: {
         enabled: false
       },
@@ -94,6 +97,9 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
         style: {
           cssClass: 'text-secondary fill-current caption font-medium',
           fontFamily: 'inherit'
+        },
+        formatter: function (val: number) {
+          return Math.round(val).toString(); // Quitar decimales del eje Y
         }
       }
     },
@@ -103,8 +109,9 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
       horizontalAlign: 'left',
       itemMargin: {
         horizontal: 4,
-        vertical: 4
-      }
+        vertical: 2  // Reducido de 4
+      },
+      offsetY: -5  // Reducir espacio superior
     },
     tooltip: {
       enabled: true,
@@ -121,7 +128,7 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
           const seriesName = opts.w.config.series[opts.seriesIndex].name;
           return `<div style="padding: 4px;">
                     <div style="font-weight: 600; margin-bottom: 2px;">${seriesName}</div>
-                    <div style="color: #6b7280;">${val} expedientes</div>
+                    <div style="color: #6b7280;">${Math.round(val)} expedientes</div>
                   </div>`;
         }
       }

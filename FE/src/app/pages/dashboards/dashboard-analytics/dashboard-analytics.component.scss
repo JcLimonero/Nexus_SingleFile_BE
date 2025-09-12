@@ -42,141 +42,274 @@
   }
 }
 
-// Estilos globales para el dashboard de analytics
+// Estilos globales para el dashboard de analytics - Optimizado para mejor uso del espacio
 .dashboard-analytics {
   // Espaciado general del dashboard optimizado
-  padding: 0.5rem; // Padding responsive
+  padding: 0.375rem; // Reducido de 0.5rem
   
   @media (min-width: 768px) {
-    padding: 1rem;
+    padding: 0.75rem; // Reducido de 1rem
   }
   
   .dashboard-section {
-    margin-bottom: 1.25rem; // Reducido de 2rem
+    margin-bottom: 1rem; // Reducido de 1.25rem
     
     .section-title {
-      margin-bottom: 1rem; // Reducido de 1.5rem
-      padding-bottom: 0.375rem; // Reducido de 0.5rem
-      border-bottom: 2px solid #f0f0f0;
-      font-size: 1.125rem; // Reducido de text-xl
+      margin-bottom: 0.75rem; // Reducido de 1rem
+      padding-bottom: 0.25rem; // Reducido de 0.375rem
+      border-bottom: 1px solid #e5e5e5; // Más sutil
+      font-size: 1rem; // Reducido de 1.125rem
       
       // Responsive para títulos
       @media (max-width: 479px) {
-        font-size: 1rem;
-        margin-bottom: 0.75rem;
+        font-size: 0.875rem; // Reducido de 1rem
+        margin-bottom: 0.5rem; // Reducido de 0.75rem
       }
     }
   }
 
-  // Estilos consistentes para todos los widgets optimizados
+  // Estilos consistentes para todos los widgets optimizados - Más compactos
   .widget-container {
     height: 100%;
-    min-height: 160px; // Reducido de 200px
+    min-height: 120px; // Reducido de 160px
     
     // Espaciado interno consistente optimizado
     .widget-content {
-      padding: 1.25rem; // Reducido de 1.5rem
+      padding: 0.875rem; // Reducido de 1.25rem
       height: 100%;
     }
     
-    // Cards con estilo consistente
+    // Cards con estilo consistente y más compacto
     .widget-card {
       height: 100%;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      border: 1px solid #e0e0e0;
+      border-radius: 8px; // Reducido de 12px
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); // Más sutil
+      transition: all 0.2s ease; // Más rápido
+      border: 1px solid #e5e5e5; // Más sutil
       background: white;
       
       &:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); // Más sutil
+        transform: translateY(-1px); // Menos movimiento
       }
     }
   }
 
-  // Grid responsivo mejorado con espaciado optimizado
+  // Grid responsivo mejorado con espaciado optimizado - Más compacto
   .widget-grid {
     display: grid;
-    gap: 1rem; // Reducido de 1.5rem
+    gap: 0.75rem; // Reducido de 1rem
     
     // Grid de 1 columna por defecto
     grid-template-columns: 1fr;
     
-    // Grid de 2 columnas en pantallas medianas
-    @media (min-width: 768px) {
+    // Grid de 2 columnas en pantallas pequeñas
+    @media (min-width: 640px) {
       grid-template-columns: repeat(2, 1fr);
     }
     
-    // Grid de 3 columnas en pantallas grandes
-    @media (min-width: 1024px) {
+    // Grid de 3 columnas en pantallas medianas
+    @media (min-width: 768px) {
       grid-template-columns: repeat(3, 1fr);
     }
     
-    // Grid de 4 columnas en pantallas extra grandes
-    @media (min-width: 1280px) {
+    // Grid de 4 columnas en pantallas grandes
+    @media (min-width: 1024px) {
       grid-template-columns: repeat(4, 1fr);
     }
+    
+    // Grid de 5 columnas en pantallas extra grandes
+    @media (min-width: 1280px) {
+      grid-template-columns: repeat(5, 1fr);
+    }
   }
 
-  // Grid específico para distribución (2 columnas) optimizado
+  // Grid específico para distribución - Más compacto y flexible
   .distribution-grid {
     display: grid;
-    gap: 1rem; // Reducido de 1.5rem
+    gap: 0.75rem; // Reducido de 1rem
     grid-template-columns: 1fr;
     
-    @media (min-width: 1024px) {
+    @media (min-width: 640px) {
       grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr); // Aumentado de 2 a 3
     }
   }
 
-  // Grid específico para estatus (3 columnas) optimizado
+  // Grid específico para estatus - Más compacto
   .status-grid {
     display: grid;
-    gap: 1rem; // Reducido de 1.5rem
+    gap: 0.75rem; // Reducido de 1rem
     grid-template-columns: 1fr;
+    
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
     
     @media (min-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    @media (min-width: 1024px) {
       grid-template-columns: repeat(3, 1fr);
     }
-  }
-
-  // Grid específico para análisis temporal (2 columnas)
-  .temporal-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: 1fr;
     
     @media (min-width: 1024px) {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr); // Aumentado de 3 a 4
     }
   }
 
-  // Grid específico para rendimiento (2 columnas)
+  // Flexbox específico para análisis temporal - Optimizado para 2 widgets en el mismo renglón
+  .temporal-grid {
+    display: flex !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    
+    // Solo en móviles muy pequeños usar 1 columna
+    @media (max-width: 480px) {
+      flex-direction: column !important;
+    }
+    
+    // Asegurar que siempre sea 2 columnas en pantallas medianas y grandes
+    @media (min-width: 481px) {
+      flex-direction: row !important;
+    }
+    
+    // Estilos específicos para contenedores de gráficos
+    .chart-container {
+      flex: 1 !important;
+      min-width: 0 !important; // Permite que se contraigan
+      width: 100% !important;
+      
+      @media (min-width: 481px) {
+        flex: 1 1 50% !important; // Cada uno ocupa 50% del ancho
+        max-width: 50% !important;
+      }
+    }
+    
+    // Forzar que los widgets se comporten correctamente
+    vex-widget-trend-chart,
+    vex-widget-weekly-chart {
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+      
+      .card,
+      .vex-card {
+        width: 100% !important;
+        height: 100% !important;
+        display: block !important;
+      }
+    }
+  }
+
+  // Solución específica para proceso y distribución - CSS Grid para forzar layout en la misma fila
+  .process-distribution-grid {
+    display: grid !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    margin-bottom: 0.75rem !important;
+    grid-template-columns: 1fr !important; // Por defecto 1 columna
+    grid-template-rows: auto !important;
+    
+    // Solo en móviles muy pequeños usar 1 columna
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr !important;
+      grid-template-rows: auto auto !important; // 2 filas en móvil
+    }
+    
+    // Asegurar que siempre sea 2 columnas en pantallas medianas y grandes
+    @media (min-width: 481px) {
+      grid-template-columns: 1fr 1fr !important; // 2 columnas iguales
+      grid-template-rows: auto !important; // 1 fila en desktop
+    }
+  }
+  
+  // Estilos específicos para los contenedores de widgets de proceso y distribución
+  .process-distribution-grid .widget-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+  
+  // Estilos específicos para los widgets de proceso y distribución
+  .process-distribution-grid .widget-container vex-widget-process-distribution,
+  .process-distribution-grid .widget-container vex-widget-distribution-metrics-donut {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    
+    .vex-card {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+  }
+  
+  // Estilos adicionales para asegurar que el flexbox funcione correctamente
+  .dashboard-analytics .process-distribution-grid {
+    // Forzar que el contenedor sea flexbox
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+    
+    // En móvil, cambiar a columna
+    @media (max-width: 480px) {
+      flex-direction: column !important;
+      flex-wrap: wrap !important;
+    }
+    
+    // En desktop, mantener fila
+    @media (min-width: 481px) {
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+    }
+    
+    // Asegurar que los widgets estén en la misma fila
+    .widget-container {
+      flex: 1 1 50% !important;
+      min-width: 0 !important;
+      max-width: 50% !important;
+      
+      @media (max-width: 480px) {
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
+      }
+    }
+  }
+
+  // Grid específico para rendimiento - Más compacto
   .performance-grid {
     display: grid;
-    gap: 1rem;
+    gap: 0.75rem; // Reducido de 1rem
     grid-template-columns: 1fr;
     
-    @media (min-width: 1024px) {
+    @media (min-width: 640px) {
       grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr); // Aumentado de 2 a 3
     }
   }
 
-  // Estilos para contenedores de gráficos
+  // Estilos para contenedores de gráficos - Más compactos
   .chart-container {
     height: 100%;
-    min-height: 300px; // Reducido de 350px
+    min-height: 200px; // Reducido de 300px
+    width: 100%; // Asegurar que ocupe todo el ancho disponible
+    display: block; // Asegurar que sea un elemento de bloque
     
     .chart-content {
-      padding: 1.25rem; // Reducido de 1.5rem
+      padding: 0.875rem; // Reducido de 1.25rem
       height: 100%;
     }
   }
+  
 
   // Estilos para filtros responsive
   .filters-container {
@@ -195,38 +328,38 @@
     }
   }
 
-  // Responsive adjustments optimizados
+  // Responsive adjustments optimizados - Más compactos
   @media (max-width: 768px) {
     .widget-container {
-      min-height: 120px; // Reducido de 150px
+      min-height: 100px; // Reducido de 120px
       
       .widget-content {
-        padding: 0.875rem; // Reducido de 1rem
+        padding: 0.625rem; // Reducido de 0.875rem
       }
     }
     
     .metric-card {
-      min-height: 80px; // Reducido de 100px
+      min-height: 70px; // Reducido de 80px
       
       .metric-content {
-        padding: 0.75rem; // Reducido de 1rem
-        gap: 0.5rem; // Reducido de 0.75rem
+        padding: 0.5rem; // Reducido de 0.75rem
+        gap: 0.375rem; // Reducido de 0.5rem
       }
       
       .metric-icon {
-        width: 32px; // Reducido de 40px
-        height: 32px; // Reducido de 40px
+        width: 28px; // Reducido de 32px
+        height: 28px; // Reducido de 32px
         
         mat-icon {
-          font-size: 16px; // Reducido de 20px
-          width: 16px; // Reducido de 20px
-          height: 16px; // Reducido de 20px
+          font-size: 14px; // Reducido de 16px
+          width: 14px; // Reducido de 16px
+          height: 14px; // Reducido de 16px
         }
       }
       
       .metric-info {
         .metric-number {
-          font-size: 20px; // Reducido de 24px
+          font-size: 18px; // Reducido de 20px
         }
         
         .metric-label {

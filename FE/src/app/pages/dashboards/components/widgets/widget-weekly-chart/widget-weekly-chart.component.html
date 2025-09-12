@@ -17,21 +17,21 @@
       <div class="widget-content">
         <!-- Loading State -->
         <div *ngIf="loading" class="loading-container">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>Cargando datos semanales...</p>
+          <mat-spinner diameter="32"></mat-spinner> <!-- Reducido de 40 a 32 -->
+          <p class="text-sm">Cargando datos semanales...</p> <!-- Agregado text-sm -->
         </div>
 
         <!-- Error State -->
         <div *ngIf="!loading && error" class="error-container">
-          <mat-icon color="warn">error_outline</mat-icon>
-          <p>{{ error }}</p>
-          <button mat-button color="primary" (click)="refresh()">Reintentar</button>
+          <mat-icon color="warn" class="text-lg">error_outline</mat-icon> <!-- Agregado text-lg -->
+          <p class="text-sm">{{ error }}</p> <!-- Agregado text-sm -->
+          <button mat-button color="primary" (click)="refresh()" class="text-sm">Reintentar</button> <!-- Agregado text-sm -->
         </div>
 
         <!-- No Data State -->
         <div *ngIf="!loading && !error && weeklyData.length === 0" class="no-data-container">
-          <mat-icon>info_outline</mat-icon>
-          <p>No hay datos de expedientes para la semana actual.</p>
+          <mat-icon class="text-lg">info_outline</mat-icon> <!-- Agregado text-lg -->
+          <p class="text-sm">No hay datos de expedientes para la semana actual.</p> <!-- Agregado text-sm -->
         </div>
 
         <!-- Summary Stats -->

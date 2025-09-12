@@ -260,24 +260,28 @@
         Distribución y Estados
       </h2>
       
-      <!-- Widgets de Distribución en la misma fila -->
-      <div class="distribution-grid mb-4">
+      <!-- Widgets de proceso y distribución en la misma fila -->
+      <div class="process-distribution-grid" 
+           style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 0.5rem !important; width: 100% !important; margin-bottom: 0.75rem !important;">
         <!-- Distribución de expedientes por proceso -->
-        <div class="widget-container">
+        <div class="widget-container" 
+             style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-process-distribution 
             [agencyId]="selectedAgencyId" 
             [userId]="selectedUserId"></vex-widget-process-distribution>
         </div>
 
         <!-- Métricas de distribución de expedientes -->
-        <div class="widget-container">
+        <div class="widget-container" 
+             style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-distribution-metrics-donut 
             [agencyId]="selectedAgencyId"></vex-widget-distribution-metrics-donut>
         </div>
       </div>
 
-      <!-- Widgets de Estatus en la misma fila -->
-      <div class="status-grid">
+      <!-- Resto de widgets de distribución y estatus -->
+      <div class="distribution-grid">
+
         <!-- Distribución de expedientes por estatus -->
         <div class="widget-container">
           <vex-widget-status-distribution 
@@ -308,7 +312,7 @@
         Análisis de Rendimiento y Períodos de Atención
       </h2>
       
-      <!-- Widgets de rendimiento y atención en la misma fila -->
+      <!-- Todos los widgets de rendimiento en un solo grid compacto -->
       <div class="performance-grid">
         <!-- Widget de Distribución por Asesor -->
         <div class="chart-container">
@@ -323,13 +327,13 @@
             [agencyId]="selectedAgencyId" 
             [userId]="selectedUserId"></vex-widget-attention-period>
         </div>
-      </div>
 
-      <!-- Widget de Período de Atención - Mes Actual -->
-      <div class="chart-container">
-        <vex-widget-current-month-attention 
-          [agencyId]="selectedAgencyId" 
-          [userId]="selectedUserId"></vex-widget-current-month-attention>
+        <!-- Widget de Período de Atención - Mes Actual -->
+        <div class="chart-container">
+          <vex-widget-current-month-attention 
+            [agencyId]="selectedAgencyId" 
+            [userId]="selectedUserId"></vex-widget-current-month-attention>
+        </div>
       </div>
     </div>
 
