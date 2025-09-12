@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { ConfigLoaderService } from './config-loader.service';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -10,14 +12,14 @@ export class ApiBaseService {
   constructor(private configLoader: ConfigLoaderService) { }
 
   /**
-   * Obtiene la URL base de la API
+   * Obtiene la URL base de la API (síncrono)
    */
   getApiBaseUrl(): string {
     // Intentar obtener la URL desde la configuración externa primero
     const externalBaseUrl = this.configLoader.getApiBaseUrl();
     
-    // Si la configuración externa está disponible, usarla
-    if (externalBaseUrl && externalBaseUrl !== 'http://localhost:402') {
+    // Si la configuración externa está disponible, usarla (sin restricciones)
+    if (externalBaseUrl) {
       console.log('🔍 ApiBaseService - Usando configuración externa:', externalBaseUrl);
       return externalBaseUrl;
     }
@@ -33,6 +35,37 @@ export class ApiBaseService {
     }
     
     return baseUrl;
+  }
+
+  /**
+   * Fuerza la recarga de la configuración y obtiene la URL base
+   */
+  forceReloadAndGetApiBaseUrl(): Observable<string> {
+    return this.configLoader.forceReloadConfig().pipe(
+      map(config => {
+        const baseUrl = config.api.baseUrl;
+        console.log('🔍 ApiBaseService - URL después de recarga forzada:', baseUrl);
+        return baseUrl;
+      })
+    );
+  }
+
+  /**
+   * Obtiene la URL base de la API de forma asíncrona
+   */
+  getApiBaseUrlAsync(): Observable<string> {
+    return this.configLoader.getConfigObservable().pipe(
+      map(config => {
+        if (config?.api.baseUrl) {
+          console.log('🔍 ApiBaseService (Async) - Usando configuración externa:', config.api.baseUrl);
+          return config.api.baseUrl;
+        }
+        
+        const baseUrl = environment.apiBaseUrl;
+        console.log('🔍 ApiBaseService (Async) - Usando configuración de environment:', baseUrl);
+        return baseUrl;
+      })
+    );
   }
 
   /**

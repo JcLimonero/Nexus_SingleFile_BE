@@ -27,8 +27,12 @@ export const AuthInterceptor: HttpInterceptorFn = (
   console.log('🔐 Interceptor - Usuario autenticado:', isAuthenticated);
   console.log('🔐 Interceptor - Usuario actual:', authService.getCurrentUser());
   
-  // Solo agregar token a llamadas del backend (usando environment)
-  if (request.url.includes(environment.apiBaseUrl.replace('http://', ''))) {
+  // Solo agregar token a llamadas del backend (usando environment o URLs relativas)
+  const isBackendCall = request.url.includes(environment.apiBaseUrl.replace('http://', '')) || 
+                       request.url.startsWith('/api') ||
+                       request.url.includes('192.168.190.140:401');
+  
+  if (isBackendCall) {
     console.log('🔗 Llamada a backend:', request.url);
     
     if (token && isAuthenticated) {
@@ -72,11 +76,19 @@ export const AuthInterceptor: HttpInterceptorFn = (
       return next(request);
     }
   } else if (request.url.startsWith('/api')) {
-    console.log('⚠️  Llamada local detectada:', request.url);
+    console.log('⚠️  Llamada relativa detectada:', request.url);
     
-    // Para URLs locales que empiezan con /api, no hacer nada especial
-    // Estas URLs serán procesadas por el navegador como relativas al puerto actual
-    return next(request);
+    // Convertir URL relativa a absoluta usando la configuración del backend
+    const absoluteUrl = environment.apiBaseUrl + request.url;
+    console.log('🔗 Convirtiendo URL relativa a absoluta:', absoluteUrl);
+    
+    // Clonar la request con la URL absoluta
+    const absoluteRequest = request.clone({
+      url: absoluteUrl
+    });
+    
+    // Procesar la request con la URL absoluta
+    return next(absoluteRequest);
   } else if (request.url.startsWith('http')) {
     console.log('🌐 Llamada a URL externa:', request.url);
     return next(request);

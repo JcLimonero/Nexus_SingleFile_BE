@@ -52,7 +52,7 @@ export class ConfigLoaderService {
         // Retornar configuración por defecto si no se puede cargar el archivo
         const defaultConfig: ApiConfig = {
           api: {
-            baseUrl: 'http://localhost:402',
+            baseUrl: 'http://192.168.190.140:401',
             timeout: 30000,
             retryAttempts: 3,
             retryDelay: 1000
@@ -81,6 +81,11 @@ export class ConfigLoaderService {
    * Obtiene la configuración actual (síncrono)
    */
   getConfig(): ApiConfig | null {
+    // Si no hay configuración cargada, intentar cargarla
+    if (!this.configCache && !this.configLoaded) {
+      console.log('🔧 ConfigLoaderService - Configuración no cargada, iniciando carga...');
+      this.loadConfig().subscribe();
+    }
     return this.configCache;
   }
 
@@ -96,7 +101,10 @@ export class ConfigLoaderService {
    */
   getApiBaseUrl(): string {
     const config = this.getConfig();
-    return config?.api.baseUrl || 'http://localhost:402';
+    const baseUrl = config?.api.baseUrl || 'http://192.168.190.140:401';
+    console.log('🔧 ConfigLoaderService - getApiBaseUrl:', baseUrl);
+    console.log('🔧 ConfigLoaderService - Config cargada:', !!config);
+    return baseUrl;
   }
 
   /**
@@ -179,5 +187,48 @@ export class ConfigLoaderService {
     this.configCache = null;
     this.configLoaded = false;
     this.configSubject.next(null);
+    console.log('🔧 ConfigLoaderService - Caché limpiado');
+  }
+
+  /**
+   * Fuerza la recarga de la configuración con timestamp para evitar caché
+   */
+  forceReloadConfig(): Observable<ApiConfig> {
+    this.clearCache();
+    const timestamp = new Date().getTime();
+    return this.http.get<ApiConfig>(`/assets/config/api-config.json?t=${timestamp}`).pipe(
+      tap(config => {
+        this.configCache = config;
+        this.configLoaded = true;
+        this.configSubject.next(config);
+        console.log('🔧 Configuración forzada recargada:', config);
+      }),
+      catchError(error => {
+        console.warn('⚠️ No se pudo cargar configuración externa, usando configuración por defecto:', error);
+        const defaultConfig: ApiConfig = {
+          api: {
+            baseUrl: 'http://192.168.190.140:401',
+            timeout: 30000,
+            retryAttempts: 3,
+            retryDelay: 1000
+          },
+          environment: {
+            production: true,
+            debug: false,
+            version: '1.0.0'
+          },
+          features: {
+            enableLogging: true,
+            enableErrorReporting: true,
+            enablePerformanceMonitoring: false
+          }
+        };
+        
+        this.configCache = defaultConfig;
+        this.configLoaded = true;
+        this.configSubject.next(defaultConfig);
+        return of(defaultConfig);
+      })
+    );
   }
 }

@@ -1,6 +1,6 @@
 {
   "api": {
-    "baseUrl": "http://localhost:402",
+    "baseUrl": "http://192.168.190.140:401",
     "timeout": 30000,
     "retryAttempts": 3,
     "retryDelay": 1000
