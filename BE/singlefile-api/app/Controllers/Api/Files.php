@@ -242,16 +242,19 @@ class Files extends BaseController
             $clientId = $input['clientId'];
             $agencyId = $input['agencyId'];
 
-            error_log("Datos recibidos - clientId: $clientId, agencyId: $agencyId");
+            // Extraer IDs de los objetos
+            $processId = is_array($process) ? $process['Id'] : $process;
+            $costumerTypeId = is_array($costumerType) ? $costumerType['Id'] : $costumerType;
+            $operationTypeId = is_array($operationType) ? $operationType['Id'] : $operationType;
 
             // Convertir IdAgency externo al Id interno de la agencia
             $internalAgencyId = $this->getAgencyInternalId($agencyId);
             
             // Validar que la configuración existe
             $configurationExists = $this->validateConfigurationExists(
-                $process['Id'], 
-                $costumerType['Id'], 
-                $operationType['Id'], 
+                $processId, 
+                $costumerTypeId, 
+                $operationTypeId, 
                 $internalAgencyId
             );
 
@@ -262,8 +265,8 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Buscar agencia por IdAgency para obtener Id interno
-            $agency = $this->getAgencyByExternalId($agencyId);
+            // Usar el ID interno de la agencia que ya se calculó correctamente
+            $agency = $this->getAgencyById($internalAgencyId);
             if (!$agency) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -393,6 +396,16 @@ class Files extends BaseController
         error_log("Configuración válida: " . ($result->count > 0 ? 'SÍ' : 'NO'));
 
         return $result->count > 0;
+    }
+
+    /**
+     * Buscar agencia por Id interno
+     */
+    private function getAgencyById($agencyId)
+    {
+        $sql = "SELECT Id, Name, IdAgency FROM Agency WHERE Id = ?";
+        $query = $this->db->query($sql, [$agencyId]);
+        return $query->getRow();
     }
 
     /**
