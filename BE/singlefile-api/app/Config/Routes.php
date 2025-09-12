@@ -333,6 +333,18 @@ $routes->group('documents', function($routes) {
         $routes->post('aprobar-documento', 'Validacion::aprobarDocumento');
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
     });
+
+    // Rutas de búsqueda de clientes usando vista
+    $routes->group('client-search', function($routes) {
+        $routes->get('search', 'ClientSearch::search');
+        $routes->get('by-agency/(:num)', 'ClientSearch::getByAgency/$1');
+        $routes->get('(:num)', 'ClientSearch::getById/$1');
+    });
+
+    // Rutas de importación de clientes de Vanguardia
+    $routes->group('vanguardia-client-import', function($routes) {
+        $routes->post('import', 'VanguardiaClientImport::import');
+    });
 });
 
 // Ruta por defecto

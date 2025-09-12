@@ -14,6 +14,7 @@ export interface VanguardiaClient {
   curp: string;
   phone: string;
   mobile_phone: string;
+  mail: string;
   // Campos adicionales para compatibilidad
   idCliente?: number;
   ndCliente?: string;
@@ -113,6 +114,7 @@ export class VanguardiaClientService {
       curp: vanguardiaData.curp || '',
       phone: vanguardiaData.phone || '',
       mobile_phone: vanguardiaData.mobile_phone || '',
+      mail: vanguardiaData.mail || '',
       // Campos adicionales para compatibilidad
       idCliente: parseInt(vanguardiaData.ndDMS) || 0,
       ndCliente: vanguardiaData.ndDMS || '',
@@ -120,7 +122,7 @@ export class VanguardiaClientService {
       nombre: vanguardiaData.name || '',
       apellidoPaterno: vanguardiaData.paternal_surname || '',
       apellidoMaterno: vanguardiaData.maternal_surname || '',
-      email: '',
+      email: vanguardiaData.mail || '',
       telefono: vanguardiaData.phone || '',
       telefono2: vanguardiaData.mobile_phone || '',
       razonSocial: vanguardiaData.bussines_name || '',

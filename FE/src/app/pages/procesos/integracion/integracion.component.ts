@@ -19,6 +19,7 @@ import { DefaultAgencyService } from '../../../core/services/default-agency.serv
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { VanguardiaClientService, VanguardiaResponse } from '../../../core/services/vanguardia-client.service';
+import { VanguardiaClientImportService, VanguardiaClientImportResponse } from '../../../core/services/vanguardia-client-import.service';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
@@ -121,7 +122,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private dialog: MatDialog,
     private clientSearchService: ClientSearchService,
-    private vanguardiaClientService: VanguardiaClientService
+    private vanguardiaClientService: VanguardiaClientService,
+    private vanguardiaClientImportService: VanguardiaClientImportService
   ) {}
 
   ngOnInit(): void {
@@ -276,10 +278,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   // Client search methods
   onClientSearchChange(): void {
-    // Ya no buscamos automáticamente, solo limpiamos resultados si el campo está vacío
+    // Si el campo está vacío, limpiar resultados
     if (!this.clientSearchTerm.trim()) {
       this.clients = [];
       this.showClientResults = false;
+    } else {
+      // Si el usuario empieza a escribir y ya hay un cliente seleccionado, limpiar todos los datos
+      if (this.selectedClient) {
+        this.clearAllClientData();
+      }
     }
   }
 
@@ -290,6 +297,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
       return;
     }
+
+    // Si ya hay un cliente seleccionado y se busca otro, limpiar todos los datos
+    if (this.selectedClient) {
+      this.clearAllClientData();
+    }
+
     this.performClientSearch();
   }
 
@@ -379,17 +392,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             if (this.clients.length > 0) {
               // Mostrar mensaje de que se encontraron en Vanguardia
-              this.snackBar.open(`Se encontraron ${this.clients.length} cliente(s) en Vanguardia`, 'Cerrar', {
+              this.snackBar.open(`Se encontraron ${this.clients.length} cliente(s) en Vanguardia. Importando al sistema local...`, 'Cerrar', {
                 duration: 4000
               });
               
-              // Si hay múltiples resultados, mostrar diálogo
-              if (this.clients.length > 1) {
-                this.showClientSelectionDialog();
-              } else if (this.clients.length === 1) {
-                // Si hay solo un resultado, seleccionarlo automáticamente
-                this.selectClient(this.clients[0]);
-              }
+              // Importar el primer cliente encontrado al sistema local
+              this.importVanguardiaClient(this.clients[0]);
             } else {
               // Sin resultados en Vanguardia tampoco
               this.snackBar.open('No se encontraron clientes en el sistema local ni en Vanguardia', 'Cerrar', {
@@ -412,6 +420,62 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
+  private importVanguardiaClient(vanguardiaClient: any): void {
+    console.log('📥 Importando cliente de Vanguardia al sistema local:', vanguardiaClient);
+    
+    // Convertir datos de Vanguardia al formato de importación
+    const importData = this.vanguardiaClientImportService.convertVanguardiaDataForImport(vanguardiaClient);
+    
+    // Importar cliente al sistema local
+    this.vanguardiaClientImportService.importClient(importData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: VanguardiaClientImportResponse) => {
+          console.log('✅ Cliente importado exitosamente:', response);
+          
+          if (response.success && response.data) {
+            // Convertir el cliente importado al formato estándar
+            const importedClient = {
+              idCliente: response.data.idCliente,
+              ndCliente: response.data.ndCliente,
+              cliente: response.data.cliente,
+              nombre: response.data.nombre,
+              apellidoPaterno: response.data.apellidoPaterno,
+              apellidoMaterno: response.data.apellidoMaterno,
+              rfc: response.data.rfc,
+              email: response.data.email,
+              telefono: response.data.telefono,
+              telefono2: response.data.telefono2,
+              razonSocial: response.data.razonSocial,
+              curp: response.data.curp,
+              asesor: response.data.asesor,
+              agenciaOrigen: response.data.agenciaOrigen,
+              fechaRegistro: response.data.fechaRegistro,
+              fechaActualizacion: response.data.fechaActualizacion,
+              idAgency: parseInt(response.data.agenciaOrigen),
+              isImportedFromVanguardia: true
+            };
+            
+            // Seleccionar el cliente importado
+            this.selectClient(importedClient);
+            
+            this.snackBar.open(`Cliente ${importedClient.cliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
+              duration: 5000
+            });
+          } else {
+            this.snackBar.open('Error al importar cliente desde Vanguardia', 'Cerrar', {
+              duration: 4000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error importando cliente de Vanguardia:', error);
+          this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
+            duration: 5000
+          });
+        }
+      });
+  }
 
   clearClientSearch(): void {
     this.clientSearchTerm = '';
@@ -422,6 +486,37 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+  }
+
+  clearAllClientData(): void {
+    console.log('🧹 Limpiando todos los datos del cliente anterior...');
+    
+    // Limpiar datos del cliente
+    this.selectedClient = null;
+    this.clients = [];
+    this.showClientResults = false;
+    
+    // Limpiar archivos/pedidos
+    this.files = [];
+    this.filteredFiles = [];
+    this.paginatedFiles = [];
+    this.selectedFile = null;
+    this.filesLoading = false;
+    
+    // Limpiar documentos
+    this.requiredDocuments = [];
+    this.selectedFiles = {};
+    this.documentsLoading = false;
+    
+    // Limpiar estado de carga
+    this.clientsLoading = false;
+    
+    // Limpiar búsqueda de pedidos
+    this.orderSearchTerm = '';
+    this.currentPage = 0;
+    this.totalItems = 0;
+    
+    console.log('✅ Todos los datos del cliente anterior han sido limpiados');
   }
 
   selectClient(client: any): void {
