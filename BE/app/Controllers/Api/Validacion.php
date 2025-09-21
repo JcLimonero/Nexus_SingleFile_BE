@@ -748,26 +748,64 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
             
-            // Verificar que el documento existe y tiene estatus "3"
+            // Obtener información del usuario actual
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido',
+                    'data' => null
+                ])->setStatusCode(401);
+            }
+            
+            // Verificar que el documento existe
             $documento = $this->db->table('DocumentByFile')
                 ->where('Id', $idDocumentByFile)
-                ->where('IdCurrentStatus', 3)
                 ->get()
                 ->getRowArray();
             
             if (!$documento) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'El documento no existe o no está listo para aprobar/rechazar',
+                    'message' => 'El documento no existe',
                     'data' => null
                 ])->setStatusCode(400);
+            }
+            
+            // Verificar permisos según el rol del usuario
+            $userRoleId = $currentUser['role_id'];
+            $currentStatus = $documento['IdCurrentStatus'];
+            
+            // Lógica de permisos:
+            // - Usuarios normales: solo pueden aprobar/rechazar documentos con estatus "3" (en revisión)
+            // - Gerentes (6) y Administradores (7): pueden rechazar documentos aprobados (estatus "4")
+            if ($userRoleId == '6' || $userRoleId == '7') {
+                // Gerentes y administradores pueden rechazar documentos aprobados
+                if ($nuevoEstatus == 5 && $currentStatus == 4) {
+                    // Permitir rechazar documento aprobado
+                } elseif ($currentStatus != 3) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Solo se pueden aprobar/rechazar documentos en revisión (estatus 3)',
+                        'data' => null
+                    ])->setStatusCode(400);
+                }
+            } else {
+                // Usuarios normales solo pueden trabajar con documentos en revisión
+                if ($currentStatus != 3) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'El documento no está listo para aprobar/rechazar',
+                        'data' => null
+                    ])->setStatusCode(400);
+                }
             }
             
             // Actualizar el estatus del documento
             $updateData = [
                 'IdCurrentStatus' => $nuevoEstatus,
                 'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+                'IdLastUserUpdate' => $currentUser['user_id']
             ];
             
             // Si hay comentario, actualizarlo también

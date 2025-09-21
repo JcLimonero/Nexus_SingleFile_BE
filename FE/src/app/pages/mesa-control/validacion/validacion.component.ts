@@ -25,6 +25,7 @@ import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult
 import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
 import { VerDocumentoDialogComponent } from './ver-documento-dialog/ver-documento-dialog.component';
 import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
+import { RechazarDocumentoDialogComponent, RechazarDocumentoData, RechazarDocumentoResult } from './rechazar-documento-dialog/rechazar-documento-dialog.component';
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
@@ -99,7 +100,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Tabla de documentos
   documentosDisplayedColumns: string[] = [
-    'proceso', 'fase', 'documento', 'estatus', 'ver', 'validar', 
+    'proceso', 'fase', 'documento', 'estatus', 'ver', 'validar', 'rechazar',
     'eliminar', 'requerido', 'requiereExpiracion', 'fecha', 'fechaExpiracion', 'comentario', 'asignado'
   ];
   documentosDataSource: any[] = [];
@@ -830,9 +831,59 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Implementar lógica de validación
   }
 
-  rechazarDocumento(id: number) {
-    console.log('Rechazando documento:', id);
-    // Implementar lógica de rechazo
+  rechazarDocumento(documento: any) {
+    console.log('Rechazando documento:', documento);
+    
+    // Verificar que el documento esté en estatus 4 (aprobado)
+    if (documento.idEstatus !== '4') {
+      this.snackBar.open('Solo se pueden rechazar documentos aprobados', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    // Crear dialog de confirmación
+    const dialogRef = this.dialog.open(RechazarDocumentoDialogComponent, {
+      width: '500px',
+      data: {
+        documento: documento
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.rechazado) {
+        console.log('Procesando rechazo:', result);
+        this.procesarRechazoDocumento(documento, result);
+      }
+    });
+  }
+
+  private procesarRechazoDocumento(documento: any, resultado: any): void {
+    console.log('Procesando rechazo de documento:', documento, resultado);
+    
+    this.validacionService.aprobarDocumento(
+      documento.idDocumentByFile, 
+      5, // 5 = Rechazado
+      resultado.comentario || undefined
+    ).subscribe({
+      next: (response) => {
+        console.log('Documento rechazado exitosamente:', response);
+        this.snackBar.open(`Documento ${documento.documento} rechazado exitosamente`, 'Cerrar', {
+          duration: 3000
+        });
+        
+        // Recargar documentos para mostrar el estado actualizado
+        this.cargarDocumentosCliente(this.selectedCliente.idFile);
+      },
+      error: (error) => {
+        console.error('Error rechazando documento:', error);
+        this.snackBar.open(
+          `Error al rechazar documento: ${error.message || 'Error desconocido'}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+      }
+    });
   }
 
   descargarArchivo() {
