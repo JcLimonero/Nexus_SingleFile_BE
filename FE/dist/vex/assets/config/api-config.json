@@ -1,0 +1,32 @@
+{
+  "api": {
+    "baseUrl": "http://192.168.190.140:401",
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "retryDelay": 1000
+  },
+  "environment": {
+    "production": true,
+    "debug": false,
+    "version": "1.0.0"
+  },
+  "features": {
+    "enableLogging": true,
+    "enableErrorReporting": true,
+    "enablePerformanceMonitoring": false
+  },
+  "comments": {
+    "note": "Este archivo puede ser modificado directamente en el servidor para cambiar la URL base de las APIs",
+    "instructions": [
+      "1. Modifica 'api.baseUrl' para cambiar la URL base de las APIs del backend",
+      "2. Ajusta 'api.timeout' si necesitas cambiar el tiempo de espera de las peticiones",
+      "3. Cambia 'environment.production' a false para modo desarrollo",
+      "4. Reinicia la aplicación después de hacer cambios"
+    ],
+    "examples": {
+      "local": "http://localhost:402",
+      "development": "http://dev.singlefile.com",
+      "production": "https://api.singlefile.com"
+    }
+  }
+}

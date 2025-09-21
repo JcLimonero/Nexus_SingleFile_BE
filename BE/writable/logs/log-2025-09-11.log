@@ -1,0 +1,313 @@
+CRITICAL - 2025-09-11 05:01:00 --> ErrorException: include(/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/FilesRefactored.php): Failed to open stream: No such file or directory
+[Method: GET, Route: api/files/by-agency]
+in VENDORPATH/composer/ClassLoader.php on line 576.
+ 1 VENDORPATH/composer/ClassLoader.php(576): CodeIgniter\Debug\Exceptions->errorHandler(2, 'include(/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/FilesRefactored.php): Failed to open stream: No such file or directory', '/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/ClassLoader.php', 576)
+ 2 VENDORPATH/composer/ClassLoader.php(576): include()
+ 3 VENDORPATH/composer/ClassLoader.php(427): {closure:Composer\Autoload\ClassLoader::initializeIncludeClosure():575}('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php')
+ 4 [internal function]: Composer\Autoload\ClassLoader->loadClass('App\\Controllers\\Api\\FilesRefactored')
+ 5 SYSTEMPATH/CodeIgniter.php(885): class_exists('\\App\\Controllers\\Api\\FilesRefactored', true)
+ 6 SYSTEMPATH/CodeIgniter.php(494): CodeIgniter\CodeIgniter->startController()
+ 7 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH/Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+11 SYSTEMPATH/rewrite.php(44): require_once('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php')
+CRITICAL - 2025-09-11 05:01:09 --> ErrorException: include(/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php): Failed to open stream: No such file or directory
+[Method: GET, Route: api/files/by-agency]
+in VENDORPATH/composer/ClassLoader.php on line 576.
+ 1 VENDORPATH/composer/ClassLoader.php(576): CodeIgniter\Debug\Exceptions->errorHandler(2, 'include(/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php): Failed to open stream: No such file or directory', '/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/ClassLoader.php', 576)
+ 2 VENDORPATH/composer/ClassLoader.php(576): include()
+ 3 VENDORPATH/composer/ClassLoader.php(427): {closure:Composer\Autoload\ClassLoader::initializeIncludeClosure():575}('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php')
+ 4 [internal function]: Composer\Autoload\ClassLoader->loadClass('App\\Controllers\\Api\\FilesRefactored')
+ 5 SYSTEMPATH/CodeIgniter.php(885): class_exists('\\App\\Controllers\\Api\\FilesRefactored', true)
+ 6 SYSTEMPATH/CodeIgniter.php(494): CodeIgniter\CodeIgniter->startController()
+ 7 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH/Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+11 SYSTEMPATH/rewrite.php(44): require_once('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php')
+CRITICAL - 2025-09-11 05:01:20 --> ErrorException: include(/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php): Failed to open stream: No such file or directory
+[Method: GET, Route: api/files/by-agency]
+in VENDORPATH/composer/ClassLoader.php on line 576.
+ 1 VENDORPATH/composer/ClassLoader.php(576): CodeIgniter\Debug\Exceptions->errorHandler(2, 'include(/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php): Failed to open stream: No such file or directory', '/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/ClassLoader.php', 576)
+ 2 VENDORPATH/composer/ClassLoader.php(576): include()
+ 3 VENDORPATH/composer/ClassLoader.php(427): {closure:Composer\Autoload\ClassLoader::initializeIncludeClosure():575}('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/composer/../../app/Controllers/Api/FilesRefactored.php')
+ 4 [internal function]: Composer\Autoload\ClassLoader->loadClass('App\\Controllers\\Api\\FilesRefactored')
+ 5 SYSTEMPATH/CodeIgniter.php(885): class_exists('\\App\\Controllers\\Api\\FilesRefactored', true)
+ 6 SYSTEMPATH/CodeIgniter.php(494): CodeIgniter\CodeIgniter->startController()
+ 7 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH/Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+11 SYSTEMPATH/rewrite.php(44): require_once('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php')
+DEBUG - 2025-09-11 05:10:03 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-11 05:10:03 --> Table name: DocumentByFile
+DEBUG - 2025-09-11 05:10:03 --> Total documents: 184073
+INFO - 2025-09-11 05:10:03 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-11 05:10:03 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-11 05:10:03 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-11 05:10:03 --> getCurrentMonthAttention - agencyId: , userId: 
+DEBUG - 2025-09-11 05:10:04 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-11 05:10:04 --> Table name: DocumentByFile
+DEBUG - 2025-09-11 05:10:04 --> Total documents: 184073
+INFO - 2025-09-11 05:10:04 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-11 05:10:04 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-11 05:10:04 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-11 05:10:04 --> getCurrentMonthAttention - agencyId: , userId: 
+INFO - 2025-09-11 05:10:04 --> getTotalLiberated - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:04 --> getCurrentMonthLiberated - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:04 --> getAttentionPeriod - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:04 --> getCurrentMonthAttention - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:05 --> getTotalLiberated - agencyId: 1, userId: -1
+INFO - 2025-09-11 05:10:05 --> getCurrentMonthLiberated - agencyId: 1, userId: -1
+INFO - 2025-09-11 05:10:05 --> getAttentionPeriod - agencyId: 1, userId: -1
+INFO - 2025-09-11 05:10:05 --> getCurrentMonthAttention - agencyId: 1, userId: -1
+INFO - 2025-09-11 05:10:06 --> getTotalLiberated - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:06 --> getCurrentMonthLiberated - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:06 --> getAttentionPeriod - agencyId: 1, userId: 
+INFO - 2025-09-11 05:10:06 --> getCurrentMonthAttention - agencyId: 1, userId: 
+ERROR - 2025-09-11 05:11:40 --> mysqli_sql_exception: Duplicate entry '0' for key 'documentbyfile.PRIMARY' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `Do...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `Do...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `Do...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `Do...', Array, false)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(502): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13835', '1', '2', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:11:40 --> mysqli_sql_exception: Duplicate entry '0' for key 'documentbyfile.PRIMARY' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `Do...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `Do...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `Do...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `Do...', Array, false)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(502): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13835', '1', '2', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:11:40 --> mysqli_sql_exception: Duplicate entry '0' for key 'documentbyfile.PRIMARY' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `Do...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `Do...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `Do...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `Do...', Array, false)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(502): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13835', '1', '2', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:11:40 --> mysqli_sql_exception: Duplicate entry '0' for key 'documentbyfile.PRIMARY' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `Do...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `Do...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `Do...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `Do...', Array, false)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(502): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13835', '1', '2', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:11:40 --> mysqli_sql_exception: Duplicate entry '0' for key 'documentbyfile.PRIMARY' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `Do...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `Do...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `Do...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `Do...', Array, false)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(502): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13835', '1', '2', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:11:40 --> mysqli_sql_exception: Duplicate entry '0' for key 'documentbyfile.PRIMARY' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `Do...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `Do...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `Do...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `Do...', Array, false)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(502): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13835', '1', '2', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:57:05 --> mysqli_sql_exception: Unknown column 'dbf.ExpirationDate' in 'where clause' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT dbf.IdDo...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT dbf.IdDo...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT dbf.IdDo...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(826): CodeIgniter\Database\BaseConnection->query('SELECT dbf.IdDo...', Array)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '1', '1')
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+CRITICAL - 2025-09-11 05:57:05 --> Error: Call to a member function getRow() on false
+[Method: POST, Route: api/files/create-from-vanguardia-new]
+in APPPATH/Controllers/Api/Files.php on line 827.
+ 1 APPPATH/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '1', '1')
+ 2 APPPATH/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+ 3 APPPATH/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+ 4 SYSTEMPATH/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+ 5 SYSTEMPATH/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+ 6 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH/Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+10 SYSTEMPATH/rewrite.php(44): require_once('/Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php')
+ERROR - 2025-09-11 05:57:17 --> mysqli_sql_exception: Unknown column 'dbf.ExpirationDate' in 'where clause' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT dbf.IdDo...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT dbf.IdDo...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT dbf.IdDo...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(826): CodeIgniter\Database\BaseConnection->query('SELECT dbf.IdDo...', Array)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '1', '1')
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:57:17 --> mysqli_sql_exception: Unknown column 'dbf.ExpirationDate' in 'where clause' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT dbf.IdDo...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT dbf.IdDo...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT dbf.IdDo...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(826): CodeIgniter\Database\BaseConnection->query('SELECT dbf.IdDo...', Array)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '2', '1')
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:57:17 --> mysqli_sql_exception: Unknown column 'dbf.ExpirationDate' in 'where clause' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT dbf.IdDo...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT dbf.IdDo...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT dbf.IdDo...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(826): CodeIgniter\Database\BaseConnection->query('SELECT dbf.IdDo...', Array)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '5', '1')
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:57:17 --> mysqli_sql_exception: Unknown column 'dbf.ExpirationDate' in 'where clause' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT dbf.IdDo...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT dbf.IdDo...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT dbf.IdDo...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(826): CodeIgniter\Database\BaseConnection->query('SELECT dbf.IdDo...', Array)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '6', '1')
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2025-09-11 05:57:17 --> mysqli_sql_exception: Unknown column 'dbf.ExpirationDate' in 'where clause' in /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT dbf.IdDo...', 0)
+#1 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT dbf.IdDo...')
+#2 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT dbf.IdDo...')
+#3 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(826): CodeIgniter\Database\BaseConnection->query('SELECT dbf.IdDo...', Array)
+#4 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(527): App\Controllers\Api\Files->findExistingDocumentToCopy('13851', '18', '1')
+#5 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(312): App\Controllers\Api\Files->createFileDocuments('13851', '1', '1', '10', '1', '1')
+#6 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/app/Controllers/Api/Files.php(197): App\Controllers\Api\Files->createFileFromVanguardia()
+#7 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->createFromVanguardiaNew()
+#8 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#9 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Documents/Developer/SingleFile/BE/singlefile-api/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+INFO - 2025-09-11 22:59:16 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-11 22:59:16 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-11 22:59:17 --> Total expedientes con fechas válidas: 13016
+INFO - 2025-09-11 22:59:17 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"98"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"156"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6593"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"65"}]
+INFO - 2025-09-11 22:59:17 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":98,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":65,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":156,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6593,"color":"#ef4444"}]
+INFO - 2025-09-11 22:59:17 --> Total expedientes del mes actual con fechas válidas: 12
+INFO - 2025-09-11 22:59:17 --> Resultados del mes actual: []
+INFO - 2025-09-11 22:59:17 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-11 22:59:17 --> Datos de expedientes liberados totales: {"total":1755}
+INFO - 2025-09-11 22:59:18 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-11 22:59:18 --> Total expedientes con fechas válidas: 1981
+INFO - 2025-09-11 22:59:18 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"14"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"6"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"190"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"2"}]
+INFO - 2025-09-11 22:59:18 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":14,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":2,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":6,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":190,"color":"#ef4444"}]
+INFO - 2025-09-11 22:59:18 --> Total expedientes del mes actual con fechas válidas: 4
+INFO - 2025-09-11 22:59:18 --> Resultados del mes actual: []
+INFO - 2025-09-11 22:59:18 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-11 22:59:18 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-11 22:59:18 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-11 22:59:18 --> Total expedientes con fechas válidas: 0
+INFO - 2025-09-11 22:59:18 --> Total expedientes del mes actual con fechas válidas: 0
+INFO - 2025-09-11 22:59:19 --> Datos de expedientes liberados totales: {"total":1755}
+INFO - 2025-09-11 22:59:19 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-11 22:59:19 --> Total expedientes con fechas válidas: 1981
+INFO - 2025-09-11 22:59:19 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"14"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"6"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"190"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"2"}]
+INFO - 2025-09-11 22:59:19 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":14,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":2,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":6,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":190,"color":"#ef4444"}]
+INFO - 2025-09-11 22:59:19 --> Total expedientes del mes actual con fechas válidas: 4
+INFO - 2025-09-11 22:59:19 --> Resultados del mes actual: []
+INFO - 2025-09-11 22:59:19 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]

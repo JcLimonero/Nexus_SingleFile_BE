@@ -1,0 +1,171 @@
+DEBUG - 2025-09-17 22:15:43 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-17 22:15:43 --> Table name: DocumentByFile
+DEBUG - 2025-09-17 22:15:43 --> Total documents: 184154
+INFO - 2025-09-17 22:15:43 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:15:43 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-17 22:15:43 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:15:43 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:15:43 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-17 16:15:43 --> Total expedientes con fechas válidas: 13019
+INFO - 2025-09-17 16:15:43 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"101"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"66"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6683"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"83"}]
+INFO - 2025-09-17 16:15:43 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":101,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":83,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":66,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6683,"color":"#ef4444"}]
+INFO - 2025-09-17 22:15:43 --> getCurrentMonthAttention - agencyId: , userId: 
+INFO - 2025-09-17 16:15:43 --> Total expedientes del mes actual con fechas válidas: 15
+INFO - 2025-09-17 16:15:43 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"18"}]
+INFO - 2025-09-17 16:15:43 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":18,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-17 22:15:44 --> getTotalLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:15:44 --> getCurrentMonthLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:15:44 --> getAttentionPeriod - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Total expedientes con fechas válidas: 4
+INFO - 2025-09-17 16:15:44 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"1"}]
+INFO - 2025-09-17 16:15:44 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":1,"color":"#ef4444"}]
+INFO - 2025-09-17 22:15:44 --> getCurrentMonthAttention - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-17 16:15:44 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"}]
+INFO - 2025-09-17 16:15:44 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-17 22:15:44 --> getTotalLiberated - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:15:44 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:15:44 --> getCurrentMonthLiberated - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:15:44 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:15:44 --> getAttentionPeriod - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:15:44 --> Total expedientes con fechas válidas: 0
+INFO - 2025-09-17 22:15:44 --> getCurrentMonthAttention - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:15:44 --> Total expedientes del mes actual con fechas válidas: 0
+INFO - 2025-09-17 22:15:44 --> getTotalLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:15:44 --> getCurrentMonthLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:15:44 --> getAttentionPeriod - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Total expedientes con fechas válidas: 4
+INFO - 2025-09-17 16:15:44 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"1"}]
+INFO - 2025-09-17 16:15:44 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":1,"color":"#ef4444"}]
+INFO - 2025-09-17 22:15:44 --> getCurrentMonthAttention - agencyId: 24, userId: 
+INFO - 2025-09-17 16:15:44 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-17 16:15:44 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"}]
+INFO - 2025-09-17 16:15:44 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+DEBUG - 2025-09-17 22:41:18 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-17 22:41:18 --> Table name: DocumentByFile
+DEBUG - 2025-09-17 22:41:18 --> Total documents: 184154
+INFO - 2025-09-17 22:41:19 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:41:19 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-17 22:41:19 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:41:19 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:41:19 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-17 16:41:19 --> Total expedientes con fechas válidas: 13019
+INFO - 2025-09-17 16:41:19 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"101"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"66"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6683"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"83"}]
+INFO - 2025-09-17 16:41:19 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":101,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":83,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":66,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6683,"color":"#ef4444"}]
+INFO - 2025-09-17 22:41:19 --> getCurrentMonthAttention - agencyId: , userId: 
+INFO - 2025-09-17 16:41:19 --> Total expedientes del mes actual con fechas válidas: 15
+INFO - 2025-09-17 16:41:19 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"18"}]
+INFO - 2025-09-17 16:41:19 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":18,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+DEBUG - 2025-09-17 22:41:19 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-17 22:41:19 --> Table name: DocumentByFile
+DEBUG - 2025-09-17 22:41:19 --> Total documents: 184154
+INFO - 2025-09-17 22:41:20 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:41:20 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-17 22:41:20 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:41:20 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:41:20 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-17 16:41:20 --> Total expedientes con fechas válidas: 13019
+INFO - 2025-09-17 16:41:20 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"101"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"66"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6683"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"83"}]
+INFO - 2025-09-17 16:41:20 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":101,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":83,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":66,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6683,"color":"#ef4444"}]
+INFO - 2025-09-17 22:41:20 --> getCurrentMonthAttention - agencyId: , userId: 
+INFO - 2025-09-17 16:41:20 --> Total expedientes del mes actual con fechas válidas: 15
+INFO - 2025-09-17 16:41:20 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"18"}]
+INFO - 2025-09-17 16:41:20 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":18,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-17 22:41:20 --> getTotalLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:20 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:41:20 --> getCurrentMonthLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:20 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:41:20 --> getAttentionPeriod - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:20 --> Total expedientes con fechas válidas: 4
+INFO - 2025-09-17 16:41:20 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"1"}]
+INFO - 2025-09-17 16:41:20 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":1,"color":"#ef4444"}]
+INFO - 2025-09-17 22:41:20 --> getCurrentMonthAttention - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:20 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-17 16:41:20 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"}]
+INFO - 2025-09-17 16:41:20 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-17 22:41:21 --> getTotalLiberated - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:41:21 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:41:21 --> getCurrentMonthLiberated - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:41:21 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:41:21 --> getAttentionPeriod - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:41:21 --> Total expedientes con fechas válidas: 0
+INFO - 2025-09-17 22:41:21 --> getCurrentMonthAttention - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:41:21 --> Total expedientes del mes actual con fechas válidas: 0
+INFO - 2025-09-17 22:41:21 --> getTotalLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:21 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:41:21 --> getCurrentMonthLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:21 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:41:21 --> getAttentionPeriod - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:21 --> Total expedientes con fechas válidas: 4
+INFO - 2025-09-17 16:41:21 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"1"}]
+INFO - 2025-09-17 16:41:21 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":1,"color":"#ef4444"}]
+INFO - 2025-09-17 22:41:21 --> getCurrentMonthAttention - agencyId: 24, userId: 
+INFO - 2025-09-17 16:41:21 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-17 16:41:21 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"}]
+INFO - 2025-09-17 16:41:21 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+DEBUG - 2025-09-17 22:42:10 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-17 22:42:10 --> Table name: DocumentByFile
+DEBUG - 2025-09-17 22:42:10 --> Total documents: 184154
+INFO - 2025-09-17 22:42:10 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:42:10 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-17 22:42:10 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:42:10 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:42:10 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-17 16:42:10 --> Total expedientes con fechas válidas: 13019
+INFO - 2025-09-17 16:42:10 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"101"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"66"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6683"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"83"}]
+INFO - 2025-09-17 16:42:10 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":101,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":83,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":66,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6683,"color":"#ef4444"}]
+INFO - 2025-09-17 22:42:10 --> getCurrentMonthAttention - agencyId: , userId: 
+INFO - 2025-09-17 16:42:10 --> Total expedientes del mes actual con fechas válidas: 15
+INFO - 2025-09-17 16:42:10 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"18"}]
+INFO - 2025-09-17 16:42:10 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":18,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+DEBUG - 2025-09-17 22:42:10 --> DocumentModel loaded: App\Models\DocumentModel
+DEBUG - 2025-09-17 22:42:10 --> Table name: DocumentByFile
+DEBUG - 2025-09-17 22:42:10 --> Total documents: 184154
+INFO - 2025-09-17 22:42:10 --> getTotalLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:42:10 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-17 22:42:10 --> getCurrentMonthLiberated - agencyId: , userId: 
+INFO - 2025-09-17 16:42:10 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:42:11 --> getAttentionPeriod - agencyId: , userId: 
+INFO - 2025-09-17 16:42:11 --> Total expedientes con fechas válidas: 13019
+INFO - 2025-09-17 16:42:11 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"101"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"66"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6683"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"83"}]
+INFO - 2025-09-17 16:42:11 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":101,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":83,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":66,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6683,"color":"#ef4444"}]
+INFO - 2025-09-17 22:42:11 --> getCurrentMonthAttention - agencyId: , userId: 
+INFO - 2025-09-17 16:42:11 --> Total expedientes del mes actual con fechas válidas: 15
+INFO - 2025-09-17 16:42:11 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"18"}]
+INFO - 2025-09-17 16:42:11 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":18,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-17 22:42:11 --> getTotalLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:11 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:42:11 --> getCurrentMonthLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:11 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:42:11 --> getAttentionPeriod - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:11 --> Total expedientes con fechas válidas: 4
+INFO - 2025-09-17 16:42:11 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"1"}]
+INFO - 2025-09-17 16:42:11 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":1,"color":"#ef4444"}]
+INFO - 2025-09-17 22:42:11 --> getCurrentMonthAttention - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:11 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-17 16:42:11 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"}]
+INFO - 2025-09-17 16:42:11 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-17 22:42:12 --> getTotalLiberated - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:42:12 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:42:12 --> getCurrentMonthLiberated - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:42:12 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:42:12 --> getAttentionPeriod - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:42:12 --> Total expedientes con fechas válidas: 0
+INFO - 2025-09-17 22:42:12 --> getCurrentMonthAttention - agencyId: 24, userId: -1
+INFO - 2025-09-17 16:42:12 --> Total expedientes del mes actual con fechas válidas: 0
+INFO - 2025-09-17 22:42:12 --> getTotalLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:12 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-17 22:42:12 --> getCurrentMonthLiberated - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:12 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-17 22:42:12 --> getAttentionPeriod - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:12 --> Total expedientes con fechas válidas: 4
+INFO - 2025-09-17 16:42:12 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"1"}]
+INFO - 2025-09-17 16:42:12 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":1,"color":"#ef4444"}]
+INFO - 2025-09-17 22:42:12 --> getCurrentMonthAttention - agencyId: 24, userId: 
+INFO - 2025-09-17 16:42:12 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-17 16:42:12 --> Resultados del mes actual: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"3"}]
+INFO - 2025-09-17 16:42:12 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":3,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]

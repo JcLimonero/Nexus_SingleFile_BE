@@ -1,0 +1,36 @@
+INFO - 2025-09-10 23:10:03 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-10 23:10:03 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-10 23:10:03 --> Total expedientes con fechas válidas: 13007
+INFO - 2025-09-10 23:10:03 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"98"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"171"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6578"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"65"}]
+INFO - 2025-09-10 23:10:03 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":98,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":65,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":171,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6578,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:03 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-10 23:10:03 --> Resultados del mes actual: []
+INFO - 2025-09-10 23:10:03 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:04 --> Datos de expedientes liberados totales: {"total":7183}
+INFO - 2025-09-10 23:10:04 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-10 23:10:04 --> Total expedientes con fechas válidas: 13007
+INFO - 2025-09-10 23:10:04 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"98"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"171"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"6578"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"65"}]
+INFO - 2025-09-10 23:10:04 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":98,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":65,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":171,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":6578,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:04 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-10 23:10:04 --> Resultados del mes actual: []
+INFO - 2025-09-10 23:10:04 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:04 --> Datos de expedientes liberados totales: {"total":1755}
+INFO - 2025-09-10 23:10:04 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-10 23:10:04 --> Total expedientes con fechas válidas: 1980
+INFO - 2025-09-10 23:10:04 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"14"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"9"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"187"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"2"}]
+INFO - 2025-09-10 23:10:04 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":14,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":2,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":9,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":187,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:04 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-10 23:10:04 --> Resultados del mes actual: []
+INFO - 2025-09-10 23:10:04 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:05 --> Datos de expedientes liberados totales: {"total":0}
+INFO - 2025-09-10 23:10:05 --> Datos de expedientes liberados del mes actual: {"total":0,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-10 23:10:05 --> Total expedientes con fechas válidas: 0
+INFO - 2025-09-10 23:10:05 --> Total expedientes del mes actual con fechas válidas: 0
+INFO - 2025-09-10 23:10:06 --> Datos de expedientes liberados totales: {"total":1755}
+INFO - 2025-09-10 23:10:06 --> Datos de expedientes liberados del mes actual: {"total":2,"month":"Septiembre","year":"2025"}
+INFO - 2025-09-10 23:10:06 --> Total expedientes con fechas válidas: 1980
+INFO - 2025-09-10 23:10:06 --> Resultados de la consulta: [{"period_range":"0-5","period_label":"0 - 5 D\u00edas","count":"14"},{"period_range":"10-15","period_label":"10 - 15 D\u00edas","count":"9"},{"period_range":"15+","period_label":"> 15 D\u00edas","count":"187"},{"period_range":"5-10","period_label":"5 - 10 D\u00edas","count":"2"}]
+INFO - 2025-09-10 23:10:06 --> Datos finales: [{"range":"0-5","label":"0 - 5 D\u00edas","count":14,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":2,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":9,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":187,"color":"#ef4444"}]
+INFO - 2025-09-10 23:10:06 --> Total expedientes del mes actual con fechas válidas: 3
+INFO - 2025-09-10 23:10:06 --> Resultados del mes actual: []
+INFO - 2025-09-10 23:10:06 --> Datos finales del mes actual: [{"range":"0-5","label":"0 - 5 D\u00edas","count":0,"color":"#10b981"},{"range":"5-10","label":"5 - 10 D\u00edas","count":0,"color":"#f59e0b"},{"range":"10-15","label":"10 - 15 D\u00edas","count":0,"color":"#f97316"},{"range":"15+","label":"> 15 D\u00edas","count":0,"color":"#ef4444"}]
