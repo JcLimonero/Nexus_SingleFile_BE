@@ -31,6 +31,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 
 @Component({
@@ -113,10 +114,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Verificar si el usuario es gerente o administrador
   get isManagerOrAdmin(): boolean {
-    // Aquí deberías obtener el rol del usuario desde tu servicio de autenticación
-    // Por ahora retorno true para mostrar la opción, pero deberías implementar la lógica real
-    const userRole = this.getCurrentUserRole(); // Implementar esta función
-    return userRole === 'gerente' || userRole === 'administrador';
+    const user = this.authService.getCurrentUser();
+    if (!user) return false;
+    
+    // Gerente (role_id = '6') o Administrador (role_id = '7')
+    return user.role_id === '6' || user.role_id === '7';
   }
 
   // Método auxiliar para el tooltip de fecha de expiración
@@ -507,7 +509,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     private validacionService: ValidacionService,
     private defaultAgencyService: DefaultAgencyService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService
   ) {
     console.log('🔧 ValidacionComponent - Constructor ejecutado');
   }

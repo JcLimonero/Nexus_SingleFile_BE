@@ -593,7 +593,7 @@
                 Rechazar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button *ngIf="item.idEstatus === '4'" 
+                <button *ngIf="isManagerOrAdmin && item.idEstatus === '4'" 
                         mat-icon-button 
                         color="warn" 
                         class="!w-6 !h-6 !min-h-6 !p-0"
@@ -601,7 +601,7 @@
                         matTooltip="Rechazar documento">
                   <mat-icon class="!text-sm">close</mat-icon>
                 </button>
-                <span *ngIf="item.idEstatus !== '4'" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!isManagerOrAdmin || item.idEstatus !== '4'" class="text-xs text-gray-400">-</span>
               </td>
             </ng-container>
 
