@@ -13,11 +13,11 @@ Este archivo permite configurar la conexión a la base de datos y otros parámet
 ```json
 {
   "database": {
-    "hostname": "localhost",
+    "hostname": "192.168.190.140",
     "port": 3306,
     "database": "singlefile_db",
-    "username": "root",
-    "password": "",
+    "username": "vgd_testing",
+    "password": "00@DealerSolutions;",
     "driver": "MySQLi",
     "prefix": "",
     "charset": "utf8mb4",
