@@ -66,7 +66,7 @@ export class VanguardiaClientService {
     params = params.set('ndDMS', ndDMS);
 
     const headers = {
-      'X-Provider-Token': environment.backblaze.providerToken
+      'Content-Type': 'application/json'
     };
 
     return this.http.get<VanguardiaResponse>(environment.vanguardia.apiUrl, { 
@@ -87,7 +87,7 @@ export class VanguardiaClientService {
     params = params.set('id', id.toString());
 
     const headers = {
-      'X-Provider-Token': environment.backblaze.providerToken
+      'Content-Type': 'application/json'
     };
 
     return this.http.get<VanguardiaResponse>(environment.vanguardia.apiUrl, { 

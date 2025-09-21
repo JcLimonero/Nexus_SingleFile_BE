@@ -3,6 +3,7 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Libraries\ConfigLoader;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class BackblazeController extends BaseController

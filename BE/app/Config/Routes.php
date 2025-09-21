@@ -252,6 +252,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->delete('(:num)/agencies', 'UserAgency::removeAllAgencies/$1');
         $routes->delete('(:num)/agencies/(:num)', 'UserAgency::removeAgency/$1/$2');
         $routes->get('(:num)/agencies/stats', 'UserAgency::getStats/$1');
+        $routes->get('agencies-batch', 'UserAgency::getUsersAgenciesBatch');
         
         // Rutas específicas de procesos
         $routes->get('(:num)/processes', 'UserProcess::getUserProcesses/$1');

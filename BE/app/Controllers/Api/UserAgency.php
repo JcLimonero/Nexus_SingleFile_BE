@@ -234,6 +234,79 @@ class UserAgency extends BaseController
     }
 
     /**
+     * GET /api/user/agencies-batch?user_ids=1,2,3
+     * Obtener agencias asignadas a múltiples usuarios en una sola llamada
+     */
+    public function getUsersAgenciesBatch()
+    {
+        try {
+            $userIds = $this->request->getGet('user_ids');
+            
+            if (!$userIds) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Parámetro user_ids requerido'
+                ])->setStatusCode(400);
+            }
+
+            // Convertir string de IDs a array
+            $userIdArray = array_map('trim', explode(',', $userIds));
+            
+            if (empty($userIdArray)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Lista de IDs de usuario vacía'
+                ])->setStatusCode(400);
+            }
+
+            $db = \Config\Database::connect();
+            
+            // Obtener agencias asignadas a todos los usuarios especificados
+            $builder = $db->table('Agency_User au');
+            $agencies = $builder
+                ->select('au.IdUser, au.IdAgency, a.Name as AgencyName, a.Enabled')
+                ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                ->whereIn('au.IdUser', $userIdArray)
+                ->orderBy('au.IdUser', 'ASC')
+                ->orderBy('a.Name', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            // Organizar los datos por usuario
+            $result = [];
+            foreach ($userIdArray as $userId) {
+                $userAgencies = array_filter($agencies, function($agency) use ($userId) {
+                    return $agency['IdUser'] == $userId;
+                });
+                
+                $agencyIds = array_column($userAgencies, 'IdAgency');
+                $agenciesDetails = array_values($userAgencies);
+                
+                $result[$userId] = [
+                    'agencies' => $agencyIds,
+                    'agencies_details' => $agenciesDetails,
+                    'count' => count($agencyIds)
+                ];
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Agencias de usuarios obtenidas exitosamente',
+                'data' => $result,
+                'total_users' => count($userIdArray),
+                'total_assignments' => count($agencies)
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en UserAgency::getUsersAgenciesBatch: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener agencias de usuarios: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * GET /api/user/{userId}/agencies/stats
      * Obtener estadísticas de agencias asignadas a un usuario
      */

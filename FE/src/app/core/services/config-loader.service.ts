@@ -32,16 +32,16 @@ export class ConfigLoaderService {
   }
 
   /**
-   * Obtiene la configuración de Backblaze
-   */
-  getBackblazeConfig() {
-    return environment.backblaze;
-  }
-
-  /**
    * Obtiene la configuración de Vanguardia
    */
   getVanguardiaConfig() {
     return environment.vanguardia;
+  }
+
+  /**
+   * Obtiene la URL de upload de Vanguardia
+   */
+  getVanguardiaUploadUrl() {
+    return environment.vanguardia.uploadApiUrl;
   }
 }

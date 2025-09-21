@@ -552,19 +552,14 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
-    formData.append('idDocumentFile', document.documentId.toString()); // Integer: ID del documento (IdDocumentByFile)
+    formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
-    // Usar API de Backblaze con header de autenticación
-    this.http.post<any>(`${environment.backblaze.apiUrl}/upload`, formData, { 
-      headers: { 'X-Provider-Token': environment.backblaze.providerToken }
-    })
+    // Usar API de Vanguardia directamente
+    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📤 Documento subido a Backblaze:', response);
-          
-          // Guardar información del archivo en Backblaze en la base de datos local
-          this.saveDocumentInfo(document, response);
+          console.log('📤 Documento subido exitosamente a Vanguardia:', response);
           
           this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
             duration: 3000
@@ -605,29 +600,6 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       });
   }
 
-  private saveDocumentInfo(document: any, backblazeResponse: any): void {
-    const documentData = {
-      fileId: this.selectedFile.fileId,
-      documentTypeId: document.documentId,
-      fileName: backblazeResponse.fileName || this.selectedFiles[document.documentId].name,
-      filePath: backblazeResponse.filePath,
-      backblazeFileId: backblazeResponse.fileId,
-      backblazeUrl: backblazeResponse.url,
-      uploadDate: new Date().toISOString(),
-      status: 'uploaded'
-    };
-
-    this.http.post<any>(`${environment.apiBaseUrl}/api/documents/save-backblaze-info`, documentData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          console.log('📝 Información del documento guardada:', response);
-        },
-        error: (error) => {
-          console.error('❌ Error guardando información del documento:', error);
-        }
-      });
-  }
 
   viewDocument(document: any): void {
     console.log('🖱️ CLICK EN BOTÓN VER - viewDocument ejecutándose');
@@ -654,12 +626,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       duration: duration.toString()
     });
 
-    const url = `${environment.backblaze.apiUrl}/get-private-url?${params.toString()}`;
+    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
     console.log('🔗 URL completa:', url);
 
-    this.http.get<any>(url, { 
-      headers: { 'X-Provider-Token': environment.backblaze.providerToken }
-    })
+    this.http.get<any>(url)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

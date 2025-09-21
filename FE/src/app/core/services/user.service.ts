@@ -91,4 +91,9 @@ export class UserService {
     const params = agencyId ? `?default_agency=${agencyId}` : '';
     return this.http.get<UserResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}${params}`);
   }
+
+  // Obtener agencias de múltiples usuarios en una sola llamada
+  getUsersAgenciesBatch(userIds: string): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl('user')}/agencies-batch?user_ids=${userIds}`);
+  }
 }

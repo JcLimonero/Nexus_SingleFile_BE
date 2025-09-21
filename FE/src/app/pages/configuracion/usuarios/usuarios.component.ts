@@ -109,7 +109,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   loadUserAgencies(): void {
-    let usersProcessed = 0;
     const totalUsers = this.users.length;
     
     if (totalUsers === 0) {
@@ -119,39 +118,51 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.users.forEach((user, index) => {
-      this.userService.getUserAgencies(user.Id).subscribe({
-        next: (response: any) => {
-          if (response.success) {
-            user.AssignedAgencies = response.data.agencies;
-            user.AssignedAgencyNames = response.data.agencies_details.map((agency: any) => agency.AgencyName);
-          } else {
+    // Obtener IDs de todos los usuarios
+    const userIds = this.users.map(user => user.Id).join(',');
+    
+    // Hacer una sola llamada para obtener todas las agencias de todos los usuarios
+    this.userService.getUsersAgenciesBatch(userIds).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          // Procesar la respuesta y asignar agencias a cada usuario
+          this.users.forEach(user => {
+            const userAgencies = response.data[user.Id];
+            if (userAgencies) {
+              user.AssignedAgencies = userAgencies.agencies || [];
+              user.AssignedAgencyNames = userAgencies.agencies_details?.map((agency: any) => agency.AgencyName) || [];
+            } else {
+              user.AssignedAgencies = [];
+              user.AssignedAgencyNames = [];
+            }
+          });
+        } else {
+          // Si no hay respuesta exitosa, inicializar arrays vacíos
+          this.users.forEach(user => {
             user.AssignedAgencies = [];
             user.AssignedAgencyNames = [];
-          }
-          
-          usersProcessed++;
-          
-          // Cuando se han procesado todos los usuarios, actualizar la tabla
-          if (usersProcessed === totalUsers) {
-            this.dataSource.data = this.users;
-            this.applyFilter();
-            this.loading = false;
-          }
-        },
-        error: (error) => {
-          console.warn(`Error al cargar agencias para usuario ${user.Id}:`, error);
+          });
+        }
+        
+        // Actualizar la tabla
+        this.dataSource.data = this.users;
+        this.applyFilter();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.warn('Error al cargar agencias de usuarios:', error);
+        
+        // En caso de error, inicializar arrays vacíos para todos los usuarios
+        this.users.forEach(user => {
           user.AssignedAgencies = [];
           user.AssignedAgencyNames = [];
-          usersProcessed++;
-          
-          if (usersProcessed === totalUsers) {
-            this.dataSource.data = this.users;
-            this.applyFilter();
-            this.loading = false;
-          }
-        }
-      });
+        });
+        
+        // Actualizar la tabla
+        this.dataSource.data = this.users;
+        this.applyFilter();
+        this.loading = false;
+      }
     });
   }
 

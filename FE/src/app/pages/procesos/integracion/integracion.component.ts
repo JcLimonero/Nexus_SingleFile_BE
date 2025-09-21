@@ -109,10 +109,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
-  // Headers para Backblaze
-  private getBackblazeHeaders() {
+  // Headers para Vanguardia (ya no necesarios para upload directo)
+  private getVanguardiaHeaders() {
     return {
-      'X-Provider-Token': environment.backblaze.providerToken
+      'Content-Type': 'multipart/form-data'
     };
   }
 
@@ -714,8 +714,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
     this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
-      params,
-      headers: this.getBackblazeHeaders()
+      params
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1223,38 +1222,43 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     const isReplacing = document.idCurrentStatus === '2';
     const actionText = isReplacing ? 'reemplazando' : 'cargando';
 
-    // Preparar datos para Backblaze según documentación API
+    // Preparar datos para Vanguardia API según documentación
     const formData = new FormData();
     formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
-    formData.append('idDocumentFile', document.documentId.toString()); // Integer: ID del documento (IdDocumentByFile)
+    formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
-    // Usar API de Backblaze con header de autenticación
-    this.http.post<any>(`${environment.backblaze.apiUrl}/upload`, formData, { headers: this.getBackblazeHeaders() })
+    console.log('📤 Subiendo documento directamente a Vanguardia API...');
+    console.log('📊 Datos del upload:', {
+      fileName: this.selectedFiles[document.documentId].name,
+      fileSize: this.selectedFiles[document.documentId].size,
+      idSingleFile: this.selectedFile.fileId,
+      idDocumentFile: document.documentId
+    });
+
+    // Usar API de Vanguardia directamente
+    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📤 Documento subido a Backblaze:', response);
-          
-          // Guardar información del archivo en Backblaze en la base de datos local
-          this.saveDocumentInfo(document, response);
+          console.log('📤 Documento subido exitosamente a Vanguardia:', response);
           
           this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
             duration: 3000
           });
           
-          // Recargar documentos
+          // Recargar documentos para mostrar el estado actualizado
           this.loadRequiredDocuments(this.selectedFile.fileId);
           // Limpiar archivo seleccionado
           delete this.selectedFiles[document.documentId];
         },
         error: (error) => {
-          console.error('❌ Error subiendo documento a Backblaze:', error);
+          console.error('❌ Error subiendo documento a Vanguardia:', error);
           
           let errorMessage = 'Error desconocido';
           
           if (error.status === 0) {
-            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Backblaze. Verifique la configuración del servidor.';
+            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia. Verifique la configuración del servidor.';
           } else if (error.status === 400) {
             errorMessage = 'Error 400: Solicitud inválida. Verifique los parámetros enviados.';
           } else if (error.status === 401) {
@@ -1264,7 +1268,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           } else if (error.status === 404) {
             errorMessage = 'Error 404: Endpoint no encontrado.';
           } else if (error.status === 500) {
-            errorMessage = 'Error 500: Error interno del servidor.';
+            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
           } else if (error.error && error.error.message) {
             errorMessage = error.error.message;
           } else if (error.message) {
@@ -1278,29 +1282,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
-  private saveDocumentInfo(document: any, backblazeResponse: any): void {
-    const documentData = {
-      fileId: this.selectedFile.fileId,
-      documentTypeId: document.documentId,
-      fileName: backblazeResponse.fileName || this.selectedFiles[document.documentId].name,
-      filePath: backblazeResponse.filePath,
-      backblazeFileId: backblazeResponse.fileId,
-      backblazeUrl: backblazeResponse.url,
-      uploadDate: new Date().toISOString(),
-      status: 'uploaded'
-    };
-
-    this.http.post<any>(`${environment.apiBaseUrl}/api/documents/save-backblaze-info`, documentData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          console.log('📝 Información del documento guardada:', response);
-        },
-        error: (error) => {
-          console.error('❌ Error guardando información del documento:', error);
-        }
-      });
-  }
 
   viewDocument(document: any): void {
     console.log('🖱️ CLICK EN BOTÓN VER - viewDocument ejecutándose');
@@ -1327,11 +1308,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       duration: duration.toString()
     });
 
-    const url = `${environment.backblaze.apiUrl}/get-private-url?${params.toString()}`;
+    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
     console.log('🔗 URL completa:', url);
-    console.log('🔑 Headers:', this.getBackblazeHeaders());
 
-    this.http.get<any>(url, { headers: this.getBackblazeHeaders() })
+    this.http.get<any>(url)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -1355,7 +1335,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('❌ Error obteniendo URL privada de Backblaze:', error);
+          console.error('❌ Error obteniendo URL privada de Vanguardia:', error);
           this.snackBar.open('Error al obtener URL del documento', 'Cerrar', {
             duration: 3000
           });
