@@ -309,6 +309,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/procesos/gestion/gestion.component').then(
                 (m) => m.GestionComponent
               )
+          },
+          {
+            path: 'liquidacion',
+            loadComponent: () =>
+              import('./pages/procesos/liquidacion/liquidacion.component').then(
+                (m) => m.LiquidacionComponent
+              )
           }
         ]
       },

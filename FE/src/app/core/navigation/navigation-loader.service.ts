@@ -53,6 +53,12 @@ export class NavigationLoaderService {
             label: 'Integración de Expediente',
             route: '/procesos/integracion',
             icon: 'mat:sync'
+          },
+          {
+            type: 'link',
+            label: 'Liquidación',
+            route: '/procesos/liquidacion',
+            icon: 'mat:account_balance'
           }
         ]
       },
