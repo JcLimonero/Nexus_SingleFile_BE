@@ -36,7 +36,7 @@ class Files extends BaseController
                                 p.Name as proceso,
                                 ot.Name as operacion,
                                 ct.Name as tipoCliente,
-                                obc.CarType as vehiculo,
+                                obc.CarType as version,
                                 obc.Year as year,
                                 obc.Modelo as modelo,
                                 obc.VIN as vin,
@@ -111,7 +111,7 @@ class Files extends BaseController
                     p.Name as proceso,
                     ot.Name as operacion,
                     ct.Name as tipoCliente,
-                    obc.CarType as vehiculo,
+                    obc.CarType as version,
                     obc.Year as year,
                     obc.Modelo as modelo,
                     obc.VIN as vin,
@@ -124,7 +124,7 @@ class Files extends BaseController
                 LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
                 LEFT JOIN Agency a ON f.IdAgency = a.Id
                 LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
+                LEFT JOIN OrderByCar obc ON f.IdAgency = obc.idagency AND f.IdOrderTotal = obc.Number
                 WHERE a.IdAgency = ?
             ";
 
@@ -323,7 +323,7 @@ class Files extends BaseController
             }
 
             // Crear registro en OrderByCar
-            $orderByCarCreated = $this->createOrderByCar($order, $currentUser['user_id']);
+            $orderByCarCreated = $this->createOrderByCar($order, $currentUser['user_id'], $agencyId);
 
             if (!$orderByCarCreated) {
                 $this->db->transRollback();
@@ -659,10 +659,11 @@ class Files extends BaseController
     /**
      * Crear registro en OrderByCar con los datos del pedido
      */
-    private function createOrderByCar($order, $userId)
+    private function createOrderByCar($order, $userId, $agencyId)
     {
         error_log("=== INICIANDO createOrderByCar ===");
         error_log("Datos del order: " . json_encode($order));
+        error_log("AgencyId recibido: " . $agencyId);
         
         // Obtener el siguiente ID disponible para OrderByCar
         $nextIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM OrderByCar");
@@ -676,15 +677,16 @@ class Files extends BaseController
         $orderByCarData = [
             'Id' => $nextId,
             'Number' => $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null,
-            'CarType' => $order['version'] ?? null,
+            'CarType' => $order['version'] ?? null, // CarType guarda la versión
             'Year' => $order['year'] ?? null,
             'VIN' => $order['vin'] ?? null,
             'RegistrationDate' => $currentDate,
             'UpdateDate' => $currentDate,
             'IdLastUserUpdate' => $userId,
-            'Modelo' => $order['model'] ?? null,
+            'Modelo' => $order['model'] ?? null, // Modelo guarda el modelo
             'Asesor' => $order['ndConsultant'] ?? null,
-            'IdTotalDealer' => $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null
+            'IdTotalDealer' => $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null,
+            'idagency' => $agencyId // Agregar el campo idagency
         ];
 
         error_log("Datos de OrderByCar a insertar: " . json_encode($orderByCarData));

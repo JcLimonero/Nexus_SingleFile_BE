@@ -305,7 +305,7 @@ $routes->group('backblaze', function($routes) {
 // Rutas de files/pedidos (Principal)
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
-    $routes->get('by-agency', 'Files::getByAgency');
+    $routes->get('by-agency-client', 'Files::getByAgency');
     $routes->post('create-from-vanguardia', 'Files::createFromVanguardiaNew');
     $routes->post('create-from-vanguardia-new', 'Files::createFromVanguardiaNew');
     $routes->post('create-file-test', 'Files::createFileTest');

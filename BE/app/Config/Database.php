@@ -27,9 +27,9 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => 'localhost',
-        'username'     => 'root',
-        'password'     => '00@Limonero',
+        'hostname'     => '192.168.190.140',
+        'username'     => 'vgd_testing',
+        'password'     => '00@DealerSolutions',
         'database'     => 'singlefile_db',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',

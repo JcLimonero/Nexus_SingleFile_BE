@@ -443,7 +443,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     params = params.set('statusId', '2'); // ID para Liquidación
 
     // Cargar pedidos de liquidación
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

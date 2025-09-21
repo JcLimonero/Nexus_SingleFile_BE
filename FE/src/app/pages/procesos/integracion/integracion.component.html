@@ -221,17 +221,6 @@
               </td>
             </ng-container>
 
-            <!-- Vehículo -->
-            <ng-container matColumnDef="vehiculo">
-              <th mat-header-cell *matHeaderCellDef>Vehículo</th>
-              <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.vehiculo; else noVehicle" class="text-sm">{{ file.vehiculo }}</span>
-                <ng-template #noVehicle>
-                  <span class="text-gray-400 italic text-sm">Sin vehículo</span>
-                </ng-template>
-              </td>
-            </ng-container>
-
             <!-- Año -->
             <ng-container matColumnDef="year">
               <th mat-header-cell *matHeaderCellDef>Año</th>
@@ -250,6 +239,17 @@
                 <span *ngIf="file.modelo; else noModel" class="text-sm">{{ file.modelo }}</span>
                 <ng-template #noModel>
                   <span class="text-gray-400 italic text-sm">Sin modelo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Versión -->
+            <ng-container matColumnDef="version">
+              <th mat-header-cell *matHeaderCellDef>Versión</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.version; else noVersion" class="text-sm">{{ file.version }}</span>
+                <ng-template #noVersion>
+                  <span class="text-gray-400 italic text-sm">Sin versión</span>
                 </ng-template>
               </td>
             </ng-container>
@@ -366,7 +366,7 @@
             <span class="font-semibold">Documentos Requeridos</span>
           </div>
           <div class="text-xs text-gray-600 ml-6">
-            Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.vehiculo }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
+            Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.version }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
           </div>
         </mat-card-title>
       </mat-card-header>

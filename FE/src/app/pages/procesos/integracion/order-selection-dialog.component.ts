@@ -505,7 +505,7 @@ export class OrderSelectionDialogComponent implements OnInit {
     params = params.set('statusId', '1'); // ID para Integración
     params = params.set('ndCliente', this.data.ndCliente || '');
 
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .subscribe({
         next: (response) => {
           console.log('📁 Files existentes encontrados:', response);

@@ -74,9 +74,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     'proceso',
     'operacion',
     'tipoCliente',
-    'vehiculo',
     'year',
     'modelo',
+    'version',
     'vin',
     'agencia',
     'fechaRegistro',
@@ -590,7 +590,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('statusId', '1'); // ID para Integración
 
     // Cargar solo pedidos que ya están en la tabla de file (no desde Vanguardia)
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -833,6 +833,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           vehiculo: order.vehiculo || order.vehicle || '',
           year: order.year || order.year || '',
           modelo: order.modelo || order.model || '',
+          version: order.version || '',
           vin: order.vin || order.vin || '',
           agencia: order.agencia || order.agency || this.selectedAgency?.Name || 'Sin agencia',
           fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
@@ -854,6 +855,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         vehiculo: ordersData.vehiculo || ordersData.vehicle || '',
         year: ordersData.year || ordersData.year || '',
         modelo: ordersData.modelo || ordersData.model || '',
+        version: ordersData.version || '',
         vin: ordersData.vin || ordersData.vin || '',
         agencia: ordersData.agencia || ordersData.agency || this.selectedAgency?.Name || 'Sin agencia',
         fechaRegistro: ordersData.fechaRegistro || ordersData.registrationDate || new Date(),
@@ -896,7 +898,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('statusId', '1'); // ID para Integración
 
     console.log('🌐 Consultando API de files existentes...');
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency`, { params })
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -1143,6 +1145,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         vehiculo: order.vehiculo || order.vehicle || '',
         year: order.year || order.year || '',
         modelo: order.modelo || order.model || '',
+        version: order.version || '',
         vin: order.vin || order.vin || '',
         agencia: order.agencia || order.agency || this.selectedAgency?.Name || 'Sin agencia',
         fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
@@ -1497,6 +1500,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               'Cerrar', 
               { duration: 4000 }
             );
+            
+            // Limpiar la selección actual si el pedido eliminado era el seleccionado
+            if (this.selectedFile && this.selectedFile.fileId === fileId) {
+              this.selectedFile = null;
+              this.requiredDocuments = [];
+              this.documentsLoading = false;
+              this.selectedFiles = {};
+            }
             
             // Recargar la lista de files
             this.loadClientFiles();
