@@ -562,10 +562,12 @@
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
                 <button mat-icon-button color="primary" class="!w-6 !h-6 !min-h-6 !p-0"
+                        *ngIf="item.documentContainer"
                         (click)="onVerDocumento(item); $event.stopPropagation()"
-                        matTooltip="Ver información del documento">
+                        matTooltip="Ver documento">
                   <mat-icon class="!text-sm">visibility</mat-icon>
                 </button>
+                <span *ngIf="!item.documentContainer" class="text-xs text-gray-400">-</span>
               </td>
             </ng-container>
 
