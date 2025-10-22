@@ -23,7 +23,6 @@ import { CancelarPedidoDialogComponent, CancelarPedidoData, CancelarPedidoResult
 import { ExcepcionPedidoDialogComponent, ExcepcionPedidoData, ExcepcionPedidoResult } from './excepcion-pedido-dialog/excepcion-pedido-dialog.component';
 import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult } from './eliminar-pedido-dialog/eliminar-pedido-dialog.component';
 import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
-import { VerDocumentoDialogComponent } from './ver-documento-dialog/ver-documento-dialog.component';
 import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
 import { RechazarDocumentoDialogComponent, RechazarDocumentoData, RechazarDocumentoResult } from './rechazar-documento-dialog/rechazar-documento-dialog.component';
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
@@ -33,6 +32,8 @@ import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'vex-validacion',
@@ -59,7 +60,6 @@ import { DefaultAgencyService, Agencia } from '../../../core/services/default-ag
     MatMenuModule,
     MatSlideToggleModule,
     ScrollingModule,
-    VerDocumentoDialogComponent,
     AprobarDocumentoDialogComponent
   ],
   templateUrl: './validacion.component.html',
@@ -165,30 +165,70 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Ver documento - mostrar información del documento y validar si estatus es "2"
+   * Ver documento - abrir el archivo directamente
    */
   onVerDocumento(documento: any): void {
-    console.log('Ver documento:', documento);
+    console.log('🖱️ CLICK EN BOTÓN VER - onVerDocumento ejecutándose');
+    console.log('🔍 Ver documento:', documento);
     
-    // Si el estatus es "2", validar el documento automáticamente
-    if (documento.idEstatus === '2') {
-      this.validarDocumentoInterno(documento);
-      return;
+    // Verificar si hay un documentContainer (nombre del archivo)
+    if (documento.documentContainer) {
+      console.log('📁 Usando documentContainer:', documento.documentContainer);
+      // Obtener URL privada de Backblaze y abrir el archivo
+      this.getBackblazePrivateUrl(documento.documentContainer, documento);
+    } else {
+      console.log('❌ No hay documentContainer disponible');
+      this.snackBar.open('No se puede visualizar el documento. No hay archivo asociado.', 'Cerrar', {
+        duration: 3000
+      });
     }
+  }
+
+  /**
+   * Obtener URL privada de Backblaze y abrir el documento en nueva pestaña
+   */
+  private getBackblazePrivateUrl(fileName: string, documento: any): void {
+    console.log('🔍 getBackblazePrivateUrl llamado con:', { fileName, documento });
     
-    // Crear un dialog para mostrar la información del documento
-    const dialogRef = this.dialog.open(VerDocumentoDialogComponent, {
-      width: '500px',
-      data: {
-        documento: documento
-      }
+    const duration = 3600; // 1 hora por defecto
+    const params = new URLSearchParams({
+      file: fileName,
+      duration: duration.toString()
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        console.log('Dialog cerrado:', result);
-      }
-    });
+    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
+    console.log('🔗 URL completa:', url);
+
+    this.http.get<any>(url)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('🔗 URL privada obtenida:', response);
+          if (response.data && response.data.url) {
+            console.log('🌐 Abriendo URL en nueva pestaña:', response.data.url);
+            const newWindow = window.open(response.data.url, '_blank');
+            if (newWindow) {
+              console.log('✅ Nueva pestaña abierta correctamente');
+            } else {
+              console.error('❌ No se pudo abrir nueva pestaña (posible bloqueador de pop-ups)');
+              this.snackBar.open('No se pudo abrir el documento. Verifica que no tengas bloqueado el navegador de pop-ups.', 'Cerrar', {
+                duration: 5000
+              });
+            }
+          } else {
+            console.error('❌ Respuesta sin URL válida:', response);
+            this.snackBar.open('No se pudo obtener la URL del documento', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error obteniendo URL privada de Backblaze:', error);
+          this.snackBar.open('Error al obtener URL del documento', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
   }
 
   /**
@@ -510,7 +550,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     private defaultAgencyService: DefaultAgencyService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {
     console.log('🔧 ValidacionComponent - Constructor ejecutado');
   }

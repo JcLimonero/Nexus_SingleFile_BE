@@ -30,6 +30,10 @@ export interface Documento {
   comentario: string;
   asignado: string;
   idEstatus: number;
+  documentContainer?: string; // ID del archivo en Backblaze
+  idDocumentByFile?: number;
+  ReqExpiration?: number;
+  fechaExpiracion?: string;
 }
 
 export interface FiltrosValidacion {

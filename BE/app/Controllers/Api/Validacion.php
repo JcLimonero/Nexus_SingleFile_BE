@@ -596,7 +596,8 @@ class Validacion extends BaseController
                     dfs.Id as idEstatus,
                     dfs.Name as EstatusName,
                     dt.ReqExpiration as ReqExpiration,
-                    dbf.ExperationDate as fechaExpiracion
+                    dbf.ExperationDate as fechaExpiracion,
+                    dbf.IdDocumentContainer as documentContainer
                 ')
                 ->join('File f', 'dbf.IdFile = f.Id', 'inner')
                 ->join('Process p', 'f.IdProcess = p.Id', 'inner')
@@ -609,7 +610,17 @@ class Validacion extends BaseController
                 ->orderBy('fs.Name', 'ASC')
                 ->orderBy('dt.Name', 'ASC');
 
+            // Log del query generado para debugging
+            error_log("=== DEBUG getDocumentos ===");
+            error_log("idFile: " . $idFile);
+            error_log("Query SQL: " . $query->getCompiledSelect(false));
+            
             $results = $query->get()->getResultArray();
+            
+            error_log("Resultados encontrados: " . count($results));
+            if (count($results) > 0) {
+                error_log("Primer resultado: " . json_encode($results[0]));
+            }
 
             return $this->response->setJSON([
                 'success' => true,
