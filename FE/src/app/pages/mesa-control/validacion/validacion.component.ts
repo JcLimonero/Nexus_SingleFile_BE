@@ -172,15 +172,47 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🔍 Ver documento:', documento);
     
     // Verificar si hay un documentContainer (nombre del archivo)
-    if (documento.documentContainer) {
-      console.log('📁 Usando documentContainer:', documento.documentContainer);
-      // Obtener URL privada de Backblaze y abrir el archivo
-      this.getBackblazePrivateUrl(documento.documentContainer, documento);
-    } else {
+    if (!documento.documentContainer) {
       console.log('❌ No hay documentContainer disponible');
       this.snackBar.open('No se puede visualizar el documento. No hay archivo asociado.', 'Cerrar', {
         duration: 3000
       });
+      return;
+    }
+
+    console.log('📁 Usando documentContainer:', documento.documentContainer);
+    
+    // Si el documento está en estatus 2 (Documento Cargado), cambiar a estatus 3 (En revisión)
+    if (documento.idEstatus === '2') {
+      console.log('📝 Documento en estatus 2, cambiando a estatus 3 (En revisión)...');
+      
+      this.validacionService.prepararDocumento(documento.idDocumentByFile)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            console.log('✅ Estatus cambiado a 3 (En revisión)');
+            // Actualizar el estatus local del documento
+            documento.idEstatus = '3';
+            // Abrir el documento
+            this.getBackblazePrivateUrl(documento.documentContainer, documento);
+            // Recargar documentos para reflejar el cambio
+            if (this.selectedCliente) {
+              this.cargarDocumentosCliente(this.selectedCliente.idFile);
+            }
+          },
+          error: (error) => {
+            console.error('❌ Error al cambiar estatus del documento:', error);
+            // Aún así abrir el documento, el cambio de estatus no debe bloquear la visualización
+            this.snackBar.open('Advertencia: No se pudo cambiar el estatus del documento', 'Cerrar', {
+              duration: 3000
+            });
+            this.getBackblazePrivateUrl(documento.documentContainer, documento);
+          }
+        });
+    } else {
+      // Si ya está en otro estatus, solo abrir el documento
+      console.log('📄 Documento en estatus', documento.idEstatus, '- abriendo directamente');
+      this.getBackblazePrivateUrl(documento.documentContainer, documento);
     }
   }
 
