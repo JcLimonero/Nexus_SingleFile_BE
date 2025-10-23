@@ -554,8 +554,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
     formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
+    // Headers requeridos por Vanguardia (sin Content-Type para FormData)
+    const headers = {
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
+    };
+
     // Usar API de Vanguardia directamente
-    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
+    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData, { headers })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -629,7 +634,12 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
     console.log('🔗 URL completa:', url);
 
-    this.http.get<any>(url)
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
+    };
+
+    this.http.get<any>(url, { headers })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

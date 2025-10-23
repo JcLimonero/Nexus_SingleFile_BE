@@ -66,7 +66,8 @@ export class VanguardiaClientService {
     params = params.set('ndDMS', ndDMS);
 
     const headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
     };
 
     return this.http.get<VanguardiaResponse>(environment.vanguardia.apiUrl, { 
@@ -87,7 +88,8 @@ export class VanguardiaClientService {
     params = params.set('id', id.toString());
 
     const headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
     };
 
     return this.http.get<VanguardiaResponse>(environment.vanguardia.apiUrl, { 
