@@ -2,8 +2,8 @@ export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:8080',
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorders',
-    uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
+    apiUrl: '/vgd/singlefilecustomer',  // Usar proxy en desarrollo
+    ordersApiUrl: '/vgd/singlefileorders',  // Usar proxy en desarrollo
+    uploadApiUrl: '/backblaze/upload'  // Usar proxy en desarrollo
   }
 };

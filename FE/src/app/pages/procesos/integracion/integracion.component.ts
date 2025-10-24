@@ -713,14 +713,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('idAgency', this.selectedAgency.IdAgency);
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
+    // El proxy agregará X-Provider-Token automáticamente
     this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
-      params,
-      headers
+      params
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1242,13 +1237,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       idDocumentFile: document.documentId
     });
 
-    // Headers requeridos por Vanguardia (sin Content-Type para FormData)
-    const headers = {
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
-    // Usar API de Vanguardia directamente
-    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData, { headers })
+    // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
+    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -1322,12 +1312,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
     console.log('🔗 URL completa:', url);
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
-    this.http.get<any>(url, { headers })
+    // El proxy agregará X-Provider-Token automáticamente
+    this.http.get<any>(url)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

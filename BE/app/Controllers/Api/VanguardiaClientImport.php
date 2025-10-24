@@ -32,8 +32,8 @@ class VanguardiaClientImport extends ResourceController
                 ])->setStatusCode(400);
             }
 
-            // Validar datos requeridos
-            $requiredFields = ['idAgency', 'ndDMS', 'name', 'paternal_surname', 'maternal_surname'];
+            // Validar datos requeridos básicos
+            $requiredFields = ['idAgency', 'ndDMS'];
             foreach ($requiredFields as $field) {
                 if (!isset($vanguardiaData[$field]) || empty($vanguardiaData[$field])) {
                     return $this->response->setJSON([
@@ -42,6 +42,32 @@ class VanguardiaClientImport extends ResourceController
                         'data' => null
                     ])->setStatusCode(400);
                 }
+            }
+
+            // Logging de datos recibidos
+            error_log("=== VanguardiaClientImport::import - Datos recibidos ===");
+            error_log("name: " . ($vanguardiaData['name'] ?? 'NULL'));
+            error_log("bussines_name: " . ($vanguardiaData['bussines_name'] ?? 'NULL'));
+            error_log("paternal_surname: " . ($vanguardiaData['paternal_surname'] ?? 'NULL'));
+            error_log("maternal_surname: " . ($vanguardiaData['maternal_surname'] ?? 'NULL'));
+
+            // Si name viene vacío, usar bussines_name como fallback
+            if (empty($vanguardiaData['name']) && !empty($vanguardiaData['bussines_name'])) {
+                error_log("⚠️ Campo 'name' vacío, usando 'bussines_name' como fallback");
+                $vanguardiaData['name'] = $vanguardiaData['bussines_name'];
+                $vanguardiaData['paternal_surname'] = $vanguardiaData['paternal_surname'] ?? '';
+                $vanguardiaData['maternal_surname'] = $vanguardiaData['maternal_surname'] ?? '';
+                error_log("✅ Nuevo valor de 'name': " . $vanguardiaData['name']);
+            }
+
+            // Validar que al menos tengamos un nombre (name o bussines_name)
+            if (empty($vanguardiaData['name']) && empty($vanguardiaData['bussines_name'])) {
+                error_log("❌ Error: No se proporcionó ni name ni bussines_name");
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Se requiere al menos name o bussines_name',
+                    'data' => null
+                ])->setStatusCode(400);
             }
 
             // Verificar si el cliente ya existe
@@ -159,6 +185,13 @@ class VanguardiaClientImport extends ResourceController
         // Obtener el siguiente ID disponible
         $nextId = $this->getNextClientId();
         
+        // Determinar RazonSocial - usar bussines_name si está disponible
+        $razonSocial = !empty($vanguardiaData['bussines_name']) 
+            ? $vanguardiaData['bussines_name'] 
+            : trim(($vanguardiaData['name'] ?? '') . ' ' . 
+                   ($vanguardiaData['paternal_surname'] ?? '') . ' ' . 
+                   ($vanguardiaData['maternal_surname'] ?? ''));
+        
         $clientData = [
             'Id' => $nextId,
             'Name' => $vanguardiaData['name'] ?? '',
@@ -169,7 +202,7 @@ class VanguardiaClientImport extends ResourceController
             'TelNumber' => $vanguardiaData['phone'] ?? '',
             'TelNumber2' => $vanguardiaData['mobile_phone'] ?? '',
             'Email' => $vanguardiaData['mail'] ?? '',
-            'RazonSocial' => ($vanguardiaData['bussines_name'] ?? '') . ' (Vanguardia)',
+            'RazonSocial' => $razonSocial,
             'Adviser' => '', // Se puede asignar después
             'AgencyOrigin' => $vanguardiaData['idAgency'] ?? '',
             'RegistrationDate' => date('Y-m-d H:i:s'),
@@ -177,10 +210,15 @@ class VanguardiaClientImport extends ResourceController
             'IdLastUserUpdate' => 1 // Usuario sistema
         ];
 
+        error_log("=== Datos a insertar en Client ===");
+        error_log(json_encode($clientData, JSON_PRETTY_PRINT));
+
         $result = $this->db->table('Client')->insert($clientData);
         if (!$result) {
             throw new \Exception('Error al insertar en tabla Client: ' . json_encode($this->db->error()));
         }
+        
+        error_log("✅ Cliente insertado con ID: " . $nextId);
         return $nextId;
     }
 

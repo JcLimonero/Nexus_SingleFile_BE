@@ -298,9 +298,14 @@ $routes->group('client', function($routes) {
     $routes->get('search', 'Client::search');
 });
 
-// Rutas de Backblaze
+// Rutas de Proxy a Vanguardia (para evitar CORS)
+$routes->group('vgd', function($routes) {
+    $routes->get('singlefilecustomer', 'VanguardiaProxy::searchClients');
+    $routes->get('singlefileorders', 'VanguardiaProxy::searchOrders');
+});
 $routes->group('backblaze', function($routes) {
-    $routes->get('get-private-url', 'BackblazeController::getPrivateUrl');
+    $routes->post('upload', 'VanguardiaProxy::upload');
+    $routes->get('get-private-url', 'VanguardiaProxy::getPrivateUrl');
 });
 
 // Rutas de files/pedidos (Principal)
