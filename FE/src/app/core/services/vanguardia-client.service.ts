@@ -65,9 +65,13 @@ export class VanguardiaClientService {
     params = params.set('idAgency', idAgency);
     params = params.set('ndDMS', ndDMS);
 
-    // El proxy agregará X-Provider-Token automáticamente
+    const headers = {
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
+    };
+
     return this.http.get<VanguardiaResponse>(environment.vanguardia.apiUrl, { 
-      params
+      params,
+      headers
     });
   }
 
@@ -82,9 +86,13 @@ export class VanguardiaClientService {
     params = params.set('idAgency', idAgency);
     params = params.set('id', id.toString());
 
-    // El proxy agregará X-Provider-Token automáticamente
+    const headers = {
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
+    };
+
     return this.http.get<VanguardiaResponse>(environment.vanguardia.apiUrl, { 
-      params
+      params,
+      headers
     });
   }
 

@@ -7,14 +7,5 @@
     "headers": {
       "X-Provider-Token": "b26e88c4-ddbe-4adb-a214-4667f454824a"
     }
-  },
-  "/vgd/*": {
-    "target": "https://apisvanguardia.com:400",
-    "secure": true,
-    "changeOrigin": true,
-    "logLevel": "debug",
-    "headers": {
-      "X-Provider-Token": "b26e88c4-ddbe-4adb-a214-4667f454824a"
-    }
   }
 }

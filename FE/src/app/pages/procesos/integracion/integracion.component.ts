@@ -713,9 +713,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('idAgency', this.selectedAgency.IdAgency);
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
-    // El proxy agregará X-Provider-Token automáticamente
+    const headers = {
+      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
+    };
+
     this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
-      params
+      params,
+      headers
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({

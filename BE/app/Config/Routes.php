@@ -298,11 +298,7 @@ $routes->group('client', function($routes) {
     $routes->get('search', 'Client::search');
 });
 
-// Rutas de Proxy a Vanguardia (para evitar CORS)
-$routes->group('vgd', function($routes) {
-    $routes->get('singlefilecustomer', 'VanguardiaProxy::searchClients');
-    $routes->get('singlefileorders', 'VanguardiaProxy::searchOrders');
-});
+// Rutas de Proxy a Backblaze (para evitar CORS y agregar X-Provider-Token)
 $routes->group('backblaze', function($routes) {
     $routes->post('upload', 'VanguardiaProxy::upload');
     $routes->get('get-private-url', 'VanguardiaProxy::getPrivateUrl');
