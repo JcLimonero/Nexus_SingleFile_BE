@@ -1,0 +1,13 @@
+::ng-deep {
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    border-radius: 8px;
+  }
+}
+
+.mat-mdc-raised-button {
+  &[color="warn"] {
+    --mdc-protected-button-container-color: #dc2626;
+    --mdc-protected-button-label-text-color: white;
+  }
+}
+

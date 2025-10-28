@@ -62,6 +62,7 @@ class Documents extends BaseController
                 WHERE f.Id = ?
                 AND dt.IdProcessType = ?
                 AND f.IdCurrentState = 1
+                AND df.Enabled = 1
                 ORDER BY dt.Required DESC, dt.Name ASC
             ";
 

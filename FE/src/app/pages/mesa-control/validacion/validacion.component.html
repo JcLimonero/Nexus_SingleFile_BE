@@ -332,6 +332,16 @@
               </td>
             </ng-container>
 
+            <!-- Columna ID File (solo para administradores) -->
+            <ng-container matColumnDef="idFile">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="idFile" class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                ID File
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span class="text-blue-600 font-mono">{{ item.idFile }}</span>
+              </td>
+            </ng-container>
+
             <!-- Columna Cliente -->
             <ng-container matColumnDef="cliente">
               <th mat-header-cell *matHeaderCellDef mat-sort-header="cliente" class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
@@ -613,8 +623,13 @@
                 Eliminar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button *ngIf="isManagerOrAdmin" mat-icon-button color="warn" class="!w-6 !h-6 !min-h-6 !p-0">
-                  <mat-icon class="!text-sm">remove_circle</mat-icon>
+                <button *ngIf="isManagerOrAdmin" 
+                        mat-icon-button 
+                        color="warn" 
+                        class="!w-6 !h-6 !min-h-6 !p-0"
+                        (click)="eliminarDocumento(item); $event.stopPropagation()"
+                        matTooltip="Eliminar documento">
+                  <mat-icon class="!text-sm">delete_outline</mat-icon>
                 </button>
                 <span *ngIf="!isManagerOrAdmin" class="text-xs text-gray-400">-</span>
               </td>

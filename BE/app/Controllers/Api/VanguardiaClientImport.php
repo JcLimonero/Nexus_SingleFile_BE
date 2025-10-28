@@ -70,14 +70,35 @@ class VanguardiaClientImport extends ResourceController
                 ])->setStatusCode(400);
             }
 
-            // Verificar si el cliente ya existe
+            // Verificar si el cliente ya existe por ndDMS
             $existingClient = $this->checkExistingClient($vanguardiaData['ndDMS'], $vanguardiaData['idAgency']);
             if ($existingClient) {
+                error_log("✅ Cliente encontrado por ndDMS, retornando datos existentes");
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Cliente ya existe en el sistema local',
                     'data' => $existingClient
                 ]);
+            }
+
+            // Verificar si existe cliente con la misma RazonSocial (para evitar duplicados)
+            $razonSocial = !empty($vanguardiaData['bussines_name']) 
+                ? $vanguardiaData['bussines_name'] 
+                : trim(($vanguardiaData['name'] ?? '') . ' ' . 
+                       ($vanguardiaData['paternal_surname'] ?? '') . ' ' . 
+                       ($vanguardiaData['maternal_surname'] ?? ''));
+            
+            $existingByRazonSocial = $this->checkExistingClientByRazonSocial($razonSocial);
+            if ($existingByRazonSocial) {
+                error_log("⚠️ Ya existe cliente con RazonSocial '{$razonSocial}', pero con diferente ndDMS");
+                error_log("⚠️ Modificando RazonSocial para evitar duplicado");
+                
+                // Agregar sufijo para evitar duplicado
+                $razonSocialOriginal = $razonSocial;
+                $razonSocial = $razonSocial . ' (' . $vanguardiaData['ndDMS'] . ')';
+                $vanguardiaData['razonSocial_modified'] = $razonSocial;
+                
+                error_log("✅ Nueva RazonSocial: {$razonSocial}");
             }
 
             // Iniciar transacción
@@ -145,6 +166,10 @@ class VanguardiaClientImport extends ResourceController
      */
     private function checkExistingClient($ndDMS, $idAgency)
     {
+        error_log("=== Verificando si cliente existe ===");
+        error_log("ndDMS: {$ndDMS}, idAgency: {$idAgency}");
+        
+        // Buscar cliente por ndDMS y agencia (sin requerir que tenga File)
         $sql = "
             SELECT 
                 c.Id as idCliente,
@@ -163,16 +188,51 @@ class VanguardiaClientImport extends ResourceController
                 c.AgencyOrigin as agenciaOrigen,
                 c.RegistrationDate as fechaRegistro,
                 c.UpdateDate as fechaActualizacion,
-                f.IdAgency as idAgency
+                ctr.IdAgency as idAgency,
+                hc.Id as headerClientId
             FROM Client c
             INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
             INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-            INNER JOIN File f ON hc.Id = f.IdClient
-            WHERE ctr.IdTotalDealer = ? AND f.IdAgency = ?
+            WHERE ctr.IdTotalDealer = ? AND ctr.IdAgency = ?
         ";
 
         $query = $this->db->query($sql, [$ndDMS, $idAgency]);
         $result = $query->getRowArray();
+
+        if ($result) {
+            error_log("✅ Cliente YA existe por ndDMS: " . json_encode($result));
+            return $result;
+        }
+
+        error_log("ℹ️ Cliente NO existe por ndDMS, se procederá a crearlo");
+        return null;
+    }
+    
+    /**
+     * Verificar si existe cliente por RazonSocial (para evitar duplicados)
+     */
+    private function checkExistingClientByRazonSocial($razonSocial)
+    {
+        error_log("🔍 Verificando si existe cliente por RazonSocial: {$razonSocial}");
+        
+        $sql = "
+            SELECT 
+                c.Id as idCliente,
+                c.RazonSocial as razonSocial,
+                c.Name as nombre,
+                c.LastName as apellidoPaterno,
+                c.MotherLastName as apellidoMaterno
+            FROM Client c
+            WHERE c.RazonSocial = ?
+            LIMIT 1
+        ";
+
+        $query = $this->db->query($sql, [$razonSocial]);
+        $result = $query->getRowArray();
+
+        if ($result) {
+            error_log("⚠️ Ya existe cliente con RazonSocial: " . json_encode($result));
+        }
 
         return $result ?: null;
     }
@@ -185,12 +245,14 @@ class VanguardiaClientImport extends ResourceController
         // Obtener el siguiente ID disponible
         $nextId = $this->getNextClientId();
         
-        // Determinar RazonSocial - usar bussines_name si está disponible
-        $razonSocial = !empty($vanguardiaData['bussines_name']) 
-            ? $vanguardiaData['bussines_name'] 
-            : trim(($vanguardiaData['name'] ?? '') . ' ' . 
-                   ($vanguardiaData['paternal_surname'] ?? '') . ' ' . 
-                   ($vanguardiaData['maternal_surname'] ?? ''));
+        // Determinar RazonSocial - usar el modificado si existe, sino construirlo
+        $razonSocial = isset($vanguardiaData['razonSocial_modified']) 
+            ? $vanguardiaData['razonSocial_modified']
+            : (!empty($vanguardiaData['bussines_name']) 
+                ? $vanguardiaData['bussines_name'] 
+                : trim(($vanguardiaData['name'] ?? '') . ' ' . 
+                       ($vanguardiaData['paternal_surname'] ?? '') . ' ' . 
+                       ($vanguardiaData['maternal_surname'] ?? '')));
         
         $clientData = [
             'Id' => $nextId,

@@ -606,6 +606,7 @@ class Validacion extends BaseController
                 ->join('DocumentFile_Status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
                 ->join('User u', 'dbf.IdLastUserUpdate = u.Id', 'left')
                 ->where('dbf.IdFile', $idFile)
+                ->where('dbf.Enabled', 1)
                 ->orderBy('p.Name', 'ASC')
                 ->orderBy('fs.Name', 'ASC')
                 ->orderBy('dt.Name', 'ASC');

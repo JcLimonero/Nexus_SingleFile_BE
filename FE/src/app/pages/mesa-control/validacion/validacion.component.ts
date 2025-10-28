@@ -25,6 +25,7 @@ import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult
 import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
 import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
 import { RechazarDocumentoDialogComponent, RechazarDocumentoData, RechazarDocumentoResult } from './rechazar-documento-dialog/rechazar-documento-dialog.component';
+import { EliminarDocumentoDialogComponent, EliminarDocumentoData, EliminarDocumentoResult } from './eliminar-documento-dialog/eliminar-documento-dialog.component';
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
@@ -86,9 +87,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   fases: CatalogItem[] = FASES_CATALOG;
 
   // Tabla de clientes
-  clientesDisplayedColumns: string[] = [
-    'ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'
-  ];
+  get clientesDisplayedColumns(): string[] {
+    // Agregar idFile solo para administradores y gerentes
+    if (this.isManagerOrAdmin) {
+      return ['ndCliente', 'ndPedido', 'idFile', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
+    }
+    return ['ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
+  }
   clientesDataSource = new MatTableDataSource<any>([]);
   
   // Paginación
@@ -961,6 +966,95 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         );
       }
     });
+  }
+
+  /**
+   * Eliminar documento con confirmación
+   */
+  eliminarDocumento(documento: any): void {
+    console.log('Eliminando documento:', documento);
+    
+    // Verificar que solo gerentes o administradores puedan eliminar
+    if (!this.isManagerOrAdmin) {
+      this.snackBar.open('No tienes permisos para eliminar documentos', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    // Crear dialog de confirmación
+    const dialogRef = this.dialog.open(EliminarDocumentoDialogComponent, {
+      width: '500px',
+      data: {
+        documento: documento
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: EliminarDocumentoResult) => {
+      if (result && result.confirmado) {
+        console.log('Confirmando eliminación de documento:', documento);
+        this.procesarEliminacionDocumento(documento);
+      }
+    });
+  }
+
+  /**
+   * Procesar la eliminación del documento
+   */
+  private procesarEliminacionDocumento(documento: any): void {
+    console.log('=== INICIO ELIMINACIÓN DOCUMENTO ===');
+    console.log('Documento completo:', documento);
+    console.log('ID del documento (idDocumentByFile):', documento.idDocumentByFile);
+    console.log('ID del File (idFile):', documento.idFile);
+    console.log('Nombre del documento:', documento.documento);
+    
+    this.loading = true;
+    
+    const url = `${environment.apiBaseUrl}/api/document/${documento.idDocumentByFile}`;
+    console.log('URL de eliminación:', url);
+    
+    this.http.delete<any>(url)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Documento eliminado exitosamente:', response);
+          console.log('=== FIN ELIMINACIÓN EXITOSA ===');
+          this.loading = false;
+          
+          this.snackBar.open(
+            `Documento "${documento.documento}" eliminado exitosamente`, 
+            'Cerrar', 
+            { duration: 3000 }
+          );
+          
+          // Recargar documentos para mostrar el estado actualizado
+          if (this.selectedCliente) {
+            console.log('Recargando documentos para idFile:', this.selectedCliente.idFile);
+            this.cargarDocumentosCliente(this.selectedCliente.idFile);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error eliminando documento:', error);
+          console.log('=== FIN ELIMINACIÓN CON ERROR ===');
+          this.loading = false;
+          
+          let errorMessage = 'Error desconocido al eliminar el documento';
+          
+          if (error.status === 403) {
+            errorMessage = 'No tienes permisos para eliminar documentos';
+          } else if (error.status === 401) {
+            errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente';
+          } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+          }
+          
+          this.snackBar.open(
+            `Error al eliminar documento: ${errorMessage}`, 
+            'Cerrar', 
+            { duration: 5000 }
+          );
+        }
+      });
   }
 
   descargarArchivo() {

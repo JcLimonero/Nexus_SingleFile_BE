@@ -313,11 +313,14 @@ class Document extends BaseController
 
     /**
      * DELETE /api/document/{id}
-     * Eliminar un documento
+     * Eliminar un documento (eliminación lógica)
      */
     public function delete($id = null)
     {
         try {
+            log_message('info', "=== INICIO DELETE DOCUMENTO ===");
+            log_message('info', "ID recibido: {$id}");
+            
             if (!$id) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -325,23 +328,49 @@ class Document extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // Verificar autenticación
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido'
+                ])->setStatusCode(401);
+            }
+
             $document = $this->documentModel->find($id);
             if (!$document) {
+                log_message('error', "Documento con ID {$id} no encontrado");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Documento no encontrado'
                 ])->setStatusCode(404);
             }
 
-            // Eliminar el documento
-            $result = $this->documentModel->delete($id);
+            log_message('info', "Documento encontrado: Id={$document['Id']}, IdFile={$document['IdFile']}, Name={$document['Name']}, Enabled={$document['Enabled']}");
+
+            // Eliminación lógica: cambiar Enabled a 0
+            $updateData = [
+                'Enabled' => 0,
+                'UpdateDate' => date('Y-m-d H:i:s'),
+                'IdLastUserUpdate' => $currentUser['user_id'] ?? 0
+            ];
+
+            log_message('info', "Actualizando documento ID {$id} con Enabled=0");
+            $result = $this->documentModel->update($id, $updateData);
             
             if ($result) {
+                log_message('info', "✅ Documento {$id} (Name: {$document['Name']}) eliminado lógicamente por usuario {$currentUser['user_id']}");
+                log_message('info', "=== FIN DELETE DOCUMENTO EXITOSO ===");
                 return $this->response->setJSON([
                     'success' => true,
-                    'message' => 'Documento eliminado exitosamente'
+                    'message' => 'Documento eliminado exitosamente',
+                    'data' => [
+                        'documentId' => $id,
+                        'documentName' => $document['Name']
+                    ]
                 ]);
             } else {
+                log_message('error', "❌ Error al actualizar documento ID {$id}");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Error al eliminar el documento'
@@ -350,6 +379,7 @@ class Document extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en Document::delete: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar documento: ' . $e->getMessage()

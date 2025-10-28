@@ -17,6 +17,7 @@ class Analytics extends BaseController
     protected $agencyModel;
     protected $userModel;
     protected $userActivityLogModel;
+    private static $cache = []; // Cache estático para la sesión
 
     public function __construct()
     {
@@ -25,6 +26,30 @@ class Analytics extends BaseController
         $this->agencyModel = new AgencyModel();
         $this->userModel = new UserModel();
         $this->userActivityLogModel = new UserActivityLogModel();
+    }
+    
+    /**
+     * Obtener datos del cache o ejecutar función
+     */
+    private function getCached($key, $callback, $ttl = 60)
+    {
+        // Verificar si existe en cache y no ha expirado
+        if (isset(self::$cache[$key]) && (time() - self::$cache[$key]['time']) < $ttl) {
+            error_log("✅ Cache HIT para: {$key}");
+            return self::$cache[$key]['data'];
+        }
+        
+        // No está en cache o expiró, ejecutar callback
+        error_log("❌ Cache MISS para: {$key}, ejecutando query...");
+        $data = $callback();
+        
+        // Guardar en cache
+        self::$cache[$key] = [
+            'data' => $data,
+            'time' => time()
+        ];
+        
+        return $data;
     }
 
     /**
@@ -315,12 +340,18 @@ class Analytics extends BaseController
         try {
             $filters = $this->getFiltersFromRequest();
             $agencyId = $filters['agency_id'] ?? null;
-
-            // Expedientes de hoy (consulta directa a File)
-            $db = \Config\Database::connect();
+            $userId = $filters['user_id'] ?? null;
             
-            // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
+            // Crear key de cache basado en filtros
+            $cacheKey = 'agency_metrics_' . ($agencyId ?? 'all') . '_user_' . ($userId ?? 'all');
+            
+            // Usar cache con TTL de 30 segundos
+            $data = $this->getCached($cacheKey, function() use ($agencyId, $userId) {
+                // Expedientes de hoy (consulta directa a File)
+                $db = \Config\Database::connect();
+                
+                // Configurar zona horaria de Guadalajara (GMT-6)
+                date_default_timezone_set('America/Mexico_City');
             
             $todayCases = $db->table('File')
                 ->where('DATE(RegistrationDate)', date('Y-m-d'));
@@ -384,14 +415,15 @@ class Analytics extends BaseController
             ];
             $monthlyName = $monthNames[date('n')]; // Mes actual
 
-            $data = [
-                'todayCases' => $todayCases,
-                'monthlyCases' => $monthlyCases,
-                'totalCases' => $totalCases,
-                'totalUsers' => $totalUsers,
-                'monthlyAgencyCases' => $monthlyAgencyCases,
-                'monthlyName' => $monthlyName
-            ];
+                return [
+                    'todayCases' => $todayCases,
+                    'monthlyCases' => $monthlyCases,
+                    'totalCases' => $totalCases,
+                    'totalUsers' => $totalUsers,
+                    'monthlyAgencyCases' => $monthlyAgencyCases,
+                    'monthlyName' => $monthlyName
+                ];
+            }, 30); // Cache por 30 segundos
 
             return $this->response->setJSON([
                 'success' => true,
@@ -514,11 +546,16 @@ class Analytics extends BaseController
         try {
             $filters = $this->getFiltersFromRequest();
             $agencyId = $filters['agency_id'] ?? null;
+            
+            // Crear key de cache
+            $cacheKey = 'distribution_metrics_' . ($agencyId ?? 'all');
+            
+            // Usar cache con TTL de 30 segundos
+            $data = $this->getCached($cacheKey, function() use ($agencyId) {
+                // Configurar zona horaria de Guadalajara (GMT-6)
+                date_default_timezone_set('America/Mexico_City');
 
-            // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
-
-            $db = \Config\Database::connect();
+                $db = \Config\Database::connect();
 
             // Base query para el mes actual
             $baseQuery = $db->table('File')
@@ -550,24 +587,25 @@ class Analytics extends BaseController
             $canceladasPorcentaje = $total > 0 ? round(($canceladas / $total) * 100, 1) : 0;
             $procesoPorcentaje = $total > 0 ? round(($proceso / $total) * 100, 1) : 0;
 
-            $data = [
-                'entregados' => [
-                    'total' => $entregados,
-                    'porcentaje' => $entregadosPorcentaje
-                ],
-                'canceladas' => [
-                    'total' => $canceladas,
-                    'porcentaje' => $canceladasPorcentaje
-                ],
-                'proceso' => [
-                    'total' => $proceso,
-                    'porcentaje' => $procesoPorcentaje
-                ],
-                'total' => $total,
-                'month' => date('F'),
-                'year' => date('Y'),
-                'agency_id' => $agencyId
-            ];
+                return [
+                    'entregados' => [
+                        'total' => $entregados,
+                        'porcentaje' => $entregadosPorcentaje
+                    ],
+                    'canceladas' => [
+                        'total' => $canceladas,
+                        'porcentaje' => $canceladasPorcentaje
+                    ],
+                    'proceso' => [
+                        'total' => $proceso,
+                        'porcentaje' => $procesoPorcentaje
+                    ],
+                    'total' => $total,
+                    'month' => date('F'),
+                    'year' => date('Y'),
+                    'agency_id' => $agencyId
+                ];
+            }, 30); // Cache por 30 segundos
 
             return $this->response->setJSON(['success' => true, 'data' => $data]);
 
