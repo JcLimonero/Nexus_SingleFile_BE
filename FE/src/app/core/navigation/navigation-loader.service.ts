@@ -59,6 +59,12 @@ export class NavigationLoaderService {
             label: 'Liquidación',
             route: '/procesos/liquidacion',
             icon: 'mat:account_balance'
+          },
+          {
+            type: 'link',
+            label: 'Liberación',
+            route: '/procesos/liberacion',
+            icon: 'mat:verified'
           }
         ]
       },

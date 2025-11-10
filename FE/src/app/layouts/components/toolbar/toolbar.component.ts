@@ -205,6 +205,8 @@ export class ToolbarComponent implements OnInit {
         return 'Integración de Expediente';
       } else if (url.includes('/liquidacion')) {
         return 'Liquidación';
+      } else if (url.includes('/liberacion')) {
+        return 'Liberación';
       } else {
         return 'Procesos';
       }

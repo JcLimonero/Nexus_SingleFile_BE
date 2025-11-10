@@ -316,6 +316,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/procesos/liquidacion/liquidacion.component').then(
                 (m) => m.LiquidacionComponent
               )
+          },
+          {
+            path: 'liberacion',
+            loadComponent: () =>
+              import('./pages/procesos/liberacion/liberacion.component').then(
+                (m) => m.LiberacionComponent
+              )
           }
         ]
       },

@@ -42,6 +42,8 @@ class Documents extends BaseController
                     df.RegistrationDate as uploadDate,
                     dt.ReqExpiration as hasExpiration,
                     df.ExperationDate as expirationDate,
+                    dt.IdSubProcess as subProcessId,
+                    fss.Name as subProcessName,
                     CASE 
                         WHEN ISNULL(dt.ReqExpiration) THEN FALSE
                         WHEN dt.ReqExpiration = 0 THEN FALSE
@@ -59,6 +61,7 @@ class Documents extends BaseController
                 INNER JOIN DocumentType dt ON df.IdDocumentType = dt.Id
                 INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id 
                 INNER JOIN DocumentFile_Status dfs ON dfs.Id = df.IdCurrentStatus 
+                LEFT JOIN File_SubStatus fss ON fss.Id = dt.IdSubProcess
                 WHERE f.Id = ?
                 AND dt.IdProcessType = ?
                 AND f.IdCurrentState = dt.IdProcessType
