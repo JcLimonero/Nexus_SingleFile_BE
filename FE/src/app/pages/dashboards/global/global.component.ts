@@ -12,14 +12,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { HttpClient } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
-import { Cliente, Documento, FiltrosValidacion, ValidacionService } from '../../mesa-control/validacion/validacion.service';
+import { Cliente, FiltrosValidacion, ValidacionService } from '../../mesa-control/validacion/validacion.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
-import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/global-documentos-dialog.component';
 
 @Component({
   selector: 'app-dashboard-global',
@@ -65,26 +65,6 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
   clientesDisplayedColumns: string[] = [];
 
-  documentosDisplayedColumns: string[] = [
-    'documento',
-    'disponibleCliente',
-    'estatus',
-    'ver',
-    'cargar',
-    'requerido',
-    'requiereExpiracion',
-    'fecha',
-    'fechaExpiracion',
-    'comentario',
-    'asignado'
-  ];
-
-  expandedPedidoId: number | null = null;
-  documentosPorPedido: Record<number, Documento[]> = {};
-  documentosLoading: Record<number, boolean> = {};
-  documentosError: Record<number, string | null> = {};
-  selectedFiles: Record<string, File> = {};
-  pedidoSeleccionado: Cliente | null = null;
   private isAdminUser = false;
 
   private destroy$ = new Subject<void>();
@@ -93,8 +73,8 @@ export class GlobalComponent implements OnInit, OnDestroy {
     private validacionService: ValidacionService,
     private defaultAgencyService: DefaultAgencyService,
     private snackBar: MatSnackBar,
-    private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -154,11 +134,6 @@ export class GlobalComponent implements OnInit, OnDestroy {
       this.refreshing = false;
       this.clientesOriginales = [];
       this.clientesFiltrados = [];
-      this.expandedPedidoId = null;
-      this.pedidoSeleccionado = null;
-      this.documentosPorPedido = {};
-      this.documentosLoading = {};
-      this.documentosError = {};
     }, 300);
   }
 
@@ -317,12 +292,6 @@ export class GlobalComponent implements OnInit, OnDestroy {
       )
       .subscribe((clientes) => {
         this.loadingClientes = false;
-        this.expandedPedidoId = null;
-        this.pedidoSeleccionado = null;
-        this.documentosPorPedido = {};
-        this.documentosLoading = {};
-        this.documentosError = {};
-        this.selectedFiles = {};
 
         this.clientesOriginales = Array.isArray(clientes)
           ? clientes.map((cliente) => ({
@@ -370,220 +339,23 @@ export class GlobalComponent implements OnInit, OnDestroy {
     }
 
     this.clientesFiltrados = data;
-
-    if (this.expandedPedidoId !== null) {
-      const encontrado = this.clientesFiltrados.find(
-        (cliente) => cliente.idFile === this.expandedPedidoId
-      );
-      if (encontrado) {
-        this.pedidoSeleccionado = encontrado;
-      } else {
-        this.expandedPedidoId = null;
-        this.pedidoSeleccionado = null;
-      }
-    }
   }
 
-  isExpanded(cliente: Cliente): boolean {
-    return this.expandedPedidoId === cliente.idFile;
-  }
+  openDocumentsDialog(cliente: Cliente): void {
+    const dialogRef = this.dialog.open(GlobalDocumentosDialogComponent, {
+      width: '1200px',
+      maxHeight: '90vh',
+      data: { cliente }
+    });
 
-  toggleDocumentos(cliente: Cliente): void {
-    if (this.isExpanded(cliente)) {
-      this.expandedPedidoId = null;
-      this.pedidoSeleccionado = null;
-      return;
-    }
-
-    this.expandedPedidoId = cliente.idFile;
-    this.pedidoSeleccionado = cliente;
-    if (!this.documentosPorPedido[cliente.idFile]) {
-      this.cargarDocumentosPedido(cliente);
-    }
-  }
-
-  private cargarDocumentosPedido(cliente: Cliente, forceReload: boolean = false): void {
-    if (!cliente || (!forceReload && this.documentosLoading[cliente.idFile])) {
-      return;
-    }
-
-    this.documentosLoading[cliente.idFile] = true;
-    this.documentosError[cliente.idFile] = null;
-
-    this.validacionService
-      .cargarDocumentos(cliente.idFile)
-      .pipe(
-        takeUntil(this.destroy$),
-        timeout(10000),
-        catchError((error) => {
-          console.error('Error cargando documentos para pedido global:', error);
-          this.documentosError[cliente.idFile] = 'Error al cargar documentos';
-          this.documentosLoading[cliente.idFile] = false;
-          return of([]);
-        })
-      )
-      .subscribe((documentos) => {
-        const docs = Array.isArray(documentos) ? documentos : [];
-        this.documentosPorPedido[cliente.idFile] = docs;
-        this.documentosLoading[cliente.idFile] = false;
-        this.actualizarContadorDocumentos(cliente, docs);
-      });
-  }
-
-  private actualizarContadorDocumentos(cliente: Cliente, documentos: Documento[]): void {
-    const pendientes = documentos.filter(
-      (doc) => Number(doc.idEstatus) !== 4 && Number(doc.idEstatus) !== 0
-    ).length;
-    cliente.documentosNoAprobados = pendientes;
-  }
-
-  isDocumentoStatus(documento: Documento, status: number): boolean {
-    return Number(documento?.idEstatus) === status;
-  }
-
-  onFileSelected(event: Event, documento: Documento): void {
-    const input = event.target as HTMLInputElement;
-    const file = input?.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const key = this.obtenerClaveDocumento(documento);
-    if (!key) {
-      return;
-    }
-
-    this.selectedFiles[key] = file;
-  }
-
-  uploadDocument(documento: Documento, cliente: Cliente): void {
-    const key = this.obtenerClaveDocumento(documento);
-    if (!key) {
-      this.snackBar.open('No se pudo identificar el documento', 'Cerrar', { duration: 3000 });
-      return;
-    }
-
-    const file = this.selectedFiles[key];
-    if (!file) {
-      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('idSingleFile', cliente.idFile.toString());
-    formData.append('idDocumentFile', key);
-
-    this.http
-      .post<any>(environment.vanguardia.uploadApiUrl, formData)
+    dialogRef
+      .afterClosed()
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.snackBar.open(`Documento ${documento.documento} cargado correctamente`, 'Cerrar', {
-            duration: 3000
-          });
-          delete this.selectedFiles[key];
-          this.cargarDocumentosPedido(cliente, true);
-        },
-        error: (error) => {
-          console.error('Error subiendo documento desde Global:', error);
-          this.snackBar.open('Error al subir el documento', 'Cerrar', { duration: 4000 });
+      .subscribe((result) => {
+        if (result && typeof result.documentosNoAprobados === 'number') {
+          cliente.documentosNoAprobados = result.documentosNoAprobados;
         }
       });
-  }
-
-  canUpload(documento: Documento): boolean {
-    const key = this.obtenerClaveDocumento(documento);
-    const hasFile = key ? !!this.selectedFiles[key] : false;
-    const status = Number(documento.idEstatus);
-    return hasFile && status !== 3 && status !== 4;
-  }
-
-  onVerDocumento(documento: Documento, cliente: Cliente): void {
-    if (!documento.documentContainer) {
-      this.snackBar.open('No se puede visualizar el documento. No hay archivo asociado.', 'Cerrar', {
-        duration: 3000
-      });
-      return;
-    }
-
-    const status = String(documento.idEstatus);
-    if (status === '2') {
-      if (documento.idDocumentByFile === undefined || documento.idDocumentByFile === null) {
-        this.snackBar.open('No se pudo preparar el documento, identificador inválido.', 'Cerrar', {
-          duration: 3000
-        });
-        this.abrirDocumento(documento);
-        return;
-      }
-
-      this.validacionService
-        .prepararDocumento(documento.idDocumentByFile!)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            documento.idEstatus = 3;
-            this.abrirDocumento(documento);
-            this.cargarDocumentosPedido(cliente, true);
-          },
-          error: () => {
-            this.snackBar.open(
-              'No se pudo actualizar el estatus, pero se intentará abrir el documento',
-              'Cerrar',
-              { duration: 3000 }
-            );
-            this.abrirDocumento(documento);
-          }
-        });
-    } else {
-      this.abrirDocumento(documento);
-    }
-  }
-
-  private abrirDocumento(documento: Documento): void {
-    const fileName = documento.documentContainer;
-    const duration = 3600;
-    const params = new URLSearchParams();
-    if (fileName) {
-      params.append('file', fileName);
-    }
-    params.append('duration', duration.toString());
-
-    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
-
-    this.http
-      .get<any>(url)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          const privateUrl = response?.data?.url;
-          if (privateUrl) {
-            const newWindow = window.open(privateUrl, '_blank');
-            if (!newWindow) {
-              this.snackBar.open('No se pudo abrir el documento en una nueva pestaña.', 'Cerrar', {
-                duration: 4000
-              });
-            }
-          } else {
-            this.snackBar.open('No se pudo obtener la URL del documento', 'Cerrar', {
-              duration: 3000
-            });
-          }
-        },
-        error: (error) => {
-          console.error('Error obteniendo URL privada de Backblaze:', error);
-          this.snackBar.open('Error al obtener la URL del documento', 'Cerrar', {
-            duration: 3000
-          });
-        }
-      });
-  }
-
-  private obtenerClaveDocumento(documento: Documento): string | null {
-    if (documento?.idDocumentByFile !== undefined && documento.idDocumentByFile !== null) {
-      return documento.idDocumentByFile.toString();
-    }
-    return null;
   }
 }
 
