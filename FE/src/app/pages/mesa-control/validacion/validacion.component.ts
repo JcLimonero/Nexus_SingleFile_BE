@@ -36,6 +36,7 @@ import { DefaultAgencyService, Agencia } from '../../../core/services/default-ag
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
+import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
 
 @Component({
   selector: 'vex-validacion',
@@ -63,7 +64,8 @@ import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion
     MatSlideToggleModule,
     ScrollingModule,
     AprobarDocumentoDialogComponent,
-    AdvertenciaLiquidacionDialogComponent
+    AdvertenciaLiquidacionDialogComponent,
+    AdvertenciaLiberacionDialogComponent
   ],
   templateUrl: './validacion.component.html',
   styleUrl: './validacion.component.scss'
@@ -116,7 +118,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Cliente seleccionado
   selectedCliente: any = null;
   private advertenciaLiquidacionMostrada = false;
+  private advertenciaLiberacionMostrada = false;
   private readonly LIQUIDACION_STATE_ID = 2;
+  private readonly LIBERACION_STATE_ID = 3;
 
   // Búsqueda
   searchTerm: string = '';
@@ -674,6 +678,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Guardar el cliente seleccionado
     this.selectedCliente = cliente;
     this.advertenciaLiquidacionMostrada = false;
+    this.advertenciaLiberacionMostrada = false;
     
     // Cargar los documentos del archivo específico
     this.cargarDocumentosCliente(cliente.idFile);
@@ -694,6 +699,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🧹 ValidacionComponent - Limpiando selección de cliente');
     this.selectedCliente = null;
     this.advertenciaLiquidacionMostrada = false;
+    this.advertenciaLiberacionMostrada = false;
     this.documentosDataSource = [];
   }
 
@@ -714,6 +720,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('📥 ValidacionComponent - Documentos recibidos:', documentos);
           this.documentosDataSource = documentos;
           this.verificarAvanceFaseLiquidacion(documentos);
+          this.verificarAvanceFaseLiberacion(documentos);
           this.loading = false;
         },
         error: (error) => {
@@ -752,8 +759,43 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.mostrarAdvertenciaLiquidacion();
   }
 
+  private verificarAvanceFaseLiberacion(documentos: Documento[]): void {
+    if (this.advertenciaLiberacionMostrada || !this.selectedCliente) {
+      return;
+    }
+
+    const faseCliente = this.normalizarTexto(this.selectedCliente.fase);
+    if (faseCliente !== 'liquidacion') {
+      return;
+    }
+
+    if (String(this.selectedCliente.IdCurrentState) !== this.LIQUIDACION_STATE_ID.toString()) {
+      return;
+    }
+
+    const documentosLiquidacionRequeridos = documentos.filter((doc) => {
+      return this.esDocumentoDeLiquidacion(doc) && this.esDocumentoRequerido(doc);
+    });
+
+    if (documentosLiquidacionRequeridos.length === 0) {
+      return;
+    }
+
+    const todosValidados = documentosLiquidacionRequeridos.every((doc) => this.esDocumentoAprobado(doc));
+    if (!todosValidados) {
+      return;
+    }
+
+    this.advertenciaLiberacionMostrada = true;
+    this.mostrarAdvertenciaLiberacion();
+  }
+
   private esDocumentoDeIntegracion(documento: Documento): boolean {
     return this.normalizarTexto(documento.fase) === 'integracion';
+  }
+
+  private esDocumentoDeLiquidacion(documento: Documento): boolean {
+    return this.normalizarTexto(documento.fase) === 'liquidacion';
   }
 
   private esDocumentoRequerido(documento: Documento): boolean {
@@ -813,6 +855,28 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  private mostrarAdvertenciaLiberacion(): void {
+    if (!this.selectedCliente) {
+      return;
+    }
+
+    this.dialog.open(AdvertenciaLiberacionDialogComponent, {
+      width: '520px',
+      disableClose: true,
+      data: {
+        cliente: this.selectedCliente.cliente,
+        ndPedido: this.selectedCliente.ndPedido
+      }
+    }).afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.avanzarPedidoALiberacion();
+      } else {
+        this.advertenciaLiberacionMostrada = false;
+        this.snackBar.open('El pedido se mantiene en Liquidación', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
   private avanzarPedidoALiquidacion(): void {
     if (!this.selectedCliente) {
       return;
@@ -835,6 +899,35 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.error('❌ Error al avanzar a Liquidación:', error);
           this.snackBar.open(
             `No se pudo avanzar el pedido a Liquidación: ${error?.message || 'Error desconocido'}`,
+            'Cerrar',
+            { duration: 5000 }
+          );
+        }
+      });
+  }
+
+  private avanzarPedidoALiberacion(): void {
+    if (!this.selectedCliente) {
+      return;
+    }
+
+    const idFile = this.selectedCliente.idFile;
+
+    this.validacionService.cambiarEstatus(idFile, this.LIBERACION_STATE_ID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          if (this.selectedCliente) {
+            this.selectedCliente.IdCurrentState = this.LIBERACION_STATE_ID;
+            this.selectedCliente.fase = 'Liberación';
+          }
+          this.snackBar.open('El pedido avanzó a la etapa de Liberación', 'Cerrar', { duration: 4000 });
+          this.cargarClientes();
+        },
+        error: (error) => {
+          console.error('❌ Error al avanzar a Liberación:', error);
+          this.snackBar.open(
+            `No se pudo avanzar el pedido a Liberación: ${error?.message || 'Error desconocido'}`,
             'Cerrar',
             { duration: 5000 }
           );
