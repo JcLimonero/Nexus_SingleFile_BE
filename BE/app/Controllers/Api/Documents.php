@@ -61,7 +61,7 @@ class Documents extends BaseController
                 INNER JOIN DocumentFile_Status dfs ON dfs.Id = df.IdCurrentStatus 
                 WHERE f.Id = ?
                 AND dt.IdProcessType = ?
-                AND f.IdCurrentState = 1
+                AND f.IdCurrentState = dt.IdProcessType
                 AND df.Enabled = 1
                 ORDER BY dt.Required DESC, dt.Name ASC
             ";

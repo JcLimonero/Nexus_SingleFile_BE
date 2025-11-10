@@ -46,11 +46,14 @@ export class ClientSearchService {
    * @param limit Límite de resultados
    * @returns Observable con los resultados
    */
-  searchClients(idAgency: number, searchTerm: string, limit: number = 50): Observable<ClientSearchResponse> {
+  searchClients(idAgency: number, searchTerm: string, limit: number = 50, statusId?: number): Observable<ClientSearchResponse> {
     let params = new HttpParams();
     params = params.set('idAgency', idAgency.toString());
     params = params.set('search', searchTerm);
     params = params.set('limit', limit.toString());
+    if (typeof statusId === 'number') {
+      params = params.set('statusId', statusId.toString());
+    }
 
     return this.http.get<ClientSearchResponse>(`${environment.apiBaseUrl}/api/client-search/search`, { params });
   }
@@ -89,8 +92,8 @@ export class ClientSearchService {
    * @param clientNumber Número de cliente
    * @returns Observable con los resultados
    */
-  searchByClientNumber(idAgency: number, clientNumber: string): Observable<ClientSearchResponse> {
-    return this.searchClients(idAgency, clientNumber, 10);
+  searchByClientNumber(idAgency: number, clientNumber: string, statusId?: number): Observable<ClientSearchResponse> {
+    return this.searchClients(idAgency, clientNumber, 10, statusId);
   }
 
   /**
@@ -99,7 +102,7 @@ export class ClientSearchService {
    * @param name Nombre del cliente
    * @returns Observable con los resultados
    */
-  searchByName(idAgency: number, name: string): Observable<ClientSearchResponse> {
-    return this.searchClients(idAgency, name, 50);
+  searchByName(idAgency: number, name: string, statusId?: number): Observable<ClientSearchResponse> {
+    return this.searchClients(idAgency, name, 50, statusId);
   }
 }

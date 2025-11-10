@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\UserActivityLogModel;
+use App\Models\DocumentModel;
 
 class Validacion extends BaseController
 {
@@ -602,7 +603,8 @@ class Validacion extends BaseController
                     dbf.Id as idDocumentByFile,
                     p.Name as proceso,
                     fs.Name as fase,
-                    dt.Name as documento,
+                    dbf.Name as documento,
+                    dt.Name as tipoDocumento,
                     dbf.Comment as comentario,
                     dbf.RegistrationDate as fecha,
                     u.Name as asignado,
@@ -646,6 +648,164 @@ class Validacion extends BaseController
         } catch (\Exception $e) {
             error_log("Error en Validacion::getDocumentos: " . $e->getMessage());
             
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Crear un documento adicional de Liquidación para un expediente
+     * POST /api/clients-validation/documentos/liquidacion
+     */
+    public function agregarDocumentoLiquidacion()
+    {
+        try {
+            $data = $this->request->getJSON(true);
+
+            if (empty($data['idFile'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $idFile = (int) $data['idFile'];
+            $documentTypeId = 21; // DocumentType de Liquidación
+
+            // Verificar que el expediente exista
+            $file = $this->db->table('File')
+                ->select('Id, IdOrderTotal')
+                ->where('Id', $idFile)
+                ->get()
+                ->getRowArray();
+
+            if (!$file) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El expediente especificado no existe',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            // Obtener el nombre base del tipo de documento
+            $documentType = $this->db->table('DocumentType')
+                ->select('Name')
+                ->where('Id', $documentTypeId)
+                ->get()
+                ->getRowArray();
+
+            if (!$documentType) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El tipo de documento de liquidación no está configurado',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+
+            $baseName = trim($documentType['Name'] ?? 'Liquidación');
+            if ($baseName === '') {
+                $baseName = 'Liquidación';
+            }
+
+            // Obtener documentos existentes de liquidación para calcular el consecutivo
+            $existingDocuments = $this->db->table('DocumentByFile')
+                ->select('Name')
+                ->where('IdFile', $idFile)
+                ->where('IdDocumentType', $documentTypeId)
+                ->orderBy('Id', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            $maxCounter = 0;
+            foreach ($existingDocuments as $existing) {
+                $name = trim($existing['Name'] ?? '');
+                if ($name === '') {
+                    continue;
+                }
+
+                if (preg_match('/(\d+)\s*$/', $name, $matches)) {
+                    $maxCounter = max($maxCounter, (int) $matches[1]);
+                }
+            }
+
+            $nextCounter = $maxCounter + 1;
+            $documentName = trim($baseName . ' ' . $nextCounter);
+
+            // Garantizar que no exista un documento con el mismo nombre
+            while ($this->db->table('DocumentByFile')
+                ->where('IdFile', $idFile)
+                ->where('Name', $documentName)
+                ->countAllResults() > 0) {
+                $nextCounter++;
+                $documentName = trim($baseName . ' ' . $nextCounter);
+            }
+
+            // Obtener siguiente ID manualmente
+            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM DocumentByFile")
+                ->getRowArray();
+            $nextId = (int) ($nextIdRow['nextId'] ?? 1);
+
+            $currentUserId = $this->getCurrentUserId() ?? 1;
+            $now = date('Y-m-d H:i:s');
+
+            $documentModel = new DocumentModel();
+            $documentData = [
+                'Id' => $nextId,
+                'Name' => $documentName,
+                'Comment' => null,
+                'ExperationDate' => null,
+                'PathDocument' => null,
+                'Enabled' => 1,
+                'RegistrationDate' => $now,
+                'UpdateDate' => $now,
+                'LastUserUpdate' => $currentUserId,
+                'IdLastUserUpdate' => $currentUserId,
+                'IdFile' => $idFile,
+                'IdValidation' => null,
+                'IdDocumentType' => $documentTypeId,
+                'IdCurrentStatus' => 1,
+                'IdDocumentError' => null
+            ];
+
+            if (!$documentModel->insert($documentData)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo crear el documento de liquidación',
+                    'data' => [
+                        'errors' => $documentModel->errors()
+                    ]
+                ])->setStatusCode(500);
+            }
+
+            $this->logActivity(
+                'AGREGAR_DOCUMENTO_LIQUIDACION',
+                "Documento de liquidación agregado al expediente {$idFile}",
+                [
+                    'file_id' => $idFile,
+                    'pedido' => $file['IdOrderTotal'] ?? null,
+                    'document_type_id' => $documentTypeId,
+                    'document_name' => $documentName,
+                    'consecutivo' => $nextCounter
+                ],
+                $idFile
+            );
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Documento de liquidación agregado correctamente',
+                'data' => [
+                    'idDocumentByFile' => $nextId,
+                    'documentName' => $documentName,
+                    'consecutivo' => $nextCounter
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::agregarDocumentoLiquidacion: " . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage(),

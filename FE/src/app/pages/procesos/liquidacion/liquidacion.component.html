@@ -347,7 +347,7 @@
   <!-- Sección de Documentos del Pedido Seleccionado -->
   <div *ngIf="selectedFile" class="documents-section mb-2">
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
-      <mat-card-header class="pb-1">
+      <mat-card-header class="pb-1 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <mat-card-title class="flex flex-col text-sm">
           <div class="flex items-center mb-1">
             <mat-icon class="mr-1 text-blue-600" style="font-size: 18px;">folder</mat-icon>
@@ -357,6 +357,17 @@
             Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.vehiculo }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
           </div>
         </mat-card-title>
+        <div class="flex items-center md:ml-4">
+          <button 
+            mat-stroked-button 
+            color="primary"
+            (click)="agregarDocumentoLiquidacion()"
+            [disabled]="addingLiquidationDocument || documentsLoading"
+            class="text-xs">
+            <mat-icon class="mr-1" style="font-size: 14px;">add</mat-icon>
+            {{ addingLiquidationDocument ? 'Agregando...' : 'Agregar documento' }}
+          </button>
+        </div>
       </mat-card-header>
       <mat-card-content class="p-2">
         <!-- Loading spinner -->
@@ -378,7 +389,7 @@
               
                 <!-- Nombre del documento -->
                 <div class="flex-1">
-                  <div class="font-medium text-gray-900 text-sm">{{ document.documentName }}</div>
+                  <div class="font-medium text-gray-900 text-sm">{{ document.fileName || document.documentName }}</div>
                   <div *ngIf="document.hasExpiration === '1' && document.expirationDate" 
                        class="text-xs text-gray-500">
                     Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
@@ -393,17 +404,17 @@
                 <input 
                   type="file" 
                   #fileInput
-                  (change)="onFileSelected($event, document.documentId)"
+                    (change)="onFileSelected($event, document.fileDocumentId)"
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                   class="hidden"
-                  [id]="'file-' + document.documentId">
+                    [id]="'file-' + document.fileDocumentId">
                 <button 
                   mat-stroked-button 
                   (click)="fileInput.click()"
                   [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
                   class="text-xs">
                   <mat-icon class="mr-1" style="font-size: 14px;">attach_file</mat-icon>
-                  {{ selectedFiles[document.documentId] ? selectedFiles[document.documentId].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
+                    {{ selectedFiles[document.fileDocumentId] ? selectedFiles[document.fileDocumentId].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
                 </button>
               </div>
 
@@ -412,7 +423,7 @@
                 mat-raised-button 
                 color="primary"
                 (click)="uploadDocument(document)"
-                [disabled]="!selectedFiles[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
+                [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
                 class="text-xs">
                 <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
                 {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}

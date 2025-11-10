@@ -776,6 +776,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     return estatus === 4;
   }
 
+  /**
+   * Helpers de estatus de documento
+   */
+  isDocumentoStatus(documento: any, status: number): boolean {
+    return Number(documento?.idEstatus) === status;
+  }
+
   private normalizarTexto(valor: string | null | undefined): string {
     if (!valor) {
       return '';

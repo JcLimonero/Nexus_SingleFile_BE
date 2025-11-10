@@ -18,6 +18,8 @@ import { Subject, takeUntil } from 'rxjs';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
+import { ClientSelectionDialogComponent } from '../integracion/client-selection-dialog.component';
 
 @Component({
   selector: 'vex-liquidacion',
@@ -95,9 +97,11 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   requiredDocuments: any[] = [];
   documentsLoading = false;
   selectedFiles: { [key: string]: File } = {};
+  addingLiquidationDocument = false;
   
   // Process properties - Fixed process for liquidation
   liquidationProcessId = 2; // Liquidación
+  private readonly LIQUIDACION_STATE_ID = 2;
   
   private destroy$ = new Subject<void>();
 
@@ -105,7 +109,8 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private defaultAgencyService: DefaultAgencyService,
     private http: HttpClient,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private clientSearchService: ClientSearchService
   ) {}
 
   ngOnInit(): void {
@@ -305,36 +310,36 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.clientsLoading = true;
     this.showClientResults = true;
 
-    // Usar el Id de la agencia seleccionada (que corresponde a File.IdAgency en la vista)
-    let params = new HttpParams();
-    params = params.set('agencyId', this.selectedAgencyId.toString());
-    params = params.set('searchTerm', this.clientSearchTerm.trim());
-    params = params.set('limit', '50');
-
-    this.http.get<any>(`${environment.apiBaseUrl}/api/client/search`, { params })
+    this.clientSearchService.searchClients(
+      this.selectedAgencyId!,
+      this.clientSearchTerm.trim(),
+      50,
+      this.LIQUIDACION_STATE_ID
+    )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
-          console.log('🔍 Clientes encontrados:', response);
-          
+        next: (response: ClientSearchResponse) => {
+          console.log('🔍 Clientes en liquidación encontrados:', response);
+
           if (response && response.success && response.data && response.data.clientes) {
             this.clients = response.data.clientes;
-            
-            if (this.clients.length === 1) {
-              // Si hay solo un resultado, seleccionarlo automáticamente
+
+            if (this.clients.length > 1) {
+              this.showClientSelectionDialog();
+            } else if (this.clients.length === 1) {
               this.selectClient(this.clients[0]);
-            } else if (this.clients.length === 0) {
-              this.snackBar.open('No se encontraron clientes', 'Cerrar', {
+            } else {
+              this.snackBar.open('No se encontraron clientes con pedidos en Liquidación', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
             this.clients = [];
-            this.snackBar.open('No se encontraron clientes', 'Cerrar', {
+            this.snackBar.open('No se encontraron clientes con pedidos en Liquidación', 'Cerrar', {
               duration: 3000
             });
           }
-          
+
           this.clientsLoading = false;
         },
         error: (error: any) => {
@@ -410,6 +415,23 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     
     this.snackBar.open(`Cliente seleccionado: ${client.cliente}`, 'Cerrar', {
       duration: 3000
+    });
+  }
+
+  showClientSelectionDialog(): void {
+    const dialogRef = this.dialog.open(ClientSelectionDialogComponent, {
+      width: '95vw',
+      height: '80vh',
+      maxWidth: '1200px',
+      data: { clients: this.clients }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.selectClient(result);
+      } else {
+        this.clearClientSearch();
+      }
     });
   }
 
@@ -529,15 +551,54 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       });
   }
 
-  onFileSelected(event: any, documentId: string): void {
+  agregarDocumentoLiquidacion(): void {
+    if (!this.selectedFile || !this.selectedFile.fileId) {
+      this.snackBar.open('Selecciona un pedido antes de agregar documentos', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    if (this.addingLiquidationDocument) {
+      return;
+    }
+
+    const fileId = this.selectedFile.fileId;
+    this.addingLiquidationDocument = true;
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/clients-validation/documentos/liquidacion`, {
+      idFile: fileId
+    })
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        const message = response?.message || 'Documento de Liquidación agregado';
+        this.snackBar.open(message, 'Cerrar', { duration: 3000 });
+        this.loadRequiredDocuments(fileId);
+      },
+      error: (error) => {
+        console.error('❌ Error agregando documento de liquidación:', error);
+        const errorMessage = error?.error?.message || 'No se pudo agregar el documento de Liquidación';
+        this.snackBar.open(errorMessage, 'Cerrar', { duration: 4000 });
+        this.addingLiquidationDocument = false;
+      },
+      complete: () => {
+        this.addingLiquidationDocument = false;
+      }
+    });
+  }
+
+  onFileSelected(event: any, documentFileId: string | number): void {
     const file = event.target.files[0];
     if (file) {
-      this.selectedFiles[documentId] = file;
+      const key = documentFileId.toString();
+      this.selectedFiles[key] = file;
     }
   }
 
   uploadDocument(document: any): void {
-    if (!this.selectedFiles[document.documentId]) {
+    const documentKey = document.fileDocumentId?.toString();
+    if (!documentKey || !this.selectedFiles[documentKey]) {
       this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', {
         duration: 3000
       });
@@ -550,7 +611,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
 
     // Preparar datos para Backblaze según documentación API
     const formData = new FormData();
-    formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
+    formData.append('file', this.selectedFiles[documentKey]); // File: Archivo a subir
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
     formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
@@ -568,7 +629,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           // Recargar documentos
           this.loadRequiredDocuments(this.selectedFile.fileId);
           // Limpiar archivo seleccionado
-          delete this.selectedFiles[document.documentId];
+          delete this.selectedFiles[documentKey];
         },
         error: (error) => {
           console.error('❌ Error subiendo documento a Backblaze:', error);

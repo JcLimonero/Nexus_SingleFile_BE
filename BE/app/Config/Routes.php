@@ -331,6 +331,7 @@ $routes->group('documents', function($routes) {
         $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');
         $routes->delete('eliminar-pedido', 'Validacion::eliminarPedido');
         $routes->put('cambiar-estatus', 'Validacion::cambiarEstatus');
+        $routes->post('documentos/liquidacion', 'Validacion::agregarDocumentoLiquidacion');
         $routes->post('validar-documento', 'Validacion::validarDocumento');
         $routes->post('aprobar-documento', 'Validacion::aprobarDocumento');
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
