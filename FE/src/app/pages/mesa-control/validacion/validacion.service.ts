@@ -34,6 +34,7 @@ export interface Documento {
   idDocumentByFile?: number;
   ReqExpiration?: number;
   fechaExpiracion?: string;
+  DisponibleCliente?: number;
 }
 
 export interface FiltrosValidacion {

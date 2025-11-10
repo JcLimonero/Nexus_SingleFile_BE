@@ -535,6 +535,24 @@
               </td>
             </ng-container>
 
+            <!-- Columna Disponible Cliente -->
+            <ng-container matColumnDef="disponibleCliente">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <div class="flex items-center justify-center">
+                  <mat-icon
+                    class="text-base"
+                    [ngClass]="item.DisponibleCliente == 1 ? 'text-green-600' : 'text-gray-400'"
+                    matTooltip="{{ item.DisponibleCliente == 1 ? 'El cliente puede cargar este documento' : 'Solo carga interna' }}"
+                    matTooltipPosition="above">
+                    {{ item.DisponibleCliente == 1 ? 'cloud_upload' : 'cloud_off' }}
+                  </mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
             <!-- Columna Estatus -->
             <ng-container matColumnDef="estatus">
               <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">

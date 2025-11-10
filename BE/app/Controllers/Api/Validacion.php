@@ -613,7 +613,8 @@ class Validacion extends BaseController
                     dfs.Name as EstatusName,
                     dt.ReqExpiration as ReqExpiration,
                     dbf.ExperationDate as fechaExpiracion,
-                    dbf.IdDocumentContainer as documentContainer
+                    dbf.IdDocumentContainer as documentContainer,
+                    dt.AvailableToClient as DisponibleCliente
                 ')
                 ->join('File f', 'dbf.IdFile = f.Id', 'inner')
                 ->join('Process p', 'f.IdProcess = p.Id', 'inner')
