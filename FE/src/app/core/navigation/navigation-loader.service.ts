@@ -41,6 +41,12 @@ export class NavigationLoaderService {
             route: '/',
             icon: 'mat:insights',
             routerLinkActiveOptions: { exact: true }
+          },
+          {
+            type: 'link',
+            label: 'Global',
+            route: '/dashboards/global',
+            icon: 'mat:dashboard_customize'
           }
         ]
       },

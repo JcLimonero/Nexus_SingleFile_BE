@@ -92,7 +92,14 @@ class Validacion extends BaseController
                             AND dfs.Id = 2
                         ) THEN 1 
                         ELSE 0 
-                    END as tieneDocumentosPendientes
+                    END as tieneDocumentosPendientes,
+                    (
+                        SELECT COUNT(*) 
+                        FROM DocumentByFile dbfPend
+                        WHERE dbfPend.IdFile = f.Id
+                        AND dbfPend.Enabled = 1
+                        AND dbfPend.IdCurrentStatus <> 4
+                    ) as documentosNoAprobados
                 FROM File f
                 INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
                 INNER JOIN Client c ON hc.IdClient = c.Id

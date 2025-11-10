@@ -15,6 +15,7 @@ export interface Cliente {
   registro: string;
   IdCurrentState: number;
   tieneDocumentosPendientes: number;
+  documentosNoAprobados?: number;
 }
 
 export interface Documento {

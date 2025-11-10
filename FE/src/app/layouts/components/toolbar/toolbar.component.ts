@@ -229,6 +229,10 @@ export class ToolbarComponent implements OnInit {
     
     // Dashboard
     if (url.includes('/dashboards')) {
+      if (url.includes('/global')) {
+        return 'Dashboard Global';
+      }
+      
       return 'Dashboard';
     }
     
