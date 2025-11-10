@@ -642,7 +642,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       const status = Number(doc.idCurrentStatus);
       if (status === 5) {
         groups.get(id)!.hasRejected = true;
-      } else if (status !== 4) {
+      } else if (status === 1 || status === 5 || status === 6) {
         groups.get(id)!.hasPending = true;
       }
     });

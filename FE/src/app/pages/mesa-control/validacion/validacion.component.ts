@@ -37,6 +37,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
+import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialog/advertencia-liberado-dialog.component';
 
 @Component({
   selector: 'vex-validacion',
@@ -65,7 +66,8 @@ import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-d
     ScrollingModule,
     AprobarDocumentoDialogComponent,
     AdvertenciaLiquidacionDialogComponent,
-    AdvertenciaLiberacionDialogComponent
+    AdvertenciaLiberacionDialogComponent,
+    AdvertenciaLiberadoDialogComponent
   ],
   templateUrl: './validacion.component.html',
   styleUrl: './validacion.component.scss'
@@ -119,8 +121,10 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedCliente: any = null;
   private advertenciaLiquidacionMostrada = false;
   private advertenciaLiberacionMostrada = false;
+  private advertenciaLiberadoMostrada = false;
   private readonly LIQUIDACION_STATE_ID = 2;
   private readonly LIBERACION_STATE_ID = 3;
+  private readonly LIBERADO_STATE_ID = 4;
 
   // Búsqueda
   searchTerm: string = '';
@@ -679,6 +683,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedCliente = cliente;
     this.advertenciaLiquidacionMostrada = false;
     this.advertenciaLiberacionMostrada = false;
+    this.advertenciaLiberadoMostrada = false;
     
     // Cargar los documentos del archivo específico
     this.cargarDocumentosCliente(cliente.idFile);
@@ -700,6 +705,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedCliente = null;
     this.advertenciaLiquidacionMostrada = false;
     this.advertenciaLiberacionMostrada = false;
+    this.advertenciaLiberadoMostrada = false;
     this.documentosDataSource = [];
   }
 
@@ -721,6 +727,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.documentosDataSource = documentos;
           this.verificarAvanceFaseLiquidacion(documentos);
           this.verificarAvanceFaseLiberacion(documentos);
+          this.verificarAvanceFaseLiberado(documentos);
           this.loading = false;
         },
         error: (error) => {
@@ -796,6 +803,10 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private esDocumentoDeLiquidacion(documento: Documento): boolean {
     return this.normalizarTexto(documento.fase) === 'liquidacion';
+  }
+
+  private esDocumentoDeLiberacion(documento: Documento): boolean {
+    return this.normalizarTexto(documento.fase) === 'liberacion';
   }
 
   private esDocumentoRequerido(documento: Documento): boolean {
@@ -928,6 +939,84 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.error('❌ Error al avanzar a Liberación:', error);
           this.snackBar.open(
             `No se pudo avanzar el pedido a Liberación: ${error?.message || 'Error desconocido'}`,
+            'Cerrar',
+            { duration: 5000 }
+          );
+        }
+      });
+  }
+
+  private verificarAvanceFaseLiberado(documentos: Documento[]): void {
+    if (this.advertenciaLiberadoMostrada || !this.selectedCliente) {
+      return;
+    }
+
+    const faseCliente = this.normalizarTexto(this.selectedCliente.fase);
+    if (faseCliente !== 'liberacion') {
+      return;
+    }
+
+    if (String(this.selectedCliente.IdCurrentState) !== this.LIBERACION_STATE_ID.toString()) {
+      return;
+    }
+
+    const documentosLiberacion = documentos.filter((doc) => this.esDocumentoDeLiberacion(doc) && this.esDocumentoRequerido(doc));
+    if (documentosLiberacion.length === 0) {
+      return;
+    }
+
+    const todosValidados = documentosLiberacion.every((doc) => this.esDocumentoAprobado(doc));
+    if (!todosValidados) {
+      return;
+    }
+
+    this.advertenciaLiberadoMostrada = true;
+    this.mostrarAdvertenciaLiberado();
+  }
+
+  private mostrarAdvertenciaLiberado(): void {
+    if (!this.selectedCliente) {
+      return;
+    }
+
+    this.dialog.open(AdvertenciaLiberadoDialogComponent, {
+      width: '520px',
+      disableClose: true,
+      data: {
+        cliente: this.selectedCliente.cliente,
+        ndPedido: this.selectedCliente.ndPedido
+      }
+    }).afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.avanzarPedidoALiberado();
+      } else {
+        this.advertenciaLiberadoMostrada = false;
+      }
+    });
+  }
+
+  private avanzarPedidoALiberado(): void {
+    if (!this.selectedCliente) {
+      return;
+    }
+
+    const idFile = this.selectedCliente.idFile;
+
+    this.validacionService.cambiarEstatus(idFile, this.LIBERADO_STATE_ID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          if (this.selectedCliente) {
+            this.selectedCliente.IdCurrentState = this.LIBERADO_STATE_ID;
+            this.selectedCliente.fase = 'Liberado';
+          }
+          this.snackBar.open('El pedido avanzó a la etapa de Liberado', 'Cerrar', { duration: 4000 });
+          this.cargarClientes();
+        },
+        error: (error) => {
+          console.error('❌ Error al avanzar a Liberado:', error);
+          this.snackBar.open(
+            `No se pudo avanzar el pedido a Liberado: ${error?.message || 'Error desconocido'}`,
             'Cerrar',
             { duration: 5000 }
           );

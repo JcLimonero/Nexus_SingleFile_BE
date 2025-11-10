@@ -450,7 +450,7 @@ class Validacion extends BaseController
             // Obtener los estados permitidos desde la base de datos
             $estadosPermitidosQuery = $this->db->table('File_Status')
                 ->select('Id, Name')
-                ->whereIn('Name', ['Integración', 'Liquidación', 'Liberación'])
+                ->whereIn('Name', ['Integración', 'Liquidación', 'Liberación', 'Liberado'])
                 ->get();
             $estadosPermitidos = $estadosPermitidosQuery->getResultArray();
 
