@@ -443,12 +443,30 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
             
-            $clienteId = $data['clienteId'];
-            $nuevoIdCurrentState = $data['nuevoIdCurrentState'];
+            $clienteId = (int) $data['clienteId'];
+            $nuevoIdCurrentState = (int) $data['nuevoIdCurrentState'];
             
-            // Validar que el nuevo estado sea válido
-            $estadosValidos = [1, 4, 7]; // Integración, Liberación, Liquidación
-            if (!in_array($nuevoIdCurrentState, $estadosValidos)) {
+            // Obtener los estados permitidos desde la base de datos
+            $estadosPermitidosQuery = $this->db->table('File_Status')
+                ->select('Id, Name')
+                ->whereIn('Name', ['Integración', 'Liquidación', 'Liberación'])
+                ->get();
+            $estadosPermitidos = $estadosPermitidosQuery->getResultArray();
+
+            if (empty($estadosPermitidos)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontraron estados permitidos configurados',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+
+            $estadosPermitidosPorId = [];
+            foreach ($estadosPermitidos as $estado) {
+                $estadosPermitidosPorId[(int) $estado['Id']] = $estado['Name'];
+            }
+            
+            if (!array_key_exists($nuevoIdCurrentState, $estadosPermitidosPorId)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El estado seleccionado no es válido',
@@ -468,12 +486,8 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
-                // Obtener el nombre del nuevo estado
-                $estadoQuery = $this->db->table('File_Status')
-                    ->where('Id', $nuevoIdCurrentState)
-                    ->get();
-                $estadoResult = $estadoQuery->getRowArray();
-                $nombreEstado = $estadoResult ? $estadoResult['Name'] : 'Desconocido';
+                // Obtener el nombre del nuevo estado sin consulta adicional
+                $nombreEstado = $estadosPermitidosPorId[$nuevoIdCurrentState] ?? 'Desconocido';
                 
                 // Registrar actividad en el log
                 $this->logActivity(
