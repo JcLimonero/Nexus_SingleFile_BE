@@ -314,7 +314,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="ndCliente" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 ND Cliente
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.ndCliente, $event)">
                 <div class="flex items-center">
                   <span *ngIf="item.tieneDocumentosPendientes == 1" class="text-yellow-500 mr-1">★</span>
                   {{ item.ndCliente }}
@@ -327,7 +327,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="ndPedido" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 ND Pedido
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.ndPedido, $event)">
                 {{ item.ndPedido }}
               </td>
             </ng-container>
@@ -337,7 +337,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="idFile" class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 ID File
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.idFile?.toString() || '', $event)">
                 <span class="text-blue-600 font-mono">{{ item.idFile }}</span>
               </td>
             </ng-container>
@@ -347,7 +347,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="cliente" class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Cliente
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.cliente, $event)">
                 <span class="block truncate" [matTooltip]="item.cliente" matTooltipPosition="above">
                   {{ item.cliente }}
                 </span>
@@ -359,7 +359,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="proceso" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Proceso
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.proceso, $event)">
                 {{ item.proceso }}
               </td>
             </ng-container>
@@ -369,7 +369,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="operacion" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 Operación
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.operacion, $event)">
                 {{ item.operacion }}
               </td>
             </ng-container>
@@ -398,7 +398,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="fechaLiberacion" class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
                 Fecha de Liberación
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(formatDateForCopy(item.fechaLiberacion), $event)">
                 {{ item.fechaLiberacion | date:'yyyy-MM-dd' }}
               </td>
             </ng-container>
@@ -408,7 +408,7 @@
               <th mat-header-cell *matHeaderCellDef mat-sort-header="registro" class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
                 Registro
               </th>
-              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.registro, $event)">
                 {{ item.registro }}
               </td>
             </ng-container>

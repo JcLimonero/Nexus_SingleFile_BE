@@ -440,47 +440,79 @@ class Validacion extends BaseController
     public function cambiarEstatus()
     {
         try {
+            // Obtener datos del request
+            $rawBody = $this->request->getBody();
             $data = $this->request->getJSON(true);
+            
+            // Log para debugging
+            error_log("=== DEBUG cambiarEstatus ===");
+            error_log("Raw body: " . $rawBody);
+            error_log("Parsed data: " . json_encode($data));
+            
+            // Si getJSON falla, intentar parsear manualmente
+            if ($data === null && !empty($rawBody)) {
+                $data = json_decode($rawBody, true);
+                error_log("Re-parsed data: " . json_encode($data));
+            }
+            
+            // Validar que se recibieron datos
+            if ($data === null || !is_array($data)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se recibieron datos válidos en el request',
+                    'data' => ['raw_body' => $rawBody]
+                ])->setStatusCode(400);
+            }
             
             // Validar datos requeridos
             if (empty($data['clienteId']) || empty($data['nuevoIdCurrentState'])) {
+                error_log("Datos faltantes - clienteId: " . (isset($data['clienteId']) ? $data['clienteId'] : 'no definido') . ", nuevoIdCurrentState: " . (isset($data['nuevoIdCurrentState']) ? $data['nuevoIdCurrentState'] : 'no definido'));
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Los parámetros clienteId y nuevoIdCurrentState son requeridos',
-                    'data' => null
+                    'data' => ['received_data' => $data]
                 ])->setStatusCode(400);
             }
             
             $clienteId = (int) $data['clienteId'];
             $nuevoIdCurrentState = (int) $data['nuevoIdCurrentState'];
             
-            // Obtener los estados permitidos desde la base de datos
-            $estadosPermitidosQuery = $this->db->table('File_Status')
-                ->select('Id, Name')
-                ->whereIn('Name', ['Integración', 'Liquidación', 'Liberación', 'Liberado'])
-                ->get();
-            $estadosPermitidos = $estadosPermitidosQuery->getResultArray();
-
-            if (empty($estadosPermitidos)) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'No se encontraron estados permitidos configurados',
-                    'data' => null
-                ])->setStatusCode(500);
-            }
-
-            $estadosPermitidosPorId = [];
-            foreach ($estadosPermitidos as $estado) {
-                $estadosPermitidosPorId[(int) $estado['Id']] = $estado['Name'];
-            }
+            error_log("=== DEBUG cambiarEstatus ===");
+            error_log("clienteId: {$clienteId}, nuevoIdCurrentState: {$nuevoIdCurrentState}");
             
-            if (!array_key_exists($nuevoIdCurrentState, $estadosPermitidosPorId)) {
+            // Primero, obtener todos los estados disponibles para debugging
+            $todosEstadosQuery = $this->db->table('File_Status')
+                ->select('Id, Name')
+                ->get();
+            $todosEstados = $todosEstadosQuery->getResultArray();
+            error_log("Todos los estados disponibles en File_Status: " . json_encode($todosEstados));
+            
+            // Verificar que el estado existe en la tabla File_Status por ID
+            $estadoQuery = $this->db->table('File_Status')
+                ->select('Id, Name')
+                ->where('Id', $nuevoIdCurrentState)
+                ->get();
+            $estado = $estadoQuery->getRowArray();
+
+            error_log("Estado encontrado por ID {$nuevoIdCurrentState}: " . json_encode($estado));
+
+            if (!$estado) {
+                $estadosDisponibles = array_map(function($e) {
+                    return "ID: {$e['Id']} - {$e['Name']}";
+                }, $todosEstados);
+                
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'El estado seleccionado no es válido',
-                    'data' => null
+                    'message' => "El estado seleccionado (ID: {$nuevoIdCurrentState}) no existe en la base de datos. Estados disponibles: " . implode(', ', $estadosDisponibles),
+                    'data' => [
+                        'estado_solicitado' => $nuevoIdCurrentState,
+                        'estados_disponibles' => $todosEstados
+                    ]
                 ])->setStatusCode(400);
             }
+            
+            // Obtener el nombre del estado solo para logging/mensajes
+            $nombreEstado = $estado['Name'] ?? 'ID: ' . $nuevoIdCurrentState;
             
             // Actualizar el registro en la tabla File
             $updateData = [
@@ -494,9 +526,6 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
-                // Obtener el nombre del nuevo estado sin consulta adicional
-                $nombreEstado = $estadosPermitidosPorId[$nuevoIdCurrentState] ?? 'Desconocido';
-                
                 // Registrar actividad en el log
                 $this->logActivity(
                     'CAMBIAR_ESTATUS',

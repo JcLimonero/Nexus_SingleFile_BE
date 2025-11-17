@@ -547,19 +547,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private procesarCambioEstatus(cliente: any, result: CambiarEstatusResult): void {
-    console.log('Procesando cambio de estatus:', {
-      cliente: cliente,
-      nuevoEstatus: result.nuevoEstatus,
-      nuevoIdCurrentState: result.nuevoIdCurrentState
-    });
-
     // Llamar al servicio para cambiar el estatus
     this.validacionService.cambiarEstatus(
       cliente.idFile,
       result.nuevoIdCurrentState
     ).subscribe({
       next: (response) => {
-        console.log('Estatus cambiado exitosamente:', response);
         this.snackBar.open(
           `Estatus del pedido ${cliente.ndPedido} cambiado a ${result.nuevoEstatus}`,
           'Cerrar',
@@ -570,11 +563,20 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cargarClientes();
       },
       error: (error) => {
-        console.error('Error cambiando estatus:', error);
+        let errorMessage = 'Error desconocido';
+        
+        if (error?.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
         this.snackBar.open(
-          `Error al cambiar el estatus: ${error.message || 'Error desconocido'}`,
+          `Error al cambiar el estatus: ${errorMessage}`,
           'Cerrar',
-          { duration: 5000 }
+          { duration: 7000 }
         );
       }
     });
@@ -687,6 +689,79 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Cargar los documentos del archivo específico
     this.cargarDocumentosCliente(cliente.idFile);
+  }
+
+  /**
+   * Copiar contenido de celda al portapapeles
+   */
+  copyToClipboard(text: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation(); // Evitar que se propague el evento de click de la fila
+    }
+
+    if (!text || text.trim() === '') {
+      return;
+    }
+
+    // Crear un elemento temporal para copiar
+    const textarea = document.createElement('textarea');
+    textarea.value = text.trim();
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); // Para dispositivos móviles
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        this.snackBar.open('Copiado al portapapeles', 'Cerrar', {
+          duration: 2000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom'
+        });
+      } else {
+        this.snackBar.open('Error al copiar', 'Cerrar', {
+          duration: 2000
+        });
+      }
+    } catch (err) {
+      // Fallback usando Clipboard API
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        this.snackBar.open('Copiado al portapapeles', 'Cerrar', {
+          duration: 2000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom'
+        });
+      }).catch(() => {
+        this.snackBar.open('Error al copiar', 'Cerrar', {
+          duration: 2000
+        });
+      });
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
+  /**
+   * Formatear fecha para copiar al portapapeles
+   */
+  formatDateForCopy(date: any): string {
+    if (!date) {
+      return '';
+    }
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        return String(date);
+      }
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch {
+      return String(date);
+    }
   }
 
   /**
@@ -907,11 +982,20 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.cargarClientes();
         },
         error: (error) => {
-          console.error('❌ Error al avanzar a Liquidación:', error);
+          let errorMessage = 'Error desconocido';
+          
+          if (error?.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'string') {
+            errorMessage = error;
+          }
+          
           this.snackBar.open(
-            `No se pudo avanzar el pedido a Liquidación: ${error?.message || 'Error desconocido'}`,
+            `No se pudo avanzar el pedido a Liquidación: ${errorMessage}`,
             'Cerrar',
-            { duration: 5000 }
+            { duration: 7000 }
           );
         }
       });

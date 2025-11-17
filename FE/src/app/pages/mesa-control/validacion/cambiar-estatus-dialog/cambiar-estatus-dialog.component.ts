@@ -38,8 +38,9 @@ export interface CambiarEstatusResult {
 export class CambiarEstatusDialogComponent implements OnInit {
   fasesDisponibles = [
     { nombre: 'Integración', id: 1 },
-    { nombre: 'Liberación', id: 4 },
-    { nombre: 'Liquidación', id: 7 }
+    { nombre: 'Liquidación', id: 2 },
+    { nombre: 'Liberación', id: 3 },
+    { nombre: 'Liberado', id: 4 }
   ];
   
   faseSeleccionada: number | null = null;
