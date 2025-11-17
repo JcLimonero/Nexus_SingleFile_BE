@@ -34,6 +34,7 @@ import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './vali
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
@@ -603,7 +604,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router
   ) {
     console.log('🔧 ValidacionComponent - Constructor ejecutado');
   }
@@ -762,6 +764,72 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch {
       return String(date);
     }
+  }
+
+  /**
+   * Navegar a la pantalla correspondiente según la fase del pedido
+   */
+  navegarAPantallaFase(cliente: any, event?: Event): void {
+    if (event) {
+      event.stopPropagation(); // Evitar que se propague el evento de click de la fila
+    }
+
+    if (!cliente || !cliente.idFile) {
+      this.snackBar.open('No se puede navegar: información del pedido incompleta', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    const fase = this.normalizarTexto(cliente.fase);
+    const idFile = cliente.idFile;
+    const idCliente = cliente.ndCliente;
+    const idPedido = cliente.ndPedido;
+
+    let ruta = '';
+    let nombreFase = '';
+
+    switch (fase) {
+      case 'integracion':
+        ruta = '/procesos/integracion';
+        nombreFase = 'Integración';
+        break;
+      case 'liquidacion':
+        ruta = '/procesos/liquidacion';
+        nombreFase = 'Liquidación';
+        break;
+      case 'liberacion':
+        ruta = '/procesos/liberacion';
+        nombreFase = 'Liberación';
+        break;
+      default:
+        this.snackBar.open('No hay pantalla disponible para esta fase', 'Cerrar', {
+          duration: 3000
+        });
+        return;
+    }
+
+    // Construir URL con query parameters
+    const queryParams = new URLSearchParams({
+      idCliente: String(idCliente),
+      idPedido: String(idPedido),
+      idFile: String(idFile)
+    });
+    
+    const url = `${ruta}?${queryParams.toString()}`;
+    
+    // Abrir en una nueva pestaña
+    window.open(url, '_blank');
+  }
+
+  /**
+   * Verificar si se puede navegar a una pantalla según la fase
+   */
+  puedeNavegarAFase(fase: string): boolean {
+    const faseNormalizada = this.normalizarTexto(fase);
+    return faseNormalizada === 'integracion' || 
+           faseNormalizada === 'liquidacion' || 
+           faseNormalizada === 'liberacion';
   }
 
   /**

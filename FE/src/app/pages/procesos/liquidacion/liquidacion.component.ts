@@ -15,6 +15,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -110,7 +111,9 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     private defaultAgencyService: DefaultAgencyService,
     private http: HttpClient,
     private dialog: MatDialog,
-    private clientSearchService: ClientSearchService
+    private clientSearchService: ClientSearchService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -118,6 +121,21 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.loadLiquidationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
+    
+    // Verificar si hay parámetros en la URL para selección automática
+    this.route.queryParams.subscribe(params => {
+      const idCliente = params['idCliente'];
+      const idPedido = params['idPedido'];
+      const idFile = params['idFile'];
+      
+      if (idCliente && (idPedido || idFile)) {
+        console.log('🔍 Parámetros encontrados en URL:', { idCliente, idPedido, idFile });
+        // Esperar a que las agencias se carguen antes de seleccionar
+        setTimeout(() => {
+          this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
+        }, 500);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -416,6 +434,106 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.snackBar.open(`Cliente seleccionado: ${client.cliente}`, 'Cerrar', {
       duration: 3000
     });
+  }
+
+  /**
+   * Seleccionar cliente y pedido automáticamente desde parámetros de URL
+   */
+  private seleccionarClienteYPedidoDesdeURL(idCliente: string, idPedido?: string, idFile?: string): void {
+    console.log('🔍 Seleccionando cliente y pedido desde URL:', { idCliente, idPedido, idFile });
+    
+    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+      console.log('⚠️ No hay agencia seleccionada, esperando...');
+      setTimeout(() => {
+        this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
+      }, 500);
+      return;
+    }
+
+    // Buscar el cliente por ndCliente
+    this.clientSearchService.searchClients(this.selectedAgency.IdAgency, idCliente, 50)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: ClientSearchResponse) => {
+          if (response && response.success && response.data && response.data.clientes) {
+            const clientes = response.data.clientes;
+            const clienteEncontrado = clientes.find(c => String(c.ndCliente) === String(idCliente));
+            
+            if (clienteEncontrado) {
+              console.log('✅ Cliente encontrado:', clienteEncontrado);
+              // Seleccionar el cliente
+              this.selectClient(clienteEncontrado);
+              
+              // Esperar a que se carguen los pedidos y luego seleccionar el pedido
+              setTimeout(() => {
+                this.seleccionarPedidoDesdeURL(idPedido, idFile);
+              }, 1000);
+            } else {
+              console.log('⚠️ Cliente no encontrado en resultados');
+              this.snackBar.open('Cliente no encontrado', 'Cerrar', {
+                duration: 3000
+              });
+            }
+          } else {
+            console.log('⚠️ No se encontraron clientes');
+            this.snackBar.open('Cliente no encontrado', 'Cerrar', {
+              duration: 3000
+            });
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error buscando cliente:', error);
+          this.snackBar.open('Error al buscar cliente', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
+  }
+
+  /**
+   * Seleccionar pedido automáticamente desde parámetros de URL
+   */
+  private seleccionarPedidoDesdeURL(idPedido?: string, idFile?: string): void {
+    console.log('🔍 Seleccionando pedido desde URL:', { idPedido, idFile });
+    
+    if (!this.files || this.files.length === 0) {
+      console.log('⚠️ No hay pedidos cargados aún, esperando...');
+      setTimeout(() => {
+        this.seleccionarPedidoDesdeURL(idPedido, idFile);
+      }, 500);
+      return;
+    }
+
+    // Buscar el pedido por idFile (prioridad) o por numeroPedido
+    let pedidoEncontrado: any = null;
+    
+    if (idFile) {
+      pedidoEncontrado = this.files.find(f => String(f.fileId) === String(idFile));
+    }
+    
+    if (!pedidoEncontrado && idPedido) {
+      pedidoEncontrado = this.files.find(f => String(f.numeroPedido) === String(idPedido));
+    }
+
+    if (pedidoEncontrado) {
+      console.log('✅ Pedido encontrado:', pedidoEncontrado);
+      this.selectFile(pedidoEncontrado);
+      this.snackBar.open(`Pedido ${pedidoEncontrado.numeroPedido} seleccionado`, 'Cerrar', {
+        duration: 3000
+      });
+      
+      // Limpiar parámetros de la URL después de seleccionar
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true
+      });
+    } else {
+      console.log('⚠️ Pedido no encontrado');
+      this.snackBar.open('Pedido no encontrado', 'Cerrar', {
+        duration: 3000
+      });
+    }
   }
 
   showClientSelectionDialog(): void {

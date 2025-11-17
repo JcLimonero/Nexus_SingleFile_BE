@@ -393,6 +393,26 @@
               </td>
             </ng-container>
 
+            <!-- Columna Navegar -->
+            <ng-container matColumnDef="navegar">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Navegar
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <button 
+                  *ngIf="puedeNavegarAFase(item.fase)"
+                  mat-icon-button 
+                  color="primary"
+                  class="!w-8 !h-8 !min-h-8 !p-0"
+                  (click)="navegarAPantallaFase(item, $event)"
+                  [matTooltip]="'Ir a ' + item.fase"
+                  matTooltipPosition="above">
+                  <mat-icon class="!text-base">open_in_new</mat-icon>
+                </button>
+                <span *ngIf="!puedeNavegarAFase(item.fase)" class="text-xs text-gray-400">-</span>
+              </td>
+            </ng-container>
+
             <!-- Columna Fecha de Liberación -->
             <ng-container matColumnDef="fechaLiberacion">
               <th mat-header-cell *matHeaderCellDef mat-sort-header="fechaLiberacion" class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">

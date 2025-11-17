@@ -121,31 +121,6 @@
           </div>
         </mat-card-title>
       </mat-card-header>
-      
-      <!-- Buscador de pedidos -->
-      <div class="px-2 pb-2">
-        <div class="flex items-center space-x-2">
-          <mat-form-field appearance="outline" class="flex-1">
-            <mat-label>Buscar pedido</mat-label>
-            <input 
-              matInput 
-              [(ngModel)]="orderSearchTerm"
-              (input)="onOrderSearchChange()"
-              placeholder="Buscar por número de pedido, inventario, proceso, operación, vehículo, modelo, VIN o agencia"
-              autocomplete="off">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
-          
-          <button 
-            *ngIf="orderSearchTerm"
-            mat-icon-button 
-            color="warn"
-            (click)="clearOrderSearch()"
-            matTooltip="Limpiar búsqueda">
-            <mat-icon>clear</mat-icon>
-          </button>
-        </div>
-      </div>
       <mat-card-content class="p-2">
         <!-- Loading spinner -->
         <div *ngIf="filesLoading" class="flex justify-center py-8">
