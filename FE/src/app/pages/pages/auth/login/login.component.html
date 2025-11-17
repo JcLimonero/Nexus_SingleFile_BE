@@ -16,10 +16,11 @@
     <div [formGroup]="form" class="p-6 flex flex-col gap-4">
       <div class="flex flex-col">
         <mat-form-field class="flex-1">
-          <mat-label>Correo electrónico</mat-label>
-          <input formControlName="email" matInput required />
+          <mat-label>Correo electrónico o Usuario</mat-label>
+          <input formControlName="email" matInput required placeholder="email@ejemplo.com o nombreusuario" />
+          <mat-hint>Puedes usar tu correo electrónico o nombre de usuario</mat-hint>
           <mat-error *ngIf="form.controls.email.hasError('required')"
-          >Necesitamos un correo electrónico para iniciar sesión
+          >Necesitamos un correo electrónico o usuario para iniciar sesión
           </mat-error>
         </mat-form-field>
         <mat-form-field class="flex-1">

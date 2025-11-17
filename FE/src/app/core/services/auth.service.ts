@@ -23,10 +23,15 @@ export interface User {
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user: User;
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
+  user?: User;
+  access_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  requires_email?: boolean;
+  user_id?: number;
+  username?: string;
+  name?: string;
+  login_method?: 'email' | 'username';
 }
 
 export interface RefreshResponse {
@@ -90,20 +95,42 @@ export class AuthService {
 
   /**
    * Login de usuario
+   * Soporta login por email o username (para migración gradual)
    */
-  login(email: string, password: string): Observable<AuthResponse> {
+  login(identifier: string, password: string): Observable<AuthResponse> {
     const url = this.apiBaseService.buildAuthUrl('/login');
     
-    return this.http.post<AuthResponse>(url, { email, password }).pipe(
+    // Enviar como email o username según corresponda
+    const payload = { email: identifier, password };
+    
+    return this.http.post<AuthResponse>(url, payload).pipe(
       tap(response => {
-        if (response.success) {
-          this.setAuthData(response);
+        if (response.success && response.user && response.access_token) {
+          this.setAuthData(response as AuthResponse & { user: User; access_token: string; refresh_token: string; expires_in: number });
           // Log de login exitoso
           this.activityLogService.logLogin(response.user.username || response.user.email);
         }
       }),
       catchError(error => {
         console.error('Error en login:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Actualizar email de usuario durante la migración
+   */
+  updateEmail(userId: number, email: string, password: string): Observable<{ success: boolean; message: string }> {
+    const url = this.apiBaseService.buildAuthUrl('/update-email');
+    
+    return this.http.post<{ success: boolean; message: string }>(url, {
+      user_id: userId,
+      email: email,
+      password: password
+    }).pipe(
+      catchError(error => {
+        console.error('Error al actualizar email:', error);
         return throwError(() => error);
       })
     );
@@ -191,7 +218,7 @@ export class AuthService {
   /**
    * Establecer datos de autenticación
    */
-  private setAuthData(response: AuthResponse): void {
+  private setAuthData(response: AuthResponse & { user: User; access_token: string; refresh_token: string; expires_in: number }): void {
     const expiration = Date.now() + (response.expires_in * 1000);
     
     localStorage.setItem('access_token', response.access_token);

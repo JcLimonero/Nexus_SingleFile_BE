@@ -6,6 +6,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +16,7 @@ import { NgIf } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService, AuthResponse } from '../../../../core/services/auth.service';
+import { UpdateEmailDialogComponent } from './update-email-dialog.component';
 
 @Component({
   selector: 'vex-login',
@@ -33,12 +35,13 @@ import { AuthService, AuthResponse } from '../../../../core/services/auth.servic
     MatIconModule,
     MatCheckboxModule,
     RouterLink,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDialogModule
   ]
 })
 export class LoginComponent {
   form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required]], // Removido Validators.email para permitir username también
     password: ['', Validators.required]
   });
 
@@ -51,7 +54,8 @@ export class LoginComponent {
     private fb: FormBuilder,
     private cd: ChangeDetectorRef,
     private snackbar: MatSnackBar,
-    private authService: AuthService
+    private authService: AuthService,
+    private dialog: MatDialog
   ) {}
 
   send() {
@@ -59,17 +63,24 @@ export class LoginComponent {
       this.loading = true;
       this.cd.markForCheck();
 
-      const email = this.form.get('email')?.value || '';
+      const identifier = this.form.get('email')?.value || ''; // Puede ser email o username
       const password = this.form.get('password')?.value || '';
 
-      this.authService.login(email, password).subscribe({
+      this.authService.login(identifier, password).subscribe({
         next: (response: AuthResponse) => {
           this.loading = false;
           this.cd.markForCheck();
           
-          if (response.success) {
+          // Verificar si requiere completar email
+          if (response.requires_email && response.user_id) {
+            this.openUpdateEmailDialog(response.user_id, response.username || '', response.name || '', password);
+            return;
+          }
+          
+          if (response.success && response.user && response.access_token) {
             const roleInfo = response.user?.role_name ? ` (${response.user.role_name})` : '';
-            this.snackbar.open(`Inicio de sesión exitoso${roleInfo}`, 'OK', {
+            const loginMethod = response.login_method === 'username' ? ' (usuario)' : '';
+            this.snackbar.open(`Inicio de sesión exitoso${roleInfo}${loginMethod}`, 'OK', {
               duration: 3000
             });
             
@@ -92,6 +103,17 @@ export class LoginComponent {
           console.error('Error en login:', error);
           let errorMessage = 'Error en el inicio de sesión';
           
+          // Verificar si el error es requires_email
+          if (error.error && error.error.requires_email) {
+            this.openUpdateEmailDialog(
+              error.error.user_id,
+              error.error.username || '',
+              error.error.name || '',
+              password
+            );
+            return;
+          }
+          
           if (error.error && error.error.message) {
             errorMessage = error.error.message;
           } else if (error.message) {
@@ -104,6 +126,37 @@ export class LoginComponent {
         }
       });
     }
+  }
+
+  /**
+   * Abrir diálogo para actualizar email
+   */
+  private openUpdateEmailDialog(userId: number, username: string, name: string, password: string) {
+    const dialogRef = this.dialog.open(UpdateEmailDialogComponent, {
+      width: '500px',
+      disableClose: true,
+      data: {
+        user_id: userId,
+        username: username,
+        name: name,
+        password: password
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result && result.success) {
+        // Email actualizado exitosamente, intentar login nuevamente con el email
+        this.snackbar.open('Email actualizado. Iniciando sesión...', 'Info', {
+          duration: 2000
+        });
+        
+        // Intentar login con el nuevo email
+        setTimeout(() => {
+          this.form.patchValue({ email: result.email });
+          this.send();
+        }, 500);
+      }
+    });
   }
 
   toggleVisibility() {
@@ -121,7 +174,7 @@ export class LoginComponent {
   getErrorMessage(fieldName: string): string {
     const field = this.form.get(fieldName);
     if (field?.hasError('required')) {
-      return `${fieldName === 'email' ? 'Email' : 'Contraseña'} es requerido`;
+      return `${fieldName === 'email' ? 'Email/Usuario' : 'Contraseña'} es requerido`;
     }
     if (field?.hasError('email')) {
       return 'Email inválido';

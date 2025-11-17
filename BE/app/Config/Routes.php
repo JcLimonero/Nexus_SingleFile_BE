@@ -32,6 +32,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         // Rutas de autenticación
     $routes->group('auth', function($routes) {
         $routes->post('login', 'Auth::login');
+        $routes->post('update-email', 'Auth::updateEmail');
         $routes->post('verify', 'Auth::verify');
         $routes->post('refresh', 'Auth::refresh');
         $routes->post('logout', 'Auth::logout');

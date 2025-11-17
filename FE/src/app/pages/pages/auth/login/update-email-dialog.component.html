@@ -1,0 +1,60 @@
+<h2 mat-dialog-title>Completar Correo Electrónico</h2>
+
+<mat-dialog-content>
+  <div class="flex flex-col gap-4 py-4">
+    <p class="text-secondary">
+      Hola <strong>{{ data.name }}</strong>, para continuar necesitas completar tu correo electrónico.
+      Esto te permitirá usar el nuevo sistema de autenticación.
+    </p>
+
+    <form [formGroup]="form" class="flex flex-col gap-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Correo Electrónico</mat-label>
+        <input 
+          formControlName="email" 
+          matInput 
+          type="email"
+          placeholder="tu@email.com"
+          required />
+        <mat-icon matPrefix>email</mat-icon>
+        <mat-error *ngIf="form.controls.email.hasError('required')">
+          El correo electrónico es requerido
+        </mat-error>
+        <mat-error *ngIf="form.controls.email.hasError('email')">
+          Formato de correo electrónico inválido
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Contraseña</mat-label>
+        <input 
+          formControlName="password" 
+          matInput 
+          type="password"
+          required />
+        <mat-icon matPrefix>lock</mat-icon>
+        <mat-error *ngIf="form.controls.password.hasError('required')">
+          La contraseña es requerida para verificar tu identidad
+        </mat-error>
+      </mat-form-field>
+    </form>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="gap-2">
+  <button 
+    mat-button 
+    (click)="onCancel()"
+    [disabled]="loading">
+    Cancelar
+  </button>
+  <button 
+    mat-raised-button 
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="loading || form.invalid">
+    <span *ngIf="!loading">Actualizar Email</span>
+    <span *ngIf="loading">Actualizando...</span>
+  </button>
+</mat-dialog-actions>
+

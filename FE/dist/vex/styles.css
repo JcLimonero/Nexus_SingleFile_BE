@@ -25272,6 +25272,10 @@ blockquote > * {
 }
 @media (min-width: 960px) {
 
+  :root :is(.md\:ml-4) {
+    margin-left: 1rem;
+  }
+
   :root :is(.md\:mt-0) {
     margin-top: 0px;
   }
@@ -25314,6 +25318,10 @@ blockquote > * {
 
   :root :is(.md\:items-center) {
     align-items: center;
+  }
+
+  :root :is(.md\:justify-between) {
+    justify-content: space-between;
   }
 
   :root :is([dir="ltr"] .md\:ltr\:ml-6) {

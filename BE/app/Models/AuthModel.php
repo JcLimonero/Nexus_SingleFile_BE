@@ -18,18 +18,48 @@ class AuthModel extends Model
     private $refreshTokenExpiration = 2592000; // 30 días
     
     /**
-     * Autenticar usuario por email y contraseña
+     * Autenticar usuario por email/username y contraseña
+     * Soporta migración gradual: busca primero por Mail, luego por User (sistema antiguo)
      */
-    public function authenticate($email, $password)
+    public function authenticate($identifier, $password)
     {
         try {
-            // Buscar usuario por email con JOIN a UserRol para obtener la descripción del rol
+            $user = null;
+            $loginMethod = 'email'; // 'email' o 'username'
+            
+            // Primero intentar buscar por Mail (método nuevo)
             $user = $this->select('User.*, UserRol.Name as RoleName')
                         ->join('UserRol', 'User.IdUserRol = UserRol.Id', 'left')
-                        ->where('User.Mail', $email)
+                        ->where('User.Mail', $identifier)
                         ->where('User.Enabled', 1)
                         ->get()
                         ->getRowArray();
+            
+            // Si no se encuentra por Mail, intentar por User (método antiguo)
+            if (!$user) {
+                $user = $this->select('User.*, UserRol.Name as RoleName')
+                            ->join('UserRol', 'User.IdUserRol = UserRol.Id', 'left')
+                            ->where('User.User', $identifier)
+                            ->where('User.Enabled', 1)
+                            ->get()
+                            ->getRowArray();
+                
+                if ($user) {
+                    $loginMethod = 'username';
+                    
+                    // Si el usuario se loguea con username pero no tiene Mail, requerir completar email
+                    if (empty($user['Mail']) || trim($user['Mail']) === '') {
+                        return [
+                            'success' => false,
+                            'requires_email' => true,
+                            'message' => 'Para continuar, necesitas completar tu correo electrónico. Por favor, proporciona tu email para migrar al nuevo sistema de autenticación.',
+                            'user_id' => $user['Id'],
+                            'username' => $user['User'],
+                            'name' => $user['Name']
+                        ];
+                    }
+                }
+            }
             
             if (!$user) {
                 return [
@@ -50,6 +80,7 @@ class AuthModel extends Model
                 return [
                     'success' => true,
                     'message' => 'Login exitoso',
+                    'login_method' => $loginMethod,
                     'user' => [
                         'id' => $user['Id'],
                         'name' => $user['Name'],
@@ -323,5 +354,69 @@ class AuthModel extends Model
     {
         $user = $this->find($userId);
         return $user && $user['Enabled'] == 1;
+    }
+    
+    /**
+     * Actualizar email de usuario (para migración)
+     * Permite actualizar el email cuando el usuario se loguea con username
+     */
+    public function updateUserEmail($userId, $email, $password)
+    {
+        try {
+            // Validar formato de email
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'success' => false,
+                    'message' => 'Formato de email inválido'
+                ];
+            }
+            
+            // Verificar que el usuario existe y obtener sus datos
+            $user = $this->find($userId);
+            if (!$user) {
+                return [
+                    'success' => false,
+                    'message' => 'Usuario no encontrado'
+                ];
+            }
+            
+            // Verificar contraseña antes de permitir actualizar email
+            if (!$this->verifyPassword($password, $user['Pass'], $user['UserPass'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Contraseña incorrecta. No se puede actualizar el email sin verificar la contraseña.'
+                ];
+            }
+            
+            // Verificar que el email no esté en uso por otro usuario
+            $existingUser = $this->where('Mail', $email)
+                                ->where('Id !=', $userId)
+                                ->get()
+                                ->getRowArray();
+            
+            if ($existingUser) {
+                return [
+                    'success' => false,
+                    'message' => 'Este correo electrónico ya está en uso por otro usuario'
+                ];
+            }
+            
+            // Actualizar el email
+            $this->update($userId, [
+                'Mail' => $email,
+                'UpdateDate' => date('Y-m-d H:i:s')
+            ]);
+            
+            return [
+                'success' => true,
+                'message' => 'Email actualizado exitosamente. Ahora puedes iniciar sesión con tu correo electrónico.'
+            ];
+            
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error al actualizar email: ' . $e->getMessage()
+            ];
+        }
     }
 }
