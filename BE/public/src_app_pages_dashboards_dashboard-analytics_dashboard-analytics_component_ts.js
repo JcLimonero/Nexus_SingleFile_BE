@@ -430,7 +430,6 @@ class WidgetAdvisorDistributionComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading advisor distribution data:', error);
         this.error = 'Error al cargar los datos de asesores';
         this.advisorData = [];
         this.updateChart();
@@ -439,13 +438,8 @@ class WidgetAdvisorDistributionComponent {
     });
   }
   updateChart() {
-    console.log('updateChart() llamado');
-    console.log('advisorData:', this.advisorData);
-    console.log('advisorData type:', typeof this.advisorData);
-    console.log('advisorData isArray:', Array.isArray(this.advisorData));
     // Validar que advisorData existe y es un array
     if (!this.advisorData || !Array.isArray(this.advisorData) || this.advisorData.length === 0) {
-      console.log('Datos vacíos o inválidos, inicializando gráfico vacío');
       this.series = [];
       this.options = {
         ...this.options,
@@ -458,21 +452,13 @@ class WidgetAdvisorDistributionComponent {
       return;
     }
     try {
-      console.log('Procesando datos del gráfico...');
-      console.log('Primer elemento advisorData:', this.advisorData[0]);
       const categories = this.advisorData.map(item => {
-        console.log('Procesando item:', item);
         return item.advisorName || 'Sin nombre';
       });
-      console.log('Categories generadas:', categories);
       const approvedData = this.advisorData.map(item => item.approved || 0);
       const pendingData = this.advisorData.map(item => item.pending || 0);
       const rejectedData = this.advisorData.map(item => item.rejected || 0);
-      console.log('Datos aprobados:', approvedData);
-      console.log('Datos pendientes:', pendingData);
-      console.log('Datos rechazados:', rejectedData);
       this.totalCases = this.advisorData.reduce((total, advisor) => total + (advisor.total || 0), 0);
-      console.log('Total casos:', this.totalCases);
       this.series = [{
         name: 'Aprobadas',
         data: approvedData
@@ -483,7 +469,6 @@ class WidgetAdvisorDistributionComponent {
         name: 'Rechazadas',
         data: rejectedData
       }];
-      console.log('Series configuradas:', this.series);
       this.options = {
         ...this.options,
         xaxis: {
@@ -491,10 +476,9 @@ class WidgetAdvisorDistributionComponent {
           categories: categories
         }
       };
-      console.log('Opciones actualizadas:', this.options);
-      console.log('Categorías asignadas a xaxis:', this.options.xaxis?.categories);
+      
     } catch (error) {
-      console.error('Error updating chart:', error);
+      
       this.series = [];
       this.totalCases = 0;
     }
@@ -637,7 +621,6 @@ class WidgetAgencyUsersComponent {
   }
   ngOnChanges(changes) {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetAgencyUsers: agencyId cambió, recargando datos...');
       this.loadData();
     }
   }
@@ -656,7 +639,6 @@ class WidgetAgencyUsersComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading agency users data:', error);
         this.error = 'Error al cargar datos de usuarios';
         this.loading = false;
       }
@@ -1092,7 +1074,6 @@ class AttentionPeriodDialogComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading orders by attention period:', error);
         this.error = 'Error al cargar los pedidos del período seleccionado';
         this.orders = [];
         this.totalOrders = 0;
@@ -1376,19 +1357,16 @@ class WidgetAttentionPeriodComponent {
     this.error = null;
     this.analyticsService.getAttentionPeriodData(this.agencyId?.toString(), this.userId?.toString()).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_4__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('Datos de período de atención recibidos:', data);
         if (data && Array.isArray(data)) {
           this.attentionData = data;
           this.totalCases = data.reduce((total, item) => total + item.count, 0);
         } else {
-          console.warn('Datos no válidos recibidos:', data);
           this.attentionData = [];
           this.totalCases = 0;
         }
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading attention period data:', error);
         this.error = 'Error al cargar los datos de período de atención';
         this.attentionData = [];
         this.totalCases = 0;
@@ -1674,19 +1652,16 @@ class WidgetCurrentMonthAttentionComponent {
     this.error = null;
     this.analyticsService.getCurrentMonthAttentionData(this.agencyId?.toString(), this.userId?.toString()).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_4__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('Datos de período de atención del mes actual recibidos:', data);
         if (data && Array.isArray(data)) {
           this.attentionData = data;
           this.totalCases = data.reduce((total, item) => total + item.count, 0);
         } else {
-          console.warn('Datos no válidos recibidos:', data);
           this.attentionData = [];
           this.totalCases = 0;
         }
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading current month attention data:', error);
         this.error = 'Error al cargar los datos del mes actual';
         this.attentionData = [];
         this.totalCases = 0;
@@ -1879,7 +1854,6 @@ class WidgetCurrentMonthLiberatedComponent {
   }
   ngOnChanges(changes) {
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('🔄 WidgetCurrentMonthLiberated: filtros cambiaron, recargando datos...');
       this.loadData();
     }
   }
@@ -1896,7 +1870,6 @@ class WidgetCurrentMonthLiberatedComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading current month liberated data:', error);
         this.error = 'Error al cargar datos de expedientes liberados';
         this.loading = false;
       }
@@ -2194,11 +2167,7 @@ class WidgetCurrentMonthStatusComponent {
     this.loadCurrentMonthStatus();
   }
   ngOnChanges(changes) {
-    console.log('📊 CurrentMonthStatus ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('📊 CurrentMonthStatus: Agency or User changed, triggering data reload');
-      console.log('📊 CurrentMonthStatus: Current agencyId:', this.agencyId);
-      console.log('📊 CurrentMonthStatus: Current userId:', this.userId);
       this.loadCurrentMonthStatus();
     }
   }
@@ -2219,16 +2188,13 @@ class WidgetCurrentMonthStatusComponent {
       idSeller: this.userId,
       current_month: true
     };
-    console.log('📊 CurrentMonthStatus: Loading current month status with filters:', filters);
     this.analyticsService.getCurrentMonthStatusDistribution(filters).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_5__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('📊 CurrentMonthStatus: Received data:', data);
         this.statusData = data;
         this.updateChart();
         this.loading = false;
       },
       error: error => {
-        console.error('📊 CurrentMonthStatus: Error loading current month status:', error);
         this.error = 'Error al cargar distribución del mes actual';
         this.loading = false;
         // Fallback a datos vacíos si hay error
@@ -2581,10 +2547,7 @@ class WidgetDistributionMetricsDonutComponent {
     this.destroy$.complete();
   }
   ngOnChanges(changes) {
-    console.log('📊 DistributionMetricsDonut ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('📊 DistributionMetricsDonut: Agency changed, triggering data reload');
-      console.log('📊 DistributionMetricsDonut: Current agencyId:', this.agencyId);
       this.loadDistributionMetrics();
     }
   }
@@ -2594,16 +2557,13 @@ class WidgetDistributionMetricsDonutComponent {
     const filters = {
       agency_id: this.agencyId
     };
-    console.log('📊 DistributionMetricsDonut: Loading distribution metrics with filters:', filters);
     this.analyticsService.getDistributionMetrics(filters).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_5__.takeUntil)(this.destroy$)).subscribe({
       next: metrics => {
-        console.log('📊 DistributionMetricsDonut: Received metrics:', metrics);
         this.distributionMetrics = metrics;
         this.updateChart();
         this.loading = false;
       },
       error: error => {
-        console.error('📊 DistributionMetricsDonut: Error loading distribution metrics:', error);
         this.error = 'Error al cargar métricas de distribución';
         this.loading = false;
         // Fallback a datos vacíos si hay error
@@ -2943,11 +2903,7 @@ class WidgetHistoricalStatusComponent {
     this.loadHistoricalStatusData();
   }
   ngOnChanges(changes) {
-    console.log('📊 HistoricalStatus ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('📊 HistoricalStatus: Agency or User changed, triggering data reload');
-      console.log('📊 HistoricalStatus: Current agencyId:', this.agencyId);
-      console.log('📊 HistoricalStatus: Current userId:', this.userId);
       this.loadHistoricalStatusData();
     }
   }
@@ -2962,16 +2918,13 @@ class WidgetHistoricalStatusComponent {
       agency_id: this.agencyId,
       idSeller: this.userId
     };
-    console.log('📊 HistoricalStatus: Loading historical status data with filters:', filters);
     this.analyticsService.getHistoricalStatusDistribution(filters).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_5__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('📊 HistoricalStatus: Received data:', data);
         this.historicalStatusData = data;
         this.updateChart();
         this.loading = false;
       },
       error: error => {
-        console.error('📊 HistoricalStatus: Error loading historical status data:', error);
         this.error = 'Error al cargar datos históricos por estatus';
         this.loading = false;
         // Fallback a datos vacíos si hay error
@@ -3172,7 +3125,6 @@ class WidgetMonthlyCasesComponent {
   }
   ngOnChanges(changes) {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetMonthlyCases: agencyId cambió, recargando datos...');
       this.loadData();
     }
   }
@@ -3191,7 +3143,6 @@ class WidgetMonthlyCasesComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading monthly cases data:', error);
         this.error = 'Error al cargar datos de expedientes del mes';
         this.loading = false;
       }
@@ -3477,11 +3428,7 @@ class WidgetProcessDistributionComponent {
     this.loadProcessDistribution();
   }
   ngOnChanges(changes) {
-    console.log('📊 ProcessDistribution ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('📊 ProcessDistribution: Agency or User changed, triggering data reload');
-      console.log('📊 ProcessDistribution: Current agencyId:', this.agencyId);
-      console.log('📊 ProcessDistribution: Current userId:', this.userId);
       this.loadProcessDistribution();
     }
   }
@@ -3496,16 +3443,13 @@ class WidgetProcessDistributionComponent {
       agency_id: this.agencyId,
       idSeller: this.userId
     };
-    console.log('📊 ProcessDistribution: Loading process distribution with filters:', filters);
     this.analyticsService.getProcessDistribution(filters).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_5__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('📊 ProcessDistribution: Received data:', data);
         this.processData = data;
         this.updateChart();
         this.loading = false;
       },
       error: error => {
-        console.error('📊 ProcessDistribution: Error loading process distribution:', error);
         this.error = 'Error al cargar distribución por proceso';
         this.loading = false;
         // Fallback a datos vacíos si hay error
@@ -3827,11 +3771,7 @@ class WidgetStatusDistributionComponent {
     this.loadStatusDistribution();
   }
   ngOnChanges(changes) {
-    console.log('📊 StatusDistribution ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('📊 StatusDistribution: Agency or User changed, triggering data reload');
-      console.log('📊 StatusDistribution: Current agencyId:', this.agencyId);
-      console.log('📊 StatusDistribution: Current userId:', this.userId);
       this.loadStatusDistribution();
     }
   }
@@ -3846,16 +3786,13 @@ class WidgetStatusDistributionComponent {
       agency_id: this.agencyId,
       idSeller: this.userId
     };
-    console.log('📊 StatusDistribution: Loading status distribution with filters:', filters);
     this.analyticsService.getStatusDistribution(filters).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_5__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('📊 StatusDistribution: Received data:', data);
         this.statusData = data;
         this.updateChart();
         this.loading = false;
       },
       error: error => {
-        console.error('📊 StatusDistribution: Error loading status distribution:', error);
         this.error = 'Error al cargar distribución por estatus';
         this.loading = false;
         // Fallback a datos vacíos si hay error
@@ -4022,7 +3959,6 @@ class WidgetTodayCasesComponent {
   }
   ngOnChanges(changes) {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetTodayCases: agencyId cambió, recargando datos...');
       this.loadData();
     }
   }
@@ -4041,7 +3977,6 @@ class WidgetTodayCasesComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading today cases data:', error);
         this.error = 'Error al cargar datos de expedientes del día';
         this.loading = false;
       }
@@ -4168,7 +4103,6 @@ class WidgetTotalCasesComponent {
   }
   ngOnChanges(changes) {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetTotalCases: agencyId cambió, recargando datos...');
       this.loadData();
     }
   }
@@ -4187,7 +4121,6 @@ class WidgetTotalCasesComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading total cases data:', error);
         this.error = 'Error al cargar datos de expedientes totales';
         this.loading = false;
       }
@@ -4333,7 +4266,6 @@ class WidgetTotalLiberatedComponent {
   }
   ngOnChanges(changes) {
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('🔄 WidgetTotalLiberated: filtros cambiaron, recargando datos...');
       this.loadData();
     }
   }
@@ -4350,7 +4282,6 @@ class WidgetTotalLiberatedComponent {
         this.loading = false;
       },
       error: err => {
-        console.error('Error loading total liberated data:', err);
         this.error = 'Error al cargar datos de expedientes liberados totales.';
         this.loading = false;
       }
@@ -4579,9 +4510,6 @@ class WidgetTrendChartComponent {
     this.setupYearFilter();
     this.setupFiltersDebounce();
     // Siempre cargar datos iniciales (incluso si agencyId es null para "todas las agencias")
-    console.log('📊 TrendChart: ngOnInit - Loading initial data');
-    console.log('📊 TrendChart: Initial agencyId:', this.agencyId);
-    console.log('📊 TrendChart: Initial userId:', this.userId);
     this.loadTrendData();
   }
   ngOnDestroy() {
@@ -4589,12 +4517,7 @@ class WidgetTrendChartComponent {
     this.destroy$.complete();
   }
   ngOnChanges(changes) {
-    console.log('🔄 TrendChart ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange || changes['userId'] && !changes['userId'].firstChange) {
-      console.log('🔄 TrendChart: Agency or User changed, triggering data reload');
-      console.log('🔄 TrendChart: Current agencyId:', this.agencyId);
-      console.log('🔄 TrendChart: Current userId:', this.userId);
-      console.log('🔄 TrendChart: Calling filtersChange$.next()');
       this.filtersChange$.next();
     }
   }
@@ -4610,7 +4533,6 @@ class WidgetTrendChartComponent {
     this.filtersChange$.pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_6__.debounceTime)(300),
     // Esperar 300ms después del último cambio
     (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.takeUntil)(this.destroy$)).subscribe(() => {
-      console.log('📊 TrendChart: Debounce triggered, calling loadTrendData');
       this.loadTrendData();
     });
   }
@@ -4634,13 +4556,8 @@ class WidgetTrendChartComponent {
       agency_id: this.agencyId,
       idSeller: this.userId
     };
-    console.log('📊 TrendChart: Loading real trend data with filters:', filters);
-    console.log('📊 TrendChart: Selected year:', this.selectedYear);
-    console.log('📊 TrendChart: Agency ID:', this.agencyId);
-    console.log('📊 TrendChart: User ID:', this.userId);
     this.analyticsService.getTrendData(filters).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_7__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('📊 TrendChart: Received data:', data);
         this.series = [{
           name: 'Entregados',
           data: data.entregados || []
@@ -4654,7 +4571,6 @@ class WidgetTrendChartComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('📊 TrendChart: Error loading trend data:', error);
         this.error = 'Error al cargar los datos de tendencia';
         this.loading = false;
         // Fallback a datos vacíos si hay error
@@ -5087,19 +5003,16 @@ class WidgetWeeklyChartComponent {
     this.error = null;
     this.analyticsService.getWeeklyData(this.agencyId?.toString(), this.userId?.toString()).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_4__.takeUntil)(this.destroy$)).subscribe({
       next: data => {
-        console.log('Datos semanales recibidos:', data);
         if (data && Array.isArray(data)) {
           this.weeklyData = data;
           this.updateChart();
         } else {
-          console.warn('Datos no válidos recibidos:', data);
           this.weeklyData = [];
           this.updateChart();
         }
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading weekly data:', error);
         this.error = 'Error al cargar los datos semanales';
         this.weeklyData = [];
         this.updateChart();
@@ -5108,16 +5021,12 @@ class WidgetWeeklyChartComponent {
     });
   }
   updateChart() {
-    console.log('updateChart() llamado');
-    console.log('weeklyData:', this.weeklyData);
     if (!this.weeklyData || !Array.isArray(this.weeklyData) || this.weeklyData.length === 0) {
-      console.log('Datos vacíos o inválidos, inicializando gráfico vacío');
       this.series = [];
       this.totalCases = 0;
       return;
     }
     try {
-      console.log('Procesando datos del gráfico...');
       // Crear array de datos para cada día de la semana
       const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
       const chartData = daysOfWeek.map(day => {

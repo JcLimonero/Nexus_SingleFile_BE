@@ -170,10 +170,7 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('📊 DistributionMetricsDonut ngOnChanges called with changes:', changes);
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('📊 DistributionMetricsDonut: Agency changed, triggering data reload');
-      console.log('📊 DistributionMetricsDonut: Current agencyId:', this.agencyId);
       this.loadDistributionMetrics();
     }
   }
@@ -186,22 +183,19 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
       agency_id: this.agencyId
     };
 
-    console.log('📊 DistributionMetricsDonut: Loading distribution metrics with filters:', filters);
 
     this.analyticsService.getDistributionMetrics(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (metrics) => {
-          console.log('📊 DistributionMetricsDonut: Received metrics:', metrics);
           this.distributionMetrics = metrics;
           this.updateChart();
           this.loading = false;
         },
         error: (error) => {
-          console.error('📊 DistributionMetricsDonut: Error loading distribution metrics:', error);
           this.error = 'Error al cargar métricas de distribución';
           this.loading = false;
-          
+
           // Datos de prueba para mostrar el gráfico
           this.distributionMetrics = {
             entregados: { total: 5, porcentaje: 50 },

@@ -19,7 +19,7 @@ class AuthModel extends Model
     
     /**
      * Autenticar usuario por email/username y contraseña
-     * Soporta migración gradual: busca primero por Mail, luego por User (sistema antiguo)
+     * Si el usuario tiene email, solo permite login con email (no con username)
      */
     public function authenticate($identifier, $password)
     {
@@ -45,6 +45,14 @@ class AuthModel extends Model
                             ->getRowArray();
                 
                 if ($user) {
+                    // Si el usuario tiene email, no permitir login con username
+                    if (!empty($user['Mail']) && trim($user['Mail']) !== '') {
+                        return [
+                            'success' => false,
+                            'message' => 'Este usuario ya tiene correo electrónico registrado. Por favor, inicia sesión usando tu correo electrónico en lugar del nombre de usuario.'
+                        ];
+                    }
+                    
                     $loginMethod = 'username';
                     
                     // Si el usuario se loguea con username pero no tiene Mail, requerir completar email

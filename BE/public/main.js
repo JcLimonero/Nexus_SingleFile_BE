@@ -2409,24 +2409,13 @@ __webpack_require__.r(__webpack_exports__);
 const AuthInterceptor = (request, next) => {
   const authService = (0,_angular_core__WEBPACK_IMPORTED_MODULE_2__.inject)(_services_auth_service__WEBPACK_IMPORTED_MODULE_0__.AuthService);
   // Debug completo de la petición
-  console.log('🔍 Interceptor - URL completa:', request.url);
-  console.log('🔍 Interceptor - Método:', request.method);
-  console.log('🔍 Interceptor - URL incluye localhost:8080:', request.url.includes('localhost:8080'));
-  console.log('🔍 Interceptor - URL empieza con /api:', request.url.startsWith('/api'));
-  console.log('🔍 Interceptor - URL empieza con http:', request.url.startsWith('http'));
   // Obtener el token de autenticación
   const token = authService.getToken();
   const isAuthenticated = authService.isAuthenticated();
-  console.log('🔐 Interceptor - Token disponible:', !!token);
-  console.log('🔐 Interceptor - Token valor:', token ? token.substring(0, 20) + '...' : 'null');
-  console.log('🔐 Interceptor - Usuario autenticado:', isAuthenticated);
-  console.log('🔐 Interceptor - Usuario actual:', authService.getCurrentUser());
   // Solo agregar token a llamadas del backend (usando environment)
   if (request.url.includes(_environments_environment__WEBPACK_IMPORTED_MODULE_1__.environment.apiBaseUrl.replace('http://', ''))) {
     console.log('🔗 Llamada a backend:', request.url);
     if (token && isAuthenticated) {
-      console.log('🔐 Token encontrado y usuario autenticado, agregando a headers');
-      console.log('🔐 Headers antes:', request.headers.keys());
       // Clonar la request y agregar el header de autorización
       const authRequest = request.clone({
         setHeaders: {

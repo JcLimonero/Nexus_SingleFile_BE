@@ -18,7 +18,7 @@
         <mat-form-field class="flex-1">
           <mat-label>Correo electrónico o Usuario</mat-label>
           <input formControlName="email" matInput required placeholder="email@ejemplo.com o nombreusuario" />
-          <mat-hint>Puedes usar tu correo electrónico o nombre de usuario</mat-hint>
+          <mat-hint align="start">Si tienes correo electrónico registrado, úsalo para iniciar sesión</mat-hint>
           <mat-error *ngIf="form.controls.email.hasError('required')"
           >Necesitamos un correo electrónico o usuario para iniciar sesión
           </mat-error>

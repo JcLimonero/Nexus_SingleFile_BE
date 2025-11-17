@@ -86,9 +86,7 @@ export class LoginComponent {
             
             // Navegar al dashboard después del login exitoso
             this.router.navigate(['/']).then(() => {
-              console.log('✅ Navegación exitosa al dashboard');
-            }).catch(error => {
-              console.error('❌ Error en navegación:', error);
+              }).catch(error => {
             });
           } else {
             this.snackbar.open(response.message || 'Error en el inicio de sesión', 'Error', {
