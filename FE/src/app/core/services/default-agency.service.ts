@@ -16,11 +16,11 @@ export interface Agencia {
 })
 export class DefaultAgencyService {
   private apiUrl = environment.apiBaseUrl;
-  
+
   // BehaviorSubject para mantener el estado de la agencia seleccionada
   private selectedAgencySubject = new BehaviorSubject<number | null>(null);
   public selectedAgency$ = this.selectedAgencySubject.asObservable();
-  
+
   // BehaviorSubject para mantener el estado de las agencias disponibles
   private agenciasSubject = new BehaviorSubject<Agencia[]>([]);
   public agencias$ = this.agenciasSubject.asObservable();
@@ -70,11 +70,11 @@ export class DefaultAgencyService {
   private obtenerAgenciaUsuarioConReintentos(maxReintentos: number = 3, delayMs: number = 1000): Observable<number | null> {
     return new Observable(observer => {
       let intentos = 0;
-      
+
       const intentarObtener = () => {
         intentos++;
         console.log(`🔄 DefaultAgencyService - Intento ${intentos} de obtener agencia predeterminada del usuario`);
-        
+
         this.obtenerAgenciaUsuario().subscribe({
           next: (defaultAgencyId) => {
             console.log(`✅ DefaultAgencyService - Agencia predeterminada obtenida exitosamente en intento ${intentos}:`, defaultAgencyId);
@@ -89,7 +89,7 @@ export class DefaultAgencyService {
               message: error.message,
               error: error.error
             });
-            
+
             if (intentos < maxReintentos) {
               console.log(`🔄 DefaultAgencyService - Reintentando en ${delayMs}ms... (${intentos}/${maxReintentos})`);
               setTimeout(intentarObtener, delayMs);
@@ -100,7 +100,7 @@ export class DefaultAgencyService {
           }
         });
       };
-      
+
       intentarObtener();
     });
   }
@@ -114,13 +114,13 @@ export class DefaultAgencyService {
     return new Observable(observer => {
       console.log('🔄 DefaultAgencyService - Iniciando establecimiento de agencia predeterminada...');
       console.log('📊 DefaultAgencyService - Agencias disponibles en el servicio:', this.agenciasSubject.value);
-      
+
       // Intentar obtener la agencia predeterminada con reintentos
       this.obtenerAgenciaUsuarioConReintentos().subscribe({
         next: (defaultAgencyId) => {
           console.log('👤 DefaultAgencyService - Agencia predeterminada del usuario obtenida:', defaultAgencyId);
           let agenciaSeleccionada: number | null = null;
-          
+
           if (defaultAgencyId && this.agenciasSubject.value.length > 0) {
             // Buscar la agencia predeterminada del usuario en la lista
             const agenciaPredeterminada = this.agenciasSubject.value.find(ag => ag.Id === defaultAgencyId);
@@ -143,13 +143,13 @@ export class DefaultAgencyService {
               console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
             }
           }
-          
+
           // Actualizar el BehaviorSubject
           if (agenciaSeleccionada) {
             console.log('🎯 DefaultAgencyService - Estableciendo agencia seleccionada:', agenciaSeleccionada);
             this.selectedAgencySubject.next(agenciaSeleccionada);
           }
-          
+
           observer.next(agenciaSeleccionada);
           observer.complete();
         },
@@ -164,7 +164,7 @@ export class DefaultAgencyService {
             console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
             this.selectedAgencySubject.next(agenciaSeleccionada);
           }
-          
+
           observer.next(agenciaSeleccionada);
           observer.complete();
         }
@@ -214,7 +214,7 @@ export class DefaultAgencyService {
     if (valor === null || valor === undefined) {
       return false;
     }
-    
+
     // Convertir a string para comparación segura
     const valorStr = String(valor).toLowerCase();
     return valorStr === 'true' || valorStr === '1' || valorStr === 'enabled';

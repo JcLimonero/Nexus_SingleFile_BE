@@ -103,6 +103,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private filtersChange$ = new Subject<void>();
+  private isInitializing = true; // Bandera para evitar doble carga en inicialización
 
   @ViewChild('userSelect') userSelect!: MatSelect;
 
@@ -119,7 +120,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       startDate: new FormControl(null),
       endDate: new FormControl(null)
     });
-    
+
     // Configurar debounce para evitar llamadas múltiples
     this.setupFiltersDebounce();
   }
@@ -138,17 +139,16 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('🚀 Iniciando DashboardAnalyticsComponent...');
-    
+
     // Cargar usuario actual PRIMERO
     this.loadCurrentUser();
-    
-    // Luego cargar datos del dashboard
-    this.loadDashboardData();
+
+    // Cargar agencias (esto establecerá la agencia predeterminada y cargará el dashboard)
     this.loadAgencies();
-    
+
     // Establecer "Este mes" como período por defecto
     this.setThisMonth();
-    
+
     // Suscribirse a cambios en el formulario de fechas
     this.dateRangeForm.valueChanges
       .pipe(takeUntil(this.destroy$))
@@ -181,20 +181,20 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       });
   }
 
-  onAgencyChange(agencyId: number | null): void {
+  onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
     console.log('🏢 onAgencyChange llamado con agencyId:', agencyId);
     console.log('🏢 selectedAgencyId ANTES del cambio:', this.selectedAgencyId);
     this.selectedAgencyId = agencyId;
     console.log('🏢 selectedAgencyId DESPUÉS del cambio:', this.selectedAgencyId);
     this.currentFilters = { ...this.currentFilters, agencyId: agencyId || undefined };
-    
+
     // Cargar usuarios para la agencia seleccionada
     this.loadUsers(agencyId);
-    
+
     // Verificar si el usuario actual existe y es gerente/admin
     console.log('🔍 Verificando usuario actual en onAgencyChange:', this.currentUser);
     console.log('🔍 isManagerOrAdmin result:', this.isManagerOrAdmin(this.currentUser));
-    
+
     // Si el usuario es gerente o administrador, seleccionar automáticamente "Todos los usuarios"
     if (this.isManagerOrAdmin(this.currentUser)) {
       console.log('👑 Usuario es gerente/admin, seleccionando "Todos los usuarios" al cambiar agencia');
@@ -205,8 +205,11 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     } else {
       console.log('👤 Usuario NO es gerente/admin, no se aplica selección automática');
     }
-    
-    this.filtersChange$.next();
+
+    // Solo disparar recarga si no es la inicialización o si se solicita explícitamente
+    if (!skipReload) {
+      this.filtersChange$.next();
+    }
   }
 
   onDateRangeChange(): void {
@@ -218,18 +221,24 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
     if (this.isValidDateRange(dateRange)) {
       this.selectedDateRange = dateRange;
-      this.currentFilters = { 
-        ...this.currentFilters, 
-        dateRange: dateRange 
+      this.currentFilters = {
+        ...this.currentFilters,
+        dateRange: dateRange
       };
-      this.filtersChange$.next();
+      // Solo disparar recarga si no estamos en inicialización
+      if (!this.isInitializing) {
+        this.filtersChange$.next();
+      }
     } else {
       this.selectedDateRange = null;
-      this.currentFilters = { 
-        ...this.currentFilters, 
-        dateRange: undefined 
+      this.currentFilters = {
+        ...this.currentFilters,
+        dateRange: undefined
       };
-      this.filtersChange$.next();
+      // Solo disparar recarga si no estamos en inicialización
+      if (!this.isInitializing) {
+        this.filtersChange$.next();
+      }
     }
   }
 
@@ -242,14 +251,14 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   private loadAgencies(): void {
     console.log('🏢 Cargando agencias asignadas al usuario...');
-    
+
     this.defaultAgencyService.obtenerAgencias()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {
           console.log('🏢 Agencias asignadas al usuario:', agencias);
           this.agencies = agencias;
-          
+
           // Establecer agencia predeterminada
           setTimeout(() => {
             this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
@@ -257,9 +266,16 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
                 if (agenciaId) {
                   console.log('✅ Agencia predeterminada establecida:', agenciaId);
                   this.selectedAgencyId = agenciaId;
-                  this.onAgencyChange(agenciaId);
+                  // En la inicialización, no recargar el dashboard (skipReload = true)
+                  // El dashboard se cargará después cuando se establezcan todos los filtros
+                  this.onAgencyChange(agenciaId, this.isInitializing);
                 } else {
                   console.warn('⚠️ No se pudo establecer agencia predeterminada');
+                  // Si no hay agencia predeterminada, cargar dashboard sin filtros
+                  if (this.isInitializing) {
+                    this.isInitializing = false;
+                    this.filtersChange$.next();
+                  }
                 }
               },
               error: (error) => {
@@ -269,7 +285,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
                   const primeraAgencia = this.agencies[0];
                   console.log('🔄 Seleccionando primera agencia disponible como fallback:', primeraAgencia);
                   this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id);
+                  this.onAgencyChange(primeraAgencia.Id, this.isInitializing);
+                } else {
+                  // Si no hay agencias, cargar dashboard sin filtros
+                  if (this.isInitializing) {
+                    this.isInitializing = false;
+                    this.filtersChange$.next();
+                  }
                 }
               }
             });
@@ -281,23 +303,30 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
             duration: 3000
           });
+          // Si estamos en inicialización y hay error, marcar como completa y cargar dashboard
+          if (this.isInitializing) {
+            this.isInitializing = false;
+            setTimeout(() => {
+              this.filtersChange$.next();
+            }, 200);
+          }
         }
       });
   }
 
   private loadUsers(agencyId: number | null): void {
     console.log('👥 Cargando usuarios para agencia:', agencyId);
-    
+
     this.userService.getUsersByAgency(agencyId || undefined)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           console.log('👥 Respuesta de usuarios:', response);
-          
+
                       if (response.success && response.data && response.data.users) {
                         this.users = response.data.users;
                         console.log('👥 Usuarios cargados:', this.users.length);
-                        
+
                         // Verificar si debemos aplicar selección automática para administradores
                         if (this.isManagerOrAdmin(this.currentUser)) {
                           console.log('👑 Aplicando selección automática después de cargar usuarios');
@@ -305,28 +334,52 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
                             // Estrategia diferente: cambiar temporalmente el valor y luego establecerlo a null
                             this.selectedUserId = -1; // Valor temporal que no existe
                             this.changeDetector.detectChanges();
-                            
+
                             setTimeout(() => {
                               this.selectedUserId = null;
                               this.currentFilters = { ...this.currentFilters, userId: undefined };
                               console.log('👑 selectedUserId establecido a null después de cargar usuarios');
                               console.log('👑 currentFilters actualizado después de cargar usuarios:', this.currentFilters);
-                              
+
                               // Forzar detección de cambios para actualizar el dropdown
                               this.changeDetector.detectChanges();
                               console.log('🔄 Change detection ejecutado para actualizar dropdown');
-                              
+
                               // Forzar actualización del mat-select directamente
                               if (this.userSelect) {
                                 this.userSelect.writeValue(null);
                                 console.log('🔄 MatSelect writeValue(null) ejecutado');
                               }
+
+                              // Si estamos en inicialización, marcar como completa y cargar dashboard una sola vez
+                              if (this.isInitializing) {
+                                this.isInitializing = false;
+                                // Esperar un momento para que todos los filtros estén establecidos
+                                setTimeout(() => {
+                                  this.filtersChange$.next();
+                                }, 100);
+                              }
                             }, 50);
                           }, 100);
+                        } else {
+                          // Si no es admin, también marcar inicialización como completa
+                          if (this.isInitializing) {
+                            this.isInitializing = false;
+                            setTimeout(() => {
+                              this.filtersChange$.next();
+                            }, 200);
+                          }
                         }
                       } else {
             console.warn('👥 Respuesta de usuarios no válida:', response);
             this.users = [];
+            // Si estamos en inicialización y no hay usuarios, marcar como completa
+            if (this.isInitializing) {
+              this.isInitializing = false;
+              setTimeout(() => {
+                this.filtersChange$.next();
+              }, 200);
+            }
           }
         },
         error: (error) => {
@@ -335,37 +388,43 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           this.snackBar.open('Error al cargar los usuarios', 'Cerrar', {
             duration: 3000
           });
+          // Si estamos en inicialización y hay error, marcar como completa
+          if (this.isInitializing) {
+            this.isInitializing = false;
+            setTimeout(() => {
+              this.filtersChange$.next();
+            }, 200);
+          }
         }
       });
   }
 
   private loadCurrentUser(): void {
     console.log('👤 Cargando información del usuario actual...');
-    
+
     // Obtener usuario actual del servicio de autenticación
     this.currentUser = this.authService.getCurrentUser();
-    
+
     if (this.currentUser) {
       console.log('👤 Usuario actual:', this.currentUser);
       console.log('👤 Role ID:', this.currentUser.role_id);
       console.log('👤 Role Name:', this.currentUser.role_name);
-      
+
       // Verificar si el usuario es asesor u operador
       this.isUserFilterDisabled = this.isAdvisorOrOperator(this.currentUser);
       console.log('🔒 isUserFilterDisabled:', this.isUserFilterDisabled);
-      
+
       if (this.isUserFilterDisabled) {
         console.log('🔒 Usuario es asesor u operador, deshabilitando filtro de usuario');
-        // Seleccionar automáticamente el usuario actual
+        // Seleccionar automáticamente el usuario actual (sin disparar recarga durante inicialización)
         this.selectedUserId = parseInt(this.currentUser.id);
-        this.onUserChange(this.selectedUserId);
+        this.currentFilters = { ...this.currentFilters, userId: this.selectedUserId };
       } else if (this.isManagerOrAdmin(this.currentUser)) {
         console.log('👑 Usuario es gerente o administrador, seleccionando "Todos los usuarios"');
-        // Seleccionar automáticamente "Todos los usuarios"
+        // Seleccionar automáticamente "Todos los usuarios" (sin disparar recarga durante inicialización)
         this.selectedUserId = null;
+        this.currentFilters = { ...this.currentFilters, userId: undefined };
         console.log('👑 selectedUserId establecido a:', this.selectedUserId);
-        this.onUserChange(null);
-        console.log('👑 onUserChange(null) ejecutado');
       } else {
         console.log('👤 Usuario con rol no reconocido, no se aplica selección automática');
       }
@@ -378,7 +437,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     if (!user || !user.role_name) {
       return false;
     }
-    
+
     const roleName = user.role_name.toLowerCase();
     return roleName.includes('asesor') || roleName.includes('operador');
   }
@@ -387,13 +446,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     if (!user) {
       return false;
     }
-    
+
     // Verificar por role_id (admin tiene role_id = '7')
     if (user.role_id === '7' || user.role_id === 7) {
       console.log('👑 Usuario identificado como admin por role_id:', user.role_id);
       return true;
     }
-    
+
     // Verificar por role_name
     if (user.role_name) {
       const roleName = user.role_name.toLowerCase();
@@ -403,7 +462,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       }
       return isManagerOrAdmin;
     }
-    
+
     return false;
   }
 
@@ -453,8 +512,8 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   hasDateRange(): boolean {
-    return this.selectedDateRange !== null && 
-           this.selectedDateRange.startDate !== null && 
+    return this.selectedDateRange !== null &&
+           this.selectedDateRange.startDate !== null &&
            this.selectedDateRange.endDate !== null;
   }
 
@@ -469,9 +528,9 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     });
     this.selectedDateRange = null;
     this.activeDateRange = null;
-    this.currentFilters = { 
-      ...this.currentFilters, 
-      dateRange: undefined 
+    this.currentFilters = {
+      ...this.currentFilters,
+      dateRange: undefined
     };
     this.loadDashboardData();
   }
@@ -535,13 +594,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   clearAllFilters(): void {
     console.log('🧹 Limpiando todos los filtros');
-    
+
     // Limpiar agencia
     this.selectedAgencyId = null;
-    
+
     // Limpiar usuario
     this.selectedUserId = null;
-    
+
     // Limpiar fechas
     this.dateRangeForm.patchValue({
       startDate: null,
@@ -549,13 +608,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     });
     this.selectedDateRange = null;
     this.activeDateRange = null;
-    
+
     // Limpiar filtros
     this.currentFilters = {};
-    
+
     // Recargar datos
     this.filtersChange$.next();
-    
+
     this.snackBar.open('Todos los filtros han sido limpiados', 'Cerrar', {
       duration: 2000
     });
@@ -577,7 +636,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           link.download = `analytics-report.${event.format === 'pdf' ? 'pdf' : 'xlsx'}`;
           link.click();
           window.URL.revokeObjectURL(url);
-          
+
           this.snackBar.open(
             `Reporte exportado exitosamente como ${event.format.toUpperCase()}`,
             'Cerrar',

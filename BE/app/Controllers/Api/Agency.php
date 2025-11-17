@@ -93,6 +93,8 @@ class Agency extends BaseController
                     $agencies = array_filter($agencies, function($agency) use ($allowedAgencyIds) {
                         return in_array($agency['Id'], $allowedAgencyIds);
                     });
+                    // CRÍTICO: Reindexar el array después de array_filter para evitar que JSON lo serialice como objeto
+                    $agencies = array_values($agencies);
                 } else {
                     // Si no tiene agencias asignadas, retornar array vacío
                     $agencies = [];
@@ -102,6 +104,8 @@ class Agency extends BaseController
             // Aplicar paginación si se especifica
             if ($limit) {
                 $agencies = array_slice($agencies, $offset, $limit);
+                // Reindexar después de array_slice por seguridad
+                $agencies = array_values($agencies);
             }
             
             // Contar total de registros según el filtro aplicado y los permisos del usuario

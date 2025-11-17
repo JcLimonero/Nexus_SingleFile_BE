@@ -101,7 +101,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     return ['ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
   }
   clientesDataSource = new MatTableDataSource<any>([]);
-  
+
   // Paginación
   pageSize = 7;
   pageSizeOptions = [5, 7, 10, 25, 50];
@@ -116,7 +116,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     'eliminar', 'requerido', 'requiereExpiracion', 'fecha', 'fechaExpiracion', 'comentario', 'asignado'
   ];
   documentosDataSource: any[] = [];
-  
+
   // Cliente seleccionado
   selectedCliente: any = null;
   private advertenciaLiquidacionMostrada = false;
@@ -133,7 +133,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   get isManagerOrAdmin(): boolean {
     const user = this.authService.getCurrentUser();
     if (!user) return false;
-    
+
     // Gerente (role_id = '6') o Administrador (role_id = '7')
     return user.role_id === '6' || user.role_id === '7';
   }
@@ -156,7 +156,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   onValidarDocumento(documento: any): void {
     console.log('Validar documento:', documento);
-    
+
     // Verificar que el estatus actual sea "3"
     if (documento.idEstatus !== '3') {
       this.snackBar.open('Solo se pueden validar documentos con estatus listo para validar', 'Cerrar', { duration: 3000 });
@@ -187,7 +187,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   onVerDocumento(documento: any): void {
     console.log('🖱️ CLICK EN BOTÓN VER - onVerDocumento ejecutándose');
     console.log('🔍 Ver documento:', documento);
-    
+
     // Verificar si hay un documentContainer (nombre del archivo)
     if (!documento.documentContainer) {
       console.log('❌ No hay documentContainer disponible');
@@ -198,11 +198,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     console.log('📁 Usando documentContainer:', documento.documentContainer);
-    
+
     // Si el documento está en estatus 2 (Documento Cargado), cambiar a estatus 3 (En revisión)
     if (documento.idEstatus === '2') {
       console.log('📝 Documento en estatus 2, cambiando a estatus 3 (En revisión)...');
-      
+
       this.validacionService.prepararDocumento(documento.idDocumentByFile)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -238,7 +238,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private getBackblazePrivateUrl(fileName: string, documento: any): void {
     console.log('🔍 getBackblazePrivateUrl llamado con:', { fileName, documento });
-    
+
     const duration = 3600; // 1 hora por defecto
     const params = new URLSearchParams({
       file: fileName,
@@ -286,9 +286,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private procesarAprobacionDocumento(documento: any, resultado: AprobarDocumentoResult): void {
     console.log('Procesando aprobación de documento:', documento, resultado);
-    
+
     const nuevoEstatus = resultado.aprobado ? 4 : 5; // 4 = Aprobado, 5 = Rechazado
-    
+
     this.validacionService.aprobarDocumento(documento.idDocumentByFile, nuevoEstatus, resultado.comentario, resultado.fechaExpiracion)
       .pipe(
         takeUntil(this.destroy$),
@@ -299,7 +299,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('✅ Documento procesado exitosamente:', response);
           const mensaje = resultado.aprobado ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
           this.snackBar.open(mensaje, 'Cerrar', { duration: 3000 });
-          
+
           // Recargar documentos para reflejar el cambio
           if (this.selectedCliente) {
             this.cargarDocumentosCliente(this.selectedCliente.idFile);
@@ -308,8 +308,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         error: (error) => {
           console.error('❌ Error procesando documento:', error);
           this.snackBar.open(
-            `Error al procesar el documento: ${error.message || 'Error desconocido'}`, 
-            'Cerrar', 
+            `Error al procesar el documento: ${error.message || 'Error desconocido'}`,
+            'Cerrar',
             { duration: 5000 }
           );
         }
@@ -321,7 +321,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private validarDocumentoInterno(documento: any): void {
     console.log('Preparando documento desde botón Ver:', documento);
-    
+
     this.validacionService.prepararDocumento(documento.idDocumentByFile)
       .pipe(
         takeUntil(this.destroy$),
@@ -331,7 +331,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         next: (response) => {
           console.log('✅ Documento preparado exitosamente desde botón Ver:', response);
           this.snackBar.open('Documento preparado para validación exitosamente', 'Cerrar', { duration: 3000 });
-          
+
           // Recargar documentos para reflejar el cambio
           if (this.selectedCliente) {
             this.cargarDocumentosCliente(this.selectedCliente.idFile);
@@ -340,8 +340,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         error: (error) => {
           console.error('❌ Error preparando documento desde botón Ver:', error);
           this.snackBar.open(
-            `Error al preparar el documento: ${error.message || 'Error desconocido'}`, 
-            'Cerrar', 
+            `Error al preparar el documento: ${error.message || 'Error desconocido'}`,
+            'Cerrar',
             { duration: 5000 }
           );
         }
@@ -362,7 +362,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onCancelar(cliente: any): void {
     console.log('Cancelar para cliente:', cliente);
-    
+
     const dialogData: CancelarPedidoData = {
       cliente: cliente
     };
@@ -390,26 +390,26 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Llamar al servicio para cancelar el pedido
     this.validacionService.cancelarPedido(
-      cliente.idFile, 
-      result.motivoId, 
+      cliente.idFile,
+      result.motivoId,
       result.comentario
     ).subscribe({
       next: (response) => {
         console.log('Pedido cancelado exitosamente:', response);
         this.snackBar.open(
-          `Pedido ${cliente.ndPedido} cancelado exitosamente`, 
-          'Cerrar', 
+          `Pedido ${cliente.ndPedido} cancelado exitosamente`,
+          'Cerrar',
           { duration: 5000 }
         );
-        
+
         // Recargar los datos para reflejar el cambio
         this.cargarClientes();
       },
       error: (error) => {
         console.error('Error cancelando pedido:', error);
         this.snackBar.open(
-          `Error al cancelar el pedido: ${error.message || 'Error desconocido'}`, 
-          'Cerrar', 
+          `Error al cancelar el pedido: ${error.message || 'Error desconocido'}`,
+          'Cerrar',
           { duration: 5000 }
         );
       }
@@ -446,26 +446,26 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Llamar al servicio para crear la excepción
     this.validacionService.excepcionPedido(
-      cliente.idFile, 
-      result.motivoId, 
+      cliente.idFile,
+      result.motivoId,
       result.comentario
     ).subscribe({
       next: (response) => {
         console.log('Excepción creada exitosamente:', response);
         this.snackBar.open(
-          `Excepción creada para el pedido ${cliente.ndPedido}`, 
-          'Cerrar', 
+          `Excepción creada para el pedido ${cliente.ndPedido}`,
+          'Cerrar',
           { duration: 5000 }
         );
-        
+
         // Recargar los datos para reflejar el cambio
         this.cargarClientes();
       },
       error: (error) => {
         console.error('Error creando excepción:', error);
         this.snackBar.open(
-          `Error al crear la excepción: ${error.message || 'Error desconocido'}`, 
-          'Cerrar', 
+          `Error al crear la excepción: ${error.message || 'Error desconocido'}`,
+          'Cerrar',
           { duration: 5000 }
         );
       }
@@ -506,19 +506,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (response) => {
         console.log('Pedido eliminado exitosamente:', response);
         this.snackBar.open(
-          `Pedido ${cliente.ndPedido} eliminado exitosamente`, 
-          'Cerrar', 
+          `Pedido ${cliente.ndPedido} eliminado exitosamente`,
+          'Cerrar',
           { duration: 5000 }
         );
-        
+
         // Recargar los datos para reflejar el cambio
         this.cargarClientes();
       },
       error: (error) => {
         console.error('Error eliminando pedido:', error);
         this.snackBar.open(
-          `Error al eliminar el pedido: ${error.message || 'Error desconocido'}`, 
-          'Cerrar', 
+          `Error al eliminar el pedido: ${error.message || 'Error desconocido'}`,
+          'Cerrar',
           { duration: 5000 }
         );
       }
@@ -555,25 +555,25 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Llamar al servicio para cambiar el estatus
     this.validacionService.cambiarEstatus(
-      cliente.idFile, 
+      cliente.idFile,
       result.nuevoIdCurrentState
     ).subscribe({
       next: (response) => {
         console.log('Estatus cambiado exitosamente:', response);
         this.snackBar.open(
-          `Estatus del pedido ${cliente.ndPedido} cambiado a ${result.nuevoEstatus}`, 
-          'Cerrar', 
+          `Estatus del pedido ${cliente.ndPedido} cambiado a ${result.nuevoEstatus}`,
+          'Cerrar',
           { duration: 5000 }
         );
-        
+
         // Recargar los datos para reflejar el cambio
         this.cargarClientes();
       },
       error: (error) => {
         console.error('Error cambiando estatus:', error);
         this.snackBar.open(
-          `Error al cambiar el estatus: ${error.message || 'Error desconocido'}`, 
-          'Cerrar', 
+          `Error al cambiar el estatus: ${error.message || 'Error desconocido'}`,
+          'Cerrar',
           { duration: 5000 }
         );
       }
@@ -611,7 +611,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.cargarAgencias();
     this.cargarProcesos();
     this.loadData();
-    
+
     // Suscribirse a los cambios de agencia del servicio compartido
     this.defaultAgencyService.selectedAgency$.subscribe(agenciaId => {
       if (agenciaId !== null) {
@@ -636,23 +636,23 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🔧 ValidacionComponent - MatSort disponible:', this.sort);
     console.log('🔧 ValidacionComponent - Tipo de MatSort:', typeof this.sort);
     console.log('🔧 ValidacionComponent - MatSort propiedades:', Object.keys(this.sort || {}));
-    
+
     if (this.sort) {
       console.log('✅ ValidacionComponent - MatSort configurado correctamente');
       console.log('🔧 ValidacionComponent - Configurando suscripción a sortChange...');
-      
+
       this.sort.sortChange.subscribe((sortEvent) => {
         console.log('🔄 ValidacionComponent - Evento de ordenamiento detectado:', sortEvent);
         console.log('🔧 ValidacionComponent - Evento completo:', JSON.stringify(sortEvent));
         this.aplicarOrdenamiento();
       });
-      
+
       console.log('✅ ValidacionComponent - Suscripción a sortChange configurada');
-      
+
       // Conectar MatSort al MatTableDataSource
       this.clientesDataSource.sort = this.sort;
       console.log('✅ ValidacionComponent - MatSort conectado al MatTableDataSource');
-      
+
       // Configurar ordenamiento automático
       this.clientesDataSource.sortingDataAccessor = (item, property) => {
         switch (property) {
@@ -667,7 +667,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           default: return item[property];
         }
       };
-      
+
     } else {
       console.error('❌ ValidacionComponent - MatSort no está disponible');
     }
@@ -678,13 +678,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   onClienteSelect(cliente: any): void {
     console.log('🔍 ValidacionComponent - Cliente seleccionado:', cliente);
-    
+
     // Guardar el cliente seleccionado
     this.selectedCliente = cliente;
     this.advertenciaLiquidacionMostrada = false;
     this.advertenciaLiberacionMostrada = false;
     this.advertenciaLiberadoMostrada = false;
-    
+
     // Cargar los documentos del archivo específico
     this.cargarDocumentosCliente(cliente.idFile);
   }
@@ -715,7 +715,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private cargarDocumentosCliente(idFile: number): void {
     console.log('📄 ValidacionComponent - Cargando documentos para archivo:', idFile);
     this.loading = true;
-    
+
     this.validacionService.cargarDocumentos(idFile)
       .pipe(
         takeUntil(this.destroy$),
@@ -1030,7 +1030,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private cargarProcesos() {
     console.log('🔄 ValidacionComponent - Iniciando carga de procesos...');
     this.loadingProcesos = true;
-    
+
     this.validacionService.cargarProcesos()
       .pipe(
         takeUntil(this.destroy$),
@@ -1051,7 +1051,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: (procesos) => {
           console.log('📥 ValidacionComponent - Respuesta de procesos recibida:', procesos);
-          
+
           // Verificar que procesos sea un array
           if (!Array.isArray(procesos)) {
             console.error('❌ ValidacionComponent - La respuesta no es un array:', procesos);
@@ -1059,9 +1059,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             this.loadingProcesos = false;
             return;
           }
-          
+
           console.log('📊 ValidacionComponent - Total de procesos recibidos:', procesos.length);
-          
+
           // Debug: mostrar el estado de cada proceso
           procesos.forEach((proceso, index) => {
             console.log(`🔍 Proceso ${index}:`, {
@@ -1075,21 +1075,21 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
               allFields: proceso
             });
           });
-          
+
           // TEMPORAL: Mostrar todos los procesos para debugging
           this.procesos = procesos.filter(proceso => proceso);
-          
+
           // ORIGINAL: Mostrar solo procesos habilitados (Enabled = 1)
           // this.procesos = procesos.filter(proceso => proceso && proceso.Enabled === 1);
-          
+
           console.log('✅ ValidacionComponent - Procesos mostrados (todos):', this.procesos);
           console.log('📊 ValidacionComponent - Total de procesos mostrados:', this.procesos.length);
-          
+
           // Seleccionar el primer proceso por defecto si hay alguno
           if (this.procesos.length > 0) {
             this.selectedProcess = this.procesos[0].Id;
             console.log('🎯 ValidacionComponent - Proceso seleccionado por defecto:', this.selectedProcess);
-            
+
             // Si ya hay agencia seleccionada, cargar clientes automáticamente
             if (this.selectedAgency !== null) {
               console.log('🔄 ValidacionComponent - Cargando clientes automáticamente con proceso seleccionado');
@@ -1099,7 +1099,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             console.warn('⚠️ ValidacionComponent - No se encontraron procesos habilitados');
             this.selectedProcess = null;
           }
-          
+
           this.loadingProcesos = false;
         },
         error: (error) => {
@@ -1117,7 +1117,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private cargarAgencias() {
     console.log('🔄 ValidacionComponent - Iniciando carga de agencias...');
     this.loadingAgencias = true;
-    
+
     this.defaultAgencyService.obtenerAgencias()
       .pipe(
         takeUntil(this.destroy$),
@@ -1128,7 +1128,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('📥 ValidacionComponent - Agencias cargadas desde servicio compartido:', agencias);
           this.agencias = agencias;
           this.loadingAgencias = false;
-          
+
           // Esperar un momento para asegurar que las agencias estén disponibles en el servicio
           setTimeout(() => {
             // Establecer agencia predeterminada usando el servicio compartido
@@ -1168,12 +1168,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   recargarDatos() {
     console.log('🔄 ValidacionComponent - Recargando todos los datos...');
-    
+
     // Resetear estados de carga
     this.loading = true;
     this.loadingAgencias = true;
     this.loadingProcesos = true;
-    
+
     // Limpiar datos existentes
     this.allClientes = [];
     this.clientesOriginales = [];
@@ -1183,14 +1183,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedProcess = null;
     this.selectedFase = '';
     this.searchTerm = '';
-    
+
     // Recargar agencias y procesos
     this.cargarAgencias();
     this.cargarProcesos();
-    
+
     // Limpiar selección de cliente y documentos
     this.clearSelection();
-    
+
     // Mostrar mensaje de recarga
     this.snackBar.open('Recargando datos...', 'Cerrar', {
       duration: 2000,
@@ -1221,7 +1221,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   rechazarDocumento(documento: any) {
     console.log('Rechazando documento:', documento);
-    
+
     // Verificar que el documento esté en estatus 4 (aprobado)
     if (documento.idEstatus !== '4') {
       this.snackBar.open('Solo se pueden rechazar documentos aprobados', 'Cerrar', {
@@ -1229,7 +1229,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       });
       return;
     }
-    
+
     // Crear dialog de confirmación
     const dialogRef = this.dialog.open(RechazarDocumentoDialogComponent, {
       width: '500px',
@@ -1248,9 +1248,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private procesarRechazoDocumento(documento: any, resultado: any): void {
     console.log('Procesando rechazo de documento:', documento, resultado);
-    
+
     this.validacionService.aprobarDocumento(
-      documento.idDocumentByFile, 
+      documento.idDocumentByFile,
       5, // 5 = Rechazado
       resultado.comentario || undefined
     ).subscribe({
@@ -1259,15 +1259,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         this.snackBar.open(`Documento ${documento.documento} rechazado exitosamente`, 'Cerrar', {
           duration: 3000
         });
-        
+
         // Recargar documentos para mostrar el estado actualizado
         this.cargarDocumentosCliente(this.selectedCliente.idFile);
       },
       error: (error) => {
         console.error('Error rechazando documento:', error);
         this.snackBar.open(
-          `Error al rechazar documento: ${error.message || 'Error desconocido'}`, 
-          'Cerrar', 
+          `Error al rechazar documento: ${error.message || 'Error desconocido'}`,
+          'Cerrar',
           { duration: 5000 }
         );
       }
@@ -1279,7 +1279,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   eliminarDocumento(documento: any): void {
     console.log('Eliminando documento:', documento);
-    
+
     // Verificar que solo gerentes o administradores puedan eliminar
     if (!this.isManagerOrAdmin) {
       this.snackBar.open('No tienes permisos para eliminar documentos', 'Cerrar', {
@@ -1287,7 +1287,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       });
       return;
     }
-    
+
     // Crear dialog de confirmación
     const dialogRef = this.dialog.open(EliminarDocumentoDialogComponent, {
       width: '500px',
@@ -1313,12 +1313,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('ID del documento (idDocumentByFile):', documento.idDocumentByFile);
     console.log('ID del File (idFile):', documento.idFile);
     console.log('Nombre del documento:', documento.documento);
-    
+
     this.loading = true;
-    
+
     const url = `${environment.apiBaseUrl}/api/document/${documento.idDocumentByFile}`;
     console.log('URL de eliminación:', url);
-    
+
     this.http.delete<any>(url)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1326,13 +1326,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('✅ Documento eliminado exitosamente:', response);
           console.log('=== FIN ELIMINACIÓN EXITOSA ===');
           this.loading = false;
-          
+
           this.snackBar.open(
-            `Documento "${documento.documento}" eliminado exitosamente`, 
-            'Cerrar', 
+            `Documento "${documento.documento}" eliminado exitosamente`,
+            'Cerrar',
             { duration: 3000 }
           );
-          
+
           // Recargar documentos para mostrar el estado actualizado
           if (this.selectedCliente) {
             console.log('Recargando documentos para idFile:', this.selectedCliente.idFile);
@@ -1343,9 +1343,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.error('❌ Error eliminando documento:', error);
           console.log('=== FIN ELIMINACIÓN CON ERROR ===');
           this.loading = false;
-          
+
           let errorMessage = 'Error desconocido al eliminar el documento';
-          
+
           if (error.status === 403) {
             errorMessage = 'No tienes permisos para eliminar documentos';
           } else if (error.status === 401) {
@@ -1353,10 +1353,10 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           } else if (error.error && error.error.message) {
             errorMessage = error.error.message;
           }
-          
+
           this.snackBar.open(
-            `Error al eliminar documento: ${errorMessage}`, 
-            'Cerrar', 
+            `Error al eliminar documento: ${errorMessage}`,
+            'Cerrar',
             { duration: 5000 }
           );
         }
@@ -1383,11 +1383,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   onAgenciaChange() {
     console.log('🏢 ValidacionComponent - Agencia seleccionada:', this.selectedAgency);
-    
+
     // Limpiar filtros y búsqueda cuando se cambia la agencia
     this.selectedFase = '';
     this.searchTerm = '';
-    
+
     // Actualizar la agencia en el servicio compartido
     if (this.selectedAgency !== null) {
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
@@ -1405,11 +1405,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   onProcesoChange() {
     console.log('⚙️ ValidacionComponent - Proceso seleccionado:', this.selectedProcess);
-    
+
     // Limpiar filtros y búsqueda cuando se cambia el proceso
     this.selectedFase = '';
     this.searchTerm = '';
-    
+
     if (this.selectedProcess !== null) {
       this.cargarClientes();
     }
@@ -1425,7 +1425,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🔄 ValidacionComponent - Tipo de fase seleccionada:', typeof this.selectedFase);
     console.log('🔄 ValidacionComponent - Clientes originales disponibles:', this.clientesOriginales.length);
     console.log('🔄 ValidacionComponent - Búsqueda activa:', this.searchTerm);
-    
+
     // Si hay búsqueda activa, aplicar búsqueda (que incluye filtro de fase)
     if (this.searchTerm && this.searchTerm.trim() !== '') {
       console.log('🔄 ValidacionComponent - Aplicando búsqueda con filtro de fase');
@@ -1435,7 +1435,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       console.log('🔄 ValidacionComponent - Aplicando solo filtro de fase');
       this.aplicarFiltroFase();
     }
-    
+
     // Si hay un cliente seleccionado, recargar sus documentos
     if (this.selectedCliente) {
       this.cargarDocumentosCliente(this.selectedCliente.idFile);
@@ -1448,12 +1448,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private aplicarFiltroFase(): void {
     console.log('🔍 ValidacionComponent - Aplicando filtro de fase:', this.selectedFase);
     console.log('🔍 ValidacionComponent - Clientes originales:', this.clientesOriginales.length);
-    
+
     if (!this.selectedFase || this.selectedFase === '') {
       console.log('🔍 ValidacionComponent - Sin filtro de fase, restaurando todos los clientes');
       // Sin filtro, restaurar todos los clientes originales
       let clientesRestaurados = [...this.clientesOriginales];
-      
+
       // Aplicar filtro de cancelados
       if (this.showCancelledOrders) {
         // Solo mostrar cancelados
@@ -1464,12 +1464,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) !== '5');
         console.log('🔍 ValidacionComponent - Excluyendo cancelados (sin filtro de fase):', clientesRestaurados.length);
       }
-      
+
       this.allClientes = clientesRestaurados;
       this.totalRecords = this.allClientes.length;
       this.currentPage = 0;
       this.updatePaginatedData();
-      
+
       // Seleccionar automáticamente el primer registro si hay clientes
       if (this.allClientes.length > 0) {
         this.seleccionarCliente(this.allClientes[0]);
@@ -1483,7 +1483,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Filtrar clientes por fase desde los datos originales usando ID
     const clientesFiltrados = this.clientesOriginales.filter(cliente => {
       console.log(`🔍 ValidacionComponent - Cliente ${cliente.idFile} - IdCurrentState: ${cliente.IdCurrentState} (tipo: ${typeof cliente.IdCurrentState})`);
-      
+
       // Aplicar filtro de cancelados
       if (this.showCancelledOrders) {
         // Solo mostrar cancelados
@@ -1498,7 +1498,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           return false;
         }
       }
-      
+
       let resultado = false;
       switch (this.selectedFase) {
         case '1':
@@ -1534,13 +1534,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     console.log('📊 ValidacionComponent - Clientes filtrados:', clientesFiltrados.length, 'de', this.clientesOriginales.length);
-    
+
     // Actualizar los datos filtrados y aplicar paginación
     this.allClientes = [...clientesFiltrados];
     this.totalRecords = clientesFiltrados.length;
     this.currentPage = 0; // Volver a la primera página
     this.updatePaginatedData(); // Aplicar paginación con el tamaño de página configurado
-    
+
     // Seleccionar automáticamente el primer registro filtrado si hay resultados
     if (clientesFiltrados.length > 0) {
       this.seleccionarCliente(clientesFiltrados[0]);
@@ -1584,21 +1584,21 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('✅ ValidacionComponent - Clientes cargados:', clientes);
           console.log('🔍 ValidacionComponent - Primer cliente (si existe):', clientes.length > 0 ? clientes[0] : 'No hay clientes');
           console.log('🔍 ValidacionComponent - Campos del primer cliente:', clientes.length > 0 ? Object.keys(clientes[0]) : 'No hay clientes');
-          
+
           // Verificar específicamente el campo IdCurrentState
           if (clientes.length > 0) {
             console.log('🔍 ValidacionComponent - IdCurrentState del primer cliente:', clientes[0].IdCurrentState);
             console.log('🔍 ValidacionComponent - Tipo de IdCurrentState:', typeof clientes[0].IdCurrentState);
-            
+
             // Mostrar todos los IdCurrentState únicos
             const estadosUnicos = [...new Set(clientes.map(c => c.IdCurrentState))];
             console.log('🔍 ValidacionComponent - Estados únicos encontrados:', estadosUnicos);
           }
-          
+
           this.clientesOriginales = [...clientes]; // Guardar copia de respaldo
           this.allClientes = [...clientes]; // Guardar todos los clientes
           this.currentPage = 0; // Volver a la primera página
-          
+
           // Aplicar filtro de fase si está seleccionado
           if (this.selectedFase && this.selectedFase !== '') {
             this.aplicarFiltroFase();
@@ -1615,14 +1615,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             }
             this.updatePaginatedData(); // Aplicar paginación normal
           }
-          
+
           // Seleccionar automáticamente el primer registro si hay clientes (usar datos filtrados)
           if (this.allClientes.length > 0) {
             this.seleccionarCliente(this.allClientes[0]);
           } else {
             this.selectedCliente = null;
           }
-          
+
           this.loading = false;
         },
         error: (error) => {
@@ -1664,7 +1664,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     const endIndex = startIndex + this.pageSize;
     this.clientesDataSource.data = this.allClientes.slice(startIndex, endIndex);
     this.totalRecords = this.allClientes.length;
-    
+
     // Aplicar ordenamiento si está configurado
     if (this.sort) {
       this.clientesDataSource.sort = this.sort;
@@ -1687,7 +1687,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🔄 ValidacionComponent - Aplicando ordenamiento...');
     console.log('🔧 ValidacionComponent - MatSort disponible:', !!this.sort);
     console.log('🔧 ValidacionComponent - Total de clientes:', this.allClientes.length);
-    
+
     if (!this.sort || !this.allClientes.length) {
       console.warn('⚠️ ValidacionComponent - No se puede aplicar ordenamiento:', {
         sort: !!this.sort,
@@ -1698,7 +1698,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const direction = this.sort.direction;
     const active = this.sort.active;
-    
+
     console.log('🔧 ValidacionComponent - Columna activa:', active);
     console.log('🔧 ValidacionComponent - Dirección:', direction);
 
@@ -1709,7 +1709,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     console.log('🔄 ValidacionComponent - Iniciando ordenamiento de', this.allClientes.length, 'registros');
-    
+
     // Ordenar todos los datos
     this.allClientes.sort((a, b) => {
       let aValue = this.getSortValue(a, active);
@@ -1768,11 +1768,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('🧪 ValidacionComponent - Probando ordenamiento...');
     console.log('🔧 ValidacionComponent - MatSort disponible:', !!this.sort);
     console.log('🔧 ValidacionComponent - Total de clientes:', this.allClientes.length);
-    
+
     if (this.sort) {
       // Simular un evento de ordenamiento
       console.log('🧪 ValidacionComponent - Simulando ordenamiento por ND Cliente ascendente');
-      
+
       // Opción 1: Intentar con el método sort
       try {
         this.sort.sort({
@@ -1784,15 +1784,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       } catch (error) {
         console.error('❌ ValidacionComponent - Error en sort():', error);
       }
-      
+
       // Opción 2: Llamar directamente al método de ordenamiento
       console.log('🧪 ValidacionComponent - Llamando directamente a aplicarOrdenamiento()');
       this.aplicarOrdenamiento();
-      
+
     } else {
       console.error('❌ ValidacionComponent - MatSort no está disponible para la prueba');
     }
-    
+
     // Mostrar información sobre la selección actual
     if (this.selectedCliente) {
       console.log('👤 ValidacionComponent - Cliente seleccionado:', this.selectedCliente);
@@ -1825,7 +1825,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private aplicarBusqueda(): void {
     console.log('🔍 ValidacionComponent - Aplicando búsqueda:', this.searchTerm);
-    
+
     if (!this.searchTerm || this.searchTerm.trim() === '') {
       // Sin búsqueda, aplicar solo filtro de fase si existe
       if (this.selectedFase && this.selectedFase !== '') {
@@ -1879,7 +1879,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             return false;
           }
         }
-        
+
         switch (this.selectedFase) {
           case '1':
             return String(cliente.IdCurrentState) === '1'; // Integración

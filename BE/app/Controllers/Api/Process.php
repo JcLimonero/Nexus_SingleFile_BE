@@ -85,6 +85,8 @@ class Process extends BaseController
                     $processes = array_filter($processes, function($process) use ($allowedProcessIds) {
                         return in_array($process['Id'], $allowedProcessIds);
                     });
+                    // CRÍTICO: Reindexar el array después de array_filter para evitar que JSON lo serialice como objeto
+                    $processes = array_values($processes);
                 } else {
                     // Si no tiene procesos asignados, retornar array vacío
                     $processes = [];
@@ -94,6 +96,8 @@ class Process extends BaseController
             // Aplicar paginación si se especifica
             if ($limit) {
                 $processes = array_slice($processes, $offset, $limit);
+                // Reindexar después de array_slice por seguridad
+                $processes = array_values($processes);
             }
             
             // Contar total de registros según el filtro aplicado y los permisos del usuario

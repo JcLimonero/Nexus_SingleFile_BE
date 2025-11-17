@@ -186,28 +186,57 @@ class Analytics extends BaseController
     {
         try {
             $filters = $this->getFiltersFromRequest();
-            $builder = $this->processModel->builder();
+            $hasAgencyFilter = !empty($filters['agency_id']);
+            $agencyId = $hasAgencyFilter ? $filters['agency_id'] : null;
             
-            // Aplicar filtros
+            // Usar query builder directo de la base de datos para evitar conflictos de alias
+            $db = \Config\Database::connect();
+            
+            // Construir consulta base para total de procesos
+            $totalBuilder = $db->table('Process');
+            
+            // Si hay filtro de agencia, hacer JOIN con ConfigurationProcess usando alias único
+            if ($hasAgencyFilter) {
+                $totalBuilder->distinct()
+                    ->select('Process.*')
+                    ->join('ConfigurationProcess cp1', 'cp1.IdProcess = Process.Id', 'inner')
+                    ->where('cp1.IdAgency', $agencyId)
+                    ->where('cp1.Enabled', 1);
+            }
+            
+            // Aplicar filtros de fecha
             if (!empty($filters['start_date'])) {
-                $builder->where('RegistrationDate >=', $filters['start_date']);
+                $totalBuilder->where('Process.RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('RegistrationDate <=', $filters['end_date']);
-            }
-            if (!empty($filters['agency_id'])) {
-                $builder->where('agency_id', $filters['agency_id']);
+                $totalBuilder->where('Process.RegistrationDate <=', $filters['end_date']);
             }
 
             // Estadísticas básicas
-            $totalProcesses = $builder->countAllResults(false);
+            $totalProcesses = $totalBuilder->countAllResults(false);
 
-            // Procesos por estado (usando Enabled)
-            $processesByStatus = $this->processModel->builder()
-                ->select('Enabled as status, COUNT(*) as count')
-                ->groupBy('Enabled')
-                ->get()
-                ->getResultArray();
+            // Procesos por estado (usando Enabled) - usar alias diferente
+            $statusBuilder = $db->table('Process');
+            if ($hasAgencyFilter) {
+                $statusBuilder->distinct()
+                    ->select('Process.Enabled as status, COUNT(DISTINCT Process.Id) as count')
+                    ->join('ConfigurationProcess cp2', 'cp2.IdProcess = Process.Id', 'inner')
+                    ->where('cp2.IdAgency', $agencyId)
+                    ->where('cp2.Enabled', 1);
+            } else {
+                $statusBuilder->select('Process.Enabled as status, COUNT(*) as count');
+            }
+            
+            // Aplicar filtros de fecha si existen
+            if (!empty($filters['start_date'])) {
+                $statusBuilder->where('Process.RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $statusBuilder->where('Process.RegistrationDate <=', $filters['end_date']);
+            }
+            
+            $statusBuilder->groupBy('Process.Enabled');
+            $processesByStatus = $statusBuilder->get()->getResultArray();
 
             // Procesos por agencia (simplificado - la tabla Process no tiene relación directa con agencias)
             $processesByAgency = [];
@@ -215,28 +244,50 @@ class Analytics extends BaseController
             // Tiempo promedio de procesamiento (simplificado)
             $averageProcessingTime = 0;
 
-            // Tendencia mensual
-            $monthlyTrend = $this->processModel->builder()
-                ->select("DATE_FORMAT(RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
-                ->where('RegistrationDate >=', date('Y-m-01', strtotime('-12 months')))
-                ->groupBy('month')
-                ->orderBy('month', 'ASC')
-                ->get()
-                ->getResultArray();
+            // Tendencia mensual - usar alias diferente
+            $trendBuilder = $db->table('Process');
+            if ($hasAgencyFilter) {
+                $trendBuilder->distinct()
+                    ->select("DATE_FORMAT(Process.RegistrationDate, '%Y-%m') as month, COUNT(DISTINCT Process.Id) as count")
+                    ->join('ConfigurationProcess cp3', 'cp3.IdProcess = Process.Id', 'inner')
+                    ->where('cp3.IdAgency', $agencyId)
+                    ->where('cp3.Enabled', 1)
+                    ->where('Process.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')));
+            } else {
+                $trendBuilder->select("DATE_FORMAT(Process.RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
+                    ->where('Process.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')));
+            }
+            
+            // Aplicar filtros de fecha si existen
+            if (!empty($filters['start_date'])) {
+                $trendBuilder->where('Process.RegistrationDate >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $trendBuilder->where('Process.RegistrationDate <=', $filters['end_date']);
+            }
+            
+            $trendBuilder->groupBy('month')
+                ->orderBy('month', 'ASC');
+            $monthlyTrend = $trendBuilder->get()->getResultArray();
+
+            // Asegurar que los arrays estén correctamente indexados
+            $processesByStatus = array_values($processesByStatus);
+            $monthlyTrend = array_values($monthlyTrend);
 
             return $this->response->setJSON([
                 'success' => true,
                 'data' => [
-                'totalProcesses' => $totalProcesses,
-                'processesByStatus' => $processesByStatus,
-                'processesByAgency' => $processesByAgency,
+                    'totalProcesses' => $totalProcesses,
+                    'processesByStatus' => $processesByStatus,
+                    'processesByAgency' => $processesByAgency,
                     'averageProcessingTime' => $averageProcessingTime,
-                'monthlyTrend' => $monthlyTrend
+                    'monthlyTrend' => $monthlyTrend
                 ]
             ]);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en Analytics::getProcessStats: ' . $e->getMessage());
+            log_message('error', 'Trace: ' . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
                 'error' => $e->getMessage(),

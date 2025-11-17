@@ -51,7 +51,7 @@ export interface FiltrosValidacion {
 })
 export class ValidacionService {
   private apiUrl = environment.apiBaseUrl;
-  
+
   // BehaviorSubjects para mantener el estado de los datos
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   private documentosSubject = new BehaviorSubject<Documento[]>([]);
@@ -69,7 +69,7 @@ export class ValidacionService {
    */
   cargarAgencias(): Observable<any[]> {
     const url = `${this.apiUrl}/api/agency`;
-    
+
     return this.http.get<any>(url).pipe(
       map((response: any) => {
         if (response && response.success && response.data && response.data.agencies) {
@@ -104,7 +104,7 @@ export class ValidacionService {
    */
   cargarClientes(filtros: FiltrosValidacion = {}): Observable<Cliente[]> {
     this.loadingSubject.next(true);
-    
+
     let params = new HttpParams();
     if (filtros.agencia) params = params.set('id', filtros.agencia);
     if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
@@ -117,7 +117,7 @@ export class ValidacionService {
         console.log('🔍 ValidacionService - Respuesta completa del API:', response);
         console.log('🔍 ValidacionService - URL llamada:', `${this.apiUrl}/api/clients-validation/clientes`);
         console.log('🔍 ValidacionService - Parámetros:', params.toString());
-        
+
         if (response && response.success && response.data && response.data.clientes) {
           console.log('✅ ValidacionService - Clientes extraídos:', response.data.clientes);
           console.log('🔍 ValidacionService - Primer cliente:', response.data.clientes.length > 0 ? response.data.clientes[0] : 'No hay clientes');
@@ -134,10 +134,10 @@ export class ValidacionService {
    */
   cargarDocumentos(idFile: number): Observable<Documento[]> {
     this.loadingSubject.next(true);
-    
+
     let params = new HttpParams();
     params = params.set('idFile', idFile.toString());
-    
+
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos`, { params }).pipe(
       map(response => {
         if (response && response.success && response.data) {
@@ -154,7 +154,7 @@ export class ValidacionService {
    */
   cargarProcesos(): Observable<any[]> {
     const url = `${this.apiUrl}/api/process`;
-    
+
     return this.http.get<any>(url).pipe(
       map((response: any) => {
         if (response && response.success && response.data && response.data.processes) {
@@ -184,7 +184,7 @@ export class ValidacionService {
     const data = {
       idDocumentByFile: idDocumentByFile
     };
-    
+
     return this.http.post<any>(`${this.apiUrl}/api/clients-validation/validar-documento`, data).pipe(
       map(response => {
         if (response && response.success) {
@@ -206,7 +206,7 @@ export class ValidacionService {
     const data = {
       idDocumentByFile: idDocumentByFile
     };
-    
+
     return this.http.post<any>(`${this.apiUrl}/api/clients-validation/preparar-documento`, data).pipe(
       map(response => {
         if (response && response.success) {
@@ -235,7 +235,7 @@ export class ValidacionService {
     if (fechaExpiracion) {
       data.fechaExpiracion = fechaExpiracion.toISOString().split('T')[0]; // Formato YYYY-MM-DD
     }
-    
+
     return this.http.post<any>(`${this.apiUrl}/api/clients-validation/aprobar-documento`, data).pipe(
       map(response => {
         if (response && response.success) {

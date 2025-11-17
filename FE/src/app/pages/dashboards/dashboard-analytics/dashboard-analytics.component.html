@@ -7,13 +7,13 @@
                   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
                     <mat-form-field appearance="outline" class="w-full sm:w-48 lg:w-48">
                       <mat-label>Agencia</mat-label>
-                      <mat-select 
-                        [value]="selectedAgencyId" 
+                      <mat-select
+                        [value]="selectedAgencyId"
                         (selectionChange)="onAgencyChange($event.value)"
                         [disabled]="loading || !hasAgencies()">
                         <mat-option [value]="null">Todas las agencias</mat-option>
-                        <mat-option 
-                          *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
+                        <mat-option
+                          *ngFor="let agency of agencies; trackBy: trackByAgencyId"
                           [value]="agency.Id">
                           {{ agency.Name }}
                         </mat-option>
@@ -25,14 +25,14 @@
                     <!-- Filtro por Usuario -->
                     <mat-form-field appearance="outline" class="w-full sm:w-64 lg:w-96">
                       <mat-label>Usuario</mat-label>
-                      <mat-select 
+                      <mat-select
                         #userSelect
-                        [value]="selectedUserId" 
+                        [value]="selectedUserId"
                         (selectionChange)="onUserChange($event.value)"
                         [disabled]="loading || !hasUsers() || isUserFilterDisabled">
                         <mat-option [value]="null">Todos los usuarios</mat-option>
-                        <mat-option 
-                          *ngFor="let user of users; trackBy: trackByUserId" 
+                        <mat-option
+                          *ngFor="let user of users; trackBy: trackByUserId"
                           [value]="user.Id">
                           {{ user.Name }}
                         </mat-option>
@@ -42,53 +42,53 @@
                       <mat-hint *ngIf="isUserFilterDisabled">Filtro deshabilitado para su rol</mat-hint>
                     </mat-form-field>
                   </div>
-                  
+
                   <!-- Filtros de Fechas - OCULTOS -->
                   <!--
                   <div class="flex items-center space-x-2">
                     <div class="flex flex-wrap gap-1">
-                      <button 
-                        mat-stroked-button 
+                      <button
+                        mat-stroked-button
                         size="small"
                         class="text-xs px-2 py-1"
                         [class.mat-primary]="activeDateRange === '7d'"
                         (click)="setLast7Days()">
                         7d
                       </button>
-                      <button 
-                        mat-stroked-button 
+                      <button
+                        mat-stroked-button
                         size="small"
                         class="text-xs px-2 py-1"
                         [class.mat-primary]="activeDateRange === '30d'"
                         (click)="setLast30Days()">
                         30d
                       </button>
-                      <button 
-                        mat-stroked-button 
+                      <button
+                        mat-stroked-button
                         size="small"
                         class="text-xs px-2 py-1"
                         [class.mat-primary]="activeDateRange === '90d'"
                         (click)="setLast90Days()">
                         90d
                       </button>
-                      <button 
-                        mat-stroked-button 
+                      <button
+                        mat-stroked-button
                         size="small"
                         class="text-xs px-2 py-1"
                         [class.mat-primary]="activeDateRange === 'thisMonth'"
                         (click)="setThisMonth()">
                         Este mes
                       </button>
-                      <button 
-                        mat-stroked-button 
+                      <button
+                        mat-stroked-button
                         size="small"
                         class="text-xs px-2 py-1"
                         [class.mat-primary]="activeDateRange === 'lastMonth'"
                         (click)="setLastMonth()">
                         Mes pasado
                       </button>
-                      <button 
-                        mat-stroked-button 
+                      <button
+                        mat-stroked-button
                         size="small"
                         class="text-xs px-2 py-1"
                         [class.mat-primary]="activeDateRange === 'thisYear'"
@@ -96,9 +96,9 @@
                         Este año
                       </button>
                     </div>
-                    
-                    <button 
-                      mat-icon-button 
+
+                    <button
+                      mat-icon-button
                       size="small"
                       class="toggle-button"
                       (click)="toggleManualDateInputs()"
@@ -107,20 +107,20 @@
                         {{ showManualDateInputs ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
                       </mat-icon>
                     </button>
-                    
-                    <button 
-                      mat-icon-button 
-                      color="primary" 
+
+                    <button
+                      mat-icon-button
+                      color="primary"
                       size="small"
                       (click)="searchData()"
                       matTooltip="Buscar con filtros actuales">
                       <mat-icon>search</mat-icon>
                     </button>
-                    
-                    <button 
+
+                    <button
                       *ngIf="hasDateRange()"
-                      mat-icon-button 
-                      color="warn" 
+                      mat-icon-button
+                      color="warn"
                       size="small"
                       (click)="clearDateRange()"
                       matTooltip="Limpiar filtro de fechas">
@@ -130,14 +130,14 @@
                   -->
                   </div>
                 </div>
-                
+
                 <!-- Selectores de fecha manuales - OCULTOS -->
                 <!--
                 <div *ngIf="showManualDateInputs" class="grid grid-cols-2 gap-2 mt-4 manual-date-inputs">
                   <mat-form-field appearance="outline" class="compact-field">
                     <mat-label>Inicio</mat-label>
-                    <input 
-                      matInput 
+                    <input
+                      matInput
                       [matDatepicker]="startPicker"
                       formControlName="startDate"
                       placeholder="Fecha inicio">
@@ -147,8 +147,8 @@
 
                   <mat-form-field appearance="outline" class="compact-field">
                     <mat-label>Fin</mat-label>
-                    <input 
-                      matInput 
+                    <input
+                      matInput
                       [matDatepicker]="endPicker"
                       formControlName="endDate"
                       placeholder="Fecha fin">
@@ -178,51 +178,51 @@
 
   <!-- Dashboard principal -->
   <div *ngIf="!loading && !error">
-    
+
     <!-- ===== SECCIÓN 1: MÉTRICAS PRINCIPALES ===== -->
     <div class="dashboard-section">
       <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
         <mat-icon class="mr-2 text-blue-600">dashboard</mat-icon>
         Métricas Principales
       </h2>
-      
+
       <!-- Métricas específicas de agencia y expedientes liberados -->
       <div class="metrics-main-grid">
         <!-- 1. Expedientes del Día -->
         <div class="widget-container">
-          <vex-widget-today-cases 
+          <vex-widget-today-cases
             [agencyId]="selectedAgencyId"></vex-widget-today-cases>
         </div>
 
         <!-- 2. Expedientes Totales -->
         <div class="widget-container">
-          <vex-widget-total-cases 
+          <vex-widget-total-cases
             [agencyId]="selectedAgencyId"></vex-widget-total-cases>
         </div>
 
         <!-- 3. Expedientes Liberados Totales -->
         <div class="widget-container">
-          <vex-widget-total-liberated 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-total-liberated
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-total-liberated>
         </div>
 
         <!-- 4. Expedientes del Mes -->
         <div class="widget-container">
-          <vex-widget-monthly-cases 
+          <vex-widget-monthly-cases
             [agencyId]="selectedAgencyId"></vex-widget-monthly-cases>
         </div>
 
         <!-- 5. Expedientes Liberados del Mes Actual -->
         <div class="widget-container">
-          <vex-widget-current-month-liberated 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-current-month-liberated
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-current-month-liberated>
         </div>
 
         <!-- 6. Usuarios Activos -->
         <div class="widget-container">
-          <vex-widget-agency-users 
+          <vex-widget-agency-users
             [agencyId]="selectedAgencyId"></vex-widget-agency-users>
         </div>
       </div>
@@ -234,20 +234,20 @@
         <mat-icon class="mr-2 text-green-600">trending_up</mat-icon>
         Análisis Temporal
       </h2>
-      
+
       <!-- Gráficos de análisis temporal en la misma fila -->
       <div class="temporal-grid">
         <!-- Gráfico de tendencia de expedientes -->
         <div class="chart-container">
-          <vex-widget-trend-chart 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-trend-chart
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-trend-chart>
         </div>
 
         <!-- Widget de Expedientes por Día - Semana Actual -->
         <div class="chart-container">
-          <vex-widget-weekly-chart 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-weekly-chart
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-weekly-chart>
         </div>
       </div>
@@ -259,22 +259,22 @@
         <mat-icon class="mr-2 text-purple-600">pie_chart</mat-icon>
         Distribución y Estados
       </h2>
-      
+
       <!-- Widgets de proceso y distribución en la misma fila -->
-      <div class="process-distribution-grid" 
+      <div class="process-distribution-grid"
            style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 0.5rem !important; width: 100% !important; margin-bottom: 0.75rem !important;">
         <!-- Distribución de expedientes por proceso -->
-        <div class="widget-container" 
+        <div class="widget-container"
              style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
-          <vex-widget-process-distribution 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-process-distribution
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-process-distribution>
         </div>
 
         <!-- Métricas de distribución de expedientes -->
-        <div class="widget-container" 
+        <div class="widget-container"
              style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
-          <vex-widget-distribution-metrics-donut 
+          <vex-widget-distribution-metrics-donut
             [agencyId]="selectedAgencyId"></vex-widget-distribution-metrics-donut>
         </div>
       </div>
@@ -284,22 +284,22 @@
 
         <!-- Distribución de expedientes por estatus -->
         <div class="widget-container">
-          <vex-widget-status-distribution 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-status-distribution
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-status-distribution>
         </div>
 
         <!-- Distribución de expedientes por estatus - Mes Actual -->
         <div class="widget-container">
-          <vex-widget-current-month-status 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-current-month-status
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-current-month-status>
         </div>
 
         <!-- Widget de Estatus Histórico -->
         <div class="widget-container">
-          <vex-widget-historical-status 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-historical-status
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-historical-status>
         </div>
       </div>
@@ -311,35 +311,35 @@
         <mat-icon class="mr-2 text-orange-600">analytics</mat-icon>
         Análisis de Rendimiento y Períodos de Atención
       </h2>
-      
+
       <!-- Todos los widgets de rendimiento en un solo grid compacto -->
       <div class="performance-grid">
         <!-- Widget de Distribución por Asesor -->
         <div class="chart-container">
-          <vex-widget-advisor-distribution 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-advisor-distribution
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-advisor-distribution>
         </div>
 
         <!-- Widget de Período de Atención de Expedientes -->
         <div class="chart-container">
-          <vex-widget-attention-period 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-attention-period
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-attention-period>
         </div>
 
         <!-- Widget de Período de Atención - Mes Actual -->
         <div class="chart-container">
-          <vex-widget-current-month-attention 
-            [agencyId]="selectedAgencyId" 
+          <vex-widget-current-month-attention
+            [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-current-month-attention>
         </div>
       </div>
     </div>
 
     <!-- Widget de Meses Anteriores - OCULTO -->
-    <!-- <vex-widget-previous-months 
-      [agencyId]="selectedAgencyId" 
+    <!-- <vex-widget-previous-months
+      [agencyId]="selectedAgencyId"
       [userId]="selectedUserId"
       [monthsToShow]="6"
       class="mb-6"></vex-widget-previous-months> -->

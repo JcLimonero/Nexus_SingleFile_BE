@@ -18,33 +18,33 @@
       pointer-events: none !important;
       display: none !important;
     }
-    
+
     /* Asegurar que los campos no tengan espacio residual */
     .mat-mdc-form-field {
       margin-bottom: 0 !important;
       padding-bottom: 0 !important;
     }
-    
+
     /* Reducir el padding interno de los campos */
     .mat-mdc-form-field-infix {
       padding-top: 4px !important;
       padding-bottom: 4px !important;
       min-height: 16px !important;
     }
-    
+
     /* Cambiar padding de todas las celdas de tabla de py-2 a py-0 */
     .py-2 {
       padding-top: 0 !important;
       padding-bottom: 0 !important;
     }
-    
+
     /* Asegurar que todas las celdas de tabla no tengan padding vertical */
     th.mat-header-cell,
     td.mat-cell {
       padding-top: 0 !important;
       padding-bottom: 0 !important;
     }
-    
+
     /* Estilos ultra compactos para TODOS los combos del filtro */
     .filtro-container .mat-mdc-form-field-infix {
       padding-top: 1px !important;
@@ -53,14 +53,14 @@
       height: 8px !important;
       max-height: 8px !important;
     }
-    
+
     /* Forzar altura en todos los campos del filtro */
     .filtro-container .mat-mdc-form-field {
       height: 32px !important;
       min-height: 32px !important;
       max-height: 32px !important;
     }
-    
+
     /* Reducir altura del wrapper del campo */
     .filtro-container .mat-mdc-text-field-wrapper {
       height: 32px !important;
@@ -69,7 +69,7 @@
       padding-top: 0 !important;
       padding-bottom: 0 !important;
     }
-    
+
     /* Estilos específicos para todos los mat-select dentro del filtro */
     .filtro-container .mat-mdc-select {
       height: 24px !important;
@@ -77,7 +77,7 @@
       max-height: 24px !important;
       line-height: 24px !important;
     }
-    
+
     /* Reducir altura de las opciones del select */
     .filtro-container .mat-mdc-option {
       height: 28px !important;
@@ -85,7 +85,7 @@
       max-height: 28px !important;
       line-height: 28px !important;
     }
-    
+
     /* Estilos ultra compactos para el combo de fase */
     .combo-fase .mat-mdc-form-field-infix {
       padding-top: 1px !important;
@@ -94,7 +94,7 @@
       height: 8px !important;
       max-height: 8px !important;
     }
-    
+
     .combo-fase .mat-mdc-form-field {
       height: 32px !important;
       min-height: 32px !important;
@@ -105,7 +105,7 @@
     .animate-spin {
       animation: spin 1s linear infinite;
     }
-    
+
     @keyframes spin {
       from {
         transform: rotate(0deg);
@@ -114,7 +114,7 @@
         transform: rotate(360deg);
       }
     }
-    
+
     .combo-fase .mat-mdc-text-field-wrapper {
       height: 32px !important;
       min-height: 32px !important;
@@ -122,21 +122,21 @@
       padding-top: 0 !important;
       padding-bottom: 0 !important;
     }
-    
+
     .combo-fase .mat-mdc-select {
       height: 24px !important;
       min-height: 24px !important;
       max-height: 24px !important;
       line-height: 24px !important;
     }
-    
+
     .combo-fase .mat-mdc-option {
       height: 28px !important;
       min-height: 28px !important;
       max-height: 28px !important;
       line-height: 28px !important;
     }
-    
+
     /* Estilos para iconos de la sección de filtros de estado - reducidos a la mitad */
     .filtros-estado .mat-icon {
       font-size: 14px !important;
@@ -144,7 +144,7 @@
       height: 14px !important;
       line-height: 14px !important;
     }
-    
+
     .filtros-estado .mat-icon-button {
       width: 24px !important;
       height: 24px !important;
@@ -152,18 +152,18 @@
       min-height: 24px !important;
       line-height: 24px !important;
     }
-    
+
     /* Reducir también el padding del contenedor del filtro */
     .filtro-container {
       padding: 8px !important;
       margin-bottom: 16px !important;
     }
-    
+
     /* Reducir el gap entre elementos del grid */
     .filtro-grid {
       gap: 1px !important;
     }
-    
+
     /* Estilos ultra compactos para los filtros principales */
     .filtro-container .mat-mdc-form-field-infix {
       padding-top: 1px !important;
@@ -172,13 +172,13 @@
       height: 8px !important;
       max-height: 8px !important;
     }
-    
+
     .filtro-container .mat-mdc-form-field {
       height: 32px !important;
       min-height: 32px !important;
       max-height: 32px !important;
     }
-    
+
     .filtro-container .mat-mdc-text-field-wrapper {
       height: 32px !important;
       min-height: 32px !important;
@@ -186,14 +186,14 @@
       padding-top: 0 !important;
       padding-bottom: 0 !important;
     }
-    
+
     .filtro-container .mat-mdc-select {
       height: 24px !important;
       min-height: 24px !important;
       max-height: 24px !important;
       line-height: 24px !important;
     }
-    
+
     .filtro-container .mat-mdc-option {
       height: 28px !important;
       min-height: 28px !important;
@@ -201,7 +201,7 @@
       line-height: 28px !important;
     }
   </style>
-  
+
           <!-- Header Principal -->
     <div class="mb-2">
       <!-- Título y detalle removidos - ahora se muestran en el toolbar -->
@@ -255,8 +255,8 @@
         <!-- Buscador integrado -->
         <mat-form-field appearance="outline" class="flex-1 min-w-0 mr-2.5 compact-field">
           <mat-label>Buscar</mat-label>
-          <input matInput 
-                 [(ngModel)]="searchTerm" 
+          <input matInput
+                 [(ngModel)]="searchTerm"
                  (input)="onSearchChange()"
                  placeholder="Pedido, cliente o nombre"
                  class="text-sm">
@@ -273,14 +273,14 @@
           </button>
           <!-- Toggle para mostrar pedidos cancelados -->
           <div class="flex items-center mr-3">
-            <mat-slide-toggle 
-              [(ngModel)]="showCancelledOrders" 
+            <mat-slide-toggle
+              [(ngModel)]="showCancelledOrders"
               (change)="onToggleCancelledOrders()"
               class="text-sm">
               <span class="ml-2 text-xs text-gray-600">Mostrar cancelados</span>
             </mat-slide-toggle>
           </div>
-          
+
           <button mat-icon-button
                   class="text-gray-600 hover:text-blue-600 transition-colors"
                   (click)="recargarDatos()"
@@ -301,8 +301,8 @@
       <mat-card class="mb-2">
         <div class="p-2">
           <!-- Título de tabla removido -->
-          
-          
+
+
           <div *ngIf="loading" class="flex justify-center items-center py-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
@@ -440,7 +440,7 @@
                     <span>Administrar</span>
                     <mat-icon class="ml-auto">keyboard_arrow_right</mat-icon>
                   </button>
-                  
+
                   <mat-menu #adminSubMenu="matMenu">
                     <button mat-menu-item (click)="onEliminar(item); $event.stopPropagation()">
                       <mat-icon>delete</mat-icon>
@@ -456,13 +456,13 @@
             </ng-container>
 
                               <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" 
+                  <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;"
                       (click)="onClienteSelect(row)"
                       [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.idFile === row.idFile}"></tr>
                 </table>
-                
+
                 <!-- Paginador -->
-                <mat-paginator 
+                <mat-paginator
                   [length]="totalRecords"
                   [pageSize]="pageSize"
                   [pageSizeOptions]="pageSizeOptions"
@@ -481,7 +481,7 @@
       <mat-card class="mb-4">
         <div class="p-2">
           <!-- Título de tabla removido -->
-          
+
           <!-- Mensaje cuando no hay cliente seleccionado -->
           <div *ngIf="!selectedCliente" class="flex justify-center items-center py-8 text-gray-500">
             <div class="text-center">
@@ -489,12 +489,12 @@
               <p class="text-sm">Selecciona un cliente/pedido de la tabla superior para ver sus documentos</p>
             </div>
           </div>
-          
+
           <!-- Loading cuando se están cargando documentos -->
           <div *ngIf="loading && selectedCliente" class="flex justify-center items-center py-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
-          
+
           <!-- Tabla de documentos cuando hay cliente seleccionado -->
           <div *ngIf="selectedCliente && !loading">
             <!-- Información de documentos -->
@@ -560,23 +560,23 @@
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
                 <!-- Icono según el estatus del documento -->
-                <div *ngIf="isDocumentoStatus(item, 2)" class="flex items-center justify-center mx-auto cursor-help" 
-                     matTooltip="Documento pendiente de validación" 
+                <div *ngIf="isDocumentoStatus(item, 2)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento pendiente de validación"
                      matTooltipPosition="above">
                   <mat-icon class="text-orange-500" style="font-size: 20px; width: 20px; height: 20px;">pending_actions</mat-icon>
                 </div>
-                <div *ngIf="isDocumentoStatus(item, 4)" class="flex items-center justify-center mx-auto cursor-help" 
-                     matTooltip="Documento validado y aprobado" 
+                <div *ngIf="isDocumentoStatus(item, 4)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento validado y aprobado"
                      matTooltipPosition="above">
                   <mat-icon class="text-green-500" style="font-size: 20px; width: 20px; height: 20px;">verified</mat-icon>
                 </div>
-                <div *ngIf="isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help" 
-                     matTooltip="Documento rechazado" 
+                <div *ngIf="isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento rechazado"
                      matTooltipPosition="above">
                   <mat-icon class="text-red-500" style="font-size: 20px; width: 20px; height: 20px;">cancel</mat-icon>
                 </div>
-                <div *ngIf="!isDocumentoStatus(item, 2) && !isDocumentoStatus(item, 4) && !isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help" 
-                     matTooltip="Documento en proceso de revisión" 
+                <div *ngIf="!isDocumentoStatus(item, 2) && !isDocumentoStatus(item, 4) && !isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento en proceso de revisión"
                      matTooltipPosition="above">
                   <mat-icon class="text-blue-500" style="font-size: 20px; width: 20px; height: 20px;">hourglass_empty</mat-icon>
                 </div>
@@ -606,7 +606,7 @@
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
                 <div class="relative" *ngIf="isDocumentoStatus(item, 3)">
-                  <button mat-icon-button class="!w-6 !h-6 !min-h-6 !p-0 text-gray-400" 
+                  <button mat-icon-button class="!w-6 !h-6 !min-h-6 !p-0 text-gray-400"
                           (click)="onValidarDocumento(item); $event.stopPropagation()"
                           matTooltip="Validar documento">
                     <mat-icon class="!text-sm">fact_check</mat-icon>
@@ -623,9 +623,9 @@
                 Rechazar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button *ngIf="isManagerOrAdmin && isDocumentoStatus(item, 4)" 
-                        mat-icon-button 
-                        color="warn" 
+                <button *ngIf="isManagerOrAdmin && isDocumentoStatus(item, 4)"
+                        mat-icon-button
+                        color="warn"
                         class="!w-6 !h-6 !min-h-6 !p-0"
                         (click)="rechazarDocumento(item); $event.stopPropagation()"
                         matTooltip="Rechazar documento">
@@ -641,9 +641,9 @@
                 Eliminar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button *ngIf="isManagerOrAdmin" 
-                        mat-icon-button 
-                        color="warn" 
+                <button *ngIf="isManagerOrAdmin"
+                        mat-icon-button
+                        color="warn"
                         class="!w-6 !h-6 !min-h-6 !p-0"
                         (click)="eliminarDocumento(item); $event.stopPropagation()"
                         matTooltip="Eliminar documento">
@@ -671,7 +671,7 @@
                 Requiere Expiración
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <span class="px-2 py-1 rounded-full text-xs font-medium" 
+                <span class="px-2 py-1 rounded-full text-xs font-medium"
                       [class]="item.ReqExpiration == 1 || item.ReqExpiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
                   {{ item.ReqExpiration == 1 || item.ReqExpiration === '1' ? 'Sí' : 'No' }}
                 </span>
@@ -732,7 +732,7 @@
             <tr mat-header-row *matHeaderRowDef="documentosDisplayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: documentosDisplayedColumns;" class="!min-h-0 !h-10"></tr>
           </table>
-          
+
           <!-- Mensaje cuando no hay documentos -->
           <div *ngIf="documentosDataSource.length === 0" class="flex justify-center items-center py-8 text-gray-500">
             <div class="text-center">
