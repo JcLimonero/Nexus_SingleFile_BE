@@ -13,7 +13,6 @@ export class ConfigLoaderService {
    */
   getApiBaseUrl(): string {
     const baseUrl = environment.apiBaseUrl;
-    console.log('🔧 ConfigLoaderService - getApiBaseUrl desde environment:', baseUrl);
     return baseUrl;
   }
 

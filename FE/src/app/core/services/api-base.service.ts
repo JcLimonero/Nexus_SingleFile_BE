@@ -13,10 +13,8 @@ export class ApiBaseService {
    */
   getApiBaseUrl(): string {
     const baseUrl = environment.apiBaseUrl;
-    console.log('🔍 ApiBaseService - URL desde environment:', baseUrl);
     
     if (!baseUrl || !baseUrl.startsWith('http')) {
-      console.error('❌ ERROR: Environment apiBaseUrl no es válido:', baseUrl);
       throw new Error(`Environment apiBaseUrl no es válido: ${baseUrl}`);
     }
     
@@ -40,14 +38,8 @@ export class ApiBaseService {
     // Construir URL absoluta completa
     const fullUrl = baseUrl + '/api' + endpoint;
     
-    // Debug: verificar que la URL sea absoluta
-    console.log(`🔗 Construyendo URL: ${endpoint} -> ${fullUrl}`);
-    console.log(`🔍 URL es absoluta: ${fullUrl.startsWith('http')}`);
-    console.log(`🔍 Base URL: ${baseUrl}`);
-    
     // Forzar URL absoluta - verificar que no haya problemas de construcción
     if (!fullUrl.startsWith('http')) {
-      console.error('❌ ERROR: URL no es absoluta:', fullUrl);
       throw new Error(`URL construida no es absoluta: ${fullUrl}`);
     }
     

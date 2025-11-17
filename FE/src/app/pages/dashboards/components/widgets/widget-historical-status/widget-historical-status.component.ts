@@ -144,12 +144,8 @@ export class WidgetHistoricalStatusComponent implements OnInit, OnDestroy, OnCha
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('📊 HistoricalStatus ngOnChanges called with changes:', changes);
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('📊 HistoricalStatus: Agency or User changed, triggering data reload');
-      console.log('📊 HistoricalStatus: Current agencyId:', this.agencyId);
-      console.log('📊 HistoricalStatus: Current userId:', this.userId);
       this.loadHistoricalStatusData();
     }
   }
@@ -168,19 +164,15 @@ export class WidgetHistoricalStatusComponent implements OnInit, OnDestroy, OnCha
       idSeller: this.userId
     };
 
-    console.log('📊 HistoricalStatus: Loading historical status data with filters:', filters);
-
     this.analyticsService.getHistoricalStatusDistribution(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('📊 HistoricalStatus: Received data:', data);
           this.historicalStatusData = data;
           this.updateChart();
           this.loading = false;
         },
         error: (error) => {
-          console.error('📊 HistoricalStatus: Error loading historical status data:', error);
           this.error = 'Error al cargar datos históricos por estatus';
           this.loading = false;
           

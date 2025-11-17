@@ -134,12 +134,8 @@ export class WidgetStatusDistributionComponent implements OnInit, OnDestroy, OnC
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('📊 StatusDistribution ngOnChanges called with changes:', changes);
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('📊 StatusDistribution: Agency or User changed, triggering data reload');
-      console.log('📊 StatusDistribution: Current agencyId:', this.agencyId);
-      console.log('📊 StatusDistribution: Current userId:', this.userId);
       this.loadStatusDistribution();
     }
   }
@@ -158,19 +154,15 @@ export class WidgetStatusDistributionComponent implements OnInit, OnDestroy, OnC
       idSeller: this.userId
     };
 
-    console.log('📊 StatusDistribution: Loading status distribution with filters:', filters);
-
     this.analyticsService.getStatusDistribution(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('📊 StatusDistribution: Received data:', data);
           this.statusData = data;
           this.updateChart();
           this.loading = false;
         },
         error: (error) => {
-          console.error('📊 StatusDistribution: Error loading status distribution:', error);
           this.error = 'Error al cargar distribución por estatus';
           this.loading = false;
           

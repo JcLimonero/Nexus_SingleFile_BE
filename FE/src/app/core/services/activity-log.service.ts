@@ -128,11 +128,10 @@ export class ActivityLogService {
 
       // Enviar log de forma asíncrona (no bloquear la UI)
       this.createLog(log).subscribe({
-        next: () => console.log('Activity log created:', action),
-        error: (error) => console.error('Error creating activity log:', error)
+        next: () => {},
+        error: (error) => {}
       });
     } catch (error) {
-      console.error('Error parsing current user for activity log:', error);
     }
   }
 

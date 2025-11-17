@@ -73,28 +73,16 @@ export class DefaultAgencyService {
 
       const intentarObtener = () => {
         intentos++;
-        console.log(`🔄 DefaultAgencyService - Intento ${intentos} de obtener agencia predeterminada del usuario`);
 
         this.obtenerAgenciaUsuario().subscribe({
           next: (defaultAgencyId) => {
-            console.log(`✅ DefaultAgencyService - Agencia predeterminada obtenida exitosamente en intento ${intentos}:`, defaultAgencyId);
             observer.next(defaultAgencyId);
             observer.complete();
           },
           error: (error) => {
-            console.warn(`⚠️ DefaultAgencyService - Intento ${intentos} falló:`, error);
-            console.error(`🔍 DefaultAgencyService - Detalles del error:`, {
-              status: error.status,
-              statusText: error.statusText,
-              message: error.message,
-              error: error.error
-            });
-
             if (intentos < maxReintentos) {
-              console.log(`🔄 DefaultAgencyService - Reintentando en ${delayMs}ms... (${intentos}/${maxReintentos})`);
               setTimeout(intentarObtener, delayMs);
             } else {
-              console.error(`❌ DefaultAgencyService - Todos los ${maxReintentos} intentos fallaron`);
               observer.error(error);
             }
           }
@@ -112,41 +100,31 @@ export class DefaultAgencyService {
    */
   establecerAgenciaPredeterminada(autoSelect: boolean = true): Observable<number | null> {
     return new Observable(observer => {
-      console.log('🔄 DefaultAgencyService - Iniciando establecimiento de agencia predeterminada...');
-      console.log('📊 DefaultAgencyService - Agencias disponibles en el servicio:', this.agenciasSubject.value);
-
       // Intentar obtener la agencia predeterminada con reintentos
       this.obtenerAgenciaUsuarioConReintentos().subscribe({
         next: (defaultAgencyId) => {
-          console.log('👤 DefaultAgencyService - Agencia predeterminada del usuario obtenida:', defaultAgencyId);
           let agenciaSeleccionada: number | null = null;
 
           if (defaultAgencyId && this.agenciasSubject.value.length > 0) {
             // Buscar la agencia predeterminada del usuario en la lista
             const agenciaPredeterminada = this.agenciasSubject.value.find(ag => ag.Id === defaultAgencyId);
             if (agenciaPredeterminada) {
-              console.log('✅ DefaultAgencyService - Agencia predeterminada del usuario encontrada:', agenciaPredeterminada);
               agenciaSeleccionada = defaultAgencyId;
             } else {
               // Si no se encuentra la agencia predeterminada, seleccionar la primera
               if (autoSelect) {
-                console.log('⚠️ DefaultAgencyService - Agencia predeterminada del usuario no encontrada, seleccionando primera agencia');
                 agenciaSeleccionada = this.agenciasSubject.value[0].Id;
-                console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
               }
             }
           } else {
             // Si el usuario no tiene agencia predeterminada, seleccionar la primera de la lista
             if (autoSelect && this.agenciasSubject.value.length > 0) {
-              console.log('ℹ️ DefaultAgencyService - Usuario sin agencia predeterminada, seleccionando primera agencia de la lista');
               agenciaSeleccionada = this.agenciasSubject.value[0].Id;
-              console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
             }
           }
 
           // Actualizar el BehaviorSubject
           if (agenciaSeleccionada) {
-            console.log('🎯 DefaultAgencyService - Estableciendo agencia seleccionada:', agenciaSeleccionada);
             this.selectedAgencySubject.next(agenciaSeleccionada);
           }
 
@@ -154,14 +132,10 @@ export class DefaultAgencyService {
           observer.complete();
         },
         error: (error) => {
-          console.error('❌ DefaultAgencyService - Error obteniendo agencia predeterminada después de reintentos:', error);
-          console.warn('⚠️ DefaultAgencyService - No se pudo obtener agencia predeterminada, seleccionando primera agencia de la lista');
           // En caso de error, seleccionar la primera agencia disponible si está habilitado
           let agenciaSeleccionada: number | null = null;
           if (autoSelect && this.agenciasSubject.value.length > 0) {
             agenciaSeleccionada = this.agenciasSubject.value[0].Id;
-            console.log('ℹ️ DefaultAgencyService - Seleccionada primera agencia por defecto:', agenciaSeleccionada);
-            console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
             this.selectedAgencySubject.next(agenciaSeleccionada);
           }
 

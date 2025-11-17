@@ -91,7 +91,6 @@ export class FileExtraordinaryReasonService {
    * Crear un nuevo motivo extraordinario
    */
   createFileExtraordinaryReason(fileExtraordinaryReason: Partial<FileExtraordinaryReason>): Observable<any> {
-    console.log('🔍 Datos a enviar al backend:', fileExtraordinaryReason);
     return this.http.post(this.apiUrl, fileExtraordinaryReason);
   }
 

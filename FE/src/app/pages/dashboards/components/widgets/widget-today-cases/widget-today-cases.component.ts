@@ -35,7 +35,6 @@ export class WidgetTodayCasesComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetTodayCases: agencyId cambió, recargando datos...');
       this.loadData();
     }
   }
@@ -57,7 +56,6 @@ export class WidgetTodayCasesComponent implements OnInit, OnDestroy, OnChanges {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading today cases data:', error);
           this.error = 'Error al cargar datos de expedientes del día';
           this.loading = false;
         }

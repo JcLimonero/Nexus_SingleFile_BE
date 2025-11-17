@@ -148,20 +148,16 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: WeeklyData[]) => {
-          console.log('Datos semanales recibidos:', data);
-          
           if (data && Array.isArray(data)) {
             this.weeklyData = data;
             this.updateChart();
           } else {
-            console.warn('Datos no válidos recibidos:', data);
             this.weeklyData = [];
             this.updateChart();
           }
           this.loading = false;
         },
         error: (error: any) => {
-          console.error('Error loading weekly data:', error);
           this.error = 'Error al cargar los datos semanales';
           this.weeklyData = [];
           this.updateChart();
@@ -171,19 +167,13 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
   }
 
   private updateChart(): void {
-    console.log('updateChart() llamado');
-    console.log('weeklyData:', this.weeklyData);
-    
     if (!this.weeklyData || !Array.isArray(this.weeklyData) || this.weeklyData.length === 0) {
-      console.log('Datos vacíos o inválidos, inicializando gráfico vacío');
       this.series = [];
       this.totalCases = 0;
       return;
     }
 
     try {
-      console.log('Procesando datos del gráfico...');
-      
       // Crear array de datos para cada día de la semana
       const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
       const chartData = daysOfWeek.map(day => {
@@ -191,10 +181,7 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
         return dayData ? dayData.count : 0;
       });
 
-      console.log('Datos del gráfico:', chartData);
-
       this.totalCases = this.weeklyData.reduce((total, day) => total + day.count, 0);
-      console.log('Total casos:', this.totalCases);
 
       this.series = [
         {
@@ -202,10 +189,8 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
           data: chartData
         }
       ];
-      console.log('Series configuradas:', this.series);
       
     } catch (error) {
-      console.error('Error updating chart:', error);
       this.series = [];
       this.totalCases = 0;
     }

@@ -149,9 +149,6 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
     this.setupFiltersDebounce();
     
     // Siempre cargar datos iniciales (incluso si agencyId es null para "todas las agencias")
-    console.log('📊 TrendChart: ngOnInit - Loading initial data');
-    console.log('📊 TrendChart: Initial agencyId:', this.agencyId);
-    console.log('📊 TrendChart: Initial userId:', this.userId);
     this.loadTrendData();
   }
 
@@ -161,13 +158,8 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('🔄 TrendChart ngOnChanges called with changes:', changes);
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('🔄 TrendChart: Agency or User changed, triggering data reload');
-      console.log('🔄 TrendChart: Current agencyId:', this.agencyId);
-      console.log('🔄 TrendChart: Current userId:', this.userId);
-      console.log('🔄 TrendChart: Calling filtersChange$.next()');
       this.filtersChange$.next();
     }
   }
@@ -188,7 +180,6 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        console.log('📊 TrendChart: Debounce triggered, calling loadTrendData');
         this.loadTrendData();
       });
   }
@@ -219,16 +210,10 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
       idSeller: this.userId
     };
 
-    console.log('📊 TrendChart: Loading real trend data with filters:', filters);
-    console.log('📊 TrendChart: Selected year:', this.selectedYear);
-    console.log('📊 TrendChart: Agency ID:', this.agencyId);
-    console.log('📊 TrendChart: User ID:', this.userId);
-
     this.analyticsService.getTrendData(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('📊 TrendChart: Received data:', data);
           this.series = [
             {
               name: 'Entregados',
@@ -246,7 +231,6 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
           this.loading = false;
         },
         error: (error) => {
-          console.error('📊 TrendChart: Error loading trend data:', error);
           this.error = 'Error al cargar los datos de tendencia';
           this.loading = false;
           

@@ -127,14 +127,9 @@ export class WidgetPreviousMonthsComponent implements OnInit, OnDestroy, OnChang
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('📊 PreviousMonths ngOnChanges called with changes:', changes);
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange) ||
         (changes['monthsToShow'] && !changes['monthsToShow'].firstChange)) {
-      console.log('📊 PreviousMonths: Agency, User or monthsToShow changed, triggering data reload');
-      console.log('📊 PreviousMonths: Current agencyId:', this.agencyId);
-      console.log('📊 PreviousMonths: Current userId:', this.userId);
-      console.log('📊 PreviousMonths: Months to show:', this.monthsToShow);
       this.loadPreviousMonthsData();
     }
   }
@@ -163,19 +158,15 @@ export class WidgetPreviousMonthsComponent implements OnInit, OnDestroy, OnChang
       months_to_show: this.monthsToShow
     };
 
-    console.log('📊 PreviousMonths: Loading previous months data with filters:', filters);
-
     this.analyticsService.getPreviousMonthsData(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('📊 PreviousMonths: Received data:', data);
           this.previousMonthsData = data;
           this.updateChart();
           this.loading = false;
         },
         error: (error) => {
-          console.error('📊 PreviousMonths: Error loading previous months data:', error);
           this.error = 'Error al cargar datos de meses anteriores';
           this.loading = false;
           

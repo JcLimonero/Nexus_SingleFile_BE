@@ -144,7 +144,7 @@ export interface OrderByPeriod {
 })
 export class AnalyticsService {
   private readonly baseUrl = `${environment.apiBaseUrl}/api`;
-  
+
   // Subjects para manejar estado reactivo
   private filtersSubject = new BehaviorSubject<AnalyticsFilters>({});
   public filters$ = this.filtersSubject.asObservable();
@@ -170,7 +170,6 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/user-activity-logs/stats`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('User Activity Stats:', data))
       );
   }
 
@@ -178,11 +177,10 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
-    
+
     return this.http.get<any>(`${this.baseUrl}/user-activity-logs`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('User Activity Logs:', data))
       );
   }
 
@@ -192,7 +190,6 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-document-statistics`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Document Stats:', data))
       );
   }
 
@@ -202,7 +199,6 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-process-statistics`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Process Stats:', data))
       );
   }
 
@@ -212,21 +208,16 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-statistics`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Agency Stats:', data))
       );
   }
 
   // Métodos para obtener métricas específicas de agencia
   getAgencyMetrics(filters?: AnalyticsFilters): Observable<AgencyMetrics> {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getAgencyMetrics called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-agency-specific-metrics?${params.toString()}`);
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-specific-metrics`, { params })
       .pipe(
-        map(response => response.data || response),
-        tap(data => console.log('🔧 AnalyticsService: Received Agency Metrics:', data))
+        map(response => response.data || response)
       );
   }
 
@@ -235,72 +226,51 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-distribution-metrics`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Distribution Metrics:', data))
       );
   }
 
   getProcessDistribution(filters?: any): Observable<any[]> {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getProcessDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-process-distribution?${params.toString()}`);
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-process-distribution`, { params })
       .pipe(
-        map(response => response.data || response),
-        tap(data => console.log('🔧 AnalyticsService: Received Process Distribution:', data))
+        map(response => response.data || response)
       );
   }
 
   getStatusDistribution(filters?: any): Observable<any[]> {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getStatusDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-status-distribution?${params.toString()}`);
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-status-distribution`, { params })
       .pipe(
-        map(response => response.data || response),
-        tap(data => console.log('🔧 AnalyticsService: Received Status Distribution:', data))
+        map(response => response.data || response)
       );
   }
 
   getCurrentMonthStatusDistribution(filters?: any): Observable<any[]> {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getCurrentMonthStatusDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-current-month-status?${params.toString()}`);
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-current-month-status`, { params })
       .pipe(
-        map(response => response.data || response),
-        tap(data => console.log('🔧 AnalyticsService: Received Current Month Status Distribution:', data))
+        map(response => response.data || response)
       );
   }
 
   getPreviousMonthsData(filters?: any): Observable<any[]> {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getPreviousMonthsData called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-previous-months?${params.toString()}`);
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-previous-months`, { params })
       .pipe(
-        map(response => response.data || response),
-        tap(data => console.log('🔧 AnalyticsService: Received Previous Months Data:', data))
+        map(response => response.data || response)
       );
   }
 
   getHistoricalStatusDistribution(filters?: any): Observable<any[]> {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getHistoricalStatusDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-historical-status?${params.toString()}`);
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-historical-status`, { params })
       .pipe(
-        map(response => response.data || response),
-        tap(data => console.log('🔧 AnalyticsService: Received Historical Status Distribution:', data))
+        map(response => response.data || response)
       );
   }
 
@@ -309,7 +279,6 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-trend-chart`, { params })
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Trend Data:', data))
       );
   }
 
@@ -332,7 +301,6 @@ export class AnalyticsService {
           averageResponseTime: 150 // Esto debería venir del backend
         };
       }),
-      tap(data => console.log('System Metrics:', data))
     );
   }
 
@@ -365,8 +333,8 @@ export class AnalyticsService {
   exportAnalytics(format: 'pdf' | 'excel', filters?: AnalyticsFilters): Observable<Blob> {
     const params = this.buildParams(filters);
     params.set('format', format);
-    
-    return this.http.get(`${this.baseUrl}/analytics/export`, { 
+
+    return this.http.get(`${this.baseUrl}/analytics/export`, {
       params,
       responseType: 'blob'
     });
@@ -375,7 +343,7 @@ export class AnalyticsService {
   // Método auxiliar para construir parámetros de consulta
   private buildParams(filters?: any): HttpParams {
     let params = new HttpParams();
-    
+
     if (filters) {
       // Manejar filtros de fecha (prioridad: dateRange > startDate/endDate individuales)
       if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) {
@@ -385,7 +353,7 @@ export class AnalyticsService {
         if (filters.startDate) params = params.set('start_date', filters.startDate);
         if (filters.endDate) params = params.set('end_date', filters.endDate);
       }
-      
+
       if (filters.userId) params = params.set('user_id', filters.userId.toString());
       if (filters.agencyId) params = params.set('agency_id', filters.agencyId.toString());
       if (filters.agency_id) params = params.set('agency_id', filters.agency_id.toString()); // Agregado para compatibilidad
@@ -394,22 +362,22 @@ export class AnalyticsService {
       if (filters.processId) params = params.set('process_id', filters.processId.toString());
       if (filters.documentTypeId) params = params.set('document_type_id', filters.documentTypeId.toString());
     }
-    
+
     return params;
   }
 
   // Método para obtener distribución de expedientes por asesor
   getAdvisorDistribution(agencyId?: string | null, userId?: string | null): Observable<AdvisorDistributionData[]> {
     let params = new HttpParams();
-    
+
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
-    
+
     if (userId) {
       params = params.set('user_id', userId);
     }
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/advisor-distribution`, { params })
       .pipe(
         map(response => {
@@ -419,7 +387,6 @@ export class AnalyticsService {
           return [];
         }),
         catchError(error => {
-          console.error('Error en getAdvisorDistribution:', error);
           return of([]);
         })
       );
@@ -427,15 +394,15 @@ export class AnalyticsService {
 
   getWeeklyData(agencyId?: string | null, userId?: string | null): Observable<WeeklyData[]> {
     let params = new HttpParams();
-    
+
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
-    
+
     if (userId) {
       params = params.set('user_id', userId);
     }
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/weekly-data`, { params })
       .pipe(
         map(response => {
@@ -445,7 +412,6 @@ export class AnalyticsService {
           return [];
         }),
         catchError(error => {
-          console.error('Error en getWeeklyData:', error);
           return of([]);
         })
       );
@@ -453,15 +419,15 @@ export class AnalyticsService {
 
   getAttentionPeriodData(agencyId?: string | null, userId?: string | null): Observable<AttentionPeriodData[]> {
     let params = new HttpParams();
-    
+
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
-    
+
     if (userId) {
       params = params.set('user_id', userId);
     }
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/attention-period`, { params })
       .pipe(
         map(response => {
@@ -471,7 +437,6 @@ export class AnalyticsService {
           return [];
         }),
         catchError(error => {
-          console.error('Error en getAttentionPeriodData:', error);
           return of([]);
         })
       );
@@ -479,15 +444,15 @@ export class AnalyticsService {
 
   getCurrentMonthAttentionData(agencyId?: string | null, userId?: string | null): Observable<CurrentMonthAttentionData[]> {
     let params = new HttpParams();
-    
+
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
-    
+
     if (userId) {
       params = params.set('user_id', userId);
     }
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/current-month-attention`, { params })
       .pipe(
         map(response => {
@@ -497,7 +462,6 @@ export class AnalyticsService {
           return [];
         }),
         catchError(error => {
-          console.error('Error en getCurrentMonthAttentionData:', error);
           return of([]);
         })
       );
@@ -526,7 +490,6 @@ export class AnalyticsService {
           return { total: 0, month: '', year: new Date().getFullYear() };
         }),
         catchError(error => {
-          console.error('Error en getCurrentMonthLiberated:', error);
           return of({ total: 0, month: '', year: new Date().getFullYear() });
         })
       );
@@ -555,7 +518,6 @@ export class AnalyticsService {
           return { total: 0 };
         }),
         catchError(error => {
-          console.error('Error en getTotalLiberated:', error);
           return of({ total: 0 });
         })
       );
@@ -563,25 +525,25 @@ export class AnalyticsService {
 
   getOrdersByAttentionPeriod(range: string, agencyId?: string | null, userId?: string | null, currentMonth?: boolean, liberatedOnly?: boolean): Observable<OrderByPeriod[]> {
     let params = new HttpParams();
-    
+
     params = params.set('range', range);
-    
+
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
-    
+
     if (userId) {
       params = params.set('user_id', userId);
     }
-    
+
     if (currentMonth) {
       params = params.set('current_month', 'true');
     }
-    
+
     if (liberatedOnly) {
       params = params.set('liberated_only', 'true');
     }
-    
+
     return this.http.get<any>(`${this.baseUrl}/analytics/orders-by-attention-period`, { params })
       .pipe(
         map(response => {
@@ -591,7 +553,6 @@ export class AnalyticsService {
           return [];
         }),
         catchError(error => {
-          console.error('Error en getOrdersByAttentionPeriod:', error);
           return of([]);
         })
       );
@@ -611,7 +572,6 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.baseUrl}/analytics/performance`)
       .pipe(
         map(response => response.data || response),
-        tap(data => console.log('Performance Metrics:', data))
       );
   }
 }

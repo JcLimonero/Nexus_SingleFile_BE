@@ -133,12 +133,8 @@ export class WidgetProcessDistributionComponent implements OnInit, OnDestroy, On
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('📊 ProcessDistribution ngOnChanges called with changes:', changes);
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('📊 ProcessDistribution: Agency or User changed, triggering data reload');
-      console.log('📊 ProcessDistribution: Current agencyId:', this.agencyId);
-      console.log('📊 ProcessDistribution: Current userId:', this.userId);
       this.loadProcessDistribution();
     }
   }
@@ -157,19 +153,15 @@ export class WidgetProcessDistributionComponent implements OnInit, OnDestroy, On
       idSeller: this.userId
     };
 
-    console.log('📊 ProcessDistribution: Loading process distribution with filters:', filters);
-
     this.analyticsService.getProcessDistribution(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('📊 ProcessDistribution: Received data:', data);
           this.processData = data;
           this.updateChart();
           this.loading = false;
         },
         error: (error) => {
-          console.error('📊 ProcessDistribution: Error loading process distribution:', error);
           this.error = 'Error al cargar distribución por proceso';
           this.loading = false;
           

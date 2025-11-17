@@ -20,7 +20,6 @@ export class ExportService {
       this.downloadExcelFile(excelContent, 'logs_actividad');
       
     } catch (error) {
-      console.error('Error al exportar logs:', error);
       throw new Error('Error al generar el archivo Excel');
     }
   }
@@ -212,7 +211,6 @@ export class ExportService {
       this.exportActivityLogsToExcel(filteredLogs, { ...filters, start_date: startDate, end_date: endDate });
       
     } catch (error) {
-      console.error('Error al exportar logs por rango de fechas:', error);
       throw new Error('Error al generar el archivo Excel por rango de fechas');
     }
   }
@@ -267,7 +265,6 @@ export class ExportService {
       window.URL.revokeObjectURL(url);
 
     } catch (error) {
-      console.error('Error al exportar CSV:', error);
       throw new Error('Error al generar el archivo CSV');
     }
   }

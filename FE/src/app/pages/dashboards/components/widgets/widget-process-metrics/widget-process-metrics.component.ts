@@ -51,7 +51,6 @@ export class WidgetProcessMetricsComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading process stats:', error);
           this.error = 'Error al cargar estadísticas de procesos';
           this.loading = false;
         }

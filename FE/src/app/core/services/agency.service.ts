@@ -110,8 +110,6 @@ export class AgencyService {
     }
 
     const url = this.apiBaseService.buildApiUrl(this.API_URL);
-    console.log('🏢 AgencyService - URL construida:', url);
-    console.log('🏢 AgencyService - Parámetros:', httpParams);
     
     return this.http.get<AgencyListResponse>(url, { params: httpParams });
   }

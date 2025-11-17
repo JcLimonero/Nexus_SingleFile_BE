@@ -63,7 +63,6 @@ export class RealTimeAnalyticsService {
       // Por ahora simulamos la conexión
       this.simulateConnection();
     } catch (error) {
-      console.error('Error initializing WebSocket connection:', error);
       this.scheduleReconnect();
     }
   }
@@ -175,11 +174,9 @@ export class RealTimeAnalyticsService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
         this.initializeConnection();
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
-      console.error('Max reconnection attempts reached');
       this.connectionStatus.next(false);
     }
   }

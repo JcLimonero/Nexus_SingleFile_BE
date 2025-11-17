@@ -35,7 +35,6 @@ export class WidgetMonthlyCasesComponent implements OnInit, OnDestroy, OnChanges
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetMonthlyCases: agencyId cambió, recargando datos...');
       this.loadData();
     }
   }
@@ -57,7 +56,6 @@ export class WidgetMonthlyCasesComponent implements OnInit, OnDestroy, OnChanges
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading monthly cases data:', error);
           this.error = 'Error al cargar datos de expedientes del mes';
           this.loading = false;
         }

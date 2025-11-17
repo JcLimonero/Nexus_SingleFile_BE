@@ -37,7 +37,6 @@ export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy, OnChang
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('🔄 WidgetTotalLiberated: filtros cambiaron, recargando datos...');
       this.loadData();
     }
   }
@@ -58,7 +57,6 @@ export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy, OnChang
           this.loading = false;
         },
         error: (err) => {
-          console.error('Error loading total liberated data:', err);
           this.error = 'Error al cargar datos de expedientes liberados totales.';
           this.loading = false;
         }
