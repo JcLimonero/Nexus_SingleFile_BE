@@ -91,6 +91,20 @@ export class GlobalComponent implements OnInit, OnDestroy {
   onAgenciaChange(): void {
     if (this.selectedAgency !== null && this.selectedAgency !== undefined) {
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
+      
+      // Actualizar la agencia predeterminada del usuario
+      this.defaultAgencyService.actualizarAgenciaPredeterminada(this.selectedAgency).subscribe({
+        next: (success) => {
+          if (success) {
+            console.log('✅ GlobalComponent - Agencia predeterminada actualizada:', this.selectedAgency);
+          } else {
+            console.warn('⚠️ GlobalComponent - No se pudo actualizar la agencia predeterminada');
+          }
+        },
+        error: (error) => {
+          console.error('❌ GlobalComponent - Error actualizando agencia predeterminada:', error);
+        }
+      });
     } else {
       this.defaultAgencyService.limpiarSeleccion();
     }

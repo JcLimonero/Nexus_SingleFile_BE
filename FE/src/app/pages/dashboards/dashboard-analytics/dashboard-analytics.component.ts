@@ -190,6 +190,22 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       this.selectedUserId = null;
       this.currentFilters = { ...this.currentFilters, userId: undefined };
     }
+    
+    // Actualizar la agencia predeterminada del usuario
+    if (agencyId !== null) {
+      this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
+        next: (success) => {
+          if (success) {
+            console.log('✅ DashboardAnalyticsComponent - Agencia predeterminada actualizada:', agencyId);
+          } else {
+            console.warn('⚠️ DashboardAnalyticsComponent - No se pudo actualizar la agencia predeterminada');
+          }
+        },
+        error: (error) => {
+          console.error('❌ DashboardAnalyticsComponent - Error actualizando agencia predeterminada:', error);
+        }
+      });
+    }
 
     // Solo disparar recarga si no es la inicialización o si se solicita explícitamente
     if (!skipReload) {

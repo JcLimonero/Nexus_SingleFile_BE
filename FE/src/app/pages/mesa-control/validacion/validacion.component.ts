@@ -695,6 +695,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * Copiar contenido de celda al portapapeles
+   * Solo se usa para la columna ndCliente
    */
   copyToClipboard(text: string, event?: Event): void {
     if (event) {
@@ -705,12 +706,68 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    // Intentar usar Clipboard API primero (más moderno y no interfiere con la selección)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        this.snackBar.open('Copiado al portapapeles', 'Cerrar', {
+          duration: 2000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom'
+        });
+        // Limpiar cualquier selección después de copiar
+        this.clearTextSelection();
+      }).catch(() => {
+        // Fallback al método antiguo si falla
+        this.copyToClipboardLegacy(text);
+      });
+    } else {
+      // Fallback al método antiguo si no está disponible
+      this.copyToClipboardLegacy(text);
+    }
+  }
+
+  /**
+   * Limpiar cualquier selección de texto en el DOM
+   */
+  private clearTextSelection(): void {
+    // Usar setTimeout para asegurar que se ejecute después de que termine la operación de copia
+    setTimeout(() => {
+      if (window.getSelection) {
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+        }
+      }
+      if (document.getSelection) {
+        const selection = document.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+        }
+      }
+      // Asegurarse de que ningún elemento tenga el foco que pueda interferir
+      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+        const activeElement = document.activeElement as HTMLElement;
+        // Solo hacer blur si no es un input, textarea o button
+        if (!['INPUT', 'TEXTAREA', 'BUTTON'].includes(activeElement.tagName)) {
+          activeElement.blur();
+        }
+      }
+    }, 100);
+  }
+
+  /**
+   * Método legacy para copiar al portapapeles (fallback)
+   */
+  private copyToClipboardLegacy(text: string): void {
     // Crear un elemento temporal para copiar
     const textarea = document.createElement('textarea');
     textarea.value = text.trim();
     textarea.style.position = 'fixed';
     textarea.style.opacity = '0';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '-9999px';
     document.body.appendChild(textarea);
+    textarea.focus();
     textarea.select();
     textarea.setSelectionRange(0, 99999); // Para dispositivos móviles
 
@@ -728,20 +785,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     } catch (err) {
-      // Fallback usando Clipboard API
-      navigator.clipboard.writeText(text.trim()).then(() => {
-        this.snackBar.open('Copiado al portapapeles', 'Cerrar', {
-          duration: 2000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom'
-        });
-      }).catch(() => {
-        this.snackBar.open('Error al copiar', 'Cerrar', {
-          duration: 2000
-        });
+      this.snackBar.open('Error al copiar', 'Cerrar', {
+        duration: 2000
       });
     } finally {
+      // Remover el elemento primero
       document.body.removeChild(textarea);
+      // Limpiar selección después de remover el elemento
+      this.clearTextSelection();
     }
   }
 
@@ -1543,6 +1594,20 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Actualizar la agencia en el servicio compartido
     if (this.selectedAgency !== null) {
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
+      
+      // Actualizar la agencia predeterminada del usuario
+      this.defaultAgencyService.actualizarAgenciaPredeterminada(this.selectedAgency).subscribe({
+        next: (success) => {
+          if (success) {
+            console.log('✅ ValidacionComponent - Agencia predeterminada actualizada:', this.selectedAgency);
+          } else {
+            console.warn('⚠️ ValidacionComponent - No se pudo actualizar la agencia predeterminada');
+          }
+        },
+        error: (error) => {
+          console.error('❌ ValidacionComponent - Error actualizando agencia predeterminada:', error);
+        }
+      });
     }
     // Si ya hay un proceso seleccionado, cargar clientes
     if (this.selectedProcess) {

@@ -154,6 +154,23 @@ export class DefaultAgencyService {
   }
 
   /**
+   * Actualizar la agencia predeterminada del usuario
+   */
+  actualizarAgenciaPredeterminada(agenciaId: number): Observable<boolean> {
+    return this.http.put<any>(`${this.apiUrl}/api/user/profile/default-agency`, {
+      defaultAgency: agenciaId
+    }).pipe(
+      map(response => {
+        if (response && response.success) {
+          console.log('✅ DefaultAgencyService - Agencia predeterminada actualizada:', agenciaId);
+          return true;
+        }
+        return false;
+      })
+    );
+  }
+
+  /**
    * Obtener la agencia actualmente seleccionada
    */
   getAgenciaSeleccionada(): number | null {

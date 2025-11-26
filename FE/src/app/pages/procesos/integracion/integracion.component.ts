@@ -279,6 +279,22 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
     // Aquí puedes agregar lógica adicional cuando cambie la agencia seleccionada
     console.log('Selected agency:', agencyId, 'Agency object:', this.selectedAgency);
+    
+    // Actualizar la agencia predeterminada del usuario
+    if (agencyId !== null) {
+      this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
+        next: (success) => {
+          if (success) {
+            console.log('✅ IntegracionComponent - Agencia predeterminada actualizada:', agencyId);
+          } else {
+            console.warn('⚠️ IntegracionComponent - No se pudo actualizar la agencia predeterminada');
+          }
+        },
+        error: (error) => {
+          console.error('❌ IntegracionComponent - Error actualizando agencia predeterminada:', error);
+        }
+      });
+    }
   }
 
   clearAgencyFilter(): void {

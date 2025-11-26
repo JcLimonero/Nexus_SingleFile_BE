@@ -208,6 +208,22 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   onAgencyChange(agencyId: number | null): void {
     this.selectedAgencyId = agencyId;
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
+    
+    // Actualizar la agencia predeterminada del usuario
+    if (agencyId !== null) {
+      this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
+        next: (success) => {
+          if (success) {
+            console.log('✅ LiberacionComponent - Agencia predeterminada actualizada:', agencyId);
+          } else {
+            console.warn('⚠️ LiberacionComponent - No se pudo actualizar la agencia predeterminada');
+          }
+        },
+        error: (error) => {
+          console.error('❌ LiberacionComponent - Error actualizando agencia predeterminada:', error);
+        }
+      });
+    }
   }
 
   clearAgencyFilter(): void {
