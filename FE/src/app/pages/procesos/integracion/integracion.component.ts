@@ -14,7 +14,9 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { Subject, takeUntil } from 'rxjs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Subject, takeUntil, Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -43,7 +45,8 @@ import { OrderSelectionDialogComponent } from './order-selection-dialog.componen
     MatDialogModule,
     MatTableModule,
     MatMenuModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatCheckboxModule
   ],
   templateUrl: './integracion.component.html',
   styleUrls: ['./integracion.component.scss']
@@ -101,6 +104,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   requiredDocuments: any[] = [];
   documentsLoading = false;
   selectedFiles: { [key: string]: File } = {};
+  selectedDocumentsForBatch: Set<string> = new Set(); // Documentos seleccionados para carga en lote
+  uploadingDocuments: Set<string> = new Set(); // Documentos que se están cargando actualmente
   
   // Dialog properties
   displayedColumns: string[] = ['ndCliente', 'cliente', 'rfc', 'email', 'actions'];
@@ -520,6 +525,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
+    this.uploadingDocuments.clear();
   }
 
   clearAllClientData(): void {
@@ -540,6 +547,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     // Limpiar documentos
     this.requiredDocuments = [];
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
+    this.uploadingDocuments.clear();
     this.documentsLoading = false;
     
     // Limpiar estado de carga
@@ -563,6 +572,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
+    this.uploadingDocuments.clear();
     
     // Limpiar búsqueda y paginación de pedidos
     this.orderSearchTerm = '';
@@ -701,6 +712,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
+    this.uploadingDocuments.clear();
     // Limpiar búsqueda y paginación
     this.orderSearchTerm = '';
     this.currentPage = 0;
@@ -1343,12 +1356,130 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   onFileSelected(event: any, documentId: string): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFiles[documentId] = file;
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      // Si se seleccionan múltiples archivos, tomar el primero para este documento específico
+      // (cada input sigue siendo para un documento específico)
+      this.selectedFiles[documentId] = files[0];
+      // Automáticamente marcar el documento para carga en lote si tiene archivo
+      if (files[0]) {
+        this.selectedDocumentsForBatch.add(documentId);
+      }
     }
   }
 
+  /**
+   * Toggle selección de documento para carga en lote
+   */
+  toggleDocumentForBatch(documentId: string): void {
+    if (this.selectedDocumentsForBatch.has(documentId)) {
+      this.selectedDocumentsForBatch.delete(documentId);
+    } else {
+      // Solo permitir seleccionar si tiene archivo seleccionado
+      if (this.selectedFiles[documentId]) {
+        this.selectedDocumentsForBatch.add(documentId);
+      } else {
+        this.snackBar.open('Debe seleccionar un archivo primero', 'Cerrar', {
+          duration: 2000
+        });
+      }
+    }
+  }
+
+  /**
+   * Verificar si un documento está seleccionado para carga en lote
+   */
+  isDocumentSelectedForBatch(documentId: string): boolean {
+    return this.selectedDocumentsForBatch.has(documentId);
+  }
+
+  /**
+   * Obtener cantidad de documentos seleccionados para carga en lote
+   */
+  getSelectedDocumentsCount(): number {
+    return this.selectedDocumentsForBatch.size;
+  }
+
+  /**
+   * Verificar si hay documentos seleccionados para carga en lote
+   */
+  hasDocumentsSelectedForBatch(): boolean {
+    return this.selectedDocumentsForBatch.size > 0;
+  }
+
+  /**
+   * Cargar todos los documentos seleccionados en lote
+   */
+  uploadMultipleDocuments(): void {
+    if (!this.hasDocumentsSelectedForBatch()) {
+      this.snackBar.open('Debe seleccionar al menos un documento para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    const documentsToUpload = this.requiredDocuments.filter(doc => 
+      this.selectedDocumentsForBatch.has(doc.documentId) && 
+      this.selectedFiles[doc.documentId] &&
+      doc.idCurrentStatus !== '3' && 
+      doc.idCurrentStatus !== '4'
+    );
+
+    if (documentsToUpload.length === 0) {
+      this.snackBar.open('No hay documentos válidos para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Marcar todos como cargando
+    documentsToUpload.forEach(doc => {
+      this.uploadingDocuments.add(doc.documentId);
+    });
+
+    // Cargar documentos secuencialmente para evitar sobrecarga
+    let completed = 0;
+    let failed = 0;
+    const total = documentsToUpload.length;
+
+    documentsToUpload.forEach((document, index) => {
+      setTimeout(() => {
+        this.uploadDocumentInternal(document, false).subscribe({
+          next: () => {
+            completed++;
+            this.selectedDocumentsForBatch.delete(document.documentId);
+            this.uploadingDocuments.delete(document.documentId);
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          },
+          error: () => {
+            failed++;
+            this.uploadingDocuments.delete(document.documentId);
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          }
+        });
+      }, index * 200); // Pequeño delay entre cada carga para evitar sobrecarga
+    });
+  }
+
+  /**
+   * Cargar un documento individual
+   */
   uploadDocument(document: any): void {
     if (!this.selectedFiles[document.documentId]) {
       this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', {
@@ -1357,6 +1488,21 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.uploadingDocuments.add(document.documentId);
+    this.uploadDocumentInternal(document, true).subscribe({
+      next: () => {
+        this.uploadingDocuments.delete(document.documentId);
+      },
+      error: () => {
+        this.uploadingDocuments.delete(document.documentId);
+      }
+    });
+  }
+
+  /**
+   * Método interno para cargar un documento
+   */
+  private uploadDocumentInternal(document: any, showIndividualMessage: boolean = true): Observable<any> {
     // Mostrar mensaje diferente si se está reemplazando
     const isReplacing = document.idCurrentStatus === '2';
     const actionText = isReplacing ? 'reemplazando' : 'cargando';
@@ -1376,22 +1522,26 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     });
 
     // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
-    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
+    return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
+      .pipe(
+        takeUntil(this.destroy$),
+        tap((response) => {
           console.log('📤 Documento subido exitosamente a Vanguardia:', response);
           
-          this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
-            duration: 3000
-          });
+          if (showIndividualMessage) {
+            this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
+              duration: 3000
+            });
+          }
           
           // Recargar documentos para mostrar el estado actualizado
           this.loadRequiredDocuments(this.selectedFile.fileId);
           // Limpiar archivo seleccionado
           delete this.selectedFiles[document.documentId];
-        },
-        error: (error) => {
+          // Remover de selección en lote si estaba
+          this.selectedDocumentsForBatch.delete(document.documentId);
+        }),
+        catchError((error) => {
           console.error('❌ Error subiendo documento a Vanguardia:', error);
           
           let errorMessage = 'Error desconocido';
@@ -1414,11 +1564,22 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             errorMessage = error.message;
           }
           
-          this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', {
-            duration: 8000
-          });
-        }
-      });
+          if (showIndividualMessage) {
+            this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', {
+              duration: 8000
+            });
+          }
+          
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Verificar si un documento se está cargando
+   */
+  isDocumentUploading(documentId: string): boolean {
+    return this.uploadingDocuments.has(documentId);
   }
 
 
