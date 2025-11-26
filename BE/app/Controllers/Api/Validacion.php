@@ -71,12 +71,17 @@ class Validacion extends BaseController
             }
 
             // Query principal usando SQL directo para evitar problemas con Query Builder
+            // Asegurar que todos los File con el mismo ndCliente en la misma agencia muestren el mismo cliente
+            // Usamos un subquery para obtener el cliente correcto basado en ndCliente y agencia
             $sql = "
                 SELECT 
                     f.Id as idFile,
-                    MIN(ctr.IdTotalDealer) as ndCliente,
+                    COALESCE(ctr.IdTotalDealer, '') as ndCliente,
                     f.IdOrderTotal as ndPedido,
-                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
+                    COALESCE(
+                        NULLIF(TRIM(cliente_correcto.RazonSocial), ''),
+                        TRIM(CONCAT(COALESCE(cliente_correcto.Name, ''), ' ', COALESCE(cliente_correcto.LastName, ''), ' ', COALESCE(cliente_correcto.MotherLastName, '')))
+                    ) as cliente,
                     p.Name as proceso,
                     ot.Name as operacion,
                     f.RegistrationDate as registro,
@@ -102,19 +107,35 @@ class Validacion extends BaseController
                     ) as documentosNoAprobados
                 FROM File f
                 INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
-                INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+                LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
+                    AND ctr.IdAgency = f.IdAgency
+                -- Obtener el cliente correcto basado en el ndCliente y agencia (único por agencia)
+                LEFT JOIN (
+                    SELECT 
+                        ctr_main.IdTotalDealer,
+                        ctr_main.IdAgency,
+                        c_main.Id as ClientId,
+                        c_main.Name,
+                        c_main.LastName,
+                        c_main.MotherLastName,
+                        c_main.RazonSocial
+                    FROM Client_Total_Relation ctr_main
+                    INNER JOIN HeaderClient hc_main ON ctr_main.idHeaderClient = hc_main.Id
+                    INNER JOIN Client c_main ON hc_main.IdClient = c_main.Id
+                    WHERE ctr_main.IdAgency = ?
+                    GROUP BY ctr_main.IdTotalDealer, ctr_main.IdAgency, c_main.Id, c_main.Name, c_main.LastName, c_main.MotherLastName, c_main.RazonSocial
+                ) cliente_correcto ON COALESCE(ctr.IdTotalDealer, '') = cliente_correcto.IdTotalDealer 
+                    AND cliente_correcto.IdAgency = f.IdAgency
                 WHERE f.IdAgency = ?
                 AND f.IdProcess = ?
                 AND p.Enabled = 1
-                AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
-                GROUP BY f.Id, f.IdOrderTotal, c.Name, c.LastName, c.MotherLastName, p.Name, ot.Name, f.RegistrationDate, fs.Name, f.IdCurrentState, f.AgendDate
+                AND cliente_correcto.ClientId IS NOT NULL
             ";
             
-            $params = [$idAgency, $idProcess];
+            $params = [$idAgency, $idAgency, $idProcess];
             
             // Aplicar filtro de pedidos cancelados 
             if ($showCancelled) {

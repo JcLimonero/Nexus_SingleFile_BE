@@ -279,6 +279,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     // Rutas de perfil de usuario
     $routes->group('user/profile', function($routes) {
         $routes->get('/', 'UserProfile::getProfile');
+        $routes->put('default-agency', 'UserProfile::updateDefaultAgency');
         $routes->post('upload-image', 'UserProfile::uploadImage');
         $routes->delete('remove-image', 'UserProfile::removeImage');
         $routes->get('image/(:num)', 'UserProfile::getProfileImage/$1');

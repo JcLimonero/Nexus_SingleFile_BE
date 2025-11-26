@@ -329,6 +329,87 @@ class UserProfile extends BaseController
     }
     
     /**
+     * PUT /api/user/profile/default-agency
+     * Actualizar agencia predeterminada del usuario autenticado
+     */
+    public function updateDefaultAgency()
+    {
+        try {
+            $userId = $this->getUserIdFromToken();
+            
+            if (!$userId) {
+                return $this->response
+                    ->setStatusCode(401)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'Usuario no autenticado'
+                    ]);
+            }
+            
+            $data = $this->request->getJSON(true);
+            
+            if (!isset($data['defaultAgency']) || $data['defaultAgency'] === null) {
+                return $this->response
+                    ->setStatusCode(400)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'ID de agencia requerido'
+                    ]);
+            }
+            
+            $defaultAgencyId = (int)$data['defaultAgency'];
+            
+            // Verificar que la agencia existe
+            $db = \Config\Database::connect();
+            $agencyExists = $db->table('Agency')->where('Id', $defaultAgencyId)->countAllResults() > 0;
+            
+            if (!$agencyExists) {
+                return $this->response
+                    ->setStatusCode(400)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'La agencia especificada no existe'
+                    ]);
+            }
+            
+            // Actualizar la agencia predeterminada del usuario
+            $updateData = [
+                'DefaultAgency' => $defaultAgencyId,
+                'UpdateDate' => date('Y-m-d H:i:s')
+            ];
+            
+            if ($this->userModel->update($userId, $updateData)) {
+                return $this->response
+                    ->setStatusCode(200)
+                    ->setJSON([
+                        'success' => true,
+                        'message' => 'Agencia predeterminada actualizada exitosamente',
+                        'data' => [
+                            'defaultAgency' => $defaultAgencyId
+                        ]
+                    ]);
+            } else {
+                return $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'Error al actualizar la agencia predeterminada'
+                    ]);
+            }
+            
+        } catch (\Exception $e) {
+            error_log('Error en UserProfile::updateDefaultAgency: ' . $e->getMessage());
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Error interno del servidor',
+                    'error' => $e->getMessage()
+                ]);
+        }
+    }
+    
+    /**
      * Método auxiliar para obtener el ID del usuario del token JWT
      * Usa el método existente del BaseController
      */
