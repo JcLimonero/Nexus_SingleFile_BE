@@ -56,13 +56,13 @@ export class VanguardiaClientService {
 
   /**
    * Buscar clientes en el API de Vanguardia
-   * @param idAgency IdAgency de la agencia (ej: "10017")
+   * @param connectionstring ConnectionString de la agencia (AgencyConnection)
    * @param ndDMS Número de cliente DMS (ej: "10004")
    * @returns Observable con los resultados
    */
-  searchClients(idAgency: string, ndDMS: string): Observable<VanguardiaResponse> {
+  searchClients(connectionstring: string, ndDMS: string): Observable<VanguardiaResponse> {
     let params = new HttpParams();
-    params = params.set('idAgency', idAgency);
+    params = params.set('connectionstring', connectionstring);
     params = params.set('ndDMS', ndDMS);
 
     const headers = {
@@ -78,12 +78,12 @@ export class VanguardiaClientService {
   /**
    * Obtener cliente por ID en Vanguardia
    * @param id ID del cliente
-   * @param idAgency IdAgency de la agencia
+   * @param connectionstring ConnectionString de la agencia (AgencyConnection)
    * @returns Observable con el cliente
    */
-  getClientById(id: number, idAgency: string): Observable<VanguardiaResponse> {
+  getClientById(id: number, connectionstring: string): Observable<VanguardiaResponse> {
     let params = new HttpParams();
-    params = params.set('idAgency', idAgency);
+    params = params.set('connectionstring', connectionstring);
     params = params.set('id', id.toString());
 
     const headers = {

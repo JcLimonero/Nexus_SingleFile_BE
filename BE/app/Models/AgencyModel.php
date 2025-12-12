@@ -14,7 +14,7 @@ class AgencyModel extends Model
     protected $protectFields = true;
     protected $allowedFields = [
         'Id', 'Name', 'RegistrationDate', 'UpdateDate', 
-        'IdLastUserUpdate', 'Enabled', 'IdAgency'
+        'IdLastUserUpdate', 'Enabled', 'IdAgency', 'AgencyConnection'
     ];
 
     protected bool $allowEmptyInserts = false;

@@ -202,6 +202,7 @@ class Agency extends BaseController
                 'Name' => trim($data['Name']),
                 'IdAgency' => $data['IdAgency'] ?? null,
                 'Enabled' => $data['Enabled'] ?? 1,
+                'AgencyConnection' => $data['AgencyConnection'] ?? null,
                 'RegistrationDate' => date('Y-m-d H:i:s'),
                 'UpdateDate' => date('Y-m-d H:i:s'),
                 'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
@@ -343,6 +344,7 @@ class Agency extends BaseController
                 'Name' => trim($data['Name']),
                 'IdAgency' => $data['IdAgency'] ?? $existingAgency['IdAgency'],
                 'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $existingAgency['Enabled'],
+                'AgencyConnection' => isset($data['AgencyConnection']) ? $data['AgencyConnection'] : ($existingAgency['AgencyConnection'] ?? null),
                 'UpdateDate' => date('Y-m-d H:i:s'),
                 'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
             ];

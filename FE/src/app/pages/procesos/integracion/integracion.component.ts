@@ -406,7 +406,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private searchClientInVanguardia(): void {
     console.log('🔍 Buscando cliente en Vanguardia...');
     
-    // Obtener el IdAgency de la agencia seleccionada para enviar a Vanguardia
+    // Obtener la agencia seleccionada para enviar el connectionstring a Vanguardia
     const selectedAgency = this.agencies.find(agency => agency.Id === this.selectedAgencyId);
     if (!selectedAgency) {
       this.snackBar.open('Agencia no encontrada para búsqueda en Vanguardia', 'Cerrar', {
@@ -415,9 +415,17 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Realizar búsqueda en el API de Vanguardia usando los parámetros correctos
-    // idAgency=1&ndDMS=10004
-    this.vanguardiaClientService.searchClients(selectedAgency.IdAgency, this.clientSearchTerm.trim())
+    // Verificar que la agencia tenga AgencyConnection
+    if (!selectedAgency.AgencyConnection) {
+      this.snackBar.open('La agencia seleccionada no tiene connectionstring configurado', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Realizar búsqueda en el API de Vanguardia usando connectionstring
+    // connectionstring=xxx&ndDMS=10004
+    this.vanguardiaClientService.searchClients(selectedAgency.AgencyConnection, this.clientSearchTerm.trim())
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaResponse) => {
@@ -855,9 +863,17 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private loadOrdersFromVanguardia(): void {
     console.log('🔍 Cargando pedidos desde Vanguardia...');
     
+    // Verificar que la agencia tenga AgencyConnection
+    if (!this.selectedAgency.AgencyConnection) {
+      this.snackBar.open('La agencia seleccionada no tiene connectionstring configurado', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+    
     let params = new HttpParams();
     params = params.set('customerDMS', this.selectedClient.ndCliente);
-    params = params.set('idAgency', this.selectedAgency.IdAgency);
+    params = params.set('connectionstring', this.selectedAgency.AgencyConnection);
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
     const headers = {

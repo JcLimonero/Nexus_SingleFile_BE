@@ -14,6 +14,8 @@ export interface Agency {
   IdLastUserUpdate?: number;
   // Campo adicional siempre incluido
   LastUserUpdateName?: string;
+  // Campo para conexión de agencia (no se muestra en combos pero está disponible)
+  AgencyConnection?: string;
 }
 
 export interface AgencyFilters {
@@ -286,7 +288,8 @@ export class AgencyService {
       RegistrationDate: response.RegistrationDate || undefined,
       UpdateDate: response.UpdateDate || undefined,
       IdLastUserUpdate: response.IdLastUserUpdate || undefined,
-      LastUserUpdateName: response.LastUserUpdateName || undefined
+      LastUserUpdateName: response.LastUserUpdateName || undefined,
+      AgencyConnection: response.AgencyConnection || undefined
     };
   }
 
