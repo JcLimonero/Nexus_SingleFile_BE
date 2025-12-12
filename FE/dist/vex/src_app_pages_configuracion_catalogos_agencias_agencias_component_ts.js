@@ -50,8 +50,6 @@ class AgencyService {
       httpParams = httpParams.set('sort_order', params.sort_order);
     }
     const url = this.apiBaseService.buildApiUrl(this.API_URL);
-    console.log('🏢 AgencyService - URL construida:', url);
-    console.log('🏢 AgencyService - Parámetros:', httpParams);
     return this.http.get(url, {
       params: httpParams
     });
@@ -198,7 +196,8 @@ class AgencyService {
       RegistrationDate: response.RegistrationDate || undefined,
       UpdateDate: response.UpdateDate || undefined,
       IdLastUserUpdate: response.IdLastUserUpdate || undefined,
-      LastUserUpdateName: response.LastUserUpdateName || undefined
+      LastUserUpdateName: response.LastUserUpdateName || undefined,
+      AgencyConnection: response.AgencyConnection || undefined
     };
   }
   /**

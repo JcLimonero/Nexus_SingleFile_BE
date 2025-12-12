@@ -50,8 +50,6 @@ class AgencyService {
       httpParams = httpParams.set('sort_order', params.sort_order);
     }
     const url = this.apiBaseService.buildApiUrl(this.API_URL);
-    console.log('🏢 AgencyService - URL construida:', url);
-    console.log('🏢 AgencyService - Parámetros:', httpParams);
     return this.http.get(url, {
       params: httpParams
     });
@@ -198,7 +196,8 @@ class AgencyService {
       RegistrationDate: response.RegistrationDate || undefined,
       UpdateDate: response.UpdateDate || undefined,
       IdLastUserUpdate: response.IdLastUserUpdate || undefined,
-      LastUserUpdateName: response.LastUserUpdateName || undefined
+      LastUserUpdateName: response.LastUserUpdateName || undefined,
+      AgencyConnection: response.AgencyConnection || undefined
     };
   }
   /**
@@ -229,16 +228,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   AnalyticsService: () => (/* binding */ AnalyticsService)
 /* harmony export */ });
-/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/common/http */ 54860);
+/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/common/http */ 54860);
 /* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rxjs */ 58071);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! rxjs */ 33839);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! rxjs */ 12235);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rxjs */ 33839);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! rxjs */ 12235);
 /* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! rxjs/operators */ 79736);
-/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rxjs/operators */ 13738);
-/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! rxjs/operators */ 2389);
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! rxjs */ 84980);
+/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! rxjs/operators */ 2389);
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! rxjs */ 84980);
 /* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../environments/environment */ 20553);
-/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @angular/core */ 61699);
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @angular/core */ 61699);
 
 
 
@@ -269,7 +267,7 @@ class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get(`${this.baseUrl}/user-activity-logs/stats`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('User Activity Stats:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getUserActivityLogs(filters, limit = 100, offset = 0) {
     const params = this.buildParams(filters);
@@ -277,99 +275,81 @@ class AnalyticsService {
     params.set('offset', offset.toString());
     return this.http.get(`${this.baseUrl}/user-activity-logs`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('User Activity Logs:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   // Métodos para obtener estadísticas de documentos
   getDocumentStats(filters) {
     const params = this.buildParams(filters);
     return this.http.get(`${this.baseUrl}/analytics/widget-document-statistics`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('Document Stats:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   // Métodos para obtener estadísticas de procesos
   getProcessStats(filters) {
     const params = this.buildParams(filters);
     return this.http.get(`${this.baseUrl}/analytics/widget-process-statistics`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('Process Stats:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   // Métodos para obtener estadísticas de agencias
   getAgencyStats(filters) {
     const params = this.buildParams(filters);
     return this.http.get(`${this.baseUrl}/analytics/widget-agency-statistics`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('Agency Stats:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   // Métodos para obtener métricas específicas de agencia
   getAgencyMetrics(filters) {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getAgencyMetrics called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-agency-specific-metrics?${params.toString()}`);
     return this.http.get(`${this.baseUrl}/analytics/widget-agency-specific-metrics`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('🔧 AnalyticsService: Received Agency Metrics:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getDistributionMetrics(filters) {
     const params = this.buildParams(filters);
     return this.http.get(`${this.baseUrl}/analytics/widget-file-distribution-metrics`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('Distribution Metrics:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getProcessDistribution(filters) {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getProcessDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-process-distribution?${params.toString()}`);
     return this.http.get(`${this.baseUrl}/analytics/widget-process-distribution`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('🔧 AnalyticsService: Received Process Distribution:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getStatusDistribution(filters) {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getStatusDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-status-distribution?${params.toString()}`);
     return this.http.get(`${this.baseUrl}/analytics/widget-status-distribution`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('🔧 AnalyticsService: Received Status Distribution:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getCurrentMonthStatusDistribution(filters) {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getCurrentMonthStatusDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-current-month-status?${params.toString()}`);
     return this.http.get(`${this.baseUrl}/analytics/widget-current-month-status`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('🔧 AnalyticsService: Received Current Month Status Distribution:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getPreviousMonthsData(filters) {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getPreviousMonthsData called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-previous-months?${params.toString()}`);
     return this.http.get(`${this.baseUrl}/analytics/widget-previous-months`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('🔧 AnalyticsService: Received Previous Months Data:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getHistoricalStatusDistribution(filters) {
     const params = this.buildParams(filters);
-    console.log('🔧 AnalyticsService: getHistoricalStatusDistribution called with filters:', filters);
-    console.log('🔧 AnalyticsService: Built params:', params.toString());
-    console.log('🔧 AnalyticsService: Full URL:', `${this.baseUrl}/analytics/widget-historical-status?${params.toString()}`);
     return this.http.get(`${this.baseUrl}/analytics/widget-historical-status`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('🔧 AnalyticsService: Received Historical Status Distribution:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   getTrendData(filters) {
     const params = this.buildParams(filters);
     return this.http.get(`${this.baseUrl}/analytics/widget-file-trend-chart`, {
       params
-    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('Trend Data:', data)));
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   // Métodos para obtener métricas del sistema
   getSystemMetrics() {
-    return (0,rxjs__WEBPACK_IMPORTED_MODULE_4__.combineLatest)([this.http.get(`${this.baseUrl}/analytics/widget-system-overview-metrics`), this.http.get(`${this.baseUrl}/analytics/widget-document-statistics`), this.http.get(`${this.baseUrl}/analytics/widget-process-statistics`), this.http.get(`${this.baseUrl}/analytics/widget-agency-statistics`)]).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(([userStats, docStats, processStats, agencyStats]) => {
+    return (0,rxjs__WEBPACK_IMPORTED_MODULE_3__.combineLatest)([this.http.get(`${this.baseUrl}/analytics/widget-system-overview-metrics`), this.http.get(`${this.baseUrl}/analytics/widget-document-statistics`), this.http.get(`${this.baseUrl}/analytics/widget-process-statistics`), this.http.get(`${this.baseUrl}/analytics/widget-agency-statistics`)]).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(([userStats, docStats, processStats, agencyStats]) => {
       return {
         totalUsers: userStats.data?.totalUsers || 0,
         activeUsers: userStats.data?.activeUsers || 0,
@@ -379,11 +359,11 @@ class AnalyticsService {
         systemUptime: 99.9,
         averageResponseTime: 150 // Esto debería venir del backend
       };
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('System Metrics:', data)));
+    }));
   }
   // Método para obtener datos combinados del dashboard
   getDashboardData(filters) {
-    return (0,rxjs__WEBPACK_IMPORTED_MODULE_4__.combineLatest)([this.getUserActivityStats(filters), this.getDocumentStats(filters), this.getProcessStats(filters), this.getAgencyStats(filters), this.getSystemMetrics()]).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(([userActivity, documents, processes, agencies, system]) => ({
+    return (0,rxjs__WEBPACK_IMPORTED_MODULE_3__.combineLatest)([this.getUserActivityStats(filters), this.getDocumentStats(filters), this.getProcessStats(filters), this.getAgencyStats(filters), this.getSystemMetrics()]).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(([userActivity, documents, processes, agencies, system]) => ({
       userActivity,
       documents,
       processes,
@@ -402,7 +382,7 @@ class AnalyticsService {
   }
   // Método auxiliar para construir parámetros de consulta
   buildParams(filters) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (filters) {
       // Manejar filtros de fecha (prioridad: dateRange > startDate/endDate individuales)
       if (filters.dateRange && filters.dateRange.startDate && filters.dateRange.endDate) {
@@ -424,7 +404,7 @@ class AnalyticsService {
   }
   // Método para obtener distribución de expedientes por asesor
   getAdvisorDistribution(agencyId, userId) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
@@ -438,13 +418,12 @@ class AnalyticsService {
         return response.data;
       }
       return [];
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getAdvisorDistribution:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)([]);
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)([]);
     }));
   }
   getWeeklyData(agencyId, userId) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
@@ -458,13 +437,12 @@ class AnalyticsService {
         return response.data;
       }
       return [];
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getWeeklyData:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)([]);
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)([]);
     }));
   }
   getAttentionPeriodData(agencyId, userId) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
@@ -478,13 +456,12 @@ class AnalyticsService {
         return response.data;
       }
       return [];
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getAttentionPeriodData:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)([]);
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)([]);
     }));
   }
   getCurrentMonthAttentionData(agencyId, userId) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
@@ -498,16 +475,15 @@ class AnalyticsService {
         return response.data;
       }
       return [];
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getCurrentMonthAttentionData:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)([]);
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)([]);
     }));
   }
   /**
    * Obtener datos de expedientes liberados del mes actual
    */
   getCurrentMonthLiberated(agencyId, userId) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
@@ -525,9 +501,8 @@ class AnalyticsService {
         month: '',
         year: new Date().getFullYear()
       };
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getCurrentMonthLiberated:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)({
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)({
         total: 0,
         month: '',
         year: new Date().getFullYear()
@@ -538,7 +513,7 @@ class AnalyticsService {
    * Obtener datos de expedientes liberados totales (toda la historia)
    */
   getTotalLiberated(agencyId, userId) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     if (agencyId) {
       params = params.set('agency_id', agencyId);
     }
@@ -554,15 +529,14 @@ class AnalyticsService {
       return {
         total: 0
       };
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getTotalLiberated:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)({
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)({
         total: 0
       });
     }));
   }
   getOrdersByAttentionPeriod(range, agencyId, userId, currentMonth, liberatedOnly) {
-    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpParams();
+    let params = new _angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpParams();
     params = params.set('range', range);
     if (agencyId) {
       params = params.set('agency_id', agencyId);
@@ -583,27 +557,26 @@ class AnalyticsService {
         return response.data;
       }
       return [];
-    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_6__.catchError)(error => {
-      console.error('Error en getOrdersByAttentionPeriod:', error);
-      return (0,rxjs__WEBPACK_IMPORTED_MODULE_7__.of)([]);
+    }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_5__.catchError)(error => {
+      return (0,rxjs__WEBPACK_IMPORTED_MODULE_6__.of)([]);
     }));
   }
   // Métodos para obtener datos en tiempo real (para futuras implementaciones con WebSockets)
   getRealTimeMetrics() {
     // Esto se implementará cuando agreguemos WebSockets
-    return new rxjs__WEBPACK_IMPORTED_MODULE_8__.Observable(observer => {
+    return new rxjs__WEBPACK_IMPORTED_MODULE_7__.Observable(observer => {
       // Placeholder para implementación futura
       observer.next({});
     });
   }
   // Método para obtener métricas de rendimiento
   getPerformanceMetrics() {
-    return this.http.get(`${this.baseUrl}/analytics/performance`).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.tap)(data => console.log('Performance Metrics:', data)));
+    return this.http.get(`${this.baseUrl}/analytics/performance`).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => response.data || response));
   }
   static #_ = this.ɵfac = function AnalyticsService_Factory(t) {
-    return new (t || AnalyticsService)(_angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵinject"](_angular_common_http__WEBPACK_IMPORTED_MODULE_5__.HttpClient));
+    return new (t || AnalyticsService)(_angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵinject"](_angular_common_http__WEBPACK_IMPORTED_MODULE_4__.HttpClient));
   };
-  static #_2 = this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_9__["ɵɵdefineInjectable"]({
+  static #_2 = this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵdefineInjectable"]({
     token: AnalyticsService,
     factory: AnalyticsService.ɵfac,
     providedIn: 'root'
@@ -683,26 +656,15 @@ class DefaultAgencyService {
       let intentos = 0;
       const intentarObtener = () => {
         intentos++;
-        console.log(`🔄 DefaultAgencyService - Intento ${intentos} de obtener agencia predeterminada del usuario`);
         this.obtenerAgenciaUsuario().subscribe({
           next: defaultAgencyId => {
-            console.log(`✅ DefaultAgencyService - Agencia predeterminada obtenida exitosamente en intento ${intentos}:`, defaultAgencyId);
             observer.next(defaultAgencyId);
             observer.complete();
           },
           error: error => {
-            console.warn(`⚠️ DefaultAgencyService - Intento ${intentos} falló:`, error);
-            console.error(`🔍 DefaultAgencyService - Detalles del error:`, {
-              status: error.status,
-              statusText: error.statusText,
-              message: error.message,
-              error: error.error
-            });
             if (intentos < maxReintentos) {
-              console.log(`🔄 DefaultAgencyService - Reintentando en ${delayMs}ms... (${intentos}/${maxReintentos})`);
               setTimeout(intentarObtener, delayMs);
             } else {
-              console.error(`❌ DefaultAgencyService - Todos los ${maxReintentos} intentos fallaron`);
               observer.error(error);
             }
           }
@@ -718,52 +680,39 @@ class DefaultAgencyService {
    */
   establecerAgenciaPredeterminada(autoSelect = true) {
     return new rxjs__WEBPACK_IMPORTED_MODULE_4__.Observable(observer => {
-      console.log('🔄 DefaultAgencyService - Iniciando establecimiento de agencia predeterminada...');
-      console.log('📊 DefaultAgencyService - Agencias disponibles en el servicio:', this.agenciasSubject.value);
       // Intentar obtener la agencia predeterminada con reintentos
       this.obtenerAgenciaUsuarioConReintentos().subscribe({
         next: defaultAgencyId => {
-          console.log('👤 DefaultAgencyService - Agencia predeterminada del usuario obtenida:', defaultAgencyId);
           let agenciaSeleccionada = null;
           if (defaultAgencyId && this.agenciasSubject.value.length > 0) {
             // Buscar la agencia predeterminada del usuario en la lista
             const agenciaPredeterminada = this.agenciasSubject.value.find(ag => ag.Id === defaultAgencyId);
             if (agenciaPredeterminada) {
-              console.log('✅ DefaultAgencyService - Agencia predeterminada del usuario encontrada:', agenciaPredeterminada);
               agenciaSeleccionada = defaultAgencyId;
             } else {
               // Si no se encuentra la agencia predeterminada, seleccionar la primera
               if (autoSelect) {
-                console.log('⚠️ DefaultAgencyService - Agencia predeterminada del usuario no encontrada, seleccionando primera agencia');
                 agenciaSeleccionada = this.agenciasSubject.value[0].Id;
-                console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
               }
             }
           } else {
             // Si el usuario no tiene agencia predeterminada, seleccionar la primera de la lista
             if (autoSelect && this.agenciasSubject.value.length > 0) {
-              console.log('ℹ️ DefaultAgencyService - Usuario sin agencia predeterminada, seleccionando primera agencia de la lista');
               agenciaSeleccionada = this.agenciasSubject.value[0].Id;
-              console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
             }
           }
           // Actualizar el BehaviorSubject
           if (agenciaSeleccionada) {
-            console.log('🎯 DefaultAgencyService - Estableciendo agencia seleccionada:', agenciaSeleccionada);
             this.selectedAgencySubject.next(agenciaSeleccionada);
           }
           observer.next(agenciaSeleccionada);
           observer.complete();
         },
         error: error => {
-          console.error('❌ DefaultAgencyService - Error obteniendo agencia predeterminada después de reintentos:', error);
-          console.warn('⚠️ DefaultAgencyService - No se pudo obtener agencia predeterminada, seleccionando primera agencia de la lista');
           // En caso de error, seleccionar la primera agencia disponible si está habilitado
           let agenciaSeleccionada = null;
           if (autoSelect && this.agenciasSubject.value.length > 0) {
             agenciaSeleccionada = this.agenciasSubject.value[0].Id;
-            console.log('ℹ️ DefaultAgencyService - Seleccionada primera agencia por defecto:', agenciaSeleccionada);
-            console.log('🔍 DefaultAgencyService - Primera agencia de la lista:', this.agenciasSubject.value[0]);
             this.selectedAgencySubject.next(agenciaSeleccionada);
           }
           observer.next(agenciaSeleccionada);
@@ -777,6 +726,20 @@ class DefaultAgencyService {
    */
   seleccionarAgencia(agenciaId) {
     this.selectedAgencySubject.next(agenciaId);
+  }
+  /**
+   * Actualizar la agencia predeterminada del usuario
+   */
+  actualizarAgenciaPredeterminada(agenciaId) {
+    return this.http.put(`${this.apiUrl}/api/user/profile/default-agency`, {
+      defaultAgency: agenciaId
+    }).pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_2__.map)(response => {
+      if (response && response.success) {
+        console.log('✅ DefaultAgencyService - Agencia predeterminada actualizada:', agenciaId);
+        return true;
+      }
+      return false;
+    }));
   }
   /**
    * Obtener la agencia actualmente seleccionada

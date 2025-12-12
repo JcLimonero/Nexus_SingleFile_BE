@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -71,7 +71,8 @@ import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialo
     AdvertenciaLiberadoDialogComponent
   ],
   templateUrl: './validacion.component.html',
-  styleUrl: './validacion.component.scss'
+  styleUrl: './validacion.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
@@ -142,6 +143,27 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Método auxiliar para el tooltip de fecha de expiración
   getFechaExpiracionTooltip(fechaExpiracion: string | null): string {
     return fechaExpiracion ? fechaExpiracion : '';
+  }
+
+  // TrackBy functions para optimizar *ngFor
+  trackByAgenciaId(index: number, item: any): any {
+    return item?.Id || index;
+  }
+
+  trackByProcesoId(index: number, item: any): any {
+    return item?.Id || index;
+  }
+
+  trackByFaseValue(index: number, item: CatalogItem): any {
+    return item?.value || index;
+  }
+
+  trackByClienteId(index: number, item: any): any {
+    return item?.idFile || item?.Id || index;
+  }
+
+  trackByDocumentoId(index: number, item: any): any {
+    return item?.idDocumentByFile || item?.Id || index;
   }
 
 
@@ -605,7 +627,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private authService: AuthService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     console.log('🔧 ValidacionComponent - Constructor ejecutado');
   }
@@ -688,6 +711,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.advertenciaLiquidacionMostrada = false;
     this.advertenciaLiberacionMostrada = false;
     this.advertenciaLiberadoMostrada = false;
+    this.cdr.markForCheck();
 
     // Cargar los documentos del archivo específico
     this.cargarDocumentosCliente(cliente.idFile);
@@ -923,12 +947,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.verificarAvanceFaseLiberacion(documentos);
           this.verificarAvanceFaseLiberado(documentos);
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ ValidacionComponent - Error cargando documentos:', error);
           this.mostrarError('Error cargando documentos del archivo');
           this.documentosDataSource = [];
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -1304,12 +1330,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           }
 
           this.loadingProcesos = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ ValidacionComponent - Error en subscribe de procesos:', error);
           this.procesos = [];
           this.selectedProcess = null;
           this.loadingProcesos = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -1331,6 +1359,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('📥 ValidacionComponent - Agencias cargadas desde servicio compartido:', agencias);
           this.agencias = agencias;
           this.loadingAgencias = false;
+          this.cdr.markForCheck();
 
           // Esperar un momento para asegurar que las agencias estén disponibles en el servicio
           setTimeout(() => {
@@ -1362,6 +1391,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.agencias = [];
           this.selectedAgency = null;
           this.loadingAgencias = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -1693,6 +1723,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       } else {
         this.selectedCliente = null;
       }
+      this.cdr.markForCheck();
       return;
     }
 
@@ -1764,6 +1795,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.selectedCliente = null;
     }
+    this.cdr.markForCheck();
   }
 
   /**
@@ -1841,11 +1873,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           }
 
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ ValidacionComponent - Error en subscribe de clientes:', error);
           this.clientesDataSource.data = [];
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -1886,6 +1920,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.sort) {
       this.clientesDataSource.sort = this.sort;
     }
+    this.cdr.markForCheck();
   }
 
   /**

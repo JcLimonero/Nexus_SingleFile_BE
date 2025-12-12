@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -49,7 +49,8 @@ import { OrderSelectionDialogComponent } from './order-selection-dialog.componen
     MatCheckboxModule
   ],
   templateUrl: './integracion.component.html',
-  styleUrls: ['./integracion.component.scss']
+  styleUrls: ['./integracion.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IntegracionComponent implements OnInit, OnDestroy {
   loading = false;
@@ -115,6 +116,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
+  // TrackBy functions para optimizar *ngFor
+  trackByDocumentId(index: number, item: any): any {
+    return item?.documentId || item?.Id || index;
+  }
+
+  trackByFileId(index: number, item: any): any {
+    return item?.idFile || item?.Id || index;
+  }
+
   // Headers para Vanguardia (ya no necesarios para upload directo)
   private getVanguardiaHeaders() {
     return {
@@ -131,7 +141,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     private vanguardiaClientService: VanguardiaClientService,
     private vanguardiaClientImportService: VanguardiaClientImportService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -193,6 +204,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.integrationStatus = 'active';
       this.loading = false;
+      this.cdr.markForCheck();
       this.snackBar.open('Integración completada exitosamente', 'Cerrar', {
         duration: 5000
       });
@@ -241,6 +253,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           console.log('🏢 Agencias asignadas al usuario:', agencias);
           this.agencies = agencias;
           this.agenciesLoading = false;
+          this.cdr.markForCheck();
           
           // Establecer agencia predeterminada
           setTimeout(() => {
@@ -271,6 +284,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           console.error('🏢 Error cargando agencias:', error);
           this.agencies = [];
           this.agenciesLoading = false;
+          this.cdr.markForCheck();
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
             duration: 3000
           });
@@ -280,6 +294,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   onAgencyChange(agencyId: number | null): void {
     this.selectedAgencyId = agencyId;
+    this.cdr.markForCheck();
     // Encontrar y guardar el objeto agencia completo
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
     // Aquí puedes agregar lógica adicional cuando cambie la agencia seleccionada
@@ -311,8 +326,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     return this.agencies && this.agencies.length > 0;
   }
 
-  trackByAgencyId(index: number, agency: any): number {
-    return agency.Id;
+  trackByAgencyId(index: number, agency: any): any {
+    return agency?.Id || index;
   }
 
   // Client search methods
@@ -372,6 +387,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           
           if (response && response.success && response.data && response.data.clientes) {
             this.clients = response.data.clientes;
+            this.cdr.markForCheck();
             
             // Si hay múltiples resultados, mostrar diálogo
             if (this.clients.length > 1) {
@@ -391,10 +407,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
           
           this.clientsLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
           console.error('❌ Error buscando clientes:', error);
           this.clients = [];
+          this.cdr.markForCheck();
           this.clientsLoading = false;
           this.snackBar.open('Error al buscar clientes', 'Cerrar', {
             duration: 3000
@@ -771,8 +789,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
-  trackByClientId(index: number, client: any): number {
-    return client.ndCliente;
+  trackByClientId(index: number, client: any): any {
+    return client?.ndCliente || client?.idCliente || client?.Id || index;
   }
 
   // Métodos para acciones de pedidos
@@ -1359,11 +1377,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
           
           this.documentsLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ Error cargando documentos:', error);
           this.requiredDocuments = [];
           this.documentsLoading = false;
+          this.cdr.markForCheck();
           this.snackBar.open('Error al cargar documentos requeridos', 'Cerrar', {
             duration: 3000
           });

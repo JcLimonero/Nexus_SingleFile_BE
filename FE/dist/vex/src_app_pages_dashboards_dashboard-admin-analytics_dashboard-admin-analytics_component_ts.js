@@ -38,7 +38,6 @@ class RealTimeAnalyticsService {
       // Por ahora simulamos la conexión
       this.simulateConnection();
     } catch (error) {
-      console.error('Error initializing WebSocket connection:', error);
       this.scheduleReconnect();
     }
   }
@@ -138,11 +137,9 @@ class RealTimeAnalyticsService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
         this.initializeConnection();
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
-      console.error('Max reconnection attempts reached');
       this.connectionStatus.next(false);
     }
   }
@@ -376,7 +373,7 @@ class WidgetAgencyMetricsComponent {
       }
     },
     dependencies: [_angular_common__WEBPACK_IMPORTED_MODULE_4__.CommonModule, _angular_common__WEBPACK_IMPORTED_MODULE_4__.NgIf, _angular_material_icon__WEBPACK_IMPORTED_MODULE_5__.MatIconModule, _angular_material_icon__WEBPACK_IMPORTED_MODULE_5__.MatIcon, _angular_material_card__WEBPACK_IMPORTED_MODULE_6__.MatCardModule, _angular_material_card__WEBPACK_IMPORTED_MODULE_6__.MatCard, _angular_material_progress_spinner__WEBPACK_IMPORTED_MODULE_7__.MatProgressSpinnerModule, _angular_material_progress_spinner__WEBPACK_IMPORTED_MODULE_7__.MatProgressSpinner],
-    styles: [".widget-agency-metrics[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%] {\n  transition-property: all;\n  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);\n  transition-duration: 200ms\n}\n.widget-agency-metrics[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%]:hover {\n  --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);\n  --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);\n  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);\n  transform: translateY(-2px)\n}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uL3NyYy9hcHAvcGFnZXMvZGFzaGJvYXJkcy9jb21wb25lbnRzL3dpZGdldHMvd2lkZ2V0LWFnZW5jeS1tZXRyaWNzL3dpZGdldC1hZ2VuY3ktbWV0cmljcy5jb21wb25lbnQuc2NzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFFSTtFQUFBLHdCQUFBO0VBQUEsd0RBQUE7RUFBQTtBQUFBO0FBQUE7RUFBQSw2RUFBQTtFQUFBLGlHQUFBO0VBQUEsdUdBQUE7RUFHRTtBQUhGIiwic291cmNlc0NvbnRlbnQiOlsiLndpZGdldC1hZ2VuY3ktbWV0cmljcyB7XHJcbiAgLm1ldHJpYy1jYXJkIHtcclxuICAgIEBhcHBseSB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgaG92ZXI6c2hhZG93LW1kO1xyXG4gICAgXHJcbiAgICAmOmhvdmVyIHtcclxuICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0ycHgpO1xyXG4gICAgfVxyXG4gIH1cclxufVxyXG4iXSwic291cmNlUm9vdCI6IiJ9 */"]
+    styles: [".widget-agency-metrics[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%] {\n  transition-property: all;\n  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);\n  transition-duration: 200ms\n}\n.widget-agency-metrics[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%]:hover {\n  --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);\n  --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);\n  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);\n  transform: translateY(-2px)\n}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uL3NyYy9hcHAvcGFnZXMvZGFzaGJvYXJkcy9jb21wb25lbnRzL3dpZGdldHMvd2lkZ2V0LWFnZW5jeS1tZXRyaWNzL3dpZGdldC1hZ2VuY3ktbWV0cmljcy5jb21wb25lbnQuc2NzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFFSTtFQUFBLHdCQUFBO0VBQUEsd0RBQUE7RUFBQTtBQUFBO0FBQUE7RUFBQSw2RUFBQTtFQUFBLGlHQUFBO0VBQUEsdUdBQUE7RUFHRTtBQUhGIiwic291cmNlc0NvbnRlbnQiOlsiLndpZGdldC1hZ2VuY3ktbWV0cmljcyB7XG4gIC5tZXRyaWMtY2FyZCB7XG4gICAgQGFwcGx5IHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCBob3ZlcjpzaGFkb3ctbWQ7XG4gICAgXG4gICAgJjpob3ZlciB7XG4gICAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLTJweCk7XG4gICAgfVxuICB9XG59XG4iXSwic291cmNlUm9vdCI6IiJ9 */"]
   });
 }
 
@@ -879,7 +876,6 @@ class DashboardAdminAnalyticsComponent {
     });
   }
   ngOnInit() {
-    console.log('🚀 Iniciando DashboardAdminAnalyticsComponent...');
     // Cargar usuario actual PRIMERO
     this.loadCurrentUser();
     // Luego cargar datos del dashboard
@@ -906,7 +902,6 @@ class DashboardAdminAnalyticsComponent {
         this.loading = false;
       },
       error: error => {
-        console.error('Error loading admin dashboard data:', error);
         this.error = 'Error al cargar datos del dashboard de administración';
         this.loading = false;
       }
@@ -916,7 +911,6 @@ class DashboardAdminAnalyticsComponent {
     this.realTimeService.connect();
   }
   onAgencyChange(agencyId) {
-    console.log('🏢 onAgencyChange llamado con agencyId:', agencyId);
     this.selectedAgencyId = agencyId;
     this.currentFilters = {
       ...this.currentFilters,
@@ -924,21 +918,28 @@ class DashboardAdminAnalyticsComponent {
     };
     // Cargar usuarios para la agencia seleccionada
     this.loadUsers(agencyId);
-    // Verificar si el usuario actual existe y es gerente/admin
-    console.log('🔍 Verificando usuario actual en onAgencyChange:', this.currentUser);
-    console.log('🔍 isManagerOrAdmin result:', this.isManagerOrAdmin(this.currentUser));
     // Si el usuario es gerente o administrador, seleccionar automáticamente "Todos los usuarios"
     if (this.isManagerOrAdmin(this.currentUser)) {
-      console.log('👑 Usuario es gerente/admin, seleccionando "Todos los usuarios" al cambiar agencia');
       this.selectedUserId = null;
       this.currentFilters = {
         ...this.currentFilters,
         userId: undefined
       };
-      console.log('👑 selectedUserId establecido a null al cambiar agencia');
-      console.log('👑 currentFilters después del cambio:', this.currentFilters);
-    } else {
-      console.log('👤 Usuario NO es gerente/admin, no se aplica selección automática');
+    }
+    // Actualizar la agencia predeterminada del usuario
+    if (agencyId !== null) {
+      this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
+        next: success => {
+          if (success) {
+            console.log('✅ DashboardAdminAnalyticsComponent - Agencia predeterminada actualizada:', agencyId);
+          } else {
+            console.warn('⚠️ DashboardAdminAnalyticsComponent - No se pudo actualizar la agencia predeterminada');
+          }
+        },
+        error: error => {
+          console.error('❌ DashboardAdminAnalyticsComponent - Error actualizando agencia predeterminada:', error);
+        }
+      });
     }
     this.loadDashboardData();
   }
@@ -971,29 +972,22 @@ class DashboardAdminAnalyticsComponent {
     return dateRange.startDate <= dateRange.endDate;
   }
   loadAgencies() {
-    console.log('🏢 Cargando agencias asignadas al usuario...');
     this.defaultAgencyService.obtenerAgencias().pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_10__.takeUntil)(this.destroy$)).subscribe({
       next: agencias => {
-        console.log('🏢 Agencias asignadas al usuario:', agencias);
         this.agencies = agencias;
         // Establecer agencia predeterminada
         setTimeout(() => {
           this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
             next: agenciaId => {
               if (agenciaId) {
-                console.log('✅ Agencia predeterminada establecida:', agenciaId);
                 this.selectedAgencyId = agenciaId;
                 this.onAgencyChange(agenciaId);
-              } else {
-                console.warn('⚠️ No se pudo establecer agencia predeterminada');
               }
             },
             error: error => {
-              console.error('❌ Error estableciendo agencia predeterminada:', error);
               // Si falla, intentar seleccionar la primera agencia disponible
               if (this.agencies.length > 0) {
                 const primeraAgencia = this.agencies[0];
-                console.log('🔄 Seleccionando primera agencia disponible como fallback:', primeraAgencia);
                 this.selectedAgencyId = primeraAgencia.Id;
                 this.onAgencyChange(primeraAgencia.Id);
               }
@@ -1002,7 +996,6 @@ class DashboardAdminAnalyticsComponent {
         }, 100);
       },
       error: error => {
-        console.error('🏢 Error cargando agencias:', error);
         this.agencies = [];
         this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
           duration: 3000
@@ -1011,16 +1004,12 @@ class DashboardAdminAnalyticsComponent {
     });
   }
   loadUsers(agencyId) {
-    console.log('👥 Cargando usuarios para agencia:', agencyId);
     this.userService.getUsersByAgency(agencyId || undefined).pipe((0,rxjs__WEBPACK_IMPORTED_MODULE_10__.takeUntil)(this.destroy$)).subscribe({
       next: response => {
-        console.log('👥 Respuesta de usuarios:', response);
         if (response.success && response.data && response.data.users) {
           this.users = response.data.users;
-          console.log('👥 Usuarios cargados:', this.users.length);
           // Verificar si debemos aplicar selección automática para administradores
           if (this.isManagerOrAdmin(this.currentUser)) {
-            console.log('👑 Aplicando selección automática después de cargar usuarios');
             setTimeout(() => {
               // Estrategia diferente: cambiar temporalmente el valor y luego establecerlo a null
               this.selectedUserId = -1; // Valor temporal que no existe
@@ -1031,26 +1020,20 @@ class DashboardAdminAnalyticsComponent {
                   ...this.currentFilters,
                   userId: undefined
                 };
-                console.log('👑 selectedUserId establecido a null después de cargar usuarios');
-                console.log('👑 currentFilters actualizado después de cargar usuarios:', this.currentFilters);
                 // Forzar detección de cambios para actualizar el dropdown
                 this.changeDetector.detectChanges();
-                console.log('🔄 Change detection ejecutado para actualizar dropdown');
                 // Forzar actualización del mat-select directamente
                 if (this.userSelect) {
                   this.userSelect.writeValue(null);
-                  console.log('🔄 MatSelect writeValue(null) ejecutado');
                 }
               }, 50);
             }, 100);
           }
         } else {
-          console.warn('👥 Respuesta de usuarios no válida:', response);
           this.users = [];
         }
       },
       error: error => {
-        console.error('👥 Error cargando usuarios:', error);
         this.users = [];
         this.snackBar.open('Error al cargar los usuarios', 'Cerrar', {
           duration: 3000
@@ -1059,33 +1042,20 @@ class DashboardAdminAnalyticsComponent {
     });
   }
   loadCurrentUser() {
-    console.log('👤 Cargando información del usuario actual...');
     // Obtener usuario actual del servicio de autenticación
     this.currentUser = this.authService.getCurrentUser();
     if (this.currentUser) {
-      console.log('👤 Usuario actual:', this.currentUser);
-      console.log('👤 Role ID:', this.currentUser.role_id);
-      console.log('👤 Role Name:', this.currentUser.role_name);
       // Verificar si el usuario es asesor u operador
       this.isUserFilterDisabled = this.isAdvisorOrOperator(this.currentUser);
-      console.log('🔒 isUserFilterDisabled:', this.isUserFilterDisabled);
       if (this.isUserFilterDisabled) {
-        console.log('🔒 Usuario es asesor u operador, deshabilitando filtro de usuario');
         // Seleccionar automáticamente el usuario actual
         this.selectedUserId = parseInt(this.currentUser.id);
         this.onUserChange(this.selectedUserId);
       } else if (this.isManagerOrAdmin(this.currentUser)) {
-        console.log('👑 Usuario es gerente o administrador, seleccionando "Todos los usuarios"');
         // Seleccionar automáticamente "Todos los usuarios"
         this.selectedUserId = null;
-        console.log('👑 selectedUserId establecido a:', this.selectedUserId);
         this.onUserChange(null);
-        console.log('👑 onUserChange(null) ejecutado');
-      } else {
-        console.log('👤 Usuario con rol no reconocido, no se aplica selección automática');
       }
-    } else {
-      console.warn('👤 No se pudo obtener información del usuario actual');
     }
   }
   isAdvisorOrOperator(user) {
@@ -1101,17 +1071,12 @@ class DashboardAdminAnalyticsComponent {
     }
     // Verificar por role_id (admin tiene role_id = '7')
     if (user.role_id === '7' || user.role_id === 7) {
-      console.log('👑 Usuario identificado como admin por role_id:', user.role_id);
       return true;
     }
     // Verificar por role_name
     if (user.role_name) {
       const roleName = user.role_name.toLowerCase();
-      const isManagerOrAdmin = roleName.includes('gerente') || roleName.includes('administrador') || roleName.includes('admin');
-      if (isManagerOrAdmin) {
-        console.log('👑 Usuario identificado como gerente/admin por role_name:', user.role_name);
-      }
-      return isManagerOrAdmin;
+      return roleName.includes('gerente') || roleName.includes('administrador') || roleName.includes('admin');
     }
     return false;
   }
@@ -1125,24 +1090,16 @@ class DashboardAdminAnalyticsComponent {
     return user?.Id || index;
   }
   onUserChange(userId) {
-    console.log('🔄 onUserChange llamado con userId:', userId);
     this.selectedUserId = userId;
-    console.log('🔄 selectedUserId actualizado a:', this.selectedUserId);
     this.currentFilters = {
       ...this.currentFilters,
       userId: userId || undefined
     };
-    console.log('🔄 currentFilters actualizado:', this.currentFilters);
     this.loadDashboardData();
   }
   // Método para verificar el estado actual del filtro
   getCurrentUserFilterState() {
-    console.log('🔍 Estado actual del filtro de usuario:');
-    console.log('  - selectedUserId:', this.selectedUserId);
-    console.log('  - isUserFilterDisabled:', this.isUserFilterDisabled);
-    console.log('  - users.length:', this.users.length);
-    console.log('  - currentUser.role_id:', this.currentUser?.role_id);
-    console.log('  - currentUser.role_name:', this.currentUser?.role_name);
+    // Método para debugging (sin logs)
   }
   clearUserFilter() {
     this.selectedUserId = null;
@@ -1235,14 +1192,12 @@ class DashboardAdminAnalyticsComponent {
     this.activeDateRange = 'thisYear';
   }
   searchData() {
-    console.log('🔍 Buscando con filtros actuales:', this.currentFilters);
     this.loadDashboardData();
   }
   hasAnyFilter() {
     return this.selectedAgencyId !== null || this.selectedUserId !== null || this.hasDateRange();
   }
   clearAllFilters() {
-    console.log('🧹 Limpiando todos los filtros');
     // Limpiar agencia
     this.selectedAgencyId = null;
     // Limpiar usuario
@@ -1280,7 +1235,6 @@ class DashboardAdminAnalyticsComponent {
         });
       },
       error: error => {
-        console.error('Error exporting admin analytics:', error);
         this.snackBar.open('Error al exportar el reporte de administración', 'Cerrar', {
           duration: 3000
         });
@@ -1480,7 +1434,7 @@ class DashboardAdminAnalyticsComponent {
       }
     },
     dependencies: [_angular_common__WEBPACK_IMPORTED_MODULE_12__.CommonModule, _angular_common__WEBPACK_IMPORTED_MODULE_12__.NgForOf, _angular_common__WEBPACK_IMPORTED_MODULE_12__.NgIf, _angular_common__WEBPACK_IMPORTED_MODULE_12__.DatePipe, _angular_material_icon__WEBPACK_IMPORTED_MODULE_13__.MatIconModule, _angular_material_icon__WEBPACK_IMPORTED_MODULE_13__.MatIcon, _angular_material_button__WEBPACK_IMPORTED_MODULE_14__.MatButtonModule, _angular_material_button__WEBPACK_IMPORTED_MODULE_14__.MatButton, _angular_material_button__WEBPACK_IMPORTED_MODULE_14__.MatIconButton, _angular_material_card__WEBPACK_IMPORTED_MODULE_15__.MatCardModule, _angular_material_card__WEBPACK_IMPORTED_MODULE_15__.MatCard, _angular_material_card__WEBPACK_IMPORTED_MODULE_15__.MatCardContent, _angular_material_card__WEBPACK_IMPORTED_MODULE_15__.MatCardHeader, _angular_material_card__WEBPACK_IMPORTED_MODULE_15__.MatCardTitle, _angular_material_tabs__WEBPACK_IMPORTED_MODULE_16__.MatTabsModule, _angular_material_tabs__WEBPACK_IMPORTED_MODULE_16__.MatTab, _angular_material_tabs__WEBPACK_IMPORTED_MODULE_16__.MatTabGroup, _angular_material_snack_bar__WEBPACK_IMPORTED_MODULE_11__.MatSnackBarModule, _components_widgets_widget_agency_metrics_widget_agency_metrics_component__WEBPACK_IMPORTED_MODULE_0__.WidgetAgencyMetricsComponent, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_17__.MatFormFieldModule, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_17__.MatFormField, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_17__.MatLabel, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_17__.MatHint, _angular_material_form_field__WEBPACK_IMPORTED_MODULE_17__.MatSuffix, _angular_material_select__WEBPACK_IMPORTED_MODULE_18__.MatSelectModule, _angular_material_select__WEBPACK_IMPORTED_MODULE_18__.MatSelect, _angular_material_core__WEBPACK_IMPORTED_MODULE_19__.MatOption, _angular_material_datepicker__WEBPACK_IMPORTED_MODULE_20__.MatDatepickerModule, _angular_material_datepicker__WEBPACK_IMPORTED_MODULE_20__.MatDatepicker, _angular_material_datepicker__WEBPACK_IMPORTED_MODULE_20__.MatDatepickerInput, _angular_material_datepicker__WEBPACK_IMPORTED_MODULE_20__.MatDatepickerToggle, _angular_material_input__WEBPACK_IMPORTED_MODULE_21__.MatInputModule, _angular_material_input__WEBPACK_IMPORTED_MODULE_21__.MatInput, _angular_material_core__WEBPACK_IMPORTED_MODULE_19__.MatNativeDateModule, _angular_material_tooltip__WEBPACK_IMPORTED_MODULE_22__.MatTooltipModule, _angular_material_tooltip__WEBPACK_IMPORTED_MODULE_22__.MatTooltip, _angular_forms__WEBPACK_IMPORTED_MODULE_9__.ReactiveFormsModule, _angular_forms__WEBPACK_IMPORTED_MODULE_9__.DefaultValueAccessor, _angular_forms__WEBPACK_IMPORTED_MODULE_9__.NgControlStatus, _angular_forms__WEBPACK_IMPORTED_MODULE_9__.FormControlName],
-    styles: [".admin-analytics-dashboard[_ngcontent-%COMP%]   .admin-tabs[_ngcontent-%COMP%]   .mat-tab-group[_ngcontent-%COMP%]   .mat-tab-header[_ngcontent-%COMP%] {\n  border-bottom: 2px solid #e5e7eb;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .admin-tabs[_ngcontent-%COMP%]   .mat-tab-group[_ngcontent-%COMP%]   .mat-tab-label[_ngcontent-%COMP%] {\n  font-weight: 500;\n  color: #6b7280;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .admin-tabs[_ngcontent-%COMP%]   .mat-tab-group[_ngcontent-%COMP%]   .mat-tab-label.mat-tab-label-active[_ngcontent-%COMP%] {\n  color: #3b82f6;\n  font-weight: 600;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .system-health-card[_ngcontent-%COMP%], .admin-analytics-dashboard[_ngcontent-%COMP%]   .security-metrics-card[_ngcontent-%COMP%], .admin-analytics-dashboard[_ngcontent-%COMP%]   .performance-metrics-card[_ngcontent-%COMP%], .admin-analytics-dashboard[_ngcontent-%COMP%]   .business-metrics-card[_ngcontent-%COMP%] {\n  transition: all 0.2s ease-in-out;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .system-health-card[_ngcontent-%COMP%]:hover, .admin-analytics-dashboard[_ngcontent-%COMP%]   .security-metrics-card[_ngcontent-%COMP%]:hover, .admin-analytics-dashboard[_ngcontent-%COMP%]   .performance-metrics-card[_ngcontent-%COMP%]:hover, .admin-analytics-dashboard[_ngcontent-%COMP%]   .business-metrics-card[_ngcontent-%COMP%]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .metric-value[_ngcontent-%COMP%] {\n  font-family: \"Monaco\", \"Menlo\", \"Ubuntu Mono\", monospace;\n  font-weight: 600;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator[_ngcontent-%COMP%] {\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  display: inline-block;\n  margin-right: 8px;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator.healthy[_ngcontent-%COMP%] {\n  background-color: #10b981;\n  animation: _ngcontent-%COMP%_pulse-green 2s infinite;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator.warning[_ngcontent-%COMP%] {\n  background-color: #f59e0b;\n  animation: _ngcontent-%COMP%_pulse-yellow 2s infinite;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator.critical[_ngcontent-%COMP%] {\n  background-color: #ef4444;\n  animation: _ngcontent-%COMP%_pulse-red 2s infinite;\n}\n@keyframes _ngcontent-%COMP%_pulse-green {\n  0%, 100% {\n    opacity: 1;\n    transform: scale(1);\n  }\n  50% {\n    opacity: 0.7;\n    transform: scale(1.1);\n  }\n}\n@keyframes _ngcontent-%COMP%_pulse-yellow {\n  0%, 100% {\n    opacity: 1;\n    transform: scale(1);\n  }\n  50% {\n    opacity: 0.7;\n    transform: scale(1.1);\n  }\n}\n@keyframes _ngcontent-%COMP%_pulse-red {\n  0%, 100% {\n    opacity: 1;\n    transform: scale(1);\n  }\n  50% {\n    opacity: 0.7;\n    transform: scale(1.1);\n  }\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%] {\n  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);\n  border: 1px solid #e2e8f0;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%]:hover {\n  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .real-time-section[_ngcontent-%COMP%] {\n  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);\n  border: 1px solid #f59e0b;\n  border-radius: 8px;\n  padding: 16px;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .loading-state[_ngcontent-%COMP%] {\n  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);\n  background-size: 200% 100%;\n  animation: _ngcontent-%COMP%_loading 1.5s infinite;\n}\n@keyframes _ngcontent-%COMP%_loading {\n  0% {\n    background-position: 200% 0;\n  }\n  100% {\n    background-position: -200% 0;\n  }\n}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uL3NyYy9hcHAvcGFnZXMvZGFzaGJvYXJkcy9kYXNoYm9hcmQtYWRtaW4tYW5hbHl0aWNzL2Rhc2hib2FyZC1hZG1pbi1hbmFseXRpY3MuY29tcG9uZW50LnNjc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBR007RUFDRSxnQ0FBQTtBQUZSO0FBS007RUFDRSxnQkFBQTtFQUNBLGNBQUE7QUFIUjtBQUtRO0VBQ0UsY0FBQTtFQUNBLGdCQUFBO0FBSFY7QUFTRTs7OztFQUlFLGdDQUFBO0FBUEo7QUFTSTs7OztFQUNFLDJCQUFBO0VBQ0EseUNBQUE7QUFKTjtBQVFFO0VBQ0Usd0RBQUE7RUFDQSxnQkFBQTtBQU5KO0FBU0U7RUFDRSxVQUFBO0VBQ0EsV0FBQTtFQUNBLGtCQUFBO0VBQ0EscUJBQUE7RUFDQSxpQkFBQTtBQVBKO0FBU0k7RUFDRSx5QkFBQTtFQUNBLGtDQUFBO0FBUE47QUFVSTtFQUNFLHlCQUFBO0VBQ0EsbUNBQUE7QUFSTjtBQVdJO0VBQ0UseUJBQUE7RUFDQSxnQ0FBQTtBQVROO0FBYUU7RUFDRTtJQUNFLFVBQUE7SUFDQSxtQkFBQTtFQVhKO0VBYUU7SUFDRSxZQUFBO0lBQ0EscUJBQUE7RUFYSjtBQUNGO0FBY0U7RUFDRTtJQUNFLFVBQUE7SUFDQSxtQkFBQTtFQVpKO0VBY0U7SUFDRSxZQUFBO0lBQ0EscUJBQUE7RUFaSjtBQUNGO0FBZUU7RUFDRTtJQUNFLFVBQUE7SUFDQSxtQkFBQTtFQWJKO0VBZUU7SUFDRSxZQUFBO0lBQ0EscUJBQUE7RUFiSjtBQUNGO0FBZ0JFO0VBQ0UsNkRBQUE7RUFDQSx5QkFBQTtBQWRKO0FBZ0JJO0VBQ0UsNkRBQUE7QUFkTjtBQWtCRTtFQUNFLDZEQUFBO0VBQ0EseUJBQUE7RUFDQSxrQkFBQTtFQUNBLGFBQUE7QUFoQko7QUFtQkU7RUFDRSx5RUFBQTtFQUNBLDBCQUFBO0VBQ0EsZ0NBQUE7QUFqQko7QUFvQkU7RUFDRTtJQUNFLDJCQUFBO0VBbEJKO0VBb0JFO0lBQ0UsNEJBQUE7RUFsQko7QUFDRiIsInNvdXJjZXNDb250ZW50IjpbIi5hZG1pbi1hbmFseXRpY3MtZGFzaGJvYXJkIHtcclxuICAuYWRtaW4tdGFicyB7XHJcbiAgICAubWF0LXRhYi1ncm91cCB7XHJcbiAgICAgIC5tYXQtdGFiLWhlYWRlciB7XHJcbiAgICAgICAgYm9yZGVyLWJvdHRvbTogMnB4IHNvbGlkICNlNWU3ZWI7XHJcbiAgICAgIH1cclxuICAgICAgXHJcbiAgICAgIC5tYXQtdGFiLWxhYmVsIHtcclxuICAgICAgICBmb250LXdlaWdodDogNTAwO1xyXG4gICAgICAgIGNvbG9yOiAjNmI3MjgwO1xyXG4gICAgICAgIFxyXG4gICAgICAgICYubWF0LXRhYi1sYWJlbC1hY3RpdmUge1xyXG4gICAgICAgICAgY29sb3I6ICMzYjgyZjY7XHJcbiAgICAgICAgICBmb250LXdlaWdodDogNjAwO1xyXG4gICAgICAgIH1cclxuICAgICAgfVxyXG4gICAgfVxyXG4gIH1cclxuXHJcbiAgLnN5c3RlbS1oZWFsdGgtY2FyZCxcclxuICAuc2VjdXJpdHktbWV0cmljcy1jYXJkLFxyXG4gIC5wZXJmb3JtYW5jZS1tZXRyaWNzLWNhcmQsXHJcbiAgLmJ1c2luZXNzLW1ldHJpY3MtY2FyZCB7XHJcbiAgICB0cmFuc2l0aW9uOiBhbGwgMC4ycyBlYXNlLWluLW91dDtcclxuICAgIFxyXG4gICAgJjpob3ZlciB7XHJcbiAgICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWSgtMnB4KTtcclxuICAgICAgYm94LXNoYWRvdzogMCA4cHggMjVweCByZ2JhKDAsIDAsIDAsIDAuMSk7XHJcbiAgICB9XHJcbiAgfVxyXG5cclxuICAubWV0cmljLXZhbHVlIHtcclxuICAgIGZvbnQtZmFtaWx5OiAnTW9uYWNvJywgJ01lbmxvJywgJ1VidW50dSBNb25vJywgbW9ub3NwYWNlO1xyXG4gICAgZm9udC13ZWlnaHQ6IDYwMDtcclxuICB9XHJcblxyXG4gIC5zdGF0dXMtaW5kaWNhdG9yIHtcclxuICAgIHdpZHRoOiA4cHg7XHJcbiAgICBoZWlnaHQ6IDhweDtcclxuICAgIGJvcmRlci1yYWRpdXM6IDUwJTtcclxuICAgIGRpc3BsYXk6IGlubGluZS1ibG9jaztcclxuICAgIG1hcmdpbi1yaWdodDogOHB4O1xyXG4gICAgXHJcbiAgICAmLmhlYWx0aHkge1xyXG4gICAgICBiYWNrZ3JvdW5kLWNvbG9yOiAjMTBiOTgxO1xyXG4gICAgICBhbmltYXRpb246IHB1bHNlLWdyZWVuIDJzIGluZmluaXRlO1xyXG4gICAgfVxyXG4gICAgXHJcbiAgICAmLndhcm5pbmcge1xyXG4gICAgICBiYWNrZ3JvdW5kLWNvbG9yOiAjZjU5ZTBiO1xyXG4gICAgICBhbmltYXRpb246IHB1bHNlLXllbGxvdyAycyBpbmZpbml0ZTtcclxuICAgIH1cclxuICAgIFxyXG4gICAgJi5jcml0aWNhbCB7XHJcbiAgICAgIGJhY2tncm91bmQtY29sb3I6ICNlZjQ0NDQ7XHJcbiAgICAgIGFuaW1hdGlvbjogcHVsc2UtcmVkIDJzIGluZmluaXRlO1xyXG4gICAgfVxyXG4gIH1cclxuXHJcbiAgQGtleWZyYW1lcyBwdWxzZS1ncmVlbiB7XHJcbiAgICAwJSwgMTAwJSB7XHJcbiAgICAgIG9wYWNpdHk6IDE7XHJcbiAgICAgIHRyYW5zZm9ybTogc2NhbGUoMSk7XHJcbiAgICB9XHJcbiAgICA1MCUge1xyXG4gICAgICBvcGFjaXR5OiAwLjc7XHJcbiAgICAgIHRyYW5zZm9ybTogc2NhbGUoMS4xKTtcclxuICAgIH1cclxuICB9XHJcblxyXG4gIEBrZXlmcmFtZXMgcHVsc2UteWVsbG93IHtcclxuICAgIDAlLCAxMDAlIHtcclxuICAgICAgb3BhY2l0eTogMTtcclxuICAgICAgdHJhbnNmb3JtOiBzY2FsZSgxKTtcclxuICAgIH1cclxuICAgIDUwJSB7XHJcbiAgICAgIG9wYWNpdHk6IDAuNztcclxuICAgICAgdHJhbnNmb3JtOiBzY2FsZSgxLjEpO1xyXG4gICAgfVxyXG4gIH1cclxuXHJcbiAgQGtleWZyYW1lcyBwdWxzZS1yZWQge1xyXG4gICAgMCUsIDEwMCUge1xyXG4gICAgICBvcGFjaXR5OiAxO1xyXG4gICAgICB0cmFuc2Zvcm06IHNjYWxlKDEpO1xyXG4gICAgfVxyXG4gICAgNTAlIHtcclxuICAgICAgb3BhY2l0eTogMC43O1xyXG4gICAgICB0cmFuc2Zvcm06IHNjYWxlKDEuMSk7XHJcbiAgICB9XHJcbiAgfVxyXG5cclxuICAubWV0cmljLWNhcmQge1xyXG4gICAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDEzNWRlZywgI2Y4ZmFmYyAwJSwgI2YxZjVmOSAxMDAlKTtcclxuICAgIGJvcmRlcjogMXB4IHNvbGlkICNlMmU4ZjA7XHJcbiAgICBcclxuICAgICY6aG92ZXIge1xyXG4gICAgICBiYWNrZ3JvdW5kOiBsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCAjZjFmNWY5IDAlLCAjZTJlOGYwIDEwMCUpO1xyXG4gICAgfVxyXG4gIH1cclxuXHJcbiAgLnJlYWwtdGltZS1zZWN0aW9uIHtcclxuICAgIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxMzVkZWcsICNmZWYzYzcgMCUsICNmZGU2OGEgMTAwJSk7XHJcbiAgICBib3JkZXI6IDFweCBzb2xpZCAjZjU5ZTBiO1xyXG4gICAgYm9yZGVyLXJhZGl1czogOHB4O1xyXG4gICAgcGFkZGluZzogMTZweDtcclxuICB9XHJcblxyXG4gIC5sb2FkaW5nLXN0YXRlIHtcclxuICAgIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCg5MGRlZywgI2YwZjBmMCAyNSUsICNlMGUwZTAgNTAlLCAjZjBmMGYwIDc1JSk7XHJcbiAgICBiYWNrZ3JvdW5kLXNpemU6IDIwMCUgMTAwJTtcclxuICAgIGFuaW1hdGlvbjogbG9hZGluZyAxLjVzIGluZmluaXRlO1xyXG4gIH1cclxuXHJcbiAgQGtleWZyYW1lcyBsb2FkaW5nIHtcclxuICAgIDAlIHtcclxuICAgICAgYmFja2dyb3VuZC1wb3NpdGlvbjogMjAwJSAwO1xyXG4gICAgfVxyXG4gICAgMTAwJSB7XHJcbiAgICAgIGJhY2tncm91bmQtcG9zaXRpb246IC0yMDAlIDA7XHJcbiAgICB9XHJcbiAgfVxyXG59XHJcbiJdLCJzb3VyY2VSb290IjoiIn0= */"]
+    styles: [".admin-analytics-dashboard[_ngcontent-%COMP%]   .admin-tabs[_ngcontent-%COMP%]   .mat-tab-group[_ngcontent-%COMP%]   .mat-tab-header[_ngcontent-%COMP%] {\n  border-bottom: 2px solid #e5e7eb;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .admin-tabs[_ngcontent-%COMP%]   .mat-tab-group[_ngcontent-%COMP%]   .mat-tab-label[_ngcontent-%COMP%] {\n  font-weight: 500;\n  color: #6b7280;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .admin-tabs[_ngcontent-%COMP%]   .mat-tab-group[_ngcontent-%COMP%]   .mat-tab-label.mat-tab-label-active[_ngcontent-%COMP%] {\n  color: #3b82f6;\n  font-weight: 600;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .system-health-card[_ngcontent-%COMP%], .admin-analytics-dashboard[_ngcontent-%COMP%]   .security-metrics-card[_ngcontent-%COMP%], .admin-analytics-dashboard[_ngcontent-%COMP%]   .performance-metrics-card[_ngcontent-%COMP%], .admin-analytics-dashboard[_ngcontent-%COMP%]   .business-metrics-card[_ngcontent-%COMP%] {\n  transition: all 0.2s ease-in-out;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .system-health-card[_ngcontent-%COMP%]:hover, .admin-analytics-dashboard[_ngcontent-%COMP%]   .security-metrics-card[_ngcontent-%COMP%]:hover, .admin-analytics-dashboard[_ngcontent-%COMP%]   .performance-metrics-card[_ngcontent-%COMP%]:hover, .admin-analytics-dashboard[_ngcontent-%COMP%]   .business-metrics-card[_ngcontent-%COMP%]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .metric-value[_ngcontent-%COMP%] {\n  font-family: \"Monaco\", \"Menlo\", \"Ubuntu Mono\", monospace;\n  font-weight: 600;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator[_ngcontent-%COMP%] {\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  display: inline-block;\n  margin-right: 8px;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator.healthy[_ngcontent-%COMP%] {\n  background-color: #10b981;\n  animation: _ngcontent-%COMP%_pulse-green 2s infinite;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator.warning[_ngcontent-%COMP%] {\n  background-color: #f59e0b;\n  animation: _ngcontent-%COMP%_pulse-yellow 2s infinite;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .status-indicator.critical[_ngcontent-%COMP%] {\n  background-color: #ef4444;\n  animation: _ngcontent-%COMP%_pulse-red 2s infinite;\n}\n@keyframes _ngcontent-%COMP%_pulse-green {\n  0%, 100% {\n    opacity: 1;\n    transform: scale(1);\n  }\n  50% {\n    opacity: 0.7;\n    transform: scale(1.1);\n  }\n}\n@keyframes _ngcontent-%COMP%_pulse-yellow {\n  0%, 100% {\n    opacity: 1;\n    transform: scale(1);\n  }\n  50% {\n    opacity: 0.7;\n    transform: scale(1.1);\n  }\n}\n@keyframes _ngcontent-%COMP%_pulse-red {\n  0%, 100% {\n    opacity: 1;\n    transform: scale(1);\n  }\n  50% {\n    opacity: 0.7;\n    transform: scale(1.1);\n  }\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%] {\n  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);\n  border: 1px solid #e2e8f0;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .metric-card[_ngcontent-%COMP%]:hover {\n  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .real-time-section[_ngcontent-%COMP%] {\n  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);\n  border: 1px solid #f59e0b;\n  border-radius: 8px;\n  padding: 16px;\n}\n.admin-analytics-dashboard[_ngcontent-%COMP%]   .loading-state[_ngcontent-%COMP%] {\n  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);\n  background-size: 200% 100%;\n  animation: _ngcontent-%COMP%_loading 1.5s infinite;\n}\n@keyframes _ngcontent-%COMP%_loading {\n  0% {\n    background-position: 200% 0;\n  }\n  100% {\n    background-position: -200% 0;\n  }\n}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly8uL3NyYy9hcHAvcGFnZXMvZGFzaGJvYXJkcy9kYXNoYm9hcmQtYWRtaW4tYW5hbHl0aWNzL2Rhc2hib2FyZC1hZG1pbi1hbmFseXRpY3MuY29tcG9uZW50LnNjc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBR007RUFDRSxnQ0FBQTtBQUZSO0FBS007RUFDRSxnQkFBQTtFQUNBLGNBQUE7QUFIUjtBQUtRO0VBQ0UsY0FBQTtFQUNBLGdCQUFBO0FBSFY7QUFTRTs7OztFQUlFLGdDQUFBO0FBUEo7QUFTSTs7OztFQUNFLDJCQUFBO0VBQ0EseUNBQUE7QUFKTjtBQVFFO0VBQ0Usd0RBQUE7RUFDQSxnQkFBQTtBQU5KO0FBU0U7RUFDRSxVQUFBO0VBQ0EsV0FBQTtFQUNBLGtCQUFBO0VBQ0EscUJBQUE7RUFDQSxpQkFBQTtBQVBKO0FBU0k7RUFDRSx5QkFBQTtFQUNBLGtDQUFBO0FBUE47QUFVSTtFQUNFLHlCQUFBO0VBQ0EsbUNBQUE7QUFSTjtBQVdJO0VBQ0UseUJBQUE7RUFDQSxnQ0FBQTtBQVROO0FBYUU7RUFDRTtJQUNFLFVBQUE7SUFDQSxtQkFBQTtFQVhKO0VBYUU7SUFDRSxZQUFBO0lBQ0EscUJBQUE7RUFYSjtBQUNGO0FBY0U7RUFDRTtJQUNFLFVBQUE7SUFDQSxtQkFBQTtFQVpKO0VBY0U7SUFDRSxZQUFBO0lBQ0EscUJBQUE7RUFaSjtBQUNGO0FBZUU7RUFDRTtJQUNFLFVBQUE7SUFDQSxtQkFBQTtFQWJKO0VBZUU7SUFDRSxZQUFBO0lBQ0EscUJBQUE7RUFiSjtBQUNGO0FBZ0JFO0VBQ0UsNkRBQUE7RUFDQSx5QkFBQTtBQWRKO0FBZ0JJO0VBQ0UsNkRBQUE7QUFkTjtBQWtCRTtFQUNFLDZEQUFBO0VBQ0EseUJBQUE7RUFDQSxrQkFBQTtFQUNBLGFBQUE7QUFoQko7QUFtQkU7RUFDRSx5RUFBQTtFQUNBLDBCQUFBO0VBQ0EsZ0NBQUE7QUFqQko7QUFvQkU7RUFDRTtJQUNFLDJCQUFBO0VBbEJKO0VBb0JFO0lBQ0UsNEJBQUE7RUFsQko7QUFDRiIsInNvdXJjZXNDb250ZW50IjpbIi5hZG1pbi1hbmFseXRpY3MtZGFzaGJvYXJkIHtcbiAgLmFkbWluLXRhYnMge1xuICAgIC5tYXQtdGFiLWdyb3VwIHtcbiAgICAgIC5tYXQtdGFiLWhlYWRlciB7XG4gICAgICAgIGJvcmRlci1ib3R0b206IDJweCBzb2xpZCAjZTVlN2ViO1xuICAgICAgfVxuICAgICAgXG4gICAgICAubWF0LXRhYi1sYWJlbCB7XG4gICAgICAgIGZvbnQtd2VpZ2h0OiA1MDA7XG4gICAgICAgIGNvbG9yOiAjNmI3MjgwO1xuICAgICAgICBcbiAgICAgICAgJi5tYXQtdGFiLWxhYmVsLWFjdGl2ZSB7XG4gICAgICAgICAgY29sb3I6ICMzYjgyZjY7XG4gICAgICAgICAgZm9udC13ZWlnaHQ6IDYwMDtcbiAgICAgICAgfVxuICAgICAgfVxuICAgIH1cbiAgfVxuXG4gIC5zeXN0ZW0taGVhbHRoLWNhcmQsXG4gIC5zZWN1cml0eS1tZXRyaWNzLWNhcmQsXG4gIC5wZXJmb3JtYW5jZS1tZXRyaWNzLWNhcmQsXG4gIC5idXNpbmVzcy1tZXRyaWNzLWNhcmQge1xuICAgIHRyYW5zaXRpb246IGFsbCAwLjJzIGVhc2UtaW4tb3V0O1xuICAgIFxuICAgICY6aG92ZXIge1xuICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0ycHgpO1xuICAgICAgYm94LXNoYWRvdzogMCA4cHggMjVweCByZ2JhKDAsIDAsIDAsIDAuMSk7XG4gICAgfVxuICB9XG5cbiAgLm1ldHJpYy12YWx1ZSB7XG4gICAgZm9udC1mYW1pbHk6ICdNb25hY28nLCAnTWVubG8nLCAnVWJ1bnR1IE1vbm8nLCBtb25vc3BhY2U7XG4gICAgZm9udC13ZWlnaHQ6IDYwMDtcbiAgfVxuXG4gIC5zdGF0dXMtaW5kaWNhdG9yIHtcbiAgICB3aWR0aDogOHB4O1xuICAgIGhlaWdodDogOHB4O1xuICAgIGJvcmRlci1yYWRpdXM6IDUwJTtcbiAgICBkaXNwbGF5OiBpbmxpbmUtYmxvY2s7XG4gICAgbWFyZ2luLXJpZ2h0OiA4cHg7XG4gICAgXG4gICAgJi5oZWFsdGh5IHtcbiAgICAgIGJhY2tncm91bmQtY29sb3I6ICMxMGI5ODE7XG4gICAgICBhbmltYXRpb246IHB1bHNlLWdyZWVuIDJzIGluZmluaXRlO1xuICAgIH1cbiAgICBcbiAgICAmLndhcm5pbmcge1xuICAgICAgYmFja2dyb3VuZC1jb2xvcjogI2Y1OWUwYjtcbiAgICAgIGFuaW1hdGlvbjogcHVsc2UteWVsbG93IDJzIGluZmluaXRlO1xuICAgIH1cbiAgICBcbiAgICAmLmNyaXRpY2FsIHtcbiAgICAgIGJhY2tncm91bmQtY29sb3I6ICNlZjQ0NDQ7XG4gICAgICBhbmltYXRpb246IHB1bHNlLXJlZCAycyBpbmZpbml0ZTtcbiAgICB9XG4gIH1cblxuICBAa2V5ZnJhbWVzIHB1bHNlLWdyZWVuIHtcbiAgICAwJSwgMTAwJSB7XG4gICAgICBvcGFjaXR5OiAxO1xuICAgICAgdHJhbnNmb3JtOiBzY2FsZSgxKTtcbiAgICB9XG4gICAgNTAlIHtcbiAgICAgIG9wYWNpdHk6IDAuNztcbiAgICAgIHRyYW5zZm9ybTogc2NhbGUoMS4xKTtcbiAgICB9XG4gIH1cblxuICBAa2V5ZnJhbWVzIHB1bHNlLXllbGxvdyB7XG4gICAgMCUsIDEwMCUge1xuICAgICAgb3BhY2l0eTogMTtcbiAgICAgIHRyYW5zZm9ybTogc2NhbGUoMSk7XG4gICAgfVxuICAgIDUwJSB7XG4gICAgICBvcGFjaXR5OiAwLjc7XG4gICAgICB0cmFuc2Zvcm06IHNjYWxlKDEuMSk7XG4gICAgfVxuICB9XG5cbiAgQGtleWZyYW1lcyBwdWxzZS1yZWQge1xuICAgIDAlLCAxMDAlIHtcbiAgICAgIG9wYWNpdHk6IDE7XG4gICAgICB0cmFuc2Zvcm06IHNjYWxlKDEpO1xuICAgIH1cbiAgICA1MCUge1xuICAgICAgb3BhY2l0eTogMC43O1xuICAgICAgdHJhbnNmb3JtOiBzY2FsZSgxLjEpO1xuICAgIH1cbiAgfVxuXG4gIC5tZXRyaWMtY2FyZCB7XG4gICAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDEzNWRlZywgI2Y4ZmFmYyAwJSwgI2YxZjVmOSAxMDAlKTtcbiAgICBib3JkZXI6IDFweCBzb2xpZCAjZTJlOGYwO1xuICAgIFxuICAgICY6aG92ZXIge1xuICAgICAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDEzNWRlZywgI2YxZjVmOSAwJSwgI2UyZThmMCAxMDAlKTtcbiAgICB9XG4gIH1cblxuICAucmVhbC10aW1lLXNlY3Rpb24ge1xuICAgIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxMzVkZWcsICNmZWYzYzcgMCUsICNmZGU2OGEgMTAwJSk7XG4gICAgYm9yZGVyOiAxcHggc29saWQgI2Y1OWUwYjtcbiAgICBib3JkZXItcmFkaXVzOiA4cHg7XG4gICAgcGFkZGluZzogMTZweDtcbiAgfVxuXG4gIC5sb2FkaW5nLXN0YXRlIHtcbiAgICBiYWNrZ3JvdW5kOiBsaW5lYXItZ3JhZGllbnQoOTBkZWcsICNmMGYwZjAgMjUlLCAjZTBlMGUwIDUwJSwgI2YwZjBmMCA3NSUpO1xuICAgIGJhY2tncm91bmQtc2l6ZTogMjAwJSAxMDAlO1xuICAgIGFuaW1hdGlvbjogbG9hZGluZyAxLjVzIGluZmluaXRlO1xuICB9XG5cbiAgQGtleWZyYW1lcyBsb2FkaW5nIHtcbiAgICAwJSB7XG4gICAgICBiYWNrZ3JvdW5kLXBvc2l0aW9uOiAyMDAlIDA7XG4gICAgfVxuICAgIDEwMCUge1xuICAgICAgYmFja2dyb3VuZC1wb3NpdGlvbjogLTIwMCUgMDtcbiAgICB9XG4gIH1cbn1cbiJdLCJzb3VyY2VSb290IjoiIn0= */"]
   });
 }
 

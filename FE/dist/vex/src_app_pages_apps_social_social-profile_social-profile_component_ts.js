@@ -67,7 +67,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   UserProfileImageService: () => (/* binding */ UserProfileImageService)
 /* harmony export */ });
-/* harmony import */ var D_Developer_singleFile_Nexus_SingleFile_BE_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ 71670);
+/* harmony import */ var _Users_jclimonero_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ 71670);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/core */ 61699);
 /* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/common/http */ 54860);
 /* harmony import */ var _api_base_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./api-base.service */ 14461);
@@ -158,7 +158,7 @@ class UserProfileImageService {
    * Comprimir imagen antes de subir (opcional)
    */
   compressImage(file, maxWidth = 800, maxHeight = 800) {
-    return (0,D_Developer_singleFile_Nexus_SingleFile_BE_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       return new Promise(resolve => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -225,7 +225,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   SocialProfileComponent: () => (/* binding */ SocialProfileComponent)
 /* harmony export */ });
-/* harmony import */ var D_Developer_singleFile_Nexus_SingleFile_BE_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ 71670);
+/* harmony import */ var _Users_jclimonero_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ 71670);
 /* harmony import */ var _static_data_friend_suggestions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../../static-data/friend-suggestions */ 42598);
 /* harmony import */ var _vex_animations_fade_in_up_animation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @vex/animations/fade-in-up.animation */ 83951);
 /* harmony import */ var _vex_animations_fade_in_right_animation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @vex/animations/fade-in-right.animation */ 95982);
@@ -349,7 +349,7 @@ class SocialProfileComponent {
   }
   openChangePasswordDialog() {
     var _this = this;
-    return (0,D_Developer_singleFile_Nexus_SingleFile_BE_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       const {
         ChangePasswordDialogComponent
       } = yield Promise.all(/*! import() */[__webpack_require__.e("default-node_modules_angular_cdk_fesm2022_text-field_mjs"), __webpack_require__.e("default-node_modules_angular_material_fesm2022_input_mjs"), __webpack_require__.e("default-node_modules_angular_material_fesm2022_snack-bar_mjs"), __webpack_require__.e("default-node_modules_angular_material_fesm2022_progress-spinner_mjs"), __webpack_require__.e("src_app_pages_apps_social_change-password-dialog_index_ts")]).then(__webpack_require__.bind(__webpack_require__, /*! ../change-password-dialog */ 34272));
@@ -367,7 +367,7 @@ class SocialProfileComponent {
   }
   uploadProfileImage(event) {
     var _this2 = this;
-    return (0,D_Developer_singleFile_Nexus_SingleFile_BE_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       const file = event.target.files[0];
       if (!file) return;
       // Validar archivo
@@ -394,7 +394,7 @@ class SocialProfileComponent {
   }
   removeProfileImage() {
     var _this3 = this;
-    return (0,D_Developer_singleFile_Nexus_SingleFile_BE_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       try {
         const result = yield (0,rxjs__WEBPACK_IMPORTED_MODULE_10__.firstValueFrom)(_this3.userProfileImageService.removeProfileImage());
         if (result?.success) {

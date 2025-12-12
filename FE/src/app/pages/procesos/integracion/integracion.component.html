@@ -391,7 +391,7 @@
 
         <!-- Lista de documentos -->
         <div *ngIf="!documentsLoading" class="space-y-2">
-          <div *ngFor="let document of requiredDocuments" 
+          <div *ngFor="let document of requiredDocuments; trackBy: trackByDocumentId" 
                class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50"
                [class.opacity-50]="isDocumentUploading(document.documentId)">
             

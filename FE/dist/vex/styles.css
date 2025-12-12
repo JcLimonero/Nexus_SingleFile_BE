@@ -23233,6 +23233,9 @@ blockquote > * {
 :root :is(.\!min-h-6) {
   min-height: 1.5rem !important;
 }
+:root :is(.\!min-h-8) {
+  min-height: 2rem !important;
+}
 :root :is(.min-h-0) {
   min-height: 0px;
 }
@@ -24272,6 +24275,10 @@ blockquote > * {
 }
 :root :is(.font-mono) {
   font-family: Menlo, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+:root :is(.\!text-base) {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
 }
 :root :is(.\!text-sm) {
   font-size: 0.875rem !important;

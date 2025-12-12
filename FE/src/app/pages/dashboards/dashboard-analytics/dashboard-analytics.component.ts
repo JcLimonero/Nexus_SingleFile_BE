@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { defaultChartOptions } from '@vex/utils/default-chart-options';
 import { AnalyticsService, AnalyticsFilters } from '../../../core/services/analytics.service';
@@ -46,6 +46,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
   selector: 'vex-dashboard-analytics',
   templateUrl: './dashboard-analytics.component.html',
   styleUrls: ['./dashboard-analytics.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
     CommonModule,
@@ -170,10 +171,12 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.dashboardData = data;
           this.loading = false;
+          this.changeDetector.markForCheck();
         },
         error: (error) => {
           this.error = 'Error al cargar datos del dashboard';
           this.loading = false;
+          this.changeDetector.markForCheck();
         }
       });
   }
@@ -181,6 +184,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
     this.selectedAgencyId = agencyId;
     this.currentFilters = { ...this.currentFilters, agencyId: agencyId || undefined };
+    this.changeDetector.markForCheck();
 
     // Cargar usuarios para la agencia seleccionada
     this.loadUsers(agencyId);
@@ -226,6 +230,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         ...this.currentFilters,
         dateRange: dateRange
       };
+      this.changeDetector.markForCheck();
       // Solo disparar recarga si no estamos en inicialización
       if (!this.isInitializing) {
         this.filtersChange$.next();
@@ -236,6 +241,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         ...this.currentFilters,
         dateRange: undefined
       };
+      this.changeDetector.markForCheck();
       // Solo disparar recarga si no estamos en inicialización
       if (!this.isInitializing) {
         this.filtersChange$.next();
@@ -256,6 +262,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (agencias) => {
           this.agencies = agencias;
+          this.changeDetector.markForCheck();
 
           // Establecer agencia predeterminada
           setTimeout(() => {
@@ -293,6 +300,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.agencies = [];
+          this.changeDetector.markForCheck();
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
             duration: 3000
           });
@@ -314,6 +322,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         next: (response) => {
                       if (response.success && response.data && response.data.users) {
                         this.users = response.data.users;
+                        this.changeDetector.markForCheck();
 
                         // Verificar si debemos aplicar selección automática para administradores
                         if (this.isManagerOrAdmin(this.currentUser)) {
