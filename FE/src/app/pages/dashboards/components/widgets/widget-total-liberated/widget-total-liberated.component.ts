@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,7 +28,10 @@ export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy, OnChang
 
   private destroy$ = new Subject<void>();
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -55,10 +58,12 @@ export class WidgetTotalLiberatedComponent implements OnInit, OnDestroy, OnChang
         next: (data) => {
           this.data = data;
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (err) => {
           this.error = 'Error al cargar datos de expedientes liberados totales.';
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }

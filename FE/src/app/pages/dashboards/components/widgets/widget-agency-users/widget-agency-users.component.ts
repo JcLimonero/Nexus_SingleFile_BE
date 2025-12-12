@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,7 +27,10 @@ export class WidgetAgencyUsersComponent implements OnInit, OnDestroy, OnChanges 
 
   private destroy$ = new Subject<void>();
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -55,11 +58,13 @@ export class WidgetAgencyUsersComponent implements OnInit, OnDestroy, OnChanges 
         next: (data) => {
           this.totalUsers = data.totalUsers;
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('Error loading agency users data:', error);
           this.error = 'Error al cargar datos de usuarios';
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }

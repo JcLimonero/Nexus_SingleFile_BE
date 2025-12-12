@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -141,7 +141,10 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
   private destroy$ = new Subject<void>();
   private filtersChange$ = new Subject<void>();
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.initializeYears();
@@ -229,6 +232,7 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
             }
           ];
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.error = 'Error al cargar los datos de tendencia';
@@ -240,6 +244,7 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
             { name: 'Canceladas', data: Array(12).fill(0) },
             { name: 'Proceso', data: Array(12).fill(0) }
           ];
+          this.cdr.markForCheck();
         }
       });
   }

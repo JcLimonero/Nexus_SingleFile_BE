@@ -625,8 +625,9 @@ function WidgetAgencyUsersComponent_div_3_Template(rf, ctx) {
   }
 }
 class WidgetAgencyUsersComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.totalUsers = 0;
     this.loading = true;
     this.error = null;
@@ -654,16 +655,18 @@ class WidgetAgencyUsersComponent {
       next: data => {
         this.totalUsers = data.totalUsers;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         console.error('Error loading agency users data:', error);
         this.error = 'Error al cargar datos de usuarios';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
   static #_ = this.ɵfac = function WidgetAgencyUsersComponent_Factory(t) {
-    return new (t || WidgetAgencyUsersComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetAgencyUsersComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetAgencyUsersComponent,
@@ -1856,8 +1859,9 @@ function WidgetCurrentMonthLiberatedComponent_mat_card_3_Template(rf, ctx) {
   }
 }
 class WidgetCurrentMonthLiberatedComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.data = null;
     this.loading = true;
     this.error = null;
@@ -1883,11 +1887,13 @@ class WidgetCurrentMonthLiberatedComponent {
       next: data => {
         this.data = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         console.error('Error loading current month liberated data:', error);
         this.error = 'Error al cargar datos de expedientes liberados';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -1896,7 +1902,7 @@ class WidgetCurrentMonthLiberatedComponent {
     return months[new Date().getMonth()];
   }
   static #_ = this.ɵfac = function WidgetCurrentMonthLiberatedComponent_Factory(t) {
-    return new (t || WidgetCurrentMonthLiberatedComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetCurrentMonthLiberatedComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetCurrentMonthLiberatedComponent,
@@ -2087,8 +2093,9 @@ function WidgetCurrentMonthStatusComponent_div_14_Template(rf, ctx) {
   }
 }
 class WidgetCurrentMonthStatusComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.agencyId = null;
     this.userId = null;
     this.showDetails = true;
@@ -2213,6 +2220,7 @@ class WidgetCurrentMonthStatusComponent {
         this.statusData = data;
         this.updateChart();
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         console.error('📊 CurrentMonthStatus: Error loading current month status:', error);
@@ -2221,6 +2229,7 @@ class WidgetCurrentMonthStatusComponent {
         // Fallback a datos vacíos si hay error
         this.statusData = [];
         this.updateChart();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -2248,7 +2257,7 @@ class WidgetCurrentMonthStatusComponent {
     return this.statusData.reduce((total, item) => total + item.totalCases, 0);
   }
   static #_ = this.ɵfac = function WidgetCurrentMonthStatusComponent_Factory(t) {
-    return new (t || WidgetCurrentMonthStatusComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_2__.AnalyticsService));
+    return new (t || WidgetCurrentMonthStatusComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_2__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_3__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineComponent"]({
     type: WidgetCurrentMonthStatusComponent,
@@ -3147,8 +3156,9 @@ function WidgetMonthlyCasesComponent_div_3_Template(rf, ctx) {
   }
 }
 class WidgetMonthlyCasesComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.monthlyCases = 0;
     this.loading = true;
     this.error = null;
@@ -3175,10 +3185,12 @@ class WidgetMonthlyCasesComponent {
       next: data => {
         this.monthlyCases = data.monthlyCases;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         this.error = 'Error al cargar datos de expedientes del mes';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -3187,7 +3199,7 @@ class WidgetMonthlyCasesComponent {
     return months[new Date().getMonth()];
   }
   static #_ = this.ɵfac = function WidgetMonthlyCasesComponent_Factory(t) {
-    return new (t || WidgetMonthlyCasesComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetMonthlyCasesComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetMonthlyCasesComponent,
@@ -3981,8 +3993,9 @@ function WidgetTodayCasesComponent_div_3_Template(rf, ctx) {
   }
 }
 class WidgetTodayCasesComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.todayCases = 0;
     this.loading = true;
     this.error = null;
@@ -4009,15 +4022,17 @@ class WidgetTodayCasesComponent {
       next: data => {
         this.todayCases = data.todayCases;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         this.error = 'Error al cargar datos de expedientes del día';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
   static #_ = this.ɵfac = function WidgetTodayCasesComponent_Factory(t) {
-    return new (t || WidgetTodayCasesComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetTodayCasesComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetTodayCasesComponent,
@@ -4125,8 +4140,9 @@ function WidgetTotalCasesComponent_div_3_Template(rf, ctx) {
   }
 }
 class WidgetTotalCasesComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.totalCases = 0;
     this.loading = true;
     this.error = null;
@@ -4153,15 +4169,17 @@ class WidgetTotalCasesComponent {
       next: data => {
         this.totalCases = data.totalCases;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         this.error = 'Error al cargar datos de expedientes totales';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
   static #_ = this.ɵfac = function WidgetTotalCasesComponent_Factory(t) {
-    return new (t || WidgetTotalCasesComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetTotalCasesComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetTotalCasesComponent,
@@ -4280,8 +4298,9 @@ function WidgetTotalLiberatedComponent_mat_card_3_Template(rf, ctx) {
   }
 }
 class WidgetTotalLiberatedComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.agencyId = null;
     this.userId = null;
     this.data = null;
@@ -4308,15 +4327,17 @@ class WidgetTotalLiberatedComponent {
       next: data => {
         this.data = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: err => {
         this.error = 'Error al cargar datos de expedientes liberados totales.';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
   static #_ = this.ɵfac = function WidgetTotalLiberatedComponent_Factory(t) {
-    return new (t || WidgetTotalLiberatedComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetTotalLiberatedComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetTotalLiberatedComponent,
@@ -4443,8 +4464,9 @@ function WidgetTrendChartComponent_vex_chart_12_Template(rf, ctx) {
   }
 }
 class WidgetTrendChartComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.agencyId = null;
     this.userId = null;
     this.showDetails = true;
@@ -4606,6 +4628,7 @@ class WidgetTrendChartComponent {
           data: data.proceso || []
         }];
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         this.error = 'Error al cargar los datos de tendencia';
@@ -4621,6 +4644,7 @@ class WidgetTrendChartComponent {
           name: 'Proceso',
           data: Array(12).fill(0)
         }];
+        this.cdr.markForCheck();
       }
     });
   }
@@ -4769,7 +4793,7 @@ class WidgetTrendChartComponent {
     this.loadTrendData();
   }
   static #_ = this.ɵfac = function WidgetTrendChartComponent_Factory(t) {
-    return new (t || WidgetTrendChartComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_2__.AnalyticsService));
+    return new (t || WidgetTrendChartComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_2__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_3__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineComponent"]({
     type: WidgetTrendChartComponent,
@@ -4943,8 +4967,9 @@ function WidgetWeeklyChartComponent_div_14_Template(rf, ctx) {
   }
 }
 class WidgetWeeklyChartComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.agencyId = null;
     this.userId = null;
     this.showDetails = true;
@@ -5062,12 +5087,14 @@ class WidgetWeeklyChartComponent {
           this.updateChart();
         }
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         this.error = 'Error al cargar los datos semanales';
         this.weeklyData = [];
         this.updateChart();
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -5098,7 +5125,7 @@ class WidgetWeeklyChartComponent {
     return this.weeklyData.length;
   }
   static #_ = this.ɵfac = function WidgetWeeklyChartComponent_Factory(t) {
-    return new (t || WidgetWeeklyChartComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_2__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_1__.AnalyticsService));
+    return new (t || WidgetWeeklyChartComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_2__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_1__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_2__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_2__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_2__["ɵɵdefineComponent"]({
     type: WidgetWeeklyChartComponent,

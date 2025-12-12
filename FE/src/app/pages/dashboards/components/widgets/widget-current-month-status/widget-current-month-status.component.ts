@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -128,7 +128,10 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
 
   private destroy$ = new Subject<void>();
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.setCurrentMonth();
@@ -180,6 +183,7 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
           this.statusData = data;
           this.updateChart();
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('📊 CurrentMonthStatus: Error loading current month status:', error);
@@ -189,6 +193,7 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
           // Fallback a datos vacíos si hay error
           this.statusData = [];
           this.updateChart();
+          this.cdr.markForCheck();
         }
       });
   }

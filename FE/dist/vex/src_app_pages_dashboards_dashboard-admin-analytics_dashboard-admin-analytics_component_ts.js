@@ -286,8 +286,9 @@ function WidgetAgencyMetricsComponent_div_3_Template(rf, ctx) {
   }
 }
 class WidgetAgencyMetricsComponent {
-  constructor(analyticsService) {
+  constructor(analyticsService, cdr) {
     this.analyticsService = analyticsService;
+    this.cdr = cdr;
     this.agencyId = null;
     this.showDetails = true;
     this.compact = false;
@@ -326,11 +327,13 @@ class WidgetAgencyMetricsComponent {
         console.log('🏢 AgencyMetrics: Received metrics:', metrics);
         this.agencyMetrics = metrics;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: error => {
         console.error('🏢 AgencyMetrics: Error loading agency metrics:', error);
         this.error = 'Error al cargar métricas de agencia';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -342,7 +345,7 @@ class WidgetAgencyMetricsComponent {
     return months[new Date().getMonth()];
   }
   static #_ = this.ɵfac = function WidgetAgencyMetricsComponent_Factory(t) {
-    return new (t || WidgetAgencyMetricsComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService));
+    return new (t || WidgetAgencyMetricsComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_core_services_analytics_service__WEBPACK_IMPORTED_MODULE_0__.AnalyticsService), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__.ChangeDetectorRef));
   };
   static #_2 = this.ɵcmp = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({
     type: WidgetAgencyMetricsComponent,
