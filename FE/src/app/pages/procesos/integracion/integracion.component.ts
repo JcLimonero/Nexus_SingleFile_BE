@@ -73,6 +73,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   // Files/Pedidos properties
   files: any[] = [];
   filesLoading = false;
+  loadingOrdersFromVanguardia = false; // Loading para el botón de agregar pedidos
   filesDisplayedColumns: string[] = [
     'numeroPedido',
     'numeroInventario', 
@@ -770,18 +771,39 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           console.log('📁 Files encontrados en tabla file:', response);
           
           if (response && response.success && response.data && response.data.files) {
-            this.files = response.data.files;
+            // Normalizar nombres de propiedades a minúsculas para asegurar consistencia
+            this.files = response.data.files.map((file: any) => ({
+              ...file,
+              // Asegurar que los campos estén en minúsculas (por si vienen en mayúsculas)
+              year: file.year || file.Year || null,
+              modelo: file.modelo || file.Modelo || null,
+              version: file.version || file.Version || null,
+              vin: file.vin || file.VIN || file.Vin || null
+            }));
+            
+            // Debug: Verificar estructura de datos
+            if (this.files.length > 0) {
+              console.log('📊 Primer file (ejemplo):', this.files[0]);
+              console.log('📊 Campos año, modelo, versión, VIN:', {
+                year: this.files[0].year,
+                modelo: this.files[0].modelo,
+                version: this.files[0].version,
+                vin: this.files[0].vin
+              });
+            }
           } else {
             this.files = [];
           }
           
           this.updateFilesDisplay();
           this.filesLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ Error cargando files:', error);
           this.files = [];
           this.filesLoading = false;
+          this.cdr.markForCheck();
           this.snackBar.open('Error al cargar los pedidos del cliente', 'Cerrar', {
             duration: 3000
           });
@@ -881,8 +903,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private loadOrdersFromVanguardia(): void {
     console.log('🔍 Cargando pedidos desde Vanguardia...');
     
+    // Activar loading
+    this.loadingOrdersFromVanguardia = true;
+    this.cdr.markForCheck();
+    
     // Verificar que la agencia tenga AgencyConnection
     if (!this.selectedAgency.AgencyConnection) {
+      this.loadingOrdersFromVanguardia = false;
+      this.cdr.markForCheck();
       this.snackBar.open('La agencia seleccionada no tiene connectionstring configurado', 'Cerrar', {
         duration: 3000
       });
@@ -905,6 +933,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          // Desactivar loading
+          this.loadingOrdersFromVanguardia = false;
+          this.cdr.markForCheck();
           console.log('🔍 Respuesta completa de Vanguardia:', response);
           
           // Verificar diferentes estructuras de respuesta posibles
@@ -961,12 +992,19 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             });
           } else {
             console.log('⚠️ No se encontraron pedidos válidos en la respuesta:', response);
+            // Desactivar loading
+            this.loadingOrdersFromVanguardia = false;
+            this.cdr.markForCheck();
             this.snackBar.open('No se encontraron pedidos en Vanguardia para este cliente', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
+          // Desactivar loading
+          this.loadingOrdersFromVanguardia = false;
+          this.cdr.markForCheck();
+          
           console.error('❌ Error cargando pedidos desde Vanguardia:', error);
           
           let errorMessage = 'Error desconocido al cargar pedidos desde Vanguardia';
@@ -1186,6 +1224,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             if (newOrders.length === 0) {
               console.log('ℹ️ No hay pedidos nuevos para mostrar');
+              // Desactivar loading
+              this.loadingOrdersFromVanguardia = false;
+              this.cdr.markForCheck();
               this.snackBar.open('Todos los pedidos de Vanguardia ya existen en el sistema', 'Cerrar', {
                 duration: 3000
               });
@@ -1196,12 +1237,18 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             this.openOrderSelectionDialog(newOrders);
           } else {
             console.error('❌ Error en la respuesta de verificación:', response);
+            // Desactivar loading
+            this.loadingOrdersFromVanguardia = false;
+            this.cdr.markForCheck();
             this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
+          // Desactivar loading
+          this.loadingOrdersFromVanguardia = false;
+          this.cdr.markForCheck();
           console.error('❌ Error verificando pedidos existentes:', error);
           this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
             duration: 3000
@@ -1212,6 +1259,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   private openOrderSelectionDialog(orders: any[]): void {
     console.log('🚀 Abriendo diálogo con pedidos filtrados:', orders.length, 'pedidos nuevos');
+    
+    // Desactivar loading cuando se abre el diálogo
+    this.loadingOrdersFromVanguardia = false;
+    this.cdr.markForCheck();
     
     try {
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
@@ -1241,6 +1292,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         }
       });
     } catch (error) {
+      // Desactivar loading en caso de error
+      this.loadingOrdersFromVanguardia = false;
+      this.cdr.markForCheck();
       console.error('❌ Error abriendo diálogo:', error);
       this.snackBar.open('Error al abrir el diálogo de selección', 'Cerrar', {
         duration: 3000
@@ -1254,12 +1308,19 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     console.log('📊 Cantidad de pedidos:', orders?.length || 0);
     
     if (!orders || orders.length === 0) {
+      // Desactivar loading
+      this.loadingOrdersFromVanguardia = false;
+      this.cdr.markForCheck();
       console.error('❌ No hay pedidos para mostrar en el diálogo');
       this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
         duration: 3000
       });
       return;
     }
+
+    // Desactivar loading cuando se abre el diálogo
+    this.loadingOrdersFromVanguardia = false;
+    this.cdr.markForCheck();
 
     try {
       console.log('🚀 Abriendo diálogo de selección...');

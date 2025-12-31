@@ -124,7 +124,7 @@ class Files extends BaseController
                 LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
                 LEFT JOIN Agency a ON f.IdAgency = a.Id
                 LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                LEFT JOIN OrderByCar obc ON f.IdAgency = obc.idagency AND f.IdOrderTotal = obc.Number
+                LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
                 WHERE a.IdAgency = ?
             ";
 
@@ -151,6 +151,21 @@ class Files extends BaseController
 
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
+            
+            // Log para diagnóstico: verificar si los datos vienen correctamente
+            if (!empty($results)) {
+                error_log("=== DIAGNÓSTICO getByAgency ===");
+                error_log("Total de files encontrados: " . count($results));
+                error_log("Primer file (ejemplo): " . json_encode($results[0]));
+                if (isset($results[0]['year']) || isset($results[0]['modelo']) || isset($results[0]['version']) || isset($results[0]['vin'])) {
+                    error_log("✅ Campos year, modelo, version, vin están presentes en los resultados");
+                    error_log("Valores: year=" . ($results[0]['year'] ?? 'NULL') . ", modelo=" . ($results[0]['modelo'] ?? 'NULL') . ", version=" . ($results[0]['version'] ?? 'NULL') . ", vin=" . ($results[0]['vin'] ?? 'NULL'));
+                } else {
+                    error_log("❌ Campos year, modelo, version, vin NO están presentes o son NULL");
+                }
+            } else {
+                error_log("⚠️ No se encontraron files para los parámetros dados");
+            }
 
             return $this->response->setJSON([
                 'success' => true,
@@ -163,10 +178,97 @@ class Files extends BaseController
 
         } catch (\Exception $e) {
             error_log("Error en Files::getByAgency: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage(),
                 'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+    
+    /**
+     * Endpoint de diagnóstico para verificar el JOIN con OrderByCar
+     * GET /api/files/debug-join-orderbycar?agencyId=10082&ndCliente=200945&statusId=1
+     */
+    public function debugJoinOrderByCar()
+    {
+        try {
+            $agencyId = $this->request->getGet('agencyId');
+            $statusId = $this->request->getGet('statusId');
+            $ndCliente = $this->request->getGet('ndCliente');
+
+            if (!$agencyId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro agencyId es requerido'
+                ])->setStatusCode(400);
+            }
+
+            // Query de diagnóstico
+            $sql = "
+                SELECT 
+                    f.Id as fileId,
+                    f.IdOrderTotal as file_numeroPedido,
+                    f.IdInventary as numeroInventario,
+                    obc.Id as orderByCarId,
+                    obc.Number as orderByCar_Number,
+                    obc.IdTotalDealer as orderByCar_IdTotalDealer,
+                    obc.Year as year,
+                    obc.Modelo as modelo,
+                    obc.CarType as version,
+                    obc.VIN as vin,
+                    CASE 
+                        WHEN f.IdOrderTotal = obc.IdTotalDealer THEN 'COINCIDENCIA CON IdTotalDealer'
+                        WHEN obc.Id IS NULL THEN 'NO HAY REGISTRO EN OrderByCar'
+                        ELSE 'NO COINCIDE'
+                    END as estado_join
+                FROM File f
+                LEFT JOIN Agency a ON f.IdAgency = a.Id
+                LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
+                WHERE a.IdAgency = ?
+            ";
+
+            $params = [$agencyId];
+
+            if ($statusId && trim($statusId) !== '') {
+                $sql .= " AND fs.Id = ?";
+                $params[] = $statusId;
+            }
+
+            if ($ndCliente && trim($ndCliente) !== '') {
+                $sql .= " AND f.IdClient IN (
+                    SELECT hc.Id 
+                    FROM HeaderClient hc 
+                    INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
+                    WHERE ctr.IdTotalDealer = ?
+                )";
+                $params[] = $ndCliente;
+            }
+
+            $sql .= " ORDER BY f.RegistrationDate DESC";
+
+            $query = $this->db->query($sql, $params);
+            $results = $query->getResultArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Diagnóstico de JOIN con OrderByCar',
+                'data' => [
+                    'files' => $results,
+                    'total' => count($results),
+                    'query' => $sql,
+                    'params' => $params
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error en Files::debugJoinOrderByCar: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }

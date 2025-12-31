@@ -30,7 +30,7 @@ class Database extends Config
         'hostname'     => '192.168.190.140',
         'username'     => 'vgd_testing',
         'password'     => '00@DealerSolutions',
-        'database'     => 'singlefile_db',
+        'database'     => 'single_file',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,

@@ -127,8 +127,10 @@
             color="primary"
             (click)="agregarPedidoIntegracion()"
             matTooltip="Agregar nuevo pedido de integración"
+            [disabled]="loadingOrdersFromVanguardia"
             *ngIf="isManagerOrAdmin">
-            <mat-icon style="font-size: 18px;">add</mat-icon>
+            <mat-spinner *ngIf="loadingOrdersFromVanguardia" diameter="18" style="display: inline-block;"></mat-spinner>
+            <mat-icon *ngIf="!loadingOrdersFromVanguardia" style="font-size: 18px;">add</mat-icon>
           </button>
         </mat-card-title>
       </mat-card-header>
@@ -225,7 +227,7 @@
             <ng-container matColumnDef="year">
               <th mat-header-cell *matHeaderCellDef>Año</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.year; else noYear" class="text-sm">{{ file.year }}</span>
+                <span *ngIf="file.year != null && file.year !== ''; else noYear" class="text-sm">{{ file.year }}</span>
                 <ng-template #noYear>
                   <span class="text-gray-400 italic text-sm">-</span>
                 </ng-template>
@@ -236,7 +238,7 @@
             <ng-container matColumnDef="modelo">
               <th mat-header-cell *matHeaderCellDef>Modelo</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.modelo; else noModel" class="text-sm">{{ file.modelo }}</span>
+                <span *ngIf="file.modelo != null && file.modelo !== ''; else noModel" class="text-sm">{{ file.modelo }}</span>
                 <ng-template #noModel>
                   <span class="text-gray-400 italic text-sm">Sin modelo</span>
                 </ng-template>
@@ -247,7 +249,7 @@
             <ng-container matColumnDef="version">
               <th mat-header-cell *matHeaderCellDef>Versión</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.version; else noVersion" class="text-sm">{{ file.version }}</span>
+                <span *ngIf="file.version != null && file.version !== ''; else noVersion" class="text-sm">{{ file.version }}</span>
                 <ng-template #noVersion>
                   <span class="text-gray-400 italic text-sm">Sin versión</span>
                 </ng-template>
@@ -258,7 +260,7 @@
             <ng-container matColumnDef="vin">
               <th mat-header-cell *matHeaderCellDef>VIN</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.vin; else noVin" class="text-sm font-mono">{{ file.vin }}</span>
+                <span *ngIf="file.vin != null && file.vin !== ''; else noVin" class="text-sm font-mono">{{ file.vin }}</span>
                 <ng-template #noVin>
                   <span class="text-gray-400 italic text-sm">Sin VIN</span>
                 </ng-template>
