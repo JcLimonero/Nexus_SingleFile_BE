@@ -103,6 +103,19 @@ import { environment } from '../../../../environments/environment';
               </td>
             </ng-container>
 
+            <!-- VIN Column -->
+            <ng-container matColumnDef="vin">
+              <th mat-header-cell *matHeaderCellDef>VIN</th>
+              <td mat-cell *matCellDef="let order">
+                <span *ngIf="order.vin || order.VIN || order.Vin; else noVin" class="order-info font-mono">
+                  {{ order.vin || order.VIN || order.Vin }}
+                </span>
+                <ng-template #noVin>
+                  <span class="text-gray-400 italic order-info">Sin VIN</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
             <!-- Model Column -->
             <ng-container matColumnDef="model">
               <th mat-header-cell *matHeaderCellDef>Modelo</th>
@@ -423,6 +436,11 @@ import { environment } from '../../../../environments/environment';
           width: 15% !important;
         }
         
+        .mat-column-vin {
+          min-width: 150px !important;
+          width: 18% !important;
+        }
+        
         .mat-column-colorExterior {
           min-width: 120px !important;
           width: 15% !important;
@@ -443,6 +461,7 @@ export class OrderSelectionDialogComponent implements OnInit {
     'select',
     'order_dms',
     'year',
+    'vin',
     'model',
     'version',
     'colorExterior',
