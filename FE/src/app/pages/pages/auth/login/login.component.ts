@@ -84,10 +84,25 @@ export class LoginComponent {
               duration: 3000
             });
             
-            // Navegar al dashboard después del login exitoso
-            this.router.navigate(['/']).then(() => {
-              }).catch(error => {
-            });
+            // Esperar un momento para asegurar que los datos de autenticación estén guardados
+            // antes de navegar (evita problemas de timing con el interceptor)
+            setTimeout(() => {
+              // Verificar que el token esté disponible antes de navegar
+              const token = this.authService.getToken();
+              if (token && this.authService.isAuthenticated()) {
+                this.router.navigate(['/']).then(() => {
+                  console.log('✅ Navegación exitosa al dashboard después del login');
+                }).catch(error => {
+                  console.error('❌ Error en navegación después del login:', error);
+                });
+              } else {
+                console.warn('⚠️ Token no disponible después del login, esperando...');
+                // Si el token no está disponible aún, esperar un poco más
+                setTimeout(() => {
+                  this.router.navigate(['/']);
+                }, 200);
+              }
+            }, 100);
           } else {
             this.snackbar.open(response.message || 'Error en el inicio de sesión', 'Error', {
               duration: 5000

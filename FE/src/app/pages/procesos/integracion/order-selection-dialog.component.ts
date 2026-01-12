@@ -188,18 +188,25 @@ import { environment } from '../../../../environments/environment';
         </div>
         </div>
 
-        <!-- Configuración del File (solo cuando hay pedido seleccionado) -->
-        <div *ngIf="selectedOrder && !loading" class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <!-- Loading mientras se crea el expediente -->
+        <div *ngIf="creating" class="mt-6 p-6 bg-blue-50 rounded-lg border border-blue-200 text-center">
+          <mat-spinner diameter="40" class="mx-auto mb-4"></mat-spinner>
+          <p class="text-blue-700 font-medium">Creando expediente...</p>
+          <p class="text-sm text-blue-600 mt-2">Por favor espera mientras se crea el expediente y los documentos requeridos</p>
+        </div>
+
+        <!-- Configuración del Expediente (solo cuando hay pedido seleccionado) -->
+        <div *ngIf="selectedOrder && !loading && !creating" class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
             <mat-icon class="mr-2">settings</mat-icon>
-            Configuración del File
+            Configuración del Expediente
           </h3>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Proceso -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Proceso</mat-label>
-              <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" required>
+              <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" [disabled]="creating" required>
                 <mat-option *ngFor="let process of processes" [value]="process">
                   {{ process.Name }}
                 </mat-option>
@@ -210,7 +217,7 @@ import { environment } from '../../../../environments/environment';
             <!-- Tipo de Cliente -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Tipo de Cliente</mat-label>
-              <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" required>
+              <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" [disabled]="creating" required>
                 <mat-option *ngFor="let costumerType of availableCostumerTypes" [value]="costumerType">
                   {{ costumerType.Name }}
                 </mat-option>
@@ -221,7 +228,7 @@ import { environment } from '../../../../environments/environment';
             <!-- Tipo de Operación -->
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Tipo de Operación</mat-label>
-              <mat-select [(ngModel)]="selectedOperationType" required>
+              <mat-select [(ngModel)]="selectedOperationType" [disabled]="creating" required>
                 <mat-option *ngFor="let operationType of availableOperationTypes" [value]="operationType">
                   {{ operationType.Name }}
                 </mat-option>
@@ -260,7 +267,7 @@ import { environment } from '../../../../environments/environment';
           {{ selectedOrder ? '1 pedido seleccionado' : 'Ningún pedido seleccionado' }}
         </div>
         <div class="flex gap-2">
-          <button mat-button (click)="onCancel()" class="text-sm">
+          <button mat-button (click)="onCancel()" [disabled]="creating" class="text-sm">
             <mat-icon class="mr-1" style="font-size: 16px;">close</mat-icon>
             Cancelar
           </button>
@@ -268,10 +275,11 @@ import { environment } from '../../../../environments/environment';
             mat-raised-button 
             color="primary" 
             (click)="onConfirm()" 
-            [disabled]="!isFormValid()"
+            [disabled]="!isFormValid() || creating"
             class="text-sm">
-            <mat-icon class="mr-1" style="font-size: 16px;">add</mat-icon>
-            Crear File
+            <mat-spinner *ngIf="creating" diameter="16" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+            <mat-icon *ngIf="!creating" class="mr-1" style="font-size: 16px;">add</mat-icon>
+            {{ creating ? 'Creando...' : 'Crear Expediente' }}
           </button>
         </div>
       </div>
@@ -475,6 +483,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   pageSize: number = 5;
   currentPage: number = 0;
   loading: boolean = true;
+  creating: boolean = false; // Estado de loading mientras se crea el expediente
   originalOrders: any[] = [];
 
   // Datos para los combos
@@ -610,6 +619,10 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   onCancel(): void {
+    // No permitir cerrar el diálogo mientras se está creando el expediente
+    if (this.creating) {
+      return;
+    }
     this.dialogRef.close();
   }
 
@@ -791,7 +804,10 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private createFileFromVanguardia(): void {
-    console.log('🔄 Creando file desde Vanguardia...');
+    console.log('🔄 Creando expediente desde Vanguardia...');
+    
+    // Activar estado de loading
+    this.creating = true;
     
     const requestData = {
       order: this.selectedOrder,
@@ -807,8 +823,10 @@ export class OrderSelectionDialogComponent implements OnInit {
     this.http.post<any>(`${environment.apiBaseUrl}/api/files/create-from-vanguardia-new`, requestData)
       .subscribe({
         next: (response) => {
+          this.creating = false; // Desactivar loading
+          
           if (response && response.success) {
-            console.log('✅ File creado exitosamente:', response.data);
+            console.log('✅ Expediente creado exitosamente:', response.data);
             this.dialogRef.close({
               success: true,
               fileId: response.data.fileId,
@@ -819,15 +837,16 @@ export class OrderSelectionDialogComponent implements OnInit {
             console.error('❌ Error en la respuesta:', response);
             this.dialogRef.close({
               success: false,
-              message: response.message || 'Error al crear el file'
+              message: response.message || 'Error al crear el expediente'
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error al crear file:', error);
+          this.creating = false; // Desactivar loading en caso de error
+          console.error('❌ Error al crear expediente:', error);
           this.dialogRef.close({
             success: false,
-            message: error.error?.message || 'Error de conexión al crear el file'
+            message: error.error?.message || 'Error de conexión al crear el expediente'
           });
         }
       });

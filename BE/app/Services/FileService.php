@@ -158,6 +158,8 @@ class FileService
         
         error_log("=== CREANDO FILE CON SELLER ID: " . $sellerId . " ===");
         
+        $idOrderTotal = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+        
         $fileData = [
             'IdClient' => $clientId,
             'IdAgency' => $internalAgencyId,
@@ -166,7 +168,9 @@ class FileService
             'IdOperation' => $operationType['Id'],
             'IdSeller' => $sellerId,
             'IdCurrentState' => 1, // Integración
-            'IdOrderTotal' => $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null,
+            'IdOrderTotal' => $idOrderTotal,
+            // IdOrder debe ser el ID de OrderByCar (foreign key), no IdOrderTotal
+            // Si no se proporciona orderByCarId, no se asigna (NULL por defecto)
             'IdInventary' => $order['inventory'] ?? $order['inventario'] ?? null,
             'RegistrationDate' => $currentDate,
             'UpdateDate' => $currentDate,

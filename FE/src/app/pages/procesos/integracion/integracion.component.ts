@@ -497,7 +497,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaClientImportResponse) => {
-          console.log('✅ Cliente importado exitosamente:', response);
+          console.log('✅ Respuesta de importación:', response);
           
           if (response.success && response.data) {
             // Convertir el cliente importado al formato estándar
@@ -525,9 +525,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             // Seleccionar el cliente importado
             this.selectClient(importedClient);
             
-            this.snackBar.open(`Cliente ${importedClient.cliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
-              duration: 5000
-            });
+            // Solo mostrar mensaje de importación si realmente se importó (no si ya existía)
+            if (response.message && response.message.includes('importado exitosamente')) {
+              this.snackBar.open(`Cliente ${importedClient.cliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
+                duration: 5000
+              });
+            }
+            // Si el mensaje indica que el cliente ya existe, no mostrar mensaje adicional
           } else {
             this.snackBar.open('Error al importar cliente desde Vanguardia', 'Cerrar', {
               duration: 4000
@@ -768,9 +772,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('📁 Respuesta completa del API:', response);
           console.log('📁 Files encontrados en tabla file:', response);
           
           if (response && response.success && response.data && response.data.files) {
+            console.log('✅ Respuesta válida, procesando files...');
+            console.log('📊 Total de files en respuesta:', response.data.files.length);
+            
             // Normalizar nombres de propiedades a minúsculas para asegurar consistencia
             this.files = response.data.files.map((file: any) => ({
               ...file,
@@ -781,9 +789,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               vin: file.vin || file.VIN || file.Vin || null
             }));
             
+            console.log('📊 Files procesados (this.files):', this.files);
+            console.log('📊 Cantidad de files después de procesar:', this.files.length);
+            
             // Debug: Verificar estructura de datos
             if (this.files.length > 0) {
               console.log('📊 Primer file (ejemplo):', this.files[0]);
+              console.log('📊 Todos los fileIds:', this.files.map(f => f.fileId || f.Id));
               console.log('📊 Campos año, modelo, versión, VIN:', {
                 year: this.files[0].year,
                 modelo: this.files[0].modelo,
@@ -792,12 +804,19 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               });
             }
           } else {
+            console.warn('⚠️ Respuesta inválida o sin files:', response);
             this.files = [];
           }
           
+          console.log('🔄 Actualizando display de files...');
           this.updateFilesDisplay();
+          console.log('📊 filteredFiles después de updateFilesDisplay:', this.filteredFiles.length);
+          console.log('📊 paginatedFiles después de updateFilesDisplay:', this.paginatedFiles.length);
+          console.log('📊 totalItems:', this.totalItems);
+          
           this.filesLoading = false;
           this.cdr.markForCheck();
+          console.log('✅ Change detection marcado');
         },
         error: (error) => {
           console.error('❌ Error cargando files:', error);
@@ -1329,6 +1348,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         height: 'auto',
         maxWidth: '90vw',
         maxHeight: '80vh',
+        disableClose: false, // Permitir cerrar normalmente, pero se controlará en el componente
         data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
       });
 
@@ -1338,18 +1358,18 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         console.log('🔚 Diálogo cerrado, resultado:', result);
         
         if (result && result.success) {
-          // File creado exitosamente
-          console.log('✅ File creado exitosamente:', result);
-          this.snackBar.open(`File creado exitosamente con ${result.documentsCreated} documentos`, 'Cerrar', {
+          // Expediente creado exitosamente
+          console.log('✅ Expediente creado exitosamente:', result);
+          this.snackBar.open(`Expediente creado exitosamente con ${result.documentsCreated} documentos`, 'Cerrar', {
             duration: 5000
           });
           
-          // Recargar los files del cliente para mostrar el nuevo file
+          // Recargar los expedientes del cliente para mostrar el nuevo expediente
           this.loadClientFiles();
           
         } else if (result && result.success === false) {
-          // Error al crear el file
-          console.error('❌ Error al crear file:', result.message);
+          // Error al crear el expediente
+          console.error('❌ Error al crear expediente:', result.message);
           this.snackBar.open(`Error: ${result.message}`, 'Cerrar', {
             duration: 5000
           });
@@ -1806,13 +1826,26 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private filterAndPaginateFiles(): void {
-    // Eliminar duplicados basándose en numeroPedido antes de filtrar
-    const uniqueFiles = this.files.filter((file, index, self) => 
-      index === self.findIndex(f => f.numeroPedido === file.numeroPedido)
-    );
+    console.log('🔍 filterAndPaginateFiles llamado');
+    console.log('📊 this.files.length:', this.files.length);
+    
+    // Eliminar duplicados basándose en fileId (ID único) antes de filtrar
+    // No usar numeroPedido porque puede haber múltiples registros con el mismo número de pedido pero diferentes fileId
+    const uniqueFiles = this.files.filter((file, index, self) => {
+      const fileId = file.fileId || file.Id;
+      const foundIndex = self.findIndex(f => (f.fileId || f.Id) === fileId);
+      if (index !== foundIndex) {
+        console.warn(`⚠️ Duplicado encontrado: fileId ${fileId} en índices ${index} y ${foundIndex}`);
+      }
+      return index === foundIndex;
+    });
+
+    console.log('📊 uniqueFiles después de eliminar duplicados:', uniqueFiles.length);
+    console.log('📊 uniqueFiles fileIds:', uniqueFiles.map(f => f.fileId || f.Id));
 
     // Filtrar archivos por término de búsqueda
-    if (this.orderSearchTerm.trim()) {
+    if (this.orderSearchTerm && this.orderSearchTerm.trim()) {
+      console.log('🔍 Filtrando por término de búsqueda:', this.orderSearchTerm);
       this.filteredFiles = uniqueFiles.filter(file => 
         file.numeroPedido?.toString().toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
         file.numeroInventario?.toString().toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
@@ -1824,17 +1857,22 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         file.vin?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
         file.agencia?.toLowerCase().includes(this.orderSearchTerm.toLowerCase())
       );
+      console.log('📊 filteredFiles después de búsqueda:', this.filteredFiles.length);
     } else {
       this.filteredFiles = [...uniqueFiles];
+      console.log('📊 filteredFiles (sin filtro de búsqueda):', this.filteredFiles.length);
     }
 
     // Actualizar total de elementos
     this.totalItems = this.filteredFiles.length;
+    console.log('📊 totalItems:', this.totalItems);
 
     // Calcular elementos para la página actual
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     this.paginatedFiles = this.filteredFiles.slice(startIndex, endIndex);
+    console.log('📊 paginatedFiles (página', this.currentPage, ', tamaño', this.pageSize, '):', this.paginatedFiles.length);
+    console.log('📊 paginatedFiles fileIds:', this.paginatedFiles.map(f => f.fileId || f.Id));
   }
 
   private updateFilesDisplay(): void {
