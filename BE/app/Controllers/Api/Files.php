@@ -1289,35 +1289,76 @@ class Files extends BaseController
             error_log("File ID a eliminar: $fileId");
             error_log("Usuario que elimina: " . $currentUser['user_id']);
 
+            // Primero obtener el IdOrder del file antes de eliminarlo
+            $fileQuery = $this->db->query("SELECT IdOrder, IdOrderTotal FROM File WHERE Id = ?", [$fileId]);
+            $file = $fileQuery->getRow();
+            
+            if (!$file) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró el file con el ID especificado'
+                ])->setStatusCode(404);
+            }
+            
+            $orderByCarId = null;
+            if (isset($file->IdOrder)) {
+                $orderByCarId = $file->IdOrder;
+                error_log("IdOrder encontrado en File: $orderByCarId");
+            } else {
+                error_log("⚠️ No se encontró IdOrder en el File (puede ser NULL)");
+            }
+
+            // Verificar ANTES de eliminar si hay otros Files que referencian el mismo OrderByCar
+            $shouldDeleteOrderByCar = false;
+            if ($orderByCarId) {
+                // Contar cuántos Files referencian este OrderByCar (incluyendo el actual)
+                $filesCountQuery = $this->db->query("SELECT COUNT(*) as count FROM File WHERE IdOrder = ?", [$orderByCarId]);
+                $filesCount = $filesCountQuery->getRow();
+                $totalFiles = $filesCount->count ?? 0;
+                
+                error_log("Total de Files que referencian OrderByCar $orderByCarId: $totalFiles");
+                
+                // Si solo hay 1 File (el que vamos a eliminar), podemos eliminar el OrderByCar después
+                if ($totalFiles == 1) {
+                    $shouldDeleteOrderByCar = true;
+                    error_log("✅ Se eliminará OrderByCar después de eliminar el File (solo había 1 File)");
+                } else {
+                    error_log("⚠️ NO se eliminará OrderByCar porque hay $totalFiles Files que lo referencian");
+                }
+            }
+
             // Iniciar transacción
             $this->db->transStart();
 
-            // 1. Eliminar documentos relacionados (DocumentByFile)
-            $documentsDeleted = $this->db->table('DocumentByFile')
-                ->where('IdFile', $fileId)
-                ->delete();
-            
-            error_log("Documentos eliminados: $documentsDeleted");
+            // Deshabilitar temporalmente las verificaciones de clave foránea
+            // Esto es necesario para poder eliminar en el orden correcto
+            $this->db->query("SET FOREIGN_KEY_CHECKS = 0");
 
-            // 2. Eliminar registros relacionados (OrderByCar)
-            // Primero obtener el order_dms del file para encontrar el registro en OrderByCar
-            $fileQuery = $this->db->query("SELECT IdOrderTotal FROM File WHERE Id = ?", [$fileId]);
-            $file = $fileQuery->getRow();
-            
+            // ORDEN CORRECTO DE ELIMINACIÓN:
+            // 1. DocumentByFile (depende de File)
+            $documentsDeleted = $this->db->query("DELETE FROM DocumentByFile WHERE IdFile = ?", [$fileId]);
+            $documentsDeleted = $this->db->affectedRows();
+            error_log("1️⃣ Documentos eliminados de DocumentByFile: $documentsDeleted");
+
+            // 2. File (depende de OrderByCar a través de IdOrder)
+            $fileDeleted = $this->db->query("DELETE FROM File WHERE Id = ?", [$fileId]);
+            $fileDeleted = $this->db->affectedRows();
+            error_log("2️⃣ File eliminado: $fileDeleted");
+
+            // 3. OrderByCar (solo si no hay más Files que lo referencien)
             $orderByCarDeleted = 0;
-            if ($file && $file->IdOrderTotal) {
-                $orderByCarDeleted = $this->db->table('OrderByCar')
-                    ->where('Number', $file->IdOrderTotal)
-                    ->delete();
-                error_log("Registros OrderByCar eliminados: $orderByCarDeleted");
+            if ($shouldDeleteOrderByCar && $orderByCarId) {
+                $orderByCarDeleted = $this->db->query("DELETE FROM OrderByCar WHERE Id = ?", [$orderByCarId]);
+                $orderByCarDeleted = $this->db->affectedRows();
+                error_log("3️⃣ Registros OrderByCar eliminados: $orderByCarDeleted");
+            } else if ($orderByCarId) {
+                error_log("3️⃣ OrderByCar NO eliminado (hay otros Files que lo referencian)");
+            } else {
+                error_log("3️⃣ OrderByCar NO eliminado (IdOrder era NULL)");
             }
 
-            // 3. Eliminar el file principal
-            $fileDeleted = $this->db->table('File')
-                ->where('Id', $fileId)
-                ->delete();
-
-            error_log("File eliminado: $fileDeleted");
+            // Rehabilitar las verificaciones de clave foránea
+            $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
 
             if ($fileDeleted) {
                 $this->db->transComplete();
@@ -1334,6 +1375,8 @@ class Files extends BaseController
                     ]
                 ]);
             } else {
+                // Rehabilitar las verificaciones de clave foránea antes del rollback
+                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
                 $this->db->transRollback();
                 
                 error_log("ERROR: No se pudo eliminar el file");
@@ -1345,6 +1388,12 @@ class Files extends BaseController
             }
 
         } catch (Exception $e) {
+            // Asegurar que las verificaciones de clave foránea se restauren en caso de error
+            try {
+                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
+            } catch (Exception $fkException) {
+                error_log("Error restaurando FOREIGN_KEY_CHECKS: " . $fkException->getMessage());
+            }
             $this->db->transRollback();
             
             error_log("ERROR en deleteFile: " . $e->getMessage());
