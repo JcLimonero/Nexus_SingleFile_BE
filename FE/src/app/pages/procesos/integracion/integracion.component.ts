@@ -1624,18 +1624,32 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     const isReplacing = document.idCurrentStatus === '2';
     const actionText = isReplacing ? 'reemplazando' : 'cargando';
 
+    // Validar que fileDocumentId existe (puede ser null si el documento nunca se ha subido)
+    if (!document.fileDocumentId) {
+      const errorMsg = 'Error: El documento no tiene un ID de archivo válido. Por favor, recarga la página e intenta nuevamente.';
+      console.error('❌', errorMsg, document);
+      if (showIndividualMessage) {
+        this.snackBar.open(errorMsg, 'Cerrar', {
+          duration: 8000
+        });
+      }
+      return throwError(() => new Error(errorMsg));
+    }
+
     // Preparar datos para Vanguardia API según documentación
     const formData = new FormData();
     formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
-    formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
+    formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (IdDocumentByFile)
 
     console.log('📤 Subiendo documento directamente a Vanguardia API...');
     console.log('📊 Datos del upload:', {
-      fileName: this.selectedFiles[document.documentId].name,
-      fileSize: this.selectedFiles[document.documentId].size,
+      fileName: this.selectedFiles[document.documentId]?.name,
+      fileSize: this.selectedFiles[document.documentId]?.size,
       idSingleFile: this.selectedFile.fileId,
-      idDocumentFile: document.documentId
+      idDocumentFile: document.fileDocumentId,
+      documentId: document.documentId,
+      documentName: document.documentName
     });
 
     // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
@@ -1666,7 +1680,29 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           if (error.status === 0) {
             errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia. Verifique la configuración del servidor.';
           } else if (error.status === 400) {
-            errorMessage = 'Error 400: Solicitud inválida. Verifique los parámetros enviados.';
+            // Error 400: puede ser validación o registro no encontrado
+            if (error.error && error.error.message) {
+              const backendMessage = error.error.message;
+              if (backendMessage.includes('No se encontró registro') || backendMessage.includes('No se encontró')) {
+                errorMessage = `El registro del documento no existe en la base de datos de Vanguardia. Esto puede ocurrir si el registro fue eliminado o las bases de datos no están sincronizadas. Por favor, recarga la página para sincronizar los datos.`;
+                // Recargar documentos para sincronizar después de mostrar el mensaje
+                setTimeout(() => {
+                  if (this.selectedFile) {
+                    console.log('🔄 Recargando documentos para sincronizar con el servidor...');
+                    this.loadRequiredDocuments(this.selectedFile.fileId);
+                  }
+                }, 2000);
+              } else if (error.error.error) {
+                // Algunos errores tienen un campo 'error' adicional
+                errorMessage = `${backendMessage}: ${error.error.error}`;
+              } else {
+                errorMessage = `Error de validación: ${backendMessage}`;
+              }
+            } else if (error.error && error.error.error) {
+              errorMessage = `Error: ${error.error.error}`;
+            } else {
+              errorMessage = 'Error 400: Solicitud inválida. Verifique los parámetros enviados.';
+            }
           } else if (error.status === 401) {
             errorMessage = 'Error 401: Token de autenticación inválido.';
           } else if (error.status === 403) {
@@ -1683,7 +1719,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           
           if (showIndividualMessage) {
             this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', {
-              duration: 8000
+              duration: 10000
             });
           }
           
@@ -1892,7 +1928,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
     
     // Confirmar eliminación
-    const confirmMessage = `¿Estás seguro de que deseas eliminar el pedido ${file.numeroPedido}?\n\nEsta acción eliminará:\n- El file completo\n- Todos los documentos asociados\n- El registro en OrderByCar\n\nEsta acción no se puede deshacer.`;
+    const confirmMessage = `¿Estás seguro de que deseas eliminar el pedido ${file.numeroPedido}?\n\nEsta acción eliminará:\n- El expediente completo\n- Todos los documentos asociados\n\nEsta acción no se puede deshacer.`;
     
     if (confirm(confirmMessage)) {
       this.deleteFileFromServer(file.fileId);
