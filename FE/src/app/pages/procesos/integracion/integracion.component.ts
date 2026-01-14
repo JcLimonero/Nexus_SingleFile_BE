@@ -1911,11 +1911,24 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           console.log('✅ File eliminado exitosamente:', response);
           
           if (response.success) {
-            this.snackBar.open(
-              `Pedido eliminado exitosamente. Documentos eliminados: ${response.data.documentsDeleted}`, 
-              'Cerrar', 
-              { duration: 4000 }
-            );
+            // Eliminar inmediatamente del array local para respuesta rápida
+            const initialLength = this.files.length;
+            this.files = this.files.filter(file => {
+              const id = file.fileId || file.Id || file.id;
+              return id !== fileId;
+            });
+            
+            // Si se eliminó un pedido, actualizar la visualización
+            if (this.files.length < initialLength) {
+              this.updateFilesDisplay();
+              
+              // Ajustar la página si la página actual quedó vacía
+              const maxPage = Math.max(0, Math.ceil(this.totalItems / this.pageSize) - 1);
+              if (this.currentPage > maxPage) {
+                this.currentPage = maxPage;
+                this.updateFilesDisplay();
+              }
+            }
             
             // Limpiar la selección actual si el pedido eliminado era el seleccionado
             if (this.selectedFile && this.selectedFile.fileId === fileId) {
@@ -1925,7 +1938,16 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               this.selectedFiles = {};
             }
             
-            // Recargar la lista de files
+            // Marcar para detección de cambios
+            this.cdr.markForCheck();
+            
+            this.snackBar.open(
+              `Pedido eliminado exitosamente. Documentos eliminados: ${response.data.documentsDeleted}`, 
+              'Cerrar', 
+              { duration: 4000 }
+            );
+            
+            // Recargar la lista de files para sincronizar con el servidor
             this.loadClientFiles();
           } else {
             this.snackBar.open(
