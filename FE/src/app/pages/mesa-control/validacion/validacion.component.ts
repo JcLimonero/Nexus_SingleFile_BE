@@ -2069,6 +2069,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   clearSearch(): void {
     console.log('🧹 ValidacionComponent - Limpiando búsqueda');
     this.searchTerm = '';
+    // Limpiar también la selección y documentos cuando se limpia la búsqueda
+    this.selectedCliente = null;
+    this.documentosDataSource = [];
+    this.advertenciaLiquidacionMostrada = false;
+    this.advertenciaLiberacionMostrada = false;
+    this.advertenciaLiberadoMostrada = false;
+    this.cdr.markForCheck();
     this.aplicarBusqueda();
   }
 
@@ -2077,6 +2084,17 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private aplicarBusqueda(): void {
     console.log('🔍 ValidacionComponent - Aplicando búsqueda:', this.searchTerm);
+
+    // Limpiar la selección y los documentos cuando se hace una búsqueda
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      console.log('🧹 ValidacionComponent - Limpiando selección y documentos por búsqueda');
+      this.selectedCliente = null;
+      this.documentosDataSource = [];
+      this.advertenciaLiquidacionMostrada = false;
+      this.advertenciaLiberacionMostrada = false;
+      this.advertenciaLiberadoMostrada = false;
+      this.cdr.markForCheck();
+    }
 
     if (!this.searchTerm || this.searchTerm.trim() === '') {
       // Sin búsqueda, aplicar solo filtro de fase si existe
