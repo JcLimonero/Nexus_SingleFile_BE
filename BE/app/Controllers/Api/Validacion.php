@@ -76,7 +76,20 @@ class Validacion extends BaseController
             $sql = "
                 SELECT 
                     f.Id as idFile,
-                    COALESCE(ctr.IdTotalDealer, '') as ndCliente,
+                    COALESCE(
+                        -- Prioridad 1: ndCliente de la agencia del pedido
+                        (SELECT ctr1.IdTotalDealer 
+                         FROM Client_Total_Relation ctr1 
+                         WHERE ctr1.idHeaderClient = hc.Id 
+                         AND ctr1.IdAgency = f.IdAgency 
+                         LIMIT 1),
+                        -- Prioridad 2: ndCliente de cualquier agencia del cliente
+                        (SELECT ctr2.IdTotalDealer 
+                         FROM Client_Total_Relation ctr2 
+                         WHERE ctr2.idHeaderClient = hc.Id 
+                         LIMIT 1),
+                        ''
+                    ) as ndCliente,
                     f.IdOrderTotal as ndPedido,
                     COALESCE(
                         NULLIF(TRIM(c.RazonSocial), ''),
@@ -111,9 +124,6 @@ class Validacion extends BaseController
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                -- Obtener el ndCliente de la relación del pedido con su agencia (si existe)
-                LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-                    AND ctr.IdAgency = f.IdAgency
                 WHERE f.IdAgency = ?
                 AND f.IdProcess = ?
                 AND p.Enabled = 1

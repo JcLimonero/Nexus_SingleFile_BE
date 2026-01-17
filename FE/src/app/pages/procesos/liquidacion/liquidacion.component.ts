@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -43,7 +43,8 @@ import { ClientSelectionDialogComponent } from '../integracion/client-selection-
     MatPaginatorModule
   ],
   templateUrl: './liquidacion.component.html',
-  styleUrls: ['./liquidacion.component.scss']
+  styleUrls: ['./liquidacion.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LiquidacionComponent implements OnInit, OnDestroy {
   loading = false;
@@ -113,7 +114,8 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private clientSearchService: ClientSearchService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -344,41 +346,43 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.clientsLoading = true;
     this.showClientResults = true;
 
-    this.clientSearchService.searchClients(
-      this.selectedAgencyId!,
-      this.clientSearchTerm.trim(),
-      50,
-      this.LIQUIDACION_STATE_ID
-    )
+    // Buscar clientes sin filtrar por estado (igual que en integración)
+    // El filtro de estado (liquidación) se aplica al cargar los pedidos, no al buscar clientes
+    this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
-          console.log('🔍 Clientes en liquidación encontrados:', response);
-
+          console.log('🔍 Clientes encontrados:', response);
+          
           if (response && response.success && response.data && response.data.clientes) {
             this.clients = response.data.clientes;
-
+            this.cdr.markForCheck();
+            
+            // Si hay múltiples resultados, mostrar diálogo
             if (this.clients.length > 1) {
               this.showClientSelectionDialog();
             } else if (this.clients.length === 1) {
+              // Si hay solo un resultado, seleccionarlo automáticamente
               this.selectClient(this.clients[0]);
             } else {
-              this.snackBar.open('No se encontraron clientes con pedidos en Liquidación', 'Cerrar', {
+              this.snackBar.open('No se encontraron clientes con el término de búsqueda', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
             this.clients = [];
-            this.snackBar.open('No se encontraron clientes con pedidos en Liquidación', 'Cerrar', {
+            this.snackBar.open('No se encontraron clientes con el término de búsqueda', 'Cerrar', {
               duration: 3000
             });
           }
-
+          
           this.clientsLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
           console.error('❌ Error buscando clientes:', error);
           this.clients = [];
+          this.cdr.markForCheck();
           this.clientsLoading = false;
           this.snackBar.open('Error al buscar clientes', 'Cerrar', {
             duration: 3000
@@ -606,13 +610,24 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           console.log('📁 Files de liquidación encontrados:', response);
           
           if (response && response.success && response.data && response.data.files) {
-            this.files = response.data.files;
+            // Normalizar nombres de propiedades a minúsculas para asegurar consistencia (igual que en integración)
+            this.files = response.data.files.map((file: any) => ({
+              ...file,
+              // Asegurar que los campos estén en minúsculas (por si vienen en mayúsculas)
+              year: file.year || file.Year || null,
+              modelo: file.modelo || file.Modelo || null,
+              version: file.version || file.Version || null,
+              vin: file.vin || file.VIN || file.Vin || null,
+              // Mapear version a vehiculo para compatibilidad con el HTML
+              vehiculo: file.version || file.Version || file.vehiculo || null
+            }));
           } else {
             this.files = [];
           }
           
           this.updateFilesDisplay();
           this.filesLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ Error cargando files de liquidación:', error);
@@ -650,11 +665,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   selectFile(file: any): void {
     this.selectedFile = file;
     this.loadRequiredDocuments(file.fileId); // Usar fileId en lugar de numeroPedido
+    this.cdr.markForCheck();
   }
 
   loadRequiredDocuments(fileId: string): void {
     this.documentsLoading = true;
     this.requiredDocuments = [];
+    this.cdr.markForCheck();
 
     let params = new HttpParams();
     params = params.set('fileId', fileId);
@@ -673,11 +690,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           }
           
           this.documentsLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ Error cargando documentos:', error);
           this.requiredDocuments = [];
           this.documentsLoading = false;
+          this.cdr.markForCheck();
           this.snackBar.open('Error al cargar documentos requeridos', 'Cerrar', {
             duration: 3000
           });

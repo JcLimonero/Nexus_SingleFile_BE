@@ -47,73 +47,88 @@ class ClientSearch extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Construir la consulta usando la vista view_client
+            // PRIORIDAD: El pedido debe pertenecer a la agencia seleccionada
+            // Buscamos clientes que tengan pedidos en la agencia seleccionada
+            // El cliente puede estar dado de alta en cualquier agencia, pero debe tener pedidos en la agencia seleccionada
+            // Si hay statusId, también filtrar por ese estado
+            
+            // Construir query directo desde las tablas para tener más control
+            // Usar la misma estructura que view_client pero con mejor lógica de búsqueda
             $sql = "
                 SELECT DISTINCT
-                    vc.Id as idCliente,
-                    vc.ndClient as ndCliente,
-                    TRIM(CONCAT(COALESCE(vc.Name, ''), ' ', COALESCE(vc.LastName, ''), ' ', COALESCE(vc.MotherLastName, ''))) as cliente,
-                    vc.Name as nombre,
-                    vc.LastName as apellidoPaterno,
-                    vc.MotherLastName as apellidoMaterno,
-                    vc.RFC as rfc,
-                    vc.Email as email,
-                    vc.TelNumber as telefono,
-                    vc.TelNumber2 as telefono2,
-                    vc.RazonSocial as razonSocial,
-                    vc.CURP as curp,
-                    vc.Adviser as asesor,
-                    vc.AgencyOrigin as agenciaOrigen,
-                    vc.RegistrationDate as fechaRegistro,
-                    vc.UpdateDate as fechaActualizacion,
-                    vc.idAgency as idAgency
+                    c.Id as idCliente,
+                    COALESCE(
+                        -- Prioridad 1: ndCliente de la agencia del pedido
+                        (SELECT ctr1.IdTotalDealer 
+                         FROM Client_Total_Relation ctr1 
+                         WHERE ctr1.idHeaderClient = hc.Id 
+                         AND ctr1.IdAgency = f.IdAgency 
+                         LIMIT 1),
+                        -- Prioridad 2: ndCliente de cualquier agencia del cliente
+                        (SELECT ctr2.IdTotalDealer 
+                         FROM Client_Total_Relation ctr2 
+                         WHERE ctr2.idHeaderClient = hc.Id 
+                         LIMIT 1),
+                        ''
+                    ) as ndCliente,
+                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
+                    c.Name as nombre,
+                    c.LastName as apellidoPaterno,
+                    c.MotherLastName as apellidoMaterno,
+                    c.RFC as rfc,
+                    c.Email as email,
+                    c.TelNumber as telefono,
+                    c.TelNumber2 as telefono2,
+                    c.RazonSocial as razonSocial,
+                    c.CURP as curp,
+                    c.Adviser as asesor,
+                    c.AgencyOrigin as agenciaOrigen,
+                    c.RegistrationDate as fechaRegistro,
+                    c.UpdateDate as fechaActualizacion,
+                    f.IdAgency as idAgency
+                FROM Client c
+                INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
+                INNER JOIN File f ON hc.Id = f.IdClient
+                WHERE f.IdAgency = ?
+                AND ((c.Name IS NOT NULL AND c.Name != '') 
+                    OR (c.LastName IS NOT NULL AND c.LastName != '') 
+                    OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
             ";
-
-            $joins = "";
-            $conditions = " WHERE vc.idAgency = ?";
             $params = [$idAgency];
 
+            // Filtrar por estado de file si se proporciona
             if ($statusId !== null) {
-                $joins .= " INNER JOIN HeaderClient hc_status ON hc_status.IdClient = vc.Id";
-                $joins .= " INNER JOIN File f ON f.IdClient = hc_status.Id";
-                $conditions .= " AND f.IdAgency = ? AND f.IdCurrentState = ?";
-                $params[] = $idAgency;
+                $sql .= " AND f.IdCurrentState = ?";
                 $params[] = $statusId;
             }
-
-            $sql .= " FROM view_client vc" . $joins . $conditions;
             
             // Aplicar filtro de búsqueda si se proporciona
             if ($searchTerm && trim($searchTerm) !== '') {
                 $searchTerm = trim($searchTerm);
                 
-                // Si es un número, buscar en ndClient (número de cliente)
+                // Si es un número, buscar en ndCliente (en cualquier Client_Total_Relation del cliente)
                 if (is_numeric($searchTerm)) {
-                    $sql .= " AND vc.ndClient LIKE ?";
+                    $sql .= " AND EXISTS (
+                        SELECT 1
+                        FROM Client_Total_Relation ctr_search
+                        WHERE ctr_search.idHeaderClient = hc.Id
+                        AND TRIM(ctr_search.IdTotalDealer) LIKE ?
+                    )";
                     $searchPattern = "%{$searchTerm}%";
                     $params[] = $searchPattern;
                 } else {
-                    // Si es texto, buscar en RazonSocial (nombre/razón social)
-                    $sql .= " AND vc.RazonSocial LIKE ?";
+                    // Si es texto, buscar en RazonSocial o nombre completo
+                    $sql .= " AND (
+                        c.RazonSocial LIKE ?
+                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
+                    )";
                     $searchPattern = "%{$searchTerm}%";
+                    $params[] = $searchPattern;
                     $params[] = $searchPattern;
                 }
             }
-
-            // Filtrar por estado de file si se proporciona
-            if ($statusId !== null) {
-                $sql .= " AND EXISTS (
-                    SELECT 1 
-                    FROM HeaderClient hc
-                    INNER JOIN File f ON f.IdClient = hc.Id
-                    WHERE hc.IdClient = vc.Id
-                        AND f.IdAgency = vc.idAgency
-                        AND f.IdCurrentState = ?
-                )";
-                $params[] = $statusId;
-            }
             
-            $sql .= " ORDER BY vc.ndClient ASC LIMIT ?";
+            $sql .= " ORDER BY ndCliente ASC LIMIT ?";
             $params[] = $limit;
 
             // Debug: Log de la consulta
@@ -124,17 +139,30 @@ class ClientSearch extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
             
+            // Asegurar que los datos estén en UTF-8 correctamente codificados
+            array_walk_recursive($results, function(&$value) {
+                if (is_string($value)) {
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
+                    }
+                }
+            });
+            
             // Debug: Log de resultados
             error_log("ClientSearch::search - Results count: " . count($results));
 
-            return $this->response->setJSON([
+            $response = [
                 'success' => true,
                 'message' => 'Clientes obtenidos exitosamente',
                 'data' => [
                     'clientes' => $results,
                     'total' => count($results)
                 ]
-            ]);
+            ];
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/json; charset=UTF-8')
+                ->setJSON($response, JSON_UNESCAPED_UNICODE);
 
         } catch (\Exception $e) {
             error_log("Error en ClientSearch::search: " . $e->getMessage());

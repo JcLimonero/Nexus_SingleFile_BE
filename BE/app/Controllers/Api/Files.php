@@ -102,6 +102,11 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // Validar y limpiar parámetros
+            $agencyId = trim($agencyId);
+            $statusId = ($statusId !== null && $statusId !== '') ? trim($statusId) : null;
+            $ndCliente = ($ndCliente !== null && $ndCliente !== '') ? trim($ndCliente) : null;
+
             // Query mejorado para obtener TODOS los files/pedidos por agencia y cliente
             // Usamos INNER JOIN con Agency para asegurar que existe la agencia
             // LEFT JOINs con otras tablas para no perder registros aunque falten datos relacionados
@@ -136,18 +141,22 @@ class Files extends BaseController
             // IMPORTANTE: Filtramos directamente por f.IdCurrentState porque el LEFT JOIN con File_Status
             // puede devolver NULL si no hay registro en File_Status, causando que fs.Id = ? falle siempre
             // Esto es crítico para que los archivos se muestren correctamente
-            if ($statusId && trim($statusId) !== '') {
+            if ($statusId !== null && $statusId !== '' && is_numeric($statusId)) {
                 $sql .= " AND f.IdCurrentState = ?";
-                $params[] = $statusId;
+                $params[] = (int)$statusId;
             }
 
             // Agregar filtro de cliente si se proporciona
-            // Mejoramos el filtro para buscar por IdTotalDealer de manera más robusta
-            // Usamos EXISTS en lugar de IN para mejor rendimiento y evitar duplicados
+            // PRIORIDAD: El pedido debe pertenecer a la agencia seleccionada
+            // El cliente puede estar dado de alta en cualquier agencia, pero el pedido debe ser de la agencia seleccionada
+            // Buscamos el cliente por su ndCliente en cualquier agencia, pero el pedido ya está filtrado por agencia
             if ($ndCliente && trim($ndCliente) !== '') {
                 $ndClienteTrimmed = trim($ndCliente);
-                // Buscar todos los HeaderClient que tengan relación con este IdTotalDealer
-                // Usamos EXISTS para mejor rendimiento y para asegurar que encontramos todos los registros
+                // Buscar el cliente por su ndCliente en cualquier relación Client_Total_Relation
+                // Priorizamos: primero buscar en la agencia del pedido, luego en cualquier otra agencia
+                // Esto permite que un cliente dado de alta en una agencia aparezca si tiene un pedido en otra agencia
+                // No filtramos por agencia aquí, permitimos que el cliente esté dado de alta en cualquier agencia
+                // El pedido ya está filtrado por agencia arriba (WHERE a.IdAgency = ?)
                 $sql .= " AND EXISTS (
                     SELECT 1
                     FROM HeaderClient hc 
@@ -170,6 +179,64 @@ class Files extends BaseController
             
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
+            
+            // DIAGNÓSTICO: Si no hay resultados y se está buscando por cliente, verificar por qué
+            if (count($results) === 0 && $ndCliente) {
+                error_log("=== DIAGNÓSTICO: No se encontraron pedidos para cliente {$ndCliente} en agencia {$agencyId} ===");
+                
+                // Verificar si el pedido 35348 existe y su estado
+                $pedidoSql = "
+                    SELECT 
+                        f.Id as fileId,
+                        f.IdOrderTotal as numeroPedido,
+                        f.IdCurrentState,
+                        f.IdAgency as FileIdAgency,
+                        a.IdAgency as AgencyIdAgency,
+                        f.IdClient as HeaderClientId,
+                        fs.Name as estado
+                    FROM File f
+                    INNER JOIN Agency a ON f.IdAgency = a.Id
+                    LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                    WHERE f.IdOrderTotal = '35348'
+                ";
+                $pedidoQuery = $this->db->query($pedidoSql);
+                $pedidoResult = $pedidoQuery->getRowArray();
+                
+                if ($pedidoResult) {
+                    error_log("=== DIAGNÓSTICO PEDIDO 35348 ===");
+                    error_log("File ID: " . ($pedidoResult['fileId'] ?? 'NULL'));
+                    error_log("IdCurrentState: " . ($pedidoResult['IdCurrentState'] ?? 'NULL') . " (esperado: {$statusId})");
+                    error_log("Agency esperada: {$agencyId}, Agency del pedido: " . ($pedidoResult['AgencyIdAgency'] ?? 'NULL'));
+                    error_log("Estado: " . ($pedidoResult['estado'] ?? 'NULL'));
+                    error_log("HeaderClientId: " . ($pedidoResult['HeaderClientId'] ?? 'NULL'));
+                    
+                    // Verificar relaciones del cliente 200495 con el HeaderClient del pedido
+                    $relacionSql = "
+                        SELECT COUNT(*) as count
+                        FROM Client_Total_Relation ctr 
+                        WHERE ctr.idHeaderClient = ? 
+                        AND TRIM(ctr.IdTotalDealer) = ?
+                    ";
+                    $relacionQuery = $this->db->query($relacionSql, [$pedidoResult['HeaderClientId'], trim($ndCliente)]);
+                    $relacionResult = $relacionQuery->getRow();
+                    $relacionesConHeaderClient = $relacionResult->count ?? 0;
+                    
+                    error_log("Relaciones Client_Total_Relation con HeaderClient {$pedidoResult['HeaderClientId']} y ndCliente {$ndCliente}: {$relacionesConHeaderClient}");
+                    
+                    // Verificar TODAS las relaciones del cliente 200495 (en cualquier agencia)
+                    $todasRelacionesSql = "
+                        SELECT ctr.IdAgency, a.Name as nombreAgencia, ctr.IdTotalDealer, ctr.idHeaderClient
+                        FROM Client_Total_Relation ctr
+                        INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                        WHERE TRIM(ctr.IdTotalDealer) = ?
+                    ";
+                    $todasRelacionesQuery = $this->db->query($todasRelacionesSql, [trim($ndCliente)]);
+                    $todasRelaciones = $todasRelacionesQuery->getResultArray();
+                    error_log("Todas las relaciones del cliente {$ndCliente}: " . json_encode($todasRelaciones));
+                } else {
+                    error_log("❌ El pedido 35348 NO EXISTE en la base de datos");
+                }
+            }
             
             // DIAGNÓSTICO: Verificar si el File 12328 debería aparecer
             try {
@@ -262,14 +329,27 @@ class Files extends BaseController
                 error_log("Parámetros: " . json_encode($params));
             }
 
-            return $this->response->setJSON([
+            // Asegurar que los datos estén en UTF-8 correctamente codificados
+            array_walk_recursive($results, function(&$value) {
+                if (is_string($value)) {
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
+                    }
+                }
+            });
+
+            $response = [
                 'success' => true,
                 'message' => 'Files obtenidos exitosamente',
                 'data' => [
                     'files' => $results,
                     'total' => count($results)
                 ]
-            ]);
+            ];
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/json; charset=UTF-8')
+                ->setJSON($response, JSON_UNESCAPED_UNICODE);
 
         } catch (\Exception $e) {
             error_log("Error en Files::getByAgency: " . $e->getMessage());
