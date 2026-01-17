@@ -100,7 +100,10 @@ class Validacion extends BaseController
                     f.RegistrationDate as registro,
                     fs.Name as fase,
                     f.IdCurrentState,
-                    f.AgendDate as fechaLiberacion,
+                    CASE 
+                        WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate
+                        ELSE f.AgendDate
+                    END as fechaLiberacion,
                     CASE 
                         WHEN EXISTS (
                             SELECT 1 

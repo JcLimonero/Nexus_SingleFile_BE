@@ -2111,6 +2111,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Filtrar clientes por término de búsqueda
     let clientesFiltrados = this.clientesOriginales.filter(cliente => {
+      // Buscar en número de cliente (ND Cliente)
+      const ndCliente = String(cliente.ndCliente || '').toLowerCase();
+      if (ndCliente.includes(terminoBusqueda)) {
+        return true;
+      }
+
       // Buscar en ID de archivo
       const idFile = String(cliente.idFile).toLowerCase();
       if (idFile.includes(terminoBusqueda)) {

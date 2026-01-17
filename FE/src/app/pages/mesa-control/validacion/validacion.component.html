@@ -258,7 +258,7 @@
           <input matInput
                  [(ngModel)]="searchTerm"
                  (input)="onSearchChange()"
-                 placeholder="Pedido, cliente o nombre"
+                 placeholder="N° Cliente, pedido o nombre"
                  class="text-sm">
           <mat-icon matSuffix class="text-gray-400">search</mat-icon>
         </mat-form-field>
@@ -419,7 +419,7 @@
                 Fecha de Liberación
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
-                {{ item.fechaLiberacion | date:'yyyy-MM-dd' }}
+                {{ item.fechaLiberacion ? (item.fechaLiberacion | date:'yyyy-MM-dd HH:mm') : '-' }}
               </td>
             </ng-container>
 
