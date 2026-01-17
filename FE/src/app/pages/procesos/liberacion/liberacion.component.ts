@@ -15,7 +15,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
-import { Subject, takeUntil } from 'rxjs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Subject, takeUntil, Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -42,7 +44,8 @@ import { ClientSelectionDialogComponent } from '../integracion/client-selection-
     MatTableModule,
     MatMenuModule,
     MatPaginatorModule,
-    MatTabsModule
+    MatTabsModule,
+    MatCheckboxModule
   ],
   templateUrl: './liberacion.component.html',
   styleUrls: ['./liberacion.component.scss']
@@ -99,6 +102,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   requiredDocuments: any[] = [];
   documentsLoading = false;
   selectedFiles: { [key: string]: File } = {};
+  selectedDocumentsForBatch: Set<string> = new Set(); // Documentos seleccionados para carga en lote
+  uploadingDocuments: Set<string> = new Set();
   documentTabs: Array<{ id: string; name: string; documents: any[]; hasPending: boolean; hasRejected: boolean }> = [];
   selectedTabIndex = 0;
   
@@ -322,6 +327,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
   }
 
   clearAllClientData(): void {
@@ -335,6 +341,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.filesLoading = false;
     this.requiredDocuments = [];
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
     this.documentsLoading = false;
     this.clientsLoading = false;
     this.orderSearchTerm = '';
@@ -349,6 +356,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
     this.orderSearchTerm = '';
     this.currentPage = 0;
 
@@ -482,6 +490,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.selectedDocumentsForBatch.clear();
     this.orderSearchTerm = '';
     this.currentPage = 0;
     this.updateFilesDisplay();
@@ -574,14 +583,160 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     if (file) {
       const key = documentFileId.toString();
       this.selectedFiles[key] = file;
+      // Automáticamente marcar el documento para carga en lote si tiene archivo
+      if (file) {
+        this.selectedDocumentsForBatch.add(key);
+      }
     }
   }
 
-  uploadDocument(document: any): void {
+  /**
+   * Toggle selección de documento para carga en lote
+   */
+  toggleDocumentForBatch(documentId: string): void {
+    if (!documentId) return;
+    
+    if (this.selectedDocumentsForBatch.has(documentId)) {
+      this.selectedDocumentsForBatch.delete(documentId);
+    } else {
+      // Solo permitir seleccionar si tiene archivo seleccionado
+      if (this.selectedFiles[documentId]) {
+        this.selectedDocumentsForBatch.add(documentId);
+      } else {
+        this.snackBar.open('Debe seleccionar un archivo primero', 'Cerrar', {
+          duration: 2000
+        });
+      }
+    }
+  }
+
+  /**
+   * Verificar si un documento está seleccionado para carga en lote
+   */
+  isDocumentSelectedForBatch(documentId: string | null | undefined): boolean {
+    if (!documentId) return false;
+    return this.selectedDocumentsForBatch.has(documentId);
+  }
+
+  /**
+   * Obtener cantidad de documentos seleccionados para carga en lote
+   */
+  getSelectedDocumentsCount(): number {
+    return this.selectedDocumentsForBatch.size;
+  }
+
+  /**
+   * Verificar si hay documentos seleccionados para carga en lote
+   */
+  hasDocumentsSelectedForBatch(): boolean {
+    return this.selectedDocumentsForBatch.size > 0;
+  }
+
+  /**
+   * Verificar si un documento se está cargando
+   */
+  isDocumentUploading(documentId: string | null | undefined): boolean {
+    if (!documentId) return false;
+    return this.uploadingDocuments.has(documentId);
+  }
+
+  /**
+   * Cargar todos los documentos seleccionados en lote
+   */
+  uploadMultipleDocuments(): void {
+    if (!this.hasDocumentsSelectedForBatch()) {
+      this.snackBar.open('Debe seleccionar al menos un documento para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Obtener todos los documentos de todos los tabs que estén seleccionados
+    const documentsToUpload: any[] = [];
+    this.documentTabs.forEach(tab => {
+      tab.documents.forEach(doc => {
+        const docKey = doc.fileDocumentId?.toString();
+        if (docKey &&
+            this.selectedDocumentsForBatch.has(docKey) && 
+            this.selectedFiles[docKey] &&
+            doc.idCurrentStatus !== '3' && 
+            doc.idCurrentStatus !== '4') {
+          documentsToUpload.push(doc);
+        }
+      });
+    });
+
+    if (documentsToUpload.length === 0) {
+      this.snackBar.open('No hay documentos válidos para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Marcar todos como cargando
+    documentsToUpload.forEach(doc => {
+      const docKey = doc.fileDocumentId?.toString();
+      if (docKey) {
+        this.uploadingDocuments.add(docKey);
+      }
+    });
+
+    // Cargar documentos secuencialmente para evitar sobrecarga
+    let completed = 0;
+    let failed = 0;
+    const total = documentsToUpload.length;
+
+    documentsToUpload.forEach((document, index) => {
+      setTimeout(() => {
+        const docKey = document.fileDocumentId?.toString();
+        if (!docKey) return;
+
+        this.uploadDocumentInternal(document, false).subscribe({
+          next: () => {
+            completed++;
+            this.selectedDocumentsForBatch.delete(docKey);
+            this.uploadingDocuments.delete(docKey);
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          },
+          error: () => {
+            failed++;
+            this.uploadingDocuments.delete(docKey);
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          }
+        });
+      }, index * 200); // Pequeño delay entre cada carga para evitar sobrecarga
+    });
+  }
+
+  /**
+   * Método interno para cargar un documento
+   */
+  private uploadDocumentInternal(document: any, showIndividualMessage: boolean = true): Observable<any> {
     const documentKey = document.fileDocumentId?.toString();
     if (!documentKey || !this.selectedFiles[documentKey]) {
-      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
-      return;
+      const errorMsg = 'Debe seleccionar un archivo';
+      if (showIndividualMessage) {
+        this.snackBar.open(errorMsg, 'Cerrar', {
+          duration: 3000
+        });
+      }
+      return throwError(() => new Error(errorMsg));
     }
 
     const isReplacing = document.idCurrentStatus === '2';
@@ -592,16 +747,23 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     formData.append('idSingleFile', this.selectedFile.fileId.toString());
     formData.append('idDocumentFile', document.fileDocumentId.toString());
 
-    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', { duration: 3000 });
+    return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
+      .pipe(
+        takeUntil(this.destroy$),
+        tap((response) => {
+          if (showIndividualMessage) {
+            this.snackBar.open(`Documento ${document.documentName || document.fileName} ${actionText} exitosamente`, 'Cerrar', { duration: 3000 });
+          }
+          
+          // Recargar documentos para mostrar el estado actualizado
           this.loadRequiredDocuments(this.selectedFile.fileId);
+          // Limpiar archivo seleccionado
           delete this.selectedFiles[documentKey];
+          // Remover de selección en lote si estaba
+          this.selectedDocumentsForBatch.delete(documentKey);
           this.buildDocumentTabs();
-        },
-        error: (error) => {
+        }),
+        catchError((error) => {
           console.error('❌ Error subiendo documento a Backblaze:', error);
 
           let errorMessage = 'Error desconocido';
@@ -623,9 +785,34 @@ export class LiberacionComponent implements OnInit, OnDestroy {
             errorMessage = error.message;
           }
 
-          this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', { duration: 8000 });
-        }
-      });
+          if (showIndividualMessage) {
+            this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', { duration: 8000 });
+          }
+
+          return throwError(() => new Error(errorMessage));
+        })
+      );
+  }
+
+  /**
+   * Cargar un documento individual
+   */
+  uploadDocument(document: any): void {
+    const documentKey = document.fileDocumentId?.toString();
+    if (!documentKey || !this.selectedFiles[documentKey]) {
+      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.uploadingDocuments.add(documentKey);
+    this.uploadDocumentInternal(document, true).subscribe({
+      next: () => {
+        this.uploadingDocuments.delete(documentKey);
+      },
+      error: () => {
+        this.uploadingDocuments.delete(documentKey);
+      }
+    });
   }
 
   viewDocument(document: any): void {
@@ -680,6 +867,10 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       case 'optional': return 'help';
       default: return 'help';
     }
+  }
+
+  trackByDocumentId(index: number, document: any): string {
+    return document.fileDocumentId?.toString() || document.documentId?.toString() || index.toString();
   }
 
   getDocumentStatusColor(status: string, idCurrentStatus?: string): string {

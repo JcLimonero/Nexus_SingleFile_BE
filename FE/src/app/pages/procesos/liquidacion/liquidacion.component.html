@@ -375,26 +375,52 @@
           <mat-spinner diameter="40"></mat-spinner>
         </div>
 
+        <!-- Botón para cargar todos los documentos seleccionados - Posicionado a la derecha -->
+        <div *ngIf="!documentsLoading && hasDocumentsSelectedForBatch()" class="flex justify-end mb-2">
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="uploadMultipleDocuments()"
+            [disabled]="uploadingDocuments.size > 0"
+            class="text-xs">
+            <mat-icon class="mr-1" style="font-size: 14px;">cloud_upload</mat-icon>
+            Cargar {{ getSelectedDocumentsCount() }} documento(s) seleccionado(s)
+          </button>
+        </div>
+
         <!-- Lista de documentos -->
         <div *ngIf="!documentsLoading" class="space-y-2">
-          <div *ngFor="let document of requiredDocuments" 
-               class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50">
+          <div *ngFor="let document of requiredDocuments; trackBy: trackByDocumentId" 
+               class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50"
+               [class.opacity-50]="isDocumentUploading(document.fileDocumentId?.toString())">
             
-            <!-- Información del documento -->
+            <!-- Checkbox y Información del documento -->
             <div class="flex items-center space-x-2 flex-1">
+              <!-- Checkbox para selección en lote -->
+              <mat-checkbox
+                [checked]="isDocumentSelectedForBatch((document.fileDocumentId || document.documentId || '').toString())"
+                (change)="toggleDocumentForBatch((document.fileDocumentId || document.documentId || '').toString())"
+                [disabled]="!(document.fileDocumentId || document.documentId) || !selectedFiles[(document.fileDocumentId || document.documentId || '').toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading((document.fileDocumentId || document.documentId || '').toString())"
+                style="margin-right: 8px;">
+              </mat-checkbox>
+              
               <!-- Icono de estado -->
               <mat-icon [class]="getDocumentStatusColor(document.status, document.idCurrentStatus)" style="font-size: 16px;">
                 {{ getDocumentStatusIcon(document.status, document.idCurrentStatus) }}
               </mat-icon>
               
-                <!-- Nombre del documento -->
-                <div class="flex-1">
-                  <div class="font-medium text-gray-900 text-sm">{{ document.fileName || document.documentName }}</div>
-                  <div *ngIf="document.hasExpiration === '1' && document.expirationDate" 
-                       class="text-xs text-gray-500">
-                    Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
-                  </div>
+              <!-- Nombre del documento -->
+              <div class="flex-1">
+                <div class="font-medium text-gray-900 text-sm">{{ document.fileName || document.documentName }}</div>
+                <div *ngIf="document.hasExpiration === '1' && document.expirationDate" 
+                     class="text-xs text-gray-500">
+                  Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
                 </div>
+                <div *ngIf="isDocumentUploading(document.fileDocumentId?.toString())" class="text-xs text-blue-600 flex items-center mt-1">
+                  <mat-spinner diameter="12" class="mr-1"></mat-spinner>
+                  Cargando...
+                </div>
+              </div>
             </div>
 
             <!-- Controles de archivo -->
@@ -411,10 +437,10 @@
                 <button 
                   mat-stroked-button 
                   (click)="fileInput.click()"
-                  [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
+                  [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
                   class="text-xs">
                   <mat-icon class="mr-1" style="font-size: 14px;">attach_file</mat-icon>
-                    {{ selectedFiles[document.fileDocumentId] ? selectedFiles[document.fileDocumentId].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
+                    {{ selectedFiles[document.fileDocumentId?.toString()] ? selectedFiles[document.fileDocumentId?.toString()].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
                 </button>
               </div>
 
@@ -423,7 +449,7 @@
                 mat-raised-button 
                 color="primary"
                 (click)="uploadDocument(document)"
-                [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
+                [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
                 class="text-xs">
                 <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
                 {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
