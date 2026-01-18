@@ -75,7 +75,7 @@ class VanguardiaProxy extends BaseController
     public function upload()
     {
         try {
-            $url = "{$this->vanguardiaBaseUrl}/backblaze/upload";
+            $url = "https://apisvanguardia.com:400/backblaze/upload";
             
             // Obtener el archivo
             $file = $this->request->getFile('file');
@@ -83,7 +83,7 @@ class VanguardiaProxy extends BaseController
             $idDocumentFile = $this->request->getPost('idDocumentFile');
 
             if (!$file || !$file->isValid()) {
-                return $this->response->setJSON([
+                return $this->response->setJSON([ 
                     'success' => false,
                     'message' => 'Archivo no válido o no proporcionado'
                 ])->setStatusCode(400);

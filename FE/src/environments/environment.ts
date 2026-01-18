@@ -4,6 +4,6 @@ export const environment = {
   vanguardia: {
     apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',  // Llamada directa a Vanguardia
     ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorders',  // Llamada directa a Vanguardia
-    uploadApiUrl: '/backblaze/upload'  // Usa proxy de Angular para agregar X-Provider-Token
+    uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'  // Usa proxy de Angular para agregar X-Provider-Token
   }
 };
