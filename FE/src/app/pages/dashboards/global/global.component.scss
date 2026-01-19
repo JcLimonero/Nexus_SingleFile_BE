@@ -14,7 +14,7 @@
 .filters-grid {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
 }
 
@@ -32,9 +32,10 @@
 
 .filters-actions {
   display: flex;
-  align-items: center;
   gap: 12px;
   margin-left: auto;
+  height: 69px; // Altura estándar de mat-form-field con label
+  box-sizing: border-box;
 }
 
 .orders-card {

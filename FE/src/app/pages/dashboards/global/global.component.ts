@@ -59,6 +59,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
   refreshing = false;
   agenciasCargadas = false;
   procesosCargados = false;
+  exportingExcel = false;
 
   clientesOriginales: Cliente[] = [];
   clientesFiltrados: Cliente[] = [];
@@ -129,6 +130,12 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   clearSearch(): void {
+    this.searchTerm = '';
+    this.aplicarFiltros();
+  }
+
+  limpiarFiltros(): void {
+    this.selectedFase = '';
     this.searchTerm = '';
     this.aplicarFiltros();
   }
@@ -207,7 +214,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   private configurarColumnas(): void {
-    const columnasBase = [
+    this.clientesDisplayedColumns = [
       'ndCliente',
       'ndPedido',
       'cliente',
@@ -219,24 +226,6 @@ export class GlobalComponent implements OnInit, OnDestroy {
       'documentosNoAprobados',
       'documentos'
     ];
-
-    if (this.isAdminUser) {
-      this.clientesDisplayedColumns = [
-        'ndCliente',
-        'ndPedido',
-        'idFile',
-        'cliente',
-        'proceso',
-        'fase',
-        'operacion',
-        'registro',
-        'fechaLiberacion',
-        'documentosNoAprobados',
-        'documentos'
-      ];
-    } else {
-      this.clientesDisplayedColumns = columnasBase;
-    }
   }
 
   private cargarProcesos(showMessage: boolean = false): void {
@@ -334,8 +323,8 @@ export class GlobalComponent implements OnInit, OnDestroy {
     }
 
     if (this.selectedFase) {
-      const faseNormalizada = this.selectedFase.toLowerCase();
-      data = data.filter((cliente) => (cliente.fase || '').toLowerCase() === faseNormalizada);
+      // Comparar IdCurrentState con el valor de la fase seleccionada
+      data = data.filter((cliente) => String(cliente.IdCurrentState) === this.selectedFase);
     }
 
     if (this.searchTerm) {
@@ -370,6 +359,67 @@ export class GlobalComponent implements OnInit, OnDestroy {
           cliente.documentosNoAprobados = result.documentosNoAprobados;
         }
       });
+  }
+
+  exportarExcel(): void {
+    if (this.clientesFiltrados.length === 0) {
+      this.snackBar.open('No hay datos para exportar', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.exportingExcel = true;
+
+    try {
+      // Preparar datos para Excel (sin la columna de documentos)
+      const datos = this.clientesFiltrados.map(cliente => ({
+        'ND Cliente': cliente.ndCliente || '',
+        'ND Pedido': cliente.ndPedido || '',
+        'Cliente': cliente.cliente || '',
+        'Proceso': cliente.proceso || '',
+        'Fase': cliente.fase || '',
+        'Operación': cliente.operacion || '',
+        'Registro': cliente.registro ? new Date(cliente.registro).toLocaleDateString('es-MX') : '',
+        'Fecha Liberación': cliente.fechaLiberacion ? new Date(cliente.fechaLiberacion).toLocaleDateString('es-MX') : '—',
+        'Documentos Pendientes': cliente.documentosNoAprobados ?? 0
+      }));
+
+      // Crear CSV (compatible con Excel)
+      const headers = Object.keys(datos[0]);
+      const csvContent = [
+        headers.join(','),
+        ...datos.map(row => 
+          headers.map(header => {
+            const value = (row as any)[header];
+            // Escapar comillas y envolver en comillas si contiene comas
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Agregar BOM para UTF-8 (para que Excel reconozca caracteres especiales)
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // Crear URL y descargar
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `dashboard_global_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      this.snackBar.open('Datos exportados exitosamente', 'Cerrar', { duration: 3000 });
+    } catch (error) {
+      console.error('Error exportando a Excel:', error);
+      this.snackBar.open('Error al exportar datos', 'Cerrar', { duration: 3000 });
+    } finally {
+      this.exportingExcel = false;
+    }
   }
 }
 

@@ -16,6 +16,7 @@ export interface Cliente {
   IdCurrentState: number;
   tieneDocumentosPendientes: number;
   documentosNoAprobados?: number;
+  fechaLiberacion?: string;
 }
 
 export interface Documento {
