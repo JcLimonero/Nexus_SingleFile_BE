@@ -204,37 +204,91 @@ import { environment } from '../../../../environments/environment';
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Proceso -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Proceso</mat-label>
-              <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" [disabled]="creating" required>
-                <mat-option *ngFor="let process of processes" [value]="process">
-                  {{ process.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>business</mat-icon>
-            </mat-form-field>
+            <div class="w-full flex items-start gap-2">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Proceso</mat-label>
+                <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" [disabled]="creating || loadingProcesses" required>
+                  <mat-option *ngIf="loadingProcesses" value="" disabled>
+                    <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                    Cargando procesos...
+                  </mat-option>
+                  <mat-option *ngIf="!loadingProcesses && processes.length === 0" value="" disabled>
+                    No hay procesos disponibles
+                  </mat-option>
+                  <mat-option *ngFor="let process of processes" [value]="process">
+                    {{ process.Name }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>business</mat-icon>
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="recargarProcesos()"
+                [disabled]="loadingProcesses || creating"
+                matTooltip="Recargar procesos"
+                class="mt-1">
+                <mat-icon [class.animate-spin]="loadingProcesses">refresh</mat-icon>
+              </button>
+            </div>
 
             <!-- Tipo de Cliente -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Tipo de Cliente</mat-label>
-              <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" [disabled]="creating" required>
-                <mat-option *ngFor="let costumerType of availableCostumerTypes" [value]="costumerType">
-                  {{ costumerType.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>person</mat-icon>
-            </mat-form-field>
+            <div class="w-full flex items-start gap-2">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Tipo de Cliente</mat-label>
+                <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" [disabled]="creating || loadingCostumerTypes" required>
+                  <mat-option *ngIf="loadingCostumerTypes" value="" disabled>
+                    <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                    Cargando tipos de cliente...
+                  </mat-option>
+                  <mat-option *ngIf="!loadingCostumerTypes && availableCostumerTypes.length === 0" value="" disabled>
+                    No hay tipos de cliente disponibles
+                  </mat-option>
+                  <mat-option *ngFor="let costumerType of availableCostumerTypes" [value]="costumerType">
+                    {{ costumerType.Name }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="recargarTiposCliente()"
+                [disabled]="loadingCostumerTypes || creating"
+                matTooltip="Recargar tipos de cliente"
+                class="mt-1">
+                <mat-icon [class.animate-spin]="loadingCostumerTypes">refresh</mat-icon>
+              </button>
+            </div>
 
             <!-- Tipo de Operación -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Tipo de Operación</mat-label>
-              <mat-select [(ngModel)]="selectedOperationType" [disabled]="creating" required>
-                <mat-option *ngFor="let operationType of availableOperationTypes" [value]="operationType">
-                  {{ operationType.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matSuffix>build</mat-icon>
-            </mat-form-field>
+            <div class="w-full flex items-start gap-2">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Tipo de Operación</mat-label>
+                <mat-select [(ngModel)]="selectedOperationType" [disabled]="creating || loadingOperationTypes" required>
+                  <mat-option *ngIf="loadingOperationTypes" value="" disabled>
+                    <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                    Cargando tipos de operación...
+                  </mat-option>
+                  <mat-option *ngIf="!loadingOperationTypes && availableOperationTypes.length === 0" value="" disabled>
+                    No hay tipos de operación disponibles
+                  </mat-option>
+                  <mat-option *ngFor="let operationType of availableOperationTypes" [value]="operationType">
+                    {{ operationType.Name }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>build</mat-icon>
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="recargarTiposOperacion()"
+                [disabled]="loadingOperationTypes || creating"
+                matTooltip="Recargar tipos de operación"
+                class="mt-1">
+                <mat-icon [class.animate-spin]="loadingOperationTypes">refresh</mat-icon>
+              </button>
+            </div>
           </div>
 
           <!-- Resumen de selección -->
@@ -492,6 +546,11 @@ export class OrderSelectionDialogComponent implements OnInit {
   operationTypes: any[] = [];
   allConfigurations: any[] = []; // Todas las configuraciones habilitadas
 
+  // Estados de carga
+  loadingProcesses = false;
+  loadingCostumerTypes = false;
+  loadingOperationTypes = false;
+
   // Selecciones del usuario
   selectedProcess: any = null;
   selectedCostumerType: any = null;
@@ -644,6 +703,11 @@ export class OrderSelectionDialogComponent implements OnInit {
             this.availableCostumerTypes = [...this.costumerTypes];
             this.availableOperationTypes = [...this.operationTypes];
             
+            // Resetear estados de carga
+            this.loadingProcesses = false;
+            this.loadingCostumerTypes = false;
+            this.loadingOperationTypes = false;
+            
             console.log('✅ Configuraciones cargadas:');
             console.log('  - Procesos:', this.processes.length);
             console.log('  - Tipos de cliente:', this.costumerTypes.length);
@@ -661,46 +725,108 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   private loadIndividualComboData(): void {
     console.log('🔄 Cargando datos individuales como fallback...');
-    
-    // Cargar procesos
+    this.loadProcesses();
+    this.loadCostumerTypes();
+    this.loadOperationTypes();
+  }
+
+  recargarProcesos(): void {
+    this.loadProcesses();
+  }
+
+  recargarTiposCliente(): void {
+    this.loadCostumerTypes();
+  }
+
+  recargarTiposOperacion(): void {
+    this.loadOperationTypes();
+  }
+
+  private loadProcesses(): void {
+    this.loadingProcesses = true;
     this.http.get<any>(`${environment.apiBaseUrl}/api/process?enabled=1`)
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
             this.processes = response.data.processes || response.data;
             console.log('✅ Procesos cargados:', this.processes.length);
+            // Si había un proceso seleccionado, intentar mantenerlo
+            if (this.selectedProcess && this.processes.length > 0) {
+              const found = this.processes.find(p => p.Id === this.selectedProcess.Id);
+              if (!found) {
+                this.selectedProcess = null;
+                this.onProcessChange();
+              }
+            }
           }
+          this.loadingProcesses = false;
         },
         error: (error) => {
           console.error('❌ Error cargando procesos:', error);
+          this.loadingProcesses = false;
         }
       });
+  }
 
-    // Cargar tipos de cliente
+  private loadCostumerTypes(): void {
+    this.loadingCostumerTypes = true;
     this.http.get<any>(`${environment.apiBaseUrl}/api/costumer-type?enabled=1`)
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
             this.costumerTypes = response.data.costumerTypes || response.data;
             console.log('✅ Tipos de cliente cargados:', this.costumerTypes.length);
+            // Re-filtrar tipos de cliente disponibles si hay un proceso seleccionado
+            if (this.selectedProcess) {
+              this.filterCostumerTypesByProcess();
+            } else {
+              this.availableCostumerTypes = [...this.costumerTypes];
+            }
+            // Si había un tipo de cliente seleccionado, intentar mantenerlo
+            if (this.selectedCostumerType && this.availableCostumerTypes.length > 0) {
+              const found = this.availableCostumerTypes.find(ct => ct.Id === this.selectedCostumerType.Id);
+              if (!found) {
+                this.selectedCostumerType = null;
+                this.onCostumerTypeChange();
+              }
+            }
           }
+          this.loadingCostumerTypes = false;
         },
         error: (error) => {
           console.error('❌ Error cargando tipos de cliente:', error);
+          this.loadingCostumerTypes = false;
         }
       });
+  }
 
-    // Cargar tipos de operación
+  private loadOperationTypes(): void {
+    this.loadingOperationTypes = true;
     this.http.get<any>(`${environment.apiBaseUrl}/api/operation-type?enabled=1`)
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
             this.operationTypes = response.data.operationTypes || response.data;
             console.log('✅ Tipos de operación cargados:', this.operationTypes.length);
+            // Re-filtrar tipos de operación disponibles si hay proceso y tipo de cliente seleccionados
+            if (this.selectedProcess && this.selectedCostumerType) {
+              this.filterOperationTypesByProcessAndCostumerType();
+            } else {
+              this.availableOperationTypes = [...this.operationTypes];
+            }
+            // Si había un tipo de operación seleccionado, intentar mantenerlo
+            if (this.selectedOperationType && this.availableOperationTypes.length > 0) {
+              const found = this.availableOperationTypes.find(ot => ot.Id === this.selectedOperationType.Id);
+              if (!found) {
+                this.selectedOperationType = null;
+              }
+            }
           }
+          this.loadingOperationTypes = false;
         },
         error: (error) => {
           console.error('❌ Error cargando tipos de operación:', error);
+          this.loadingOperationTypes = false;
         }
       });
   }

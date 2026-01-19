@@ -41,6 +41,7 @@ export class UserEditDialogComponent implements OnInit {
   showConfirmPassword = false;
   roles: UserRole[] = [];
   agencies: Agency[] = [];
+  loadingAgencies = false;
 
   constructor(
     private fb: FormBuilder,
@@ -254,15 +255,34 @@ export class UserEditDialogComponent implements OnInit {
   }
 
   private loadAgencies(): void {
+    this.loadingAgencies = true;
     this.userService.getAgencies().subscribe({
       next: (response) => {
         if (response.success) {
           this.agencies = response.data.agencies || response.data;
+          if (this.agencies.length === 0) {
+            this.snackBar.open('No se encontraron agencias disponibles', 'Advertencia', {
+              duration: 3000
+            });
+          }
+        } else {
+          this.snackBar.open(response.message || 'Error al cargar agencias', 'Error', {
+            duration: 3000
+          });
         }
+        this.loadingAgencies = false;
       },
       error: (error) => {
-        // Error loading agencies
+        console.error('Error cargando agencias:', error);
+        this.snackBar.open('Error al cargar agencias. Intenta recargar.', 'Error', {
+          duration: 3000
+        });
+        this.loadingAgencies = false;
       }
     });
+  }
+
+  recargarAgencias(): void {
+    this.loadAgencies();
   }
 }
