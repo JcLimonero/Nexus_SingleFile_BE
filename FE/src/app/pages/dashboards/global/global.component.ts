@@ -403,11 +403,27 @@ export class GlobalComponent implements OnInit, OnDestroy {
       const BOM = '\uFEFF';
       const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
       
+      // Obtener nombre de la agencia seleccionada
+      let nombreAgencia = 'Todas';
+      if (this.selectedAgency !== null) {
+        const agenciaSeleccionada = this.agencias.find(a => a.Id === this.selectedAgency);
+        if (agenciaSeleccionada && agenciaSeleccionada.Name) {
+          // Limpiar el nombre de la agencia para usar en el nombre del archivo (remover caracteres especiales)
+          nombreAgencia = agenciaSeleccionada.Name.replace(/[^a-zA-Z0-9]/g, '_');
+        }
+      }
+
+      // Formatear fecha de descarga (YYYY-MM-DD)
+      const fechaDescarga = new Date().toISOString().split('T')[0];
+      
+      // Crear nombre del archivo: {nombreAgencia}ordenes_{fecha}.csv
+      const nombreArchivo = `${nombreAgencia}ordenes_${fechaDescarga}.csv`;
+      
       // Crear URL y descargar
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `dashboard_global_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = nombreArchivo;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

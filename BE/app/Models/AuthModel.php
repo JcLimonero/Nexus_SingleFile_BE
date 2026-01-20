@@ -14,7 +14,7 @@ class AuthModel extends Model
     
     // Configuración de JWT
     private $jwtSecret = 'singlefile-secret-key-2025';
-    private $jwtExpiration = 3600; // 1 hora
+    private $jwtExpiration = 10800; // 3 horas
     private $refreshTokenExpiration = 2592000; // 30 días
     
     /**
