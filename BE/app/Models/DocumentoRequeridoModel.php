@@ -109,7 +109,11 @@ class DocumentoRequeridoModel extends Model
             ct.Name as TipoClienteName,
             dt.Name as TipoDocumentoName,
             dt.Required,
-            dt.ReqExpiration
+            dt.ReqExpiration,
+            dt.IdProcessType,
+            dt.IdSubProcess,
+            fs.Name as ProcessTypeName,
+            sp.Name as SubProcessName
         ');
         
         // Joins con tablas relacionadas
@@ -119,6 +123,8 @@ class DocumentoRequeridoModel extends Model
         $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
         $builder->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left');
         $builder->join('DocumentType dt', 'dt.Id = cpd.IdDocumentType', 'left');
+        $builder->join('File_Status fs', 'fs.Id = dt.IdProcessType', 'left');
+        $builder->join('File_SubStatus sp', 'sp.Id = dt.IdSubProcess', 'left');
         
         // Aplicar filtros
         if (!empty($filters['IdProcess'])) {

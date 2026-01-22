@@ -58,7 +58,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'requerido', 'requiereExpiracion'];
+  displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'etapa', 'subEtapa', 'requerido', 'requiereExpiracion'];
   dataSource = new MatTableDataSource<DocumentoRequerido>([]);
   
   loading = false;
@@ -98,6 +98,34 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    
+    // Configurar sortingDataAccessor para mapear correctamente las propiedades
+    this.dataSource.sortingDataAccessor = (item: any, property: string) => {
+      switch (property) {
+        case 'id':
+          return item.Id;
+        case 'agencia':
+          return item.AgenciaName || '';
+        case 'proceso':
+          return item.ProcesoName || '';
+        case 'tipoCliente':
+          return item.TipoClienteName || '';
+        case 'tipoOperacion':
+          return item.TipoOperacionName || '';
+        case 'tipoDocumento':
+          return item.TipoDocumentoName || '';
+        case 'etapa':
+          return item.ProcessTypeName || '';
+        case 'subEtapa':
+          return item.SubProcessName || '';
+        case 'requerido':
+          return item.Required === '1' ? 'Sí' : 'No';
+        case 'requiereExpiracion':
+          return item.ReqExpiration === '1' ? 'Sí' : 'No';
+        default:
+          return item[property];
+      }
+    };
   }
 
   loadCatalogs(): void {
