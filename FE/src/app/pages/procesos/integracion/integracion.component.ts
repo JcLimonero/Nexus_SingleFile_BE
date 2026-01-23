@@ -492,6 +492,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     // Convertir datos de Vanguardia al formato de importación
     const importData = this.vanguardiaClientImportService.convertVanguardiaDataForImport(vanguardiaClient);
     
+    // Usar el Id interno de la agencia seleccionada en lugar del idAgency del cliente de Vanguardia
+    if (this.selectedAgency && this.selectedAgency.Id) {
+      console.log('✅ Usando Id interno de agencia seleccionada:', this.selectedAgency.Id);
+      importData.idAgency = String(this.selectedAgency.Id);
+    } else {
+      console.warn('⚠️ No hay agencia seleccionada, usando idAgency del cliente de Vanguardia:', importData.idAgency);
+    }
+    
     // Importar cliente al sistema local
     this.vanguardiaClientImportService.importClient(importData)
       .pipe(takeUntil(this.destroy$))
@@ -528,6 +536,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             // Solo mostrar mensaje de importación si realmente se importó (no si ya existía)
             if (response.message && response.message.includes('importado exitosamente')) {
               this.snackBar.open(`Cliente ${importedClient.cliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
+                duration: 5000
+              });
+            } else if (response.message && response.message.includes('vinculado por RFC')) {
+              this.snackBar.open(`Cliente ${importedClient.cliente} vinculado por RFC; se creó la relación con ND ${importedClient.ndCliente}`, 'Cerrar', {
                 duration: 5000
               });
             }

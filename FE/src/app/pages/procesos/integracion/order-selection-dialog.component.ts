@@ -604,9 +604,9 @@ export class OrderSelectionDialogComponent implements OnInit {
           
           console.log('📊 Files existentes:', existingFiles.length);
           
-          // Filtrar pedidos de Vanguardia que no existen en la tabla de file
+          // Filtrar pedidos de Vanguardia que no existen en la tabla de file y eliminar duplicados
           const newOrders = this.filterNewOrders(existingFiles);
-          console.log('📊 Pedidos nuevos después del filtrado:', newOrders.length);
+          console.log('📊 Pedidos nuevos después del filtrado y deduplicación:', newOrders.length);
           
           this.filteredOrders = newOrders;
           this.loading = false;
@@ -625,28 +625,83 @@ export class OrderSelectionDialogComponent implements OnInit {
   private filterNewOrders(existingFiles: any[]): any[] {
     // Crear un Set con los order_dms existentes para búsqueda rápida
     const existingOrderDms = new Set(
-      existingFiles.map(file => file.order_dms?.toString().toLowerCase())
+      existingFiles.map(file => {
+        const orderDms = file.order_dms || file.numeroPedido || '';
+        return orderDms?.toString().toLowerCase();
+      }).filter(Boolean)
     );
     
     // Filtrar pedidos de Vanguardia que no existen en la tabla de file
-    return this.originalOrders.filter(order => {
+    const newOrders = this.originalOrders.filter(order => {
       const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
-      return !existingOrderDms.has(orderDms);
+      return orderDms && !existingOrderDms.has(orderDms);
     });
+    
+    // Eliminar duplicados basándose en order_dms (o order_dms + vin si ambos están presentes)
+    // Si hay múltiples pedidos con el mismo order_dms, mantener solo el primero
+    const seenOrders = new Map<string, any>();
+    const deduplicatedOrders: any[] = [];
+    
+    for (const order of newOrders) {
+      const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+      const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
+      
+      // Crear una clave única: order_dms + vin (si ambos existen) o solo order_dms
+      const uniqueKey = orderDms && vin ? `${orderDms}_${vin}` : orderDms;
+      
+      if (uniqueKey && !seenOrders.has(uniqueKey)) {
+        seenOrders.set(uniqueKey, order);
+        deduplicatedOrders.push(order);
+      }
+    }
+    
+    console.log(`🔍 Pedidos originales: ${this.originalOrders.length}, Nuevos: ${newOrders.length}, Sin duplicados: ${deduplicatedOrders.length}`);
+    
+    return deduplicatedOrders;
   }
 
   applyFilter(): void {
+    // Obtener los pedidos base (ya deduplicados desde filterNewOrders)
+    const baseOrders = this.filteredOrders.length > 0 ? this.filteredOrders : this.originalOrders;
+    
+    let filtered: any[];
+    
     if (!this.searchTerm.trim()) {
-      this.filteredOrders = [...this.originalOrders];
+      // Si no hay término de búsqueda, mostrar todos los pedidos ya filtrados y deduplicados
+      filtered = baseOrders;
     } else {
+      // Aplicar filtro de búsqueda
       const searchLower = this.searchTerm.toLowerCase();
-      this.filteredOrders = this.originalOrders.filter(order => {
+      filtered = baseOrders.filter(order => {
         const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
-        return orderDms.includes(searchLower);
+        const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
+        const model = (order.model || order.Model || '').toString().toLowerCase();
+        return orderDms.includes(searchLower) || vin.includes(searchLower) || model.includes(searchLower);
       });
+      
+      // Asegurar que no hay duplicados después del filtro de búsqueda
+      const seenOrders = new Map<string, any>();
+      const deduplicated: any[] = [];
+      
+      for (const order of filtered) {
+        const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+        const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
+        const uniqueKey = orderDms && vin ? `${orderDms}_${vin}` : orderDms;
+        
+        if (uniqueKey && !seenOrders.has(uniqueKey)) {
+          seenOrders.set(uniqueKey, order);
+          deduplicated.push(order);
+        }
+      }
+      
+      filtered = deduplicated;
     }
+    
+    // Actualizar paginación con los resultados filtrados
     this.currentPage = 0;
-    this.updatePaginatedOrders();
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedOrders = filtered.slice(startIndex, endIndex);
   }
 
   updatePaginatedOrders(): void {

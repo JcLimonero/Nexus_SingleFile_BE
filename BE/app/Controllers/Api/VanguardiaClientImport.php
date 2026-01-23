@@ -81,6 +81,41 @@ class VanguardiaClientImport extends ResourceController
                 ]);
             }
 
+            // No hay en client_total_relation por ND: buscar en Client por RFC del API.
+            // Si existe cliente con ese RFC, insertar HeaderClient + Client_Total_Relation
+            // (usar el Client con RegistrationDate más reciente).
+            $rfcFromApi = trim($vanguardiaData['rfc'] ?? '');
+            if ($rfcFromApi !== '') {
+                $clientByRfc = $this->findClientByRfc($rfcFromApi);
+                if ($clientByRfc) {
+                    error_log("✅ Cliente existe por RFC; insertando HeaderClient + Client_Total_Relation para nd " . $vanguardiaData['ndDMS']);
+                    $this->db->transStart();
+                    try {
+                        $headerClientId = $this->insertHeaderClient($clientByRfc['Id']);
+                        if (!$headerClientId) {
+                            throw new \Exception('Error al insertar en tabla HeaderClient');
+                        }
+                        $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+                        if (!$relationId) {
+                            throw new \Exception('Error al insertar en tabla Client_Total_Relation');
+                        }
+                        $this->db->transComplete();
+                        if ($this->db->transStatus() === false) {
+                            throw new \Exception('Error en la transacción de base de datos');
+                        }
+                        $created = $this->getCreatedClient($clientByRfc['Id'], $headerClientId, $relationId);
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Cliente vinculado por RFC; se creó HeaderClient y Client_Total_Relation',
+                            'data' => $created
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->db->transRollback();
+                        throw $e;
+                    }
+                }
+            }
+
             // Verificar si existe cliente con la misma RazonSocial (para evitar duplicados)
             $razonSocial = !empty($vanguardiaData['bussines_name']) 
                 ? $vanguardiaData['bussines_name'] 
@@ -193,10 +228,11 @@ class VanguardiaClientImport extends ResourceController
     /**
      * Verificar si el cliente ya existe
      */
-    private function checkExistingClient($ndDMS, $idAgency)
+    private function checkExistingClient($ndDMS, $idAgencyVanguardia)
     {
+        $idAgencyInternal = $this->getAgencyIdFromIdAgency($idAgencyVanguardia);
         error_log("=== Verificando si cliente existe ===");
-        error_log("ndDMS: {$ndDMS}, idAgency: {$idAgency}");
+        error_log("ndDMS: {$ndDMS}, idAgency (internal): {$idAgencyInternal}");
         
         // Buscar cliente por ndDMS y agencia (sin requerir que tenga File)
         $sql = "
@@ -225,7 +261,7 @@ class VanguardiaClientImport extends ResourceController
             WHERE ctr.IdTotalDealer = ? AND ctr.IdAgency = ?
         ";
 
-        $query = $this->db->query($sql, [$ndDMS, $idAgency]);
+        $query = $this->db->query($sql, [$ndDMS, $idAgencyInternal]);
         $result = $query->getRowArray();
 
         if ($result) {
@@ -235,6 +271,37 @@ class VanguardiaClientImport extends ResourceController
 
         error_log("ℹ️ Cliente NO existe por ndDMS, se procederá a crearlo");
         return null;
+    }
+
+    /**
+     * Buscar cliente en tabla Client por RFC (el de RegistrationDate más reciente).
+     * Usado cuando no hay coincidencia por nd en client_total_relation pero sí existe
+     * un cliente con el mismo RFC que devuelve el API.
+     */
+    private function findClientByRfc($rfc)
+    {
+        $rfcTrimmed = trim((string) ($rfc ?? ''));
+        if ($rfcTrimmed === '') {
+            return null;
+        }
+        error_log("🔍 Buscando cliente por RFC: {$rfcTrimmed}");
+        $sql = "
+            SELECT c.Id, c.Name, c.LastName, c.MotherLastName, c.RFC, c.Email, c.TelNumber,
+                   c.TelNumber2, c.RazonSocial, c.CURP, c.Adviser, c.AgencyOrigin,
+                   c.RegistrationDate, c.UpdateDate
+            FROM Client c
+            WHERE TRIM(c.RFC) = ?
+            ORDER BY c.RegistrationDate DESC
+            LIMIT 1
+        ";
+        $query = $this->db->query($sql, [$rfcTrimmed]);
+        $result = $query->getRowArray();
+        if ($result) {
+            error_log("✅ Cliente encontrado por RFC (RegistrationDate más reciente): Id=" . $result['Id']);
+        } else {
+            error_log("ℹ️ No hay cliente en Client con RFC: {$rfcTrimmed}");
+        }
+        return $result ?: null;
     }
     
     /**
@@ -501,19 +568,42 @@ class VanguardiaClientImport extends ResourceController
     }
 
     /**
-     * Obtener el IdAgency correcto desde IdAgency de Vanguardia
+     * Obtener el Id interno de la agencia desde IdAgency externo o Id interno.
+     * Busca primero por Id interno, luego por IdAgency externo en la tabla Agency.
      */
     private function getAgencyIdFromIdAgency($idAgency)
     {
-        // Mapeo de IdAgency de Vanguardia a Id de Agency en el sistema local
-        $mapping = [
-            '10017' => 1, // HONDA GALERIAS
-            '99999' => 24, // GEELY GALERIAS
-            '10082' => 2, // Otra agencia
-            // Agregar más mapeos según sea necesario
-        ];
+        error_log("=== CONVIRTIENDO ID AGENCIA EN VanguardiaClientImport ===");
+        error_log("ID recibido: " . $idAgency . " (tipo: " . gettype($idAgency) . ")");
         
-        return $mapping[$idAgency] ?? 1; // Por defecto agencia 1
+        // Convertir a string para comparación
+        $idAgencyStr = (string) $idAgency;
+        
+        // Primero intentar como ID interno (Id) - el frontend puede enviar el ID interno
+        $agency = $this->db->table('Agency')
+            ->where('Id', $idAgencyStr)
+            ->get()
+            ->getRowArray();
+            
+        if ($agency) {
+            error_log("✅ Agencia encontrada por Id interno: {$idAgencyStr}, IdAgency externo: " . ($agency['IdAgency'] ?? 'N/A'));
+            return (int) $agency['Id']; // Retornar el ID interno
+        }
+        
+        // Si no se encuentra, intentar como ID externo (IdAgency)
+        $agency = $this->db->table('Agency')
+            ->where('IdAgency', $idAgencyStr)
+            ->get()
+            ->getRowArray();
+            
+        if ($agency) {
+            error_log("✅ Agencia encontrada por IdAgency externo: {$idAgencyStr}, Id interno: " . $agency['Id']);
+            return (int) $agency['Id'];
+        }
+        
+        error_log("⚠️ Agencia NO encontrada para ID: {$idAgencyStr}, usando valor original como fallback");
+        // Fallback: intentar usar el valor como ID interno directamente
+        return is_numeric($idAgencyStr) ? (int) $idAgencyStr : 1;
     }
 
     /**

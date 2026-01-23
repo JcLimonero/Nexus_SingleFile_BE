@@ -110,8 +110,10 @@ class Files extends BaseController
             // Query mejorado para obtener TODOS los files/pedidos por agencia y cliente
             // Usamos INNER JOIN con Agency para asegurar que existe la agencia
             // LEFT JOINs con otras tablas para no perder registros aunque falten datos relacionados
+            // IMPORTANTE: Usamos subconsulta para OrderByCar para evitar duplicados cuando hay múltiples registros
+            // La subconsulta selecciona el registro más reciente por IdTotalDealer
             $sql = "
-                SELECT DISTINCT
+                SELECT 
                     f.Id as fileId,
                     f.IdOrderTotal as numeroPedido,
                     f.IdInventary as numeroInventario,
@@ -131,7 +133,21 @@ class Files extends BaseController
                 LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
                 LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
                 LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
+                LEFT JOIN (
+                    SELECT 
+                        obc1.IdTotalDealer,
+                        obc1.CarType,
+                        obc1.Year,
+                        obc1.Modelo,
+                        obc1.VIN
+                    FROM OrderByCar obc1
+                    INNER JOIN (
+                        SELECT IdTotalDealer, MAX(RegistrationDate) as MaxDate
+                        FROM OrderByCar
+                        GROUP BY IdTotalDealer
+                    ) obc2 ON obc1.IdTotalDealer = obc2.IdTotalDealer 
+                        AND obc1.RegistrationDate = obc2.MaxDate
+                ) obc ON f.IdOrderTotal = obc.IdTotalDealer
                 WHERE a.IdAgency = ?
             ";
 
@@ -167,6 +183,9 @@ class Files extends BaseController
                 $params[] = $ndClienteTrimmed;
             }
 
+            // Agrupar por f.Id para asegurar un solo registro por pedido (evitar duplicados)
+            $sql .= " GROUP BY f.Id, f.IdOrderTotal, f.IdInventary, p.Name, ot.Name, ct.Name, 
+                             obc.CarType, obc.Year, obc.Modelo, obc.VIN, a.Name, f.RegistrationDate, fs.Name";
             $sql .= " ORDER BY f.RegistrationDate DESC";
             
             error_log("=== Query getByAgency ===");
