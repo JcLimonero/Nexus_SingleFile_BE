@@ -329,6 +329,7 @@ $routes->group('documents', function($routes) {
         $routes->get('clientes', 'Validacion::getClientes');
         $routes->get('estadisticas', 'Validacion::getEstadisticas');
         $routes->get('documentos', 'Validacion::getDocumentos');
+        $routes->get('diagnostico', 'Validacion::diagnosticoPedido');
         $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
         $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');
         $routes->delete('eliminar-pedido', 'Validacion::eliminarPedido');

@@ -44,6 +44,203 @@ class Validacion extends BaseController
     }
 
     /**
+     * Endpoint de diagnóstico para verificar por qué un pedido no aparece
+     * GET /api/validacion/diagnostico?idFile=15460&idAgency=5&idProcess=?
+     */
+    public function diagnosticoPedido()
+    {
+        try {
+            $idFile = $this->request->getGet('idFile');
+            $idAgency = $this->request->getGet('idAgency');
+            $idProcess = $this->request->getGet('idProcess');
+
+            if (!$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            // Obtener información básica del pedido
+            $fileInfo = $this->db->query("
+                SELECT 
+                    f.Id as idFile,
+                    f.IdAgency,
+                    f.IdProcess,
+                    f.IdClient,
+                    f.IdCurrentState,
+                    f.IdOrderTotal as ndPedido,
+                    a.Name as agencia,
+                    p.Name as proceso,
+                    p.Enabled as proceso_habilitado,
+                    fs.Name as estado_actual
+                FROM File f
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE f.Id = ?
+            ", [$idFile])->getRowArray();
+
+            if (!$fileInfo) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El pedido no existe',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            // Verificar relación Client_Total_Relation
+            $relacion = $this->db->query("
+                SELECT 
+                    ctr.Id,
+                    ctr.IdAgency,
+                    ctr.IdTotalDealer,
+                    a.Name as nombre_agencia
+                FROM HeaderClient hc
+                INNER JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc.Id
+                INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                WHERE hc.Id = ?
+                AND ctr.IdAgency = ?
+            ", [$fileInfo['IdClient'], $fileInfo['IdAgency']])->getRowArray();
+
+            // Verificar todas las relaciones del cliente
+            $todasRelaciones = $this->db->query("
+                SELECT 
+                    ctr.Id,
+                    ctr.IdAgency,
+                    ctr.IdTotalDealer,
+                    a.Name as nombre_agencia
+                FROM HeaderClient hc
+                INNER JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc.Id
+                INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                WHERE hc.Id = ?
+            ", [$fileInfo['IdClient']])->getResultArray();
+
+            // Verificar condiciones del query de validación
+            $cumpleCondiciones = [
+                'agencia' => $idAgency ? ($fileInfo['IdAgency'] == $idAgency) : null,
+                'proceso' => $idProcess ? ($fileInfo['IdProcess'] == $idProcess) : null,
+                'proceso_habilitado' => $fileInfo['proceso_habilitado'] == 1,
+                'no_cancelado' => $fileInfo['IdCurrentState'] != 5,
+                'tiene_relacion_cliente_agencia' => $relacion !== null
+            ];
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Diagnóstico completado',
+                'data' => [
+                    'pedido' => $fileInfo,
+                    'relacion_requerida' => $relacion,
+                    'todas_relaciones' => $todasRelaciones,
+                    'condiciones' => $cumpleCondiciones,
+                    'apareceria_en_validacion' => 
+                        (!$idAgency || $cumpleCondiciones['agencia']) &&
+                        (!$idProcess || $cumpleCondiciones['proceso']) &&
+                        $cumpleCondiciones['proceso_habilitado'] &&
+                        $cumpleCondiciones['no_cancelado'] &&
+                        $cumpleCondiciones['tiene_relacion_cliente_agencia']
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::diagnosticoPedido: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Reparar relación Client_Total_Relation faltante para un File.
+     * Si el pedido no aparece en validación por falta de relación cliente-agencia,
+     * este endpoint la crea.
+     * POST /api/clients-validation/reparar-relacion
+     * Body: { "idFile": 15460 }
+     */
+    public function repararRelacion()
+    {
+        try {
+            $data = $this->request->getJSON(true) ?? [];
+            $idFile = $data['idFile'] ?? $this->request->getGet('idFile');
+            if (!$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            $idFile = (int) $idFile;
+
+            $file = $this->db->query("
+                SELECT f.Id, f.IdClient, f.IdAgency
+                FROM File f
+                WHERE f.Id = ?
+            ", [$idFile])->getRowArray();
+            if (!$file) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El pedido no existe',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            $idHeaderClient = (int) $file['IdClient'];
+            $idAgency = (int) $file['IdAgency'];
+
+            $existe = $this->db->query("
+                SELECT 1 FROM Client_Total_Relation ctr
+                WHERE ctr.idHeaderClient = ? AND ctr.IdAgency = ?
+            ", [$idHeaderClient, $idAgency])->getRowArray();
+            if ($existe) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'La relación ya existe; no se requiere reparación',
+                    'data' => ['idFile' => $idFile, 'idHeaderClient' => $idHeaderClient, 'IdAgency' => $idAgency]
+                ]);
+            }
+
+            $otro = $this->db->query("
+                SELECT ctr.IdTotalDealer FROM Client_Total_Relation ctr
+                WHERE ctr.idHeaderClient = ?
+                LIMIT 1
+            ", [$idHeaderClient])->getRowArray();
+            $idTotalDealer = $otro ? trim((string) ($otro['IdTotalDealer'] ?? '')) : '';
+
+            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM Client_Total_Relation")->getRowArray();
+            $nextId = (int) ($nextIdRow['nextId'] ?? 1);
+
+            $this->db->table('Client_Total_Relation')->insert([
+                'Id' => $nextId,
+                'idHeaderClient' => $idHeaderClient,
+                'IdAgency' => $idAgency,
+                'IdTotalDealer' => $idTotalDealer
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Relación cliente-agencia creada correctamente',
+                'data' => [
+                    'idFile' => $idFile,
+                    'idRelation' => $nextId,
+                    'idHeaderClient' => $idHeaderClient,
+                    'IdAgency' => $idAgency,
+                    'IdTotalDealer' => $idTotalDealer ?: '(vacío)'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::repararRelacion: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Obtener datos de clientes y procesos para la tabla de validación
      * GET /api/validacion/clientes
      */
@@ -61,29 +258,29 @@ class Validacion extends BaseController
             $limit = (int) $this->request->getGet('limit') ?: 10;
             $offset = ($page - 1) * $limit;
 
-            // Validar parámetros requeridos
-            if (!$idAgency || !$idProcess) {
+            // Validar parámetros requeridos (idProcess opcional: si no viene, "Todos los procesos")
+            if (!$idAgency) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Los parámetros id e idProcess son requeridos',
+                    'message' => 'El parámetro id (agencia) es requerido',
                     'data' => null
                 ])->setStatusCode(400);
             }
 
+            $filtrarPorProceso = $idProcess !== null && $idProcess !== '';
+
             // Query principal usando SQL directo para evitar problemas con Query Builder
             // PRIORIDAD: El pedido (File) debe pertenecer a la agencia seleccionada
-            // El cliente puede venir de cualquier agencia, pero se obtiene del pedido específico
+            // El cliente debe estar relacionado con la agencia del pedido a través de Client_Total_Relation
             $sql = "
                 SELECT 
                     f.Id as idFile,
                     COALESCE(
-                        -- Prioridad 1: ndCliente de la agencia del pedido
                         (SELECT ctr1.IdTotalDealer 
                          FROM Client_Total_Relation ctr1 
                          WHERE ctr1.idHeaderClient = hc.Id 
                          AND ctr1.IdAgency = f.IdAgency 
                          LIMIT 1),
-                        -- Prioridad 2: ndCliente de cualquier agencia del cliente
                         (SELECT ctr2.IdTotalDealer 
                          FROM Client_Total_Relation ctr2 
                          WHERE ctr2.idHeaderClient = hc.Id 
@@ -97,6 +294,8 @@ class Validacion extends BaseController
                     ) as cliente,
                     p.Name as proceso,
                     ot.Name as operacion,
+                    a.Name as agencia,
+                    f.IdAgency as idAgency,
                     f.RegistrationDate as registro,
                     fs.Name as fase,
                     f.IdCurrentState,
@@ -127,18 +326,27 @@ class Validacion extends BaseController
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN Agency a ON f.IdAgency = a.Id
                 WHERE f.IdAgency = ?
-                AND f.IdProcess = ?
                 AND p.Enabled = 1
+                AND EXISTS (
+                    SELECT 1 
+                    FROM Client_Total_Relation ctr_check 
+                    WHERE ctr_check.idHeaderClient = hc.Id 
+                    AND ctr_check.IdAgency = f.IdAgency
+                )
             ";
-            
-            $params = [$idAgency, $idProcess];
+
+            $params = [$idAgency];
+            if ($filtrarPorProceso) {
+                $sql .= " AND f.IdProcess = ?";
+                $params[] = $idProcess;
+            }
             
             // Aplicar filtro de pedidos cancelados 
             if ($showCancelled) {
                 $sql .= " AND f.IdCurrentState = 5";
             } else {
-                // Cuando no se muestran cancelados, excluir solo cancelados (5), pero mostrar excepciones (6)
                 $sql .= " AND f.IdCurrentState != 5";
             }
             
@@ -150,7 +358,7 @@ class Validacion extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 
-            // Query para contar total de registros usando SQL directo
+            // Query para contar total de registros
             $countSql = "
                 SELECT COUNT(*) as total
                 FROM File f
@@ -160,18 +368,23 @@ class Validacion extends BaseController
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 WHERE f.IdAgency = ?
-                AND f.IdProcess = ?
                 AND p.Enabled = 1
                 AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+                AND EXISTS (
+                    SELECT 1 
+                    FROM Client_Total_Relation ctr_check 
+                    WHERE ctr_check.idHeaderClient = hc.Id 
+                    AND ctr_check.IdAgency = f.IdAgency
+                )
             ";
-            
-            $countParams = [$idAgency, $idProcess];
-            
-            // Aplicar el mismo filtro de pedidos cancelados a la query de conteo
+            $countParams = [$idAgency];
+            if ($filtrarPorProceso) {
+                $countSql .= " AND f.IdProcess = ?";
+                $countParams[] = $idProcess;
+            }
             if ($showCancelled) {
                 $countSql .= " AND f.IdCurrentState = 5";
             } else {
-                // Cuando no se muestran cancelados, excluir solo cancelados (5), pero mostrar excepciones (6)
                 $countSql .= " AND f.IdCurrentState != 5";
             }
 

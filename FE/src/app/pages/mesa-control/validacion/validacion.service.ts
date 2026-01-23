@@ -108,7 +108,10 @@ export class ValidacionService {
 
     let params = new HttpParams();
     if (filtros.agencia) params = params.set('id', filtros.agencia);
-    if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
+    // Solo enviar idProcess cuando hay proceso concreto; "Todos los procesos" no envía idProcess
+    if (filtros.proceso != null && filtros.proceso !== undefined) {
+      params = params.set('idProcess', filtros.proceso.toString());
+    }
     if (filtros.showCancelled !== undefined) params = params.set('showCancelled', filtros.showCancelled.toString());
     params = params.set('page', '1');
     params = params.set('limit', '10000'); // Obtener más registros para paginación local

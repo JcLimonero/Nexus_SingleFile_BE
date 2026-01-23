@@ -228,7 +228,7 @@
 
         <mat-form-field appearance="outline" class="min-w-0 mr-2.5 compact-field" style="width: 206px;">
           <mat-label>Proceso</mat-label>
-          <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos || procesos.length === 0" (selectionChange)="onProcesoChange()">
+          <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos" (selectionChange)="onProcesoChange()">
             <mat-option *ngIf="loadingProcesos" value="" disabled>
               <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
               Cargando procesos...
@@ -236,6 +236,7 @@
             <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
               No hay procesos disponibles
             </mat-option>
+            <mat-option [value]="0">Todos los procesos</mat-option>
             <mat-option *ngFor="let proceso of procesos; trackBy: trackByProcesoId" [value]="proceso.Id">
               {{ proceso.Name }}
             </mat-option>

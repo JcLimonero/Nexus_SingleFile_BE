@@ -223,6 +223,20 @@ class DocumentoRequerido extends BaseController
             $result = $this->documentoRequeridoModel->updateDocumentoRequerido($id, $data);
             
             if ($result) {
+                // Si se actualizó el estado Enabled, actualizar también el ConfigurationProcess
+                if (isset($data['Enabled'])) {
+                    $configProcessModel = new \App\Models\ConfigurationProcessModel();
+                    $configProcessId = $existingDocumento['IdConfigurationProcess'] ?? null;
+                    
+                    if ($configProcessId) {
+                        $configProcessModel->update($configProcessId, [
+                            'Enabled' => $data['Enabled'] === '1' || $data['Enabled'] === 1 ? 1 : 0,
+                            'UpdateDate' => date('Y-m-d H:i:s'),
+                            'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                        ]);
+                    }
+                }
+                
                 // Obtener el documento actualizado con relaciones
                 $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
                     'Id' => $id

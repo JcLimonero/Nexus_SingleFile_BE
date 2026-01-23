@@ -78,6 +78,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   // Filtro para mostrar solo seleccionados
   showOnlySelected: boolean = false;
 
+  // Validación de configuración existente
+  configuracionExiste: boolean = false;
+  validandoConfiguracion: boolean = false;
+  mensajeValidacion: string = '';
+
   constructor(
     private fb: FormBuilder,
     private documentoRequeridoService: DocumentoRequeridoService,
@@ -95,6 +100,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         IdAgency: string;
         IdCostumerType: string;
         IdOperationType: string;
+        Enabled?: string;
       };
     },
     private snackBar: MatSnackBar
@@ -132,11 +138,33 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
     // Si tenemos configuración predefinida, aplicarla
     if (this.data.configuracion) {
+      // Determinar el estado: si no está definido o es '1' o es string vacío, se considera habilitado
+      const enabledValue = this.data.configuracion.Enabled;
+      const isEnabled = enabledValue === undefined || enabledValue === '' || enabledValue === '1' || String(enabledValue) === '1';
+      
       this.documentoForm.patchValue({
         IdProcess: this.data.configuracion.IdProcess,
         IdAgency: this.data.configuracion.IdAgency,
         IdCostumerType: this.data.configuracion.IdCostumerType,
-        IdOperationType: this.data.configuracion.IdOperationType
+        IdOperationType: this.data.configuracion.IdOperationType,
+        enabled: isEnabled
+      });
+    }
+
+    // Solo en modo create, agregar listeners para validar en tiempo real
+    if (this.data.mode === 'create') {
+      // Escuchar cambios en los campos de configuración
+      this.documentoForm.get('IdAgency')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
+      });
+      this.documentoForm.get('IdProcess')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
+      });
+      this.documentoForm.get('IdCostumerType')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
+      });
+      this.documentoForm.get('IdOperationType')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
       });
     }
   }
@@ -322,6 +350,60 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     }
   }
 
+  /**
+   * Validar si la configuración ya existe (en tiempo real)
+   */
+  validarConfiguracionExistente(): void {
+    // Solo validar si todos los campos están completos
+    const IdAgency = this.documentoForm.get('IdAgency')?.value;
+    const IdProcess = this.documentoForm.get('IdProcess')?.value;
+    const IdCostumerType = this.documentoForm.get('IdCostumerType')?.value;
+    const IdOperationType = this.documentoForm.get('IdOperationType')?.value;
+
+    if (!IdAgency || !IdProcess || !IdCostumerType || !IdOperationType) {
+      // Si falta algún campo, resetear el estado
+      this.configuracionExiste = false;
+      this.mensajeValidacion = '';
+      return;
+    }
+
+    this.validandoConfiguracion = true;
+    this.mensajeValidacion = 'Verificando...';
+
+    const filters = {
+      IdProcess: IdProcess,
+      IdAgency: IdAgency,
+      IdCostumerType: IdCostumerType,
+      IdOperationType: IdOperationType
+    };
+
+    this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
+      next: (response) => {
+        this.validandoConfiguracion = false;
+        if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
+          // Ya existe una configuración
+          this.configuracionExiste = true;
+          const procesoName = this.procesos.find(p => p.Id === IdProcess)?.Name || 'N/A';
+          const agenciaName = this.agencias.find(a => a.Id === IdAgency)?.Name || 'N/A';
+          const clienteName = this.tiposCliente.find(c => c.Id === IdCostumerType)?.Name || 'N/A';
+          const operacionName = this.tiposOperacion.find(o => o.Id === IdOperationType)?.Name || 'N/A';
+          this.mensajeValidacion = `Ya existe una configuración para: ${agenciaName} - ${procesoName} - ${clienteName} - ${operacionName}`;
+        } else {
+          // No existe, se puede crear
+          this.configuracionExiste = false;
+          this.mensajeValidacion = '';
+        }
+      },
+      error: (error) => {
+        this.validandoConfiguracion = false;
+        console.error('Error verificando configuración existente:', error);
+        // En caso de error, permitir crear (el backend también validará)
+        this.configuracionExiste = false;
+        this.mensajeValidacion = '';
+      }
+    });
+  }
+
   private createDocumentoRequerido(): void {
     if (this.selectedDocumentTypes.length === 0) {
       this.snackBar.open('Debes seleccionar al menos un tipo de documento', 'Error', {
@@ -331,6 +413,20 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       return;
     }
 
+    // Si ya sabemos que existe, no proceder
+    if (this.configuracionExiste) {
+      this.snackBar.open('Esta configuración ya existe. Por favor, edita la configuración existente o selecciona diferentes parámetros.', 'Advertencia', {
+        duration: 5000
+      });
+      this.loading = false;
+      return;
+    }
+
+    // Proceder con la creación
+    this.proceedWithCreation();
+  }
+
+  private proceedWithCreation(): void {
     // Crear múltiples documentos, uno por cada tipo seleccionado
     let createdCount = 0;
     let errorCount = 0;
@@ -351,6 +447,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             createdCount++;
           } else {
             errorCount++;
+            // Si el error es porque ya existe, mostrarlo
+            if (response.message && response.message.toLowerCase().includes('existe') || 
+                response.message && response.message.toLowerCase().includes('duplicado')) {
+              console.warn('Configuración duplicada detectada:', response.message);
+            }
           }
           
           // Verificar si todos los documentos han sido procesados
@@ -380,9 +481,17 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
               });
               this.dialogRef.close(true);
             } else {
-              this.snackBar.open('Error al crear configuraciones', 'Error', {
-                duration: 3000
-              });
+              // Verificar si el error es por duplicado
+              const errorMessage = error?.error?.message || error?.message || '';
+              if (errorMessage.toLowerCase().includes('existe') || errorMessage.toLowerCase().includes('duplicado')) {
+                this.snackBar.open('Esta configuración ya existe. Por favor, edita la configuración existente.', 'Advertencia', {
+                  duration: 5000
+                });
+              } else {
+                this.snackBar.open('Error al crear configuraciones', 'Error', {
+                  duration: 3000
+                });
+              }
             }
             this.loading = false;
           }
@@ -392,7 +501,77 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   }
 
   private updateDocumentoRequerido(): void {
-    if (!this.data.documento) return;
+    // Si no hay documento pero hay configuración, actualizar solo el estado de la configuración
+    if (!this.data.documento && this.data.configuracion) {
+      // Obtener el ID de la configuración buscando un documento de esa configuración
+      const filters = {
+        IdProcess: this.documentoForm.value.IdProcess,
+        IdAgency: this.documentoForm.value.IdAgency,
+        IdCostumerType: this.documentoForm.value.IdCostumerType,
+        IdOperationType: this.documentoForm.value.IdOperationType
+      };
+
+      this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
+        next: (response) => {
+          if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
+            // Obtener el IdConfigurationProcess del primer documento
+            const firstDoc = response.data.documentos[0];
+            const configProcessId = firstDoc.IdConfigurationProcess;
+
+            // Actualizar el estado de la configuración usando el primer documento como referencia
+            const documentoData: DocumentoRequeridoUpdateRequest = {
+              Id: firstDoc.Id,
+              IdProcess: this.documentoForm.value.IdProcess,
+              IdAgency: this.documentoForm.value.IdAgency,
+              IdCostumerType: this.documentoForm.value.IdCostumerType,
+              IdOperationType: this.documentoForm.value.IdOperationType,
+              IdDocumentType: firstDoc.IdDocumentType,
+              Enabled: this.documentoForm.value.enabled ? '1' : '0'
+            };
+
+            // Actualizar documentos y luego actualizar el ConfigurationProcess
+            this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.Id, documentoData).subscribe({
+              next: (updateResponse) => {
+                if (updateResponse.success) {
+                  // Ahora actualizar todos los documentos de esta configuración con el nuevo estado
+                  // y actualizar el ConfigurationProcess
+                  this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
+                } else {
+                  this.snackBar.open(updateResponse.message || 'Error al actualizar configuración', 'Error', {
+                    duration: 3000
+                  });
+                  this.loading = false;
+                }
+              },
+              error: (error) => {
+                this.snackBar.open('Error al actualizar configuración', 'Error', {
+                  duration: 3000
+                });
+                this.loading = false;
+              }
+            });
+          } else {
+            this.snackBar.open('No se encontró la configuración para actualizar', 'Error', {
+              duration: 3000
+            });
+            this.loading = false;
+          }
+        },
+        error: (error) => {
+          this.snackBar.open('Error al buscar la configuración', 'Error', {
+            duration: 3000
+          });
+          this.loading = false;
+        }
+      });
+      return;
+    }
+
+    // Si hay documento específico, actualizar normalmente
+    if (!this.data.documento) {
+      this.loading = false;
+      return;
+    }
 
     if (this.selectedDocumentTypes.length === 0) {
       this.snackBar.open('Debes seleccionar al menos un tipo de documento', 'Error', {
@@ -416,16 +595,23 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     this.documentoRequeridoService.updateDocumentoRequerido(this.data.documento.Id, documentoData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
-            duration: 2000
-          });
-          this.dialogRef.close(true);
+          // Actualizar también el ConfigurationProcess
+          const configProcessId = this.data.documento?.IdConfigurationProcess;
+          if (configProcessId) {
+            this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
+          } else {
+            this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
+              duration: 2000
+            });
+            this.dialogRef.close(true);
+            this.loading = false;
+          }
         } else {
           this.snackBar.open(response.message || 'Error al actualizar configuración', 'Error', {
             duration: 3000
           });
+          this.loading = false;
         }
-        this.loading = false;
       },
       error: (error) => {
         this.snackBar.open('Error al actualizar configuración', 'Error', {
@@ -434,6 +620,19 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Actualizar el estado del ConfigurationProcess
+   */
+  private updateConfigurationProcessStatus(configProcessId: string, enabled: boolean): void {
+    // El backend ahora actualiza automáticamente el ConfigurationProcess cuando se actualiza Enabled
+    // Solo cerramos el diálogo
+    this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
+      duration: 2000
+    });
+    this.dialogRef.close(true);
+    this.loading = false;
   }
 
   onCancel(): void {

@@ -83,6 +83,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   loadingProcesos = false; // Specific loading state for processes
   error = '';
 
+  /** Valor especial para "Todos los procesos" en el combo */
+  readonly ALL_PROCESSES_VALUE = 0;
+
   // Filtros principales
   selectedAgency: number | null = null;
   selectedProcess: number | null = null;
@@ -644,8 +647,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       if (agenciaId !== null) {
         this.selectedAgency = agenciaId;
         console.log('🔄 ValidacionComponent - Agencia actualizada desde servicio:', agenciaId);
-        // Si hay proceso seleccionado, cargar clientes
-        if (this.selectedProcess !== null) {
+        // Si hay proceso seleccionado (incl. "Todos los procesos"), cargar clientes
+        if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
           this.cargarClientes();
         }
       }
@@ -1314,19 +1317,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           console.log('✅ ValidacionComponent - Procesos mostrados (todos):', this.procesos);
           console.log('📊 ValidacionComponent - Total de procesos mostrados:', this.procesos.length);
 
-          // Seleccionar el primer proceso por defecto si hay alguno
+          // Seleccionar el primer proceso por defecto si hay alguno; si no, "Todos los procesos"
           if (this.procesos.length > 0) {
             this.selectedProcess = this.procesos[0].Id;
             console.log('🎯 ValidacionComponent - Proceso seleccionado por defecto:', this.selectedProcess);
-
-            // Si ya hay agencia seleccionada, cargar clientes automáticamente
-            if (this.selectedAgency !== null) {
-              console.log('🔄 ValidacionComponent - Cargando clientes automáticamente con proceso seleccionado');
-              this.cargarClientes();
-            }
           } else {
-            console.warn('⚠️ ValidacionComponent - No se encontraron procesos habilitados');
-            this.selectedProcess = null;
+            this.selectedProcess = this.ALL_PROCESSES_VALUE;
+            console.log('🎯 ValidacionComponent - Proceso seleccionado por defecto: Todos los procesos');
+          }
+
+          // Si ya hay agencia seleccionada, cargar clientes automáticamente
+          if (this.selectedAgency !== null) {
+            console.log('🔄 ValidacionComponent - Cargando clientes automáticamente con proceso seleccionado');
+            this.cargarClientes();
           }
 
           this.loadingProcesos = false;
@@ -1639,8 +1642,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       });
     }
-    // Si ya hay un proceso seleccionado, cargar clientes
-    if (this.selectedProcess) {
+    // Si ya hay un proceso seleccionado (incl. "Todos los procesos"), cargar clientes
+    if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
       this.cargarClientes();
     }
     // Limpiar selección de cliente y documentos
@@ -1657,7 +1660,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.selectedFase = '';
     this.searchTerm = '';
 
-    if (this.selectedProcess !== null) {
+    if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
       this.cargarClientes();
     }
     // Limpiar selección de cliente y documentos
@@ -1802,17 +1805,22 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    * Cargar clientes desde la API
    */
   private cargarClientes() {
-    if (this.selectedAgency === null || this.selectedProcess === null) {
-      console.log('⚠️ ValidacionComponent - No se puede cargar clientes: agencia o proceso no seleccionado');
+    if (this.selectedAgency === null) {
+      console.log('⚠️ ValidacionComponent - No se puede cargar clientes: agencia no seleccionada');
+      return;
+    }
+    if (this.selectedProcess === null || this.selectedProcess === undefined) {
+      console.log('⚠️ ValidacionComponent - No se puede cargar clientes: proceso no seleccionado');
       return;
     }
 
-    console.log('🔄 ValidacionComponent - Cargando clientes para agencia:', this.selectedAgency, 'proceso:', this.selectedProcess);
+    const esTodosProcesos = this.selectedProcess === this.ALL_PROCESSES_VALUE;
+    console.log('🔄 ValidacionComponent - Cargando clientes para agencia:', this.selectedAgency, 'proceso:', esTodosProcesos ? 'Todos' : this.selectedProcess);
     this.loading = true;
 
     const filtros: FiltrosValidacion = {
       agencia: this.selectedAgency,
-      proceso: this.selectedProcess,
+      proceso: esTodosProcesos ? null : this.selectedProcess,
       showCancelled: this.showCancelledOrders
     };
 

@@ -106,13 +106,15 @@ class ClientSearch extends BaseController
             if ($searchTerm && trim($searchTerm) !== '') {
                 $searchTerm = trim($searchTerm);
                 
-                // Si es un número, buscar en ndCliente (en cualquier Client_Total_Relation del cliente)
+                // Si es un número, buscar en ndCliente priorizando la agencia del pedido
                 if (is_numeric($searchTerm)) {
+                    // Priorizar clientes que tienen ese número en la agencia del pedido
                     $sql .= " AND EXISTS (
                         SELECT 1
                         FROM Client_Total_Relation ctr_search
                         WHERE ctr_search.idHeaderClient = hc.Id
                         AND TRIM(ctr_search.IdTotalDealer) LIKE ?
+                        AND ctr_search.IdAgency = f.IdAgency
                     )";
                     $searchPattern = "%{$searchTerm}%";
                     $params[] = $searchPattern;
