@@ -238,6 +238,33 @@ class DocumentoRequeridoModel extends Model
     }
 
     /**
+     * Obtener un documento requerido por ID con todas sus relaciones
+     */
+    public function findWithRelations($id)
+    {
+        $builder = $this->builder('ConfigurationProcess_DocumentType cpd');
+        
+        $builder->select('
+            cpd.Id,
+            cpd.IdDocumentType,
+            cpd.IdConfigurationProcess,
+            cp.IdProcess,
+            cp.IdAgency,
+            cp.IdOperationType,
+            cp.IdCostumerType,
+            cp.Enabled,
+            cp.RegistrationDate,
+            cp.UpdateDate
+        ');
+        
+        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
+        $builder->where('cpd.Id', $id);
+        
+        $result = $builder->get()->getRowArray();
+        return $result ?: null;
+    }
+
+    /**
      * Verificar si ya existe un documento requerido para la configuración
      */
     public function existsDocumentoRequerido($idProcess, $idAgency, $idCostumerType, $idOperationType, $idDocumentType, $excludeId = null)
@@ -307,11 +334,34 @@ class DocumentoRequeridoModel extends Model
             $data['IdConfigurationProcess'] = $idConfigProcess;
         }
         
-        // Actualizar solo los campos permitidos
+        // Actualizar solo los campos permitidos de ConfigurationProcess_DocumentType
+        // Nota: Enabled está en ConfigurationProcess, no en ConfigurationProcess_DocumentType
+        // El controlador se encargará de actualizar ConfigurationProcess si se envía Enabled
         $updateData = [];
         if (isset($data['IdDocumentType'])) $updateData['IdDocumentType'] = $data['IdDocumentType'];
         if (isset($data['IdConfigurationProcess'])) $updateData['IdConfigurationProcess'] = $data['IdConfigurationProcess'];
         
-        return $this->update($id, $updateData);
+        // Si solo se está actualizando Enabled, no hay nada que actualizar en esta tabla
+        // pero aún así retornamos true para que el controlador pueda actualizar ConfigurationProcess
+        if (isset($data['Enabled']) && empty($updateData)) {
+            // Saltar validación ya que no estamos actualizando nada en esta tabla
+            return true; // Permitir que el controlador actualice ConfigurationProcess
+        }
+        
+        // Si hay datos para actualizar, usar update con skipValidation para actualizaciones parciales
+        if (!empty($updateData)) {
+            // Temporalmente desactivar validación para permitir actualizaciones parciales
+            $originalSkipValidation = $this->skipValidation;
+            $this->skipValidation = true;
+            
+            $result = $this->update($id, $updateData);
+            
+            // Restaurar configuración de validación
+            $this->skipValidation = $originalSkipValidation;
+            
+            return $result;
+        }
+        
+        return false;
     }
 }

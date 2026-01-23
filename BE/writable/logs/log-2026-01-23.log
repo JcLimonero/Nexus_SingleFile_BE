@@ -178,3 +178,4 @@ Stack trace:
 #12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
 #13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
 #14 {main}
+ERROR - 2026-01-23 07:34:56 --> Error en DocumentoRequerido::update: Undefined array key "IdProcess"

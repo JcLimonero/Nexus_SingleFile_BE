@@ -1,3 +1,17 @@
+export interface DocumentTypeConfiguration {
+  IdConfigurationProcessDocumentType: number;
+  IdConfigurationProcess: number;
+  IdProcess: number;
+  IdAgency: number;
+  IdCostumerType: number;
+  IdOperationType: number;
+  ConfigurationEnabled: number;
+  ProcesoName: string;
+  AgenciaName: string;
+  TipoClienteName: string;
+  TipoOperacionName: string;
+}
+
 export interface DocumentType {
   Id: string;
   Name: string;
@@ -13,6 +27,8 @@ export interface DocumentType {
   LastUserUpdateName?: string;
   ProcessTypeName?: string; // Descripción del File_Status (JOIN con File_Status)
   SubProcessName?: string; // Nombre del subestado de archivo (JOIN con File_SubStatus)
+  configurations?: DocumentTypeConfiguration[]; // Configuraciones donde se usa este tipo de documento
+  configurationsCount?: number; // Número de configuraciones
 }
 
 export interface DocumentTypeResponse {

@@ -109,6 +109,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('search', 'DocumentType::search');
         $routes->get('stats', 'DocumentType::stats');
         $routes->get('active', 'DocumentType::active');
+        $routes->get('(:num)/configurations', 'DocumentType::getConfigurations/$1');
+        $routes->delete('(:num)/configuration/(:num)', 'DocumentType::deleteConfiguration/$1/$2');
         $routes->get('(:num)', 'DocumentType::show/$1');
         $routes->put('(:num)', 'DocumentType::update/$1');
         $routes->delete('(:num)', 'DocumentType::delete/$1');

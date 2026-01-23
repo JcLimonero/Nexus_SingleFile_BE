@@ -70,7 +70,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<DocumentoRequerido>([]);
   
   // Tab 1: Configuraciones agrupadas
-  displayedColumnsConfiguraciones: string[] = ['agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'totalDocumentos', 'enabled', 'acciones'];
+  displayedColumnsConfiguraciones: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'totalDocumentos', 'enabled', 'acciones'];
   dataSourceConfiguraciones = new MatTableDataSource<any>([]);
   selectedAgencyForConfiguraciones = '';
   
@@ -113,6 +113,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Configurar paginador y sort para el Tab 2
     if (this.paginator) {
+      // Asegurar que el pageSize sea 25 para mostrar más registros
+      this.paginator.pageSize = 25;
       this.dataSource.paginator = this.paginator;
     }
     if (this.sort) {
@@ -133,6 +135,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
         this.dataSource.sort = this.sort;
       }
       if (!this.dataSource.paginator && this.paginator) {
+        // Asegurar que el pageSize sea 25
+        this.paginator.pageSize = 25;
         this.dataSource.paginator = this.paginator;
       }
     }, 100);
@@ -334,7 +338,29 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
             this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
           next: (response) => {
             if (response.success && response.data) {
-              this.dataSource.data = response.data.documentos || [];
+              const documentos = response.data.documentos || [];
+              console.log('📊 Documentos recibidos del API:', documentos.length);
+              console.log('📊 Total según API:', response.data.total);
+              console.log('📊 Count según API:', response.data.count);
+              console.log('📊 IDs de documentos:', documentos.map(d => d.Id));
+              
+              this.dataSource.data = documentos;
+              
+              // Asegurar que el paginador tenga el pageSize correcto después de cargar datos
+              setTimeout(() => {
+                console.log('📊 Documentos en dataSource después de asignar:', this.dataSource.data.length);
+                if (this.paginator) {
+                  // Forzar el pageSize a 25 si está en 10
+                  if (this.paginator.pageSize === 10) {
+                    console.log('⚠️ Paginador tenía pageSize 10, cambiando a 25');
+                    this.paginator.pageSize = 25;
+                    this.paginator._changePageSize(25);
+                  }
+                  console.log('📊 Paginador configurado - pageSize:', this.paginator.pageSize);
+                  console.log('📊 Paginador - length:', this.paginator.length);
+                  console.log('📊 Paginador - pageIndex:', this.paginator.pageIndex);
+                }
+              }, 100);
             } else {
               this.snackBar.open(response.message || 'Error al cargar documentos', 'Error', { duration: 3000 });
               this.dataSource.data = [];
@@ -562,6 +588,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
             
             if (!configuracionesMap.has(key)) {
               configuracionesMap.set(key, {
+                IdConfigurationProcess: doc.IdConfigurationProcess,
                 IdProcess: doc.IdProcess,
                 IdAgency: doc.IdAgency,
                 IdCostumerType: doc.IdCostumerType,

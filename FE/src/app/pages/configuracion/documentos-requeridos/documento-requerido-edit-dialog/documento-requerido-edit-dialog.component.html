@@ -173,6 +173,7 @@
                 <input 
                   matInput 
                   [(ngModel)]="searchTerm" 
+                  [ngModelOptions]="{standalone: true}"
                   (ngModelChange)="onSearchChange($event)"
                   placeholder="Nombre del documento..."
                   class="text-sm">
@@ -191,17 +192,17 @@
             <!-- Filtros de fase y subfase compactos -->
             <mat-form-field appearance="outline" class="w-40">
               <mat-label>Fase</mat-label>
-              <mat-select [(ngModel)]="selectedPhase" (ngModelChange)="onPhaseChange($event)">
+              <mat-select [(ngModel)]="selectedPhase" [ngModelOptions]="{standalone: true}" (ngModelChange)="onPhaseChange($event)">
                 <mat-option value="">Todas</mat-option>
                 <mat-option *ngFor="let phase of availablePhases" [value]="phase">
                   {{ phase }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
-            
+
             <mat-form-field appearance="outline" class="w-40">
               <mat-label>Subfase</mat-label>
-              <mat-select [(ngModel)]="selectedSubPhase" (ngModelChange)="onSubPhaseChange($event)" [disabled]="!selectedPhase">
+              <mat-select [(ngModel)]="selectedSubPhase" [ngModelOptions]="{standalone: true}" (ngModelChange)="onSubPhaseChange($event)" [disabled]="!selectedPhase">
                 <mat-option value="">Todas</mat-option>
                 <mat-option *ngFor="let subPhase of availableSubPhases" [value]="subPhase">
                   {{ subPhase }}

@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/document-type.interface';
 import { DocumentTypeService } from '../../../core/services/document-type.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
+import { DocumentTypeConfigurationsDialogComponent } from './document-type-configurations-dialog/document-type-configurations-dialog.component';
 
 @Component({
   selector: 'app-tipos-documento',
@@ -42,7 +43,7 @@ import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/doc
 export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   tiposDocumento: DocumentType[] = [];
   dataSource = new MatTableDataSource<DocumentType>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'configuraciones', 'acciones'];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -61,6 +62,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     'ReqExpiration': 'Requiere expiración',
     'AvailableToClient': 'Disponible al cliente',
     'Enabled': 'Estado',
+    'configuraciones': 'Configuraciones',
     'acciones': 'Acciones'
   };
 
@@ -102,6 +104,18 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response?.success) {
           this.tiposDocumento = response.data.document_types || [];
+          
+          // Verificar que el conteo coincida con la cantidad real de configuraciones
+          this.tiposDocumento.forEach(tipo => {
+            const count = tipo.configurationsCount || 0;
+            const actualLength = tipo.configurations?.length || 0;
+            if (count !== actualLength) {
+              console.warn(`⚠️ Discrepancia en tipo ${tipo.Id} (${tipo.Name}): count=${count}, actual=${actualLength}`);
+              // Corregir el conteo si hay discrepancia
+              tipo.configurationsCount = actualLength;
+            }
+          });
+          
           this.dataSource.data = this.tiposDocumento;
           
           // Extraer fases únicas
@@ -336,6 +350,95 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
             duration: 3000
           });
         }
+    });
+  }
+
+  openConfigurationsDialog(documentType: DocumentType): void {
+    // Validar que el ID existe y es válido
+    if (!documentType.Id) {
+      console.error('❌ Error: El tipo de documento no tiene ID', documentType);
+      this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
+      return;
+    }
+
+    // Convertir el ID a número para validación
+    const documentTypeId = parseInt(documentType.Id, 10);
+    if (isNaN(documentTypeId) || documentTypeId <= 0) {
+      console.error('❌ Error: ID inválido', { originalId: documentType.Id, parsedId: documentTypeId });
+      this.snackBar.open(`Error: ID de documento inválido: ${documentType.Id}`, 'Error', { duration: 3000 });
+      return;
+    }
+
+    // Obtener el tipo de documento completo desde la lista original para asegurar que tenemos todas las configuraciones
+    const fullDocumentType = this.tiposDocumento.find(dt => dt.Id === documentType.Id) || documentType;
+    
+    // Verificar que el documento existe en la lista original
+    const existsInOriginal = this.tiposDocumento.some(dt => dt.Id === documentType.Id);
+    if (!existsInOriginal) {
+      console.warn('⚠️ Advertencia: El documento no se encuentra en la lista original', {
+        documentTypeId: documentType.Id,
+        documentTypeName: documentType.Name,
+        totalDocumentos: this.tiposDocumento.length,
+        idsEnLista: this.tiposDocumento.map(dt => dt.Id).slice(0, 10)
+      });
+    }
+
+    console.log('🔍 Abriendo diálogo de configuraciones:', {
+      documentTypeId: documentType.Id,
+      documentTypeIdParsed: documentTypeId,
+      documentTypeName: documentType.Name,
+      existsInOriginal: existsInOriginal,
+      configurationsCount: fullDocumentType.configurationsCount,
+      configurationsLength: fullDocumentType.configurations?.length || 0,
+      hasConfigurations: !!fullDocumentType.configurations,
+      fullDocumentTypeObject: fullDocumentType
+    });
+    
+    // Siempre obtener las configuraciones desde el servidor para asegurar que tenemos todas
+    // Esto evita problemas de sincronización entre el conteo y las configuraciones
+    // Usar el ID convertido a string para asegurar consistencia
+    this.documentTypeService.getConfigurations(String(documentTypeId)).subscribe({
+      next: (response) => {
+        if (response?.success && response?.data?.configurations) {
+          const configurations = response.data.configurations || [];
+          console.log('✅ Configuraciones obtenidas del servidor:', configurations.length);
+          
+          const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
+            width: '90vw',
+            maxWidth: '1400px',
+            maxHeight: '90vh',
+            data: {
+              documentType: documentType,
+              configurations: configurations
+            }
+          });
+        } else {
+          console.warn('⚠️ No se pudieron obtener configuraciones del servidor, usando las locales');
+          // Si falla, usar las configuraciones que tenemos
+          const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
+            width: '90vw',
+            maxWidth: '1400px',
+            maxHeight: '90vh',
+            data: {
+              documentType: documentType,
+              configurations: fullDocumentType.configurations || []
+            }
+          });
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar configuraciones:', error);
+        // Si falla, usar las configuraciones que tenemos
+        const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
+          width: '90vw',
+          maxWidth: '1400px',
+          maxHeight: '90vh',
+          data: {
+            documentType: documentType,
+            configurations: fullDocumentType.configurations || []
+          }
+        });
+      }
     });
   }
 
