@@ -121,6 +121,12 @@ class DocumentTypeModel extends Model
         
         // Usar comparación estricta - asegurar que el tipo de dato coincida
         $builder->where('cpd.IdDocumentType', $documentTypeId);
+        
+        // Filtrar configuraciones con IdAgency válido (no NULL y no 0)
+        // Esto evita mostrar "N/A" para agencias
+        $builder->where('cp.IdAgency IS NOT NULL');
+        $builder->where('cp.IdAgency !=', 0);
+        
         $builder->orderBy('a.Name', 'ASC');
         $builder->orderBy('p.Name', 'ASC');
         

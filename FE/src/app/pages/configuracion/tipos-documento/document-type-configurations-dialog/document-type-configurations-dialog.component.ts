@@ -63,21 +63,21 @@ export interface DocumentTypeConfigurationsDialogData {
         <!-- Filtros -->
         <div *ngIf="allConfigurations.length > 0" class="mb-4 grid grid-cols-4 gap-3">
           <mat-form-field appearance="outline" class="text-sm">
-            <mat-label>Proceso</mat-label>
-            <mat-select [(ngModel)]="selectedProcess" (selectionChange)="applyFilters()">
-              <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
-                {{ proceso.Name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Agencia</mat-label>
             <mat-select [(ngModel)]="selectedAgency" (selectionChange)="applyFilters()">
               <mat-option value="">Todas</mat-option>
               <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
                 {{ agencia.Name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="text-sm">
+            <mat-label>Proceso</mat-label>
+            <mat-select [(ngModel)]="selectedProcess" (selectionChange)="applyFilters()">
+              <mat-option value="">Todos</mat-option>
+              <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
+                {{ proceso.Name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
