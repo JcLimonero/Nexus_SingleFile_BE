@@ -1190,7 +1190,8 @@ class Files extends BaseController
 
     /**
      * Verificar qué pedidos ya existen en la tabla File
-     * Recibe una lista de pedidos y devuelve cuáles ya existen
+     * Recibe una lista de pedidos y devuelve cuáles ya existen.
+     * Usa una sola consulta por lote para evitar timeout con muchos pedidos.
      */
     public function checkExistingOrders()
     {
@@ -1216,42 +1217,70 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            error_log("=== VERIFICANDO PEDIDOS EXISTENTES ===");
-            error_log("AgencyId: " . $agencyId);
-            error_log("Cantidad de pedidos a verificar: " . count($orders));
+            log_message('info', "checkExistingOrders: AgencyId={$agencyId}, pedidos a verificar=" . count($orders));
+
+            // Extraer order_dms únicos para la consulta (evita N consultas)
+            $orderDmsUnique = [];
+            $validOrders = []; // [ ['order' => ..., 'order_dms' => ... ], ... ]
+
+            foreach ($orders as $order) {
+                $orderDms = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+                if ($orderDms === null || $orderDms === '') {
+                    continue;
+                }
+                $orderDms = (string) $orderDms;
+                $orderDmsUnique[$orderDms] = true;
+                $validOrders[] = ['order' => $order, 'order_dms' => $orderDms];
+            }
+
+            $orderDmsList = array_keys($orderDmsUnique);
+
+            if (empty($orderDmsList)) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Verificación completada',
+                    'data' => [
+                        'existingOrders' => [],
+                        'newOrders' => [],
+                        'totalChecked' => count($orders),
+                        'existingCount' => 0,
+                        'newCount' => 0
+                    ]
+                ]);
+            }
+
+            // Una sola consulta: todos los File existentes para esta agencia y estos IdOrderTotal
+            $builder = $this->db->table('File');
+            $builder->select('Id, IdOrderTotal');
+            $builder->where('IdAgency', $agencyId);
+            $builder->whereIn('IdOrderTotal', $orderDmsList);
+            $existingRows = $builder->get()->getResultArray();
+
+            $existingMap = [];
+            foreach ($existingRows as $row) {
+                $key = (string) ($row['IdOrderTotal'] ?? '');
+                $existingMap[$key] = (int) ($row['Id'] ?? 0);
+            }
 
             $existingOrders = [];
             $newOrders = [];
 
-            foreach ($orders as $order) {
-                $orderDms = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
-                
-                if (!$orderDms) {
-                    error_log("Pedido sin order_dms, saltando: " . json_encode($order));
-                    continue;
-                }
-
-                error_log("Verificando pedido: " . $orderDms);
-
-                // Buscar si ya existe este pedido para esta agencia
-                $sql = "SELECT Id, IdOrderTotal FROM File WHERE IdAgency = ? AND IdOrderTotal = ?";
-                $query = $this->db->query($sql, [$agencyId, $orderDms]);
-                $existingFile = $query->getRow();
-
-                if ($existingFile) {
-                    error_log("Pedido EXISTENTE: " . $orderDms . " (File ID: " . $existingFile->Id . ")");
+            foreach ($validOrders as $item) {
+                $order = $item['order'];
+                $orderDms = $item['order_dms'];
+                $fileId = $existingMap[$orderDms] ?? null;
+                if ($fileId) {
                     $existingOrders[] = [
                         'order_dms' => $orderDms,
-                        'fileId' => $existingFile->Id,
+                        'fileId' => $fileId,
                         'order' => $order
                     ];
                 } else {
-                    error_log("Pedido NUEVO: " . $orderDms);
                     $newOrders[] = $order;
                 }
             }
 
-            error_log("Resultado: " . count($existingOrders) . " existentes, " . count($newOrders) . " nuevos");
+            log_message('info', "checkExistingOrders: resultado " . count($existingOrders) . " existentes, " . count($newOrders) . " nuevos");
 
             return $this->response->setJSON([
                 'success' => true,
@@ -1265,8 +1294,8 @@ class Files extends BaseController
                 ]
             ]);
 
-        } catch (Exception $e) {
-            error_log("ERROR en checkExistingOrders: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            log_message('error', 'checkExistingOrders: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al verificar pedidos existentes: ' . $e->getMessage(),
