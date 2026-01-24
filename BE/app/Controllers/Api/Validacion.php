@@ -321,7 +321,7 @@ class Validacion extends BaseController
                         AND dbfPend.IdCurrentStatus <> 4
                     ) as documentosNoAprobados
                 FROM File f
-                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN HeaderClient hc ON f.IdClient = hc.IdClient
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
@@ -362,14 +362,13 @@ class Validacion extends BaseController
             $countSql = "
                 SELECT COUNT(*) as total
                 FROM File f
-                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN HeaderClient hc ON f.IdClient = hc.IdClient
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 WHERE f.IdAgency = ?
                 AND p.Enabled = 1
-                AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
                 AND EXISTS (
                     SELECT 1 
                     FROM Client_Total_Relation ctr_check 

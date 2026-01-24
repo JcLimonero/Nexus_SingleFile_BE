@@ -74,6 +74,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   files: any[] = [];
   filesLoading = false;
   loadingOrdersFromVanguardia = false; // Loading para el botón de agregar pedidos
+  refreshingFiles = false; // Loading para el botón de refrescar pedidos
   filesDisplayedColumns: string[] = [
     'numeroPedido',
     'numeroInventario', 
@@ -717,8 +718,50 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   loadClientFiles(): void {
+    this.loadClientFilesWithCallback();
+  }
+
+  /**
+   * Refrescar los pedidos relacionados del cliente
+   */
+  refreshClientFiles(): void {
+    if (!this.selectedClient || !this.selectedClient.ndCliente) {
+      this.snackBar.open('Debe seleccionar un cliente primero', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+      this.snackBar.open('Debe seleccionar una agencia primero', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    this.refreshingFiles = true;
+    this.cdr.markForCheck();
+    
+    // Guardar referencia para mostrar mensaje después
+    const wasRefreshing = true;
+    
+    // Llamar al método de carga
+    this.loadClientFilesWithCallback(() => {
+      if (wasRefreshing) {
+        this.snackBar.open('Pedidos actualizados correctamente', 'Cerrar', {
+          duration: 2000
+        });
+      }
+    });
+  }
+
+  /**
+   * Cargar pedidos del cliente con callback opcional
+   */
+  private loadClientFilesWithCallback(callback?: () => void): void {
     if (!this.selectedClient || !this.selectedClient.ndCliente) {
       this.files = [];
+      if (callback) callback();
       return;
     }
 
@@ -751,15 +794,20 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.updateFilesDisplay();
           
           this.filesLoading = false;
+          this.refreshingFiles = false;
           this.cdr.markForCheck();
+          
+          if (callback) callback();
         },
         error: (error) => {
           this.files = [];
           this.filesLoading = false;
+          this.refreshingFiles = false;
           this.cdr.markForCheck();
           this.snackBar.open('Error al cargar los pedidos del cliente', 'Cerrar', {
             duration: 3000
           });
+          if (callback) callback();
         }
       });
   }

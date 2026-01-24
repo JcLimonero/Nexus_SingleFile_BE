@@ -122,16 +122,27 @@
             <mat-icon class="mr-1 text-green-600" style="font-size: 18px;">description</mat-icon>
             Pedidos en Integración
           </div>
-          <button 
-            mat-icon-button 
-            color="primary"
-            (click)="agregarPedidoIntegracion()"
-            matTooltip="Agregar nuevo pedido de integración"
-            [disabled]="loadingOrdersFromVanguardia"
-            *ngIf="isManagerOrAdmin">
-            <mat-spinner *ngIf="loadingOrdersFromVanguardia" diameter="18" style="display: inline-block;"></mat-spinner>
-            <mat-icon *ngIf="!loadingOrdersFromVanguardia" style="font-size: 18px;">add</mat-icon>
-          </button>
+          <div class="flex items-center space-x-1">
+            <button 
+              mat-icon-button 
+              color="primary"
+              (click)="refreshClientFiles()"
+              matTooltip="Refrescar pedidos relacionados"
+              [disabled]="refreshingFiles || filesLoading">
+              <mat-spinner *ngIf="refreshingFiles" diameter="18" style="display: inline-block;"></mat-spinner>
+              <mat-icon *ngIf="!refreshingFiles" style="font-size: 18px;">refresh</mat-icon>
+            </button>
+            <button 
+              mat-icon-button 
+              color="primary"
+              (click)="agregarPedidoIntegracion()"
+              matTooltip="Agregar nuevo pedido de integración"
+              [disabled]="loadingOrdersFromVanguardia"
+              *ngIf="isManagerOrAdmin">
+              <mat-spinner *ngIf="loadingOrdersFromVanguardia" diameter="18" style="display: inline-block;"></mat-spinner>
+              <mat-icon *ngIf="!loadingOrdersFromVanguardia" style="font-size: 18px;">add</mat-icon>
+            </button>
+          </div>
         </mat-card-title>
       </mat-card-header>
       

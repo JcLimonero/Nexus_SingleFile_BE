@@ -2218,7 +2218,7 @@ class Analytics extends BaseController
                     DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) as diasAtencion,
                     fs.Name as estado
                 FROM File f
-                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.IdClient
                 INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id

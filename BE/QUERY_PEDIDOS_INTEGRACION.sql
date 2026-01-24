@@ -25,16 +25,23 @@ LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
 LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
 WHERE a.IdAgency = ?                    -- Parámetro: agencyId
   AND fs.Id = ?                         -- Parámetro: statusId (1 para Integración)
-  AND f.IdClient IN (
-      SELECT hc.Id 
+  AND EXISTS (
+      SELECT 1
       FROM HeaderClient hc 
       INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = ?       -- Parámetro: ndCliente
+      WHERE hc.Id = f.IdClient 
+        AND TRIM(ctr.IdTotalDealer) = ? -- Parámetro: ndCliente
+        AND ctr.IdAgency = f.IdAgency   -- IMPORTANTE: Filtrar por agencia para evitar duplicados entre agencias
   )
 ORDER BY f.RegistrationDate DESC;
 
--- NOTA IMPORTANTE: 
--- El JOIN con OrderByCar usa: f.IdOrderTotal = obc.IdTotalDealer
--- Esto es CORRECTO y permite obtener los datos de año, modelo, versión y VIN
--- Si los campos aparecen vacíos, verifica que existan registros en OrderByCar
--- con IdTotalDealer que coincida con IdOrderTotal de la tabla File
+-- NOTAS IMPORTANTES: 
+-- 1. El JOIN con OrderByCar usa: f.IdOrderTotal = obc.IdTotalDealer
+--    Esto es CORRECTO y permite obtener los datos de año, modelo, versión y VIN
+--    Si los campos aparecen vacíos, verifica que existan registros en OrderByCar
+--    con IdTotalDealer que coincida con IdOrderTotal de la tabla File
+--
+-- 2. CRÍTICO: La condición ctr.IdAgency = f.IdAgency en el subquery es esencial
+--    porque IdTotalDealer (ndCliente) puede repetirse entre diferentes agencias.
+--    Sin este filtro, podrías obtener pedidos de clientes de otras agencias que
+--    compartan el mismo IdTotalDealer (cada dealer tiene su propio DMS con sus propios números).

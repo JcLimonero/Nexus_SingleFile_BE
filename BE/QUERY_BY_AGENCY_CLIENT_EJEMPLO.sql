@@ -30,11 +30,13 @@ LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
 LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
 WHERE a.IdAgency = 10082
   AND fs.Id = 1
-  AND f.IdClient IN (
-      SELECT hc.Id 
+  AND EXISTS (
+      SELECT 1
       FROM HeaderClient hc 
       INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = '200945'
+      WHERE hc.Id = f.IdClient 
+        AND TRIM(ctr.IdTotalDealer) = '200945'
+        AND ctr.IdAgency = f.IdAgency
   )
 ORDER BY f.RegistrationDate DESC;
 
@@ -45,8 +47,14 @@ ORDER BY f.RegistrationDate DESC;
 --    - Agencia (IdAgency = 10082)
 --    - Estado/Status (Id = 1, que corresponde a "Integración")
 --    - Cliente (ndCliente = 200945 a través de la relación HeaderClient -> Client_Total_Relation)
+--      IMPORTANTE: ctr.IdAgency = f.IdAgency evita traer clientes de otras agencias
 -- 4. Ordena por fecha de registro descendente (más recientes primero)
 --
--- El JOIN clave es: LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
--- Este JOIN obtiene los datos del vehículo cuando existe un registro en OrderByCar
--- donde el campo IdTotalDealer coincide con el IdOrderTotal del File.
+-- NOTAS CRÍTICAS:
+-- - El JOIN clave es: LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
+--   Este JOIN obtiene los datos del vehículo cuando existe un registro en OrderByCar
+--   donde el campo IdTotalDealer coincide con el IdOrderTotal del File.
+--
+-- - CRÍTICO: La condición ctr.IdAgency = f.IdAgency en el EXISTS es esencial porque
+--   IdTotalDealer (ndCliente) puede repetirse entre diferentes agencias. Sin este filtro,
+--   podrías obtener pedidos de clientes de otras agencias que compartan el mismo IdTotalDealer.
