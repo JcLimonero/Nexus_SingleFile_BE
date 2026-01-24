@@ -293,7 +293,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
         }
       },
       error: (error: any) => {
-        console.error('Error cargando procesos:', error);
+
       }
     });
 
@@ -305,7 +305,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
         }
       },
       error: (error: any) => {
-        console.error('Error cargando agencias:', error);
+
       }
     });
 
@@ -317,7 +317,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
         }
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de cliente:', error);
+
       }
     });
 
@@ -329,7 +329,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
         }
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de operación:', error);
+
       }
     });
   }
@@ -377,7 +377,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
         }
       },
       error: (error: any) => {
-        console.error('Error al eliminar configuración:', error);
+
         this.snackBar.open('Error al eliminar la configuración', 'Error', { duration: 3000 });
       }
     });

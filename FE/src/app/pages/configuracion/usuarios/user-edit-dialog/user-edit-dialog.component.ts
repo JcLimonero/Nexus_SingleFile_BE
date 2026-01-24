@@ -273,7 +273,7 @@ export class UserEditDialogComponent implements OnInit {
         this.loadingAgencies = false;
       },
       error: (error) => {
-        console.error('Error cargando agencias:', error);
+
         this.snackBar.open('Error al cargar agencias. Intenta recargar.', 'Error', {
           duration: 3000
         });

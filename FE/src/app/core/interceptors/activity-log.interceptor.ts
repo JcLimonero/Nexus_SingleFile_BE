@@ -290,7 +290,7 @@ function sanitizeRequestData(data: any): string | null {
     return jsonString;
     
   } catch (error) {
-    console.warn('Error al sanitizar datos de request:', error);
+
     return '[Datos no serializables]';
   }
 }

@@ -97,13 +97,13 @@ export class GlobalComponent implements OnInit, OnDestroy {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(this.selectedAgency).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ GlobalComponent - Agencia predeterminada actualizada:', this.selectedAgency);
+
           } else {
-            console.warn('⚠️ GlobalComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ GlobalComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     } else {
@@ -167,7 +167,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando agencias en Global:', error);
+
           this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
           this.agencias = [];
           this.loadingAgencias = false;
@@ -237,7 +237,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando procesos en Global:', error);
+
           this.snackBar.open('Error al cargar procesos', 'Cerrar', { duration: 3000 });
           this.procesos = [];
           this.loadingProcesos = false;
@@ -285,7 +285,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando pedidos para Global:', error);
+
           this.snackBar.open('Error al cargar pedidos', 'Cerrar', { duration: 3000 });
           this.loadingClientes = false;
           this.clientesOriginales = [];
@@ -431,7 +431,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
       this.snackBar.open('Datos exportados exitosamente', 'Cerrar', { duration: 3000 });
     } catch (error) {
-      console.error('Error exportando a Excel:', error);
+
       this.snackBar.open('Error al exportar datos', 'Cerrar', { duration: 3000 });
     } finally {
       this.exportingExcel = false;

@@ -110,7 +110,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
             const count = tipo.configurationsCount || 0;
             const actualLength = tipo.configurations?.length || 0;
             if (count !== actualLength) {
-              console.warn(`⚠️ Discrepancia en tipo ${tipo.Id} (${tipo.Name}): count=${count}, actual=${actualLength}`);
+              
               // Corregir el conteo si hay discrepancia
               tipo.configurationsCount = actualLength;
             }
@@ -153,16 +153,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
 
   applyFilter(): void {
     const filterValue = this.searchTerm.trim().toLowerCase();
-    
-    console.log('🔍 Aplicando filtros en tipos de documento:', { 
-      searchTerm: this.searchTerm, 
-      statusFilter: this.statusFilter, 
-      phaseFilter: this.phaseFilter,
-      requiredFilter: this.requiredFilter,
-      expirationFilter: this.expirationFilter,
-      totalTiposDocumento: this.tiposDocumento.length 
-    });
-    
+
     // Aplicar todos los filtros
     this.dataSource.data = this.tiposDocumento.filter(tipoDocumento => {
       // Filtro por búsqueda de texto
@@ -190,19 +181,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       
       // Debug para el primer elemento
       if (this.tiposDocumento.indexOf(tipoDocumento) === 0) {
-        console.log('🔍 Primer elemento - Debug:', {
-          id: tipoDocumento.Id,
-          name: tipoDocumento.Name,
-          enabled: tipoDocumento.Enabled,
-          enabledType: typeof tipoDocumento.Enabled,
-          statusFilter: this.statusFilter,
-          statusFilterType: typeof this.statusFilter,
-          matchesStatus: matchesStatus,
-          requiredFilter: this.requiredFilter,
-          matchesRequired: matchesRequired,
-          expirationFilter: this.expirationFilter,
-          matchesExpiration: matchesExpiration
-        });
+
       }
       
       return matchesSearch && matchesStatus && matchesPhase && matchesRequired && matchesExpiration;
@@ -219,28 +198,13 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   }
 
   clearFilters(): void {
-    console.log('🧹 Limpiando filtros - Antes:', { 
-      searchTerm: this.searchTerm, 
-      statusFilter: this.statusFilter,
-      phaseFilter: this.phaseFilter,
-      requiredFilter: this.requiredFilter,
-      expirationFilter: this.expirationFilter
-    });
-    
+
     this.searchTerm = '';
     this.statusFilter = '';
     this.phaseFilter = '';
     this.requiredFilter = '';
     this.expirationFilter = '';
-    
-    console.log('🧹 Limpiando filtros - Después:', { 
-      searchTerm: this.searchTerm, 
-      statusFilter: this.statusFilter,
-      phaseFilter: this.phaseFilter,
-      requiredFilter: this.requiredFilter,
-      expirationFilter: this.expirationFilter
-    });
-    
+
     this.applyFilter();
     
     this.snackBar.open('Filtros limpiados', 'Info', {
@@ -356,7 +320,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   openConfigurationsDialog(documentType: DocumentType): void {
     // Validar que el ID existe y es válido
     if (!documentType.Id) {
-      console.error('❌ Error: El tipo de documento no tiene ID', documentType);
+
       this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
       return;
     }
@@ -364,7 +328,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     // Convertir el ID a número para validación
     const documentTypeId = parseInt(documentType.Id, 10);
     if (isNaN(documentTypeId) || documentTypeId <= 0) {
-      console.error('❌ Error: ID inválido', { originalId: documentType.Id, parsedId: documentTypeId });
+
       this.snackBar.open(`Error: ID de documento inválido: ${documentType.Id}`, 'Error', { duration: 3000 });
       return;
     }
@@ -375,25 +339,9 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     // Verificar que el documento existe en la lista original
     const existsInOriginal = this.tiposDocumento.some(dt => dt.Id === documentType.Id);
     if (!existsInOriginal) {
-      console.warn('⚠️ Advertencia: El documento no se encuentra en la lista original', {
-        documentTypeId: documentType.Id,
-        documentTypeName: documentType.Name,
-        totalDocumentos: this.tiposDocumento.length,
-        idsEnLista: this.tiposDocumento.map(dt => dt.Id).slice(0, 10)
-      });
+      
     }
 
-    console.log('🔍 Abriendo diálogo de configuraciones:', {
-      documentTypeId: documentType.Id,
-      documentTypeIdParsed: documentTypeId,
-      documentTypeName: documentType.Name,
-      existsInOriginal: existsInOriginal,
-      configurationsCount: fullDocumentType.configurationsCount,
-      configurationsLength: fullDocumentType.configurations?.length || 0,
-      hasConfigurations: !!fullDocumentType.configurations,
-      fullDocumentTypeObject: fullDocumentType
-    });
-    
     // Siempre obtener las configuraciones desde el servidor para asegurar que tenemos todas
     // Esto evita problemas de sincronización entre el conteo y las configuraciones
     // Usar el ID convertido a string para asegurar consistencia
@@ -401,8 +349,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response?.success && response?.data?.configurations) {
           const configurations = response.data.configurations || [];
-          console.log('✅ Configuraciones obtenidas del servidor:', configurations.length);
-          
+
           const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
             width: '90vw',
             maxWidth: '1400px',
@@ -413,7 +360,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
             }
           });
         } else {
-          console.warn('⚠️ No se pudieron obtener configuraciones del servidor, usando las locales');
+
           // Si falla, usar las configuraciones que tenemos
           const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
             width: '90vw',
@@ -427,7 +374,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        console.error('❌ Error al cargar configuraciones:', error);
+
         // Si falla, usar las configuraciones que tenemos
         const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
           width: '90vw',

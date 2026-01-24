@@ -200,13 +200,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ DashboardAnalyticsComponent - Agencia predeterminada actualizada:', agencyId);
+
           } else {
-            console.warn('⚠️ DashboardAnalyticsComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ DashboardAnalyticsComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     }

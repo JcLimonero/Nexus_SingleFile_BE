@@ -50,8 +50,7 @@ export class AgencyFilterComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('Agencies response:', response);
-          
+
           // Manejar la respuesta según la estructura del servicio
           if (response && response.data && response.data.agencies) {
             this.agencies = response.data.agencies;
@@ -67,16 +66,14 @@ export class AgencyFilterComponent implements OnInit, OnDestroy {
           
           // Verificar que es un array antes de asignar
           if (!Array.isArray(this.agencies)) {
-            console.warn('Agencies is not an array, converting to empty array');
+
             this.agencies = [];
           }
-          
-          console.log('Processed agencies:', this.agencies);
-          console.log('Agencies count:', this.agencies.length);
+
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading agencies:', error);
+
           this.agencies = [];
           this.loading = false;
         }

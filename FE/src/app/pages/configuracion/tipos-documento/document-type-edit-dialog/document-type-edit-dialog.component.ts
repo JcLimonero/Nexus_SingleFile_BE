@@ -57,17 +57,16 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     
     // Escuchar cambios en la fase para habilitar/deshabilitar sub fase
     this.documentTypeForm.get('IdProcessType')?.valueChanges.subscribe(selectedPhase => {
-      console.log('🔄 Fase cambiada a:', selectedPhase);
+
       this.isSubPhaseEnabled = selectedPhase === 'Liberación';
-      console.log('🔒 Sub fase habilitada:', this.isSubPhaseEnabled);
-      
+
       if (!this.isSubPhaseEnabled) {
         // Si la fase no es "Liberación", resetear sub fase a "Sin sub fase"
-        console.log('❌ Fase no es Liberación, reseteando sub fase a "Sin sub fase"');
+
         this.documentTypeForm.patchValue({ IdSubProcess: '0' });
-        console.log('🔄 Valor de IdSubProcess establecido a "0" (Sin sub fase)');
+        
       } else {
-        console.log('✅ Fase es Liberación, sub fase habilitada');
+
       }
     });
   }
@@ -85,27 +84,27 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     
     // Inicializar el estado de la sub fase
     this.isSubPhaseEnabled = true; // Por defecto es "Liberación"
-    console.log('🚀 Formulario inicializado, sub fase habilitada:', this.isSubPhaseEnabled);
+
   }
 
   private loadCatalogs(): void {
-    console.log('🔄 Cargando catálogos...');
+
     this.loadingCatalogs = true;
     
     // Cargar estados de archivo (File_Status)
     this.documentTypeService.getActiveFileStatuses().subscribe({
       next: (fileStatusesResponse) => {
-        console.log('📋 Respuesta de File_Status:', fileStatusesResponse);
+
         if (fileStatusesResponse?.success) {
           this.fileStatuses = fileStatusesResponse.data.file_statuses || [];
-          console.log('✅ Estados de archivo cargados:', this.fileStatuses);
+
         } else {
-          console.error('❌ Error en respuesta de File_Status:', fileStatusesResponse);
+
         }
         this.checkCatalogsLoaded();
       },
       error: (error) => {
-        console.error('❌ Error cargando estados de archivo:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -113,17 +112,17 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     // Cargar subestados de archivo (File_SubStatus)
     this.documentTypeService.getActiveSubProcesses().subscribe({
       next: (subProcessesResponse) => {
-        console.log('📋 Respuesta de File_SubStatus:', subProcessesResponse);
+
         if (subProcessesResponse?.success) {
           this.subProcesses = subProcessesResponse.data.file_sub_statuses || [];
-          console.log('✅ Subestados de archivo cargados:', this.subProcesses);
+
         } else {
-          console.error('❌ Error en respuesta de File_SubStatus:', subProcessesResponse);
+
         }
         this.checkCatalogsLoaded();
       },
       error: (error) => {
-        console.error('❌ Error cargando subestados de archivo:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -133,8 +132,7 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     // Verificar si ambos catálogos han terminado de cargar (exitosamente o con error)
     if (this.fileStatuses.length > 0 || this.subProcesses.length > 0) {
       this.loadingCatalogs = false;
-      console.log('✅ Catálogos cargados - File_Status:', this.fileStatuses.length, 'File_SubStatus:', this.subProcesses.length);
-      
+
       // Poblar el formulario después de que los catálogos estén listos
       this.populateForm();
     }
@@ -158,14 +156,13 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       
       // Actualizar el estado de la sub fase
       this.isSubPhaseEnabled = selectedPhase === 'Liberación';
-      console.log('📝 Formulario poblado, sub fase habilitada:', this.isSubPhaseEnabled);
+
     }
   }
 
   onSubmit(): void {
     if (this.documentTypeForm.valid) {
       this.loading = true;
-
 
       if (this.data.mode === 'create') {
         this.createDocumentType();
@@ -185,7 +182,6 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       IdSubProcess: this.documentTypeForm.value.IdSubProcess,
       AvailableToClient: this.documentTypeForm.value.AvailableToClient
     };
-
 
     this.documentTypeService.createDocumentType(documentTypeData).subscribe({
       next: (response) => {
@@ -220,7 +216,6 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       IdSubProcess: this.documentTypeForm.value.IdSubProcess,
       AvailableToClient: this.documentTypeForm.value.AvailableToClient
     };
-
 
     this.documentTypeService.updateDocumentType(this.data.documentType!.Id!, documentTypeData).subscribe({
       next: (response) => {

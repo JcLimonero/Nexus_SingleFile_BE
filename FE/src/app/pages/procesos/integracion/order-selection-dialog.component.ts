@@ -567,11 +567,8 @@ export class OrderSelectionDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('🎯 OrderSelectionDialogComponent ngOnInit');
-    console.log('📊 Datos recibidos en el diálogo:', this.data);
-    console.log('📊 Cantidad de orders:', this.data.orders?.length || 0);
-    console.log('📊 Agency ID:', this.data.agencyId);
-    console.log('📊 Primer order (ejemplo):', this.data.orders?.[0]);
+
+    
     
     this.originalOrders = [...this.data.orders];
     this.loading = true;
@@ -584,8 +581,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private checkExistingOrders(): void {
-    console.log('🔍 Verificando pedidos existentes en la tabla file...');
-    
+
     // Obtener todos los pedidos existentes para la agencia
     let params = new HttpParams();
     params = params.set('agencyId', this.data.agencyId.toString());
@@ -595,25 +591,21 @@ export class OrderSelectionDialogComponent implements OnInit {
     this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .subscribe({
         next: (response) => {
-          console.log('📁 Files existentes encontrados:', response);
-          
+
           let existingFiles: any[] = [];
           if (response && response.success && response.data && response.data.files) {
             existingFiles = response.data.files;
           }
-          
-          console.log('📊 Files existentes:', existingFiles.length);
-          
+
           // Filtrar pedidos de Vanguardia que no existen en la tabla de file y eliminar duplicados
           const newOrders = this.filterNewOrders(existingFiles);
-          console.log('📊 Pedidos nuevos después del filtrado y deduplicación:', newOrders.length);
-          
+
           this.filteredOrders = newOrders;
           this.loading = false;
           this.updatePaginatedOrders();
         },
         error: (error) => {
-          console.error('❌ Error verificando pedidos existentes:', error);
+
           // Si hay error, mostrar todos los pedidos
           this.filteredOrders = [...this.originalOrders];
           this.loading = false;
@@ -654,9 +646,7 @@ export class OrderSelectionDialogComponent implements OnInit {
         deduplicatedOrders.push(order);
       }
     }
-    
-    console.log(`🔍 Pedidos originales: ${this.originalOrders.length}, Nuevos: ${newOrders.length}, Sin duplicados: ${deduplicatedOrders.length}`);
-    
+
     return deduplicatedOrders;
   }
 
@@ -705,21 +695,12 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   updatePaginatedOrders(): void {
-    console.log('🔄 Actualizando pedidos paginados...');
-    console.log('📊 CurrentPage:', this.currentPage);
-    console.log('📊 PageSize:', this.pageSize);
-    console.log('📊 FilteredOrders length:', this.filteredOrders.length);
-    
+
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    
-    console.log('📊 StartIndex:', startIndex);
-    console.log('📊 EndIndex:', endIndex);
-    
+
     this.paginatedOrders = this.filteredOrders.slice(startIndex, endIndex);
-    
-    console.log('📊 PaginatedOrders result:', this.paginatedOrders.length);
-    console.log('📊 PaginatedOrders data:', this.paginatedOrders);
+
   }
 
   onPageChange(event: any): void {
@@ -741,8 +722,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private loadComboData(): void {
-    console.log('🔄 Cargando configuraciones habilitadas...');
-    
+
     // Cargar configuraciones habilitadas filtradas por agencia
     const url = `${environment.apiBaseUrl}/api/configuration-process/enabled-by-agency/${this.data.agencyId}`;
     this.http.get<any>(url)
@@ -762,16 +742,11 @@ export class OrderSelectionDialogComponent implements OnInit {
             this.loadingProcesses = false;
             this.loadingCostumerTypes = false;
             this.loadingOperationTypes = false;
-            
-            console.log('✅ Configuraciones cargadas:');
-            console.log('  - Procesos:', this.processes.length);
-            console.log('  - Tipos de cliente:', this.costumerTypes.length);
-            console.log('  - Tipos de operación:', this.operationTypes.length);
-            console.log('  - Configuraciones totales:', this.allConfigurations.length);
+
           }
         },
         error: (error) => {
-          console.error('❌ Error cargando configuraciones:', error);
+
           // Fallback: cargar datos individuales si falla el endpoint de configuraciones
           this.loadIndividualComboData();
         }
@@ -779,7 +754,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private loadIndividualComboData(): void {
-    console.log('🔄 Cargando datos individuales como fallback...');
+
     this.loadProcesses();
     this.loadCostumerTypes();
     this.loadOperationTypes();
@@ -804,7 +779,7 @@ export class OrderSelectionDialogComponent implements OnInit {
         next: (response) => {
           if (response && response.success && response.data) {
             this.processes = response.data.processes || response.data;
-            console.log('✅ Procesos cargados:', this.processes.length);
+
             // Si había un proceso seleccionado, intentar mantenerlo
             if (this.selectedProcess && this.processes.length > 0) {
               const found = this.processes.find(p => p.Id === this.selectedProcess.Id);
@@ -817,7 +792,7 @@ export class OrderSelectionDialogComponent implements OnInit {
           this.loadingProcesses = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando procesos:', error);
+
           this.loadingProcesses = false;
         }
       });
@@ -830,7 +805,7 @@ export class OrderSelectionDialogComponent implements OnInit {
         next: (response) => {
           if (response && response.success && response.data) {
             this.costumerTypes = response.data.costumerTypes || response.data;
-            console.log('✅ Tipos de cliente cargados:', this.costumerTypes.length);
+
             // Re-filtrar tipos de cliente disponibles si hay un proceso seleccionado
             if (this.selectedProcess) {
               this.filterCostumerTypesByProcess();
@@ -849,7 +824,7 @@ export class OrderSelectionDialogComponent implements OnInit {
           this.loadingCostumerTypes = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando tipos de cliente:', error);
+
           this.loadingCostumerTypes = false;
         }
       });
@@ -862,7 +837,7 @@ export class OrderSelectionDialogComponent implements OnInit {
         next: (response) => {
           if (response && response.success && response.data) {
             this.operationTypes = response.data.operationTypes || response.data;
-            console.log('✅ Tipos de operación cargados:', this.operationTypes.length);
+
             // Re-filtrar tipos de operación disponibles si hay proceso y tipo de cliente seleccionados
             if (this.selectedProcess && this.selectedCostumerType) {
               this.filterOperationTypesByProcessAndCostumerType();
@@ -880,15 +855,14 @@ export class OrderSelectionDialogComponent implements OnInit {
           this.loadingOperationTypes = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando tipos de operación:', error);
+
           this.loadingOperationTypes = false;
         }
       });
   }
 
   onProcessChange(): void {
-    console.log('🔄 Proceso seleccionado:', this.selectedProcess);
-    
+
     // Limpiar selecciones dependientes
     this.selectedCostumerType = null;
     this.selectedOperationType = null;
@@ -901,8 +875,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   onCostumerTypeChange(): void {
-    console.log('🔄 Tipo de cliente seleccionado:', this.selectedCostumerType);
-    
+
     // Limpiar selección de operación
     this.selectedOperationType = null;
     
@@ -929,7 +902,6 @@ export class OrderSelectionDialogComponent implements OnInit {
       costumerTypeIds.includes(costumerType.Id)
     );
 
-    console.log(`📋 Tipos de cliente disponibles para proceso "${this.selectedProcess.Name}":`, this.availableCostumerTypes.length);
   }
 
   private filterOperationTypesByProcessAndCostumerType(): void {
@@ -952,7 +924,6 @@ export class OrderSelectionDialogComponent implements OnInit {
       operationTypeIds.includes(operationType.Id)
     );
 
-    console.log(`📋 Tipos de operación disponibles para "${this.selectedProcess.Name}" + "${this.selectedCostumerType.Name}":`, this.availableOperationTypes.length);
   }
 
   isFormValid(): boolean {
@@ -985,8 +956,7 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private createFileFromVanguardia(): void {
-    console.log('🔄 Creando expediente desde Vanguardia...');
-    
+
     // Activar estado de loading
     this.creating = true;
     
@@ -999,15 +969,13 @@ export class OrderSelectionDialogComponent implements OnInit {
       agencyId: this.data.agencyId   // ID de la agencia
     };
 
-    console.log('📤 Datos enviados:', requestData);
-
     this.http.post<any>(`${environment.apiBaseUrl}/api/files/create-from-vanguardia-new`, requestData)
       .subscribe({
         next: (response) => {
           this.creating = false; // Desactivar loading
           
           if (response && response.success) {
-            console.log('✅ Expediente creado exitosamente:', response.data);
+
             this.dialogRef.close({
               success: true,
               fileId: response.data.fileId,
@@ -1015,7 +983,7 @@ export class OrderSelectionDialogComponent implements OnInit {
               message: response.message
             });
           } else {
-            console.error('❌ Error en la respuesta:', response);
+
             this.dialogRef.close({
               success: false,
               message: response.message || 'Error al crear el expediente'
@@ -1024,7 +992,7 @@ export class OrderSelectionDialogComponent implements OnInit {
         },
         error: (error) => {
           this.creating = false; // Desactivar loading en caso de error
-          console.error('❌ Error al crear expediente:', error);
+
           this.dialogRef.close({
             success: false,
             message: error.error?.message || 'Error de conexión al crear el expediente'

@@ -94,7 +94,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando documentos en dialogo global:', error);
+
           this.error = 'Error al cargar los documentos.';
           this.loading = false;
           this.documentos = [];
@@ -171,7 +171,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
           this.cargarDocumentos(false);
         },
         error: (error) => {
-          console.error('Error subiendo documento desde dialogo global:', error);
+
           this.snackBar.open('Error al subir el documento', 'Cerrar', { duration: 4000 });
         }
       });
@@ -246,7 +246,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error obteniendo URL privada de Backblaze:', error);
+
           this.snackBar.open('Error al obtener la URL del documento', 'Cerrar', {
             duration: 3000
           });

@@ -53,8 +53,7 @@ export class MotivoEditDialogComponent implements OnInit {
     this.isEdit = data.isEdit;
     
     // Debug: verificar datos recibidos
-    console.log('MotivoEditDialog - constructor data:', data);
-    
+
     if (data.motivo) {
       this.motivo = { 
         ...data.motivo,
@@ -64,10 +63,7 @@ export class MotivoEditDialogComponent implements OnInit {
       };
       
       // Debug: verificar valores convertidos
-      console.log('MotivoEditDialog - valores convertidos:', {
-        original: data.motivo,
-        converted: this.motivo
-      });
+
     }
   }
 
@@ -82,14 +78,7 @@ export class MotivoEditDialogComponent implements OnInit {
     }
     
     // Debug: verificar valores asignados
-    console.log('MotivoEditDialog - ngOnInit:', {
-      isEdit: this.isEdit,
-      motivo: this.motivo,
-      IdTypeReason: this.motivo.IdTypeReason,
-      Enabled: this.motivo.Enabled,
-      IdTypeReasonType: typeof this.motivo.IdTypeReason,
-      EnabledType: typeof this.motivo.Enabled
-    });
+
   }
 
   /**
@@ -107,12 +96,12 @@ export class MotivoEditDialogComponent implements OnInit {
       // Actualizar motivo existente
       this.fileReasonService.updateFileReason(this.motivo.Id!, this.motivo).subscribe({
         next: (response) => {
-          console.log('Respuesta de actualización:', response);
+
           this.snackBar.open('Motivo actualizado exitosamente', 'Éxito', { duration: 2000 });
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error actualizando motivo:', error);
+
           this.snackBar.open('Error al actualizar el motivo', 'Error', { duration: 3000 });
           this.loading = false;
         }
@@ -125,7 +114,7 @@ export class MotivoEditDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error creando motivo:', error);
+
           this.snackBar.open('Error al crear el motivo', 'Error', { duration: 3000 });
           this.loading = false;
         }

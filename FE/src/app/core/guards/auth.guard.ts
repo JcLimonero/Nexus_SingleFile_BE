@@ -22,15 +22,15 @@ export class AuthGuard implements CanActivate {
     if (isAuthenticated && token && currentUser) {
       // Si el token necesita renovación, renovarlo automáticamente
       if (this.authService.needsTokenRefresh()) {
-        console.log('🔄 Token necesita renovación, renovando automáticamente...');
+
         this.authService.refreshAccessToken().subscribe({
           next: (response) => {
             if (response.success) {
-              console.log('✅ Token renovado automáticamente');
+
             }
           },
           error: (error) => {
-            console.error('❌ Error renovando token:', error);
+
           }
         });
       }

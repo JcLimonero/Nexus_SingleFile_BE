@@ -92,7 +92,6 @@ export class UpdateEmailDialogComponent {
           this.loading = false;
           this.cd.markForCheck();
 
-          console.error('Error al actualizar email:', error);
           let errorMessage = 'Error al actualizar email';
           
           if (error.error && error.error.message) {

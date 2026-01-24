@@ -150,8 +150,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.warn('Error al cargar agencias de usuarios:', error);
-        
+
         // En caso de error, inicializar arrays vacíos para todos los usuarios
         this.users.forEach(user => {
           user.AssignedAgencies = [];
@@ -218,9 +217,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     
     if (catalogsProcessed >= totalCatalogs) {
       this.loadingCatalogs = false;
-      console.log('✅ Catálogos procesados - Roles:', this.roles.length, 
-                  'Agencias:', this.agencies.length);
-      
+
       // Si no hay catálogos, mostrar mensaje de error
       if (this.roles.length === 0 && this.agencies.length === 0) {
         this.snackBar.open('No se pudieron cargar los catálogos. Verifica la conexión con el backend.', 'Error', { duration: 5000 });
@@ -418,8 +415,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       };
     }
   }
-
-
 
   getPageRange(): string {
     if (!this.paginator || this.dataSource.filteredData.length === 0) {

@@ -170,10 +170,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   }
 
   private loadExistingDocuments(): void {
-    console.log('🔄 Cargando documentos existentes...');
-    console.log('📋 Configuración:', this.data.configuracion);
-    console.log('📄 Tipos de documento disponibles:', this.tiposDocumento?.length || 0);
-    
+
     // Cargar documentos existentes para esta configuración
     if (this.data.configuracion) {
       const filters = {
@@ -183,36 +180,25 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         IdOperationType: this.data.configuracion.IdOperationType
       };
 
-      console.log('🔍 Filtros para buscar documentos:', filters);
-
       this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
         next: (response: any) => {
-          console.log('✅ Respuesta del servicio:', response);
+
           if (response?.success && response.data?.documentos) {
             // Extraer los IDs de los tipos de documento ya configurados
             const existingDocumentTypeIds = response.data.documentos.map((doc: any) => doc.IdDocumentType);
-            console.log('📋 IDs de documentos existentes:', existingDocumentTypeIds);
-            console.log('📋 Número de documentos encontrados:', response.data.documentos.length);
-            console.log('📋 Primeros 3 documentos:', response.data.documentos.slice(0, 3));
+
+            
             
             // Actualizar el formulario con los documentos existentes
-            console.log('🔄 Antes de actualizar el formulario:');
-            console.log('📝 selectedDocumentTypes actual:', this.selectedDocumentTypes);
-            
+
             this.selectedDocumentTypes = existingDocumentTypeIds;
+
             
-            console.log('🔄 Después de actualizar el formulario:');
-            console.log('📝 selectedDocumentTypes nuevo:', this.selectedDocumentTypes);
-            
-            console.log('✅ Formulario actualizado con documentos existentes');
-            console.log('📝 Estado del formulario:', this.documentoForm.value.selectedDocumentTypes);
-            console.log('📝 Valor del control selectedDocumentTypes:', this.documentoForm.get('selectedDocumentTypes')?.value);
             
             // Verificar que el formulario se actualizó correctamente
             setTimeout(() => {
-              console.log('🔄 Verificación después de 100ms:');
-              console.log('📝 Estado del formulario:', this.documentoForm.value.selectedDocumentTypes);
-              console.log('📝 Valor del control selectedDocumentTypes:', this.documentoForm.get('selectedDocumentTypes')?.value);
+
+              
               this.debugFormState();
             }, 100);
             
@@ -220,15 +206,15 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             this.filteredTiposDocumento = [...this.tiposDocumento];
             this.applyFilters();
           } else {
-            console.log('⚠️ No se encontraron documentos existentes o respuesta inválida');
+
           }
         },
         error: (error: any) => {
-          console.error('❌ Error cargando documentos existentes:', error);
+
         }
       });
     } else {
-      console.log('⚠️ No hay configuración disponible para cargar documentos existentes');
+
     }
   }
 
@@ -245,7 +231,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando procesos:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -259,7 +245,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando agencias:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -273,7 +259,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de cliente:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -287,7 +273,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de operación:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -308,7 +294,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de documento:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -316,20 +302,18 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   private checkCatalogsLoaded(): void {
     this.catalogsProcessed++;
-    console.log(`📊 Catálogo procesado: ${this.catalogsProcessed}/${this.totalCatalogs}`);
-    
+
     // Si todos los catálogos han sido procesados, quitar el loading
     if (this.catalogsProcessed >= this.totalCatalogs) {
-      console.log('✅ Todos los catálogos han sido cargados');
+
       this.loadingCatalogs = false;
       
       // Si estamos en modo edición, cargar documentos existentes DESPUÉS de que todos los catálogos estén listos
       if (this.data.mode === 'edit') {
-        console.log('🔄 Modo edición detectado, cargando documentos existentes...');
-        console.log('📋 Configuración disponible:', this.data.configuracion);
+
         this.loadExistingDocuments();
       } else {
-        console.log('🆕 Modo creación detectado, no se cargan documentos existentes');
+
       }
     }
   }
@@ -396,7 +380,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       },
       error: (error) => {
         this.validandoConfiguracion = false;
-        console.error('Error verificando configuración existente:', error);
+
         // En caso de error, permitir crear (el backend también validará)
         this.configuracionExiste = false;
         this.mensajeValidacion = '';
@@ -450,7 +434,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             // Si el error es porque ya existe, mostrarlo
             if (response.message && response.message.toLowerCase().includes('existe') || 
                 response.message && response.message.toLowerCase().includes('duplicado')) {
-              console.warn('Configuración duplicada detectada:', response.message);
+
             }
           }
           
@@ -653,11 +637,10 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     
     // Solo mostrar logs para los primeros 5 documentos para no saturar la consola
     if (parseInt(documentTypeId) <= 5) {
-      console.log(`🔍 Verificando si ${documentTypeId} está seleccionado: ${isSelected}`);
-      console.log(`📋 Tipos seleccionados actuales:`, this.selectedDocumentTypes);
-      console.log(`📝 Tipo de selectedTypes:`, typeof this.selectedDocumentTypes, Array.isArray(this.selectedDocumentTypes));
-      console.log(`📝 documentTypeId:`, documentTypeId, typeof documentTypeId);
-      console.log(`📝 Comparación:`, this.selectedDocumentTypes.includes(documentTypeId));
+
+      
+
+      
     }
     
     return isSelected;
@@ -677,10 +660,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.selectedDocumentTypes.splice(index, 1);
       }
     }
-    
-    console.log('🔄 Documento cambiado:', documentTypeId, 'checked:', event.checked);
-    console.log('📋 Tipos seleccionados actualizados:', this.selectedDocumentTypes);
-    
+
     // Reaplicar filtros después del cambio
     this.applyFilters();
   }
@@ -688,16 +668,14 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   // Método para manejar el cambio en el filtro de solo seleccionados
   onShowOnlySelectedChange(event: any): void {
     this.showOnlySelected = event.checked;
-    console.log('🔄 Filtro "Solo seleccionados" cambiado:', this.showOnlySelected);
-    console.log('📋 Tipos seleccionados actuales:', this.selectedDocumentTypes);
-    console.log('📄 Total de tipos de documento:', this.tiposDocumento.length);
+
     this.applyFilters();
   }
 
   // Método para limpiar solo el filtro de seleccionados
   clearShowOnlySelectedFilter(): void {
     this.showOnlySelected = false;
-    console.log('🔄 Filtro "Solo seleccionados" limpiado');
+
     this.applyFilters();
   }
 
@@ -733,12 +711,9 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   // Método temporal para debuggear el estado del formulario
   debugFormState(): void {
-    console.log('🔍 DEBUG - Estado del formulario:');
-    console.log('📝 selectedDocumentTypes:', this.selectedDocumentTypes);
-    console.log('📝 Tipo de selectedDocumentTypes:', typeof this.selectedDocumentTypes);
-    console.log('📝 Es array:', Array.isArray(this.selectedDocumentTypes));
-    console.log('📝 Longitud:', this.selectedDocumentTypes.length);
-    console.log('📝 Estado completo del formulario:', this.documentoForm.value);
+
+    
+
   }
 
   // Método para filtrar tipos de documento
@@ -822,12 +797,8 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   // Método para aplicar todos los filtros
   private applyFilters(): void {
-    console.log('🔍 Aplicando filtros...');
-    console.log('📝 showOnlySelected:', this.showOnlySelected);
-    console.log('📝 selectedDocumentTypes:', this.selectedDocumentTypes);
-    
+
     let filtered = [...this.tiposDocumento];
-    console.log('📄 Total inicial:', filtered.length);
 
     // Filtro por nombre
     if (this.searchTerm && this.searchTerm.trim() !== '') {
@@ -835,7 +806,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         tipo.Name.toLowerCase().includes(searchLower)
       );
-      console.log('🔍 Después de filtro por nombre:', filtered.length);
+
     }
 
     // Filtro por fase
@@ -843,7 +814,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         tipo.ProcessTypeName === this.selectedPhase
       );
-      console.log('🔍 Después de filtro por fase:', filtered.length);
+
     }
 
     // Filtro por subfase
@@ -851,7 +822,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         tipo.SubProcessName === this.selectedSubPhase
       );
-      console.log('🔍 Después de filtro por subfase:', filtered.length);
+
     }
 
     // Filtro por solo seleccionados
@@ -860,12 +831,12 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         this.selectedDocumentTypes.includes(tipo.Id)
       );
-      console.log('🔍 Después de filtro "Solo seleccionados":', filtered.length, '(antes:', beforeFilter, ')');
-      console.log('🔍 IDs seleccionados:', this.selectedDocumentTypes);
-      console.log('🔍 Tipos filtrados:', filtered.map(t => ({ id: t.Id, name: t.Name })));
+      
+
+      
     }
 
     this.filteredTiposDocumento = filtered;
-    console.log('✅ Filtrado final:', this.filteredTiposDocumento.length);
+
   }
 }

@@ -118,16 +118,14 @@ export class ValidacionService {
 
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
       map(response => {
-        console.log('🔍 ValidacionService - Respuesta completa del API:', response);
-        console.log('🔍 ValidacionService - URL llamada:', `${this.apiUrl}/api/clients-validation/clientes`);
-        console.log('🔍 ValidacionService - Parámetros:', params.toString());
+
+        
 
         if (response && response.success && response.data && response.data.clientes) {
-          console.log('✅ ValidacionService - Clientes extraídos:', response.data.clientes);
-          console.log('🔍 ValidacionService - Primer cliente:', response.data.clientes.length > 0 ? response.data.clientes[0] : 'No hay clientes');
+
           return response.data.clientes;
         }
-        console.log('⚠️ ValidacionService - No se encontraron clientes en la respuesta');
+
         return [];
       })
     );
@@ -151,7 +149,6 @@ export class ValidacionService {
       })
     );
   }
-
 
   /**
    * Cargar procesos disponibles
@@ -197,7 +194,7 @@ export class ValidacionService {
         throw new Error(response.message || 'Error al validar el documento');
       }),
       catchError(error => {
-        console.error('Error en validarDocumento:', error);
+
         throw error;
       })
     );
@@ -219,7 +216,7 @@ export class ValidacionService {
         throw new Error(response.message || 'Error al preparar el documento');
       }),
       catchError(error => {
-        console.error('Error en prepararDocumento:', error);
+
         throw error;
       })
     );
@@ -248,7 +245,7 @@ export class ValidacionService {
         throw new Error(response.message || 'Error al procesar el documento');
       }),
       catchError(error => {
-        console.error('Error en aprobarDocumento:', error);
+
         throw error;
       })
     );
@@ -303,7 +300,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error cancelando pedido:', error);
+
         throw error;
       })
     );
@@ -328,7 +325,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error creando excepción:', error);
+
         throw error;
       })
     );
@@ -351,7 +348,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error eliminando pedido:', error);
+
         throw error;
       })
     );
@@ -375,7 +372,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error cambiando estatus:', error);
+
         throw error;
       })
     );

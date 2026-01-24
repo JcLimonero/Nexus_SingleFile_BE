@@ -78,7 +78,7 @@ export class ToolbarComponent implements OnInit {
     startWith(null),
     map(() => {
       const title = this.getPageTitle();
-      console.log('🔄 ToolbarComponent - Título generado:', title);
+
       return title;
     }),
     startWith('Dashboard Analytics')
@@ -111,8 +111,7 @@ export class ToolbarComponent implements OnInit {
         
         // Debug: mostrar el título actual
         const currentTitle = this.getPageTitle();
-        console.log('🔄 ToolbarComponent - Título actual:', currentTitle);
-        console.log('🔄 ToolbarComponent - URL actual:', this.router.url);
+
       });
   }
 

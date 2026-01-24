@@ -38,7 +38,7 @@ export class WidgetAgencyUsersComponent implements OnInit, OnDestroy, OnChanges 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🔄 WidgetAgencyUsers: agencyId cambió, recargando datos...');
+
       this.loadData();
     }
   }
@@ -61,7 +61,7 @@ export class WidgetAgencyUsersComponent implements OnInit, OnDestroy, OnChanges 
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('Error loading agency users data:', error);
+
           this.error = 'Error al cargar datos de usuarios';
           this.loading = false;
           this.cdr.markForCheck();

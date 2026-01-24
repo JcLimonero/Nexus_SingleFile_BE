@@ -139,12 +139,10 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('📊 CurrentMonthStatus ngOnChanges called with changes:', changes);
+
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('📊 CurrentMonthStatus: Agency or User changed, triggering data reload');
-      console.log('📊 CurrentMonthStatus: Current agencyId:', this.agencyId);
-      console.log('📊 CurrentMonthStatus: Current userId:', this.userId);
+
       this.loadCurrentMonthStatus();
     }
   }
@@ -173,20 +171,18 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
       current_month: true
     };
 
-    console.log('📊 CurrentMonthStatus: Loading current month status with filters:', filters);
-
     this.analyticsService.getCurrentMonthStatusDistribution(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log('📊 CurrentMonthStatus: Received data:', data);
+
           this.statusData = data;
           this.updateChart();
           this.loading = false;
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('📊 CurrentMonthStatus: Error loading current month status:', error);
+
           this.error = 'Error al cargar distribución del mes actual';
           this.loading = false;
           

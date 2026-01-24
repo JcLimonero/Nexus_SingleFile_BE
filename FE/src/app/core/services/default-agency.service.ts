@@ -162,7 +162,7 @@ export class DefaultAgencyService {
     }).pipe(
       map(response => {
         if (response && response.success) {
-          console.log('✅ DefaultAgencyService - Agencia predeterminada actualizada:', agenciaId);
+
           return true;
         }
         return false;

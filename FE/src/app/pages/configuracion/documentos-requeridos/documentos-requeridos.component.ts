@@ -192,103 +192,93 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
   loadCatalogs(): void {
     this.loadingCatalogs = true;
-    console.log('🔄 Iniciando carga de catálogos...');
-    
+
     // Cargar procesos
-    console.log('🔄 Cargando procesos...');
+
     this.procesoService.getProcesos().subscribe({
       next: (response: any) => {
-        console.log('📋 Respuesta de procesos:', response);
+
         if (response?.success && response.data) {
           this.processes = response.data.processes || [];
-          console.log('✅ Procesos cargados:', this.processes.length);
+
         } else {
-          console.error('❌ Error cargando procesos:', response);
+
           this.snackBar.open('Error al cargar procesos', 'Error', { duration: 3000 });
         }
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('❌ Error cargando procesos:', error);
+
         this.snackBar.open('Error al cargar procesos', 'Error', { duration: 3000 });
         this.checkCatalogsLoaded();
       }
     });
 
     // Cargar agencias con debug detallado
-    console.log('🔄 Cargando agencias...');
-    console.log('🏢 AgencyService disponible:', !!this.agencyService);
-    
+
     // Verificar la URL que se va a construir
     const testUrl = this.agencyService['apiBaseService'].buildApiUrl('agency');
-    console.log('🔗 URL que se va a construir para agencias:', testUrl);
-    console.log('🔗 URL incluye localhost:8080:', testUrl.includes('localhost:8080'));
+
+    
     
     // Usar método más simple sin parámetros
     this.agencyService.getAgencies({}).subscribe({
       next: (response: any) => {
-        console.log('📋 Respuesta completa de agencias:', response);
-        console.log('📋 Response.success:', response?.success);
-        console.log('📋 Response.data:', response?.data);
-        console.log('📋 Response.data.agencies:', response?.data?.agencies);
-        
+
         if (response?.success && response.data) {
           this.agencies = response.data.agencies || [];
-          console.log('✅ Agencias cargadas:', this.agencies.length);
-          console.log('✅ Primeras 3 agencias:', this.agencies.slice(0, 3));
+
+          
         } else {
-          console.error('❌ Error cargando agencias - Respuesta inválida:', response);
+
           this.snackBar.open('Error al cargar agencias: Respuesta inválida', 'Error', { duration: 3000 });
         }
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('❌ Error cargando agencias:', error);
-        console.error('❌ Error status:', error.status);
-        console.error('❌ Error message:', error.message);
-        console.error('❌ Error error:', error.error);
+
         this.snackBar.open(`Error al cargar agencias: ${error.message || 'Error desconocido'}`, 'Error', { duration: 3000 });
         this.checkCatalogsLoaded();
       }
     });
 
     // Cargar tipos de cliente
-    console.log('🔄 Cargando tipos de cliente...');
+
     this.costumerTypeService.getCostumerTypes().subscribe({
       next: (response: any) => {
-        console.log('📋 Respuesta de tipos de cliente:', response);
+
         if (response?.success && response.data) {
           this.customerTypes = response.data.costumer_types || [];
-          console.log('✅ Tipos de cliente cargados:', this.customerTypes.length);
+
         } else {
-          console.error('❌ Error cargando tipos de cliente:', response);
+
           this.snackBar.open('Error al cargar tipos de cliente', 'Error', { duration: 3000 });
         }
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('❌ Error cargando tipos de cliente:', error);
+
         this.snackBar.open('Error al cargar tipos de cliente', 'Error', { duration: 3000 });
         this.checkCatalogsLoaded();
       }
     });
 
     // Cargar tipos de operación
-    console.log('🔄 Cargando tipos de operación...');
+
     this.tipoOperacionService.getTiposOperacion().subscribe({
       next: (response: any) => {
-        console.log('📋 Respuesta de tipos de operación:', response);
+
         if (response?.success && response.data) {
           this.operationTypes = response.data.operationTypes || [];
-          console.log('✅ Tipos de operación cargados:', this.operationTypes.length);
+
         } else {
-          console.error('❌ Error cargando tipos de operación:', response);
+
           this.snackBar.open('Error al cargar tipos de operación', 'Error', { duration: 3000 });
         }
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('❌ Error cargando tipos de operación:', error);
+
         this.snackBar.open('Error al cargar tipos de operación', 'Error', { duration: 3000 });
         this.checkCatalogsLoaded();
       }
@@ -305,11 +295,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     
     if (catalogsProcessed >= totalCatalogs) {
       this.loadingCatalogs = false;
-      console.log('✅ Catálogos procesados - Procesos:', this.processes.length, 
-                  'Agencias:', this.agencies.length, 
-                  'Tipos Cliente:', this.customerTypes.length, 
-                  'Tipos Operación:', this.operationTypes.length);
-      
+
       // Si no hay catálogos, mostrar mensaje de error
       if (this.processes.length === 0 && this.agencies.length === 0 && 
           this.customerTypes.length === 0 && this.operationTypes.length === 0) {
@@ -339,26 +325,22 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
           next: (response) => {
             if (response.success && response.data) {
               const documentos = response.data.documentos || [];
-              console.log('📊 Documentos recibidos del API:', documentos.length);
-              console.log('📊 Total según API:', response.data.total);
-              console.log('📊 Count según API:', response.data.count);
-              console.log('📊 IDs de documentos:', documentos.map(d => d.Id));
+
+              
               
               this.dataSource.data = documentos;
               
               // Asegurar que el paginador tenga el pageSize correcto después de cargar datos
               setTimeout(() => {
-                console.log('📊 Documentos en dataSource después de asignar:', this.dataSource.data.length);
+
                 if (this.paginator) {
                   // Forzar el pageSize a 25 si está en 10
                   if (this.paginator.pageSize === 10) {
-                    console.log('⚠️ Paginador tenía pageSize 10, cambiando a 25');
+
                     this.paginator.pageSize = 25;
                     this.paginator._changePageSize(25);
                   }
-                  console.log('📊 Paginador configurado - pageSize:', this.paginator.pageSize);
-                  console.log('📊 Paginador - length:', this.paginator.length);
-                  console.log('📊 Paginador - pageIndex:', this.paginator.pageIndex);
+
                 }
               }, 100);
             } else {
@@ -368,7 +350,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
             this.loading = false;
           },
       error: (error) => {
-        console.error('Error cargando documentos requeridos:', error);
+
         this.snackBar.open('Error al cargar documentos requeridos', 'Error', { duration: 3000 });
         this.dataSource.data = [];
         this.loading = false;
@@ -498,12 +480,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     });
   }
 
-
-
   // Método para seleccionar un item de la tabla
   onRowClick(element: DocumentoRequerido): void {
     this.selectedItem = element;
-    console.log('Item seleccionado:', element);
+
   }
 
   // Método para verificar si se puede duplicar la configuración
@@ -626,7 +606,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
         this.loadingConfiguraciones = false;
       },
       error: (error) => {
-        console.error('Error cargando configuraciones:', error);
+
         this.snackBar.open('Error al cargar configuraciones', 'Error', { duration: 3000 });
         this.dataSourceConfiguraciones.data = [];
         this.loadingConfiguraciones = false;

@@ -91,7 +91,7 @@ export class SidenavComponent implements OnInit {
   }
 
   openProfileMenu(origin: HTMLDivElement): void {
-    console.log('SidenavComponent: Abriendo menú de perfil...');
+
     try {
       const popoverRef = this.popoverService.open({
         content: SidenavUserMenuComponent,
@@ -112,9 +112,9 @@ export class SidenavComponent implements OnInit {
         switchMap((ref) => ref.afterClosed$.pipe(map(() => false))),
         startWith(true)
       );
-      console.log('SidenavComponent: Menú de perfil abierto correctamente');
+
     } catch (error) {
-      console.error('SidenavComponent: Error al abrir menú de perfil:', error);
+
     }
   }
 

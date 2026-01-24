@@ -46,7 +46,7 @@ export class WidgetCurrentMonthLiberatedComponent implements OnInit, OnDestroy, 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('🔄 WidgetCurrentMonthLiberated: filtros cambiaron, recargando datos...');
+
       this.loadData();
     }
   }
@@ -72,7 +72,7 @@ export class WidgetCurrentMonthLiberatedComponent implements OnInit, OnDestroy, 
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('Error loading current month liberated data:', error);
+
           this.error = 'Error al cargar datos de expedientes liberados';
           this.loading = false;
           this.cdr.markForCheck();

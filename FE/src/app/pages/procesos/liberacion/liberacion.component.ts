@@ -124,7 +124,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 LiberacionComponent inicializado');
+
     this.loadLiberationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
@@ -136,7 +136,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       const idFile = params['idFile'];
       
       if (idCliente && (idPedido || idFile)) {
-        console.log('🔍 Parámetros encontrados en URL:', { idCliente, idPedido, idFile });
+
         // Esperar a que las agencias se carguen antes de seleccionar
         setTimeout(() => {
           this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
@@ -191,7 +191,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
                 }
               },
               error: (error) => {
-                console.error('❌ Error estableciendo agencia predeterminada:', error);
+
                 if (this.agencies.length > 0) {
                   const primeraAgencia = this.agencies[0];
                   this.selectedAgencyId = primeraAgencia.Id;
@@ -202,7 +202,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           }, 100);
         },
         error: (error) => {
-          console.error('🏢 Error cargando agencias:', error);
+
           this.agencies = [];
           this.agenciesLoading = false;
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', { duration: 3000 });
@@ -219,13 +219,13 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ LiberacionComponent - Agencia predeterminada actualizada:', agencyId);
+
           } else {
-            console.warn('⚠️ LiberacionComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ LiberacionComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     }
@@ -311,7 +311,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.clientsLoading = false;
         },
         error: (error: any) => {
-          console.error('❌ Error buscando clientes:', error);
+
           this.clients = [];
           this.clientsLoading = false;
           this.snackBar.open('Error al buscar clientes', 'Cerrar', { duration: 3000 });
@@ -368,10 +368,9 @@ export class LiberacionComponent implements OnInit, OnDestroy {
    * Seleccionar cliente y pedido automáticamente desde parámetros de URL
    */
   private seleccionarClienteYPedidoDesdeURL(idCliente: string, idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando cliente y pedido desde URL:', { idCliente, idPedido, idFile });
-    
+
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
-      console.log('⚠️ No hay agencia seleccionada, esperando...');
+
       setTimeout(() => {
         this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
       }, 500);
@@ -388,7 +387,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
             const clienteEncontrado = clientes.find(c => String(c.ndCliente) === String(idCliente));
             
             if (clienteEncontrado) {
-              console.log('✅ Cliente encontrado:', clienteEncontrado);
+
               // Seleccionar el cliente
               this.selectClient(clienteEncontrado);
               
@@ -397,20 +396,20 @@ export class LiberacionComponent implements OnInit, OnDestroy {
                 this.seleccionarPedidoDesdeURL(idPedido, idFile);
               }, 1000);
             } else {
-              console.log('⚠️ Cliente no encontrado en resultados');
+
               this.snackBar.open('Cliente no encontrado', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
-            console.log('⚠️ No se encontraron clientes');
+
             this.snackBar.open('Cliente no encontrado', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error buscando cliente:', error);
+
           this.snackBar.open('Error al buscar cliente', 'Cerrar', {
             duration: 3000
           });
@@ -422,10 +421,9 @@ export class LiberacionComponent implements OnInit, OnDestroy {
    * Seleccionar pedido automáticamente desde parámetros de URL
    */
   private seleccionarPedidoDesdeURL(idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando pedido desde URL:', { idPedido, idFile });
-    
+
     if (!this.files || this.files.length === 0) {
-      console.log('⚠️ No hay pedidos cargados aún, esperando...');
+
       setTimeout(() => {
         this.seleccionarPedidoDesdeURL(idPedido, idFile);
       }, 500);
@@ -444,7 +442,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     }
 
     if (pedidoEncontrado) {
-      console.log('✅ Pedido encontrado:', pedidoEncontrado);
+
       this.selectFile(pedidoEncontrado);
       this.snackBar.open(`Pedido ${pedidoEncontrado.numeroPedido} seleccionado`, 'Cerrar', {
         duration: 3000
@@ -457,7 +455,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
         replaceUrl: true
       });
     } else {
-      console.log('⚠️ Pedido no encontrado');
+
       this.snackBar.open('Pedido no encontrado', 'Cerrar', {
         duration: 3000
       });
@@ -527,7 +525,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.filesLoading = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando files de liberación:', error);
+
           this.files = [];
           this.filesLoading = false;
           this.snackBar.open('Error al cargar los pedidos del cliente', 'Cerrar', { duration: 3000 });
@@ -569,7 +567,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.documentsLoading = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando documentos:', error);
+
           this.requiredDocuments = [];
           this.documentTabs = [];
           this.documentsLoading = false;
@@ -764,7 +762,6 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.buildDocumentTabs();
         }),
         catchError((error) => {
-          console.error('❌ Error subiendo documento a Backblaze:', error);
 
           let errorMessage = 'Error desconocido';
           if (error.status === 0) {

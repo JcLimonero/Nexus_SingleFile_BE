@@ -3,8 +3,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 
 bootstrapApplication(AppComponent, appConfig).catch((err) => {
-  console.error('❌ Error al inicializar la aplicación Angular:', err);
-  
+
   // Ocultar splash screen si existe
   const splashScreen = document.getElementById('vex-splash-screen');
   if (splashScreen) {

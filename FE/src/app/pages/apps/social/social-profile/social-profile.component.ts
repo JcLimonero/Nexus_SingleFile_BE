@@ -63,7 +63,7 @@ export class SocialProfileComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log('Contraseña actualizada exitosamente');
+
       }
     });
   }
@@ -75,7 +75,7 @@ export class SocialProfileComponent implements OnInit {
     // Validar archivo
     const validation = this.userProfileImageService.validateImageFile(file);
     if (!validation.valid) {
-      console.error('Archivo no válido:', validation.error);
+
       return;
     }
 
@@ -90,10 +90,10 @@ export class SocialProfileComponent implements OnInit {
         // Recargar información del usuario
         // No es necesario recargar desde el AuthService, solo actualizar la información de imagen
         this.refreshProfileImageInfo();
-        console.log('Imagen de perfil actualizada correctamente');
+
       }
     } catch (error) {
-      console.error('Error al subir imagen:', error);
+
     }
   }
 
@@ -105,10 +105,10 @@ export class SocialProfileComponent implements OnInit {
         // Recargar información del usuario
         // No es necesario recargar desde el AuthService, solo actualizar la información de imagen
         this.refreshProfileImageInfo();
-        console.log('Imagen de perfil eliminada correctamente');
+
       }
     } catch (error) {
-      console.error('Error al eliminar imagen:', error);
+
     }
   }
 

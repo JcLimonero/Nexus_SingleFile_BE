@@ -261,28 +261,26 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
 
   deleteProceso(proceso: Proceso): void {
     if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE el proceso "${proceso.Name}"?\n\nEsta acción no se puede deshacer.`)) {
-      console.log('🗑️ Intentando eliminar proceso:', proceso);
-      
+
       this.procesoService.deleteProceso(proceso.Id!, true).subscribe({
         next: (response) => {
-          console.log('📡 Respuesta del API:', response);
-          
+
           if (response.success) {
-            console.log('✅ Proceso eliminado exitosamente');
+
             this.procesos = this.procesos.filter(p => p.Id !== proceso.Id);
             this.applyFilter();
             this.snackBar.open('Proceso eliminado exitosamente', 'Éxito', {
               duration: 2000
             });
           } else {
-            console.log('❌ Error en la respuesta:', response.message);
+
             this.snackBar.open(response.message || 'Error al eliminar proceso', 'Error', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.log('💥 Error en la petición:', error);
+
           this.snackBar.open('Error al eliminar proceso', 'Error', {
             duration: 3000
           });

@@ -127,20 +127,14 @@ export default function generateScss(options: VexThemePluginOptions): void {
   try {
     fileContent = fs.readFileSync(scssFilePath, { encoding: 'utf8' });
   } catch (error) {
-    console.error(
-      `[VexTailwindThemePlugin] Error reading file ${scssFilePath}`,
-      error
-    );
+
   }
 
   if (!fileContent || fileContent !== scss) {
     try {
       fs.writeFileSync(scssFilePath, scss);
     } catch (error) {
-      console.error(
-        `[VexTailwindThemePlugin] Error writing file ${scssFilePath}`,
-        error
-      );
+
     }
   }
 }

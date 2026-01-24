@@ -105,7 +105,7 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error: any) => {
-        console.error('Error cargando motivos extraordinarios:', error);
+
         this.snackBar.open('Error al cargar los motivos extraordinarios', 'Error', { duration: 3000 });
         this.loading = false;
       }
@@ -247,7 +247,7 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
           this.loadData();
         },
         error: (error: any) => {
-          console.error('Error eliminando motivo extraordinario:', error);
+
           this.snackBar.open('Error al eliminar el motivo extraordinario', 'Error', { duration: 3000 });
         }
       });
@@ -264,7 +264,7 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
         this.loadData();
       },
       error: (error: any) => {
-        console.error('Error cambiando estado:', error);
+
         this.snackBar.open('Error al cambiar el estado del motivo extraordinario', 'Error', { duration: 3000 });
         this.loading = false;
       }
@@ -320,13 +320,7 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
     
     // Si el índice de página está fuera de rango, corregirlo
     if (currentPageIndex > maxPageIndex) {
-      console.log('validatePaginatorState - Corrigiendo pageIndex:', {
-        current: currentPageIndex,
-        max: maxPageIndex,
-        totalItems: this.totalItems,
-        pageSize: this.paginator.pageSize
-      });
-      
+
       this.paginator.pageIndex = Math.max(0, maxPageIndex);
       this.filters.offset = this.paginator.pageIndex * this.paginator.pageSize;
     }

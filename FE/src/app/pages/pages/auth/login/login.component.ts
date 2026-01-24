@@ -91,12 +91,12 @@ export class LoginComponent {
               const token = this.authService.getToken();
               if (token && this.authService.isAuthenticated()) {
                 this.router.navigate(['/']).then(() => {
-                  console.log('✅ Navegación exitosa al dashboard después del login');
+
                 }).catch(error => {
-                  console.error('❌ Error en navegación después del login:', error);
+
                 });
               } else {
-                console.warn('⚠️ Token no disponible después del login, esperando...');
+
                 // Si el token no está disponible aún, esperar un poco más
                 setTimeout(() => {
                   this.router.navigate(['/']);
@@ -112,8 +112,7 @@ export class LoginComponent {
         error: (error: any) => {
           this.loading = false;
           this.cd.markForCheck();
-          
-          console.error('Error en login:', error);
+
           let errorMessage = 'Error en el inicio de sesión';
           
           // Verificar si el error es requires_email

@@ -63,8 +63,6 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   pageSize = 10;
   pageSizeOptions = [10, 25, 50, 100];
 
-
-
   constructor(
     private fileReasonService: FileReasonService,
     private snackBar: MatSnackBar,
@@ -88,23 +86,10 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
     
     this.fileReasonService.getFileReasons(this.filters).subscribe({
       next: (response) => {
-        console.log('Respuesta de la API:', response);
-        console.log('Datos de motivos:', response.data.file_reasons);
-        
+
         // Debuggear cada motivo individualmente
         response.data.file_reasons.forEach((reason: any, index: number) => {
-          console.log(`Motivo ${index + 1}:`, {
-            Id: reason.Id,
-            Name: reason.Name,
-            IdTypeReason: reason.IdTypeReason,
-            TypeReasonLabel: reason.TypeReasonLabel,
-            IdTypeReasonType: typeof reason.IdTypeReason,
-            Comparison4: reason.IdTypeReason == 4,
-            Comparison5: reason.IdTypeReason == 5,
-            Enabled: reason.Enabled,
-            EnabledType: typeof reason.Enabled,
-            EnabledComparison: reason.Enabled == 1
-          });
+
         });
         
         this.dataSource.data = response.data.file_reasons;
@@ -112,14 +97,12 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error cargando motivos:', error);
+
         this.snackBar.open('Error al cargar los motivos', 'Error', { duration: 3000 });
         this.loading = false;
       }
     });
   }
-
-
 
   /**
    * Aplicar filtros
@@ -175,7 +158,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        console.log('Diálogo de creación cerrado con éxito, recargando datos...');
+
         this.loadData();
       }
     });
@@ -196,7 +179,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        console.log('Diálogo de edición cerrado con éxito, recargando datos...');
+
         this.loadData();
       }
     });
@@ -213,7 +196,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
           this.loadData();
         },
         error: (error) => {
-          console.error('Error eliminando motivo:', error);
+
           this.snackBar.open('Error al eliminar el motivo', 'Error', { duration: 3000 });
         }
       });
@@ -230,13 +213,11 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
           this.loadData();
         },
       error: (error) => {
-        console.error('Error cambiando estado:', error);
+
         this.snackBar.open('Error al cambiar el estado del motivo', 'Error', { duration: 3000 });
       }
     });
   }
-
-
 
   /**
    * Obtener color del tipo de razón
