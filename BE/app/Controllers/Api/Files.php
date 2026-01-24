@@ -28,6 +28,8 @@ class Files extends BaseController
             }
 
                         // Query para obtener los files/pedidos del cliente
+                        // IMPORTANTE: ctr.IdAgency = f.IdAgency evita duplicados y datos de otras agencias
+                        // (IdTotalDealer puede repetirse entre agencias).
                         $sql = "
                             SELECT 
                                 f.Id as fileId,
@@ -46,13 +48,14 @@ class Files extends BaseController
                             FROM File f
                             INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
                             INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+                                AND ctr.IdAgency = f.IdAgency
                             LEFT JOIN Process p ON f.IdProcess = p.Id
                             LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
                             LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
                             LEFT JOIN Agency a ON f.IdAgency = a.Id
                             LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
                             LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
-                            WHERE ctr.IdTotalDealer = ?
+                            WHERE TRIM(ctr.IdTotalDealer) = ?
                         ";
 
             $params = [$ndCliente];
@@ -163,22 +166,17 @@ class Files extends BaseController
             }
 
             // Agregar filtro de cliente si se proporciona
-            // PRIORIDAD: El pedido debe pertenecer a la agencia seleccionada
-            // El cliente puede estar dado de alta en cualquier agencia, pero el pedido debe ser de la agencia seleccionada
-            // Buscamos el cliente por su ndCliente en cualquier agencia, pero el pedido ya está filtrado por agencia
+            // IMPORTANTE: IdTotalDealer (ndCliente) puede repetirse entre agencias (cada dealer tiene su propio DMS).
+            // Debemos filtrar por ctr.IdAgency = f.IdAgency para no traer datos de clientes de otra agencia.
             if ($ndCliente && trim($ndCliente) !== '') {
                 $ndClienteTrimmed = trim($ndCliente);
-                // Buscar el cliente por su ndCliente en cualquier relación Client_Total_Relation
-                // Priorizamos: primero buscar en la agencia del pedido, luego en cualquier otra agencia
-                // Esto permite que un cliente dado de alta en una agencia aparezca si tiene un pedido en otra agencia
-                // No filtramos por agencia aquí, permitimos que el cliente esté dado de alta en cualquier agencia
-                // El pedido ya está filtrado por agencia arriba (WHERE a.IdAgency = ?)
                 $sql .= " AND EXISTS (
                     SELECT 1
                     FROM HeaderClient hc 
                     INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
                     WHERE hc.Id = f.IdClient 
                     AND TRIM(ctr.IdTotalDealer) = ?
+                    AND ctr.IdAgency = f.IdAgency
                 )";
                 $params[] = $ndClienteTrimmed;
             }
