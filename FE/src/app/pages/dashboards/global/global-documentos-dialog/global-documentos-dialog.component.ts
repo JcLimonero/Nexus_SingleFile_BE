@@ -114,6 +114,38 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     ).length;
   }
 
+  /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'documento';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
+  }
+
   isDocumentoStatus(documento: Documento, status: number): boolean {
     return Number(documento?.idEstatus) === status;
   }
@@ -148,14 +180,17 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const file = this.selectedFiles[clave];
+    let file = this.selectedFiles[clave];
     if (!file) {
       this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
       return;
     }
 
+    // Sanitizar nombre del archivo
+    file = this.sanitizeFileName(file);
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file); // Archivo con nombre sanitizado
     formData.append('idSingleFile', this.data.cliente.idFile.toString());
     formData.append('idDocumentFile', clave);
 

@@ -1508,9 +1508,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return throwError(() => new Error(errorMsg));
     }
 
+    // Obtener archivo y sanitizar su nombre
+    let file = this.selectedFiles[document.documentId];
+    file = this.sanitizeFileName(file);
+
     // Preparar datos para Vanguardia API según documentación
     const formData = new FormData();
-    formData.append('file', this.selectedFiles[document.documentId]); // File: Archivo a subir
+    formData.append('file', file); // File: Archivo a subir (con nombre sanitizado)
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
     formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (IdDocumentByFile)
 
@@ -1583,6 +1587,38 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           return throwError(() => error);
         })
       );
+  }
+
+  /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'documento';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
   }
 
   /**

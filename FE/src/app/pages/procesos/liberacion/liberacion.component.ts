@@ -639,6 +639,38 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'documento';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
+  }
+
+  /**
    * Cargar todos los documentos seleccionados en lote
    */
   uploadMultipleDocuments(): void {
@@ -740,8 +772,12 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     const isReplacing = document.idCurrentStatus === '2';
     const actionText = isReplacing ? 'reemplazando' : 'cargando';
 
+    // Obtener archivo y sanitizar su nombre
+    let file = this.selectedFiles[documentKey];
+    file = this.sanitizeFileName(file);
+
     const formData = new FormData();
-    formData.append('file', this.selectedFiles[documentKey]);
+    formData.append('file', file); // Archivo con nombre sanitizado
     formData.append('idSingleFile', this.selectedFile.fileId.toString());
     formData.append('idDocumentFile', document.fileDocumentId.toString());
 
