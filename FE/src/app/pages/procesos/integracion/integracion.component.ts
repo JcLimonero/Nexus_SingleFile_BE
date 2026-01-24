@@ -147,7 +147,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 IntegracionComponent inicializado');
     this.loadIntegrationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
@@ -159,7 +158,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       const idFile = params['idFile'];
       
       if (idCliente && (idPedido || idFile)) {
-        console.log('🔍 Parámetros encontrados en URL:', { idCliente, idPedido, idFile });
         // Esperar a que las agencias se carguen antes de seleccionar
         setTimeout(() => {
           this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
@@ -251,7 +249,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {
-          console.log('🏢 Agencias asignadas al usuario:', agencias);
           this.agencies = agencias;
           this.agenciesLoading = false;
           this.cdr.markForCheck();
@@ -261,19 +258,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
               next: (agenciaId) => {
                 if (agenciaId) {
-                  console.log('✅ Agencia predeterminada establecida:', agenciaId);
                   this.selectedAgencyId = agenciaId;
                   this.onAgencyChange(agenciaId);
-                } else {
-                  console.warn('⚠️ No se pudo establecer agencia predeterminada');
                 }
               },
               error: (error) => {
-                console.error('❌ Error estableciendo agencia predeterminada:', error);
                 // Si falla, intentar seleccionar la primera agencia disponible
                 if (this.agencies.length > 0) {
                   const primeraAgencia = this.agencies[0];
-                  console.log('🔄 Seleccionando primera agencia disponible como fallback:', primeraAgencia);
                   this.selectedAgencyId = primeraAgencia.Id;
                   this.onAgencyChange(primeraAgencia.Id);
                 }
@@ -282,7 +274,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }, 100);
         },
         error: (error) => {
-          console.error('🏢 Error cargando agencias:', error);
           this.agencies = [];
           this.agenciesLoading = false;
           this.cdr.markForCheck();
@@ -298,21 +289,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
     // Encontrar y guardar el objeto agencia completo
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
-    // Aquí puedes agregar lógica adicional cuando cambie la agencia seleccionada
-    console.log('Selected agency:', agencyId, 'Agency object:', this.selectedAgency);
     
     // Actualizar la agencia predeterminada del usuario
     if (agencyId !== null) {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
-          if (success) {
-            console.log('✅ IntegracionComponent - Agencia predeterminada actualizada:', agencyId);
-          } else {
-            console.warn('⚠️ IntegracionComponent - No se pudo actualizar la agencia predeterminada');
-          }
+          // Agencia predeterminada actualizada
         },
         error: (error) => {
-          console.error('❌ IntegracionComponent - Error actualizando agencia predeterminada:', error);
+          // Error actualizando agencia predeterminada
         }
       });
     }
@@ -384,8 +369,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
-          console.log('🔍 Clientes encontrados con vista:', response);
-          
           if (response && response.success && response.data && response.data.clientes) {
             this.clients = response.data.clientes;
             this.cdr.markForCheck();
@@ -398,12 +381,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               this.selectClient(this.clients[0]);
             } else {
               // Sin resultados en el sistema local, buscar en Vanguardia
-              console.log('🔍 No se encontraron clientes en el sistema local, buscando en Vanguardia...');
               this.searchClientInVanguardia();
             }
           } else {
             // Sin resultados en el sistema local, buscar en Vanguardia
-            console.log('🔍 No se encontraron clientes en el sistema local, buscando en Vanguardia...');
             this.searchClientInVanguardia();
           }
           
@@ -411,7 +392,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (error: any) => {
-          console.error('❌ Error buscando clientes:', error);
           this.clients = [];
           this.cdr.markForCheck();
           this.clientsLoading = false;
@@ -423,8 +403,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private searchClientInVanguardia(): void {
-    console.log('🔍 Buscando cliente en Vanguardia...');
-    
     // Obtener la agencia seleccionada para enviar el connectionstring a Vanguardia
     const selectedAgency = this.agencies.find(agency => agency.Id === this.selectedAgencyId);
     if (!selectedAgency) {
@@ -448,8 +426,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaResponse) => {
-          console.log('🔍 Respuesta de Vanguardia:', response);
-          
           if (response && response.status === 200 && response.data && response.data.data) {
             // Convertir los datos de Vanguardia al formato estándar
             this.clients = response.data.data.map(client => 
@@ -478,7 +454,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('❌ Error buscando en Vanguardia:', error);
           this.snackBar.open('Error al buscar en Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
             duration: 4000
           });
@@ -487,17 +462,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private importVanguardiaClient(vanguardiaClient: any): void {
-    console.log('📥 Importando cliente de Vanguardia al sistema local:', vanguardiaClient);
-    
     // Convertir datos de Vanguardia al formato de importación
     const importData = this.vanguardiaClientImportService.convertVanguardiaDataForImport(vanguardiaClient);
     
     // Usar el Id interno de la agencia seleccionada en lugar del idAgency del cliente de Vanguardia
     if (this.selectedAgency && this.selectedAgency.Id) {
-      console.log('✅ Usando Id interno de agencia seleccionada:', this.selectedAgency.Id);
       importData.idAgency = String(this.selectedAgency.Id);
-    } else {
-      console.warn('⚠️ No hay agencia seleccionada, usando idAgency del cliente de Vanguardia:', importData.idAgency);
     }
     
     // Importar cliente al sistema local
@@ -505,8 +475,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaClientImportResponse) => {
-          console.log('✅ Respuesta de importación:', response);
-          
           if (response.success && response.data) {
             // Convertir el cliente importado al formato estándar
             const importedClient = {
@@ -551,7 +519,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('❌ Error importando cliente de Vanguardia:', error);
           this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
             duration: 5000
           });
@@ -573,8 +540,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   clearAllClientData(): void {
-    console.log('🧹 Limpiando todos los datos del cliente anterior...');
-    
     // Limpiar datos del cliente
     this.selectedClient = null;
     this.clients = [];
@@ -601,12 +566,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.orderSearchTerm = '';
     this.currentPage = 0;
     this.totalItems = 0;
-    
-    console.log('✅ Todos los datos del cliente anterior han sido limpiados');
   }
 
   selectClient(client: any): void {
-    console.log('Cliente seleccionado:', client);
     this.selectedClient = client;
     this.showClientResults = false; // Ocultar resultados después de seleccionar
     this.clientSearchTerm = ''; // Limpiar el campo de búsqueda
@@ -634,10 +596,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
    * Seleccionar cliente y pedido automáticamente desde parámetros de URL
    */
   private seleccionarClienteYPedidoDesdeURL(idCliente: string, idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando cliente y pedido desde URL:', { idCliente, idPedido, idFile });
-    
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
-      console.log('⚠️ No hay agencia seleccionada, esperando...');
       setTimeout(() => {
         this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
       }, 500);
@@ -654,7 +613,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             const clienteEncontrado = clientes.find(c => String(c.ndCliente) === String(idCliente));
             
             if (clienteEncontrado) {
-              console.log('✅ Cliente encontrado:', clienteEncontrado);
               // Seleccionar el cliente
               this.selectClient(clienteEncontrado);
               
@@ -663,20 +621,17 @@ export class IntegracionComponent implements OnInit, OnDestroy {
                 this.seleccionarPedidoDesdeURL(idPedido, idFile);
               }, 1000);
             } else {
-              console.log('⚠️ Cliente no encontrado en resultados');
               this.snackBar.open('Cliente no encontrado', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
-            console.log('⚠️ No se encontraron clientes');
             this.snackBar.open('Cliente no encontrado', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error buscando cliente:', error);
           this.snackBar.open('Error al buscar cliente', 'Cerrar', {
             duration: 3000
           });
@@ -688,10 +643,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
    * Seleccionar pedido automáticamente desde parámetros de URL
    */
   private seleccionarPedidoDesdeURL(idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando pedido desde URL:', { idPedido, idFile });
-    
     if (!this.files || this.files.length === 0) {
-      console.log('⚠️ No hay pedidos cargados aún, esperando...');
       setTimeout(() => {
         this.seleccionarPedidoDesdeURL(idPedido, idFile);
       }, 500);
@@ -710,7 +662,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
 
     if (pedidoEncontrado) {
-      console.log('✅ Pedido encontrado:', pedidoEncontrado);
       this.selectFile(pedidoEncontrado);
       this.snackBar.open(`Pedido ${pedidoEncontrado.numeroPedido} seleccionado`, 'Cerrar', {
         duration: 3000
@@ -723,7 +674,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         replaceUrl: true
       });
     } else {
-      console.log('⚠️ Pedido no encontrado');
       this.snackBar.open('Pedido no encontrado', 'Cerrar', {
         duration: 3000
       });
@@ -784,13 +734,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📁 Respuesta completa del API:', response);
-          console.log('📁 Files encontrados en tabla file:', response);
-          
           if (response && response.success && response.data && response.data.files) {
-            console.log('✅ Respuesta válida, procesando files...');
-            console.log('📊 Total de files en respuesta:', response.data.files.length);
-            
             // Normalizar nombres de propiedades a minúsculas para asegurar consistencia
             this.files = response.data.files.map((file: any) => ({
               ...file,
@@ -800,38 +744,16 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               version: file.version || file.Version || null,
               vin: file.vin || file.VIN || file.Vin || null
             }));
-            
-            console.log('📊 Files procesados (this.files):', this.files);
-            console.log('📊 Cantidad de files después de procesar:', this.files.length);
-            
-            // Debug: Verificar estructura de datos
-            if (this.files.length > 0) {
-              console.log('📊 Primer file (ejemplo):', this.files[0]);
-              console.log('📊 Todos los fileIds:', this.files.map(f => f.fileId || f.Id));
-              console.log('📊 Campos año, modelo, versión, VIN:', {
-                year: this.files[0].year,
-                modelo: this.files[0].modelo,
-                version: this.files[0].version,
-                vin: this.files[0].vin
-              });
-            }
           } else {
-            console.warn('⚠️ Respuesta inválida o sin files:', response);
             this.files = [];
           }
           
-          console.log('🔄 Actualizando display de files...');
           this.updateFilesDisplay();
-          console.log('📊 filteredFiles después de updateFilesDisplay:', this.filteredFiles.length);
-          console.log('📊 paginatedFiles después de updateFilesDisplay:', this.paginatedFiles.length);
-          console.log('📊 totalItems:', this.totalItems);
           
           this.filesLoading = false;
           this.cdr.markForCheck();
-          console.log('✅ Change detection marcado');
         },
         error: (error) => {
-          console.error('❌ Error cargando files:', error);
           this.files = [];
           this.filesLoading = false;
           this.cdr.markForCheck();
@@ -848,7 +770,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   // Métodos para acciones de pedidos
   cancelarPedido(file: any): void {
-    console.log('Cancelando pedido:', file.numeroPedido);
     // Aquí implementarías la lógica para cancelar el pedido
     this.snackBar.open(`Pedido ${file.numeroPedido} cancelado`, 'Cerrar', {
       duration: 3000
@@ -856,7 +777,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   excepcionPedido(file: any): void {
-    console.log('Creando excepción para pedido:', file.numeroPedido);
     // Aquí implementarías la lógica para crear una excepción
     this.snackBar.open(`Excepción creada para pedido ${file.numeroPedido}`, 'Cerrar', {
       duration: 3000
@@ -864,13 +784,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   agregarPedidoIntegracion(): void {
-    console.log('🚀 Iniciando proceso de agregar pedidos...');
-    console.log('📊 Cliente seleccionado:', this.selectedClient);
-    console.log('📊 Agencia seleccionada:', this.selectedAgency);
-    
     // Verificar que tenemos cliente y agencia seleccionados
     if (!this.selectedClient || !this.selectedClient.ndCliente) {
-      console.log('❌ No hay cliente seleccionado');
       this.snackBar.open('Debe seleccionar un cliente primero', 'Cerrar', {
         duration: 3000
       });
@@ -878,14 +793,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
     
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
-      console.log('❌ No hay agencia seleccionada');
       this.snackBar.open('Debe seleccionar una agencia primero', 'Cerrar', {
         duration: 3000
       });
       return;
     }
-    
-    console.log('✅ Validaciones pasadas, cargando pedidos desde Vanguardia...');
     
     // Llamar al API de Vanguardia para obtener pedidos
     this.loadOrdersFromVanguardia();
@@ -893,7 +805,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   // MÉTODO TEMPORAL PARA PRUEBAS
   private testOrderDialog(): void {
-    console.log('🧪 Probando diálogo con datos de prueba...');
     const testOrders = [
       {
         numeroPedido: 'TEST-001',
@@ -932,8 +843,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
 
   private loadOrdersFromVanguardia(): void {
-    console.log('🔍 Cargando pedidos desde Vanguardia...');
-    
     // Activar loading
     this.loadingOrdersFromVanguardia = true;
     this.cdr.markForCheck();
@@ -967,7 +876,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           // Desactivar loading
           this.loadingOrdersFromVanguardia = false;
           this.cdr.markForCheck();
-          console.log('🔍 Respuesta completa de Vanguardia:', response);
           
           // Verificar diferentes estructuras de respuesta posibles
           let ordersData = null;
@@ -977,24 +885,16 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             ordersData = response.data;
           } else if (response && response.status === 200 && response.data) {
             // Estructura de Vanguardia: { status: 200, message: "...", data: [...] }
-            console.log('📊 Detectada estructura de Vanguardia, data:', response.data);
-            
             // Verificar si data contiene un array de pedidos
             if (Array.isArray(response.data)) {
-              console.log('✅ Data es array directo, cantidad:', response.data.length);
               ordersData = response.data;
             } else if (response.data && Array.isArray(response.data.orders)) {
-              console.log('✅ Data contiene orders, cantidad:', response.data.orders.length);
               ordersData = response.data.orders;
             } else if (response.data && Array.isArray(response.data.data)) {
-              console.log('✅ Data contiene data, cantidad:', response.data.data.length);
-              console.log('📊 Total de registros disponibles:', response.data.total_rows);
               ordersData = response.data.data;
             } else if (response.data && Array.isArray(response.data.results)) {
-              console.log('✅ Data contiene results, cantidad:', response.data.results.length);
               ordersData = response.data.results;
             } else {
-              console.log('⚠️ Data es objeto único, convirtiendo a array');
               ordersData = [response.data];
             }
           } else if (response && Array.isArray(response)) {
@@ -1012,9 +912,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
           
           if (ordersData && Array.isArray(ordersData) && ordersData.length > 0) {
-            console.log('📁 Datos de pedidos encontrados:', ordersData);
-            console.log('📊 Cantidad total de pedidos:', ordersData.length);
-            
             // Mostrar directamente el diálogo con todos los datos
             this.showOrderSelectionDialogDirectly(ordersData);
             
@@ -1022,7 +919,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               duration: 3000
             });
           } else {
-            console.log('⚠️ No se encontraron pedidos válidos en la respuesta:', response);
             // Desactivar loading
             this.loadingOrdersFromVanguardia = false;
             this.cdr.markForCheck();
@@ -1035,8 +931,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           // Desactivar loading
           this.loadingOrdersFromVanguardia = false;
           this.cdr.markForCheck();
-          
-          console.error('❌ Error cargando pedidos desde Vanguardia:', error);
           
           let errorMessage = 'Error desconocido al cargar pedidos desde Vanguardia';
           
@@ -1066,18 +960,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private processVanguardiaOrders(ordersData: any): void {
-    console.log('🔄 Iniciando procesamiento de pedidos de Vanguardia...');
-    console.log('📊 Datos recibidos para procesar:', ordersData);
-    console.log('📊 Tipo de datos:', typeof ordersData);
-    console.log('📊 Es array?', Array.isArray(ordersData));
-    
     // Convertir los pedidos de Vanguardia al formato esperado por el sistema
     let processedOrders: any[] = [];
     
     if (Array.isArray(ordersData)) {
-      console.log('📋 Procesando array de pedidos, cantidad:', ordersData.length);
       processedOrders = ordersData.map((order, index) => {
-        console.log(`📋 Procesando pedido ${index + 1}:`, order);
         return {
           numeroPedido: order.numeroPedido || order.orderNumber || order.id || `PED-${index + 1}`,
           numeroInventario: order.numeroInventario || order.inventoryNumber || '',
@@ -1098,7 +985,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         };
       });
     } else if (ordersData && typeof ordersData === 'object') {
-      console.log('📋 Procesando objeto único:', ordersData);
       // Si es un solo pedido
       processedOrders = [{
         numeroPedido: ordersData.numeroPedido || ordersData.orderNumber || ordersData.id || 'PED-1',
@@ -1119,63 +1005,43 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         vanguardiaData: ordersData
       }];
     } else {
-      console.error('❌ Datos de pedidos no válidos:', ordersData);
       this.snackBar.open('Error: Formato de datos de pedidos no válido', 'Cerrar', {
         duration: 3000
       });
       return;
     }
     
-    console.log('✅ Pedidos procesados exitosamente:', processedOrders);
-    console.log('📊 Cantidad de pedidos procesados:', processedOrders.length);
-    
     // Cargar pedidos existentes en file para comparar
     this.loadClientFilesForComparison(processedOrders);
   }
 
   private loadClientFilesForComparison(vanguardiaOrders: any[]): void {
-    console.log('🔄 Iniciando comparación con pedidos existentes...');
-    console.log('📊 Pedidos de Vanguardia recibidos:', vanguardiaOrders);
-    console.log('📊 Cliente seleccionado:', this.selectedClient);
-    
     if (!this.selectedClient || !this.selectedClient.ndCliente) {
-      console.log('⚠️ No hay cliente seleccionado, mostrando todos los pedidos de Vanguardia');
       // Si no hay cliente seleccionado, mostrar todos los pedidos de Vanguardia
       this.showOrderSelectionDialog(vanguardiaOrders);
       return;
     }
 
-    console.log('🔍 Cliente seleccionado:', this.selectedClient.ndCliente);
     let params = new HttpParams();
     params = params.set('agencyId', this.selectedAgency.IdAgency);
     params = params.set('ndCliente', this.selectedClient.ndCliente);
     params = params.set('statusId', '1'); // ID para Integración
 
-    console.log('🌐 Consultando API de files existentes...');
     this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📁 Respuesta de files existentes:', response);
-          
           let existingFiles: any[] = [];
           if (response && response.success && response.data && response.data.files) {
             existingFiles = response.data.files;
           }
           
-          console.log('📊 Files existentes encontrados:', existingFiles);
-          console.log('📊 Cantidad de files existentes:', existingFiles.length);
-          
           // Filtrar pedidos de Vanguardia que no existen en la tabla de file
           const newOrders = this.filterNewOrders(vanguardiaOrders, existingFiles);
-          console.log('📊 Pedidos nuevos después del filtrado:', newOrders);
-          console.log('📊 Cantidad de pedidos nuevos:', newOrders.length);
           
           if (newOrders.length > 0) {
-            console.log('✅ Hay pedidos nuevos, mostrando diálogo...');
             this.showOrderSelectionDialog(newOrders);
           } else {
-            console.log('ℹ️ No hay pedidos nuevos, todos ya existen');
             this.snackBar.open('Todos los pedidos de Vanguardia ya existen en el sistema', 'Cerrar', {
               duration: 3000
             });
@@ -1184,8 +1050,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('❌ Error cargando files para comparación:', error);
-          console.log('⚠️ Error en comparación, mostrando todos los pedidos de Vanguardia');
           // Si hay error, mostrar todos los pedidos de Vanguardia
           this.showOrderSelectionDialog(vanguardiaOrders);
         }
@@ -1206,28 +1070,18 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private showOrderSelectionDialogDirectly(apiOrders: any[]): void {
-    console.log('🎯 Mostrando diálogo directamente con datos del API...');
-    console.log('📊 Datos originales del API:', apiOrders);
-    console.log('📊 Cantidad de pedidos:', apiOrders?.length || 0);
-    console.log('📊 Primer pedido (ejemplo):', apiOrders?.[0]);
-    
     if (!apiOrders || apiOrders.length === 0) {
-      console.error('❌ No hay pedidos del API para mostrar');
       this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
         duration: 3000
       });
       return;
     }
-    
-    console.log('✅ Datos válidos, verificando pedidos existentes antes de mostrar diálogo...');
 
     // Verificar qué pedidos ya existen en la base de datos
     this.checkExistingOrders(apiOrders);
   }
 
   private checkExistingOrders(apiOrders: any[]): void {
-    console.log('🔍 Verificando pedidos existentes en la base de datos...');
-    
     const requestData = {
       orders: apiOrders,
       agencyId: this.selectedAgencyId
@@ -1237,15 +1091,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Respuesta de verificación de pedidos:', response);
-          
           if (response.success && response.data) {
             const { existingOrders, newOrders, existingCount, newCount } = response.data;
             
-            console.log(`📊 Resultado: ${existingCount} pedidos existentes, ${newCount} pedidos nuevos`);
-            
             if (existingCount > 0) {
-              console.log('📋 Pedidos existentes:', existingOrders);
               this.snackBar.open(
                 `${existingCount} pedidos ya existen en el sistema. Se mostrarán solo los ${newCount} pedidos nuevos.`, 
                 'Cerrar', 
@@ -1254,7 +1103,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             }
             
             if (newOrders.length === 0) {
-              console.log('ℹ️ No hay pedidos nuevos para mostrar');
               // Desactivar loading
               this.loadingOrdersFromVanguardia = false;
               this.cdr.markForCheck();
@@ -1267,7 +1115,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             // Mostrar solo los pedidos nuevos en el diálogo
             this.openOrderSelectionDialog(newOrders);
           } else {
-            console.error('❌ Error en la respuesta de verificación:', response);
             // Desactivar loading
             this.loadingOrdersFromVanguardia = false;
             this.cdr.markForCheck();
@@ -1280,7 +1127,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           // Desactivar loading
           this.loadingOrdersFromVanguardia = false;
           this.cdr.markForCheck();
-          console.error('❌ Error verificando pedidos existentes:', error);
           this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
             duration: 3000
           });
@@ -1289,8 +1135,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private openOrderSelectionDialog(orders: any[]): void {
-    console.log('🚀 Abriendo diálogo con pedidos filtrados:', orders.length, 'pedidos nuevos');
-    
     // Desactivar loading cuando se abre el diálogo
     this.loadingOrdersFromVanguardia = false;
     this.cdr.markForCheck();
@@ -1304,12 +1148,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
       });
 
-      console.log('✅ Diálogo abierto exitosamente');
-
       dialogRef.afterClosed().subscribe(result => {
-        console.log('🔚 Diálogo cerrado, resultado:', result);
         if (result && result.length > 0) {
-          console.log('✅ Pedidos seleccionados:', result);
           // Procesar los pedidos seleccionados antes de agregarlos
           const processedOrders = this.processSelectedOrders(result);
           this.addSelectedOrdersToTable(processedOrders);
@@ -1317,7 +1157,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             duration: 3000
           });
         } else {
-          console.log('❌ Diálogo cancelado o sin selección');
           // Si se canceló el diálogo, cargar pedidos existentes
           this.loadClientFiles();
         }
@@ -1326,7 +1165,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       // Desactivar loading en caso de error
       this.loadingOrdersFromVanguardia = false;
       this.cdr.markForCheck();
-      console.error('❌ Error abriendo diálogo:', error);
       this.snackBar.open('Error al abrir el diálogo de selección', 'Cerrar', {
         duration: 3000
       });
@@ -1334,15 +1172,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private showOrderSelectionDialog(orders: any[]): void {
-    console.log('🎯 Intentando mostrar diálogo de selección de pedidos...');
-    console.log('📊 Pedidos para mostrar en diálogo:', orders);
-    console.log('📊 Cantidad de pedidos:', orders?.length || 0);
-    
     if (!orders || orders.length === 0) {
       // Desactivar loading
       this.loadingOrdersFromVanguardia = false;
       this.cdr.markForCheck();
-      console.error('❌ No hay pedidos para mostrar en el diálogo');
       this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
         duration: 3000
       });
@@ -1354,7 +1187,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     try {
-      console.log('🚀 Abriendo diálogo de selección...');
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
         width: 'auto',
         height: 'auto',
@@ -1364,14 +1196,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
       });
 
-      console.log('✅ Diálogo abierto exitosamente');
-
       dialogRef.afterClosed().subscribe(result => {
-        console.log('🔚 Diálogo cerrado, resultado:', result);
-        
         if (result && result.success) {
           // Expediente creado exitosamente
-          console.log('✅ Expediente creado exitosamente:', result);
           this.snackBar.open(`Expediente creado exitosamente con ${result.documentsCreated} documentos`, 'Cerrar', {
             duration: 5000
           });
@@ -1381,14 +1208,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           
         } else if (result && result.success === false) {
           // Error al crear el expediente
-          console.error('❌ Error al crear expediente:', result.message);
           this.snackBar.open(`Error: ${result.message}`, 'Cerrar', {
             duration: 5000
           });
           
         } else if (result && result.length > 0) {
           // Formato anterior (pedidos seleccionados directamente)
-          console.log('✅ Pedidos seleccionados:', result);
           this.addSelectedOrdersToTable(result);
           this.snackBar.open(`${result.length} pedidos agregados exitosamente`, 'Cerrar', {
             duration: 3000
@@ -1396,12 +1221,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           
         } else {
           // Diálogo cancelado
-          console.log('❌ Diálogo cancelado o sin selección');
           this.loadClientFiles();
         }
       });
     } catch (error) {
-      console.error('❌ Error abriendo diálogo:', error);
       this.snackBar.open('Error al abrir el diálogo de selección', 'Cerrar', {
         duration: 3000
       });
@@ -1409,11 +1232,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private processSelectedOrders(selectedOrders: any[]): any[] {
-    console.log('🔄 Procesando pedidos seleccionados...');
-    console.log('📊 Pedidos seleccionados:', selectedOrders);
-    
     return selectedOrders.map((order, index) => {
-      console.log(`📋 Procesando pedido seleccionado ${index + 1}:`, order);
       return {
         numeroPedido: order.numeroPedido || order.orderNumber || order.id || `PED-${index + 1}`,
         numeroInventario: order.numeroInventario || order.inventoryNumber || '',
@@ -1436,9 +1255,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private addSelectedOrdersToTable(selectedOrders: any[]): void {
-    console.log('📁 Agregando pedidos seleccionados a la tabla...');
-    console.log('📊 Pedidos a agregar:', selectedOrders);
-    
     // Recargar los pedidos desde el servidor para obtener la lista actualizada sin duplicados
     this.loadClientFiles();
   }
@@ -1461,8 +1277,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📄 Documentos requeridos:', response);
-          
           if (response && response.success && response.data && response.data.documents) {
             this.requiredDocuments = response.data.documents;
           } else {
@@ -1473,7 +1287,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('❌ Error cargando documentos:', error);
           this.requiredDocuments = [];
           this.documentsLoading = false;
           this.cdr.markForCheck();
@@ -1639,7 +1452,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     // Validar que fileDocumentId existe (puede ser null si el documento nunca se ha subido)
     if (!document.fileDocumentId) {
       const errorMsg = 'Error: El documento no tiene un ID de archivo válido. Por favor, recarga la página e intenta nuevamente.';
-      console.error('❌', errorMsg, document);
       if (showIndividualMessage) {
         this.snackBar.open(errorMsg, 'Cerrar', {
           duration: 8000
@@ -1654,23 +1466,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
     formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (IdDocumentByFile)
 
-    console.log('📤 Subiendo documento directamente a Vanguardia API...');
-    console.log('📊 Datos del upload:', {
-      fileName: this.selectedFiles[document.documentId]?.name,
-      fileSize: this.selectedFiles[document.documentId]?.size,
-      idSingleFile: this.selectedFile.fileId,
-      idDocumentFile: document.fileDocumentId,
-      documentId: document.documentId,
-      documentName: document.documentName
-    });
-
     // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
     return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
       .pipe(
         takeUntil(this.destroy$),
         tap((response) => {
-          console.log('📤 Documento subido exitosamente a Vanguardia:', response);
-          
           if (showIndividualMessage) {
             this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
               duration: 3000
@@ -1685,8 +1485,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.selectedDocumentsForBatch.delete(document.documentId);
         }),
         catchError((error) => {
-          console.error('❌ Error subiendo documento a Vanguardia:', error);
-          
           let errorMessage = 'Error desconocido';
           
           if (error.status === 0) {
@@ -1700,7 +1498,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
                 // Recargar documentos para sincronizar después de mostrar el mensaje
                 setTimeout(() => {
                   if (this.selectedFile) {
-                    console.log('🔄 Recargando documentos para sincronizar con el servidor...');
                     this.loadRequiredDocuments(this.selectedFile.fileId);
                   }
                 }, 2000);
@@ -1749,15 +1546,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
 
   viewDocument(document: any): void {
-    console.log('🖱️ CLICK EN BOTÓN VER - viewDocument ejecutándose');
-    console.log('🔍 viewDocument llamado con:', document);
-    
     if (document.documentContainer) {
-      console.log('📁 Usando documentContainer:', document.documentContainer);
       // Usar documentContainer para obtener URL privada de Backblaze
       this.getBackblazePrivateUrl(document.documentContainer, document);
     } else {
-      console.log('❌ No hay documentContainer disponible');
       this.snackBar.open('No se puede visualizar el documento', 'Cerrar', {
         duration: 3000
       });
@@ -1765,8 +1557,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private getBackblazePrivateUrl(fileName: string, document: any): void {
-    console.log('🔍 getBackblazePrivateUrl llamado con:', { fileName, document });
-    
     const duration = 3600; // 1 hora por defecto
     const params = new URLSearchParams({
       file: fileName,
@@ -1774,34 +1564,26 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     });
 
     const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
-    console.log('🔗 URL completa:', url);
 
     // El proxy agregará X-Provider-Token automáticamente
     this.http.get<any>(url)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('🔗 URL privada obtenida:', response);
           if (response.data && response.data.url) {
-            console.log('🌐 Abriendo URL en nueva pestaña:', response.data.url);
             const newWindow = window.open(response.data.url, '_blank');
-            if (newWindow) {
-              console.log('✅ Nueva pestaña abierta correctamente');
-            } else {
-              console.error('❌ No se pudo abrir nueva pestaña (posible bloqueador de pop-ups)');
+            if (!newWindow) {
               this.snackBar.open('No se pudo abrir el documento. Verifica que no tengas bloqueado el navegador de pop-ups.', 'Cerrar', {
                 duration: 5000
               });
             }
           } else {
-            console.error('❌ Respuesta sin URL válida:', response);
             this.snackBar.open('No se pudo obtener la URL del documento', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error obteniendo URL privada de Vanguardia:', error);
           this.snackBar.open('Error al obtener URL del documento', 'Cerrar', {
             duration: 3000
           });
@@ -1874,26 +1656,16 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private filterAndPaginateFiles(): void {
-    console.log('🔍 filterAndPaginateFiles llamado');
-    console.log('📊 this.files.length:', this.files.length);
-    
     // Eliminar duplicados basándose en fileId (ID único) antes de filtrar
     // No usar numeroPedido porque puede haber múltiples registros con el mismo número de pedido pero diferentes fileId
     const uniqueFiles = this.files.filter((file, index, self) => {
       const fileId = file.fileId || file.Id;
       const foundIndex = self.findIndex(f => (f.fileId || f.Id) === fileId);
-      if (index !== foundIndex) {
-        console.warn(`⚠️ Duplicado encontrado: fileId ${fileId} en índices ${index} y ${foundIndex}`);
-      }
       return index === foundIndex;
     });
 
-    console.log('📊 uniqueFiles después de eliminar duplicados:', uniqueFiles.length);
-    console.log('📊 uniqueFiles fileIds:', uniqueFiles.map(f => f.fileId || f.Id));
-
     // Filtrar archivos por término de búsqueda
     if (this.orderSearchTerm && this.orderSearchTerm.trim()) {
-      console.log('🔍 Filtrando por término de búsqueda:', this.orderSearchTerm);
       this.filteredFiles = uniqueFiles.filter(file => 
         file.numeroPedido?.toString().toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
         file.numeroInventario?.toString().toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
@@ -1905,22 +1677,17 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         file.vin?.toLowerCase().includes(this.orderSearchTerm.toLowerCase()) ||
         file.agencia?.toLowerCase().includes(this.orderSearchTerm.toLowerCase())
       );
-      console.log('📊 filteredFiles después de búsqueda:', this.filteredFiles.length);
     } else {
       this.filteredFiles = [...uniqueFiles];
-      console.log('📊 filteredFiles (sin filtro de búsqueda):', this.filteredFiles.length);
     }
 
     // Actualizar total de elementos
     this.totalItems = this.filteredFiles.length;
-    console.log('📊 totalItems:', this.totalItems);
 
     // Calcular elementos para la página actual
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     this.paginatedFiles = this.filteredFiles.slice(startIndex, endIndex);
-    console.log('📊 paginatedFiles (página', this.currentPage, ', tamaño', this.pageSize, '):', this.paginatedFiles.length);
-    console.log('📊 paginatedFiles fileIds:', this.paginatedFiles.map(f => f.fileId || f.Id));
   }
 
   private updateFilesDisplay(): void {
@@ -1928,11 +1695,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   eliminarPedido(file: any): void {
-    console.log('🗑️ Eliminando pedido:', file);
-    console.log('🔍 File ID encontrado:', file.fileId);
-    
     if (!file.fileId) {
-      console.error('❌ No se encontró fileId en el objeto file');
       this.snackBar.open('Error: No se pudo identificar el ID del pedido', 'Cerrar', {
         duration: 3000
       });
@@ -1948,16 +1711,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private deleteFileFromServer(fileId: string): void {
-    console.log('🔄 Eliminando file del servidor:', fileId);
-    
     const requestData = { fileId: fileId };
 
     this.http.post<any>(`${environment.apiBaseUrl}/api/files/delete`, requestData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ File eliminado exitosamente:', response);
-          
           if (response.success) {
             // Eliminar inmediatamente del array local para respuesta rápida
             const initialLength = this.files.length;
@@ -2006,8 +1765,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('❌ Error eliminando file:', error);
-          
           let errorMessage = 'Error desconocido al eliminar el pedido';
           
           if (error.status === 403) {
