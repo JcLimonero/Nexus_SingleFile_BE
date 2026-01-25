@@ -47,7 +47,13 @@ export const AuthInterceptor: HttpInterceptorFn = (
           // Solo manejar 401 Unauthorized como error de autenticación
           if (error.status === 401 && !isAuthRoute) {
             // Token expirado o inválido, intentar renovar
-            return handleTokenRefresh(request, next, authService, router);
+            return handleTokenRefresh(request, next, authService, router).pipe(
+              catchError((refreshError) => {
+                // Si la renovación falla, redirigir al login inmediatamente
+                redirectToLogin(router, authService);
+                return throwError(() => refreshError);
+              })
+            );
           }
           // Para otros errores (500, timeout, etc.), simplemente propagar el error
           // No redirigir al login automáticamente
@@ -67,25 +73,8 @@ export const AuthInterceptor: HttpInterceptorFn = (
           // Solo redirigir al login si el backend devuelve 401 Unauthorized
           // NO redirigir en errores de red, timeout, 500, etc.
           if (error.status === 401 && !isAuthRoute) {
-            // Verificar si realmente no estamos autenticados (evitar loops)
-            const currentToken = authService.getToken();
-            const currentlyAuthenticated = authService.isAuthenticated();
-            
-            if (!currentToken && !currentlyAuthenticated) {
-              // Solo hacer logout si realmente no hay autenticación
-              // Usar setTimeout para evitar conflictos con navegación actual
-              setTimeout(() => {
-                // Limpiar datos localmente sin hacer logout al backend (evitar llamada HTTP)
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                localStorage.removeItem('current_user');
-                localStorage.removeItem('token_expiration');
-                
-                if (router.url !== '/login') {
-                  router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-                }
-              }, 100);
-            }
+            // Redirigir al login cuando se recibe 401 (sesión expirada)
+            redirectToLogin(router, authService);
           }
           // Propagar el error para que el componente lo maneje
           return throwError(() => error);
@@ -102,14 +91,56 @@ export const AuthInterceptor: HttpInterceptorFn = (
       url: absoluteUrl
     });
 
-    // Procesar la request con la URL absoluta
-    return next(absoluteRequest);
+    // Procesar la request con la URL absoluta y manejar errores 401
+    return next(absoluteRequest).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Si es un error 401, redirigir al login
+        if (error.status === 401) {
+          redirectToLogin(router, authService);
+        }
+        return throwError(() => error);
+      })
+    );
   } else if (request.url.startsWith('http')) {
-    return next(request);
+    // Manejar errores 401 también en llamadas HTTP externas (como Vanguardia)
+    return next(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Si es un error 401 de cualquier API, redirigir al login
+        // Solo si es una llamada que requiere autenticación
+        if (error.status === 401 && !request.url.includes('/auth/')) {
+          redirectToLogin(router, authService);
+        }
+        return throwError(() => error);
+      })
+    );
   } else {
     return next(request);
   }
 };
+
+/**
+ * Función auxiliar para redirigir al login cuando la sesión expira
+ */
+function redirectToLogin(router: Router, authService: AuthService): void {
+  // Evitar redirecciones múltiples
+  if (router.url === '/login') {
+    return;
+  }
+
+  // Limpiar datos de autenticación localmente
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('current_user');
+  localStorage.removeItem('token_expiration');
+
+  // Redirigir al login con la URL actual como returnUrl
+  setTimeout(() => {
+    router.navigate(['/login'], { 
+      queryParams: { returnUrl: router.url },
+      replaceUrl: true 
+    });
+  }, 100);
+}
 
 /**
  * Manejar renovación automática del token
@@ -158,15 +189,7 @@ function handleTokenRefresh(
       }
 
       // Si no se pudo renovar el token, redirigir al login
-      authService.logout().subscribe({
-        next: () => {
-          router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-        },
-        error: () => {
-          // Si falla el logout, redirigir de todas formas
-          router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-        }
-      });
+      redirectToLogin(router, authService);
 
       return throwError(() => new Error('Token refresh failed'));
     })
