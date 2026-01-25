@@ -390,16 +390,21 @@
         </div>
 
         <!-- Botón para cargar todos los documentos seleccionados - Posicionado a la derecha -->
-        <div *ngIf="!documentsLoading && hasDocumentsSelectedForBatch()" class="flex justify-end mb-2">
+        <div *ngIf="!documentsLoading && hasDocumentsSelectedForBatch()" class="flex flex-col items-end mb-2">
           <button 
             mat-raised-button 
             color="primary"
             (click)="uploadMultipleDocuments()"
-            [disabled]="uploadingDocuments.size > 0"
+            [disabled]="uploadingDocuments.size > 0 || hasFilesExceedingSizeInBatch()"
             class="text-xs">
             <mat-icon class="mr-1" style="font-size: 14px;">cloud_upload</mat-icon>
             Cargar {{ getSelectedDocumentsCount() }} documento(s) seleccionado(s)
           </button>
+          <!-- Mensaje de error de tamaño para carga masiva -->
+          <span *ngIf="hasFilesExceedingSizeInBatch()" 
+                class="text-xs text-red-600 mt-1">
+            {{ getFilesExceedingSizeCount() }} archivo(s) exceden el tamaño máximo de {{ maxFileSizeMB }}MB
+          </span>
         </div>
 
         <!-- Lista de documentos -->
@@ -414,7 +419,7 @@
               <mat-checkbox
                 [checked]="isDocumentSelectedForBatch(document.documentId)"
                 (change)="toggleDocumentForBatch(document.documentId)"
-                [disabled]="!selectedFiles[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
+                [disabled]="!selectedFiles[document.documentId] || filesExceedingSize[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
                 class="mr-1">
               </mat-checkbox>
               
@@ -459,15 +464,22 @@
               </div>
 
               <!-- Botón Cargar -->
-              <button 
-                mat-raised-button 
-                color="primary"
-                (click)="uploadDocument(document)"
-                [disabled]="!selectedFiles[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
-                class="text-xs">
-                <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
-                {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
-              </button>
+              <div class="flex flex-col">
+                <button 
+                  mat-raised-button 
+                  color="primary"
+                  (click)="uploadDocument(document)"
+                  [disabled]="!selectedFiles[document.documentId] || filesExceedingSize[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
+                  class="text-xs">
+                  <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
+                  {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
+                </button>
+                <!-- Mensaje de error de tamaño -->
+                <span *ngIf="filesExceedingSize[document.documentId]" 
+                      class="text-xs text-red-600 mt-1">
+                  No se permiten archivos mayores a {{ maxFileSizeMB }}MB
+                </span>
+              </div>
 
               <!-- Botón Ver -->
               <button 

@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:8080',  // Puerto correcto del backend
+  maxFileSizeMB: 10,  // Tamaño máximo de archivo en MB (configurable)
   vanguardia: {
     apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',  // Llamada directa a Vanguardia
     ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorders',  // Llamada directa a Vanguardia

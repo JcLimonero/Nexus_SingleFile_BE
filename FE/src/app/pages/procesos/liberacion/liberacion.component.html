@@ -320,16 +320,21 @@
               </ng-template>
               <div class="space-y-2 pt-2">
                 <!-- Botón para cargar todos los documentos seleccionados - Posicionado a la derecha -->
-                <div *ngIf="hasDocumentsSelectedForBatch()" class="flex justify-end mb-2">
+                <div *ngIf="hasDocumentsSelectedForBatch()" class="flex flex-col items-end mb-2">
                   <button 
                     mat-raised-button 
                     color="primary"
                     (click)="uploadMultipleDocuments()"
-                    [disabled]="uploadingDocuments.size > 0"
+                    [disabled]="uploadingDocuments.size > 0 || hasFilesExceedingSizeInBatch()"
                     class="text-xs">
                     <mat-icon class="mr-1" style="font-size: 14px;">cloud_upload</mat-icon>
                     Cargar {{ getSelectedDocumentsCount() }} documento(s) seleccionado(s)
                   </button>
+                  <!-- Mensaje de error de tamaño para carga masiva -->
+                  <span *ngIf="hasFilesExceedingSizeInBatch()" 
+                        class="text-xs text-red-600 mt-1">
+                    {{ getFilesExceedingSizeCount() }} archivo(s) exceden el tamaño máximo de {{ maxFileSizeMB }}MB
+                  </span>
                 </div>
 
                 <div *ngFor="let document of tab.documents; trackBy: trackByDocumentId" 
@@ -341,7 +346,7 @@
                     <mat-checkbox
                       [checked]="isDocumentSelectedForBatch(document.fileDocumentId?.toString() || '')"
                       (change)="toggleDocumentForBatch(document.fileDocumentId?.toString() || '')"
-                      [disabled]="!document.fileDocumentId || !selectedFiles[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString() || '')"
+                      [disabled]="!document.fileDocumentId || !selectedFiles[document.fileDocumentId?.toString()] || filesExceedingSize[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString() || '')"
                       style="margin-right: 8px;">
                     </mat-checkbox>
                     
@@ -380,15 +385,22 @@
                       </button>
                     </div>
 
-                    <button 
-                      mat-raised-button 
-                      color="primary"
-                      (click)="uploadDocument(document)"
-                      [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
-                      class="text-xs">
-                      <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
-                      {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
-                    </button>
+                    <div class="flex flex-col">
+                      <button 
+                        mat-raised-button 
+                        color="primary"
+                        (click)="uploadDocument(document)"
+                        [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || filesExceedingSize[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
+                        class="text-xs">
+                        <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
+                        {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
+                      </button>
+                      <!-- Mensaje de error de tamaño -->
+                      <span *ngIf="filesExceedingSize[document.fileDocumentId?.toString()]" 
+                            class="text-xs text-red-600 mt-1">
+                        No se permiten archivos mayores a {{ maxFileSizeMB }}MB
+                      </span>
+                    </div>
 
                     <button 
                       mat-raised-button 

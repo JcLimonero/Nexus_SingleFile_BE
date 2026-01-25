@@ -102,8 +102,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   requiredDocuments: any[] = [];
   documentsLoading = false;
   selectedFiles: { [key: string]: File } = {};
+  filesExceedingSize: { [key: string]: boolean } = {}; // Rastrear archivos que exceden el tamaño máximo
   selectedDocumentsForBatch: Set<string> = new Set(); // Documentos seleccionados para carga en lote
   uploadingDocuments: Set<string> = new Set();
+  maxFileSizeMB = environment.maxFileSizeMB || 100; // Tamaño máximo configurable
   addingLiquidationDocument = false;
   
   // Process properties - Fixed process for liquidation
@@ -403,6 +405,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
     this.selectedDocumentsForBatch.clear();
   }
 
@@ -423,6 +426,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     // Limpiar documentos
     this.requiredDocuments = [];
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
     this.documentsLoading = false;
     
     // Limpiar estado de carga
@@ -445,6 +449,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
     this.selectedDocumentsForBatch.clear();
     
     // Limpiar búsqueda y paginación de pedidos
@@ -581,6 +586,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
     // Limpiar búsqueda y paginación
     this.orderSearchTerm = '';
     this.currentPage = 0;
@@ -741,16 +747,39 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   }
 
   onFileSelected(event: any, documentFileId: string | number): void {
-    const file = event.target.files[0];
-    if (file) {
-      const key = documentFileId.toString();
-      this.selectedFiles[key] = file;
-      // Automáticamente marcar el documento para carga en lote si tiene archivo
-      if (file) {
-        this.selectedDocumentsForBatch.add(key);
-        this.cdr.markForCheck();
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const maxSizeBytes = (environment.maxFileSizeMB || 100) * 1024 * 1024; // Convertir MB a bytes
+      const docId = documentFileId.toString();
+      
+      // Validar tamaño del archivo
+      if (file.size > maxSizeBytes) {
+        // Archivo excede el tamaño máximo
+        this.filesExceedingSize[docId] = true;
+        this.selectedFiles[docId] = file; // Guardar referencia para mostrar el nombre
+        // Remover de selección en lote si estaba
+        this.selectedDocumentsForBatch.delete(docId);
+        
+        // Mostrar mensaje de error
+        this.snackBar.open(
+          `El archivo excede el tamaño máximo permitido de ${environment.maxFileSizeMB}MB`,
+          'Cerrar',
+          { duration: 5000 }
+        );
+      } else {
+        // Archivo válido
+        this.filesExceedingSize[docId] = false;
+        this.selectedFiles[docId] = file;
+        // Automáticamente marcar el documento para carga en lote si tiene archivo
+        this.selectedDocumentsForBatch.add(docId);
       }
+      
+      // Forzar detección de cambios
+      this.cdr.markForCheck();
+      return;
     }
+    
   }
 
   /**
@@ -762,9 +791,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     if (this.selectedDocumentsForBatch.has(documentId)) {
       this.selectedDocumentsForBatch.delete(documentId);
     } else {
-      // Solo permitir seleccionar si tiene archivo seleccionado
-      if (this.selectedFiles[documentId]) {
+      // Solo permitir seleccionar si tiene archivo seleccionado y no excede el tamaño
+      if (this.selectedFiles[documentId] && !this.filesExceedingSize[documentId]) {
         this.selectedDocumentsForBatch.add(documentId);
+      } else if (this.filesExceedingSize[documentId]) {
+        this.snackBar.open(`El archivo excede el tamaño máximo de ${this.maxFileSizeMB}MB`, 'Cerrar', {
+          duration: 3000
+        });
       } else {
         this.snackBar.open('Debe seleccionar un archivo primero', 'Cerrar', {
           duration: 2000
@@ -802,6 +835,24 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   isDocumentUploading(documentId: string | null | undefined): boolean {
     if (!documentId) return false;
     return this.uploadingDocuments.has(documentId);
+  }
+
+  /**
+   * Verificar si hay archivos que exceden el tamaño en la selección para carga masiva
+   */
+  hasFilesExceedingSizeInBatch(): boolean {
+    return Array.from(this.selectedDocumentsForBatch).some(docId => 
+      this.filesExceedingSize[docId]
+    );
+  }
+
+  /**
+   * Obtener cantidad de archivos que exceden el tamaño en la selección para carga masiva
+   */
+  getFilesExceedingSizeCount(): number {
+    return Array.from(this.selectedDocumentsForBatch).filter(docId => 
+      this.filesExceedingSize[docId]
+    ).length;
   }
 
   /**
@@ -852,9 +903,26 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       return docKey &&
         this.selectedDocumentsForBatch.has(docKey) && 
         this.selectedFiles[docKey] &&
+        !this.filesExceedingSize[docKey] && // Excluir archivos que exceden el tamaño
         doc.idCurrentStatus !== '3' && 
         doc.idCurrentStatus !== '4';
     });
+    
+    // Verificar si hay archivos que exceden el tamaño
+    const filesExceedingCount = this.requiredDocuments.filter(doc => {
+      const docKey = doc.fileDocumentId?.toString();
+      return docKey &&
+        this.selectedDocumentsForBatch.has(docKey) && 
+        this.filesExceedingSize[docKey];
+    }).length;
+    
+    if (filesExceedingCount > 0) {
+      this.snackBar.open(
+        `${filesExceedingCount} archivo(s) exceden el tamaño máximo de ${environment.maxFileSizeMB}MB y no se pueden cargar`,
+        'Cerrar',
+        { duration: 5000 }
+      );
+    }
 
     if (documentsToUpload.length === 0) {
       this.snackBar.open('No hay documentos válidos para cargar', 'Cerrar', {
@@ -1001,6 +1069,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           this.loadRequiredDocuments(this.selectedFile.fileId);
           // Limpiar archivo seleccionado
           delete this.selectedFiles[documentKey];
+          delete this.filesExceedingSize[documentKey];
           // Remover de selección en lote si estaba
           this.selectedDocumentsForBatch.delete(documentKey);
           this.cdr.markForCheck();
