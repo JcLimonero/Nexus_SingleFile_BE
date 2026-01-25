@@ -173,4 +173,56 @@ class Documents extends BaseController
             ])->setStatusCode(500);
         }
     }
+
+    /**
+     * GET /api/documents/get-file-name
+     * Obtener el nombre del archivo desde la vista view_document_name
+     */
+    public function getFileName()
+    {
+        try {
+            $idDocumentByFile = $this->request->getGet('idDocumentByFile');
+            $idFile = $this->request->getGet('idFile');
+
+            if (!$idDocumentByFile || !$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Los parámetros idDocumentByFile e idFile son requeridos',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            // Consultar la vista view_document_name
+            $query = $this->db->query(
+                "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",
+                [$idDocumentByFile, $idFile]
+            );
+
+            $result = $query->getRow();
+
+            if ($result && !empty($result->file_name_original)) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Nombre de archivo obtenido exitosamente',
+                    'data' => [
+                        'file_name_original' => $result->file_name_original
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró el registro en la vista view_document_name',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+        } catch (\Exception $e) {
+            error_log("Error en Documents::getFileName: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
 }

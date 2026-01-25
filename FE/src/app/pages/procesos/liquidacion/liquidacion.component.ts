@@ -15,8 +15,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { Subject, takeUntil, Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Subject, takeUntil, Observable, throwError, of } from 'rxjs';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -940,14 +940,53 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     let file = this.selectedFiles[documentKey];
     file = this.sanitizeFileName(file);
 
-    // Preparar datos para Backblaze según documentación API
-    const formData = new FormData();
-    formData.append('file', file); // File: Archivo a subir (con nombre sanitizado)
-    formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
-    formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
+    // Obtener el nombre del archivo desde la vista view_document_name
+    const params = new HttpParams()
+      .set('idDocumentByFile', document.fileDocumentId.toString())
+      .set('idFile', this.selectedFile.fileId.toString());
 
-    // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
-    return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
+    // Primero consultar el nombre del archivo desde la vista, luego renombrar y subir
+    return this.http.get<any>(`${environment.apiBaseUrl}/api/documents/get-file-name`, { params })
+      .pipe(
+        catchError((error) => {
+          // Si falla la consulta, usar el nombre del documento requerido (documentName)
+          console.warn('No se pudo obtener el nombre desde la vista, usando nombre del documento requerido:', error);
+          return of({ success: false, useDocumentName: true }); // Retornar un objeto para que continue el flujo
+        }),
+        switchMap((response) => {
+          // Renombrar el archivo si se obtuvo el nombre de la vista o usar documentName como fallback
+          let newFileName: string | null = null;
+          
+          if (response.success && response.data?.file_name_original) {
+            // Usar el nombre de la vista
+            const fileNameFromView = response.data.file_name_original;
+            const originalExtension = file.name.split('.').pop();
+            const fileNameBase = fileNameFromView.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
+            newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
+            console.log('Archivo renombrado desde vista:', newFileName);
+          } else if (response.useDocumentName && document.documentName) {
+            // Usar el nombre del documento requerido como fallback
+            const originalExtension = file.name.split('.').pop();
+            const fileNameBase = document.documentName.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
+            newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
+            console.log('Archivo renombrado usando documentName:', newFileName);
+          }
+
+          // Si se obtuvo un nuevo nombre, crear un nuevo File
+          if (newFileName) {
+            file = new File([file], newFileName, { type: file.type });
+          }
+
+          // Preparar datos para Backblaze según documentación API
+          const formData = new FormData();
+          formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
+          formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
+          formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
+
+          // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
+          return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData);
+        })
+      )
       .pipe(
         takeUntil(this.destroy$),
         tap((response) => {

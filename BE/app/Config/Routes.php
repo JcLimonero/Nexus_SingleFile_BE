@@ -323,6 +323,7 @@ $routes->group('files', function($routes) {
 // Rutas de documentos
 $routes->group('documents', function($routes) {
     $routes->get('required', 'Documents::getRequiredDocuments');
+    $routes->get('get-file-name', 'Documents::getFileName');
     $routes->post('upload', 'Documents::uploadDocument');
 });
     
