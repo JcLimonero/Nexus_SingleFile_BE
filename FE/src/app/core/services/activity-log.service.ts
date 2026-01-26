@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { ApiBaseService } from './api-base.service';
+import { environment } from '../../../environments/environment';
 
 export interface ActivityLog {
   id?: number;
@@ -52,16 +53,28 @@ export class ActivityLogService {
 
   /**
    * Crear un nuevo log de actividad
+   * Solo se ejecuta si active_debug está habilitado
    */
   createLog(log: ActivityLog): Observable<any> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({ success: false, message: 'Debug mode disabled' });
+    }
+
     const url = this.apiBaseService.buildApiUrl('user-activity-logs');
     return this.http.post(url, log);
   }
 
   /**
    * Obtener todos los logs con filtros
+   * Solo se ejecuta si active_debug está habilitado
    */
   getLogs(filters: ActivityLogFilters = {}): Observable<ActivityLogResponse> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({ success: true, data: [], pagination: { total: 0, limit: 0, offset: 0, has_more: false } } as ActivityLogResponse);
+    }
+
     const url = this.apiBaseService.buildApiUrl('user-activity-logs');
     const params = this.buildQueryParams(filters);
     return this.http.get<ActivityLogResponse>(`${url}?${params}`);
@@ -69,8 +82,14 @@ export class ActivityLogService {
 
   /**
    * Obtener logs de un usuario específico
+   * Solo se ejecuta si active_debug está habilitado
    */
   getUserLogs(userId: string, limit: number = 100, offset: number = 0): Observable<ActivityLogResponse> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({ success: true, data: [], pagination: { total: 0, limit: 0, offset: 0, has_more: false } } as ActivityLogResponse);
+    }
+
     const url = this.apiBaseService.buildApiUrl(`user-activity-logs/user/${userId}`);
     const params = `limit=${limit}&offset=${offset}`;
     return this.http.get<ActivityLogResponse>(`${url}?${params}`);
@@ -78,8 +97,14 @@ export class ActivityLogService {
 
   /**
    * Obtener logs por acción específica
+   * Solo se ejecuta si active_debug está habilitado
    */
   getActionLogs(action: string, limit: number = 100, offset: number = 0): Observable<ActivityLogResponse> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({ success: true, data: [], pagination: { total: 0, limit: 0, offset: 0, has_more: false } } as ActivityLogResponse);
+    }
+
     const url = this.apiBaseService.buildApiUrl(`user-activity-logs/action/${action}`);
     const params = `limit=${limit}&offset=${offset}`;
     return this.http.get<ActivityLogResponse>(`${url}?${params}`);
@@ -87,8 +112,14 @@ export class ActivityLogService {
 
   /**
    * Obtener estadísticas de logs
+   * Solo se ejecuta si active_debug está habilitado
    */
   getStats(userId?: string, startDate?: string, endDate?: string): Observable<{success: boolean; data: ActivityLogStats}> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({ success: true, data: { total_logs: 0, actions_count: [], users_count: [] } as ActivityLogStats });
+    }
+
     const url = this.apiBaseService.buildApiUrl('user-activity-logs/stats');
     let params = '';
     
@@ -102,16 +133,28 @@ export class ActivityLogService {
 
   /**
    * Limpiar logs antiguos
+   * Solo se ejecuta si active_debug está habilitado
    */
   cleanOldLogs(days: number = 90): Observable<any> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({ success: false, message: 'Debug mode disabled' });
+    }
+
     const url = this.apiBaseService.buildApiUrl(`user-activity-logs/clean?days=${days}`);
     return this.http.delete(url);
   }
 
   /**
    * Log automático de acciones del usuario
+   * Solo se ejecuta si active_debug está habilitado
    */
   logUserAction(action: string, description?: string, additionalData?: any): void {
+    // Si active_debug no está habilitado, no registrar actividades
+    if (!environment.active_debug) {
+      return;
+    }
+
     // Obtener información del usuario actual desde localStorage
     const currentUserStr = localStorage.getItem('current_user');
     if (!currentUserStr) return;

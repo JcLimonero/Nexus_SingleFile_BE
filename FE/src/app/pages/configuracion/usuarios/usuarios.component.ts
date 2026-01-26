@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../../../core/interfaces/user.interface';
 import { UserService } from '../../../core/services/user.service';
+import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
 import { UserAccessDialogComponent } from './user-access-dialog/user-access-dialog.component';
 
@@ -61,6 +62,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   constructor(
     private userService: UserService,
+    private defaultAgencyService: DefaultAgencyService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
@@ -189,18 +191,23 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   loadAgencies(): void {
     this.loadingCatalogs = true;
-    this.userService.getAgencies().subscribe({
-      next: (response: AgencyResponse) => {
-        if (response.success) {
-          this.agencies = response.data.agencies.filter(agency => agency.Enabled === '1');
-        } else {
-          this.snackBar.open(response.message || 'Error al cargar agencias', 'Error', {
-            duration: 3000
-          });
-        }
+    // Usar DefaultAgencyService que maneja caché en localStorage
+    this.defaultAgencyService.obtenerAgencias().subscribe({
+      next: (agencias) => {
+        // Filtrar solo agencias habilitadas y convertir al formato esperado
+        this.agencies = agencias
+          .filter(ag => this.defaultAgencyService.esAgenciaHabilitada(ag))
+          .map(ag => ({
+            Id: ag.Id.toString(),
+            Name: ag.Name,
+            Enabled: typeof ag.Enabled === 'boolean' ? (ag.Enabled ? '1' : '0') : 
+                     typeof ag.Enabled === 'string' ? ag.Enabled : 
+                     ag.Enabled.toString()
+          })) as Agency[];
         this.checkCatalogsLoaded();
       },
       error: (error) => {
+        console.error('Error cargando agencias:', error);
         this.snackBar.open('Error al cargar agencias', 'Error', {
           duration: 3000
         });

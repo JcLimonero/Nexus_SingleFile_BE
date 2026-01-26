@@ -79,6 +79,21 @@ export class GlobalComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgency = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgency) {
+          this.selectedAgency = agenciaId;
+        }
+      });
+
     this.inicializarUsuario();
     this.cargarAgencias();
     this.cargarProcesos();
@@ -91,8 +106,13 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
   onAgenciaChange(): void {
     if (this.selectedAgency !== null && this.selectedAgency !== undefined) {
+      // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
       
+      // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+      // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+      // seleccionarAgencia() ya maneja el caché local
+      /*
       // Actualizar la agencia predeterminada del usuario
       this.defaultAgencyService.actualizarAgenciaPredeterminada(this.selectedAgency).subscribe({
         next: (success) => {
@@ -106,6 +126,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
         }
       });
+      */
     } else {
       this.defaultAgencyService.limpiarSeleccion();
     }
@@ -167,7 +188,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-
+          console.error('Error cargando agencias:', error);
           this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
           this.agencias = [];
           this.loadingAgencias = false;
@@ -184,23 +205,38 @@ export class GlobalComponent implements OnInit, OnDestroy {
         }
 
         if (!showMessage && this.agencias.length > 0) {
-          this.defaultAgencyService
-            .establecerAgenciaPredeterminada(true)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  this.selectedAgency = agenciaId;
-                  this.onAgenciaChange();
-                }
-              },
-              error: () => {
-                if (this.agencias.length > 0) {
-                  this.selectedAgency = this.agencias[0].Id;
-                  this.onAgenciaChange();
-                }
-              }
-            });
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
+          setTimeout(() => {
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgency = savedAgencyId;
+              this.onAgenciaChange();
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService
+                .establecerAgenciaPredeterminada(true)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (agenciaId) => {
+                    if (agenciaId && this.agencias.some(ag => ag.Id === agenciaId)) {
+                      this.selectedAgency = agenciaId;
+                      this.onAgenciaChange();
+                    }
+                  },
+                  error: () => {
+                    // Si falla y hay agencias, seleccionar la primera
+                    if (this.agencias.length > 0) {
+                      this.selectedAgency = this.agencias[0].Id;
+                      this.onAgenciaChange();
+                    }
+                  }
+                });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         }
       });
   }

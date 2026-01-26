@@ -150,6 +150,22 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgencyId = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgencyId) {
+          this.selectedAgencyId = agenciaId;
+          this.cdr.markForCheck();
+        }
+      });
+
     this.loadIntegrationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
@@ -256,27 +272,49 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.agenciesLoading = false;
           this.cdr.markForCheck();
           
-          // Establecer agencia predeterminada
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  this.selectedAgencyId = agenciaId;
-                  this.onAgencyChange(agenciaId);
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgencyId = savedAgencyId;
+              this.onAgencyChange(savedAgencyId);
+              this.cdr.markForCheck();
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+                next: (agenciaId) => {
+                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
+                    this.selectedAgencyId = agenciaId;
+                    this.onAgencyChange(agenciaId);
+                    this.cdr.markForCheck();
+                  } else if (this.agencies.length > 0) {
+                    // Solo como último recurso, seleccionar la primera
+                    const primeraAgencia = this.agencies[0];
+                    this.selectedAgencyId = primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.Id);
+                    this.cdr.markForCheck();
+                  }
+                },
+                error: (error) => {
+                  console.error('Error estableciendo agencia predeterminada:', error);
+                  // Si falla y hay agencias, seleccionar la primera
+                  if (this.agencies.length > 0) {
+                    const primeraAgencia = this.agencies[0];
+                    this.selectedAgencyId = primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.Id);
+                    this.cdr.markForCheck();
+                  }
                 }
-              },
-              error: (error) => {
-                // Si falla, intentar seleccionar la primera agencia disponible
-                if (this.agencies.length > 0) {
-                  const primeraAgencia = this.agencies[0];
-                  this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id);
-                }
-              }
-            });
-          }, 100);
+              });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
+          console.error('Error cargando agencias:', error);
           this.agencies = [];
           this.agenciesLoading = false;
           this.cdr.markForCheck();
@@ -293,6 +331,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     // Encontrar y guardar el objeto agencia completo
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
     
+    // Actualizar el caché usando seleccionarAgencia (ya actualiza cookie y BehaviorSubject)
+    if (agencyId !== null) {
+      this.defaultAgencyService.seleccionarAgencia(agencyId);
+    }
+    
+    // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+    // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
+    // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+    /*
     // Actualizar la agencia predeterminada del usuario
     if (agencyId !== null) {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
@@ -304,6 +351,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         }
       });
     }
+    */
   }
 
   clearAgencyFilter(): void {

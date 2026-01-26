@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { User, UserCreateRequest, UserUpdateRequest, UserRole, Agency } from '../../../../core/interfaces/user.interface';
 import { UserService } from '../../../../core/services/user.service';
+import { DefaultAgencyService } from '../../../../core/services/default-agency.service';
 
 @Component({
   selector: 'app-user-edit-dialog',
@@ -46,6 +47,7 @@ export class UserEditDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private defaultAgencyService: DefaultAgencyService,
     private dialogRef: MatDialogRef<UserEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { user: User; mode: 'create' | 'edit' },
     private snackBar: MatSnackBar
@@ -256,24 +258,37 @@ export class UserEditDialogComponent implements OnInit {
 
   private loadAgencies(): void {
     this.loadingAgencies = true;
-    this.userService.getAgencies().subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.agencies = response.data.agencies || response.data;
-          if (this.agencies.length === 0) {
-            this.snackBar.open('No se encontraron agencias disponibles', 'Advertencia', {
-              duration: 3000
-            });
+    // Usar DefaultAgencyService que maneja caché en localStorage
+    this.defaultAgencyService.obtenerAgencias().subscribe({
+      next: (agencias) => {
+        // Convertir al formato esperado (Agency[]) - Id debe ser string, Enabled debe ser string
+        this.agencies = agencias.map(ag => {
+          let enabledStr: string;
+          if (typeof ag.Enabled === 'boolean') {
+            enabledStr = ag.Enabled ? '1' : '0';
+          } else if (typeof ag.Enabled === 'string') {
+            enabledStr = (ag.Enabled === 'true' || ag.Enabled === '1') ? '1' : '0';
+          } else {
+            // Cuando es number, solo comparar con números
+            enabledStr = (ag.Enabled === 1) ? '1' : '0';
           }
-        } else {
-          this.snackBar.open(response.message || 'Error al cargar agencias', 'Error', {
+          
+          return {
+            Id: ag.Id.toString(),
+            Name: ag.Name,
+            Enabled: enabledStr
+          } as Agency;
+        });
+        
+        if (this.agencies.length === 0) {
+          this.snackBar.open('No se encontraron agencias disponibles', 'Advertencia', {
             duration: 3000
           });
         }
         this.loadingAgencies = false;
       },
       error: (error) => {
-
+        console.error('Error cargando agencias:', error);
         this.snackBar.open('Error al cargar agencias. Intenta recargar.', 'Error', {
           duration: 3000
         });

@@ -12,7 +12,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { AnalyticsFilters } from '../../../../core/services/analytics.service';
 import { UserService } from '../../../../core/services/user.service';
-import { AgencyService } from '../../../../core/services/agency.service';
+import { DefaultAgencyService } from '../../../../core/services/default-agency.service';
 
 @Component({
   selector: 'vex-analytics-filters',
@@ -49,7 +49,7 @@ export class AnalyticsFiltersComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
-    private agencyService: AgencyService
+    private defaultAgencyService: DefaultAgencyService
   ) {
     this.filtersForm = this.createForm();
   }
@@ -90,17 +90,14 @@ export class AnalyticsFiltersComponent implements OnInit, OnDestroy {
         }
       });
 
-    // Cargar agencias
-    this.agencyService.getAgencies()
+    // Cargar agencias usando el servicio con caché
+    this.defaultAgencyService.obtenerAgencias()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(agencies => {
-        if (Array.isArray(agencies)) {
-          this.agencies = agencies;
-        } else if (agencies && typeof agencies === 'object') {
-          this.agencies = (agencies as any).agencies || (agencies as any).data || [];
-        } else {
-          this.agencies = [];
-        }
+      .subscribe(agencias => {
+        // Filtrar solo agencias habilitadas
+        this.agencies = agencias.filter(ag => 
+          this.defaultAgencyService.esAgenciaHabilitada(ag)
+        );
       });
   }
 

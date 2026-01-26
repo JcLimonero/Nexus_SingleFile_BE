@@ -1303,7 +1303,6 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    * Cargar agencias desde la API usando el servicio compartido
    */
   private cargarAgencias() {
-
     this.loadingAgencias = true;
 
     this.defaultAgencyService.obtenerAgencias()
@@ -1313,37 +1312,51 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       )
       .subscribe({
         next: (agencias) => {
-
           this.agencias = agencias;
           this.loadingAgencias = false;
           this.cdr.markForCheck();
 
-          // Esperar un momento para asegurar que las agencias estén disponibles en el servicio
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            // Establecer agencia predeterminada usando el servicio compartido
-            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-
-                } else {
-
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgency = savedAgencyId;
+              this.cdr.markForCheck();
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+                next: (agenciaId) => {
+                  if (agenciaId && this.agencias.some(ag => ag.Id === agenciaId)) {
+                    this.selectedAgency = agenciaId;
+                    this.cdr.markForCheck();
+                  } else if (this.agencias.length > 0) {
+                    // Solo como último recurso, seleccionar la primera
+                    const primeraAgencia = this.agencias[0];
+                    this.selectedAgency = primeraAgencia.Id;
+                    this.defaultAgencyService.seleccionarAgencia(primeraAgencia.Id);
+                    this.cdr.markForCheck();
+                  }
+                },
+                error: (error) => {
+                  console.error('Error estableciendo agencia predeterminada:', error);
+                  // Si falla y hay agencias, seleccionar la primera
+                  if (this.agencias.length > 0) {
+                    const primeraAgencia = this.agencias[0];
+                    this.selectedAgency = primeraAgencia.Id;
+                    this.defaultAgencyService.seleccionarAgencia(primeraAgencia.Id);
+                    this.cdr.markForCheck();
+                  }
                 }
-              },
-              error: (error) => {
-
-                // Si falla, intentar seleccionar la primera agencia disponible
-                if (this.agencias.length > 0) {
-                  const primeraAgencia = this.agencias[0];
-
-                  this.selectedAgency = primeraAgencia.Id;
-                  this.defaultAgencyService.seleccionarAgencia(primeraAgencia.Id);
-                }
-              }
-            });
-          }, 100);
+              });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-
+          console.error('Error cargando agencias:', error);
           this.mostrarError('Error cargando agencias');
           this.agencias = [];
           this.selectedAgency = null;
@@ -1569,9 +1582,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.searchTerm = '';
 
     // Actualizar la agencia en el servicio compartido
+    // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
     if (this.selectedAgency !== null) {
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
       
+      // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+      // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+      // seleccionarAgencia() ya maneja el caché local
+      /*
       // Actualizar la agencia predeterminada del usuario
       this.defaultAgencyService.actualizarAgenciaPredeterminada(this.selectedAgency).subscribe({
         next: (success) => {
@@ -1585,6 +1603,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
         }
       });
+      */
     }
     // Si ya hay un proceso seleccionado (incl. "Todos los procesos"), cargar clientes
     if (this.selectedProcess !== null && this.selectedProcess !== undefined) {

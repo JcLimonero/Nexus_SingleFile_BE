@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 
 export interface Cliente {
   idFile: number;
@@ -52,7 +53,6 @@ export interface FiltrosValidacion {
 })
 export class ValidacionService {
   private apiUrl = environment.apiBaseUrl;
-
   // BehaviorSubjects para mantener el estado de los datos
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   private documentosSubject = new BehaviorSubject<Documento[]>([]);
@@ -63,41 +63,34 @@ export class ValidacionService {
   public documentos$ = this.documentosSubject.asObservable();
   public loading$ = this.loadingSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private defaultAgencyService: DefaultAgencyService
+  ) {}
 
   /**
-   * Cargar agencias disponibles (solo activas y con permisos del usuario)
+   * Cargar agencias disponibles usando el servicio con caché
+   * Usa DefaultAgencyService que maneja caché en localStorage
    */
   cargarAgencias(): Observable<any[]> {
-    const url = `${this.apiUrl}/api/agency`;
-
-    return this.http.get<any>(url).pipe(
-      map((response: any) => {
-        if (response && response.success && response.data && response.data.agencies) {
-          return response.data.agencies;
-        } else if (response && Array.isArray(response)) {
-          return response;
-        } else if (response && response.agencies) {
-          return response.agencies;
-        } else {
-          return [];
-        }
+    return this.defaultAgencyService.obtenerAgencias().pipe(
+      map((agencias: any[]) => {
+        // Filtrar solo agencias habilitadas si es necesario
+        return agencias.filter(ag => this.defaultAgencyService.esAgenciaHabilitada(ag));
+      }),
+      catchError((error) => {
+        console.error('Error cargando agencias:', error);
+        return of([]);
       })
     );
   }
 
   /**
-   * Obtener agencia predeterminada del usuario
+   * Obtener agencia predeterminada del usuario usando el servicio con caché
+   * Usa DefaultAgencyService que maneja caché en cookies
    */
-  obtenerAgenciaUsuario(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/user/profile`).pipe(
-      map(response => {
-        if (response && response.success && response.data) {
-          return response.data.DefaultAgency;
-        }
-        return null;
-      })
-    );
+  obtenerAgenciaUsuario(): Observable<number | null> {
+    return this.defaultAgencyService.obtenerAgenciaUsuario();
   }
 
   /**

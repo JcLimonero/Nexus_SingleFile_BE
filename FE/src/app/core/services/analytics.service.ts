@@ -166,6 +166,17 @@ export class AnalyticsService {
 
   // Métodos para obtener estadísticas de actividad de usuarios
   getUserActivityStats(filters?: AnalyticsFilters): Observable<UserActivityStats> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({
+        totalLogs: 0,
+        uniqueUsers: 0,
+        topActions: [],
+        dailyActivity: [],
+        userActivity: []
+      } as UserActivityStats);
+    }
+
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/user-activity-logs/stats`, { params })
       .pipe(
@@ -174,6 +185,11 @@ export class AnalyticsService {
   }
 
   getUserActivityLogs(filters?: AnalyticsFilters, limit = 100, offset = 0): Observable<any> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of([]);
+    }
+
     const params = this.buildParams(filters);
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
