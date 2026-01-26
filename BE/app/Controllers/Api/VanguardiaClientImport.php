@@ -127,16 +127,62 @@ class VanguardiaClientImport extends ResourceController
             $existingByRazonSocial = $this->checkExistingClientByRazonSocial($razonSocial);
             if ($existingByRazonSocial) {
                 error_log("⚠️ Ya existe cliente con RazonSocial '{$razonSocial}'");
-                error_log("✅ Retornando cliente existente en lugar de crear uno nuevo");
                 
-                // Retornar el cliente existente completo
-                $existingClientFull = $this->getClientByRazonSocial($razonSocial);
-                if ($existingClientFull) {
-                    return $this->response->setJSON([
-                        'success' => true,
-                        'message' => 'Cliente ya existe en el sistema local',
-                        'data' => $existingClientFull
-                    ]);
+                // Verificar si este cliente tiene la relación con el ndDMS y idAgency específicos
+                $idAgencyInternal = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
+                $hasRelation = $this->checkClientTotalRelation($existingByRazonSocial['idCliente'], $vanguardiaData['ndDMS'], $idAgencyInternal);
+                
+                if ($hasRelation) {
+                    // El cliente existe y tiene la relación, retornarlo
+                    error_log("✅ Cliente existe y tiene la relación con ndDMS {$vanguardiaData['ndDMS']} y idAgency {$idAgencyInternal}");
+                    $existingClientFull = $this->getClientByRazonSocial($razonSocial);
+                    if ($existingClientFull) {
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Cliente ya existe en el sistema local',
+                            'data' => $existingClientFull
+                        ]);
+                    }
+                } else {
+                    // El cliente existe pero NO tiene la relación, crear la relación
+                    error_log("⚠️ Cliente existe pero NO tiene relación con ndDMS {$vanguardiaData['ndDMS']} y idAgency {$idAgencyInternal}, creando relación");
+                    $this->db->transStart();
+                    try {
+                        // Obtener el HeaderClient del cliente existente
+                        $headerClient = $this->db->table('HeaderClient')
+                            ->where('IdClient', $existingByRazonSocial['idCliente'])
+                            ->get()
+                            ->getRowArray();
+                        
+                        if (!$headerClient) {
+                            // Si no tiene HeaderClient, crearlo
+                            $headerClientId = $this->insertHeaderClient($existingByRazonSocial['idCliente']);
+                        } else {
+                            $headerClientId = $headerClient['Id'];
+                        }
+                        
+                        // Crear la relación Client_Total_Relation
+                        $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+                        if (!$relationId) {
+                            throw new \Exception('Error al insertar en tabla Client_Total_Relation');
+                        }
+                        
+                        $this->db->transComplete();
+                        if ($this->db->transStatus() === false) {
+                            throw new \Exception('Error en la transacción de base de datos');
+                        }
+                        
+                        // Obtener el cliente actualizado con la nueva relación
+                        $created = $this->getCreatedClient($existingByRazonSocial['idCliente'], $headerClientId, $relationId);
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Cliente existente vinculado con nuevo ndDMS; se creó Client_Total_Relation',
+                            'data' => $created
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->db->transRollback();
+                        throw $e;
+                    }
                 }
             }
             
@@ -145,16 +191,50 @@ class VanguardiaClientImport extends ResourceController
             $existingByRazonSocialModified = $this->checkExistingClientByRazonSocial($razonSocialWithNdDMS);
             if ($existingByRazonSocialModified) {
                 error_log("⚠️ Ya existe cliente con RazonSocial modificado '{$razonSocialWithNdDMS}'");
-                error_log("✅ Retornando cliente existente en lugar de crear uno nuevo");
                 
-                // Retornar el cliente existente completo
-                $existingClientFull = $this->getClientByRazonSocial($razonSocialWithNdDMS);
-                if ($existingClientFull) {
-                    return $this->response->setJSON([
-                        'success' => true,
-                        'message' => 'Cliente ya existe en el sistema local',
-                        'data' => $existingClientFull
-                    ]);
+                // Verificar si tiene la relación
+                $idAgencyInternal = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
+                $hasRelation = $this->checkClientTotalRelation($existingByRazonSocialModified['idCliente'], $vanguardiaData['ndDMS'], $idAgencyInternal);
+                
+                if ($hasRelation) {
+                    error_log("✅ Cliente existe y tiene la relación");
+                    $existingClientFull = $this->getClientByRazonSocial($razonSocialWithNdDMS);
+                    if ($existingClientFull) {
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Cliente ya existe en el sistema local',
+                            'data' => $existingClientFull
+                        ]);
+                    }
+                } else {
+                    // Crear la relación si no existe
+                    error_log("⚠️ Cliente existe pero NO tiene relación, creando relación");
+                    $this->db->transStart();
+                    try {
+                        $headerClient = $this->db->table('HeaderClient')
+                            ->where('IdClient', $existingByRazonSocialModified['idCliente'])
+                            ->get()
+                            ->getRowArray();
+                        
+                        if (!$headerClient) {
+                            $headerClientId = $this->insertHeaderClient($existingByRazonSocialModified['idCliente']);
+                        } else {
+                            $headerClientId = $headerClient['Id'];
+                        }
+                        
+                        $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+                        $this->db->transComplete();
+                        
+                        $created = $this->getCreatedClient($existingByRazonSocialModified['idCliente'], $headerClientId, $relationId);
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Cliente existente vinculado con nuevo ndDMS; se creó Client_Total_Relation',
+                            'data' => $created
+                        ]);
+                    } catch (\Exception $e) {
+                        $this->db->transRollback();
+                        throw $e;
+                    }
                 }
             }
             
@@ -271,6 +351,36 @@ class VanguardiaClientImport extends ResourceController
 
         error_log("ℹ️ Cliente NO existe por ndDMS, se procederá a crearlo");
         return null;
+    }
+
+    /**
+     * Verificar si un cliente tiene una relación Client_Total_Relation específica
+     */
+    private function checkClientTotalRelation($clientId, $ndDMS, $idAgency)
+    {
+        error_log("=== Verificando relación Client_Total_Relation ===");
+        error_log("clientId: {$clientId}, ndDMS: {$ndDMS}, idAgency: {$idAgency}");
+        
+        $sql = "
+            SELECT ctr.Id
+            FROM HeaderClient hc
+            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+            WHERE hc.IdClient = ? 
+            AND ctr.IdTotalDealer = ? 
+            AND ctr.IdAgency = ?
+            LIMIT 1
+        ";
+        
+        $query = $this->db->query($sql, [$clientId, $ndDMS, $idAgency]);
+        $result = $query->getRowArray();
+        
+        if ($result) {
+            error_log("✅ Relación existe");
+            return true;
+        }
+        
+        error_log("ℹ️ Relación NO existe");
+        return false;
     }
 
     /**

@@ -527,11 +527,19 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response: VanguardiaClientImportResponse) => {
           if (response.success && response.data) {
-            // Convertir el cliente importado al formato estándar
+            // Convertir el cliente importado/existente al formato estándar
+            // Usar el idAgency de la respuesta si está disponible, sino usar el de la agencia seleccionada
+            const responseData = response.data as any; // Type assertion para acceder a idAgency opcional
+            const clientIdAgency = responseData.idAgency !== undefined && responseData.idAgency !== null
+              ? (typeof responseData.idAgency === 'string' ? parseInt(responseData.idAgency) : responseData.idAgency)
+              : (this.selectedAgency?.Id || null);
+            
             const importedClient = {
               idCliente: response.data.idCliente,
-              ndCliente: response.data.ndCliente,
-              cliente: response.data.cliente,
+              ndCliente: response.data.ndCliente || vanguardiaClient.ndDMS,
+              cliente: response.data.cliente || 
+                      `${response.data.nombre || ''} ${response.data.apellidoPaterno || ''} ${response.data.apellidoMaterno || ''}`.trim() ||
+                      response.data.razonSocial,
               nombre: response.data.nombre,
               apellidoPaterno: response.data.apellidoPaterno,
               apellidoMaterno: response.data.apellidoMaterno,
@@ -542,37 +550,83 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               razonSocial: response.data.razonSocial,
               curp: response.data.curp,
               asesor: response.data.asesor,
-              agenciaOrigen: response.data.agenciaOrigen,
+              agenciaOrigen: response.data.agenciaOrigen || String(clientIdAgency),
               fechaRegistro: response.data.fechaRegistro,
               fechaActualizacion: response.data.fechaActualizacion,
-              idAgency: parseInt(response.data.agenciaOrigen),
+              idAgency: clientIdAgency,
               isImportedFromVanguardia: true
             };
             
-            // Seleccionar el cliente importado
+            // Seleccionar el cliente (ya sea importado o existente)
             this.selectClient(importedClient);
             
-            // Solo mostrar mensaje de importación si realmente se importó (no si ya existía)
+            // Mostrar mensaje apropiado según el caso
             if (response.message && response.message.includes('importado exitosamente')) {
-              this.snackBar.open(`Cliente ${importedClient.cliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
+              this.snackBar.open(`Cliente ${importedClient.cliente || importedClient.ndCliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
                 duration: 5000
               });
             } else if (response.message && response.message.includes('vinculado por RFC')) {
-              this.snackBar.open(`Cliente ${importedClient.cliente} vinculado por RFC; se creó la relación con ND ${importedClient.ndCliente}`, 'Cerrar', {
+              this.snackBar.open(`Cliente ${importedClient.cliente || importedClient.ndCliente} vinculado por RFC; se creó la relación con ND ${importedClient.ndCliente}`, 'Cerrar', {
+                duration: 5000
+              });
+            } else if (response.message && response.message.includes('ya existe')) {
+              // Cliente ya existe: informar al usuario y seleccionarlo
+              this.snackBar.open(`Cliente ${importedClient.cliente || importedClient.ndCliente} ya existe en el sistema. Seleccionado automáticamente.`, 'Cerrar', {
                 duration: 5000
               });
             }
-            // Si el mensaje indica que el cliente ya existe, no mostrar mensaje adicional
           } else {
-            this.snackBar.open('Error al importar cliente desde Vanguardia', 'Cerrar', {
+            this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (response.message || 'Error desconocido'), 'Cerrar', {
               duration: 4000
             });
           }
         },
         error: (error) => {
-          this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
-            duration: 5000
-          });
+          // Si el error es que el cliente ya existe, intentar buscarlo y seleccionarlo
+          if (error.error?.message && error.error.message.includes('ya existe')) {
+            // El cliente existe pero no se pudo obtener en la respuesta
+            // Intentar buscarlo por ndDMS en la agencia actual
+            const ndDMS = importData.ndDMS;
+            if (ndDMS && this.selectedAgencyId) {
+              this.clientSearchService.searchClients(this.selectedAgencyId, ndDMS, 10)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (searchResponse: ClientSearchResponse) => {
+                    if (searchResponse.success && searchResponse.data?.clientes && searchResponse.data.clientes.length > 0) {
+                      // Encontrar el cliente con el ndDMS exacto
+                      const foundClient = searchResponse.data.clientes.find(c => c.ndCliente === ndDMS);
+                      if (foundClient) {
+                        this.selectClient(foundClient);
+                        this.snackBar.open(`Cliente ${foundClient.cliente || foundClient.ndCliente} ya existe en el sistema. Seleccionado automáticamente.`, 'Cerrar', {
+                          duration: 5000
+                        });
+                      } else {
+                        this.snackBar.open('Cliente ya existe pero no se pudo encontrar en la búsqueda. Intente buscarlo manualmente.', 'Cerrar', {
+                          duration: 5000
+                        });
+                      }
+                    } else {
+                      this.snackBar.open('Cliente ya existe pero no se pudo encontrar en la búsqueda. Intente buscarlo manualmente.', 'Cerrar', {
+                        duration: 5000
+                      });
+                    }
+                  },
+                  error: () => {
+                    this.snackBar.open('Cliente ya existe pero no se pudo encontrar. Intente buscarlo manualmente.', 'Cerrar', {
+                      duration: 5000
+                    });
+                  }
+                });
+            } else {
+              this.snackBar.open('Error: Cliente ya existe pero no se pudo obtener la información. Intente buscarlo manualmente.', 'Cerrar', {
+                duration: 5000
+              });
+            }
+          } else {
+            this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
+              duration: 5000
+            });
+          }
         }
       });
   }
