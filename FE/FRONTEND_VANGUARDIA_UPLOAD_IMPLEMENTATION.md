@@ -13,7 +13,7 @@ export const environment = {
   apiBaseUrl: 'http://localhost:8080',
   vanguardia: {
     apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorders',
+    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest',
     uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
   }
 };
@@ -145,7 +145,7 @@ export const environment = {
   apiBaseUrl: 'https://tu-servidor.com',
   vanguardia: {
     apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorders',
+    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest',
     uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
   }
 };

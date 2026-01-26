@@ -1140,7 +1140,11 @@ class Analytics extends BaseController
             'year' => $this->request->getGet('year'),
             'range' => $this->request->getGet('range'),
             'current_month' => $this->request->getGet('current_month'),
-            'liberated_only' => $this->request->getGet('liberated_only') // ← NUEVO PARÁMETRO
+            'liberated_only' => $this->request->getGet('liberated_only'),
+            'registration_start_date' => $this->request->getGet('registration_start_date'),
+            'registration_end_date' => $this->request->getGet('registration_end_date'),
+            'liberation_start_date' => $this->request->getGet('liberation_start_date'),
+            'liberation_end_date' => $this->request->getGet('liberation_end_date')
         ];
     }
 

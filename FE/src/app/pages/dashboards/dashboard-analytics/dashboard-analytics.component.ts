@@ -98,9 +98,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   agencies: any[] = [];
   users: any[] = [];
   dateRangeForm: FormGroup;
+  registrationDateForm: FormGroup;
+  liberationDateForm: FormGroup;
   activeDateRange: string | null = null;
   currentUser: any = null;
   isUserFilterDisabled = false;
+  selectedRegistrationDateRange: DateRange | null = null;
+  selectedLiberationDateRange: DateRange | null = null;
 
   private destroy$ = new Subject<void>();
   private filtersChange$ = new Subject<void>();
@@ -118,6 +122,16 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     private changeDetector: ChangeDetectorRef
   ) {
     this.dateRangeForm = new FormGroup({
+      startDate: new FormControl(null),
+      endDate: new FormControl(null)
+    });
+
+    this.registrationDateForm = new FormGroup({
+      startDate: new FormControl(null),
+      endDate: new FormControl(null)
+    });
+
+    this.liberationDateForm = new FormGroup({
       startDate: new FormControl(null),
       endDate: new FormControl(null)
     });
@@ -169,6 +183,20 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.onDateRangeChange();
+      });
+
+    // Suscribirse a cambios en el formulario de fecha de registro
+    this.registrationDateForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.onRegistrationDateRangeChange();
+      });
+
+    // Suscribirse a cambios en el formulario de fecha de liberación
+    this.liberationDateForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.onLiberationDateRangeChange();
       });
   }
 
@@ -275,6 +303,104 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       return false;
     }
     return dateRange.startDate <= dateRange.endDate;
+  }
+
+  onRegistrationDateRangeChange(): void {
+    const formValue = this.registrationDateForm.value;
+    const dateRange: DateRange = {
+      startDate: formValue.startDate,
+      endDate: formValue.endDate
+    };
+
+    if (this.isValidDateRange(dateRange)) {
+      this.selectedRegistrationDateRange = dateRange;
+      this.currentFilters = {
+        ...this.currentFilters,
+        registrationDateRange: dateRange
+      };
+      this.changeDetector.markForCheck();
+      if (!this.isInitializing) {
+        this.filtersChange$.next();
+      }
+    } else {
+      this.selectedRegistrationDateRange = null;
+      this.currentFilters = {
+        ...this.currentFilters,
+        registrationDateRange: undefined
+      };
+      this.changeDetector.markForCheck();
+      if (!this.isInitializing) {
+        this.filtersChange$.next();
+      }
+    }
+  }
+
+  onLiberationDateRangeChange(): void {
+    const formValue = this.liberationDateForm.value;
+    const dateRange: DateRange = {
+      startDate: formValue.startDate,
+      endDate: formValue.endDate
+    };
+
+    if (this.isValidDateRange(dateRange)) {
+      this.selectedLiberationDateRange = dateRange;
+      this.currentFilters = {
+        ...this.currentFilters,
+        liberationDateRange: dateRange
+      };
+      this.changeDetector.markForCheck();
+      if (!this.isInitializing) {
+        this.filtersChange$.next();
+      }
+    } else {
+      this.selectedLiberationDateRange = null;
+      this.currentFilters = {
+        ...this.currentFilters,
+        liberationDateRange: undefined
+      };
+      this.changeDetector.markForCheck();
+      if (!this.isInitializing) {
+        this.filtersChange$.next();
+      }
+    }
+  }
+
+  hasRegistrationDateRange(): boolean {
+    return this.selectedRegistrationDateRange !== null &&
+           this.selectedRegistrationDateRange.startDate !== null &&
+           this.selectedRegistrationDateRange.endDate !== null;
+  }
+
+  hasLiberationDateRange(): boolean {
+    return this.selectedLiberationDateRange !== null &&
+           this.selectedLiberationDateRange.startDate !== null &&
+           this.selectedLiberationDateRange.endDate !== null;
+  }
+
+  clearRegistrationDateRange(): void {
+    this.registrationDateForm.patchValue({
+      startDate: null,
+      endDate: null
+    });
+    this.selectedRegistrationDateRange = null;
+    this.currentFilters = {
+      ...this.currentFilters,
+      registrationDateRange: undefined
+    };
+    this.filtersChange$.next();
+  }
+
+  clearLiberationDateRange(): void {
+    this.liberationDateForm.patchValue({
+      startDate: null,
+      endDate: null
+    });
+    this.selectedLiberationDateRange = null;
+    this.currentFilters = {
+      ...this.currentFilters,
+      liberationDateRange: undefined
+    };
+    this.filtersChange$.next();
   }
 
   private loadAgencies(): void {
@@ -578,7 +704,11 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   hasAnyFilter(): boolean {
-    return this.selectedAgencyId !== null || this.selectedUserId !== null || this.hasDateRange();
+    return this.selectedAgencyId !== null || 
+           this.selectedUserId !== null || 
+           this.hasDateRange() ||
+           this.hasRegistrationDateRange() ||
+           this.hasLiberationDateRange();
   }
 
   clearAllFilters(): void {
@@ -595,6 +725,20 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     });
     this.selectedDateRange = null;
     this.activeDateRange = null;
+
+    // Limpiar fecha de registro
+    this.registrationDateForm.patchValue({
+      startDate: null,
+      endDate: null
+    });
+    this.selectedRegistrationDateRange = null;
+
+    // Limpiar fecha de liberación
+    this.liberationDateForm.patchValue({
+      startDate: null,
+      endDate: null
+    });
+    this.selectedLiberationDateRange = null;
 
     // Limpiar filtros
     this.currentFilters = {};
@@ -675,4 +819,21 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     },
     colors: ['#ff9800']
   });
+
+  // Getters para los FormControls (para evitar errores de tipo null)
+  get registrationStartDateControl(): FormControl {
+    return this.registrationDateForm.get('startDate') as FormControl;
+  }
+
+  get registrationEndDateControl(): FormControl {
+    return this.registrationDateForm.get('endDate') as FormControl;
+  }
+
+  get liberationStartDateControl(): FormControl {
+    return this.liberationDateForm.get('startDate') as FormControl;
+  }
+
+  get liberationEndDateControl(): FormControl {
+    return this.liberationDateForm.get('endDate') as FormControl;
+  }
 }

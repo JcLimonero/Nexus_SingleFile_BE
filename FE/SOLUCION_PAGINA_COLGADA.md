@@ -109,7 +109,7 @@ export const environment = {
   apiBaseUrl: 'https://apisvanguardia.com:400',  // URL correcta del backend
   vanguardia: {
     apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorders',
+    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest',
     uploadApiUrl: 'https://apisvanguardia.com:400/api/backblaze/upload'
   }
 };

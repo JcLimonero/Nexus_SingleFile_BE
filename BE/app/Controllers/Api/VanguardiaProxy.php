@@ -43,7 +43,7 @@ class VanguardiaProxy extends BaseController
 
     /**
      * Proxy para búsqueda de pedidos
-     * GET /api/vgd/singlefileorders
+     * GET /api/vgd/singlefileorderslastest
      */
     public function searchOrders()
     {
@@ -51,7 +51,7 @@ class VanguardiaProxy extends BaseController
             $params = $this->request->getGet();
             $queryString = http_build_query($params);
             
-            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileorders?{$queryString}";
+            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileorderslastest?{$queryString}";
             
             $response = $this->makeVanguardiaRequest('GET', $url);
             
