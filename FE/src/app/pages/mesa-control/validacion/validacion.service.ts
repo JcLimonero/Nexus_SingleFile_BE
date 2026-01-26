@@ -172,6 +172,31 @@ export class ValidacionService {
   }
 
   /**
+   * Diagnosticar por qué un pedido no aparece en validación
+   */
+  diagnosticarPedido(idFile: number, idAgency?: number, idProcess?: number): Observable<any> {
+    let params = new HttpParams();
+    params = params.set('idFile', idFile.toString());
+    if (idAgency) {
+      params = params.set('idAgency', idAgency.toString());
+    }
+    if (idProcess) {
+      params = params.set('idProcess', idProcess.toString());
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/diagnostico`, { params });
+  }
+
+  /**
+   * Reparar relación Client_Total_Relation faltante para un File
+   */
+  repararRelacion(idFile: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/reparar-relacion`, {
+      idFile: idFile
+    });
+  }
+
+  /**
    * Validar un documento - cambiar estatus de "2" a "3"
    */
   validarDocumento(idDocumentByFile: number): Observable<any> {

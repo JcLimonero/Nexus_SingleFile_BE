@@ -2071,6 +2071,24 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         return true;
       }
 
+      // Buscar en nombre de la agencia
+      const nombreAgencia = String(cliente.agencia || '').toLowerCase();
+      if (nombreAgencia.includes(terminoBusqueda)) {
+        return true;
+      }
+
+      // Buscar en nombre del proceso
+      const nombreProceso = String(cliente.proceso || '').toLowerCase();
+      if (nombreProceso.includes(terminoBusqueda)) {
+        return true;
+      }
+
+      // Buscar en nombre de la operación
+      const nombreOperacion = String(cliente.operacion || '').toLowerCase();
+      if (nombreOperacion.includes(terminoBusqueda)) {
+        return true;
+      }
+
       return false;
     });
 
