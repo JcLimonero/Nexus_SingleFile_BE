@@ -573,14 +573,14 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Buscar cliente por ndCliente para obtener Id interno
-            error_log("Buscando cliente con ID externo: " . $clientId);
-            $client = $this->getClientByExternalId($clientId);
-            error_log("Cliente encontrado: " . json_encode($client));
-            if (!$client) {
+            // Obtener IdClient (Client.Id) desde view_client_relations por ndDMS y IdAgency
+            $ndDMS = trim((string) $clientId);
+            $idClientResolved = $this->getClientIdFromViewClientRelations($ndDMS, $internalAgencyId);
+            error_log("Buscando IdClient en view_client_relations: ndDMS={$ndDMS}, IdAgency={$internalAgencyId} => " . ($idClientResolved ?? 'null'));
+            if ($idClientResolved === null) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Cliente no encontrado'
+                    'message' => 'Cliente no encontrado para el No Cliente y agencia indicados. Verifique que exista en view_client_relations (ndDMS e IdAgency).'
                 ])->setStatusCode(400);
             }
 
@@ -612,8 +612,8 @@ class Files extends BaseController
 
             error_log("✅ OrderByCar ID obtenido: " . $orderByCarId);
 
-            // Crear file usando el ID interno de la agencia y el ID de OrderByCar
-            $fileId = $this->createFile($order, $process, $costumerType, $operationType, $client->Id, $internalAgencyId, $currentUser['user_id'], $sellerId, $orderByCarId);
+            // Crear file usando IdClient de view_client_relations (hc.IdClient), agencia y OrderByCar
+            $fileId = $this->createFile($order, $process, $costumerType, $operationType, $idClientResolved, $internalAgencyId, $currentUser['user_id'], $sellerId, $orderByCarId);
 
             if (!$fileId) {
                 $this->db->transRollback();
@@ -767,7 +767,45 @@ class Files extends BaseController
     }
 
     /**
-     * Buscar cliente por ndCliente externo
+     * Obtener IdClient (hc.IdClient = Client.Id) desde view_client_relations filtrado por ndDMS y IdAgency.
+     * Usado al crear File y al reparar relación; asegura consistencia con la vista.
+     */
+    private function getClientIdFromViewClientRelations($ndDMS, $idAgency)
+    {
+        $ndDMS = trim((string) $ndDMS);
+        $idAgency = (int) $idAgency;
+        if ($ndDMS === '' || $idAgency <= 0) {
+            return null;
+        }
+        try {
+            $row = $this->db->query("
+                SELECT IdClient FROM view_client_relations
+                WHERE TRIM(ndDMS) = ? AND IdAgency = ?
+                LIMIT 1
+            ", [$ndDMS, $idAgency])->getRowArray();
+            if ($row && isset($row['IdClient']) && $row['IdClient'] !== null && $row['IdClient'] !== '') {
+                return (int) $row['IdClient'];
+            }
+        } catch (\Throwable $e) {
+            log_message('info', 'getClientIdFromViewClientRelations: vista no usada, fallback directo - ' . $e->getMessage());
+        }
+        // Fallback: mismo dato vía HeaderClient + Client_Total_Relation (IdClient = hc.IdClient)
+        $row = $this->db->query("
+            SELECT hc.IdClient
+            FROM HeaderClient hc
+            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+            WHERE TRIM(ctr.IdTotalDealer) = ? AND ctr.IdAgency = ?
+            LIMIT 1
+        ", [$ndDMS, $idAgency])->getRowArray();
+        if ($row && isset($row['IdClient']) && $row['IdClient'] !== null && $row['IdClient'] !== '') {
+            return (int) $row['IdClient'];
+        }
+        return null;
+    }
+
+    /**
+     * Buscar cliente por ndCliente externo (HeaderClient.Id).
+     * @deprecated Preferir getClientIdFromViewClientRelations(ndDMS, idAgency) para obtener IdClient (Client.Id).
      */
     private function getClientByExternalId($externalClientId)
     {
