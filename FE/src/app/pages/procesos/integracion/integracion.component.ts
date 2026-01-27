@@ -1240,7 +1240,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private checkExistingOrders(apiOrders: any[]): void {
     const requestData = {
       orders: apiOrders,
-      agencyId: this.selectedAgencyId
+      agencyId: this.selectedAgencyId,
+      ndCliente: this.selectedClient?.ndCliente ?? undefined
     };
 
     this.http.post<any>(`${environment.apiBaseUrl}/api/files/check-existing-orders`, requestData)
@@ -1252,10 +1253,20 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             if (existingCount > 0) {
               this.snackBar.open(
-                `${existingCount} pedidos ya existen en el sistema. Se mostrarán solo los ${newCount} pedidos nuevos.`, 
+                `${existingCount} pedidos ya existen en el sistema. Pueden no aparecer en el listado si fueron creados con una relación de cliente incorrecta.`, 
                 'Cerrar', 
-                { duration: 4000 }
+                { duration: 5000 }
               );
+            }
+            
+            if (newOrders.length === 0 && existingCount > 0) {
+              // Si no hay pedidos nuevos pero hay existentes, mostrar solo los existentes
+              // Desactivar loading
+              this.loadingOrdersFromVanguardia = false;
+              this.cdr.markForCheck();
+              // Abrir diálogo con solo pedidos existentes
+              this.openOrderSelectionDialog([], existingOrders);
+              return;
             }
             
             if (newOrders.length === 0) {
@@ -1268,8 +1279,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               return;
             }
             
-            // Mostrar solo los pedidos nuevos en el diálogo
-            this.openOrderSelectionDialog(newOrders);
+            // Mostrar pedidos nuevos y existentes en el diálogo con tabs
+            this.openOrderSelectionDialog(newOrders, existingOrders);
           } else {
             // Desactivar loading
             this.loadingOrdersFromVanguardia = false;
@@ -1290,7 +1301,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
-  private openOrderSelectionDialog(orders: any[]): void {
+  private openOrderSelectionDialog(orders: any[], existingOrders: any[] = []): void {
     // Desactivar loading cuando se abre el diálogo
     this.loadingOrdersFromVanguardia = false;
     this.cdr.markForCheck();
@@ -1301,7 +1312,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         height: 'auto',
         maxWidth: '90vw',
         maxHeight: '80vh',
-        data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
+        data: { 
+          orders: orders, 
+          agencyId: this.selectedAgencyId, 
+          ndCliente: this.selectedClient?.ndCliente,
+          existingOrders: existingOrders // Pasar pedidos existentes al diálogo
+        }
       });
 
       dialogRef.afterClosed().subscribe(result => {
@@ -1327,8 +1343,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
   }
 
-  private showOrderSelectionDialog(orders: any[]): void {
-    if (!orders || orders.length === 0) {
+  private showOrderSelectionDialog(orders: any[], existingOrders: any[] = []): void {
+    if ((!orders || orders.length === 0) && (!existingOrders || existingOrders.length === 0)) {
       // Desactivar loading
       this.loadingOrdersFromVanguardia = false;
       this.cdr.markForCheck();
@@ -1349,7 +1365,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         maxWidth: '90vw',
         maxHeight: '80vh',
         disableClose: false, // Permitir cerrar normalmente, pero se controlará en el componente
-        data: { orders: orders, agencyId: this.selectedAgencyId, ndCliente: this.selectedClient?.ndCliente }
+        data: { 
+          orders: orders, 
+          agencyId: this.selectedAgencyId, 
+          ndCliente: this.selectedClient?.ndCliente,
+          existingOrders: existingOrders // Pasar pedidos existentes al diálogo
+        }
       });
 
       dialogRef.afterClosed().subscribe(result => {

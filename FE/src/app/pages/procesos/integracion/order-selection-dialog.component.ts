@@ -11,6 +11,9 @@ import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -31,6 +34,9 @@ import { environment } from '../../../../environments/environment';
     MatRadioModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatTabsModule,
+    MatTooltipModule,
+    MatSnackBarModule,
     FormsModule
   ],
   template: `
@@ -47,28 +53,37 @@ import { environment } from '../../../../environments/environment';
           <p class="ml-4 text-gray-600">Verificando pedidos existentes...</p>
         </div>
 
-        <!-- Contenido principal -->
+        <!-- Contenido principal con tabs -->
         <div *ngIf="!loading">
-          <!-- Buscador -->
-          <div class="mb-4">
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Buscar por número de orden</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="searchTerm"
-                (input)="applyFilter()"
-                placeholder="Ingresa el número de orden para buscar"
-                autocomplete="off">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-          </div>
-          
-          <p class="text-gray-600 mb-4 order-info">
-            Se encontraron {{ filteredOrders.length }} pedidos nuevos disponibles. Selecciona uno:
-          </p>
-        
-        <div class="overflow-x-auto table-container">
-          <table mat-table [dataSource]="paginatedOrders" class="w-full">
+          <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)" class="order-tabs">
+            <!-- Tab de Pedidos Nuevos -->
+            <mat-tab label="Pedidos Nuevos">
+              <ng-template mat-tab-label>
+                <mat-icon class="mr-2">add_circle</mat-icon>
+                Pedidos Nuevos ({{ filteredOrders.length }})
+              </ng-template>
+              
+              <div class="tab-content">
+                <!-- Buscador -->
+                <div class="mb-4">
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Buscar por número de orden</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="searchTerm"
+                      (input)="applyFilter()"
+                      placeholder="Ingresa el número de orden para buscar"
+                      autocomplete="off">
+                    <mat-icon matSuffix>search</mat-icon>
+                  </mat-form-field>
+                </div>
+                
+                <p class="text-gray-600 mb-4 order-info">
+                  Se encontraron {{ filteredOrders.length }} pedidos nuevos disponibles. Selecciona uno:
+                </p>
+              
+                <div class="overflow-x-auto table-container">
+                  <table mat-table [dataSource]="paginatedOrders" class="w-full">
             <!-- Radio Button Column -->
             <ng-container matColumnDef="select">
               <th mat-header-cell *matHeaderCellDef>Seleccionar</th>
@@ -170,22 +185,172 @@ import { environment } from '../../../../environments/environment';
             </tr>
           </table>
           
-          <!-- Paginación -->
-          <mat-paginator 
-            [length]="filteredOrders.length"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="[5, 10, 20, 50]"
-            (page)="onPageChange($event)"
-            showFirstLastButtons>
-          </mat-paginator>
-        </div>
+                  <!-- Paginación -->
+                  <mat-paginator 
+                    [length]="filteredOrders.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="[5, 10, 20, 50]"
+                    (page)="onPageChange($event)"
+                    showFirstLastButtons>
+                  </mat-paginator>
+                </div>
 
-        <!-- Sin pedidos nuevos -->
-        <div *ngIf="!loading && filteredOrders.length === 0" class="text-center py-8">
-          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
-          <p class="text-gray-500">Todos los pedidos de Vanguardia ya existen en el sistema</p>
-          <p class="text-sm text-gray-400 mt-2">No hay pedidos nuevos para agregar</p>
-        </div>
+                <!-- Sin pedidos nuevos -->
+                <div *ngIf="filteredOrders.length === 0" class="text-center py-8">
+                  <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
+                  <p class="text-gray-500">Todos los pedidos de Vanguardia ya existen en el sistema</p>
+                  <p class="text-sm text-gray-400 mt-2">No hay pedidos nuevos para agregar</p>
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- Tab de Pedidos Existentes -->
+            <mat-tab label="Pedidos Existentes">
+              <ng-template mat-tab-label>
+                <mat-icon class="mr-2">info</mat-icon>
+                Pedidos Existentes ({{ existingOrders.length }})
+              </ng-template>
+              
+              <div class="tab-content">
+                <!-- Buscador para existentes -->
+                <div class="mb-4">
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Buscar por número de orden</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="existingSearchTerm"
+                      (input)="applyExistingFilter()"
+                      placeholder="Ingresa el número de orden para buscar"
+                      autocomplete="off">
+                    <mat-icon matSuffix>search</mat-icon>
+                  </mat-form-field>
+                </div>
+                
+                <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div class="flex items-start">
+                    <mat-icon class="text-yellow-600 mr-2 mt-1">warning</mat-icon>
+                    <div>
+                      <p class="text-yellow-800 font-medium text-sm">Pedidos ya registrados en el sistema</p>
+                      <p class="text-yellow-700 text-xs mt-1">
+                        Estos pedidos ya están dados de alta pero pueden no aparecer en el listado 
+                        si fueron creados con una relación de cliente incorrecta.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <p class="text-gray-600 mb-4 order-info">
+                  Se encontraron {{ filteredExistingOrders.length }} pedidos existentes:
+                </p>
+              
+                <div class="overflow-x-auto table-container">
+                  <table mat-table [dataSource]="paginatedExistingOrders" class="w-full">
+                    <!-- Order DMS Column -->
+                    <ng-container matColumnDef="order_dms">
+                      <th mat-header-cell *matHeaderCellDef>Order DMS</th>
+                      <td mat-cell *matCellDef="let order">
+                        <div class="flex items-center order-info">
+                          <mat-icon class="mr-1 text-orange-600" style="font-size: 14px;">receipt</mat-icon>
+                          <span class="font-medium">{{ order.order_dms || order.order?.order_dms || order.order?.orderDMS || order.order?.numeroPedido || 'N/A' }}</span>
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <!-- Year Column -->
+                    <ng-container matColumnDef="year">
+                      <th mat-header-cell *matHeaderCellDef>Año</th>
+                      <td mat-cell *matCellDef="let order">
+                        <span *ngIf="order.order?.year; else noYear" class="order-info">{{ order.order.year }}</span>
+                        <ng-template #noYear>
+                          <span class="text-gray-400 italic order-info">-</span>
+                        </ng-template>
+                      </td>
+                    </ng-container>
+
+                    <!-- VIN Column -->
+                    <ng-container matColumnDef="vin">
+                      <th mat-header-cell *matHeaderCellDef>VIN</th>
+                      <td mat-cell *matCellDef="let order">
+                        <span *ngIf="order.order?.vin || order.order?.VIN || order.order?.Vin; else noVin" class="order-info font-mono">
+                          {{ order.order.vin || order.order.VIN || order.order.Vin }}
+                        </span>
+                        <ng-template #noVin>
+                          <span class="text-gray-400 italic order-info">Sin VIN</span>
+                        </ng-template>
+                      </td>
+                    </ng-container>
+
+                    <!-- Model Column -->
+                    <ng-container matColumnDef="model">
+                      <th mat-header-cell *matHeaderCellDef>Modelo</th>
+                      <td mat-cell *matCellDef="let order">
+                        <span *ngIf="order.order?.model; else noModel" class="order-info">{{ order.order.model }}</span>
+                        <ng-template #noModel>
+                          <span class="text-gray-400 italic order-info">Sin modelo</span>
+                        </ng-template>
+                      </td>
+                    </ng-container>
+
+                    <!-- Version Column -->
+                    <ng-container matColumnDef="version">
+                      <th mat-header-cell *matHeaderCellDef>Versión</th>
+                      <td mat-cell *matCellDef="let order">
+                        <span *ngIf="order.order?.version; else noVersion" class="order-info">{{ order.order.version }}</span>
+                        <ng-template #noVersion>
+                          <span class="text-gray-400 italic order-info">Sin versión</span>
+                        </ng-template>
+                      </td>
+                    </ng-container>
+
+                    <!-- File ID Column -->
+                    <ng-container matColumnDef="fileId">
+                      <th mat-header-cell *matHeaderCellDef>ID Expediente</th>
+                      <td mat-cell *matCellDef="let order">
+                        <span class="order-info font-mono text-blue-600">{{ order.fileId || 'N/A' }}</span>
+                      </td>
+                    </ng-container>
+
+                    <!-- Acciones Column -->
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                      <td mat-cell *matCellDef="let order">
+                        <button 
+                          mat-icon-button 
+                          color="primary"
+                          (click)="repairRelation(order)"
+                          [disabled]="repairingFileId === order.fileId"
+                          [matTooltip]="'Reparar relación de cliente (asigna el cliente del No Cliente y agencia seleccionados a este expediente)'"
+                          class="repair-btn">
+                          <mat-icon *ngIf="repairingFileId !== order.fileId">build_circle</mat-icon>
+                          <mat-spinner *ngIf="repairingFileId === order.fileId" diameter="20" class="inline-block"></mat-spinner>
+                        </button>
+                      </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="existingDisplayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: existingDisplayedColumns;" 
+                        class="hover:bg-gray-50">
+                    </tr>
+                  </table>
+                  
+                  <!-- Paginación para existentes -->
+                  <mat-paginator 
+                    [length]="filteredExistingOrders.length"
+                    [pageSize]="existingPageSize"
+                    [pageSizeOptions]="[5, 10, 20, 50]"
+                    (page)="onExistingPageChange($event)"
+                    showFirstLastButtons>
+                  </mat-paginator>
+                </div>
+
+                <!-- Sin pedidos existentes -->
+                <div *ngIf="filteredExistingOrders.length === 0" class="text-center py-8">
+                  <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
+                  <p class="text-gray-500">No hay pedidos existentes para mostrar</p>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
         </div>
 
         <!-- Loading mientras se crea el expediente -->
@@ -195,8 +360,8 @@ import { environment } from '../../../../environments/environment';
           <p class="text-sm text-blue-600 mt-2">Por favor espera mientras se crea el expediente y los documentos requeridos</p>
         </div>
 
-        <!-- Configuración del Expediente (solo cuando hay pedido seleccionado) -->
-        <div *ngIf="selectedOrder && !loading && !creating" class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <!-- Configuración del Expediente (solo cuando hay pedido seleccionado y está en tab de nuevos) -->
+        <div *ngIf="selectedOrder && !loading && !creating && selectedTabIndex === 0" class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
             <mat-icon class="mr-2">settings</mat-icon>
             Configuración del Expediente
@@ -470,6 +635,18 @@ import { environment } from '../../../../environments/environment';
       line-height: 1.2;
     }
     
+    .tab-content {
+      padding: 16px 0;
+    }
+    
+    :host ::ng-deep {
+      .mat-mdc-tab-group {
+        .mat-mdc-tab-label {
+          min-width: 200px;
+        }
+      }
+    }
+    
     // Estilos específicos para columnas
     :host ::ng-deep {
       mat-table {
@@ -530,6 +707,18 @@ export class OrderSelectionDialogComponent implements OnInit {
     'colorInterior'
   ];
 
+  existingDisplayedColumns: string[] = [
+    'order_dms',
+    'year',
+    'vin',
+    'model',
+    'version',
+    'fileId',
+    'actions'
+  ];
+
+  repairingFileId: number | string | null = null;
+
   selectedOrder: any = null;
   searchTerm: string = '';
   filteredOrders: any[] = [];
@@ -539,6 +728,15 @@ export class OrderSelectionDialogComponent implements OnInit {
   loading: boolean = true;
   creating: boolean = false; // Estado de loading mientras se crea el expediente
   originalOrders: any[] = [];
+  
+  // Para pedidos existentes
+  existingOrders: any[] = [];
+  existingSearchTerm: string = '';
+  filteredExistingOrders: any[] = [];
+  paginatedExistingOrders: any[] = [];
+  existingPageSize: number = 5;
+  existingCurrentPage: number = 0;
+  selectedTabIndex: number = 0; // 0 = Nuevos, 1 = Existentes
 
   // Datos para los combos
   processes: any[] = [];
@@ -562,16 +760,26 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<OrderSelectionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { orders: any[], agencyId: number, ndCliente?: string },
-    private http: HttpClient
+    @Inject(MAT_DIALOG_DATA) public data: { 
+      orders: any[], 
+      agencyId: number, 
+      ndCliente?: string,
+      existingOrders?: any[] // Pedidos existentes que se pasan desde el componente padre
+    },
+    private http: HttpClient,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-
-    
-    
     this.originalOrders = [...this.data.orders];
     this.loading = true;
+    
+    // Inicializar pedidos existentes si se pasaron desde el componente padre
+    if (this.data.existingOrders && this.data.existingOrders.length > 0) {
+      this.existingOrders = this.data.existingOrders;
+      this.filteredExistingOrders = [...this.existingOrders];
+      this.updatePaginatedExistingOrders();
+    }
     
     // Cargar datos para los combos
     this.loadComboData();
@@ -581,6 +789,12 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private checkExistingOrders(): void {
+    // Si ya se pasaron pedidos existentes desde el componente padre, usarlos
+    if (this.data.existingOrders && this.data.existingOrders.length > 0) {
+      this.existingOrders = this.data.existingOrders;
+      this.filteredExistingOrders = [...this.existingOrders];
+      this.updatePaginatedExistingOrders();
+    }
 
     // Obtener todos los pedidos existentes para la agencia
     let params = new HttpParams();
@@ -603,6 +817,12 @@ export class OrderSelectionDialogComponent implements OnInit {
           this.filteredOrders = newOrders;
           this.loading = false;
           this.updatePaginatedOrders();
+          
+          // Si no se pasaron pedidos existentes desde el padre, pero hay pedidos que ya existen,
+          // verificar usando el endpoint de check-existing-orders
+          if (!this.data.existingOrders || this.data.existingOrders.length === 0) {
+            this.loadExistingOrdersFromCheck();
+          }
         },
         error: (error) => {
 
@@ -610,6 +830,30 @@ export class OrderSelectionDialogComponent implements OnInit {
           this.filteredOrders = [...this.originalOrders];
           this.loading = false;
           this.updatePaginatedOrders();
+        }
+      });
+  }
+
+  private loadExistingOrdersFromCheck(): void {
+    // Llamar al endpoint que verifica pedidos existentes (con ndCliente para filtrar solo los de relación incorrecta)
+    const requestData = {
+      orders: this.originalOrders,
+      agencyId: this.data.agencyId,
+      ndCliente: this.data.ndCliente ?? undefined
+    };
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/files/check-existing-orders`, requestData)
+      .subscribe({
+        next: (response) => {
+          if (response.success && response.data && response.data.existingOrders) {
+            this.existingOrders = response.data.existingOrders;
+            this.filteredExistingOrders = [...this.existingOrders];
+            this.updatePaginatedExistingOrders();
+          }
+        },
+        error: (error) => {
+          // Si falla, simplemente no mostrar pedidos existentes
+          console.error('Error al cargar pedidos existentes:', error);
         }
       });
   }
@@ -709,8 +953,96 @@ export class OrderSelectionDialogComponent implements OnInit {
     this.updatePaginatedOrders();
   }
 
+  // Métodos para pedidos existentes
+  applyExistingFilter(): void {
+    if (!this.existingSearchTerm.trim()) {
+      this.filteredExistingOrders = [...this.existingOrders];
+    } else {
+      const searchLower = this.existingSearchTerm.toLowerCase();
+      this.filteredExistingOrders = this.existingOrders.filter(existing => {
+        const orderDms = (existing.order_dms || existing.order?.order_dms || existing.order?.orderDMS || existing.order?.numeroPedido || '').toString().toLowerCase();
+        const vin = (existing.order?.vin || existing.order?.VIN || existing.order?.Vin || '').toString().toLowerCase();
+        const model = (existing.order?.model || existing.order?.Model || '').toString().toLowerCase();
+        const fileId = (existing.fileId || '').toString().toLowerCase();
+        return orderDms.includes(searchLower) || vin.includes(searchLower) || model.includes(searchLower) || fileId.includes(searchLower);
+      });
+    }
+    
+    this.existingCurrentPage = 0;
+    this.updatePaginatedExistingOrders();
+  }
+
+  updatePaginatedExistingOrders(): void {
+    const startIndex = this.existingCurrentPage * this.existingPageSize;
+    const endIndex = startIndex + this.existingPageSize;
+    this.paginatedExistingOrders = this.filteredExistingOrders.slice(startIndex, endIndex);
+  }
+
+  onExistingPageChange(event: any): void {
+    this.existingCurrentPage = event.pageIndex;
+    this.existingPageSize = event.pageSize;
+    this.updatePaginatedExistingOrders();
+  }
+
+  /**
+   * Reparar relación de cliente del expediente.
+   * Usa view_client_relations (ndDMS = No Cliente, IdAgency = agencia seleccionada) para obtener idClient
+   * y actualiza File.IdClient donde File.Id = idExpediente.
+   */
+  repairRelation(existingOrder: { fileId: number | string; order_dms?: string; order?: any }): void {
+    const ndDMS = this.data.ndCliente;
+    const idAgency = this.data.agencyId;
+    const idExpediente = existingOrder.fileId;
+
+    if (!ndDMS || ndDMS === '') {
+      this.snackBar.open('No hay No Cliente seleccionado. Debe buscar y seleccionar un cliente antes de reparar la relación.', 'Cerrar', { duration: 5000 });
+      return;
+    }
+    if (!idAgency) {
+      this.snackBar.open('No hay agencia seleccionada.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    if (!idExpediente) {
+      this.snackBar.open('ID de expediente no disponible.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.repairingFileId = idExpediente;
+
+    const body = {
+      ndDMS: String(ndDMS).trim(),
+      idAgency: Number(idAgency),
+      idExpediente: Number(idExpediente)
+    };
+
+    this.http.post<any>(`${environment.apiBaseUrl}/api/files/repair-client-relation`, body).subscribe({
+      next: (response) => {
+        this.repairingFileId = null;
+        if (response?.success) {
+          this.snackBar.open('Relación de cliente reparada correctamente. El pedido debería aparecer en el listado del cliente.', 'Cerrar', { duration: 5000 });
+          this.dialogRef.close({ repaired: true, fileId: idExpediente, message: response.message });
+        } else {
+          this.snackBar.open(response?.message || 'Error al reparar relación', 'Cerrar', { duration: 5000 });
+        }
+      },
+      error: (err) => {
+        this.repairingFileId = null;
+        const msg = err?.error?.message || err?.message || 'Error de conexión al reparar relación';
+        this.snackBar.open(msg, 'Cerrar', { duration: 6000 });
+      }
+    });
+  }
+
   selectOrder(order: any): void {
     this.selectedOrder = order;
+  }
+
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    // Si se cambia al tab de existentes, limpiar la selección del pedido
+    if (index === 1) {
+      this.selectedOrder = null;
+    }
   }
 
   onCancel(): void {

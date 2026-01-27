@@ -1206,6 +1206,7 @@ class Files extends BaseController
 
             $orders = $input['orders'];
             $agencyId = $input['agencyId'] ?? null;
+            $ndCliente = isset($input['ndCliente']) ? trim((string) $input['ndCliente']) : null;
 
             if (!$agencyId) {
                 return $this->response->setJSON([
@@ -1215,7 +1216,7 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            log_message('info', "checkExistingOrders: AgencyId={$agencyId}, pedidos a verificar=" . count($orders));
+            log_message('info', "checkExistingOrders: AgencyId={$agencyId}, ndCliente=" . ($ndCliente ?? 'null') . ", pedidos a verificar=" . count($orders));
 
             // Extraer order_dms únicos para la consulta (evita N consultas)
             $orderDmsUnique = [];
@@ -1247,9 +1248,28 @@ class Files extends BaseController
                 ]);
             }
 
-            // Una sola consulta: todos los File existentes para esta agencia y estos IdOrderTotal
+            // IdClient esperado desde view_client_relations (ndDMS=ndCliente, IdAgency=agencyId).
+            // Solo se usa si ndCliente viene en la petición; en ese caso en existingOrders
+            // solo entran los pedidos cuyo File.IdClient != idClientFromView (misma agencia en pedido y vista).
+            $idClientFromView = null;
+            if ($ndCliente !== null && $ndCliente !== '') {
+                try {
+                    $rowView = $this->db->query("
+                        SELECT IdClient FROM view_client_relations
+                        WHERE TRIM(ndDMS) = ? AND IdAgency = ?
+                        LIMIT 1
+                    ", [$ndCliente, (int) $agencyId])->getRowArray();
+                    if ($rowView && !empty($rowView['IdClient'])) {
+                        $idClientFromView = (int) $rowView['IdClient'];
+                    }
+                } catch (\Throwable $e) {
+                    log_message('info', 'checkExistingOrders: view_client_relations no usada, ' . $e->getMessage());
+                }
+            }
+
+            // Una sola consulta: todos los File existentes para esta agencia y estos IdOrderTotal (+ IdClient si filtraremos)
             $builder = $this->db->table('File');
-            $builder->select('Id, IdOrderTotal');
+            $builder->select('Id, IdOrderTotal' . ($idClientFromView !== null ? ', IdClient' : ''));
             $builder->where('IdAgency', $agencyId);
             $builder->whereIn('IdOrderTotal', $orderDmsList);
             $existingRows = $builder->get()->getResultArray();
@@ -1257,7 +1277,9 @@ class Files extends BaseController
             $existingMap = [];
             foreach ($existingRows as $row) {
                 $key = (string) ($row['IdOrderTotal'] ?? '');
-                $existingMap[$key] = (int) ($row['Id'] ?? 0);
+                $fileId = (int) ($row['Id'] ?? 0);
+                $fileIdClient = isset($row['IdClient']) ? (int) $row['IdClient'] : null;
+                $existingMap[$key] = ['fileId' => $fileId, 'IdClient' => $fileIdClient];
             }
 
             $existingOrders = [];
@@ -1266,13 +1288,27 @@ class Files extends BaseController
             foreach ($validOrders as $item) {
                 $order = $item['order'];
                 $orderDms = $item['order_dms'];
-                $fileId = $existingMap[$orderDms] ?? null;
-                if ($fileId) {
-                    $existingOrders[] = [
-                        'order_dms' => $orderDms,
-                        'fileId' => $fileId,
-                        'order' => $order
-                    ];
+                $info = $existingMap[$orderDms] ?? null;
+                if ($info) {
+                    $fileId = $info['fileId'];
+                    $fileIdClient = $info['IdClient'];
+                    if ($idClientFromView !== null) {
+                        // Solo incluir en existingOrders los que no tienen el IdClient de la vista (relación incorrecta)
+                        if ($fileIdClient !== $idClientFromView) {
+                            $existingOrders[] = [
+                                'order_dms' => $orderDms,
+                                'fileId' => $fileId,
+                                'order' => $order
+                            ];
+                        }
+                        // Si File.IdClient == idClientFromView, no se incluye (ya tiene la relación correcta)
+                    } else {
+                        $existingOrders[] = [
+                            'order_dms' => $orderDms,
+                            'fileId' => $fileId,
+                            'order' => $order
+                        ];
+                    }
                 } else {
                     $newOrders[] = $order;
                 }
@@ -1297,6 +1333,116 @@ class Files extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al verificar pedidos existentes: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Reparar relación de cliente en un expediente (File).
+     * Busca en view_client_relations por ndDMS (No Cliente) e IdAgency (agencia seleccionada),
+     * obtiene idClient (HeaderClient.Id) y actualiza File.IdClient donde File.Id = idExpediente.
+     */
+    public function repairClientRelation()
+    {
+        try {
+            $input = $this->request->getJSON(true);
+            if (!$input) {
+                $input = $this->request->getPost();
+            }
+
+            $ndDMS = $input['ndDMS'] ?? $input['ndCliente'] ?? null;
+            $idAgency = $input['idAgency'] ?? $input['agencyId'] ?? null;
+            $idExpediente = $input['idExpediente'] ?? $input['fileId'] ?? null;
+
+            if (!$ndDMS || trim((string) $ndDMS) === '') {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro ndDMS (No Cliente) es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            if (!$idAgency) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idAgency es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            if (!$idExpediente) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idExpediente (ID del expediente) es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $ndDMS = trim((string) $ndDMS);
+            $idAgency = (int) $idAgency;
+            $idExpediente = (int) $idExpediente;
+
+            // Buscar IdClient (hc.IdClient) en view_client_relations por ndDMS e IdAgency.
+            // File.IdClient se actualiza con hc.IdClient de la vista.
+            $viewExists = false;
+            $row = null;
+            try {
+                $row = $this->db->query("
+                    SELECT IdClient FROM view_client_relations
+                    WHERE TRIM(ndDMS) = ? AND IdAgency = ?
+                    LIMIT 1
+                ", [$ndDMS, $idAgency])->getRowArray();
+                $viewExists = true;
+            } catch (\Throwable $e) {
+                log_message('info', 'view_client_relations no encontrada, usando consulta directa: ' . $e->getMessage());
+            }
+
+            if (!$viewExists || !$row || empty($row['IdClient'])) {
+                // Fallback: obtener hc.IdClient vía HeaderClient + Client_Total_Relation
+                $row = $this->db->query("
+                    SELECT hc.IdClient
+                    FROM HeaderClient hc
+                    INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+                    WHERE TRIM(ctr.IdTotalDealer) = ? AND ctr.IdAgency = ?
+                    LIMIT 1
+                ", [$ndDMS, $idAgency])->getRowArray();
+            }
+
+            $idClientVal = $row['IdClient'] ?? $row['idClient'] ?? null;
+            if (!$row || empty($idClientVal)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró relación de cliente para el No Cliente y agencia indicados. Verifique que el cliente tenga relación en view_client_relations (Client_Total_Relation).',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            $idClient = (int) $idClientVal;
+
+            // Actualizar File.IdClient donde Id = idExpediente
+            $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+            if ($this->db->affectedRows() === 0) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se actualizó ningún expediente. Verifique que el ID de expediente exista.',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            log_message('info', "repairClientRelation: File.Id={$idExpediente} actualizado con IdClient={$idClient} (ndDMS={$ndDMS}, IdAgency={$idAgency})");
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Relación de cliente reparada correctamente',
+                'data' => [
+                    'idExpediente' => $idExpediente,
+                    'idClient' => $idClient
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'repairClientRelation: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al reparar relación: ' . $e->getMessage(),
                 'data' => null
             ])->setStatusCode(500);
         }
