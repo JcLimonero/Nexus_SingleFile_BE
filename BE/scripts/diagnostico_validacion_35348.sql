@@ -119,14 +119,14 @@ LIMIT 1;
 -- ============================================================================
 SELECT 
     '=== PASO 6: Verificar HeaderClient ===' as seccion,
-    f.IdClient as idHeaderClient,
+    f.IdClient as IdClient,
     hc.Id as headerClientExiste,
     CASE 
         WHEN hc.Id IS NULL THEN '❌ NO EXISTE HeaderClient - Esto causaría un INNER JOIN fallido'
         ELSE '✅ EXISTE HeaderClient'
     END as resultado
 FROM File f
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 WHERE f.IdOrderTotal = @idOrderTotal
 LIMIT 1;
 
@@ -143,7 +143,7 @@ SELECT
         ELSE '✅ EXISTE Client_Total_Relation'
     END as resultado
 FROM File f
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
     AND ctr.IdAgency = f.IdAgency
 WHERE f.IdOrderTotal = @idOrderTotal
@@ -163,7 +163,7 @@ SELECT
         ELSE '✅ El subquery cliente_correcto encuentra el registro'
     END as resultado
 FROM File f
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
     AND ctr.IdAgency = f.IdAgency
 LEFT JOIN (
@@ -204,7 +204,7 @@ SELECT
         ELSE 'Otro registro'
     END as identificacion
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 INNER JOIN Process p ON f.IdProcess = p.Id
 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
@@ -261,7 +261,7 @@ ORDER BY f.IdAgency, f.IdProcess;
 -- INSERT INTO Client_Total_Relation (idHeaderClient, IdAgency, IdTotalDealer, ...)
 -- SELECT hc.Id, f.IdAgency, 'VALOR_ND_CLIENTE', ...
 -- FROM File f
--- INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+-- INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 -- WHERE f.IdOrderTotal = 35348;
 --
 -- SOLUCIÓN 2: Modificar el query para que no requiera cliente_correcto.ClientId IS NOT NULL

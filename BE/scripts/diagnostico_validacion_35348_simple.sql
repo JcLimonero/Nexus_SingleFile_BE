@@ -15,7 +15,7 @@ SELECT
     p.Enabled as procesoHabilitado,
     f.IdCurrentState,
     fs.Name as estado,
-    f.IdClient as idHeaderClient
+    f.IdClient as IdClient
 FROM File f
 LEFT JOIN Agency a ON f.IdAgency = a.Id
 LEFT JOIN Process p ON f.IdProcess = p.Id
@@ -38,7 +38,7 @@ SELECT
     END as resultado
 FROM File f
 INNER JOIN Agency a ON f.IdAgency = a.Id
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
     AND ctr.IdAgency = f.IdAgency
 WHERE f.IdOrderTotal = 35348;
@@ -59,7 +59,7 @@ SELECT
     END as resultado
 FROM File f
 INNER JOIN Agency a ON f.IdAgency = a.Id
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
     AND ctr.IdAgency = f.IdAgency
 LEFT JOIN (
@@ -101,7 +101,7 @@ SELECT
         ELSE '✅ APARECERÍA en el listado'
     END as resultado
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 INNER JOIN Process p ON f.IdProcess = p.Id
 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
@@ -140,7 +140,7 @@ SELECT
     c.Name as nombreCliente,
     ctr.idHeaderClient
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
 INNER JOIN Agency a ON ctr.IdAgency = a.Id
 INNER JOIN Client c ON hc.IdClient = c.Id
@@ -154,7 +154,7 @@ WHERE f.IdOrderTotal = 35348;
 --
 -- INSERT INTO Client_Total_Relation (idHeaderClient, IdAgency, IdTotalDealer, ...)
 -- SELECT 
---     f.IdClient as idHeaderClient,
+--     f.IdClient as IdClient,
 --     f.IdAgency,
 --     'ND_CLIENTE_AQUI' as IdTotalDealer,
 --     -- ... otros campos requeridos

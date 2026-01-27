@@ -149,7 +149,7 @@ try {
                 ELSE '✅ HeaderClient y Client existen'
             END as verificacion
         FROM File f
-        LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+        LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
         LEFT JOIN Client c ON hc.IdClient = c.Id
         WHERE f.Id = ?
     ";
@@ -196,7 +196,7 @@ try {
             END as resultado
         FROM File f
         INNER JOIN Agency a ON f.IdAgency = a.Id
-        LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+        LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
         LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
             AND ctr.IdAgency = f.IdAgency
         LEFT JOIN Agency a2 ON ctr.IdAgency = a2.Id
@@ -243,7 +243,7 @@ try {
                 ELSE '⚠️ Relación para otra agencia'
             END as verificacion
         FROM File f
-        LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+        LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
         LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
         LEFT JOIN Agency a ON ctr.IdAgency = a.Id
         WHERE f.Id = ?
@@ -313,7 +313,7 @@ try {
                 ELSE '❌ NO APARECERÍA EN VALIDACIÓN'
             END as resultado_final
         FROM File f
-        INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+        INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
         INNER JOIN Process p ON f.IdProcess = p.Id
         WHERE f.Id = ?
     ";
@@ -346,7 +346,7 @@ try {
             ctr.IdAgency,
             a.Name as nombreAgencia
         FROM File f
-        INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+        INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
         LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
         LEFT JOIN Agency a ON ctr.IdAgency = a.Id
         WHERE f.Id = ?

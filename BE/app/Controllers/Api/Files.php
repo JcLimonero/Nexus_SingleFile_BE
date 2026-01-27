@@ -46,7 +46,7 @@ class Files extends BaseController
                                 f.RegistrationDate as fechaRegistro,
                                 fs.Name as estatus
                             FROM File f
-                            INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                            INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
                             INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
                                 AND ctr.IdAgency = f.IdAgency
                             LEFT JOIN Process p ON f.IdProcess = p.Id
@@ -209,7 +209,7 @@ class Files extends BaseController
                         f.IdCurrentState,
                         f.IdAgency as FileIdAgency,
                         a.IdAgency as AgencyIdAgency,
-                        f.IdClient as HeaderClientId,
+                        f.IdClient as IdClient,
                         fs.Name as estado
                     FROM File f
                     INNER JOIN Agency a ON f.IdAgency = a.Id
@@ -220,25 +220,26 @@ class Files extends BaseController
                 $pedidoResult = $pedidoQuery->getRowArray();
                 
                 if ($pedidoResult) {
+                    $idClient = $pedidoResult['IdClient'] ?? null;
                     error_log("=== DIAGNÓSTICO PEDIDO 35348 ===");
                     error_log("File ID: " . ($pedidoResult['fileId'] ?? 'NULL'));
                     error_log("IdCurrentState: " . ($pedidoResult['IdCurrentState'] ?? 'NULL') . " (esperado: {$statusId})");
                     error_log("Agency esperada: {$agencyId}, Agency del pedido: " . ($pedidoResult['AgencyIdAgency'] ?? 'NULL'));
                     error_log("Estado: " . ($pedidoResult['estado'] ?? 'NULL'));
-                    error_log("HeaderClientId: " . ($pedidoResult['HeaderClientId'] ?? 'NULL'));
+                    error_log("IdClient (File.IdClient = Client.Id): " . ($idClient ?? 'NULL'));
                     
-                    // Verificar relaciones del cliente 200495 con el HeaderClient del pedido
+                    // Verificar relaciones: File.IdClient = Client.Id; Client_Total_Relation usa idHeaderClient (HeaderClient.Id)
                     $relacionSql = "
                         SELECT COUNT(*) as count
                         FROM Client_Total_Relation ctr 
-                        WHERE ctr.idHeaderClient = ? 
-                        AND TRIM(ctr.IdTotalDealer) = ?
+                        INNER JOIN HeaderClient hc ON hc.Id = ctr.idHeaderClient AND hc.IdClient = ?
+                        WHERE TRIM(ctr.IdTotalDealer) = ?
                     ";
-                    $relacionQuery = $this->db->query($relacionSql, [$pedidoResult['HeaderClientId'], trim($ndCliente)]);
+                    $relacionQuery = $this->db->query($relacionSql, [$idClient, trim($ndCliente)]);
                     $relacionResult = $relacionQuery->getRow();
                     $relacionesConHeaderClient = $relacionResult->count ?? 0;
                     
-                    error_log("Relaciones Client_Total_Relation con HeaderClient {$pedidoResult['HeaderClientId']} y ndCliente {$ndCliente}: {$relacionesConHeaderClient}");
+                    error_log("Relaciones Client_Total_Relation para Client.Id {$idClient} y ndCliente {$ndCliente}: {$relacionesConHeaderClient}");
                     
                     // Verificar TODAS las relaciones del cliente 200495 (en cualquier agencia)
                     $todasRelacionesSql = "
@@ -301,7 +302,7 @@ class Files extends BaseController
                             SELECT COUNT(*) as count
                             FROM HeaderClient hc 
                             INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-                            WHERE hc.Id = ? AND TRIM(ctr.IdTotalDealer) = ?
+                            WHERE hc.IdClient = ? AND TRIM(ctr.IdTotalDealer) = ?
                         ";
                         $clientCheckQuery = $this->db->query($clientCheckSql, [$diagnosticResult->IdClient, trim($ndCliente)]);
                         $clientCheckResult = $clientCheckQuery->getRow();
@@ -432,12 +433,14 @@ class Files extends BaseController
 
             if ($ndCliente && trim($ndCliente) !== '') {
                 $sql .= " AND f.IdClient IN (
-                    SELECT hc.Id 
+                    SELECT hc.IdClient 
                     FROM HeaderClient hc 
                     INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-                    WHERE ctr.IdTotalDealer = ?
+                    WHERE TRIM(ctr.IdTotalDealer) = ?
+                    AND ctr.IdAgency = ?
                 )";
-                $params[] = $ndCliente;
+                $params[] = trim($ndCliente);
+                $params[] = $agencyId;
             }
 
             $sql .= " ORDER BY f.RegistrationDate DESC";

@@ -19,10 +19,11 @@ LEFT JOIN Agency a ON f.IdAgency = a.Id
 WHERE a.IdAgency = 10082  -- Cambia por tu agencyId
   AND fs.Id = 1            -- Cambia por tu statusId
   AND f.IdClient IN (
-      SELECT hc.Id 
-      FROM HeaderClient hc 
-      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = '200945'  -- Cambia por tu ndCliente
+      SELECT hc.IdClient
+      FROM HeaderClient hc
+      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+      WHERE TRIM(ctr.IdTotalDealer) = '200945'  -- Cambia por tu ndCliente
+        AND ctr.IdAgency = f.IdAgency
   )
 ORDER BY f.RegistrationDate DESC;
 
@@ -46,10 +47,11 @@ WHERE obc.Number IN (
     WHERE a.IdAgency = 10082  -- Cambia por tu agencyId
       AND fs.Id = 1            -- Cambia por tu statusId
       AND f.IdClient IN (
-          SELECT hc.Id 
-          FROM HeaderClient hc 
-          INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-          WHERE ctr.IdTotalDealer = '200945'  -- Cambia por tu ndCliente
+          SELECT hc.IdClient
+          FROM HeaderClient hc
+          INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+          WHERE TRIM(ctr.IdTotalDealer) = '200945'  -- Cambia por tu ndCliente
+            AND ctr.IdAgency = f.IdAgency
       )
 )
 ORDER BY obc.Number;
@@ -76,10 +78,11 @@ LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.Number
 WHERE a.IdAgency = 10082  -- Cambia por tu agencyId
   AND fs.Id = 1            -- Cambia por tu statusId
   AND f.IdClient IN (
-      SELECT hc.Id 
-      FROM HeaderClient hc 
-      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = '200945'  -- Cambia por tu ndCliente
+      SELECT hc.IdClient
+      FROM HeaderClient hc
+      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+      WHERE TRIM(ctr.IdTotalDealer) = '200945'  -- Cambia por tu ndCliente
+        AND ctr.IdAgency = f.IdAgency
   )
 ORDER BY f.RegistrationDate DESC;
 
@@ -106,10 +109,11 @@ LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
 WHERE a.IdAgency = 10082
   AND fs.Id = 1
   AND f.IdClient IN (
-      SELECT hc.Id 
-      FROM HeaderClient hc 
-      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = '200945'
+      SELECT hc.IdClient
+      FROM HeaderClient hc
+      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+      WHERE TRIM(ctr.IdTotalDealer) = '200945'
+        AND ctr.IdAgency = f.IdAgency
   )
 LIMIT 5;
 

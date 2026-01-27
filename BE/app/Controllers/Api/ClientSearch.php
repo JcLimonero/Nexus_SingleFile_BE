@@ -88,7 +88,7 @@ class ClientSearch extends BaseController
                     f.IdAgency as idAgency
                 FROM Client c
                 INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
-                INNER JOIN File f ON hc.Id = f.IdClient
+                INNER JOIN File f ON f.IdClient = c.Id
                 WHERE f.IdAgency = ?
                 AND ((c.Name IS NOT NULL AND c.Name != '') 
                     OR (c.LastName IS NOT NULL AND c.LastName != '') 
@@ -156,7 +156,7 @@ class ClientSearch extends BaseController
                     OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
                 AND NOT EXISTS (
                     SELECT 1 FROM File f2 
-                    WHERE f2.IdClient = hc.Id 
+                    WHERE f2.IdClient = c.Id 
                     AND f2.IdAgency = ctr.IdAgency
                 )
             ";

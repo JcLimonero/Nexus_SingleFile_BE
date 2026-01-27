@@ -47,11 +47,26 @@ try {
         throw new Exception("El File $idFile no existe");
     }
     
-    $idHeaderClient = (int) $file['IdClient'];
+    // File.IdClient = Client.Id (convención del proyecto). Resolver HeaderClient.Id para Client_Total_Relation.
+    $idClient = (int) $file['IdClient'];
     $idAgency = (int) $file['IdAgency'];
+    $idHeaderClient = null;
+    $sqlHc = "SELECT hc.Id FROM HeaderClient hc WHERE hc.IdClient = ? LIMIT 1";
+    $stmtHc = $mysqli->prepare($sqlHc);
+    $stmtHc->bind_param('i', $idClient);
+    $stmtHc->execute();
+    $resHc = $stmtHc->get_result();
+    if ($rowHc = $resHc->fetch_assoc()) {
+        $idHeaderClient = (int) $rowHc['Id'];
+    }
+    $stmtHc->close();
+    if ($idHeaderClient === null) {
+        throw new Exception("No existe HeaderClient para Client.Id = $idClient (File.IdClient). No se puede crear Client_Total_Relation.");
+    }
     
     echo "   ✅ File encontrado:\n";
-    echo "      - HeaderClient ID: $idHeaderClient\n";
+    echo "      - Client ID (File.IdClient): $idClient\n";
+    echo "      - HeaderClient ID (para relación): $idHeaderClient\n";
     echo "      - Agencia ID: $idAgency\n\n";
     
     // 2. Verificar si ya existe la relación

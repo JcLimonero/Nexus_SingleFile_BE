@@ -15,7 +15,7 @@ SELECT
     p.Enabled as procesoHabilitado,
     f.IdCurrentState,
     fs.Name as estado,
-    f.IdClient as idHeaderClient,
+    f.IdClient as IdClient,
     CASE 
         WHEN f.IdAgency = 5 THEN '✅ File pertenece a Renault (id 5)'
         ELSE CONCAT('❌ File pertenece a otra agencia: ', f.IdAgency)
@@ -40,7 +40,7 @@ WHERE f.Id = 15486;
 SELECT 
     '=== HEADERCLIENT Y CLIENT ===' as seccion,
     f.Id as idFile,
-    f.IdClient as idHeaderClient,
+    f.IdClient as IdClient,
     hc.Id as headerClientExiste,
     hc.IdClient as idClient,
     c.Id as clientExiste,
@@ -53,7 +53,7 @@ SELECT
         ELSE '✅ HeaderClient y Client existen'
     END as verificacion
 FROM File f
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client c ON hc.IdClient = c.Id
 WHERE f.Id = 15486;
 
@@ -77,7 +77,7 @@ SELECT
     END as resultado
 FROM File f
 INNER JOIN Agency a ON f.IdAgency = a.Id
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
     AND ctr.IdAgency = f.IdAgency
 LEFT JOIN Agency a2 ON ctr.IdAgency = a2.Id
@@ -100,7 +100,7 @@ SELECT
         ELSE '⚠️ Relación para otra agencia'
     END as verificacion
 FROM File f
-LEFT JOIN HeaderClient hc ON f.IdClient = hc.Id
+LEFT JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
 LEFT JOIN Agency a ON ctr.IdAgency = a.Id
 WHERE f.Id = 15486
@@ -150,7 +150,7 @@ SELECT
         ELSE '❌ NO APARECERÍA EN VALIDACIÓN'
     END as resultado_final
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 INNER JOIN Process p ON f.IdProcess = p.Id
 WHERE f.Id = 15486;
 
@@ -167,7 +167,7 @@ SELECT
     ctr.IdAgency,
     a.Name as nombreAgencia
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
 LEFT JOIN Agency a ON ctr.IdAgency = a.Id
 WHERE f.Id = 15486
@@ -188,7 +188,7 @@ SELECT
         'ND_CLIENTE'  -- Reemplaza con el ND real del cliente
     ) as IdTotalDealer
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 CROSS JOIN (SELECT COALESCE(MAX(Id), 0) as maxId FROM Client_Total_Relation) as max_ctr
 WHERE f.Id = 15486
 AND NOT EXISTS (

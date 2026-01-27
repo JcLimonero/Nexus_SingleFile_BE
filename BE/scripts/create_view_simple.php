@@ -44,7 +44,7 @@ try {
     FROM Client c
     INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
     INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-    INNER JOIN File f ON hc.Id = f.IdClient
+    INNER JOIN File f ON f.IdClient = c.Id
     WHERE ((c.Name IS NOT NULL AND c.Name != '') 
         OR (c.LastName IS NOT NULL AND c.LastName != '') 
         OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))

@@ -29,7 +29,7 @@ WHERE a.IdAgency = ?                    -- Parámetro: agencyId
       SELECT 1
       FROM HeaderClient hc 
       INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE hc.Id = f.IdClient 
+      WHERE hc.IdClient = f.IdClient 
         AND TRIM(ctr.IdTotalDealer) = ? -- Parámetro: ndCliente
         AND ctr.IdAgency = f.IdAgency   -- IMPORTANTE: Filtrar por agencia para evitar duplicados entre agencias
   )

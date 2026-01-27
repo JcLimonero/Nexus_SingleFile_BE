@@ -36,10 +36,11 @@ LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.Number  -- Probando con Number
 WHERE a.IdAgency = 10082                    -- Cambia este valor
   AND fs.Id = 1                             -- Cambia este valor
   AND f.IdClient IN (
-      SELECT hc.Id 
-      FROM HeaderClient hc 
-      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = '200945'    -- Cambia este valor
+      SELECT hc.IdClient
+      FROM HeaderClient hc
+      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+      WHERE TRIM(ctr.IdTotalDealer) = '200945'  -- Cambia este valor
+        AND ctr.IdAgency = f.IdAgency
   )
 ORDER BY f.RegistrationDate DESC;
 
@@ -64,9 +65,10 @@ LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer  -- Probando con 
 WHERE a.IdAgency = 10082
   AND fs.Id = 1
   AND f.IdClient IN (
-      SELECT hc.Id 
-      FROM HeaderClient hc 
-      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-      WHERE ctr.IdTotalDealer = '200945'
+      SELECT hc.IdClient
+      FROM HeaderClient hc
+      INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+      WHERE TRIM(ctr.IdTotalDealer) = '200945'
+        AND ctr.IdAgency = f.IdAgency
   )
 ORDER BY f.RegistrationDate DESC;

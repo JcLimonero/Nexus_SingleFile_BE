@@ -2223,7 +2223,7 @@ class Analytics extends BaseController
                     fs.Name as estado
                 FROM File f
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.IdClient
-                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id

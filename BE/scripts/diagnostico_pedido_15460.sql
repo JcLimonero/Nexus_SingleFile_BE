@@ -28,7 +28,7 @@ SELECT
     ctr.IdAgency as agencia_relacion,
     ctr.IdTotalDealer as ndCliente
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc.Id AND ctr.IdAgency = f.IdAgency
 WHERE f.Id = 15460;
 
@@ -41,7 +41,7 @@ SELECT
     a.Name as nombre_agencia_relacion,
     ctr.IdTotalDealer as ndCliente
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 LEFT JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc.Id
 LEFT JOIN Agency a ON ctr.IdAgency = a.Id
 WHERE f.Id = 15460;
@@ -76,7 +76,7 @@ SELECT
         ELSE '❌ NO cumple: NO tiene relación cliente-agencia'
     END as condicion_relacion
 FROM File f
-INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 INNER JOIN Process p ON f.IdProcess = p.Id
 WHERE f.Id = 15460;
 
