@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +13,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { Cliente, FiltrosValidacion, ValidacionService } from '../../mesa-control/validacion/validacion.service';
@@ -27,6 +29,7 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -37,7 +40,9 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
     MatProgressSpinnerModule,
     MatCardModule,
     MatSnackBarModule,
-    MatTableModule
+    MatTableModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './global.component.html',
   styleUrls: ['./global.component.scss']
@@ -52,6 +57,16 @@ export class GlobalComponent implements OnInit, OnDestroy {
   selectedFase: string = '';
   searchTerm = '';
   showCancelledOrders = false;
+  
+  registrationDateRangeGroup = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null)
+  });
+  
+  liberationDateRangeGroup = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null)
+  });
 
   loadingAgencias = false;
   loadingProcesos = false;
@@ -76,7 +91,20 @@ export class GlobalComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private authService: AuthService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    // Suscribirse a cambios en los grupos de rango de fecha
+    this.registrationDateRangeGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.aplicarFiltros();
+      });
+
+    this.liberationDateRangeGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.aplicarFiltros();
+      });
+  }
 
   ngOnInit(): void {
     // Obtener la agencia guardada inmediatamente al inicializar
@@ -158,6 +186,8 @@ export class GlobalComponent implements OnInit, OnDestroy {
   limpiarFiltros(): void {
     this.selectedFase = '';
     this.searchTerm = '';
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
     this.aplicarFiltros();
   }
 
@@ -168,6 +198,8 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.selectedFase = '';
     this.searchTerm = '';
     this.showCancelledOrders = false;
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
 
     this.cargarAgencias(true);
     this.cargarProcesos(true);
@@ -377,7 +409,71 @@ export class GlobalComponent implements OnInit, OnDestroy {
       });
     }
 
+    // Filtro por fecha de registro
+    const registrationRange = this.registrationDateRangeGroup.value;
+    if (registrationRange.start || registrationRange.end) {
+      data = data.filter((cliente) => {
+        if (!cliente.registro) return false;
+        const registroDate = new Date(cliente.registro);
+        registroDate.setHours(0, 0, 0, 0);
+        
+        if (registrationRange.start) {
+          const startDate = new Date(registrationRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          if (registroDate < startDate) return false;
+        }
+        
+        if (registrationRange.end) {
+          const endDate = new Date(registrationRange.end);
+          endDate.setHours(23, 59, 59, 999);
+          if (registroDate > endDate) return false;
+        }
+        
+        return true;
+      });
+    }
+
+    // Filtro por fecha de liberación
+    const liberationRange = this.liberationDateRangeGroup.value;
+    if (liberationRange.start || liberationRange.end) {
+      data = data.filter((cliente) => {
+        if (!cliente.fechaLiberacion) return false;
+        const liberationDate = new Date(cliente.fechaLiberacion);
+        liberationDate.setHours(0, 0, 0, 0);
+        
+        if (liberationRange.start) {
+          const startDate = new Date(liberationRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          if (liberationDate < startDate) return false;
+        }
+        
+        if (liberationRange.end) {
+          const endDate = new Date(liberationRange.end);
+          endDate.setHours(23, 59, 59, 999);
+          if (liberationDate > endDate) return false;
+        }
+        
+        return true;
+      });
+    }
+
     this.clientesFiltrados = data;
+  }
+
+  hasRegistrationDateRange(): boolean {
+    return !!(this.registrationDateRangeGroup.value.start || this.registrationDateRangeGroup.value.end);
+  }
+
+  hasLiberationDateRange(): boolean {
+    return !!(this.liberationDateRangeGroup.value.start || this.liberationDateRangeGroup.value.end);
+  }
+
+  clearRegistrationDateRange(): void {
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+  }
+
+  clearLiberationDateRange(): void {
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
   }
 
   openDocumentsDialog(cliente: Cliente): void {

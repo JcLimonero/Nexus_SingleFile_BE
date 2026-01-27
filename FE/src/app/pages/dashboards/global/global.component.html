@@ -82,12 +82,54 @@
         <mat-icon matSuffix class="text-gray-400">search</mat-icon>
       </mat-form-field>
 
+      <!-- Filtro por Fecha de Registro -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Rango Fecha Registro</mat-label>
+        <mat-date-range-input [formGroup]="registrationDateRangeGroup" [rangePicker]="registrationDatePicker">
+          <input matStartDate formControlName="start" placeholder="Inicio" (click)="registrationDatePicker.open()">
+          <input matEndDate formControlName="end" placeholder="Fin" (click)="registrationDatePicker.open()">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="registrationDatePicker"></mat-datepicker-toggle>
+        <mat-date-range-picker #registrationDatePicker></mat-date-range-picker>
+        <button
+          *ngIf="hasRegistrationDateRange()"
+          mat-icon-button
+          matSuffix
+          color="warn"
+          size="small"
+          (click)="clearRegistrationDateRange(); $event.stopPropagation()"
+          matTooltip="Limpiar filtro de fecha de registro">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <!-- Filtro por Fecha de Liberación -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Rango Fecha Liberación</mat-label>
+        <mat-date-range-input [formGroup]="liberationDateRangeGroup" [rangePicker]="liberationDatePicker">
+          <input matStartDate formControlName="start" placeholder="Inicio" (click)="liberationDatePicker.open()">
+          <input matEndDate formControlName="end" placeholder="Fin" (click)="liberationDatePicker.open()">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="liberationDatePicker"></mat-datepicker-toggle>
+        <mat-date-range-picker #liberationDatePicker></mat-date-range-picker>
+        <button
+          *ngIf="hasLiberationDateRange()"
+          mat-icon-button
+          matSuffix
+          color="warn"
+          size="small"
+          (click)="clearLiberationDateRange(); $event.stopPropagation()"
+          matTooltip="Limpiar filtro de fecha de liberación">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+
       <div class="filters-actions">
         <button
           mat-stroked-button
           color="warn"
           (click)="limpiarFiltros()"
-          [disabled]="!selectedFase && !searchTerm"
+          [disabled]="!selectedFase && !searchTerm && !hasRegistrationDateRange() && !hasLiberationDateRange()"
           matTooltip="Limpiar filtros"
           class="flex items-center gap-2">
           <mat-icon>clear_all</mat-icon>
