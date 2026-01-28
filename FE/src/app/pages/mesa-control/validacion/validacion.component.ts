@@ -1051,8 +1051,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         cliente: this.selectedCliente.cliente,
         ndPedido: this.selectedCliente.ndPedido
       }
-    }).afterClosed().subscribe(() => {
-      this.avanzarPedidoALiquidacion();
+    }).afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.avanzarPedidoALiquidacion();
+      } else {
+        this.advertenciaLiquidacionMostrada = false;
+        this.snackBar.open('El pedido se mantiene en Integración', 'Cerrar', { duration: 3000 });
+      }
     });
   }
 
