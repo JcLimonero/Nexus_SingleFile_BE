@@ -17,6 +17,7 @@ import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/doc
 import { DocumentTypeService } from '../../../core/services/document-type.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
 import { DocumentTypeConfigurationsDialogComponent } from './document-type-configurations-dialog/document-type-configurations-dialog.component';
+import { AddToConfigurationsDialogComponent } from './add-to-configurations-dialog/add-to-configurations-dialog.component';
 
 @Component({
   selector: 'app-tipos-documento',
@@ -385,6 +386,23 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
             configurations: fullDocumentType.configurations || []
           }
         });
+      }
+    });
+  }
+
+  openAddToConfigurationsDialog(documentType: DocumentType): void {
+    if (!documentType?.Id) {
+      this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
+      return;
+    }
+    const d = this.dialog.open(AddToConfigurationsDialogComponent, {
+      width: '95vw',
+      maxWidth: '1200px',
+      data: { documentType }
+    });
+    d.afterClosed().subscribe((result: { added?: boolean } | undefined) => {
+      if (result?.added) {
+        this.refreshData();
       }
     });
   }

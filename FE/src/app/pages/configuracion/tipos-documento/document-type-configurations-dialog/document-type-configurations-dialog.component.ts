@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -17,6 +17,7 @@ import { ProcesoService } from '../../../../core/services/proceso.service';
 import { AgencyService } from '../../../../core/services/agency.service';
 import { CostumerTypeService } from '../../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
+import { AddToConfigurationsDialogComponent } from '../add-to-configurations-dialog/add-to-configurations-dialog.component';
 
 export interface DocumentTypeConfigurationsDialogData {
   documentType: DocumentType;
@@ -197,6 +198,14 @@ export interface DocumentTypeConfigurationsDialogData {
       </div>
 
       <div mat-dialog-actions class="flex justify-end gap-2">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="openAddToConfigurationsDialog()"
+          class="text-sm">
+          <mat-icon class="mr-1" style="font-size: 18px; width: 18px; height: 18px;">add_circle</mat-icon>
+          Agregar a configuraciones
+        </button>
         <button mat-button (click)="onClose()" class="text-sm">
           Cerrar
         </button>
@@ -266,7 +275,8 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
     private agencyService: AgencyService,
     private costumerTypeService: CostumerTypeService,
     private tipoOperacionService: TipoOperacionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.allConfigurations = data.configurations || [];
     this.filteredConfigurations = [...this.allConfigurations];
@@ -351,6 +361,33 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
       this.configurationsDataSource.paginator = this.paginator;
       this.paginator.firstPage();
     }
+  }
+
+  loadConfigurationsFromServer(): void {
+    const id = String(this.data.documentType.Id!);
+    this.documentTypeService.getConfigurations(id).subscribe({
+      next: (response: any) => {
+        const list = response?.data?.configurations ?? [];
+        this.allConfigurations = list;
+        this.applyFilters();
+      },
+      error: () => {
+        this.snackBar.open('Error al recargar configuraciones', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  openAddToConfigurationsDialog(): void {
+    const d = this.dialog.open(AddToConfigurationsDialogComponent, {
+      width: '95vw',
+      maxWidth: '1200px',
+      data: { documentType: this.data.documentType }
+    });
+    d.afterClosed().subscribe((result: { added?: boolean } | undefined) => {
+      if (result?.added) {
+        this.loadConfigurationsFromServer();
+      }
+    });
   }
 
   deleteConfiguration(config: DocumentTypeConfiguration): void {

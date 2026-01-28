@@ -115,15 +115,19 @@ class DocumentTypeModel extends Model
         
         $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'inner');
         $builder->join('Process p', 'p.Id = cp.IdProcess', 'left');
-        $builder->join('Agency a', 'a.Id = cp.IdAgency', 'left');
+        // INNER JOIN: excluir configuraciones donde la agencia es N/A (nombre nulo, vacío o literal "N/A")
+        $builder->join(
+            'Agency a',
+            'a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != "" AND UPPER(TRIM(a.Name)) != "N/A"',
+            'inner'
+        );
         $builder->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left');
         $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
         
         // Usar comparación estricta - asegurar que el tipo de dato coincida
         $builder->where('cpd.IdDocumentType', $documentTypeId);
         
-        // Filtrar configuraciones con IdAgency válido (no NULL y no 0)
-        // Esto evita mostrar "N/A" para agencias
+        // Excluir también por IdAgency nulo o 0 (redundante con INNER JOIN pero explícito)
         $builder->where('cp.IdAgency IS NOT NULL');
         $builder->where('cp.IdAgency !=', 0);
         

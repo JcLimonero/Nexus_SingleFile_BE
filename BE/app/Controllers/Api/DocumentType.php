@@ -649,6 +649,118 @@ class DocumentType extends BaseController
     }
 
     /**
+     * GET /api/document-type/{id}/configurations-to-add
+     * Obtener configuraciones (ConfigurationProcess) donde este tipo de documento aún NO está asociado.
+     * Sirve para agregar el documento a configuraciones de forma masiva.
+     */
+    public function getConfigurationsToAdd($documentTypeId = null)
+    {
+        try {
+            $documentTypeId = (int) $documentTypeId;
+            if ($documentTypeId <= 0) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'ID del tipo de documento es requerido'
+                ])->setStatusCode(400);
+            }
+            $doc = $this->documentTypeModel->find($documentTypeId);
+            if (!$doc) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Tipo de documento no encontrado'
+                ])->setStatusCode(404);
+            }
+            $db = \Config\Database::connect();
+            $sql = "
+                SELECT cp.Id as IdConfigurationProcess, cp.IdProcess, p.Name as ProcesoName,
+                       cp.IdAgency, a.Name as AgenciaName, cp.IdCostumerType, ct.Name as TipoClienteName,
+                       cp.IdOperationType, ot.Name as TipoOperacionName, cp.Enabled
+                FROM ConfigurationProcess cp
+                LEFT JOIN Process p ON p.Id = cp.IdProcess
+                INNER JOIN Agency a ON a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != ''
+                LEFT JOIN CostumerType ct ON ct.Id = cp.IdCostumerType
+                LEFT JOIN OperationType ot ON ot.Id = cp.IdOperationType
+                WHERE cp.Id NOT IN (
+                    SELECT cpd.IdConfigurationProcess
+                    FROM ConfigurationProcess_DocumentType cpd
+                    WHERE cpd.IdDocumentType = ?
+                )
+                ORDER BY p.Name, a.Name, ct.Name, ot.Name
+            ";
+            $query = $db->query($sql, [$documentTypeId]);
+            $list = $query->getResultArray();
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => ['configurations' => $list, 'total' => count($list)],
+                'message' => 'Configuraciones disponibles para agregar'
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Error en DocumentType::getConfigurationsToAdd: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener configuraciones: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * POST /api/document-type/{id}/add-to-configurations
+     * Asocia este tipo de documento a las configuraciones indicadas (agregar masivo).
+     * Body JSON: { "configurationIds": number[] }
+     */
+    public function addToConfigurations($documentTypeId = null)
+    {
+        try {
+            $documentTypeId = (int) $documentTypeId;
+            if ($documentTypeId <= 0) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'ID del tipo de documento es requerido'
+                ])->setStatusCode(400);
+            }
+            $doc = $this->documentTypeModel->find($documentTypeId);
+            if (!$doc) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Tipo de documento no encontrado'
+                ])->setStatusCode(404);
+            }
+            $json = $this->request->getJSON(true);
+            $configurationIds = $json['configurationIds'] ?? [];
+            if (!is_array($configurationIds) || empty($configurationIds)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Se requiere configurationIds (array no vacío)'
+                ])->setStatusCode(400);
+            }
+            $configurationIds = array_map('intval', array_values(array_unique($configurationIds)));
+            $documentoRequeridoModel = new \App\Models\DocumentoRequeridoModel();
+            $added = 0;
+            foreach ($configurationIds as $idConfig) {
+                if ($idConfig <= 0) continue;
+                $existe = $documentoRequeridoModel->where('IdDocumentType', $documentTypeId)->where('IdConfigurationProcess', $idConfig)->first();
+                if ($existe) continue;
+                $documentoRequeridoModel->insert([
+                    'IdDocumentType' => $documentTypeId,
+                    'IdConfigurationProcess' => $idConfig
+                ]);
+                $added++;
+            }
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $added ? "Se agregó el tipo de documento a {$added} configuración(es)." : 'Ninguna configuración nueva agregada.',
+                'data' => ['added' => $added]
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Error en DocumentType::addToConfigurations: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al agregar a configuraciones: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * GET /api/document-type/stats
      * Obtener estadísticas de los tipos de documento
      */
