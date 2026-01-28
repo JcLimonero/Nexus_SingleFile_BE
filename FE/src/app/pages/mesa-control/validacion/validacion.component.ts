@@ -86,9 +86,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   /** Valor especial para "Todos los procesos" en el combo */
   readonly ALL_PROCESSES_VALUE = 0;
 
-  // Filtros principales
+  // Filtros principales: por defecto "Todos los procesos"
   selectedAgency: number | null = null;
-  selectedProcess: number | null = null;
+  selectedProcess: number | null = 0; // 0 = Todos los procesos
   selectedFase: string = '';
   showCancelledOrders: boolean = false;
 
@@ -1271,14 +1271,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
           
 
-          // Seleccionar el primer proceso por defecto si hay alguno; si no, "Todos los procesos"
-          if (this.procesos.length > 0) {
-            this.selectedProcess = this.procesos[0].Id;
-
-          } else {
-            this.selectedProcess = this.ALL_PROCESSES_VALUE;
-
-          }
+          // Por defecto seleccionar "Todos los procesos"
+          this.selectedProcess = this.ALL_PROCESSES_VALUE;
 
           // Si ya hay agencia seleccionada, cargar clientes automáticamente
           if (this.selectedAgency !== null) {

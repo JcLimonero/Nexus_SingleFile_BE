@@ -24,6 +24,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { ClientSelectionDialogComponent } from '../integracion/client-selection-dialog.component';
+import { DocumentosNoConfiguradosDialogComponent } from './documentos-no-configurados-dialog/documentos-no-configurados-dialog.component';
 
 @Component({
   selector: 'vex-liberacion',
@@ -616,6 +617,28 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.documentTabs = [];
           this.documentsLoading = false;
           this.snackBar.open('Error al cargar documentos requeridos', 'Cerrar', { duration: 3000 });
+        }
+      });
+  }
+
+  /**
+   * Abre el diálogo con los documentos de tipo Liberación que el pedido seleccionado no tiene configurados.
+   */
+  openDocumentosNoConfiguradosDialog(): void {
+    if (!this.selectedFile?.fileId) return;
+    const pedidoLabel = this.selectedFile.numeroPedido
+      ? `N° ${this.selectedFile.numeroPedido}${this.selectedFile.proceso ? ' • ' + this.selectedFile.proceso : ''}`
+      : undefined;
+    const d = this.dialog.open(DocumentosNoConfiguradosDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      data: { fileId: String(this.selectedFile.fileId), pedidoLabel } as { fileId: string; pedidoLabel?: string }
+    });
+    d.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: { added?: boolean } | undefined) => {
+        if (result?.added && this.selectedFile?.fileId) {
+          this.loadRequiredDocuments(String(this.selectedFile.fileId));
         }
       });
   }

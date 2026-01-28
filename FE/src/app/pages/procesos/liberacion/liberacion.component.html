@@ -293,10 +293,21 @@
   <div *ngIf="selectedFile" class="documents-section mb-2">
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
       <mat-card-header class="pb-1">
-        <mat-card-title class="flex flex-col text-sm">
-          <div class="flex items-center mb-1">
-            <mat-icon class="mr-1 text-purple-600" style="font-size: 18px;">folder_shared</mat-icon>
-            <span class="font-semibold">Documentos Requeridos para Liberación</span>
+        <mat-card-title class="flex flex-col text-sm w-full">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center">
+              <mat-icon class="mr-1 text-purple-600" style="font-size: 18px;">folder_shared</mat-icon>
+              <span class="font-semibold">Documentos Requeridos para Liberación</span>
+            </div>
+            <button 
+              mat-stroked-button 
+              color="primary"
+              (click)="openDocumentosNoConfiguradosDialog()"
+              class="text-xs"
+              matTooltip="Ver documentos de tipo Liberación que este pedido no tiene configurados">
+              <mat-icon class="mr-1" style="font-size: 14px;">folder_off</mat-icon>
+              Ver no configurados
+            </button>
           </div>
           <div class="text-xs text-gray-600 ml-6">
             Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.vehiculo }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
