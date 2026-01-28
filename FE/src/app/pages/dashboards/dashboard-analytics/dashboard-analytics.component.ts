@@ -450,8 +450,8 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    // Verificar por role_id (admin tiene role_id = '7')
-    if (user.role_id === '7' || user.role_id === 7) {
+    // Verificar por role_id (admin tiene role_id = '7' o '8')
+    if (user.role_id === '7' || user.role_id === 7 || user.role_id === '8' || user.role_id === 8) {
       return true;
     }
 

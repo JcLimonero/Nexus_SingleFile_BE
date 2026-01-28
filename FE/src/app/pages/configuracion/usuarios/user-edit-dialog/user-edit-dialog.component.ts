@@ -41,6 +41,13 @@ export class UserEditDialogComponent implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
   roles: UserRole[] = [];
+  /** Roles visibles en el selector (en create se ocultan 7 y 8). */
+  get rolesForSelect(): UserRole[] {
+    if (this.data?.mode === 'create') {
+      return this.roles.filter(r => String(r.Id) !== '7' && String(r.Id) !== '8');
+    }
+    return this.roles;
+  }
   agencies: Agency[] = [];
   loadingAgencies = false;
 

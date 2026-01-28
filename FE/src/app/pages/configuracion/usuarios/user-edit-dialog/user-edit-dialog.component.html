@@ -85,7 +85,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Rol de Usuario</mat-label>
         <mat-select formControlName="IdUserRol">
-          <mat-option *ngFor="let role of roles" [value]="role.Id">
+          <mat-option *ngFor="let role of rolesForSelect" [value]="role.Id">
             {{ role.Name }}
           </mat-option>
         </mat-select>

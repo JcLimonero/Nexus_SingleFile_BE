@@ -5,16 +5,16 @@
  */
 export const ROUTE_ACCESS: Record<string, number[] | 'all'> = {
   '/': 'all',
-  '/dashboards/global': [5, 6, 7, 14],
-  '/procesos/integracion': [1, 2, 5, 6, 7, 14],
-  '/procesos/liquidacion': [1, 3, 5, 6, 7, 14],
-  '/procesos/liberacion': [1, 4, 5, 6, 7, 14],
-  '/mesa-control/consolidacion-dms': [6, 7],
-  '/mesa-control/validacion': [5, 6, 7, 14],
+  '/dashboards/global': [5, 6, 7, 8, 14],
+  '/procesos/integracion': [1, 2, 5, 6, 7, 8, 14],
+  '/procesos/liquidacion': [1, 3, 5, 6, 7, 8, 14],
+  '/procesos/liberacion': [1, 4, 5, 6, 7, 8, 14],
+  '/mesa-control/consolidacion-dms': [6, 7, 8],
+  '/mesa-control/validacion': [5, 6, 7, 8, 14],
 };
 
-/** Rutas bajo /configuracion requieren roles 6 y 7. */
-const CONFIGURACION_ROLES: number[] = [6, 7];
+/** Rutas bajo /configuracion requieren roles 6, 7 y 8 (8 = mismo acceso que 7). */
+const CONFIGURACION_ROLES: number[] = [6, 7, 8];
 
 /**
  * Devuelve los roles permitidos para una ruta.

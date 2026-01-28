@@ -300,7 +300,7 @@ export class AuthService {
    */
   isAdmin(): boolean {
     const user = this.getCurrentUser();
-    return user ? user.role_id === '7' : false;
+    return user ? (user.role_id === '7' || user.role_id === '8') : false;
   }
 
   /**

@@ -141,15 +141,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     const user = this.authService.getCurrentUser();
     if (!user) return false;
 
-    // Gerente (role_id = '6') o Administrador (role_id = '7')
-    return user.role_id === '6' || user.role_id === '7';
+    // Gerente (role_id = '6') o Administrador (role_id = '7' / '8')
+    return String(user.role_id) === '6' || String(user.role_id) === '7' || String(user.role_id) === '8';
   }
 
-  /** Solo rol 7 (Administrador) puede ver Administrar > Eliminar y Cambiar estatus. */
+  /** Solo roles 7 y 8 (Administrador) pueden ver Administrar > Eliminar y Cambiar estatus. */
   get isAdmin(): boolean {
     const user = this.authService.getCurrentUser();
     if (!user) return false;
-    return String(user.role_id) === '7';
+    return String(user.role_id) === '7' || String(user.role_id) === '8';
   }
 
   // Método auxiliar para el tooltip de fecha de expiración

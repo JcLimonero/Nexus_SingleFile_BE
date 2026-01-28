@@ -67,6 +67,17 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar
   ) { }
 
+  /** En esta pantalla no se deben mostrar roles 7 y 8 en UI (filtros/tabla). */
+  private readonly hiddenRoleIds = new Set(['7', '8']);
+
+  get rolesForFilter(): UserRole[] {
+    return this.roles.filter(r => !this.hiddenRoleIds.has(String(r.Id)));
+  }
+
+  isHiddenRole(roleId: string): boolean {
+    return this.hiddenRoleIds.has(String(roleId));
+  }
+
   ngOnInit(): void {
     this.loadUsers();
     this.loadRoles();
