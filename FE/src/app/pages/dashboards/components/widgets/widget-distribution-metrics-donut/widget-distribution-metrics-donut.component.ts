@@ -219,13 +219,14 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
       return;
     }
 
-    // Preparar datos para el chart de barras
+    // Preparar datos para el chart (area: formato { name, data }[])
     this.labels = ['Entregados', 'Cancelados', 'En Proceso'];
-    this.series = [
+    const data = [
       this.distributionMetrics.entregados.total,
       this.distributionMetrics.canceladas.total,
       this.distributionMetrics.proceso.total
-    ];
+    ].map((v) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0));
+    this.series = [{ name: 'Distribución', data }];
     this.totalCases = this.distributionMetrics.total;
 
     // Actualizar las opciones del gráfico

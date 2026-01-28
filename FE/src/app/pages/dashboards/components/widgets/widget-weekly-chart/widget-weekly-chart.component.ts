@@ -179,14 +179,14 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
     }
 
     try {
-      // Crear array de datos para cada día de la semana
       const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
       const chartData = daysOfWeek.map(day => {
         const dayData = this.weeklyData.find(item => item.dayName === day);
-        return dayData ? dayData.count : 0;
+        const v = dayData ? dayData.count : 0;
+        return typeof v === 'number' && !Number.isNaN(v) ? v : 0;
       });
 
-      this.totalCases = this.weeklyData.reduce((total, day) => total + day.count, 0);
+      this.totalCases = this.weeklyData.reduce((total, day) => total + (Number(day.count) || 0), 0);
 
       this.series = [
         {

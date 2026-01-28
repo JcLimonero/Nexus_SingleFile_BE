@@ -46,8 +46,8 @@
           </div>
         </div>
 
-        <!-- Chart -->
-        <div class="chart-wrapper">
+        <!-- Chart (solo renderizar con datos para evitar errores de ApexCharts) -->
+        <div *ngIf="weeklyData.length > 0" class="chart-wrapper">
           <vex-chart
             [series]="series"
             [options]="options">

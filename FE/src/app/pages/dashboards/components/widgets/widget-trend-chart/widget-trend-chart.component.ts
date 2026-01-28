@@ -217,19 +217,11 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
+          const toNum = (arr: unknown) => (Array.isArray(arr) ? arr : []).map((v) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0));
           this.series = [
-            {
-              name: 'Entregados',
-              data: data.entregados || []
-            },
-            {
-              name: 'Canceladas',
-              data: data.canceladas || []
-            },
-            {
-              name: 'Proceso',
-              data: data.proceso || []
-            }
+            { name: 'Entregados', data: toNum(data.entregados || []) },
+            { name: 'Canceladas', data: toNum(data.canceladas || []) },
+            { name: 'Proceso', data: toNum(data.proceso || []) }
           ];
           this.loading = false;
           this.cdr.markForCheck();
