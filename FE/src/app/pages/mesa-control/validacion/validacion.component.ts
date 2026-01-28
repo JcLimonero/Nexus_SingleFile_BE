@@ -1170,20 +1170,25 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.advertenciaLiberadoMostrada = true;
-    this.mostrarAdvertenciaLiberado();
+    this.mostrarAdvertenciaLiberado(documentos);
   }
 
-  private mostrarAdvertenciaLiberado(): void {
+  private mostrarAdvertenciaLiberado(documentos: Documento[]): void {
     if (!this.selectedCliente) {
       return;
     }
+
+    const tieneDocumentosPorValidar = documentos.some(
+      (doc) => this.esDocumentoDeLiberacion(doc) && !this.esDocumentoAprobado(doc)
+    );
 
     this.dialog.open(AdvertenciaLiberadoDialogComponent, {
       width: '520px',
       disableClose: true,
       data: {
         cliente: this.selectedCliente.cliente,
-        ndPedido: this.selectedCliente.ndPedido
+        ndPedido: this.selectedCliente.ndPedido,
+        tieneDocumentosPorValidar
       }
     }).afterClosed().subscribe((confirmado) => {
       if (confirmado) {

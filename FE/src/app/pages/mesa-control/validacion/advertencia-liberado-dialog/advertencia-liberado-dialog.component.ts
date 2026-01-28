@@ -7,6 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 export interface AdvertenciaLiberadoData {
   cliente?: string;
   ndPedido?: number;
+  /** true si aún hay documentos (de liberación) pendientes de validar */
+  tieneDocumentosPorValidar?: boolean;
 }
 
 @Component({
@@ -50,6 +52,9 @@ export interface AdvertenciaLiberadoData {
       </div>
 
       <div class="dialog-actions">
+        <button mat-stroked-button (click)="cancelar()">
+          {{ data?.tieneDocumentosPorValidar ? 'Continuar validando documentos' : 'Cancelar' }}
+        </button>
         <button mat-stroked-button color="primary" (click)="confirmar()">Finalizar y liberar</button>
       </div>
     </div>
@@ -155,7 +160,7 @@ export interface AdvertenciaLiberadoData {
       .dialog-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 12px;
       }
     `
   ]
@@ -168,6 +173,10 @@ export class AdvertenciaLiberadoDialogComponent {
 
   confirmar(): void {
     this.dialogRef.close(true);
+  }
+
+  cancelar(): void {
+    this.dialogRef.close(false);
   }
 }
 
