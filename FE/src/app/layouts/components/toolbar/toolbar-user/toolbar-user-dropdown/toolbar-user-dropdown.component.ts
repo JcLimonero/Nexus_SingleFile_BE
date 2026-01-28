@@ -64,31 +64,8 @@ export class ToolbarUserDropdownComponent implements OnInit {
       description: 'Información Personal',
       colorClass: 'text-teal-600',
       route: '/apps/social'
-    },
-    {
-      id: '2',
-      icon: 'mat:move_to_inbox',
-      label: 'Mi Bandeja',
-      description: 'Mensajes y Noticias',
-      colorClass: 'text-primary-600',
-      route: '/apps/chat'
-    },
-    {
-      id: '3',
-      icon: 'mat:list_alt',
-      label: 'Mis Proyectos',
-      description: 'Tareas y Proyectos Activos',
-      colorClass: 'text-amber-600',
-      route: '/apps/scrumboard'
-    },
-    {
-      id: '4',
-      icon: 'mat:table_chart',
-      label: 'Información de Facturación',
-      description: 'Precios y Plan Actual',
-      colorClass: 'text-purple-600',
-      route: '/pages/pricing'
     }
+    // Ocultas por el momento: Mi Bandeja, Mis Proyectos, Información de Facturación
   ];
 
   statuses: OnlineStatus[] = [
