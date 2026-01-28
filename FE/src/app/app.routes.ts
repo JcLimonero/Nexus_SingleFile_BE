@@ -2,6 +2,7 @@ import { LayoutComponent } from './layouts/layout/layout.component';
 import { VexRoutes } from '@vex/interfaces/vex-route.interface';
 import { LoginGuard } from './core/guards/login.guard';
 import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 export const appRoutes: VexRoutes = [
   {
@@ -36,7 +37,7 @@ export const appRoutes: VexRoutes = [
   {
     path: '',
     component: LayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RoleGuard],
     children: [
       {
         path: 'dashboards/analytics',
@@ -49,13 +50,6 @@ export const appRoutes: VexRoutes = [
           import('./pages/dashboards/global/global.component').then(
             (m) => m.GlobalComponent
           )
-      },
-      {
-        path: 'dashboards/admin-analytics',
-        loadComponent: () =>
-          import(
-            './pages/dashboards/dashboard-admin-analytics/dashboard-admin-analytics.component'
-          ).then((m) => m.DashboardAdminAnalyticsComponent)
       },
       {
         path: '',
@@ -311,13 +305,6 @@ export const appRoutes: VexRoutes = [
               )
           },
           {
-            path: 'gestion',
-            loadComponent: () =>
-              import('./pages/procesos/gestion/gestion.component').then(
-                (m) => m.GestionComponent
-              )
-          },
-          {
             path: 'liquidacion',
             loadComponent: () =>
               import('./pages/procesos/liquidacion/liquidacion.component').then(
@@ -336,27 +323,6 @@ export const appRoutes: VexRoutes = [
       {
         path: 'mesa-control',
         children: [
-          {
-            path: 'dashboard',
-            loadComponent: () =>
-              import('./pages/mesa-control/dashboard/dashboard.component').then(
-                (m) => m.DashboardComponent
-              )
-          },
-          {
-            path: 'monitoreo',
-            loadComponent: () =>
-              import('./pages/mesa-control/monitoreo/monitoreo.component').then(
-                (m) => m.MonitoreoComponent
-              )
-          },
-          {
-            path: 'reportes',
-            loadComponent: () =>
-              import('./pages/mesa-control/reportes/reportes.component').then(
-                (m) => m.ReportesComponent
-              )
-          },
           {
             path: 'validacion',
             loadComponent: () =>

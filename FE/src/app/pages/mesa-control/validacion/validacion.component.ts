@@ -115,11 +115,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   allClientes: any[] = []; // Todos los clientes para paginación local
   clientesOriginales: any[] = []; // Copia de respaldo de todos los clientes originales
 
-  // Tabla de documentos
-  documentosDisplayedColumns: string[] = [
-    'proceso', 'fase', 'documento', 'disponibleCliente', 'estatus', 'ver', 'validar', 'rechazar',
-    'eliminar', 'requerido', 'requiereExpiracion', 'fecha', 'fechaExpiracion', 'comentario', 'asignado'
-  ];
+  // Tabla de documentos: columnas visibles según rol (Rechazar solo rol 7, Eliminar solo roles 6 y 7)
+  get documentosDisplayedColumns(): string[] {
+    const base = ['proceso', 'fase', 'documento', 'disponibleCliente', 'estatus', 'ver', 'validar'];
+    if (this.isAdmin) base.push('rechazar');
+    if (this.isManagerOrAdmin) base.push('eliminar');
+    return [...base, 'requerido', 'requiereExpiracion', 'fecha', 'fechaExpiracion', 'comentario', 'asignado'];
+  }
   documentosDataSource: any[] = [];
 
   // Cliente seleccionado
@@ -141,6 +143,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Gerente (role_id = '6') o Administrador (role_id = '7')
     return user.role_id === '6' || user.role_id === '7';
+  }
+
+  /** Solo rol 7 (Administrador) puede ver Administrar > Eliminar y Cambiar estatus. */
+  get isAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    if (!user) return false;
+    return String(user.role_id) === '7';
   }
 
   // Método auxiliar para el tooltip de fecha de expiración
