@@ -363,6 +363,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/mesa-control/validacion/validacion.component').then(
                 (m) => m.ValidacionComponent
               )
+          },
+          {
+            path: 'consolidacion-dms',
+            loadComponent: () =>
+              import('./pages/mesa-control/consolidacion-dms/consolidacion-dms.component').then(
+                (m) => m.ConsolidacionDmsComponent
+              )
           }
         ]
       },

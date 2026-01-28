@@ -42,6 +42,33 @@ class VanguardiaProxy extends BaseController
     }
 
     /**
+     * Proxy para facturas/pedidos DMS (singlefileinvoices)
+     * GET /api/vgd/singlefileinvoices
+     */
+    public function singlefileInvoices()
+    {
+        try {
+            $params = $this->request->getGet();
+            $queryString = http_build_query($params);
+
+            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileinvoices?{$queryString}";
+
+            $response = $this->makeVanguardiaRequest('GET', $url);
+
+            return $this->response
+                ->setJSON($response['body'])
+                ->setStatusCode($response['status']);
+
+        } catch (\Exception $e) {
+            error_log("Error en VanguardiaProxy::singlefileInvoices: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al consultar API singlefileinvoices: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Proxy para búsqueda de pedidos
      * GET /api/vgd/singlefileorderslastest
      */

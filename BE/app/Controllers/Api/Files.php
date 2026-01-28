@@ -1717,4 +1717,126 @@ class Files extends BaseController
             ])->setStatusCode(500);
         }
     }
+
+    /**
+     * Comparar pedidos del DMS con la tabla File para obtener estatus
+     * POST /api/files/compare-dms-orders
+     * Body: { "orders": [{ "idAgency": 10082, "order_dms": "12345" }, ...] }
+     */
+    public function compareDmsOrders()
+    {
+        try {
+            $input = $this->request->getJSON(true);
+            
+            if (!isset($input['orders']) || !is_array($input['orders'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro orders es requerido y debe ser un array',
+                    'data' => []
+                ])->setStatusCode(400);
+            }
+
+            $orders = $input['orders'];
+            $results = [];
+
+            if (empty($orders)) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'No hay pedidos para comparar',
+                    'data' => []
+                ]);
+            }
+
+            // Construir la consulta para obtener estatus de múltiples pedidos
+            // Comparar: Agency.IdAgency = pedido.idAgency AND File.IdOrderTotal = pedido.order_dms
+            $placeholders = [];
+            $params = [];
+            
+            foreach ($orders as $order) {
+                $idAgency = $order['idAgency'] ?? $order['IdAgency'] ?? null;
+                $orderDms = $order['order_dms'] ?? $order['orderDMS'] ?? $order['OrderDMS'] ?? $order['numeroPedido'] ?? null;
+                
+                if ($idAgency && $orderDms) {
+                    $placeholders[] = "(a.IdAgency = ? AND f.IdOrderTotal = ?)";
+                    $params[] = $idAgency;
+                    $params[] = trim((string)$orderDms);
+                }
+            }
+
+            if (empty($placeholders)) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'No hay pedidos válidos para comparar',
+                    'data' => []
+                ]);
+            }
+
+            $sql = "
+                SELECT 
+                    a.IdAgency as idAgency,
+                    f.IdOrderTotal as order_dms,
+                    fs.Name as estatus,
+                    fs.Id as estatusId,
+                    f.Id as fileId
+                FROM File f
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE " . implode(' OR ', $placeholders) . "
+            ";
+
+            $query = $this->db->query($sql, $params);
+            $fileResults = $query->getResultArray();
+
+            // Crear un mapa de resultados por idAgency + order_dms
+            $statusMap = [];
+            foreach ($fileResults as $result) {
+                $key = $result['idAgency'] . '|' . trim((string)$result['order_dms']);
+                $statusMap[$key] = [
+                    'estatus' => $result['estatus'] ?? 'Sin estatus',
+                    'estatusId' => $result['estatusId'] ?? null,
+                    'fileId' => $result['fileId'] ?? null,
+                    'existe' => true
+                ];
+            }
+
+            // Construir respuesta con todos los pedidos
+            foreach ($orders as $order) {
+                $idAgency = $order['idAgency'] ?? $order['IdAgency'] ?? null;
+                $orderDms = $order['order_dms'] ?? $order['orderDMS'] ?? $order['OrderDMS'] ?? $order['numeroPedido'] ?? null;
+                
+                if ($idAgency && $orderDms) {
+                    $key = $idAgency . '|' . trim((string)$orderDms);
+                    $result = $statusMap[$key] ?? [
+                        'estatus' => 'No existe en Expediente Único',
+                        'estatusId' => null,
+                        'fileId' => null,
+                        'existe' => false
+                    ];
+                    
+                    $results[] = [
+                        'idAgency' => $idAgency,
+                        'order_dms' => trim((string)$orderDms),
+                        'estatus' => $result['estatus'],
+                        'estatusId' => $result['estatusId'],
+                        'fileId' => $result['fileId'],
+                        'existe' => $result['existe']
+                    ];
+                }
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Comparación completada',
+                'data' => $results
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error en Files::compareDmsOrders: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al comparar pedidos: ' . $e->getMessage(),
+                'data' => []
+            ])->setStatusCode(500);
+        }
+    }
 }

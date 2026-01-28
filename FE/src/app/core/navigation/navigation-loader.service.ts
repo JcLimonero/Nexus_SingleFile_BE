@@ -41,12 +41,6 @@ export class NavigationLoaderService {
             route: '/',
             icon: 'mat:insights',
             routerLinkActiveOptions: { exact: true }
-          },
-          {
-            type: 'link',
-            label: 'Global',
-            route: '/dashboards/global',
-            icon: 'mat:dashboard_customize'
           }
         ]
       },
@@ -80,6 +74,18 @@ export class NavigationLoaderService {
         children: [
           {
             type: 'link',
+            label: 'Consolidación DMS',
+            route: '/mesa-control/consolidacion-dms',
+            icon: 'mat:folder_special'
+          },
+          {
+            type: 'link',
+            label: 'Global',
+            route: '/dashboards/global',
+            icon: 'mat:dashboard_customize'
+          },
+          {
+            type: 'link',
             label: 'Validación',
             route: '/mesa-control/validacion',
             icon: 'mat:verified'
@@ -94,6 +100,55 @@ export class NavigationLoaderService {
             type: 'subheading',
             label: 'Configuración',
             children: [
+              {
+                type: 'dropdown',
+                label: 'Catálogos',
+                icon: 'mat:category',
+                children: [
+                  {
+                    type: 'link',
+                    label: 'Agencias',
+                    route: '/configuracion/catalogos/agencias',
+                    icon: 'mat:business'
+                  },
+                  {
+                    type: 'link',
+                    label: 'Procesos',
+                    route: '/configuracion/catalogos/procesos',
+                    icon: 'mat:assignment'
+                  },
+                  {
+                    type: 'link',
+                    label: 'Tipos de Operación',
+                    route: '/configuracion/catalogos/tipos-operacion',
+                    icon: 'mat:swap_horiz'
+                  },
+                  {
+                    type: 'link',
+                    label: 'Tipos de Cliente',
+                    route: '/configuracion/catalogos/tipos-cliente',
+                    icon: 'mat:person_outline'
+                  },
+                  {
+                    type: 'link',
+                    label: 'Tipos de Documento',
+                    route: '/configuracion/catalogos/tipos-documento',
+                    icon: 'mat:description'
+                  },
+                  {
+                    type: 'link',
+                    label: 'Motivos de Aprobación y Rechazo',
+                    route: '/configuracion/motivos-rechazo',
+                    icon: 'mat:block'
+                  },
+                  {
+                    type: 'link',
+                    label: 'Motivos Extraordinarios',
+                    route: '/configuracion/motivos-extraordinarios',
+                    icon: 'mat:warning'
+                  }
+                ]
+              },
               {
                 type: 'link',
                 label: 'Configuración de Documentos Requeridos',
@@ -111,58 +166,9 @@ export class NavigationLoaderService {
                 label: 'Logs de Actividad',
                 route: '/configuracion/logs-activity',
                 icon: 'mat:history'
-              },
-                      {
-          type: 'dropdown',
-          label: 'Catálogos',
-          icon: 'mat:category',
-          children: [
-            {
-              type: 'link',
-              label: 'Agencias',
-              route: '/configuracion/catalogos/agencias',
-              icon: 'mat:business'
-            },
-            {
-              type: 'link',
-              label: 'Procesos',
-              route: '/configuracion/catalogos/procesos',
-              icon: 'mat:assignment'
-            },
-            {
-              type: 'link',
-              label: 'Tipos de Operación',
-              route: '/configuracion/catalogos/tipos-operacion',
-              icon: 'mat:swap_horiz'
-            },
-            {
-              type: 'link',
-              label: 'Tipos de Cliente',
-              route: '/configuracion/catalogos/tipos-cliente',
-              icon: 'mat:person_outline'
-            },
-            {
-              type: 'link',
-              label: 'Tipos de Documento',
-              route: '/configuracion/catalogos/tipos-documento',
-              icon: 'mat:description'
-            },
-            {
-              type: 'link',
-              label: 'Motivos de Aprobación y Rechazo',
-              route: '/configuracion/motivos-rechazo',
-              icon: 'mat:block'
-            },
-            {
-              type: 'link',
-              label: 'Motivos Extraordinarios',
-              route: '/configuracion/motivos-extraordinarios',
-              icon: 'mat:warning'
-            }
-          ]
-        }
-        ]
-      });
+              }
+            ]
+          });
         } else {
       // Usuario no autorizado para configuración
     }

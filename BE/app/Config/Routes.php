@@ -310,6 +310,11 @@ $routes->group('backblaze', function($routes) {
     $routes->get('get-private-url', 'VanguardiaProxy::getPrivateUrl');
 });
 
+// Rutas de proxy a APIs Vanguardia (vgd)
+$routes->group('vgd', function($routes) {
+    $routes->get('singlefileinvoices', 'VanguardiaProxy::singlefileInvoices');
+});
+
 // Rutas de files/pedidos (Principal)
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
@@ -320,6 +325,7 @@ $routes->group('files', function($routes) {
     $routes->post('check-existing-orders', 'Files::checkExistingOrders');
     $routes->post('repair-client-relation', 'Files::repairClientRelation');
     $routes->post('delete', 'Files::deleteFile');
+    $routes->post('compare-dms-orders', 'Files::compareDmsOrders');
 });
 
 

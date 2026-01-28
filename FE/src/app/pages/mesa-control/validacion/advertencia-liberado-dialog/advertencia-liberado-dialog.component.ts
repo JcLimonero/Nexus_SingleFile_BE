@@ -53,7 +53,7 @@ export interface AdvertenciaLiberadoData {
 
       <div class="dialog-actions">
         <button mat-stroked-button (click)="cancelar()">
-          {{ data?.tieneDocumentosPorValidar ? 'Continuar validando documentos' : 'Cancelar' }}
+          {{ data.tieneDocumentosPorValidar ? 'Continuar validando documentos' : 'Cancelar' }}
         </button>
         <button mat-stroked-button color="primary" (click)="confirmar()">Finalizar y liberar</button>
       </div>
