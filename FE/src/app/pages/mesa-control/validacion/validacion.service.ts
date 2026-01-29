@@ -9,6 +9,7 @@ export interface Cliente {
   idFile: number;
   ndCliente: number;
   ndPedido: number;
+  tipoCliente?: string | null;
   cliente: string;
   proceso: string;
   operacion: string;
@@ -18,6 +19,14 @@ export interface Cliente {
   tieneDocumentosPendientes: number;
   documentosNoAprobados?: number;
   fechaLiberacion?: string;
+  /** VIN de la unidad (OrderByCar) */
+  vin?: string | null;
+  /** Modelo de la unidad (OrderByCar) */
+  modelo?: string | null;
+  /** Año de la unidad (OrderByCar.Year) */
+  year?: number | string | null;
+  /** Versión de la unidad (OrderByCar.CarType) */
+  version?: string | null;
 }
 
 export interface Documento {

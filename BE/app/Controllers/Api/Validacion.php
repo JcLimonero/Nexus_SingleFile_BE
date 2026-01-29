@@ -609,6 +609,7 @@ class Validacion extends BaseController
                         NULLIF(TRIM(c.RazonSocial), ''),
                         TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
                     ) as cliente,
+                    ct.Name as tipoCliente,
                     p.Name as proceso,
                     ot.Name as operacion,
                     a.Name as agencia,
@@ -636,14 +637,38 @@ class Validacion extends BaseController
                         WHERE dbfPend.IdFile = f.Id
                         AND dbfPend.Enabled = 1
                         AND dbfPend.IdCurrentStatus <> 4
-                    ) as documentosNoAprobados
+                    ) as documentosNoAprobados,
+                    COALESCE(obc1.VIN, obc2.VIN) as vin,
+                    COALESCE(obc1.Modelo, obc2.Modelo) as modelo,
+                    COALESCE(obc1.Year, obc2.Year) as year,
+                    COALESCE(obc1.CarType, obc2.CarType) as version
                 FROM File f
                 INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
+                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN Agency a ON f.IdAgency = a.Id
+                LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder
+                LEFT JOIN (
+                    SELECT obc2a.IdTotalDealer,
+                        obc2a.idagency,
+                        obc2a.VIN,
+                        obc2a.Modelo,
+                        obc2a.Year,
+                        obc2a.CarType
+                    FROM OrderByCar obc2a
+                    INNER JOIN (
+                        SELECT IdTotalDealer, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
+                        FROM OrderByCar
+                        GROUP BY IdTotalDealer, idagency
+                    ) obc2b ON obc2a.IdTotalDealer = obc2b.IdTotalDealer
+                        AND obc2a.idagency = obc2b.idagency
+                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.IdOrder IS NULL
+                    AND obc2.IdTotalDealer = f.IdOrderTotal
+                    AND obc2.idagency = f.IdAgency
                 WHERE f.IdAgency = ?
                 AND p.Enabled = 1
                 AND EXISTS (

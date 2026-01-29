@@ -333,7 +333,17 @@
               </td>
             </ng-container>
 
-            <!-- Columna ID File (solo para administradores) -->
+            <!-- Columna Tipo de cliente -->
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="tipoCliente" class="w-36 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Tipo de cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                {{ item.tipoCliente || '—' }}
+              </td>
+            </ng-container>
+
+            <!-- Columna ID File (solo para roles 7 y 8, al inicio) -->
             <ng-container matColumnDef="idFile">
               <th mat-header-cell *matHeaderCellDef mat-sort-header="idFile" class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 ID File
@@ -518,9 +528,15 @@
 
           <!-- Tabla de documentos cuando hay cliente seleccionado -->
           <div *ngIf="selectedCliente && !loading">
-            <!-- Información de documentos -->
-            <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600">
-              Mostrando {{ documentosDataSource.length }} documentos para el cliente {{ selectedCliente.cliente }} (Pedido: {{ selectedCliente.ndPedido }})
+            <!-- Información de documentos: cliente, pedido, VIN, modelo y año (OrderByCar) -->
+            <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span>Mostrando {{ documentosDataSource.length }} documentos para el cliente <strong>{{ selectedCliente.cliente }}</strong></span>
+              <span class="text-gray-500">|</span>
+              <span><strong>Pedido:</strong> {{ selectedCliente.ndPedido }}</span>
+              <span class="text-gray-700"><strong>VIN:</strong> {{ selectedCliente.vin || '—' }}</span>
+              <span class="text-gray-700"><strong>Modelo:</strong> {{ selectedCliente.modelo || '—' }}</span>
+              <span class="text-gray-700"><strong>Versión:</strong> {{ selectedCliente.version || '—' }}</span>
+              <span class="text-gray-700"><strong>Año:</strong> {{ selectedCliente.year ?? '—' }}</span>
             </div>
 
                       <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table" *ngIf="documentosDataSource.length > 0">

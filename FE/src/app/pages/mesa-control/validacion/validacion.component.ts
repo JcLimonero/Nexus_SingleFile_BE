@@ -99,11 +99,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Tabla de clientes
   get clientesDisplayedColumns(): string[] {
-    // Agregar idFile solo para administradores y gerentes
-    if (this.isManagerOrAdmin) {
-      return ['ndCliente', 'ndPedido', 'idFile', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
+    // Columna idFile solo para roles 7 y 8, al inicio cuando se muestra
+    const base = ['ndCliente', 'ndPedido', 'cliente', 'tipoCliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
+    if (this.isAdmin) {
+      return ['idFile', ...base];
     }
-    return ['ndCliente', 'ndPedido', 'cliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
+    return base;
   }
   clientesDataSource = new MatTableDataSource<any>([]);
 
