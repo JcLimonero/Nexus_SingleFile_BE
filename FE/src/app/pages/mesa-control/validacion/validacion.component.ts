@@ -119,8 +119,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Tabla de documentos: columnas visibles según rol (Rechazar solo rol 7, Eliminar solo roles 6 y 7)
   get documentosDisplayedColumns(): string[] {
     const base = ['proceso', 'fase', 'documento', 'disponibleCliente', 'estatus', 'ver', 'validar'];
+    // Rechazar y Eliminar solo para roles 7 (Administrador) y 8 (Soporte)
     if (this.isAdmin) base.push('rechazar');
-    if (this.isManagerOrAdmin) base.push('eliminar');
+    if (this.isAdmin) base.push('eliminar');
     return [...base, 'requerido', 'requiereExpiracion', 'fecha', 'fechaExpiracion', 'comentario', 'asignado'];
   }
   documentosDataSource: any[] = [];
@@ -146,7 +147,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     return String(user.role_id) === '6' || String(user.role_id) === '7' || String(user.role_id) === '8';
   }
 
-  /** Solo roles 7 y 8 (Administrador) pueden ver Administrar > Eliminar y Cambiar estatus. */
+  /** Solo roles 7 (Administrador) y 8 (Soporte): ID File, Rechazar, Eliminar, Administrar > Eliminar/Cambiar estatus. */
   get isAdmin(): boolean {
     const user = this.authService.getCurrentUser();
     if (!user) return false;
@@ -1493,8 +1494,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   eliminarDocumento(documento: any): void {
 
-    // Verificar que solo gerentes o administradores puedan eliminar
-    if (!this.isManagerOrAdmin) {
+    // Verificar que solo administradores (roles 7 y 8) puedan eliminar
+    if (!this.isAdmin) {
       this.snackBar.open('No tienes permisos para eliminar documentos', 'Cerrar', {
         duration: 3000
       });

@@ -678,7 +678,7 @@
                 Eliminar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button *ngIf="isManagerOrAdmin"
+                <button *ngIf="isAdmin"
                         mat-icon-button
                         color="warn"
                         class="!w-6 !h-6 !min-h-6 !p-0"
@@ -686,7 +686,7 @@
                         matTooltip="Eliminar documento">
                   <mat-icon class="!text-sm">delete_outline</mat-icon>
                 </button>
-                <span *ngIf="!isManagerOrAdmin" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!isAdmin" class="text-xs text-gray-400">-</span>
               </td>
             </ng-container>
 
