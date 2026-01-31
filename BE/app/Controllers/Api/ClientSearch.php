@@ -15,30 +15,17 @@ class ClientSearch extends BaseController
     }
 
     /**
-     * Buscar clientes usando la vista view_client
+     * Buscar clientes usando la vista view_client_relations
+     * Búsqueda por ndCliente e idAgency
      * GET /api/client-search/search
      */
     public function search()
     {
         try {
-            // Obtener parámetros de la petición
             $idAgency = $this->request->getGet('idAgency');
             $searchTerm = $this->request->getGet('search');
             $limit = (int) $this->request->getGet('limit') ?: 50;
-            $statusIdParam = $this->request->getGet('statusId');
-            $statusId = null;
-            if ($statusIdParam !== null && $statusIdParam !== '') {
-                if (!is_numeric($statusIdParam)) {
-                    return $this->response->setJSON([
-                        'success' => false,
-                        'message' => 'El parámetro statusId debe ser numérico',
-                        'data' => null
-                    ])->setStatusCode(400);
-                }
-                $statusId = (int) $statusIdParam;
-            }
 
-            // Validar parámetros requeridos
             if (!$idAgency) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -47,145 +34,24 @@ class ClientSearch extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // PRIORIDAD: El pedido debe pertenecer a la agencia seleccionada
-            // Buscamos clientes que tengan pedidos en la agencia seleccionada
-            // El cliente puede estar dado de alta en cualquier agencia, pero debe tener pedidos en la agencia seleccionada
-            // Si hay statusId, también filtrar por ese estado
-            
-            // Construir query que busque clientes con File Y clientes sin File pero con Client_Total_Relation
-            // Usar UNION para combinar ambos casos
-            $sql1 = "
-                SELECT DISTINCT
-                    c.Id as idCliente,
-                    COALESCE(
-                        -- Prioridad 1: ndCliente de la agencia del pedido
-                        (SELECT ctr1.IdTotalDealer 
-                         FROM Client_Total_Relation ctr1 
-                         WHERE ctr1.idHeaderClient = hc.Id 
-                         AND ctr1.IdAgency = f.IdAgency 
-                         LIMIT 1),
-                        -- Prioridad 2: ndCliente de cualquier agencia del cliente
-                        (SELECT ctr2.IdTotalDealer 
-                         FROM Client_Total_Relation ctr2 
-                         WHERE ctr2.idHeaderClient = hc.Id 
-                         LIMIT 1),
-                        ''
-                    ) as ndCliente,
-                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
-                    c.Name as nombre,
-                    c.LastName as apellidoPaterno,
-                    c.MotherLastName as apellidoMaterno,
-                    c.RFC as rfc,
-                    c.Email as email,
-                    c.TelNumber as telefono,
-                    c.TelNumber2 as telefono2,
-                    c.RazonSocial as razonSocial,
-                    c.CURP as curp,
-                    c.Adviser as asesor,
-                    c.AgencyOrigin as agenciaOrigen,
-                    c.RegistrationDate as fechaRegistro,
-                    c.UpdateDate as fechaActualizacion,
-                    f.IdAgency as idAgency
-                FROM Client c
-                INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
-                INNER JOIN File f ON f.IdClient = c.Id
-                WHERE f.IdAgency = ?
-                AND ((c.Name IS NOT NULL AND c.Name != '') 
-                    OR (c.LastName IS NOT NULL AND c.LastName != '') 
-                    OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+            $sql = "
+                SELECT idCliente, ndCliente, cliente, IdHeaderClient,
+                    nombre, apellidoPaterno, apellidoMaterno, rfc, email, telefono, telefono2,
+                    razonSocial, curp, asesor, agenciaOrigen, fechaRegistro, fechaActualizacion, idAgency
+                FROM view_client_relations
+                WHERE idAgency = ?
             ";
-            $params1 = [$idAgency];
+            $params = [$idAgency];
 
-            // Filtrar por estado de file si se proporciona (solo para la primera consulta)
-            if ($statusId !== null) {
-                $sql1 .= " AND f.IdCurrentState = ?";
-                $params1[] = $statusId;
-            }
-            
-            // Aplicar filtro de búsqueda si se proporciona (primera consulta)
-            if ($searchTerm && trim($searchTerm) !== '') {
+            if ($searchTerm !== null && trim($searchTerm) !== '') {
                 $searchTerm = trim($searchTerm);
-                
-                if (is_numeric($searchTerm)) {
-                    $sql1 .= " AND EXISTS (
-                        SELECT 1
-                        FROM Client_Total_Relation ctr_search
-                        WHERE ctr_search.idHeaderClient = hc.Id
-                        AND TRIM(ctr_search.IdTotalDealer) LIKE ?
-                        AND ctr_search.IdAgency = f.IdAgency
-                    )";
-                    $searchPattern = "%{$searchTerm}%";
-                    $params1[] = $searchPattern;
-                } else {
-                    $sql1 .= " AND (
-                        c.RazonSocial LIKE ?
-                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
-                    )";
-                    $searchPattern = "%{$searchTerm}%";
-                    $params1[] = $searchPattern;
-                    $params1[] = $searchPattern;
-                }
+                $sql .= " AND TRIM(ndCliente) LIKE ?";
+                $params[] = "%{$searchTerm}%";
             }
-            
-            // Segunda consulta: Clientes sin File pero con Client_Total_Relation en la agencia
-            $sql2 = "
-                SELECT DISTINCT
-                    c.Id as idCliente,
-                    COALESCE(ctr.IdTotalDealer, '') as ndCliente,
-                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
-                    c.Name as nombre,
-                    c.LastName as apellidoPaterno,
-                    c.MotherLastName as apellidoMaterno,
-                    c.RFC as rfc,
-                    c.Email as email,
-                    c.TelNumber as telefono,
-                    c.TelNumber2 as telefono2,
-                    c.RazonSocial as razonSocial,
-                    c.CURP as curp,
-                    c.Adviser as asesor,
-                    c.AgencyOrigin as agenciaOrigen,
-                    c.RegistrationDate as fechaRegistro,
-                    c.UpdateDate as fechaActualizacion,
-                    ctr.IdAgency as idAgency
-                FROM Client c
-                INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
-                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                WHERE ctr.IdAgency = ?
-                AND ((c.Name IS NOT NULL AND c.Name != '') 
-                    OR (c.LastName IS NOT NULL AND c.LastName != '') 
-                    OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
-                AND NOT EXISTS (
-                    SELECT 1 FROM File f2 
-                    WHERE f2.IdClient = c.Id 
-                    AND f2.IdAgency = ctr.IdAgency
-                )
-            ";
-            $params2 = [$idAgency];
-            
-            // Aplicar filtro de búsqueda en la segunda consulta también
-            if ($searchTerm && trim($searchTerm) !== '') {
-                $searchTerm = trim($searchTerm);
-                
-                if (is_numeric($searchTerm)) {
-                    $sql2 .= " AND TRIM(ctr.IdTotalDealer) LIKE ?";
-                    $searchPattern = "%{$searchTerm}%";
-                    $params2[] = $searchPattern;
-                } else {
-                    $sql2 .= " AND (
-                        c.RazonSocial LIKE ?
-                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
-                    )";
-                    $searchPattern = "%{$searchTerm}%";
-                    $params2[] = $searchPattern;
-                    $params2[] = $searchPattern;
-                }
-            }
-            
-            // Combinar ambas consultas con UNION y aplicar ORDER BY y LIMIT
-            $sql = "(" . $sql1 . ") UNION (" . $sql2 . ") ORDER BY ndCliente ASC LIMIT ?";
-            $params = array_merge($params1, $params2, [$limit]);
 
-            // Debug: Log de la consulta
+            $sql .= " ORDER BY ndCliente ASC LIMIT ?";
+            $params[] = $limit;
+
             error_log("ClientSearch::search - SQL: " . $sql);
             error_log("ClientSearch::search - Params: " . json_encode($params));
             
