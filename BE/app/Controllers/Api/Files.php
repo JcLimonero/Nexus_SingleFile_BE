@@ -576,14 +576,14 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Obtener IdClient (Client.Id) desde view_client_relations por ndDMS y IdAgency
+            // Obtener idCliente (Client.Id) desde view_client_relations por ndCliente e idAgency
             $ndDMS = trim((string) $clientId);
             $idClientResolved = $this->getClientIdFromViewClientRelations($ndDMS, $internalAgencyId);
             error_log("Buscando IdClient en view_client_relations: ndDMS={$ndDMS}, IdAgency={$internalAgencyId} => " . ($idClientResolved ?? 'null'));
             if ($idClientResolved === null) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Cliente no encontrado para el No Cliente y agencia indicados. Verifique que exista en view_client_relations (ndDMS e IdAgency).'
+                    'message' => 'Cliente no encontrado para el No Cliente y agencia indicados. Verifique que exista en view_client_relations (ndCliente e idAgency).'
                 ])->setStatusCode(400);
             }
 
@@ -770,8 +770,8 @@ class Files extends BaseController
     }
 
     /**
-     * Obtener IdClient (hc.IdClient = Client.Id) desde view_client_relations filtrado por ndDMS y IdAgency.
-     * Usado al crear File y al reparar relación; asegura consistencia con la vista.
+     * Obtener idCliente (Client.Id) desde view_client_relations filtrado por ndCliente e idAgency.
+     * Usado al crear File; asegura consistencia con la vista.
      */
     private function getClientIdFromViewClientRelations($ndDMS, $idAgency)
     {
@@ -782,26 +782,15 @@ class Files extends BaseController
         }
         try {
             $row = $this->db->query("
-                SELECT IdClient FROM view_client_relations
-                WHERE TRIM(ndDMS) = ? AND IdAgency = ?
+                SELECT idCliente FROM view_client_relations
+                WHERE TRIM(ndCliente) = ? AND idAgency = ?
                 LIMIT 1
             ", [$ndDMS, $idAgency])->getRowArray();
-            if ($row && isset($row['IdClient']) && $row['IdClient'] !== null && $row['IdClient'] !== '') {
-                return (int) $row['IdClient'];
+            if ($row && isset($row['idCliente']) && $row['idCliente'] !== null && $row['idCliente'] !== '') {
+                return (int) $row['idCliente'];
             }
         } catch (\Throwable $e) {
-            log_message('info', 'getClientIdFromViewClientRelations: vista no usada, fallback directo - ' . $e->getMessage());
-        }
-        // Fallback: mismo dato vía HeaderClient + Client_Total_Relation (IdClient = hc.IdClient)
-        $row = $this->db->query("
-            SELECT hc.IdClient
-            FROM HeaderClient hc
-            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-            WHERE TRIM(ctr.IdTotalDealer) = ? AND ctr.IdAgency = ?
-            LIMIT 1
-        ", [$ndDMS, $idAgency])->getRowArray();
-        if ($row && isset($row['IdClient']) && $row['IdClient'] !== null && $row['IdClient'] !== '') {
-            return (int) $row['IdClient'];
+            log_message('info', 'getClientIdFromViewClientRelations: vista no usada - ' . $e->getMessage());
         }
         return null;
     }
@@ -1289,19 +1278,19 @@ class Files extends BaseController
                 ]);
             }
 
-            // IdClient esperado desde view_client_relations (ndDMS=ndCliente, IdAgency=agencyId).
+            // idCliente esperado desde view_client_relations (ndCliente, idAgency).
             // Solo se usa si ndCliente viene en la petición; en ese caso en existingOrders
-            // solo entran los pedidos cuyo File.IdClient != idClientFromView (misma agencia en pedido y vista).
+            // solo entran los pedidos cuyo File.IdClient != idClientFromView (relación incorrecta).
             $idClientFromView = null;
             if ($ndCliente !== null && $ndCliente !== '') {
                 try {
                     $rowView = $this->db->query("
-                        SELECT IdClient FROM view_client_relations
-                        WHERE TRIM(ndDMS) = ? AND IdAgency = ?
+                        SELECT idCliente FROM view_client_relations
+                        WHERE TRIM(ndCliente) = ? AND idAgency = ?
                         LIMIT 1
                     ", [$ndCliente, (int) $agencyId])->getRowArray();
-                    if ($rowView && !empty($rowView['IdClient'])) {
-                        $idClientFromView = (int) $rowView['IdClient'];
+                    if ($rowView && !empty($rowView['idCliente'])) {
+                        $idClientFromView = (int) $rowView['idCliente'];
                     }
                 } catch (\Throwable $e) {
                     log_message('info', 'checkExistingOrders: view_client_relations no usada, ' . $e->getMessage());
@@ -1381,7 +1370,7 @@ class Files extends BaseController
 
     /**
      * Reparar relación de cliente en un expediente (File).
-     * Busca en view_client_relations por ndDMS (No Cliente) e IdAgency (agencia seleccionada),
+     * Busca en view_client_relations por ndCliente e idAgency,
      * obtiene idClient (HeaderClient.Id) y actualiza File.IdClient donde File.Id = idExpediente.
      */
     public function repairClientRelation()
@@ -1422,33 +1411,14 @@ class Files extends BaseController
             $idAgency = (int) $idAgency;
             $idExpediente = (int) $idExpediente;
 
-            // Buscar IdClient (hc.IdClient) en view_client_relations por ndDMS e IdAgency.
-            // File.IdClient se actualiza con hc.IdClient de la vista.
-            $viewExists = false;
-            $row = null;
-            try {
-                $row = $this->db->query("
-                    SELECT IdClient FROM view_client_relations
-                    WHERE TRIM(ndDMS) = ? AND IdAgency = ?
-                    LIMIT 1
-                ", [$ndDMS, $idAgency])->getRowArray();
-                $viewExists = true;
-            } catch (\Throwable $e) {
-                log_message('info', 'view_client_relations no encontrada, usando consulta directa: ' . $e->getMessage());
-            }
+            // Buscar idCliente en view_client_relations por ndCliente e idAgency.
+            $row = $this->db->query("
+                SELECT idCliente FROM view_client_relations
+                WHERE TRIM(ndCliente) = ? AND idAgency = ?
+                LIMIT 1
+            ", [$ndDMS, $idAgency])->getRowArray();
 
-            if (!$viewExists || !$row || empty($row['IdClient'])) {
-                // Fallback: obtener hc.IdClient vía HeaderClient + Client_Total_Relation
-                $row = $this->db->query("
-                    SELECT hc.IdClient
-                    FROM HeaderClient hc
-                    INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                    WHERE TRIM(ctr.IdTotalDealer) = ? AND ctr.IdAgency = ?
-                    LIMIT 1
-                ", [$ndDMS, $idAgency])->getRowArray();
-            }
-
-            $idClientVal = $row['IdClient'] ?? $row['idClient'] ?? null;
+            $idClientVal = $row['idCliente'] ?? null;
             if (!$row || empty($idClientVal)) {
                 return $this->response->setJSON([
                     'success' => false,

@@ -17,6 +17,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-order-selection-dialog',
@@ -204,8 +205,8 @@ import { environment } from '../../../../environments/environment';
               </div>
             </mat-tab>
 
-            <!-- Tab de Pedidos Existentes -->
-            <mat-tab label="Pedidos Existentes">
+            <!-- Tab de Pedidos Existentes (solo si hay alguno) -->
+            <mat-tab *ngIf="existingOrders.length > 0" label="Pedidos Existentes">
               <ng-template mat-tab-label>
                 <mat-icon class="mr-2">info</mat-icon>
                 Pedidos Existentes ({{ existingOrders.length }})
@@ -304,7 +305,7 @@ import { environment } from '../../../../environments/environment';
 
                     <!-- File ID Column -->
                     <ng-container matColumnDef="fileId">
-                      <th mat-header-cell *matHeaderCellDef>ID Expediente</th>
+                      <th mat-header-cell *matHeaderCellDef>IdFile</th>
                       <td mat-cell *matCellDef="let order">
                         <span class="order-info font-mono text-blue-600">{{ order.fileId || 'N/A' }}</span>
                       </td>
@@ -707,15 +708,15 @@ export class OrderSelectionDialogComponent implements OnInit {
     'colorInterior'
   ];
 
-  existingDisplayedColumns: string[] = [
-    'order_dms',
-    'year',
-    'vin',
-    'model',
-    'version',
-    'fileId',
-    'actions'
-  ];
+  get existingDisplayedColumns(): string[] {
+    const base = ['order_dms', 'year', 'vin', 'model', 'version', 'actions'];
+    return this.isAdmin ? ['fileId', ...base] : base;
+  }
+
+  get isAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user ? (String(user.role_id) === '7' || String(user.role_id) === '8') : false;
+  }
 
   repairingFileId: number | string | null = null;
 
@@ -767,7 +768,8 @@ export class OrderSelectionDialogComponent implements OnInit {
       existingOrders?: any[] // Pedidos existentes que se pasan desde el componente padre
     },
     private http: HttpClient,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -986,7 +988,7 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   /**
    * Reparar relación de cliente del expediente.
-   * Usa view_client_relations (ndDMS = No Cliente, IdAgency = agencia seleccionada) para obtener idClient
+   * Usa view_client_relations (ndCliente, idAgency) para obtener idCliente
    * y actualiza File.IdClient donde File.Id = idExpediente.
    */
   repairRelation(existingOrder: { fileId: number | string; order_dms?: string; order?: any }): void {
