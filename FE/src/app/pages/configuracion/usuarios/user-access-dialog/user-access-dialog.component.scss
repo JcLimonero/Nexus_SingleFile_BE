@@ -5,6 +5,11 @@
   border-radius: 8px;
   max-width: 800px;
   width: 90vw;
+
+  @media (max-width: 600px) {
+    max-width: 95vw;
+    width: 95vw;
+  }
 }
 
 .mat-mdc-form-field {

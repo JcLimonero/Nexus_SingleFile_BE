@@ -2,6 +2,11 @@
 .mat-mdc-dialog-container {
   max-width: 600px;
   width: 100%;
+
+  @media (max-width: 600px) {
+    max-width: 95vw;
+    width: 95vw;
+  }
 }
 
 .mat-mdc-form-field {

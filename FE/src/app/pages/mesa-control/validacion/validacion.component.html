@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-2">
+<div class="validacion-container min-h-screen bg-gray-50 p-2">
   <style>
     /* Ocultar completamente los hints de los combos para que no ocupen espacio */
     .mat-mdc-form-field-subscript-wrapper,
@@ -308,8 +308,9 @@
             <mat-spinner diameter="40"></mat-spinner>
           </div>
 
-                        <div matSort>
-                          <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table" *ngIf="!loading">
+          <div class="overflow-x-auto" *ngIf="!loading">
+            <div matSort>
+              <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table">
             <!-- Columna ND Cliente -->
             <ng-container matColumnDef="ndCliente">
               <th mat-header-cell *matHeaderCellDef mat-sort-header="ndCliente" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
@@ -491,6 +492,8 @@
                       (click)="onClienteSelect(row)"
                       [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.idFile === row.idFile}"></tr>
                 </table>
+            </div>
+          </div>
 
                 <!-- Paginador -->
                 <mat-paginator
@@ -503,7 +506,6 @@
                   showFirstLastButtons
                   aria-label="Seleccionar página de clientes">
                 </mat-paginator>
-                          </div>
         </div>
       </mat-card>
 
@@ -539,7 +541,8 @@
               <span class="text-gray-700"><strong>Año:</strong> {{ selectedCliente.year ?? '—' }}</span>
             </div>
 
-                      <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table" *ngIf="documentosDataSource.length > 0">
+            <div class="overflow-x-auto" *ngIf="documentosDataSource.length > 0">
+              <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table">
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
               <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
@@ -769,6 +772,7 @@
             <tr mat-header-row *matHeaderRowDef="documentosDisplayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: documentosDisplayedColumns;" class="!min-h-0 !h-10"></tr>
           </table>
+            </div>
 
           <!-- Mensaje cuando no hay documentos -->
           <div *ngIf="documentosDataSource.length === 0" class="flex justify-center items-center py-8 text-gray-500">
