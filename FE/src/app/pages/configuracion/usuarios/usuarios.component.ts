@@ -17,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../../../core/interfaces/user.interface';
 import { UserService } from '../../../core/services/user.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
 import { UserAccessDialogComponent } from './user-access-dialog/user-access-dialog.component';
 
@@ -63,19 +64,30 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   constructor(
     private userService: UserService,
     private defaultAgencyService: DefaultAgencyService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
 
-  /** En esta pantalla no se deben mostrar roles 7 y 8 en UI (filtros/tabla). */
-  private readonly hiddenRoleIds = new Set(['7', '8']);
+  /** Roles 7 (Administrador) y 8 (Soporte) no se muestran en listados, excepto si quien está logueado es Administrador (7). */
+  private readonly restrictedRoleIds = new Set(['7', '8']);
 
-  get rolesForFilter(): UserRole[] {
-    return this.roles.filter(r => !this.hiddenRoleIds.has(String(r.Id)));
+  /** Si el usuario logueado es Administrador (7), puede ver roles 7 y 8 en listados. */
+  get isLoggedInAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user ? String(user.role_id) === '7' : false;
   }
 
+  get rolesForFilter(): UserRole[] {
+    if (this.isLoggedInAdmin) {
+      return this.roles;
+    }
+    return this.roles.filter(r => !this.restrictedRoleIds.has(String(r.Id)));
+  }
+
+  /** Ocultar rol en tabla (mostrar "—") cuando es 7 u 8 y el logueado NO es admin. */
   isHiddenRole(roleId: string): boolean {
-    return this.hiddenRoleIds.has(String(roleId));
+    return !this.isLoggedInAdmin && this.restrictedRoleIds.has(String(roleId));
   }
 
   ngOnInit(): void {

@@ -14,6 +14,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { User, UserCreateRequest, UserUpdateRequest, UserRole, Agency } from '../../../../core/interfaces/user.interface';
 import { UserService } from '../../../../core/services/user.service';
 import { DefaultAgencyService } from '../../../../core/services/default-agency.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-edit-dialog',
@@ -41,12 +42,18 @@ export class UserEditDialogComponent implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
   roles: UserRole[] = [];
-  /** Roles visibles en el selector (en create se ocultan 7 y 8). */
+  /** Roles visibles en el selector. En create se ocultan 7 y 8, salvo si el logueado es Administrador (7). */
   get rolesForSelect(): UserRole[] {
     if (this.data?.mode === 'create') {
+      if (this.isLoggedInAdmin) return this.roles;
       return this.roles.filter(r => String(r.Id) !== '7' && String(r.Id) !== '8');
     }
     return this.roles;
+  }
+
+  get isLoggedInAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user ? String(user.role_id) === '7' : false;
   }
   agencies: Agency[] = [];
   loadingAgencies = false;
@@ -55,6 +62,7 @@ export class UserEditDialogComponent implements OnInit {
     private fb: FormBuilder,
     private userService: UserService,
     private defaultAgencyService: DefaultAgencyService,
+    private authService: AuthService,
     private dialogRef: MatDialogRef<UserEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { user: User; mode: 'create' | 'edit' },
     private snackBar: MatSnackBar
