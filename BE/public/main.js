@@ -2614,7 +2614,7 @@ class NavigationLoaderService {
       label: 'Procesos',
       children: [{
         type: 'link',
-        label: 'Integración de Expediente',
+        label: 'Integración',
         route: '/procesos/integracion',
         icon: 'mat:sync'
       }]
@@ -6513,7 +6513,7 @@ class ToolbarComponent {
     // Procesos
     if (url.includes('/procesos')) {
       if (url.includes('/integracion')) {
-        return 'Integración de Expediente';
+        return 'Integración';
       } else {
         return 'Procesos';
       }

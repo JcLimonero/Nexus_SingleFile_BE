@@ -57,7 +57,7 @@ export class NavigationLoaderService {
         children: [
           {
             type: 'link',
-            label: 'Integración de Expediente',
+            label: 'Integración',
             route: '/procesos/integracion',
             icon: 'mat:sync'
           },

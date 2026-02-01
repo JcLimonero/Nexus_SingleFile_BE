@@ -203,7 +203,7 @@ export class ToolbarComponent implements OnInit {
     // Procesos
     if (url.includes('/procesos')) {
       if (url.includes('/integracion')) {
-        return 'Integración de Expediente';
+        return 'Integración';
       } else if (url.includes('/liquidacion')) {
         return 'Liquidación';
       } else if (url.includes('/liberacion')) {
