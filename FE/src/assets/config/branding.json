@@ -1,0 +1,20 @@
+{
+  "clientName": "Grupo Vanguardia",
+  "appTitle": "Expediente Único",
+  "pageTitle": "Grupo Vanguardia",
+  "layoutStyle": "poseidon",
+  "logoLogin": "assets/img/icons/logos/logo_login.svg",
+  "logoApp": "assets/img/icons/logos/vanguardia_isotipo_2.png",
+  "logoFooter": "assets/img/icons/logos/vanguardia_isotipo_2.svg",
+  "logoLoading": "assets/img/icons/logos/vanguardia_logo.png",
+  "footerLink": "https://www.grupovanguardia.com",
+  "_layoutStylesHelp": {
+    "apollo": "Horizontal, navbar abajo del toolbar",
+    "poseidon": "Horizontal, “Grupo Vanguardia” (el que usas ahora)",
+    "hermes": "Vertical, boxed",
+    "ares": "Navbar dentro del toolbar",
+    "zeus": "Sidenav colapsado por defecto",
+    "ikaros": "Vertical, boxed, navbar en toolbar"
+  }
+}
+

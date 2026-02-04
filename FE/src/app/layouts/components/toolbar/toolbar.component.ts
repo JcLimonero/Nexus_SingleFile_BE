@@ -25,6 +25,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { NavigationItem } from '../../../core/navigation/navigation-item.interface';
 import { checkRouterChildsData } from '@vex/utils/check-router-childs-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'vex-toolbar',
@@ -72,6 +73,9 @@ export class ToolbarComponent implements OnInit {
     (config) => config.sidenav.title
   );
 
+  /** Logo de la app (configurable por cliente vía assets/config/branding.json) */
+  logoApp$ = this.brandingService.getBranding$().pipe(map((b) => b.logoApp));
+
   // Título dinámico basado en la ruta actual
   dynamicTitle$: Observable<string> = this.router.events.pipe(
     filter((event) => event instanceof NavigationEnd),
@@ -93,7 +97,8 @@ export class ToolbarComponent implements OnInit {
     private readonly configService: VexConfigService,
     private readonly navigationService: NavigationService,
     private readonly popoverService: VexPopoverService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly brandingService: BrandingService
   ) {}
 
   ngOnInit() {

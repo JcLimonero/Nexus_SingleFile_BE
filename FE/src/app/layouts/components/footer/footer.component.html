@@ -1,9 +1,10 @@
-<div class="flex-auto flex items-center container">
-  
-  <div class="font-medium ltr:ml-4 rtl:mr-4 hidden sm:block flex items-center">
-    <a href="https://nexusqtech.com" target="_blank" class="flex items-center hover:opacity-80 transition-opacity">
-      <img src="assets/img/icons/logos/nexusQtech.svg" alt="Grupo Vanguardia" class="h-6 w-auto mr-2">
-      <span>Grupo Vanguardia</span>
-    </a>
-  </div>
+<div style="display: flex; align-items: center;">
+  <ng-container *ngIf="branding$ | async as branding">
+    <div class="font-medium ltr:ml-4 rtl:mr-4 hidden sm:block flex items-left">
+      <a [href]="branding.footerLink" target="_blank" rel="noopener noreferrer" class="flex items-left hover:opacity-80 transition-opacity">
+        <img [src]="branding.logoFooter" [alt]="branding.clientName" class="h-6 w-auto mr-2">
+        <span>{{ branding.clientName }}</span>
+      </a>
+    </div>
+  </ng-container>
 </div>

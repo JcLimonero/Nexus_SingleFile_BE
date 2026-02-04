@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { appRoutes } from './app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -19,9 +19,26 @@ import { vexConfigs } from '@vex/config/vex-configs';
 import { provideQuillConfig } from 'ngx-quill';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { ActivityLogInterceptor } from './core/interceptors/activity-log.interceptor';
+import { BrandingService } from './core/services/branding.service';
+import { VexConfigService } from '@vex/config/vex-config.service';
+import { VexConfigName } from '@vex/config/vex-config.interface';
+
+const VALID_LAYOUT_STYLES: string[] = ['apollo', 'poseidon', 'hermes', 'ares', 'zeus', 'ikaros'];
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (branding: BrandingService, vexConfig: VexConfigService) => () =>
+        branding.load().then(() => {
+          const b = branding.getBranding();
+          if (b.layoutStyle && VALID_LAYOUT_STYLES.includes(b.layoutStyle)) {
+            vexConfig.setConfig(b.layoutStyle as VexConfigName);
+          }
+        }),
+      deps: [BrandingService, VexConfigService],
+      multi: true
+    },
     importProvidersFrom(
       BrowserModule,
       MatDialogModule,

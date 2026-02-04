@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'vex-sidenav',
@@ -36,11 +37,13 @@ import { AuthService } from '../../../core/services/auth.service';
 export class SidenavComponent implements OnInit {
   @Input() collapsed: boolean = false;
   collapsedOpen$ = this.layoutService.sidenavCollapsedOpen$;
-  title$ = this.configService.config$.pipe(
-    map((config) => config.sidenav.title)
+  /** Título en sidebar: branding.appTitle o branding.clientName (configurable vía assets/config/branding.json) */
+  title$ = this.brandingService.getBranding$().pipe(
+    map((b) => b.appTitle ?? b.clientName)
   );
-  imageUrl$ = this.configService.config$.pipe(
-    map((config) => config.sidenav.imageUrl)
+  /** Logo en sidebar (configurable vía assets/config/branding.json) */
+  imageUrl$ = this.brandingService.getBranding$().pipe(
+    map((b) => b.logoApp)
   );
   showCollapsePin$ = this.configService.config$.pipe(
     map((config) => config.sidenav.showCollapsePin)
@@ -63,7 +66,8 @@ export class SidenavComponent implements OnInit {
     private configService: VexConfigService,
     private readonly popoverService: VexPopoverService,
     private readonly dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private readonly brandingService: BrandingService
   ) {}
 
   ngOnInit() {}

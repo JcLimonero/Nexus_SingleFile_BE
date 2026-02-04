@@ -17,6 +17,23 @@
   ],
   "exclude": [
     "src/**/*.spec.ts",
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "src/@vex/tailwind/**",
+    "src/@vex/config/color-variables.ts",
+    "src/app/pages/dashboards/dashboard-admin-analytics/**",
+    "src/app/pages/dashboards/components/analytics-filters/**",
+    "src/app/pages/dashboards/components/widgets/widget-document-metrics/**",
+    "src/app/pages/dashboards/components/widgets/widget-large-chart/**",
+    "src/app/pages/dashboards/components/widgets/widget-process-metrics/**",
+    "src/app/pages/dashboards/components/widgets/widget-quick-value-center/**",
+    "src/app/pages/dashboards/components/widgets/widget-quick-value-start/**",
+    "src/app/pages/dashboards/components/widgets/widget-real-time-metrics/**",
+    "src/app/pages/dashboards/components/widgets/widget-table/**",
+    "src/app/core/services/real-time-analytics.service.ts",
+    "src/app/pages/mesa-control/dashboard/**",
+    "src/app/pages/mesa-control/monitoreo/**",
+    "src/app/pages/mesa-control/reportes/**",
+    "src/app/pages/procesos/gestion/**",
+    "src/environments/environment.example.ts"
   ]
 }

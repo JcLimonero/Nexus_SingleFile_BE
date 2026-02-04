@@ -29,7 +29,7 @@ import { EliminarDocumentoDialogComponent, EliminarDocumentoData, EliminarDocume
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { Subject, takeUntil, catchError, of, timeout } from 'rxjs';
+import { Subject, Subscription, takeUntil, catchError, of, timeout } from 'rxjs';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
@@ -76,6 +76,7 @@ import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialo
 })
 export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
+  private sortChangeSub: Subscription | null = null;
 
   // Estado del componente
   loading = false;
@@ -642,44 +643,37 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.sortChangeSub?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   ngAfterViewInit() {
-    // Configurar ordenamiento después de que la vista esté inicializada
+    this.connectSort();
+  }
 
-    
-
-    if (this.sort) {
-
-      this.sort.sortChange.subscribe((sortEvent) => {
-
-        
-        this.aplicarOrdenamiento();
-      });
-
-      // Conectar MatSort al MatTableDataSource
-      this.clientesDataSource.sort = this.sort;
-
-      // Configurar ordenamiento automático
-      this.clientesDataSource.sortingDataAccessor = (item, property) => {
-        switch (property) {
-          case 'ndCliente': return item.idFile;
-          case 'ndPedido': return item.ndPedido;
-          case 'cliente': return item.cliente;
-          case 'proceso': return item.proceso;
-          case 'operacion': return item.operacion;
-          case 'fase': return item.fase;
-          case 'registro': return new Date(item.registro);
-          case 'fechaLiberacion': return new Date(item.fechaLiberacion);
-          default: return item[property];
-        }
-      };
-
-    } else {
-
-    }
+  /**
+   * Conectar MatSort cuando la tabla esté en el DOM (*ngIf="!loading").
+   * Se llama desde ngAfterViewInit y tras cargar clientes para que el sort funcione al hacer clic en el encabezado.
+   */
+  private connectSort(): void {
+    if (!this.sort) return;
+    if (this.sortChangeSub) this.sortChangeSub.unsubscribe();
+    this.sortChangeSub = this.sort.sortChange.subscribe(() => this.aplicarOrdenamiento());
+    this.clientesDataSource.sort = this.sort;
+    this.clientesDataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'ndCliente': return item.idFile;
+        case 'ndPedido': return item.ndPedido;
+        case 'cliente': return item.cliente;
+        case 'proceso': return item.proceso;
+        case 'operacion': return item.operacion;
+        case 'fase': return item.fase;
+        case 'registro': return this.getDateSortValue(item.registro);
+        case 'fechaLiberacion': return this.getDateSortValue(item.fechaLiberacion);
+        default: return item[property];
+      }
+    };
   }
 
   /**
@@ -1848,6 +1842,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
           this.loading = false;
           this.cdr.markForCheck();
+          // Conectar MatSort cuando la tabla ya esté en el DOM (*ngIf="!loading")
+          setTimeout(() => this.connectSort(), 0);
         },
         error: (error) => {
 
@@ -1925,10 +1921,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Ordenar todos los datos
+    // Ordenar todos los datos (fechas ya vienen como timestamp numérico)
     this.allClientes.sort((a, b) => {
       let aValue = this.getSortValue(a, active);
       let bValue = this.getSortValue(b, active);
+
+      const isNumeric = active === 'registro' || active === 'fechaLiberacion' || active === 'ndCliente' || active === 'ndPedido';
+      if (isNumeric && (typeof aValue === 'number' || typeof bValue === 'number')) {
+        const numA = typeof aValue === 'number' ? aValue : Number(aValue) || 0;
+        const numB = typeof bValue === 'number' ? bValue : Number(bValue) || 0;
+        if (numA < numB) return direction === 'asc' ? -1 : 1;
+        if (numA > numB) return direction === 'asc' ? 1 : -1;
+        return 0;
+      }
 
       if (aValue === null || aValue === undefined) aValue = '';
       if (bValue === null || bValue === undefined) bValue = '';
@@ -1944,6 +1949,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Actualizar datos paginados
     this.currentPage = 0;
     this.updatePaginatedData();
+  }
+
+  /**
+   * Valor numérico para ordenar por fecha (timestamp; inválidos = 0)
+   */
+  private getDateSortValue(value: string | null | undefined): number {
+    if (value == null || value === '') return 0;
+    const t = new Date(value).getTime();
+    return Number.isNaN(t) ? 0 : t;
   }
 
   /**
@@ -1964,9 +1978,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'fase':
         return item.fase;
       case 'registro':
-        return new Date(item.registro);
+        return this.getDateSortValue(item.registro);
       case 'fechaLiberacion':
-        return new Date(item.fechaLiberacion);
+        return this.getDateSortValue(item.fechaLiberacion);
       default:
         return item[column];
     }

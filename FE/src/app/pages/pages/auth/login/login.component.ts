@@ -17,6 +17,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService, AuthResponse } from '../../../../core/services/auth.service';
 import { UpdateEmailDialogComponent } from './update-email-dialog.component';
+import { BrandingService } from '../../../../core/services/branding.service';
+import { AsyncPipe } from '@angular/common';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'vex-login',
@@ -36,10 +39,13 @@ import { UpdateEmailDialogComponent } from './update-email-dialog.component';
     MatCheckboxModule,
     RouterLink,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    AsyncPipe
   ]
 })
 export class LoginComponent {
+  logoLogin$ = this.brandingService.getBranding$().pipe(map((b) => b.logoLogin));
+
   form = this.fb.group({
     email: ['', [Validators.required]], // Removido Validators.email para permitir username también
     password: ['', Validators.required]
@@ -50,18 +56,19 @@ export class LoginComponent {
   loading = false;
 
   constructor(
-    private router: Router,
-    private fb: FormBuilder,
-    private cd: ChangeDetectorRef,
-    private snackbar: MatSnackBar,
-    private authService: AuthService,
-    private dialog: MatDialog
+    private readonly fb: FormBuilder,
+    private readonly router: Router,
+    private readonly authService: AuthService,
+    private readonly snackBar: MatSnackBar,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly dialog: MatDialog,
+    private readonly brandingService: BrandingService
   ) {}
 
   send() {
     if (this.form.valid && !this.loading) {
       this.loading = true;
-      this.cd.markForCheck();
+      this.cdr.markForCheck();
 
       const identifier = this.form.get('email')?.value || ''; // Puede ser email o username
       const password = this.form.get('password')?.value || '';
@@ -69,7 +76,7 @@ export class LoginComponent {
       this.authService.login(identifier, password).subscribe({
         next: (response: AuthResponse) => {
           this.loading = false;
-          this.cd.markForCheck();
+          this.cdr.markForCheck();
           
           // Verificar si requiere completar email
           if (response.requires_email && response.user_id) {
@@ -80,7 +87,7 @@ export class LoginComponent {
           if (response.success && response.user && response.access_token) {
             const roleInfo = response.user?.role_name ? ` (${response.user.role_name})` : '';
             const loginMethod = response.login_method === 'username' ? ' (usuario)' : '';
-            this.snackbar.open(`Inicio de sesión exitoso${roleInfo}${loginMethod}`, 'OK', {
+            this.snackBar.open(`Inicio de sesión exitoso${roleInfo}${loginMethod}`, 'OK', {
               duration: 3000
             });
             
@@ -104,14 +111,14 @@ export class LoginComponent {
               }
             }, 100);
           } else {
-            this.snackbar.open(response.message || 'Error en el inicio de sesión', 'Error', {
+            this.snackBar.open(response.message || 'Error en el inicio de sesión', 'Error', {
               duration: 5000
             });
           }
         },
         error: (error: any) => {
           this.loading = false;
-          this.cd.markForCheck();
+          this.cdr.markForCheck();
 
           let errorMessage = 'Error en el inicio de sesión';
           
@@ -132,7 +139,7 @@ export class LoginComponent {
             errorMessage = error.message;
           }
           
-          this.snackbar.open(errorMessage, 'Error', {
+          this.snackBar.open(errorMessage, 'Error', {
             duration: 5000
           });
         }
@@ -158,7 +165,7 @@ export class LoginComponent {
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result && result.success) {
         // Email actualizado exitosamente, intentar login nuevamente con el email
-        this.snackbar.open('Email actualizado. Iniciando sesión...', 'Info', {
+        this.snackBar.open('Email actualizado. Iniciando sesión...', 'Info', {
           duration: 2000
         });
         
@@ -175,11 +182,11 @@ export class LoginComponent {
     if (this.visible) {
       this.inputType = 'password';
       this.visible = false;
-      this.cd.markForCheck();
+      this.cdr.markForCheck();
     } else {
       this.inputType = 'text';
       this.visible = true;
-      this.cd.markForCheck();
+      this.cdr.markForCheck();
     }
   }
 
@@ -198,11 +205,11 @@ export class LoginComponent {
   testLogout() {
     this.authService.logout().subscribe({
       next: () => {
-        this.snackbar.open('Logout exitoso', 'Info', { duration: 3000 });
+        this.snackBar.open('Logout exitoso', 'Info', { duration: 3000 });
         this.router.navigate(['/login']);
       },
       error: (error) => {
-        this.snackbar.open('Error en logout', 'Error', { duration: 3000 });
+        this.snackBar.open('Error en logout', 'Error', { duration: 3000 });
       }
     });
   }
