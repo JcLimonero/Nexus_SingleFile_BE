@@ -20,6 +20,8 @@ export interface BrandingConfig {
   logoFooter: string;
   /** Imagen del splash/loading entre pantallas (antes de que cargue la app) */
   logoLoading?: string;
+  /** Texto visible en el footer (si no se define, se usa clientName) */
+  footerText?: string;
   footerLink: string;
 }
 
@@ -32,6 +34,7 @@ const DEFAULT_BRANDING: BrandingConfig = {
   logoApp: 'assets/img/icons/logos/nexusQtech.svg',
   logoFooter: 'assets/img/icons/logos/nexusQtech.svg',
   logoLoading: 'assets/img/icons/logos/logo_loading_blue.svg',
+  footerText: 'Grupo Vanguardia',
   footerLink: 'https://www.grupovanguardia.com'
 };
 

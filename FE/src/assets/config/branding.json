@@ -1,12 +1,13 @@
 {
   "clientName": "Grupo Vanguardia",
-  "appTitle": "Expediente Único",
-  "pageTitle": "Grupo Vanguardia",
+  "appTitle": "Grupo Vanguardia",
+  "pageTitle": "Expediente Único",
   "layoutStyle": "poseidon",
   "logoLogin": "assets/img/icons/logos/logo_login.svg",
   "logoApp": "assets/img/icons/logos/vanguardia_isotipo_2.png",
-  "logoFooter": "assets/img/icons/logos/vanguardia_isotipo_2.svg",
+  "logoFooter": "",
   "logoLoading": "assets/img/icons/logos/vanguardia_logo.png",
+  "footerText": "Developed by NexusQtech",
   "footerLink": "https://www.grupovanguardia.com",
   "_layoutStylesHelp": {
     "apollo": "Horizontal, navbar abajo del toolbar",

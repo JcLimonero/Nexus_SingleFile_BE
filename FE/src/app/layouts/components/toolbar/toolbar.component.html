@@ -14,10 +14,9 @@
     *ngIf="isVerticalLayout$ | async"
     [routerLink]="['/']"
     class="ltr:mr-4 rtl:ml-4 flex items-center">
-    <img
-      [src]="logoApp$ | async"
-      alt="Logo"
-      class="w-8 select-none" />
+    <ng-container *ngIf="(logoApp$ | async) as logoApp">
+      <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="w-8 select-none" />
+    </ng-container>
     <h1
       [class.hidden]="isDesktop$ | async"
       class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none">

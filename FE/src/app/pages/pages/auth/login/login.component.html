@@ -1,8 +1,8 @@
 <div class="w-full h-full bg-pattern flex flex-col items-center justify-center">
   <div @fadeInUp class="card overflow-hidden w-full max-w-md">
     <div class="p-6 pb-0 flex flex-col items-center justify-center">
-      <div class="fill-current text-center">
-        <img class="w-24" [src]="logoLogin$ | async" alt="Logo" />
+      <div *ngIf="(logoLogin$ | async) as logoUrl" class="fill-current text-center">
+        <img *ngIf="logoUrl?.trim()" class="w-24" [src]="logoUrl" alt="Logo" />
       </div>
     </div>
 

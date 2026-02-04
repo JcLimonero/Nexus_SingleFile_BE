@@ -81,7 +81,8 @@
     fetch('assets/config/branding.json')
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(c) {
-        img.src = (c && c.logoLoading) ? c.logoLoading : defaultLogo;
+        var url = (c && c.logoLoading && String(c.logoLoading).trim()) ? c.logoLoading : null;
+        if (url) { img.src = url; img.style.display = ''; } else { img.style.display = 'none'; }
       })
       .catch(function() { img.src = defaultLogo; });
   })();
