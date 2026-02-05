@@ -74,7 +74,7 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'cors',
+            // 'cors',
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
@@ -83,6 +83,7 @@ class Filters extends BaseFilters
             // 'customcors', // Desactivado temporalmente para evitar conflictos
             // 'honeypot',
             // 'secureheaders',
+            // 'cors',
         ],
     ];
 

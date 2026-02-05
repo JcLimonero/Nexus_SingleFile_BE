@@ -76,7 +76,7 @@
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
-              "baseHref": "/singlefile/",
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",

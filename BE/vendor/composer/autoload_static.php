@@ -90,6 +90,7 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Controllers\\Api\\UserRol' => __DIR__ . '/../..' . '/app/Controllers/Api/UserRol.php',
         'App\\Controllers\\Api\\Validacion' => __DIR__ . '/../..' . '/app/Controllers/Api/Validacion.php',
         'App\\Controllers\\Api\\VanguardiaClientImport' => __DIR__ . '/../..' . '/app/Controllers/Api/VanguardiaClientImport.php',
+        'App\\Controllers\\Api\\VanguardiaProxy' => __DIR__ . '/../..' . '/app/Controllers/Api/VanguardiaProxy.php',
         'App\\Controllers\\BaseController' => __DIR__ . '/../..' . '/app/Controllers/BaseController.php',
         'App\\Controllers\\Home' => __DIR__ . '/../..' . '/app/Controllers/Home.php',
         'App\\Database\\Seeds\\ProcessSeeder' => __DIR__ . '/../..' . '/app/Database/Seeds/ProcessSeeder.php',

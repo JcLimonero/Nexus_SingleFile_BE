@@ -38,6 +38,7 @@ return array(
     'App\\Controllers\\Api\\UserRol' => $baseDir . '/app/Controllers/Api/UserRol.php',
     'App\\Controllers\\Api\\Validacion' => $baseDir . '/app/Controllers/Api/Validacion.php',
     'App\\Controllers\\Api\\VanguardiaClientImport' => $baseDir . '/app/Controllers/Api/VanguardiaClientImport.php',
+    'App\\Controllers\\Api\\VanguardiaProxy' => $baseDir . '/app/Controllers/Api/VanguardiaProxy.php',
     'App\\Controllers\\BaseController' => $baseDir . '/app/Controllers/BaseController.php',
     'App\\Controllers\\Home' => $baseDir . '/app/Controllers/Home.php',
     'App\\Database\\Seeds\\ProcessSeeder' => $baseDir . '/app/Database/Seeds/ProcessSeeder.php',
