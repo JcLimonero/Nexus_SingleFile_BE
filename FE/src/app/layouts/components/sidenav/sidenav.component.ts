@@ -45,6 +45,8 @@ export class SidenavComponent implements OnInit {
   imageUrl$ = this.brandingService.getBranding$().pipe(
     map((b) => b.logoApp)
   );
+  /** Si hay theme.logoColor, se aplica filtro de color al logo */
+  logoColor$ = this.brandingService.getBranding$().pipe(map((b) => b.theme?.logoColor));
   showCollapsePin$ = this.configService.config$.pipe(
     map((config) => config.sidenav.showCollapsePin)
   );

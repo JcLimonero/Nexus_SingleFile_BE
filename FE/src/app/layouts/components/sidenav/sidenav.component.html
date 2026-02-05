@@ -7,7 +7,7 @@
   <div class="vex-sidenav-toolbar__container">
     <div class="sidenav-toolbar flex-none flex items-center">
       <ng-container *ngIf="(imageUrl$ | async) as url">
-        <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-10 select-none flex-none" />
+        <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-10 select-none flex-none" [class.branding-logo-tint]="logoColor$ | async" />
       </ng-container>
       <h2 class="vex-sidenav-toolbar__headline flex-auto">
         {{ title$ | async }}
@@ -44,7 +44,7 @@
     <div
       class="vex-sidenav-footer flex items-center justify-center opacity-20 px-6 py-6 select-none flex-none">
       <ng-container *ngIf="(imageUrl$ | async) as url">
-        <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-12 select-none" />
+        <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-12 select-none" [class.branding-logo-tint]="logoColor$ | async" />
       </ng-container>
     </div>
   </vex-scrollbar>

@@ -2,4 +2,24 @@
   @apply bg-foreground dark:bg-base border-t text-default flex w-full bottom-0 relative;
   height: var(--vex-footer-height);
   z-index: var(--vex-footer-z-index);
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+:host ::ng-deep > div {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+:host ::ng-deep a {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Que el texto se trunque, no el logo */
+:host ::ng-deep a img {
+  flex-shrink: 0;
 }

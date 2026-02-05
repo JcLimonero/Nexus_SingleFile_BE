@@ -75,6 +75,8 @@ export class ToolbarComponent implements OnInit {
 
   /** Logo de la app (configurable por cliente vía assets/config/branding.json) */
   logoApp$ = this.brandingService.getBranding$().pipe(map((b) => b.logoApp));
+  /** Si hay theme.logoColor, se aplica filtro de color al logo */
+  logoColor$ = this.brandingService.getBranding$().pipe(map((b) => b.theme?.logoColor));
 
   // Título dinámico basado en la ruta actual
   dynamicTitle$: Observable<string> = this.router.events.pipe(

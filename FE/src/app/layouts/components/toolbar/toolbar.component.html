@@ -15,7 +15,7 @@
     [routerLink]="['/']"
     class="ltr:mr-4 rtl:ml-4 flex items-center">
     <ng-container *ngIf="(logoApp$ | async) as logoApp">
-      <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="w-8 select-none" />
+      <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="w-8 select-none" [class.branding-logo-tint]="logoColor$ | async" />
     </ng-container>
     <h1
       [class.hidden]="isDesktop$ | async"

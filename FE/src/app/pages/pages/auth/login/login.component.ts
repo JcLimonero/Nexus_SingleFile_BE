@@ -45,6 +45,7 @@ import { map } from 'rxjs/operators';
 })
 export class LoginComponent {
   logoLogin$ = this.brandingService.getBranding$().pipe(map((b) => b.logoLogin));
+  logoColor$ = this.brandingService.getBranding$().pipe(map((b) => b.theme?.logoColor));
 
   form = this.fb.group({
     email: ['', [Validators.required]], // Removido Validators.email para permitir username también

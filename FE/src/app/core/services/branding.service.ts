@@ -7,6 +7,14 @@ import { firstValueFrom } from 'rxjs';
 /** Estilos de layout disponibles: apollo, poseidon, hermes, ares, zeus, ikaros */
 export type LayoutStyleName = 'apollo' | 'poseidon' | 'hermes' | 'ares' | 'zeus' | 'ikaros';
 
+/** Tema de colores (primary, logos). Opcional. */
+export interface ThemeConfig {
+  /** Color principal (botones, enlaces, acentos). Hex, ej: "#0284c7" */
+  primaryColor?: string;
+  /** Color aplicado a los logos SVG (mejor con iconos monocromáticos). Hex, ej: "#ffffff" */
+  logoColor?: string;
+}
+
 /** Colores del menú lateral (fondo, iconos, textos, subheadings) */
 export interface MenuColorsConfig {
   /** Color de fondo del menú (sidenav completo) */
@@ -45,6 +53,8 @@ export interface BrandingConfig {
   footerLink: string;
   /** Colores del menú lateral (iconos, textos, subheadings). Si no se define, se usan los del tema. */
   menuColors?: MenuColorsConfig;
+  /** Tema de colores (primary, color de logos). Opcional. */
+  theme?: ThemeConfig;
 }
 
 const DEFAULT_BRANDING: BrandingConfig = {
@@ -86,7 +96,7 @@ export class BrandingService {
           this.branding$.next(merged);
           if (typeof document !== 'undefined') {
             document.title = merged.pageTitle ?? `${merged.appTitle ?? merged.clientName} by ${merged.clientName}`;
-            this.applyMenuColors(merged.menuColors);
+            this.applyBrandingTheme(merged);
           }
         }),
         catchError(() => {
@@ -118,34 +128,97 @@ export class BrandingService {
   }
 
   /**
-   * Aplica los colores del menú desde branding.json como variables CSS.
-   * Se ejecuta tras cargar la configuración.
+   * Aplica tema completo desde branding: menú, primary y color de logos.
    */
-  private applyMenuColors(menuColors?: MenuColorsConfig): void {
-    if (!menuColors || typeof document === 'undefined') return;
+  private applyBrandingTheme(config: BrandingConfig): void {
+    if (typeof document === 'undefined') return;
 
     const vars: string[] = [];
-    if (menuColors.backgroundColor) {
-      vars.push(`--vex-sidenav-background: ${menuColors.backgroundColor}`);
-      vars.push(`--vex-sidenav-toolbar-background: ${menuColors.backgroundColor}`);
+
+    // Menú
+    const menuColors = config.menuColors;
+    if (menuColors) {
+      if (menuColors.backgroundColor) {
+        vars.push(`--vex-sidenav-background: ${menuColors.backgroundColor}`);
+        vars.push(`--vex-sidenav-toolbar-background: ${menuColors.backgroundColor}`);
+      }
+      if (menuColors.iconColor) vars.push(`--vex-sidenav-item-icon-color: ${menuColors.iconColor}`);
+      if (menuColors.textColor) vars.push(`--vex-sidenav-item-color: ${menuColors.textColor}`);
+      if (menuColors.textColorHover) vars.push(`--vex-sidenav-item-color-hover: ${menuColors.textColorHover}`);
+      if (menuColors.textColorActive) vars.push(`--vex-sidenav-item-color-active: ${menuColors.textColorActive}`);
+      if (menuColors.iconColorHover) vars.push(`--vex-sidenav-item-icon-color-hover: ${menuColors.iconColorHover}`);
+      if (menuColors.iconColorActive) vars.push(`--vex-sidenav-item-icon-color-active: ${menuColors.iconColorActive}`);
+      if (menuColors.subheadingColor) vars.push(`--vex-sidenav-subheading-color: ${menuColors.subheadingColor}`);
     }
-    if (menuColors.iconColor) vars.push(`--vex-sidenav-item-icon-color: ${menuColors.iconColor}`);
-    if (menuColors.textColor) vars.push(`--vex-sidenav-item-color: ${menuColors.textColor}`);
-    if (menuColors.textColorHover) vars.push(`--vex-sidenav-item-color-hover: ${menuColors.textColorHover}`);
-    if (menuColors.textColorActive) vars.push(`--vex-sidenav-item-color-active: ${menuColors.textColorActive}`);
-    if (menuColors.iconColorHover) vars.push(`--vex-sidenav-item-icon-color-hover: ${menuColors.iconColorHover}`);
-    if (menuColors.iconColorActive) vars.push(`--vex-sidenav-item-icon-color-active: ${menuColors.iconColorActive}`);
-    if (menuColors.subheadingColor) vars.push(`--vex-sidenav-subheading-color: ${menuColors.subheadingColor}`);
 
-    if (vars.length === 0) return;
+    // Color principal (Vex usa rgb(var(--vex-color-primary-500)) con formato "r, g, b")
+    const theme = config.theme;
+    if (theme?.primaryColor) {
+      const rgb = this.hexToRgbValues(theme.primaryColor);
+      if (rgb) {
+        vars.push(`--vex-color-primary-500: ${rgb}`);
+        vars.push(`--vex-color-primary-600: ${rgb}`);
+        vars.push(`--vex-color-primary-700: ${rgb}`);
+      }
+    }
 
-    const styleId = 'branding-menu-colors';
+    // Regla para color de logos (filtro CSS)
+    let logoFilterRule = '';
+    if (theme?.logoColor) {
+      const filter = this.hexToCssFilter(theme.logoColor);
+      if (filter) logoFilterRule = ` .branding-logo-tint { filter: ${filter}; }`;
+    }
+
+    const styleId = 'branding-theme-styles';
     let el = document.getElementById(styleId);
     if (!el) {
       el = document.createElement('style');
       el.id = styleId;
       document.head.appendChild(el);
     }
-    el.textContent = `body { ${vars.join('; ')} }`;
+    el.textContent = vars.length > 0 ? `body { ${vars.join('; ')} }${logoFilterRule}` : (logoFilterRule || '');
+  }
+
+  /** Convierte hex a "r, g, b" para variables CSS rgb(). */
+  private hexToRgbValues(hex: string): string | null {
+    const m = hex.replace(/^#/, '').match(/^(?:[0-9a-f]{3}){1,2}$/i);
+    if (!m) return null;
+    const n = parseInt(m[0], 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    return `${r}, ${g}, ${b}`;
+  }
+
+  /**
+   * Convierte hex a filtro CSS para tintar una imagen oscura/monocromática a ese color.
+   * Funciona bien con SVGs de un solo color o en escala de grises.
+   */
+  private hexToCssFilter(hex: string): string | null {
+    const h = hex.replace(/^#/, '').toLowerCase();
+    const len = h.length;
+    let r = 0, g = 0, b = 0;
+    if (len === 6 && /^[0-9a-f]{6}$/.test(h)) {
+      r = parseInt(h.slice(0, 2), 16) / 255;
+      g = parseInt(h.slice(2, 4), 16) / 255;
+      b = parseInt(h.slice(4, 6), 16) / 255;
+    } else if (len === 3 && /^[0-9a-f]{3}$/.test(h)) {
+      r = parseInt(h[0] + h[0], 16) / 255;
+      g = parseInt(h[1] + h[1], 16) / 255;
+      b = parseInt(h[2] + h[2], 16) / 255;
+    } else return null;
+    if (r <= 0.02 && g <= 0.02 && b <= 0.02) return 'brightness(0)';
+    if (r >= 0.98 && g >= 0.98 && b >= 0.98) return 'brightness(0) invert(1)';
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let H = 0, S = 0, L = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      S = L > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === r) H = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+      else if (max === g) H = ((b - r) / d + 2) / 6;
+      else H = ((r - g) / d + 4) / 6;
+    }
+    const hueRotate = Math.round(H * 360);
+    const saturate = Math.round(S * 150);
+    const brightness = Math.round((L * 2) * 100);
+    return `brightness(0) saturate(100%) invert(1) sepia(100%) saturate(${Math.max(saturate, 50)}%) hue-rotate(${hueRotate}deg) brightness(${Math.max(brightness, 40)}%) contrast(100%)`;
   }
 }
