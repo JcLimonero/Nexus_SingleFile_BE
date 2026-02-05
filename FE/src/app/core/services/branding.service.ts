@@ -7,6 +7,26 @@ import { firstValueFrom } from 'rxjs';
 /** Estilos de layout disponibles: apollo, poseidon, hermes, ares, zeus, ikaros */
 export type LayoutStyleName = 'apollo' | 'poseidon' | 'hermes' | 'ares' | 'zeus' | 'ikaros';
 
+/** Colores del menú lateral (fondo, iconos, textos, subheadings) */
+export interface MenuColorsConfig {
+  /** Color de fondo del menú (sidenav completo) */
+  backgroundColor?: string;
+  /** Color de los iconos del menú */
+  iconColor?: string;
+  /** Color del texto de las opciones del menú */
+  textColor?: string;
+  /** Color al pasar el mouse sobre una opción */
+  textColorHover?: string;
+  /** Color de la opción activa/seleccionada */
+  textColorActive?: string;
+  /** Color de los iconos al pasar el mouse */
+  iconColorHover?: string;
+  /** Color de los iconos en opción activa */
+  iconColorActive?: string;
+  /** Color de los títulos de módulos (subheadings) */
+  subheadingColor?: string;
+}
+
 export interface BrandingConfig {
   clientName: string;
   /** Título en sidebar/menú (si no se define, se usa clientName) */
@@ -23,6 +43,8 @@ export interface BrandingConfig {
   /** Texto visible en el footer (si no se define, se usa clientName) */
   footerText?: string;
   footerLink: string;
+  /** Colores del menú lateral (iconos, textos, subheadings). Si no se define, se usan los del tema. */
+  menuColors?: MenuColorsConfig;
 }
 
 const DEFAULT_BRANDING: BrandingConfig = {
@@ -64,6 +86,7 @@ export class BrandingService {
           this.branding$.next(merged);
           if (typeof document !== 'undefined') {
             document.title = merged.pageTitle ?? `${merged.appTitle ?? merged.clientName} by ${merged.clientName}`;
+            this.applyMenuColors(merged.menuColors);
           }
         }),
         catchError(() => {
@@ -92,5 +115,37 @@ export class BrandingService {
   /** Configuración actual (valor inmediato). */
   getBranding(): BrandingConfig {
     return this.branding$.value;
+  }
+
+  /**
+   * Aplica los colores del menú desde branding.json como variables CSS.
+   * Se ejecuta tras cargar la configuración.
+   */
+  private applyMenuColors(menuColors?: MenuColorsConfig): void {
+    if (!menuColors || typeof document === 'undefined') return;
+
+    const vars: string[] = [];
+    if (menuColors.backgroundColor) {
+      vars.push(`--vex-sidenav-background: ${menuColors.backgroundColor}`);
+      vars.push(`--vex-sidenav-toolbar-background: ${menuColors.backgroundColor}`);
+    }
+    if (menuColors.iconColor) vars.push(`--vex-sidenav-item-icon-color: ${menuColors.iconColor}`);
+    if (menuColors.textColor) vars.push(`--vex-sidenav-item-color: ${menuColors.textColor}`);
+    if (menuColors.textColorHover) vars.push(`--vex-sidenav-item-color-hover: ${menuColors.textColorHover}`);
+    if (menuColors.textColorActive) vars.push(`--vex-sidenav-item-color-active: ${menuColors.textColorActive}`);
+    if (menuColors.iconColorHover) vars.push(`--vex-sidenav-item-icon-color-hover: ${menuColors.iconColorHover}`);
+    if (menuColors.iconColorActive) vars.push(`--vex-sidenav-item-icon-color-active: ${menuColors.iconColorActive}`);
+    if (menuColors.subheadingColor) vars.push(`--vex-sidenav-subheading-color: ${menuColors.subheadingColor}`);
+
+    if (vars.length === 0) return;
+
+    const styleId = 'branding-menu-colors';
+    let el = document.getElementById(styleId);
+    if (!el) {
+      el = document.createElement('style');
+      el.id = styleId;
+      document.head.appendChild(el);
+    }
+    el.textContent = `body { ${vars.join('; ')} }`;
   }
 }
