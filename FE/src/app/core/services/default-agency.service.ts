@@ -36,10 +36,11 @@ export class DefaultAgencyService {
       this.selectedAgencySubject.next(savedAgency);
     }
     
-    // Intentar cargar agencias desde localStorage al inicializar
+    // Intentar cargar agencias desde localStorage al inicializar (solo habilitadas)
     const cachedAgencies = this.getAgenciasFromStorage();
     if (cachedAgencies && cachedAgencies.length > 0) {
-      this.agenciasSubject.next(cachedAgencies);
+      const habilitadas = cachedAgencies.filter(ag => this.esAgenciaHabilitada(ag));
+      this.agenciasSubject.next(habilitadas);
     }
   }
 
@@ -109,10 +110,11 @@ export class DefaultAgencyService {
       // Intentar leer de localStorage primero
       const cachedAgencies = this.getAgenciasFromStorage();
       if (cachedAgencies && cachedAgencies.length > 0) {
-        // Actualizar el BehaviorSubject con las agencias cacheadas
-        this.agenciasSubject.next(cachedAgencies);
+        // Filtrar solo habilitadas por si el cache tiene datos antiguos
+        const habilitadas = cachedAgencies.filter(ag => this.esAgenciaHabilitada(ag));
+        this.agenciasSubject.next(habilitadas);
         return new Observable(observer => {
-          observer.next(cachedAgencies);
+          observer.next(habilitadas);
           observer.complete();
         });
       }
@@ -126,8 +128,8 @@ export class DefaultAgencyService {
       }
     }
 
-    // Si no hay en cache o se fuerza actualización, hacer la llamada HTTP
-    return this.http.get<any>(`${this.apiUrl}/api/agency`).pipe(
+    // Si no hay en cache o se fuerza actualización, hacer la llamada HTTP (solo habilitadas para combos)
+    return this.http.get<any>(`${this.apiUrl}/api/agency`, { params: { enabled: 'true' } }).pipe(
       map(response => {
         let agencias: Agencia[] = [];
         
@@ -138,6 +140,9 @@ export class DefaultAgencyService {
         } else if (response && response.agencies && Array.isArray(response.agencies)) {
           agencias = response.agencies;
         }
+
+        // Filtrar solo agencias habilitadas (por si la API no aplicó el filtro)
+        agencias = agencias.filter(ag => this.esAgenciaHabilitada(ag));
 
         // Guardar en localStorage para próximas veces
         if (agencias.length > 0) {
