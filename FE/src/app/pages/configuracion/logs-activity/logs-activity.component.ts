@@ -117,7 +117,7 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading logs:', error);
+
         this.snackBar.open('Error al cargar los logs', 'Error', { duration: 3000 });
         this.loading = false;
       }
@@ -136,7 +136,7 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
         this.statsLoading = false;
       },
       error: (error) => {
-        console.error('Error loading stats:', error);
+
         this.statsLoading = false;
       }
     });
@@ -201,7 +201,7 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
             this.loadStats();
           },
           error: (error) => {
-            console.error('Error cleaning old logs:', error);
+
             this.snackBar.open('Error al limpiar logs antiguos', 'Error', { duration: 3000 });
           }
         });
@@ -238,7 +238,7 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
       this.closeExportMenu();
       
     } catch (error) {
-      console.error('Error al exportar logs:', error);
+
       this.snackBar.open('Error al generar el archivo Excel', 'Error', { duration: 3000 });
     } finally {
       this.loading = false;
@@ -290,14 +290,14 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
           this.loading = false;
           },
           error: (error) => {
-            console.error('Error al obtener logs para exportar:', error);
+
             this.snackBar.open('Error al obtener los logs para exportar', 'Error', { duration: 3000 });
             this.loading = false;
           }
         });
         
       } catch (error) {
-        console.error('Error al exportar todos los logs:', error);
+
         this.snackBar.open('Error al generar el archivo Excel', 'Error', { duration: 3000 });
         this.loading = false;
       }
@@ -393,14 +393,14 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error al obtener logs para exportar por fecha:', error);
+
           this.snackBar.open('Error al obtener los logs para exportar', 'Error', { duration: 3000 });
           this.loading = false;
         }
       });
       
     } catch (error) {
-      console.error('Error al exportar logs por rango de fechas:', error);
+
       this.snackBar.open('Error al generar el archivo Excel', 'Error', { duration: 3000 });
       this.loading = false;
     }

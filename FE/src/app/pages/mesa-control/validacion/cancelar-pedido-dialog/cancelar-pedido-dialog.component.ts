@@ -67,10 +67,10 @@ export class CancelarPedidoDialogComponent implements OnInit {
       next: (response) => {
         this.motivos = response.data.file_extraordinary_reasons;
         this.loadingMotivos = false;
-        console.log('Motivos extraordinarios de cancelación cargados:', this.motivos);
+
       },
       error: (error) => {
-        console.error('Error cargando motivos extraordinarios de cancelación:', error);
+
         this.snackBar.open('Error al cargar los motivos de cancelación', 'Error', { duration: 3000 });
         this.loadingMotivos = false;
       }

@@ -42,6 +42,9 @@ export class UserProfileImageService {
    * Subir imagen de perfil
    */
   uploadProfileImage(file: File): Observable<UploadResponse> {
+    // Sanitizar nombre del archivo
+    file = this.sanitizeFileName(file);
+    
     const formData = new FormData();
     formData.append('profile_image', file);
     
@@ -119,6 +122,38 @@ export class UserProfileImageService {
     }
 
     return { valid: true };
+  }
+
+  /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'imagen';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
   }
 
   /**

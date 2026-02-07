@@ -1,6 +1,7 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import localeEsMx from '@angular/common/locales/es-MX';
 import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +9,33 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, MAT_DATE_LOCALE, NativeDateAdapter, DateAdapter } from '@angular/material/core';
+
+// Registrar el locale español
+registerLocaleData(localeEsMx, 'es-MX');
+
+// DateAdapter personalizado para español
+class CustomDateAdapter extends NativeDateAdapter {
+  override getDayOfWeekNames(style: 'long' | 'short' | 'narrow'): string[] {
+    return ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  }
+
+  override getMonthNames(style: 'long' | 'short' | 'narrow'): string[] {
+    if (style === 'long') {
+      return ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    } else if (style === 'short') {
+      return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+              'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    } else {
+      return ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+    }
+  }
+
+  override format(date: Date, displayFormat: Object): string {
+    return new Intl.DateTimeFormat('es-MX', displayFormat).format(date);
+  }
+}
 
 export interface AprobarDocumentoData {
   documento: any;
@@ -35,6 +62,10 @@ export interface AprobarDocumentoResult {
     MatInputModule,
     MatDatepickerModule,
     MatNativeDateModule
+  ],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'es-MX' },
+    { provide: DateAdapter, useClass: CustomDateAdapter }
   ],
   templateUrl: './aprobar-documento-dialog.component.html',
   styleUrls: ['./aprobar-documento-dialog.component.scss']

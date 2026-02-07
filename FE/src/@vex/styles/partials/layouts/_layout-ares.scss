@@ -1,5 +1,5 @@
 .vex-layout-ares {
-  --vex-sidenav-background: var(--vex-background-background);
+  --vex-sidenav-background: #000000;
   --vex-toolbar-background: var(--vex-background-background);
 
   --vex-sidenav-color: theme("textColor.default");
@@ -14,12 +14,12 @@
   );
   --vex-sidenav-item-dropdown-background-active: var(--vex-background-hover);
 
-  --vex-sidenav-item-dropdown-background: var(--vex-background-background);
+  --vex-sidenav-item-dropdown-background: #000000;
   --vex-sidenav-item-dropdown-background-hover: var(--vex-background-hover);
 
   --vex-secondary-toolbar-background: var(--vex-background-background);
 
-  --vex-sidenav-toolbar-background: var(--vex-background-background);
+  --vex-sidenav-toolbar-background: #000000;
 
   --vex-secondary-toolbar-height: 64px;
 

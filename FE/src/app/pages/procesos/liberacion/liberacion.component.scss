@@ -18,29 +18,38 @@
 }
 
 .client-info-section {
-  .mat-card {
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
   .field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  
-  .field-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  .field-value {
-    font-size: 14px;
-    color: #111827;
-    font-weight: 500;
+    margin-bottom: 0.25rem;
+    
+    .field-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .field-value {
+      background-color: #f9fafb;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      color: #111827;
+      font-weight: 500;
+      min-height: 1.5rem;
+      display: flex;
+      align-items: center;
+      word-break: break-word;
+      
+      &:empty::before {
+        content: 'N/A';
+        color: #9ca3af;
+        font-style: italic;
+      }
+    }
   }
 }
 

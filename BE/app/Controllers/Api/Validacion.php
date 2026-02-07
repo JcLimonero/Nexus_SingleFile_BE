@@ -44,6 +44,520 @@ class Validacion extends BaseController
     }
 
     /**
+     * Endpoint de diagnóstico para verificar por qué un pedido no aparece
+     * GET /api/validacion/diagnostico?idFile=15460&idAgency=5&idProcess=?
+     */
+    public function diagnosticoPedido()
+    {
+        try {
+            $idFile = $this->request->getGet('idFile');
+            $idAgency = $this->request->getGet('idAgency');
+            $idProcess = $this->request->getGet('idProcess');
+            $idTotalDealer = $this->request->getGet('IdTotalDealer'); // Parámetro opcional para verificar relación específica
+
+            if (!$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            // Obtener información básica del pedido
+            $fileInfo = $this->db->query("
+                SELECT 
+                    f.Id as idFile,
+                    f.IdAgency,
+                    f.IdProcess,
+                    f.IdClient,
+                    f.IdCurrentState,
+                    f.IdOrderTotal as ndPedido,
+                    a.Name as agencia,
+                    p.Name as proceso,
+                    p.Enabled as proceso_habilitado,
+                    fs.Name as estado_actual
+                FROM File f
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE f.Id = ?
+            ", [$idFile])->getRowArray();
+
+            if (!$fileInfo) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El pedido no existe',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            // Verificar relación Client_Total_Relation
+            // File.IdClient apunta a Client.Id, NO a HeaderClient.Id
+            $idClient = (int) $fileInfo['IdClient'];
+            $idAgencyFile = (int) $fileInfo['IdAgency'];
+            
+            // Obtener el HeaderClient.Id desde Client.Id
+            $headerClientInfo = $this->db->query("
+                SELECT Id FROM HeaderClient WHERE IdClient = ?
+                LIMIT 1
+            ", [$idClient])->getRowArray();
+            
+            $idHeaderClient = $headerClientInfo ? (int) $headerClientInfo['Id'] : null;
+            
+            error_log("=== DIAGNÓSTICO FILE {$idFile} ===");
+            error_log("File.IdClient (Client.Id): {$idClient}");
+            error_log("HeaderClient.Id encontrado: " . ($idHeaderClient ?? 'NULL'));
+            error_log("File.IdAgency: {$idAgencyFile}");
+            error_log("IdTotalDealer recibido como parámetro: " . ($idTotalDealer ?? 'NULL'));
+            
+            // Si se pasa IdTotalDealer como parámetro, buscar directamente por ese valor
+            if ($idTotalDealer) {
+                $idTotalDealerTrimmed = trim((string) $idTotalDealer);
+                error_log("🔍 Buscando relación por IdTotalDealer={$idTotalDealerTrimmed} e IdAgency={$idAgencyFile}");
+                
+                $relacion = $this->db->query("
+                    SELECT 
+                        ctr.Id,
+                        ctr.IdAgency,
+                        ctr.IdTotalDealer,
+                        ctr.idHeaderClient,
+                        a.Name as nombre_agencia
+                    FROM Client_Total_Relation ctr
+                    INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                    WHERE TRIM(ctr.IdTotalDealer) = ?
+                    AND ctr.IdAgency = ?
+                ", [$idTotalDealerTrimmed, $idAgencyFile])->getRowArray();
+                
+                if ($relacion) {
+                    error_log("✅ Relación encontrada por IdTotalDealer={$idTotalDealerTrimmed} e IdAgency={$idAgencyFile}");
+                    error_log("   idHeaderClient de la relación: {$relacion['idHeaderClient']}");
+                    error_log("   idHeaderClient del file: {$idHeaderClient}");
+                    
+                    if ($relacion['idHeaderClient'] == $idHeaderClient) {
+                        error_log("✅ La relación pertenece al mismo HeaderClient del file");
+                    } else {
+                        error_log("⚠️ La relación pertenece a un HeaderClient diferente (Id={$relacion['idHeaderClient']})");
+                    }
+                } else {
+                    error_log("❌ No se encontró relación con IdTotalDealer={$idTotalDealerTrimmed} e IdAgency={$idAgencyFile}");
+                }
+            } else {
+                // Si no se pasa IdTotalDealer, buscar por HeaderClient.Id e IdAgency
+                if ($idHeaderClient) {
+                    error_log("🔍 Buscando relación por HeaderClient.Id={$idHeaderClient} e IdAgency={$idAgencyFile}");
+                    
+                    $relacion = $this->db->query("
+                        SELECT 
+                            ctr.Id,
+                            ctr.IdAgency,
+                            ctr.IdTotalDealer,
+                            ctr.idHeaderClient,
+                            a.Name as nombre_agencia
+                        FROM HeaderClient hc
+                        INNER JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc.Id
+                        INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                        WHERE hc.Id = ?
+                        AND ctr.IdAgency = ?
+                    ", [$idHeaderClient, $idAgencyFile])->getRowArray();
+                    
+                    if ($relacion) {
+                        error_log("✅ Relación encontrada por HeaderClient.Id: " . json_encode($relacion));
+                    }
+                } else {
+                    error_log("⚠️ No se encontró HeaderClient para Client.Id={$idClient}");
+                }
+            }
+            
+            // Si no se encuentra, buscar por IdTotalDealer
+            if (!$relacion) {
+                error_log("⚠️ Relación NO encontrada por HeaderClient.Id={$idHeaderClient} y IdAgency={$idAgencyFile}");
+                
+                // Prioridad 1: Si se pasa IdTotalDealer como parámetro, usarlo
+                $ndCliente = null;
+                if ($idTotalDealer) {
+                    $ndCliente = trim((string) $idTotalDealer);
+                    error_log("✅ Usando IdTotalDealer del parámetro: {$ndCliente}");
+                } else {
+                    // Prioridad 2: Obtener el IdTotalDealer de cualquier relación de este HeaderClient
+                    $ndClienteDelFile = $this->db->query("
+                        SELECT ctr.IdTotalDealer 
+                        FROM Client_Total_Relation ctr 
+                        WHERE ctr.idHeaderClient = ? 
+                        LIMIT 1
+                    ", [$idHeaderClient])->getRowArray();
+                    
+                    if ($ndClienteDelFile && !empty($ndClienteDelFile['IdTotalDealer'])) {
+                        $ndCliente = trim($ndClienteDelFile['IdTotalDealer']);
+                        error_log("⚠️ Usando IdTotalDealer de relación existente del HeaderClient: {$ndCliente}");
+                    }
+                }
+                
+                if ($ndCliente) {
+                    error_log("Buscando relación alternativa por IdTotalDealer={$ndCliente} e IdAgency={$idAgencyFile}");
+                    
+                    // Buscar por IdTotalDealer e IdAgency
+                    $relacion = $this->db->query("
+                        SELECT 
+                            ctr.Id,
+                            ctr.IdAgency,
+                            ctr.IdTotalDealer,
+                            ctr.idHeaderClient,
+                            a.Name as nombre_agencia
+                        FROM Client_Total_Relation ctr
+                        INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                        WHERE TRIM(ctr.IdTotalDealer) = ?
+                        AND ctr.IdAgency = ?
+                    ", [$ndCliente, $idAgencyFile])->getRowArray();
+                    
+                    if ($relacion) {
+                        error_log("✅ Relación encontrada por IdTotalDealer: " . json_encode($relacion));
+                        // Verificar si el idHeaderClient de la relación coincide con el del file
+                        if ($relacion['idHeaderClient'] != $idHeaderClient) {
+                            error_log("⚠️ ADVERTENCIA: El idHeaderClient de la relación ({$relacion['idHeaderClient']}) NO coincide con el del file ({$idHeaderClient})");
+                            // Aún así, consideramos que existe la relación si el IdTotalDealer y IdAgency coinciden
+                        }
+                    } else {
+                        error_log("❌ No se encontró relación con IdTotalDealer={$ndCliente} e IdAgency={$idAgencyFile}");
+                    }
+                }
+            } else {
+                error_log("✅ Relación encontrada por HeaderClient.Id: " . json_encode($relacion));
+            }
+            
+            // Si aún no se encuentra, mostrar información de diagnóstico
+            if (!$relacion) {
+                error_log("❌ Relación NO encontrada después de todos los intentos");
+                
+                // Verificar si existe HeaderClient con ese ID
+                $headerClientExists = $this->db->query("
+                    SELECT Id, IdClient FROM HeaderClient WHERE Id = ?
+                ", [$idHeaderClient])->getRowArray();
+                error_log("HeaderClient existe: " . ($headerClientExists ? json_encode($headerClientExists) : 'NO'));
+                
+                // Verificar todas las relaciones de ese HeaderClient
+                $todasRelacionesHeaderClient = $this->db->query("
+                    SELECT ctr.Id, ctr.IdAgency, ctr.IdTotalDealer, ctr.idHeaderClient, a.Name as nombre_agencia
+                    FROM Client_Total_Relation ctr
+                    INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                    WHERE ctr.idHeaderClient = ?
+                ", [$idHeaderClient])->getResultArray();
+                error_log("Todas las relaciones de HeaderClient {$idHeaderClient}: " . json_encode($todasRelacionesHeaderClient));
+                
+                // Buscar todas las relaciones con IdAgency = 3 para ver si hay alguna con el mismo cliente
+                $relacionesAgencia3 = $this->db->query("
+                    SELECT ctr.Id, ctr.IdAgency, ctr.IdTotalDealer, ctr.idHeaderClient, a.Name as nombre_agencia
+                    FROM Client_Total_Relation ctr
+                    INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                    WHERE ctr.IdAgency = ?
+                ", [$idAgencyFile])->getResultArray();
+                error_log("Total de relaciones con IdAgency={$idAgencyFile}: " . count($relacionesAgencia3));
+            }
+
+            // Verificar todas las relaciones del cliente (usando HeaderClient.Id del file)
+            $todasRelaciones = [];
+            if ($idHeaderClient) {
+                $todasRelaciones = $this->db->query("
+                    SELECT 
+                        ctr.Id,
+                        ctr.IdAgency,
+                        ctr.IdTotalDealer,
+                        ctr.idHeaderClient,
+                        a.Name as nombre_agencia
+                    FROM HeaderClient hc
+                    INNER JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc.Id
+                    INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                    WHERE hc.Id = ?
+                ", [$idHeaderClient])->getResultArray();
+            } else {
+                error_log("⚠️ No se puede buscar relaciones porque no se encontró HeaderClient para Client.Id={$idClient}");
+            }
+            
+            // También buscar directamente por IdTotalDealer si se proporciona como parámetro
+            $relacionPorNdCliente = null;
+            if ($idTotalDealer) {
+                $idTotalDealerTrimmed = trim((string) $idTotalDealer);
+                $relacionPorNdCliente = $this->db->query("
+                    SELECT 
+                        ctr.Id,
+                        ctr.IdAgency,
+                        ctr.IdTotalDealer,
+                        ctr.idHeaderClient,
+                        a.Name as nombre_agencia
+                    FROM Client_Total_Relation ctr
+                    INNER JOIN Agency a ON ctr.IdAgency = a.Id
+                    WHERE TRIM(ctr.IdTotalDealer) = ?
+                    AND ctr.IdAgency = ?
+                ", [$idTotalDealerTrimmed, $idAgencyFile])->getResultArray();
+                
+                error_log("Relaciones encontradas por IdTotalDealer='{$idTotalDealerTrimmed}' e IdAgency={$idAgencyFile}: " . json_encode($relacionPorNdCliente));
+            }
+            
+            // Verificar si alguna de estas relaciones tiene el mismo idHeaderClient que el file
+            if ($relacionPorNdCliente && count($relacionPorNdCliente) > 0) {
+                $relacionEncontrada = $relacionPorNdCliente[0];
+                if ($relacionEncontrada['idHeaderClient'] == $idHeaderClient) {
+                    error_log("✅ La relación con IdTotalDealer='99282' e IdAgency=3 SÍ pertenece al HeaderClient.Id={$idHeaderClient} del file");
+                    // Si no se encontró antes, usar esta relación
+                    if (!$relacion) {
+                        $relacion = $relacionEncontrada;
+                        error_log("✅ Usando relación encontrada por IdTotalDealer: " . json_encode($relacion));
+                    }
+                } else {
+                    error_log("⚠️ La relación con IdTotalDealer='99282' e IdAgency=3 pertenece a HeaderClient.Id={$relacionEncontrada['idHeaderClient']}, pero el file tiene HeaderClient.Id={$idHeaderClient}");
+                    error_log("⚠️ Esto significa que el file está asociado a un HeaderClient diferente al que tiene la relación con la agencia 3");
+                }
+            }
+
+            // Verificar condiciones del query de validación
+            // Para tener_relacion_cliente_agencia, verificar si:
+            // 1. Se encontró relación directa por HeaderClient.Id e IdAgency, O
+            // 2. Existe una relación con IdTotalDealer e IdAgency (aunque el HeaderClient sea diferente)
+            $tieneRelacion = false;
+            if ($relacion) {
+                // Si la relación encontrada tiene el mismo idHeaderClient que el file, es válida
+                if ($relacion['idHeaderClient'] == $idHeaderClient) {
+                    $tieneRelacion = true;
+                } else {
+                    // Si el idHeaderClient es diferente, verificar si hay alguna relación del HeaderClient del file con esa agencia
+                    $relacionDelFile = $this->db->query("
+                        SELECT 1 
+                        FROM Client_Total_Relation ctr 
+                        WHERE ctr.idHeaderClient = ? 
+                        AND ctr.IdAgency = ?
+                    ", [$idHeaderClient, $idAgencyFile])->getRowArray();
+                    $tieneRelacion = $relacionDelFile !== null;
+                }
+            }
+            
+            // Convertir parámetros a enteros para comparación correcta
+            $idAgencyInt = $idAgency ? (int) $idAgency : null;
+            $idProcessInt = $idProcess ? (int) $idProcess : null;
+            $fileIdAgency = (int) $fileInfo['IdAgency'];
+            $fileIdProcess = (int) $fileInfo['IdProcess'];
+            
+            // Evaluar condiciones
+            // Agencia: solo se evalúa si se pasa el parámetro
+            $condicionAgencia = $idAgencyInt ? ($fileIdAgency == $idAgencyInt) : null;
+            
+            // Proceso: siempre se evalúa desde el File, pero si se pasa el parámetro, se compara
+            // Si no se pasa el parámetro, se muestra el IdProcess del file
+            if ($idProcessInt) {
+                $condicionProceso = $fileIdProcess == $idProcessInt;
+            } else {
+                // Si no se pasa el parámetro, mostrar el IdProcess del file (siempre true porque es el proceso del file)
+                $condicionProceso = true; // El file siempre tiene su proceso
+            }
+            
+            $cumpleCondiciones = [
+                'agencia' => $condicionAgencia,
+                'proceso' => $condicionProceso,
+                'proceso_id' => $fileIdProcess, // Agregar el IdProcess del file para referencia
+                'proceso_habilitado' => $fileInfo['proceso_habilitado'] == 1,
+                'no_cancelado' => $fileInfo['IdCurrentState'] != 5,
+                'tiene_relacion_cliente_agencia' => $tieneRelacion
+            ];
+            
+            // Agregar información adicional para debugging
+            error_log("=== EVALUACIÓN DE CONDICIONES ===");
+            error_log("idAgency recibido: " . ($idAgency ?? 'NULL') . " (tipo: " . gettype($idAgency) . ")");
+            error_log("idAgency convertido: " . ($idAgencyInt ?? 'NULL'));
+            error_log("File.IdAgency: {$fileIdAgency}");
+            error_log("Condición agencia: " . ($condicionAgencia === null ? 'NULL' : ($condicionAgencia ? 'TRUE' : 'FALSE')));
+            error_log("idProcess recibido: " . ($idProcess ?? 'NULL') . " (tipo: " . gettype($idProcess) . ")");
+            error_log("idProcess convertido: " . ($idProcessInt ?? 'NULL'));
+            error_log("File.IdProcess: {$fileIdProcess}");
+            error_log("Condición proceso: " . ($condicionProceso ? 'TRUE' : 'FALSE'));
+
+            // Obtener IdTotalDealer del file si existe relación
+            $idTotalDealerDelFile = null;
+            if ($todasRelaciones && count($todasRelaciones) > 0) {
+                // Buscar IdTotalDealer de la relación con la agencia del file
+                foreach ($todasRelaciones as $rel) {
+                    if ($rel['IdAgency'] == $idAgencyFile) {
+                        $idTotalDealerDelFile = $rel['IdTotalDealer'];
+                        break;
+                    }
+                }
+                // Si no se encuentra con la agencia del file, usar el primero disponible
+                if (!$idTotalDealerDelFile && count($todasRelaciones) > 0) {
+                    $idTotalDealerDelFile = $todasRelaciones[0]['IdTotalDealer'];
+                }
+            }
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Diagnóstico completado',
+                'data' => [
+                    'pedido' => $fileInfo,
+                    'relacion_requerida' => $relacion,
+                    'todas_relaciones' => $todasRelaciones,
+                    'idTotalDealer' => $idTotalDealerDelFile, // Agregar IdTotalDealer encontrado
+                    'relacion_por_idTotalDealer' => $relacionPorNdCliente, // Relación encontrada por parámetro IdTotalDealer
+                    'condiciones' => $cumpleCondiciones,
+                    'apareceria_en_validacion' => 
+                        (!$idAgency || $cumpleCondiciones['agencia']) &&
+                        (!$idProcess || $cumpleCondiciones['proceso']) &&
+                        $cumpleCondiciones['proceso_habilitado'] &&
+                        $cumpleCondiciones['no_cancelado'] &&
+                        $cumpleCondiciones['tiene_relacion_cliente_agencia']
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::diagnosticoPedido: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Reparar relación Client_Total_Relation faltante para un File.
+     * Si el pedido no aparece en validación por falta de relación cliente-agencia,
+     * este endpoint la crea.
+     * POST /api/clients-validation/reparar-relacion
+     * Body: { "idFile": 15460 }
+     */
+    public function repararRelacion()
+    {
+        try {
+            $data = $this->request->getJSON(true) ?? [];
+            $idFile = $data['idFile'] ?? $this->request->getGet('idFile');
+            if (!$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            $idFile = (int) $idFile;
+
+            $file = $this->db->query("
+                SELECT f.Id, f.IdClient, f.IdAgency
+                FROM File f
+                WHERE f.Id = ?
+            ", [$idFile])->getRowArray();
+            if (!$file) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El pedido no existe',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            // File.IdClient apunta a Client.Id, NO a HeaderClient.Id
+            $idClient = (int) $file['IdClient'];
+            $idAgency = (int) $file['IdAgency'];
+            
+            // Obtener el HeaderClient.Id desde Client.Id
+            $headerClientInfo = $this->db->query("
+                SELECT Id FROM HeaderClient WHERE IdClient = ?
+                LIMIT 1
+            ", [$idClient])->getRowArray();
+            
+            if (!$headerClientInfo) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró HeaderClient para el cliente del pedido',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+            
+            $idHeaderClient = (int) $headerClientInfo['Id'];
+
+            $existe = $this->db->query("
+                SELECT 1 FROM Client_Total_Relation ctr
+                WHERE ctr.idHeaderClient = ? AND ctr.IdAgency = ?
+            ", [$idHeaderClient, $idAgency])->getRowArray();
+            if ($existe) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'La relación ya existe; no se requiere reparación',
+                    'data' => ['idFile' => $idFile, 'idHeaderClient' => $idHeaderClient, 'IdAgency' => $idAgency]
+                ]);
+            }
+
+            // Buscar IdTotalDealer de cualquier relación de este HeaderClient
+            $otro = $this->db->query("
+                SELECT ctr.IdTotalDealer FROM Client_Total_Relation ctr
+                WHERE ctr.idHeaderClient = ?
+                LIMIT 1
+            ", [$idHeaderClient])->getRowArray();
+            $idTotalDealer = $otro ? trim((string) ($otro['IdTotalDealer'] ?? '')) : '';
+            
+            // Si no se encontró IdTotalDealer, buscar si existe una relación con la agencia del file
+            // Esto es útil cuando el cliente tiene relación con otra agencia pero necesita relación con esta
+            if (empty($idTotalDealer)) {
+                // Primero intentar buscar por el mismo cliente (mismo HeaderClient.IdClient) pero con otra relación
+                $headerClientInfo = $this->db->query("
+                    SELECT IdClient FROM HeaderClient WHERE Id = ?
+                ", [$idHeaderClient])->getRowArray();
+                
+                if ($headerClientInfo) {
+                    // Buscar si hay otro HeaderClient del mismo cliente que tenga relación con esta agencia
+                    $otroHeaderClient = $this->db->query("
+                        SELECT hc2.Id, ctr.IdTotalDealer
+                        FROM HeaderClient hc2
+                        INNER JOIN Client_Total_Relation ctr ON ctr.idHeaderClient = hc2.Id
+                        WHERE hc2.IdClient = ?
+                        AND ctr.IdAgency = ?
+                        LIMIT 1
+                    ", [$headerClientInfo['IdClient'], $idAgency])->getRowArray();
+                    
+                    if ($otroHeaderClient && !empty($otroHeaderClient['IdTotalDealer'])) {
+                        $idTotalDealer = trim((string) $otroHeaderClient['IdTotalDealer']);
+                        error_log("✅ Encontrado IdTotalDealer '{$idTotalDealer}' de otro HeaderClient del mismo cliente con relación a agencia {$idAgency}");
+                    } else {
+                        // Si no hay otro HeaderClient, buscar cualquier relación con esta agencia para usar su IdTotalDealer
+                        $relacionAgencia = $this->db->query("
+                            SELECT ctr.IdTotalDealer 
+                            FROM Client_Total_Relation ctr
+                            WHERE ctr.IdAgency = ?
+                            LIMIT 1
+                        ", [$idAgency])->getRowArray();
+                        
+                        if ($relacionAgencia && !empty($relacionAgencia['IdTotalDealer'])) {
+                            $idTotalDealer = trim((string) $relacionAgencia['IdTotalDealer']);
+                            error_log("⚠️ Usando IdTotalDealer '{$idTotalDealer}' de otra relación con la misma agencia {$idAgency}");
+                        }
+                    }
+                }
+            }
+
+            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM Client_Total_Relation")->getRowArray();
+            $nextId = (int) ($nextIdRow['nextId'] ?? 1);
+
+            $this->db->table('Client_Total_Relation')->insert([
+                'Id' => $nextId,
+                'idHeaderClient' => $idHeaderClient,
+                'IdAgency' => $idAgency,
+                'IdTotalDealer' => $idTotalDealer
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Relación cliente-agencia creada correctamente',
+                'data' => [
+                    'idFile' => $idFile,
+                    'idRelation' => $nextId,
+                    'idHeaderClient' => $idHeaderClient,
+                    'IdAgency' => $idAgency,
+                    'IdTotalDealer' => $idTotalDealer ?: '(vacío)'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::repararRelacion: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Obtener datos de clientes y procesos para la tabla de validación
      * GET /api/validacion/clientes
      */
@@ -61,33 +575,52 @@ class Validacion extends BaseController
             $limit = (int) $this->request->getGet('limit') ?: 10;
             $offset = ($page - 1) * $limit;
 
-            // Validar parámetros requeridos
-            if (!$idAgency || !$idProcess) {
+            // Validar parámetros requeridos (idProcess opcional: si no viene, "Todos los procesos")
+            if (!$idAgency) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Los parámetros id e idProcess son requeridos',
+                    'message' => 'El parámetro id (agencia) es requerido',
                     'data' => null
                 ])->setStatusCode(400);
             }
 
+            $filtrarPorProceso = $idProcess !== null && $idProcess !== '';
+
             // Query principal usando SQL directo para evitar problemas con Query Builder
-            // Asegurar que todos los File con el mismo ndCliente en la misma agencia muestren el mismo cliente
-            // Usamos un subquery para obtener el cliente correcto basado en ndCliente y agencia
+            // PRIORIDAD: El pedido (File) debe pertenecer a la agencia seleccionada
+            // El cliente debe estar relacionado con la agencia del pedido a través de Client_Total_Relation
             $sql = "
                 SELECT 
                     f.Id as idFile,
-                    COALESCE(ctr.IdTotalDealer, '') as ndCliente,
+                    COALESCE(
+                        (SELECT ctr1.IdTotalDealer 
+                         FROM Client_Total_Relation ctr1 
+                         WHERE ctr1.idHeaderClient = hc.Id 
+                         AND ctr1.IdAgency = f.IdAgency 
+                         LIMIT 1),
+                        (SELECT ctr2.IdTotalDealer 
+                         FROM Client_Total_Relation ctr2 
+                         WHERE ctr2.idHeaderClient = hc.Id 
+                         LIMIT 1),
+                        ''
+                    ) as ndCliente,
                     f.IdOrderTotal as ndPedido,
                     COALESCE(
-                        NULLIF(TRIM(cliente_correcto.RazonSocial), ''),
-                        TRIM(CONCAT(COALESCE(cliente_correcto.Name, ''), ' ', COALESCE(cliente_correcto.LastName, ''), ' ', COALESCE(cliente_correcto.MotherLastName, '')))
+                        NULLIF(TRIM(c.RazonSocial), ''),
+                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
                     ) as cliente,
+                    ct.Name as tipoCliente,
                     p.Name as proceso,
                     ot.Name as operacion,
+                    a.Name as agencia,
+                    f.IdAgency as idAgency,
                     f.RegistrationDate as registro,
                     fs.Name as fase,
                     f.IdCurrentState,
-                    f.AgendDate as fechaLiberacion,
+                    CASE 
+                        WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate
+                        ELSE f.AgendDate
+                    END as fechaLiberacion,
                     CASE 
                         WHEN EXISTS (
                             SELECT 1 
@@ -104,44 +637,58 @@ class Validacion extends BaseController
                         WHERE dbfPend.IdFile = f.Id
                         AND dbfPend.Enabled = 1
                         AND dbfPend.IdCurrentStatus <> 4
-                    ) as documentosNoAprobados
+                    ) as documentosNoAprobados,
+                    COALESCE(obc1.VIN, obc2.VIN) as vin,
+                    COALESCE(obc1.Modelo, obc2.Modelo) as modelo,
+                    COALESCE(obc1.Year, obc2.Year) as year,
+                    COALESCE(obc1.CarType, obc2.CarType) as version
                 FROM File f
-                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
+                INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
+                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                LEFT JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient 
-                    AND ctr.IdAgency = f.IdAgency
-                -- Obtener el cliente correcto basado en el ndCliente y agencia (único por agencia)
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder
                 LEFT JOIN (
-                    SELECT 
-                        ctr_main.IdTotalDealer,
-                        ctr_main.IdAgency,
-                        c_main.Id as ClientId,
-                        c_main.Name,
-                        c_main.LastName,
-                        c_main.MotherLastName,
-                        c_main.RazonSocial
-                    FROM Client_Total_Relation ctr_main
-                    INNER JOIN HeaderClient hc_main ON ctr_main.idHeaderClient = hc_main.Id
-                    INNER JOIN Client c_main ON hc_main.IdClient = c_main.Id
-                    WHERE ctr_main.IdAgency = ?
-                    GROUP BY ctr_main.IdTotalDealer, ctr_main.IdAgency, c_main.Id, c_main.Name, c_main.LastName, c_main.MotherLastName, c_main.RazonSocial
-                ) cliente_correcto ON COALESCE(ctr.IdTotalDealer, '') = cliente_correcto.IdTotalDealer 
-                    AND cliente_correcto.IdAgency = f.IdAgency
+                    SELECT obc2a.IdTotalDealer,
+                        obc2a.idagency,
+                        obc2a.VIN,
+                        obc2a.Modelo,
+                        obc2a.Year,
+                        obc2a.CarType
+                    FROM OrderByCar obc2a
+                    INNER JOIN (
+                        SELECT IdTotalDealer, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
+                        FROM OrderByCar
+                        GROUP BY IdTotalDealer, idagency
+                    ) obc2b ON obc2a.IdTotalDealer = obc2b.IdTotalDealer
+                        AND obc2a.idagency = obc2b.idagency
+                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.IdOrder IS NULL
+                    AND obc2.IdTotalDealer = f.IdOrderTotal
+                    AND obc2.idagency = f.IdAgency
                 WHERE f.IdAgency = ?
-                AND f.IdProcess = ?
                 AND p.Enabled = 1
-                AND cliente_correcto.ClientId IS NOT NULL
+                AND EXISTS (
+                    SELECT 1 
+                    FROM Client_Total_Relation ctr_check 
+                    WHERE ctr_check.idHeaderClient = hc.Id 
+                    AND ctr_check.IdAgency = f.IdAgency
+                )
             ";
-            
-            $params = [$idAgency, $idAgency, $idProcess];
+
+            $params = [$idAgency];
+            if ($filtrarPorProceso) {
+                $sql .= " AND f.IdProcess = ?";
+                $params[] = $idProcess;
+            }
             
             // Aplicar filtro de pedidos cancelados 
             if ($showCancelled) {
                 $sql .= " AND f.IdCurrentState = 5";
             } else {
-                // Cuando no se muestran cancelados, excluir solo cancelados (5), pero mostrar excepciones (6)
                 $sql .= " AND f.IdCurrentState != 5";
             }
             
@@ -153,28 +700,32 @@ class Validacion extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 
-            // Query para contar total de registros usando SQL directo
+            // Query para contar total de registros
             $countSql = "
                 SELECT COUNT(*) as total
                 FROM File f
-                INNER JOIN HeaderClient hc ON f.IdClient = hc.Id
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 WHERE f.IdAgency = ?
-                AND f.IdProcess = ?
                 AND p.Enabled = 1
-                AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+                AND EXISTS (
+                    SELECT 1 
+                    FROM Client_Total_Relation ctr_check 
+                    WHERE ctr_check.idHeaderClient = hc.Id 
+                    AND ctr_check.IdAgency = f.IdAgency
+                )
             ";
-            
-            $countParams = [$idAgency, $idProcess];
-            
-            // Aplicar el mismo filtro de pedidos cancelados a la query de conteo
+            $countParams = [$idAgency];
+            if ($filtrarPorProceso) {
+                $countSql .= " AND f.IdProcess = ?";
+                $countParams[] = $idProcess;
+            }
             if ($showCancelled) {
                 $countSql .= " AND f.IdCurrentState = 5";
             } else {
-                // Cuando no se muestran cancelados, excluir solo cancelados (5), pero mostrar excepciones (6)
                 $countSql .= " AND f.IdCurrentState != 5";
             }
 

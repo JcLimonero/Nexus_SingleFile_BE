@@ -25,6 +25,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { NavigationItem } from '../../../core/navigation/navigation-item.interface';
 import { checkRouterChildsData } from '@vex/utils/check-router-childs-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'vex-toolbar',
@@ -72,13 +73,18 @@ export class ToolbarComponent implements OnInit {
     (config) => config.sidenav.title
   );
 
+  /** Logo de la app (configurable por cliente vía assets/config/branding.json) */
+  logoApp$ = this.brandingService.getBranding$().pipe(map((b) => b.logoApp));
+  /** Si hay theme.logoColor, se aplica filtro de color al logo */
+  logoColor$ = this.brandingService.getBranding$().pipe(map((b) => b.theme?.logoColor));
+
   // Título dinámico basado en la ruta actual
   dynamicTitle$: Observable<string> = this.router.events.pipe(
     filter((event) => event instanceof NavigationEnd),
     startWith(null),
     map(() => {
       const title = this.getPageTitle();
-      console.log('🔄 ToolbarComponent - Título generado:', title);
+
       return title;
     }),
     startWith('Dashboard Analytics')
@@ -93,7 +99,8 @@ export class ToolbarComponent implements OnInit {
     private readonly configService: VexConfigService,
     private readonly navigationService: NavigationService,
     private readonly popoverService: VexPopoverService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly brandingService: BrandingService
   ) {}
 
   ngOnInit() {
@@ -111,8 +118,7 @@ export class ToolbarComponent implements OnInit {
         
         // Debug: mostrar el título actual
         const currentTitle = this.getPageTitle();
-        console.log('🔄 ToolbarComponent - Título actual:', currentTitle);
-        console.log('🔄 ToolbarComponent - URL actual:', this.router.url);
+
       });
   }
 
@@ -164,13 +170,15 @@ export class ToolbarComponent implements OnInit {
     // Mesa de Control
     if (url.includes('/mesa-control')) {
       if (url.includes('/validacion')) {
-        return 'Mesa de Control - Validación';
+        return 'Validación';
+      } else if (url.includes('/consolidacion-dms')) {
+        return 'Consolidación DMS';
       } else if (url.includes('/dashboard')) {
-        return 'Mesa de Control - Dashboard Principal';
+        return 'Dashboard Principal';
       } else if (url.includes('/monitoreo')) {
-        return 'Mesa de Control - Monitoreo en Tiempo Real';
+        return 'Monitoreo en Tiempo Real';
       } else if (url.includes('/reportes')) {
-        return 'Mesa de Control - Reportes';
+        return 'Reportes';
       } else {
         return 'Mesa de Control';
       }
@@ -179,21 +187,21 @@ export class ToolbarComponent implements OnInit {
     // Configuración
     if (url.includes('/configuracion')) {
       if (url.includes('/agencias')) {
-        return 'Configuración - Agencias';
+        return 'Agencias';
       } else if (url.includes('/usuarios')) {
-        return 'Configuración - Usuarios';
+        return 'Usuarios';
       } else if (url.includes('/motivos-extraordinarios')) {
-        return 'Configuración - Motivos Extraordinarios';
+        return 'Motivos Extraordinarios';
       } else if (url.includes('/motivos-rechazo')) {
-        return 'Configuración - Motivos de Aprobación y Rechazo';
+        return 'Motivos de Aprobación y Rechazo';
       } else if (url.includes('/documentos-requeridos')) {
-        return 'Configuración - Documentos Requeridos';
+        return 'Documentos Requeridos';
       } else if (url.includes('/tipos-documento')) {
-        return 'Configuración - Tipos de Documento';
+        return 'Tipos de Documento';
       } else if (url.includes('/tipos-cliente')) {
-        return 'Configuración - Tipos de Cliente';
+        return 'Tipos de Cliente';
       } else if (url.includes('/catalogos')) {
-        return 'Configuración - Catálogos';
+        return 'Catálogos';
       } else {
         return 'Configuración';
       }
@@ -202,7 +210,7 @@ export class ToolbarComponent implements OnInit {
     // Procesos
     if (url.includes('/procesos')) {
       if (url.includes('/integracion')) {
-        return 'Integración de Expediente';
+        return 'Integración';
       } else if (url.includes('/liquidacion')) {
         return 'Liquidación';
       } else if (url.includes('/liberacion')) {
@@ -215,13 +223,13 @@ export class ToolbarComponent implements OnInit {
     // Mesa de Control
     if (url.includes('/mesa-control')) {
       if (url.includes('/validacion')) {
-        return 'Mesa de Control - Validación';
+        return 'VaConsolidación DMS';
       } else if (url.includes('/monitoreo')) {
-        return 'Mesa de Control - Monitoreo';
+        return 'Monitoreo';
       } else if (url.includes('/reportes')) {
-        return 'Mesa de Control - Reportes';
+        return 'Reportes';
       } else if (url.includes('/dashboard')) {
-        return 'Mesa de Control - Dashboard';
+        return 'Dashboard';
       } else {
         return 'Mesa de Control';
       }

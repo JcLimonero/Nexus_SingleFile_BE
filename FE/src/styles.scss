@@ -28,3 +28,24 @@ html {
   // --vex-color-warn: yellow;
   // --vex-color-warn-contrast: black;
 }
+
+/* Evitar que el layout se salga de la pantalla (overflow horizontal) */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.vex-base-layout-container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.vex-layout-sidenav-container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.vex-layout-sidenav-content {
+  min-width: 0;
+  max-width: 100%;
+}

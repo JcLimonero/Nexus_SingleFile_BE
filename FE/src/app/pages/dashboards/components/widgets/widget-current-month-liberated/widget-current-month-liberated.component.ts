@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,7 +34,10 @@ export class WidgetCurrentMonthLiberatedComponent implements OnInit, OnDestroy, 
 
   private destroy$ = new Subject<void>();
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -43,7 +46,7 @@ export class WidgetCurrentMonthLiberatedComponent implements OnInit, OnDestroy, 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
         (changes['userId'] && !changes['userId'].firstChange)) {
-      console.log('🔄 WidgetCurrentMonthLiberated: filtros cambiaron, recargando datos...');
+
       this.loadData();
     }
   }
@@ -66,11 +69,13 @@ export class WidgetCurrentMonthLiberatedComponent implements OnInit, OnDestroy, 
         next: (data) => {
           this.data = data;
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('Error loading current month liberated data:', error);
+
           this.error = 'Error al cargar datos de expedientes liberados';
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }

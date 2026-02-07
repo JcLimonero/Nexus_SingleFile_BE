@@ -122,14 +122,27 @@
             <mat-icon class="mr-1 text-green-600" style="font-size: 18px;">description</mat-icon>
             Pedidos en Integración
           </div>
-          <button 
-            mat-icon-button 
-            color="primary"
-            (click)="agregarPedidoIntegracion()"
-            matTooltip="Agregar nuevo pedido de integración"
-            *ngIf="isManagerOrAdmin">
-            <mat-icon style="font-size: 18px;">add</mat-icon>
-          </button>
+          <div class="flex items-center space-x-1">
+            <button 
+              mat-icon-button 
+              color="primary"
+              (click)="refreshClientFiles()"
+              matTooltip="Refrescar pedidos relacionados"
+              [disabled]="refreshingFiles || filesLoading">
+              <mat-spinner *ngIf="refreshingFiles" diameter="18" style="display: inline-block;"></mat-spinner>
+              <mat-icon *ngIf="!refreshingFiles" style="font-size: 18px;">refresh</mat-icon>
+            </button>
+            <button 
+              mat-icon-button 
+              color="primary"
+              (click)="agregarPedidoIntegracion()"
+              matTooltip="Agregar nuevo pedido de integración"
+              [disabled]="loadingOrdersFromVanguardia"
+              *ngIf="isManagerOrAdmin">
+              <mat-spinner *ngIf="loadingOrdersFromVanguardia" diameter="18" style="display: inline-block;"></mat-spinner>
+              <mat-icon *ngIf="!loadingOrdersFromVanguardia" style="font-size: 18px;">add</mat-icon>
+            </button>
+          </div>
         </mat-card-title>
       </mat-card-header>
       
@@ -225,7 +238,7 @@
             <ng-container matColumnDef="year">
               <th mat-header-cell *matHeaderCellDef>Año</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.year; else noYear" class="text-sm">{{ file.year }}</span>
+                <span *ngIf="file.year != null && file.year !== ''; else noYear" class="text-sm">{{ file.year }}</span>
                 <ng-template #noYear>
                   <span class="text-gray-400 italic text-sm">-</span>
                 </ng-template>
@@ -236,7 +249,7 @@
             <ng-container matColumnDef="modelo">
               <th mat-header-cell *matHeaderCellDef>Modelo</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.modelo; else noModel" class="text-sm">{{ file.modelo }}</span>
+                <span *ngIf="file.modelo != null && file.modelo !== ''; else noModel" class="text-sm">{{ file.modelo }}</span>
                 <ng-template #noModel>
                   <span class="text-gray-400 italic text-sm">Sin modelo</span>
                 </ng-template>
@@ -247,7 +260,7 @@
             <ng-container matColumnDef="version">
               <th mat-header-cell *matHeaderCellDef>Versión</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.version; else noVersion" class="text-sm">{{ file.version }}</span>
+                <span *ngIf="file.version != null && file.version !== ''; else noVersion" class="text-sm">{{ file.version }}</span>
                 <ng-template #noVersion>
                   <span class="text-gray-400 italic text-sm">Sin versión</span>
                 </ng-template>
@@ -258,7 +271,7 @@
             <ng-container matColumnDef="vin">
               <th mat-header-cell *matHeaderCellDef>VIN</th>
               <td mat-cell *matCellDef="let file">
-                <span *ngIf="file.vin; else noVin" class="text-sm font-mono">{{ file.vin }}</span>
+                <span *ngIf="file.vin != null && file.vin !== ''; else noVin" class="text-sm font-mono">{{ file.vin }}</span>
                 <ng-template #noVin>
                   <span class="text-gray-400 italic text-sm">Sin VIN</span>
                 </ng-template>
@@ -377,21 +390,26 @@
         </div>
 
         <!-- Botón para cargar todos los documentos seleccionados - Posicionado a la derecha -->
-        <div *ngIf="!documentsLoading && hasDocumentsSelectedForBatch()" class="flex justify-end mb-2">
+        <div *ngIf="!documentsLoading && hasDocumentsSelectedForBatch()" class="flex flex-col items-end mb-2">
           <button 
             mat-raised-button 
             color="primary"
             (click)="uploadMultipleDocuments()"
-            [disabled]="uploadingDocuments.size > 0"
+            [disabled]="uploadingDocuments.size > 0 || hasFilesExceedingSizeInBatch()"
             class="text-xs">
             <mat-icon class="mr-1" style="font-size: 14px;">cloud_upload</mat-icon>
             Cargar {{ getSelectedDocumentsCount() }} documento(s) seleccionado(s)
           </button>
+          <!-- Mensaje de error de tamaño para carga masiva -->
+          <span *ngIf="hasFilesExceedingSizeInBatch()" 
+                class="text-xs text-red-600 mt-1">
+            {{ getFilesExceedingSizeCount() }} archivo(s) exceden el tamaño máximo de {{ maxFileSizeMB }}MB
+          </span>
         </div>
 
         <!-- Lista de documentos -->
         <div *ngIf="!documentsLoading" class="space-y-2">
-          <div *ngFor="let document of requiredDocuments" 
+          <div *ngFor="let document of requiredDocuments; trackBy: trackByDocumentId" 
                class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50"
                [class.opacity-50]="isDocumentUploading(document.documentId)">
             
@@ -401,7 +419,7 @@
               <mat-checkbox
                 [checked]="isDocumentSelectedForBatch(document.documentId)"
                 (change)="toggleDocumentForBatch(document.documentId)"
-                [disabled]="!selectedFiles[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
+                [disabled]="!selectedFiles[document.documentId] || filesExceedingSize[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
                 class="mr-1">
               </mat-checkbox>
               
@@ -446,15 +464,22 @@
               </div>
 
               <!-- Botón Cargar -->
-              <button 
-                mat-raised-button 
-                color="primary"
-                (click)="uploadDocument(document)"
-                [disabled]="!selectedFiles[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
-                class="text-xs">
-                <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
-                {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
-              </button>
+              <div class="flex flex-col">
+                <button 
+                  mat-raised-button 
+                  color="primary"
+                  (click)="uploadDocument(document)"
+                  [disabled]="!selectedFiles[document.documentId] || filesExceedingSize[document.documentId] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.documentId)"
+                  class="text-xs">
+                  <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
+                  {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
+                </button>
+                <!-- Mensaje de error de tamaño -->
+                <span *ngIf="filesExceedingSize[document.documentId]" 
+                      class="text-xs text-red-600 mt-1">
+                  No se permiten archivos mayores a {{ maxFileSizeMB }}MB
+                </span>
+              </div>
 
               <!-- Botón Ver -->
               <button 

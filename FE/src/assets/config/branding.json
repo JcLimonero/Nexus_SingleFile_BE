@@ -1,0 +1,34 @@
+{
+  "clientName": "Nexus Q Tech",
+  "appTitle": "Nexus Q Tech",
+  "pageTitle": "Expediente Único",
+  "layoutStyle": "zeus",
+  "logoLogin": "assets/img/icons/logos/logo_login.svg",
+  "logoApp": "assets/img/icons/logos/logo_login.svg",
+  "logoFooter": "assets/img/icons/logos/logo_footer.svg",
+  "logoLoading": "assets/img/icons/logos/logo_login.svg",
+  "footerText": "Developed by Nexus Q Tech",
+  "footerLink": "https://www.nexusqtech.com",
+  "menuColors": {
+    "backgroundColor": "#1e293b",
+    "iconColor": "#ffffff",
+    "textColor": "rgba(255,255,255,0.8)",
+    "textColorHover": "#ffffff",
+    "textColorActive": "#ffffff",
+    "iconColorHover": "#ffffff",
+    "iconColorActive": "#ffffff",
+    "subheadingColor": "#ffffff"
+  },
+  "theme": {
+    "primaryColor": "#0ea5e9",
+    "logoColor": "#ffffff"
+  },
+  "_layoutStylesHelp": {
+    "apollo": "Horizontal, navbar abajo del toolbar",
+    "poseidon": "Horizontal, Grupo Vanguardia",
+    "hermes": "Vertical, boxed",
+    "ares": "Navbar dentro del toolbar",
+    "zeus": "Sidenav colapsado por defecto",
+    "ikaros": "Vertical, boxed, navbar en toolbar"
+  }
+}

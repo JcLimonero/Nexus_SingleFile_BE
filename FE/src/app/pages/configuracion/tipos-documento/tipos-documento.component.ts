@@ -16,6 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/document-type.interface';
 import { DocumentTypeService } from '../../../core/services/document-type.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
+import { DocumentTypeConfigurationsDialogComponent } from './document-type-configurations-dialog/document-type-configurations-dialog.component';
+import { AddToConfigurationsDialogComponent } from './add-to-configurations-dialog/add-to-configurations-dialog.component';
 
 @Component({
   selector: 'app-tipos-documento',
@@ -42,7 +44,7 @@ import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/doc
 export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   tiposDocumento: DocumentType[] = [];
   dataSource = new MatTableDataSource<DocumentType>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'configuraciones', 'acciones'];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -61,6 +63,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     'ReqExpiration': 'Requiere expiración',
     'AvailableToClient': 'Disponible al cliente',
     'Enabled': 'Estado',
+    'configuraciones': 'Configuraciones',
     'acciones': 'Acciones'
   };
 
@@ -102,6 +105,18 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response?.success) {
           this.tiposDocumento = response.data.document_types || [];
+          
+          // Verificar que el conteo coincida con la cantidad real de configuraciones
+          this.tiposDocumento.forEach(tipo => {
+            const count = tipo.configurationsCount || 0;
+            const actualLength = tipo.configurations?.length || 0;
+            if (count !== actualLength) {
+              
+              // Corregir el conteo si hay discrepancia
+              tipo.configurationsCount = actualLength;
+            }
+          });
+          
           this.dataSource.data = this.tiposDocumento;
           
           // Extraer fases únicas
@@ -139,16 +154,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
 
   applyFilter(): void {
     const filterValue = this.searchTerm.trim().toLowerCase();
-    
-    console.log('🔍 Aplicando filtros en tipos de documento:', { 
-      searchTerm: this.searchTerm, 
-      statusFilter: this.statusFilter, 
-      phaseFilter: this.phaseFilter,
-      requiredFilter: this.requiredFilter,
-      expirationFilter: this.expirationFilter,
-      totalTiposDocumento: this.tiposDocumento.length 
-    });
-    
+
     // Aplicar todos los filtros
     this.dataSource.data = this.tiposDocumento.filter(tipoDocumento => {
       // Filtro por búsqueda de texto
@@ -176,19 +182,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       
       // Debug para el primer elemento
       if (this.tiposDocumento.indexOf(tipoDocumento) === 0) {
-        console.log('🔍 Primer elemento - Debug:', {
-          id: tipoDocumento.Id,
-          name: tipoDocumento.Name,
-          enabled: tipoDocumento.Enabled,
-          enabledType: typeof tipoDocumento.Enabled,
-          statusFilter: this.statusFilter,
-          statusFilterType: typeof this.statusFilter,
-          matchesStatus: matchesStatus,
-          requiredFilter: this.requiredFilter,
-          matchesRequired: matchesRequired,
-          expirationFilter: this.expirationFilter,
-          matchesExpiration: matchesExpiration
-        });
+
       }
       
       return matchesSearch && matchesStatus && matchesPhase && matchesRequired && matchesExpiration;
@@ -205,28 +199,13 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   }
 
   clearFilters(): void {
-    console.log('🧹 Limpiando filtros - Antes:', { 
-      searchTerm: this.searchTerm, 
-      statusFilter: this.statusFilter,
-      phaseFilter: this.phaseFilter,
-      requiredFilter: this.requiredFilter,
-      expirationFilter: this.expirationFilter
-    });
-    
+
     this.searchTerm = '';
     this.statusFilter = '';
     this.phaseFilter = '';
     this.requiredFilter = '';
     this.expirationFilter = '';
-    
-    console.log('🧹 Limpiando filtros - Después:', { 
-      searchTerm: this.searchTerm, 
-      statusFilter: this.statusFilter,
-      phaseFilter: this.phaseFilter,
-      requiredFilter: this.requiredFilter,
-      expirationFilter: this.expirationFilter
-    });
-    
+
     this.applyFilter();
     
     this.snackBar.open('Filtros limpiados', 'Info', {
@@ -336,6 +315,95 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
             duration: 3000
           });
         }
+    });
+  }
+
+  openConfigurationsDialog(documentType: DocumentType): void {
+    // Validar que el ID existe y es válido
+    if (!documentType.Id) {
+
+      this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
+      return;
+    }
+
+    // Convertir el ID a número para validación
+    const documentTypeId = parseInt(documentType.Id, 10);
+    if (isNaN(documentTypeId) || documentTypeId <= 0) {
+
+      this.snackBar.open(`Error: ID de documento inválido: ${documentType.Id}`, 'Error', { duration: 3000 });
+      return;
+    }
+
+    // Obtener el tipo de documento completo desde la lista original para asegurar que tenemos todas las configuraciones
+    const fullDocumentType = this.tiposDocumento.find(dt => dt.Id === documentType.Id) || documentType;
+    
+    // Verificar que el documento existe en la lista original
+    const existsInOriginal = this.tiposDocumento.some(dt => dt.Id === documentType.Id);
+    if (!existsInOriginal) {
+      
+    }
+
+    // Siempre obtener las configuraciones desde el servidor para asegurar que tenemos todas
+    // Esto evita problemas de sincronización entre el conteo y las configuraciones
+    // Usar el ID convertido a string para asegurar consistencia
+    this.documentTypeService.getConfigurations(String(documentTypeId)).subscribe({
+      next: (response) => {
+        if (response?.success && response?.data?.configurations) {
+          const configurations = response.data.configurations || [];
+
+          const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
+            width: '90vw',
+            maxWidth: '1400px',
+            maxHeight: '90vh',
+            data: {
+              documentType: documentType,
+              configurations: configurations
+            }
+          });
+        } else {
+
+          // Si falla, usar las configuraciones que tenemos
+          const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
+            width: '90vw',
+            maxWidth: '1400px',
+            maxHeight: '90vh',
+            data: {
+              documentType: documentType,
+              configurations: fullDocumentType.configurations || []
+            }
+          });
+        }
+      },
+      error: (error) => {
+
+        // Si falla, usar las configuraciones que tenemos
+        const dialogRef = this.dialog.open(DocumentTypeConfigurationsDialogComponent, {
+          width: '90vw',
+          maxWidth: '1400px',
+          maxHeight: '90vh',
+          data: {
+            documentType: documentType,
+            configurations: fullDocumentType.configurations || []
+          }
+        });
+      }
+    });
+  }
+
+  openAddToConfigurationsDialog(documentType: DocumentType): void {
+    if (!documentType?.Id) {
+      this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
+      return;
+    }
+    const d = this.dialog.open(AddToConfigurationsDialogComponent, {
+      width: '95vw',
+      maxWidth: '1200px',
+      data: { documentType }
+    });
+    d.afterClosed().subscribe((result: { added?: boolean } | undefined) => {
+      if (result?.added) {
+        this.refreshData();
+      }
     });
   }
 

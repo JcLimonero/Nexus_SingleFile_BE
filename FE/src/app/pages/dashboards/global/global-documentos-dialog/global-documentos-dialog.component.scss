@@ -6,6 +6,12 @@
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
+
+  @media (max-width: 600px) {
+    max-width: 95vw;
+    width: 95vw;
+    padding: 12px;
+  }
 }
 
 .dialog-header {

@@ -14,10 +14,9 @@
     *ngIf="isVerticalLayout$ | async"
     [routerLink]="['/']"
     class="ltr:mr-4 rtl:ml-4 flex items-center">
-    <img
-      alt="Logo"
-      class="w-8 select-none"
-              src="assets/img/icons/logos/nexusQtech.svg" />
+    <ng-container *ngIf="(logoApp$ | async) as logoApp">
+      <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="w-8 select-none" [class.branding-logo-tint]="logoColor$ | async" />
+    </ng-container>
     <h1
       [class.hidden]="isDesktop$ | async"
       class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none">
@@ -46,7 +45,7 @@
   <span class="flex-1"></span>
 
   <div class="-mx-1 flex items-center">
-    <div class="px-1">
+    <div class="px-1" hidden>
       <vex-toolbar-notifications></vex-toolbar-notifications>
     </div>
 

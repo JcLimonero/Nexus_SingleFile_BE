@@ -1,0 +1,181 @@
+ERROR - 2026-01-23 02:46:15 --> Error connecting to the database: mysqli_sql_exception: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Process...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Models/ProcessModel.php(123): CodeIgniter\BaseModel->findAll()
+#7 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Process.php(62): App\Models\ProcessModel->getAllProcessesWithUser('Name', 'ASC')
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Process->index()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Process))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:246
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Process...', Array, false)
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/ProcessModel.php(123): CodeIgniter\BaseModel->findAll()
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Process.php(62): App\Models\ProcessModel->getAllProcessesWithUser('Name', 'ASC')
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Process->index()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Process))
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2026-01-23 02:46:25 --> Error connecting to the database: mysqli_sql_exception: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Agency`...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AgencyModel.php(169): CodeIgniter\BaseModel->findAll()
+#7 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Agency.php(72): App\Models\AgencyModel->getAllAgenciesWithUser('Name', 'ASC')
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:246
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Agency`...', Array, false)
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AgencyModel.php(169): CodeIgniter\BaseModel->findAll()
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Agency.php(72): App\Models\AgencyModel->getAllAgenciesWithUser('Name', 'ASC')
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2026-01-23 02:46:50 --> Error connecting to the database: mysqli_sql_exception: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Agency`...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AgencyModel.php(169): CodeIgniter\BaseModel->findAll()
+#7 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Agency.php(72): App\Models\AgencyModel->getAllAgenciesWithUser('Name', 'ASC')
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:246
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Agency`...', Array, false)
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AgencyModel.php(169): CodeIgniter\BaseModel->findAll()
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Agency.php(72): App\Models\AgencyModel->getAllAgenciesWithUser('Name', 'ASC')
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2026-01-23 02:47:00 --> Error connecting to the database: mysqli_sql_exception: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Process...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Models/ProcessModel.php(123): CodeIgniter\BaseModel->findAll()
+#7 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Process.php(62): App\Models\ProcessModel->getAllProcessesWithUser('Name', 'ASC')
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Process->index()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Process))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:246
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Process...', Array, false)
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/ProcessModel.php(123): CodeIgniter\BaseModel->findAll()
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Process.php(62): App\Models\ProcessModel->getAllProcessesWithUser('Name', 'ASC')
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Process->index()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Process))
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2026-01-23 05:14:19 --> Error connecting to the database: mysqli_sql_exception: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Agency`...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AgencyModel.php(169): CodeIgniter\BaseModel->findAll()
+#7 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Agency.php(72): App\Models\AgencyModel->getAllAgenciesWithUser('Name', 'ASC')
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Operation timed out in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:246
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `Agency`...', Array, false)
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AgencyModel.php(169): CodeIgniter\BaseModel->findAll()
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Agency.php(72): App\Models\AgencyModel->getAllAgenciesWithUser('Name', 'ASC')
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2026-01-23 07:34:56 --> Error en DocumentoRequerido::update: Undefined array key "IdProcess"

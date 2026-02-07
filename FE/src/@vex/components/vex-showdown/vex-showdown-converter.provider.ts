@@ -31,7 +31,7 @@ let { hasOwnProperty } = {};
  *   constructor(showdownConverter: ShowdownConverter) {
  *     let markdown: string = "**Some**";
  *     let html: string = showdownConverter.makeHtml(markdown);
- *     console.log(`some:\nmarkdown: ${markdown)\nhtml: ${html}\n`);
+ *     
  *   }
  * }
  * ```

@@ -1,0 +1,5 @@
+BE
+jclimonero@MacBook-Pro-de-Juan BE % php spark serve --host=0.0.0.0 --port=8083
+
+FE
+jclimonero@MacBook-Pro-de-Juan FE % ng serve

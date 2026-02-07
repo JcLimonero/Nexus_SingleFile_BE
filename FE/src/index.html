@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Expediente Unico by Grupo Vanguardia</title>
+  <title>Expediente Único</title>
   <base href="/" />
 
   <meta content="width=device-width, initial-scale=1" name="viewport" />
@@ -41,7 +41,7 @@
     width: 150px;
     height: 22px;
     border-radius: 20px;
-    color: #0076b9;
+    color: #ffffff;
     border: 2px solid;
     position: relative;
   }
@@ -65,12 +65,28 @@
 
 <div id="vex-splash-screen">
   <img
+    id="vex-splash-screen-logo"
     height="120"
     width="120"
     loading="eager"
-    src="assets/img/icons/logos/logo_loading_blue.svg" />
+    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
+    alt="" />
   <div class="vex-splash-screen-loader"></div>
 </div>
+<script>
+  (function() {
+    var img = document.getElementById('vex-splash-screen-logo');
+    if (!img) return;
+    var defaultLogo = 'assets/img/icons/logos/logo_loading_blue.svg';
+    fetch('assets/config/branding.json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(c) {
+        var url = (c && c.logoLoading && String(c.logoLoading).trim()) ? c.logoLoading : null;
+        if (url) { img.src = url; img.style.display = ''; } else { img.style.display = 'none'; }
+      })
+      .catch(function() { img.src = defaultLogo; });
+  })();
+</script>
 
 <vex-root></vex-root>
 </body>

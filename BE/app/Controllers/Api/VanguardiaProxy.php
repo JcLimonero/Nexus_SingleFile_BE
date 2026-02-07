@@ -42,8 +42,35 @@ class VanguardiaProxy extends BaseController
     }
 
     /**
+     * Proxy para facturas/pedidos DMS (singlefileinvoices)
+     * GET /api/vgd/singlefileinvoices
+     */
+    public function singlefileInvoices()
+    {
+        try {
+            $params = $this->request->getGet();
+            $queryString = http_build_query($params);
+
+            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileinvoices?{$queryString}";
+
+            $response = $this->makeVanguardiaRequest('GET', $url);
+
+            return $this->response
+                ->setJSON($response['body'])
+                ->setStatusCode($response['status']);
+
+        } catch (\Exception $e) {
+            error_log("Error en VanguardiaProxy::singlefileInvoices: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al consultar API singlefileinvoices: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Proxy para búsqueda de pedidos
-     * GET /api/vgd/singlefileorders
+     * GET /api/vgd/singlefileorderslastest
      */
     public function searchOrders()
     {
@@ -51,7 +78,7 @@ class VanguardiaProxy extends BaseController
             $params = $this->request->getGet();
             $queryString = http_build_query($params);
             
-            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileorders?{$queryString}";
+            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileorderslastest?{$queryString}";
             
             $response = $this->makeVanguardiaRequest('GET', $url);
             
@@ -75,7 +102,7 @@ class VanguardiaProxy extends BaseController
     public function upload()
     {
         try {
-            $url = "{$this->vanguardiaBaseUrl}/backblaze/upload";
+            $url = "https://apisvanguardia.com:400/backblaze/upload";
             
             // Obtener el archivo
             $file = $this->request->getFile('file');
@@ -83,19 +110,22 @@ class VanguardiaProxy extends BaseController
             $idDocumentFile = $this->request->getPost('idDocumentFile');
 
             if (!$file || !$file->isValid()) {
-                return $this->response->setJSON([
+                return $this->response->setJSON([ 
                     'success' => false,
                     'message' => 'Archivo no válido o no proporcionado'
                 ])->setStatusCode(400);
             }
 
+            // Obtener el nombre del archivo desde la vista view_document_name
+            $fileName = $this->getFileNameFromView($idDocumentFile, $idSingleFile, $file);
+            
             // Preparar datos multipart
             $boundary = uniqid();
             $delimiter = '-------------' . $boundary;
             
             $postData = $this->buildMultipartData([
                 'file' => [
-                    'filename' => $file->getClientName(),
+                    'filename' => $fileName,
                     'content' => file_get_contents($file->getTempName()),
                     'mimetype' => $file->getClientMimeType()
                 ],
@@ -232,6 +262,52 @@ class VanguardiaProxy extends BaseController
         $data .= "--{$delimiter}--\r\n";
         
         return $data;
+    }
+
+    /**
+     * Obtener el nombre del archivo desde la vista view_document_name
+     * Usa file_name_original de la vista pero mantiene la extensión del archivo subido
+     */
+    private function getFileNameFromView($idDocumentByFile, $idFile, $file)
+    {
+        try {
+            $db = \Config\Database::connect();
+            
+            // Consultar la vista view_document_name
+            $query = $db->query(
+                "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",
+                [$idDocumentByFile, $idFile]
+            );
+            
+            $result = $query->getRow();
+            
+            if ($result && !empty($result->file_name_original)) {
+                // Obtener la extensión del archivo original que está subiendo el usuario
+                $originalFileName = $file->getClientName();
+                $extension = pathinfo($originalFileName, PATHINFO_EXTENSION);
+                
+                // Obtener el nombre base de la vista (sin extensión si tiene)
+                $fileNameFromView = $result->file_name_original;
+                $fileNameBase = pathinfo($fileNameFromView, PATHINFO_FILENAME);
+                
+                // Construir el nombre final: nombre de la vista + extensión del archivo subido
+                $finalFileName = $fileNameBase . ($extension ? '.' . $extension : '');
+                
+                error_log("Nombre de archivo desde vista: {$fileNameFromView}");
+                error_log("Extensión del archivo subido: {$extension}");
+                error_log("Nombre final del archivo: {$finalFileName}");
+                
+                return $finalFileName;
+            } else {
+                // Si no se encuentra en la vista, usar el nombre original del archivo
+                error_log("No se encontró registro en view_document_name para IdDocumentByFile={$idDocumentByFile}, IdFile={$idFile}. Usando nombre original del archivo.");
+                return $file->getClientName();
+            }
+        } catch (\Exception $e) {
+            // En caso de error, usar el nombre original del archivo
+            error_log("Error al consultar view_document_name: " . $e->getMessage());
+            return $file->getClientName();
+        }
     }
 }
 

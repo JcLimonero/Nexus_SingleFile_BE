@@ -1,6 +1,11 @@
 /* Estilos para el dialog de rechazo de documento */
 .mat-mdc-dialog-container {
   max-width: 500px;
+
+  @media (max-width: 600px) {
+    max-width: 95vw;
+    width: 95vw;
+  }
 }
 
 .mat-mdc-form-field {

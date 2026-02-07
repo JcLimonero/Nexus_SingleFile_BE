@@ -110,13 +110,15 @@
     }
   }
   
-  // Estilos específicos para elementos que puedan estar causando diferencias
+  // En móvil permitir scroll horizontal; en desktop mantener contenido
   .mat-mdc-table-container {
-    overflow: hidden !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
   }
   
   .mat-mdc-table-wrapper {
-    overflow: hidden !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
   }
   
   // Estilos específicos para elementos internos que puedan estar afectando la altura
@@ -395,5 +397,12 @@
       height: 28px !important;
       line-height: 28px !important;
     }
+  }
+}
+
+// Adaptación móvil: reducir padding en pantallas pequeñas
+.validacion-container {
+  @media (max-width: 768px) {
+    padding: 8px !important;
   }
 }

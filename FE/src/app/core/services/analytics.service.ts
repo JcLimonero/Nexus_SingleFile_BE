@@ -16,6 +16,14 @@ export interface AnalyticsFilters {
     startDate: Date | null;
     endDate: Date | null;
   };
+  registrationDateRange?: {
+    startDate: Date | null;
+    endDate: Date | null;
+  };
+  liberationDateRange?: {
+    startDate: Date | null;
+    endDate: Date | null;
+  };
 }
 
 export interface UserActivityStats {
@@ -166,6 +174,17 @@ export class AnalyticsService {
 
   // Métodos para obtener estadísticas de actividad de usuarios
   getUserActivityStats(filters?: AnalyticsFilters): Observable<UserActivityStats> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of({
+        totalLogs: 0,
+        uniqueUsers: 0,
+        topActions: [],
+        dailyActivity: [],
+        userActivity: []
+      } as UserActivityStats);
+    }
+
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/user-activity-logs/stats`, { params })
       .pipe(
@@ -174,6 +193,11 @@ export class AnalyticsService {
   }
 
   getUserActivityLogs(filters?: AnalyticsFilters, limit = 100, offset = 0): Observable<any> {
+    // Si active_debug no está habilitado, retornar observable vacío
+    if (!environment.active_debug) {
+      return of([]);
+    }
+
     const params = this.buildParams(filters);
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
@@ -352,6 +376,18 @@ export class AnalyticsService {
       } else {
         if (filters.startDate) params = params.set('start_date', filters.startDate);
         if (filters.endDate) params = params.set('end_date', filters.endDate);
+      }
+
+      // Filtro de fecha de registro
+      if (filters.registrationDateRange && filters.registrationDateRange.startDate && filters.registrationDateRange.endDate) {
+        params = params.set('registration_start_date', filters.registrationDateRange.startDate.toISOString().split('T')[0]);
+        params = params.set('registration_end_date', filters.registrationDateRange.endDate.toISOString().split('T')[0]);
+      }
+
+      // Filtro de fecha de liberación
+      if (filters.liberationDateRange && filters.liberationDateRange.startDate && filters.liberationDateRange.endDate) {
+        params = params.set('liberation_start_date', filters.liberationDateRange.startDate.toISOString().split('T')[0]);
+        params = params.set('liberation_end_date', filters.liberationDateRange.endDate.toISOString().split('T')[0]);
       }
 
       if (filters.userId) params = params.set('user_id', filters.userId.toString());

@@ -3,11 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 
 export interface Cliente {
   idFile: number;
   ndCliente: number;
   ndPedido: number;
+  tipoCliente?: string | null;
   cliente: string;
   proceso: string;
   operacion: string;
@@ -16,6 +18,15 @@ export interface Cliente {
   IdCurrentState: number;
   tieneDocumentosPendientes: number;
   documentosNoAprobados?: number;
+  fechaLiberacion?: string;
+  /** VIN de la unidad (OrderByCar) */
+  vin?: string | null;
+  /** Modelo de la unidad (OrderByCar) */
+  modelo?: string | null;
+  /** Año de la unidad (OrderByCar.Year) */
+  year?: number | string | null;
+  /** Versión de la unidad (OrderByCar.CarType) */
+  version?: string | null;
 }
 
 export interface Documento {
@@ -51,7 +62,6 @@ export interface FiltrosValidacion {
 })
 export class ValidacionService {
   private apiUrl = environment.apiBaseUrl;
-
   // BehaviorSubjects para mantener el estado de los datos
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   private documentosSubject = new BehaviorSubject<Documento[]>([]);
@@ -62,41 +72,34 @@ export class ValidacionService {
   public documentos$ = this.documentosSubject.asObservable();
   public loading$ = this.loadingSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private defaultAgencyService: DefaultAgencyService
+  ) {}
 
   /**
-   * Cargar agencias disponibles (solo activas y con permisos del usuario)
+   * Cargar agencias disponibles usando el servicio con caché
+   * Usa DefaultAgencyService que maneja caché en localStorage
    */
   cargarAgencias(): Observable<any[]> {
-    const url = `${this.apiUrl}/api/agency`;
-
-    return this.http.get<any>(url).pipe(
-      map((response: any) => {
-        if (response && response.success && response.data && response.data.agencies) {
-          return response.data.agencies;
-        } else if (response && Array.isArray(response)) {
-          return response;
-        } else if (response && response.agencies) {
-          return response.agencies;
-        } else {
-          return [];
-        }
+    return this.defaultAgencyService.obtenerAgencias().pipe(
+      map((agencias: any[]) => {
+        // Filtrar solo agencias habilitadas si es necesario
+        return agencias.filter(ag => this.defaultAgencyService.esAgenciaHabilitada(ag));
+      }),
+      catchError((error) => {
+        console.error('Error cargando agencias:', error);
+        return of([]);
       })
     );
   }
 
   /**
-   * Obtener agencia predeterminada del usuario
+   * Obtener agencia predeterminada del usuario usando el servicio con caché
+   * Usa DefaultAgencyService que maneja caché en cookies
    */
-  obtenerAgenciaUsuario(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/user/profile`).pipe(
-      map(response => {
-        if (response && response.success && response.data) {
-          return response.data.DefaultAgency;
-        }
-        return null;
-      })
-    );
+  obtenerAgenciaUsuario(): Observable<number | null> {
+    return this.defaultAgencyService.obtenerAgenciaUsuario();
   }
 
   /**
@@ -107,23 +110,24 @@ export class ValidacionService {
 
     let params = new HttpParams();
     if (filtros.agencia) params = params.set('id', filtros.agencia);
-    if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
+    // Solo enviar idProcess cuando hay proceso concreto; "Todos los procesos" no envía idProcess
+    if (filtros.proceso != null && filtros.proceso !== undefined) {
+      params = params.set('idProcess', filtros.proceso.toString());
+    }
     if (filtros.showCancelled !== undefined) params = params.set('showCancelled', filtros.showCancelled.toString());
     params = params.set('page', '1');
     params = params.set('limit', '10000'); // Obtener más registros para paginación local
 
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
       map(response => {
-        console.log('🔍 ValidacionService - Respuesta completa del API:', response);
-        console.log('🔍 ValidacionService - URL llamada:', `${this.apiUrl}/api/clients-validation/clientes`);
-        console.log('🔍 ValidacionService - Parámetros:', params.toString());
+
+        
 
         if (response && response.success && response.data && response.data.clientes) {
-          console.log('✅ ValidacionService - Clientes extraídos:', response.data.clientes);
-          console.log('🔍 ValidacionService - Primer cliente:', response.data.clientes.length > 0 ? response.data.clientes[0] : 'No hay clientes');
+
           return response.data.clientes;
         }
-        console.log('⚠️ ValidacionService - No se encontraron clientes en la respuesta');
+
         return [];
       })
     );
@@ -147,7 +151,6 @@ export class ValidacionService {
       })
     );
   }
-
 
   /**
    * Cargar procesos disponibles
@@ -178,6 +181,31 @@ export class ValidacionService {
   }
 
   /**
+   * Diagnosticar por qué un pedido no aparece en validación
+   */
+  diagnosticarPedido(idFile: number, idAgency?: number, idProcess?: number): Observable<any> {
+    let params = new HttpParams();
+    params = params.set('idFile', idFile.toString());
+    if (idAgency) {
+      params = params.set('idAgency', idAgency.toString());
+    }
+    if (idProcess) {
+      params = params.set('idProcess', idProcess.toString());
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/diagnostico`, { params });
+  }
+
+  /**
+   * Reparar relación Client_Total_Relation faltante para un File
+   */
+  repararRelacion(idFile: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/reparar-relacion`, {
+      idFile: idFile
+    });
+  }
+
+  /**
    * Validar un documento - cambiar estatus de "2" a "3"
    */
   validarDocumento(idDocumentByFile: number): Observable<any> {
@@ -193,7 +221,7 @@ export class ValidacionService {
         throw new Error(response.message || 'Error al validar el documento');
       }),
       catchError(error => {
-        console.error('Error en validarDocumento:', error);
+
         throw error;
       })
     );
@@ -215,7 +243,7 @@ export class ValidacionService {
         throw new Error(response.message || 'Error al preparar el documento');
       }),
       catchError(error => {
-        console.error('Error en prepararDocumento:', error);
+
         throw error;
       })
     );
@@ -244,7 +272,7 @@ export class ValidacionService {
         throw new Error(response.message || 'Error al procesar el documento');
       }),
       catchError(error => {
-        console.error('Error en aprobarDocumento:', error);
+
         throw error;
       })
     );
@@ -299,7 +327,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error cancelando pedido:', error);
+
         throw error;
       })
     );
@@ -324,7 +352,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error creando excepción:', error);
+
         throw error;
       })
     );
@@ -347,7 +375,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error eliminando pedido:', error);
+
         throw error;
       })
     );
@@ -371,7 +399,7 @@ export class ValidacionService {
         }
       }),
       catchError(error => {
-        console.error('Error cambiando estatus:', error);
+
         throw error;
       })
     );

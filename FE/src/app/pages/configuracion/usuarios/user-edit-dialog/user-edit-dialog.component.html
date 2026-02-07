@@ -85,7 +85,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Rol de Usuario</mat-label>
         <mat-select formControlName="IdUserRol">
-          <mat-option *ngFor="let role of roles" [value]="role.Id">
+          <mat-option *ngFor="let role of rolesForSelect" [value]="role.Id">
             {{ role.Name }}
           </mat-option>
         </mat-select>
@@ -96,18 +96,36 @@
       </mat-form-field>
 
       <!-- Agencia -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Agencia Predeterminada</mat-label>
-        <mat-select formControlName="DefaultAgency">
-          <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-            {{ agency.Name }}
-          </mat-option>
-        </mat-select>
-        <mat-hint>Agencia predeterminada del usuario</mat-hint>
-        <mat-error *ngIf="userForm.get('DefaultAgency')?.hasError('required')">
-          La agencia es requerida
-        </mat-error>
-      </mat-form-field>
+      <div class="w-full flex items-start gap-2">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Agencia Predeterminada</mat-label>
+          <mat-select formControlName="DefaultAgency" [disabled]="loadingAgencies">
+            <mat-option *ngIf="loadingAgencies" value="" disabled>
+              <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+              Cargando agencias...
+            </mat-option>
+            <mat-option *ngIf="!loadingAgencies && agencies.length === 0" value="" disabled>
+              No hay agencias disponibles
+            </mat-option>
+            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+              {{ agency.Name }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Agencia predeterminada del usuario</mat-hint>
+          <mat-error *ngIf="userForm.get('DefaultAgency')?.hasError('required')">
+            La agencia es requerida
+          </mat-error>
+        </mat-form-field>
+        <button
+          mat-icon-button
+          type="button"
+          (click)="recargarAgencias()"
+          [disabled]="loadingAgencies"
+          matTooltip="Recargar agencias"
+          class="mt-1">
+          <mat-icon [class.animate-spin]="loadingAgencies">refresh</mat-icon>
+        </button>
+      </div>
 
       <!-- Estado del Usuario (solo en modo edición) -->
       <div *ngIf="data.mode === 'edit'" class="w-full">

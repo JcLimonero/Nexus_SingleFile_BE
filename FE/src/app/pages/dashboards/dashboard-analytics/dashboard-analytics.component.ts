@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { defaultChartOptions } from '@vex/utils/default-chart-options';
 import { AnalyticsService, AnalyticsFilters } from '../../../core/services/analytics.service';
@@ -46,6 +46,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
   selector: 'vex-dashboard-analytics',
   templateUrl: './dashboard-analytics.component.html',
   styleUrls: ['./dashboard-analytics.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
     CommonModule,
@@ -138,6 +139,22 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgencyId = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgencyId) {
+          this.selectedAgencyId = agenciaId;
+          this.changeDetector.markForCheck();
+        }
+      });
+
     // Cargar usuario actual PRIMERO
     this.loadCurrentUser();
 
@@ -170,10 +187,12 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.dashboardData = data;
           this.loading = false;
+          this.changeDetector.markForCheck();
         },
         error: (error) => {
           this.error = 'Error al cargar datos del dashboard';
           this.loading = false;
+          this.changeDetector.markForCheck();
         }
       });
   }
@@ -181,6 +200,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
     this.selectedAgencyId = agencyId;
     this.currentFilters = { ...this.currentFilters, agencyId: agencyId || undefined };
+    this.changeDetector.markForCheck();
 
     // Cargar usuarios para la agencia seleccionada
     this.loadUsers(agencyId);
@@ -191,21 +211,26 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       this.currentFilters = { ...this.currentFilters, userId: undefined };
     }
     
+    // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+    // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
+    // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+    /*
     // Actualizar la agencia predeterminada del usuario
     if (agencyId !== null) {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ DashboardAnalyticsComponent - Agencia predeterminada actualizada:', agencyId);
+
           } else {
-            console.warn('⚠️ DashboardAnalyticsComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ DashboardAnalyticsComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     }
+    */
 
     // Solo disparar recarga si no es la inicialización o si se solicita explícitamente
     if (!skipReload) {
@@ -226,6 +251,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         ...this.currentFilters,
         dateRange: dateRange
       };
+      this.changeDetector.markForCheck();
       // Solo disparar recarga si no estamos en inicialización
       if (!this.isInitializing) {
         this.filtersChange$.next();
@@ -236,6 +262,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         ...this.currentFilters,
         dateRange: undefined
       };
+      this.changeDetector.markForCheck();
       // Solo disparar recarga si no estamos en inicialización
       if (!this.isInitializing) {
         this.filtersChange$.next();
@@ -256,43 +283,51 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (agencias) => {
           this.agencies = agencias;
+          this.changeDetector.markForCheck();
 
-          // Establecer agencia predeterminada
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  this.selectedAgencyId = agenciaId;
-                  // En la inicialización, no recargar el dashboard (skipReload = true)
-                  // El dashboard se cargará después cuando se establezcan todos los filtros
-                  this.onAgencyChange(agenciaId, this.isInitializing);
-                } else {
-                  // Si no hay agencia predeterminada, cargar dashboard sin filtros
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgencyId = savedAgencyId;
+              this.onAgencyChange(savedAgencyId, this.isInitializing);
+              this.changeDetector.markForCheck();
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+                next: (agenciaId) => {
+                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
+                    this.selectedAgencyId = agenciaId;
+                    this.onAgencyChange(agenciaId, this.isInitializing);
+                    this.changeDetector.markForCheck();
+                  } else {
+                    // Si no hay agencia guardada, cargar dashboard sin filtros
+                    if (this.isInitializing) {
+                      this.isInitializing = false;
+                      this.filtersChange$.next();
+                    }
+                  }
+                },
+                error: (error) => {
+                  console.error('Error estableciendo agencia predeterminada:', error);
+                  // Si falla, cargar dashboard sin filtros
                   if (this.isInitializing) {
                     this.isInitializing = false;
                     this.filtersChange$.next();
                   }
                 }
-              },
-              error: (error) => {
-                // Si falla, intentar seleccionar la primera agencia disponible
-                if (this.agencies.length > 0) {
-                  const primeraAgencia = this.agencies[0];
-                  this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id, this.isInitializing);
-                } else {
-                  // Si no hay agencias, cargar dashboard sin filtros
-                  if (this.isInitializing) {
-                    this.isInitializing = false;
-                    this.filtersChange$.next();
-                  }
-                }
-              }
-            });
-          }, 100);
+              });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
+          console.error('Error cargando agencias:', error);
           this.agencies = [];
+          this.changeDetector.markForCheck();
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
             duration: 3000
           });
@@ -314,6 +349,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         next: (response) => {
                       if (response.success && response.data && response.data.users) {
                         this.users = response.data.users;
+                        this.changeDetector.markForCheck();
 
                         // Verificar si debemos aplicar selección automática para administradores
                         if (this.isManagerOrAdmin(this.currentUser)) {
@@ -414,8 +450,8 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    // Verificar por role_id (admin tiene role_id = '7')
-    if (user.role_id === '7' || user.role_id === 7) {
+    // Verificar por role_id (admin tiene role_id = '7' o '8')
+    if (user.role_id === '7' || user.role_id === 7 || user.role_id === '8' || user.role_id === 8) {
       return true;
     }
 

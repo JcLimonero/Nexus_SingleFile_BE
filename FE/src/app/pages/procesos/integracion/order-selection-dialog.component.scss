@@ -1,0 +1,167 @@
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: white;
+}
+
+.dialog-container {
+  width: 100%;
+  min-width: 800px;
+  max-width: 1200px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  min-height: 400px;
+  overflow-y: auto;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+:host ::ng-deep {
+  mat-table {
+    .mat-mdc-table {
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+      width: 100% !important;
+    }
+
+    .mat-mdc-row {
+      min-height: 32px !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+      display: table-row !important;
+
+      &:hover {
+        background-color: #f1f5f9 !important;
+      }
+    }
+
+    .mat-mdc-header-row {
+      min-height: 32px !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+      display: table-row !important;
+      background-color: #f8fafc !important;
+    }
+
+    .mat-mdc-cell {
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
+      font-size: 12px !important;
+      border: none !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      text-align: left !important;
+    }
+
+    .mat-mdc-header-cell {
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      border: none !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      text-align: left !important;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      margin: 0 !important;
+      border-spacing: 0 !important;
+    }
+
+    .mat-column-select {
+      min-width: 50px !important;
+      width: 8% !important;
+    }
+
+    .mat-column-order_dms {
+      min-width: 120px !important;
+      width: 20% !important;
+    }
+
+    .mat-column-year {
+      min-width: 80px !important;
+      width: 12% !important;
+    }
+
+    .mat-column-model {
+      min-width: 120px !important;
+      width: 18% !important;
+    }
+
+    .mat-column-version {
+      min-width: 100px !important;
+      width: 15% !important;
+    }
+
+    .mat-column-vin {
+      min-width: 150px !important;
+      width: 18% !important;
+    }
+
+    .mat-column-colorExterior {
+      min-width: 120px !important;
+      width: 15% !important;
+    }
+
+    .mat-column-colorInterior {
+      min-width: 120px !important;
+      width: 15% !important;
+    }
+  }
+
+  .mat-mdc-table-container {
+    overflow: hidden !important;
+  }
+
+  .mat-mdc-table-wrapper {
+    overflow: hidden !important;
+  }
+
+  .mat-mdc-cell div,
+  .mat-mdc-cell span,
+  .mat-mdc-header-cell div,
+  .mat-mdc-header-cell span {
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+  }
+
+  .mat-mdc-tab-group {
+    .mat-mdc-tab-label {
+      min-width: 200px;
+    }
+  }
+}
+
+.order-info {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.tab-content {
+  padding: 16px 0;
+}

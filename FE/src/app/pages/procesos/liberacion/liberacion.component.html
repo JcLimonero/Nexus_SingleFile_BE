@@ -293,10 +293,21 @@
   <div *ngIf="selectedFile" class="documents-section mb-2">
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
       <mat-card-header class="pb-1">
-        <mat-card-title class="flex flex-col text-sm">
-          <div class="flex items-center mb-1">
-            <mat-icon class="mr-1 text-purple-600" style="font-size: 18px;">folder_shared</mat-icon>
-            <span class="font-semibold">Documentos Requeridos para Liberación</span>
+        <mat-card-title class="flex flex-col text-sm w-full">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center">
+              <mat-icon class="mr-1 text-purple-600" style="font-size: 18px;">folder_shared</mat-icon>
+              <span class="font-semibold">Documentos Requeridos para Liberación</span>
+            </div>
+            <button 
+              mat-stroked-button 
+              color="primary"
+              (click)="openDocumentosNoConfiguradosDialog()"
+              class="text-xs"
+              matTooltip="Ver documentos de tipo Liberación que este pedido no tiene configurados">
+              <mat-icon class="mr-1" style="font-size: 14px;">folder_off</mat-icon>
+              Ver no configurados
+            </button>
           </div>
           <div class="text-xs text-gray-600 ml-6">
             Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.vehiculo }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
@@ -319,10 +330,37 @@
                 {{ tab.name }}
               </ng-template>
               <div class="space-y-2 pt-2">
-                <div *ngFor="let document of tab.documents" 
-                     class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50">
+                <!-- Botón para cargar todos los documentos seleccionados - Posicionado a la derecha -->
+                <div *ngIf="hasDocumentsSelectedForBatch()" class="flex flex-col items-end mb-2">
+                  <button 
+                    mat-raised-button 
+                    color="primary"
+                    (click)="uploadMultipleDocuments()"
+                    [disabled]="uploadingDocuments.size > 0 || hasFilesExceedingSizeInBatch()"
+                    class="text-xs">
+                    <mat-icon class="mr-1" style="font-size: 14px;">cloud_upload</mat-icon>
+                    Cargar {{ getSelectedDocumentsCount() }} documento(s) seleccionado(s)
+                  </button>
+                  <!-- Mensaje de error de tamaño para carga masiva -->
+                  <span *ngIf="hasFilesExceedingSizeInBatch()" 
+                        class="text-xs text-red-600 mt-1">
+                    {{ getFilesExceedingSizeCount() }} archivo(s) exceden el tamaño máximo de {{ maxFileSizeMB }}MB
+                  </span>
+                </div>
+
+                <div *ngFor="let document of tab.documents; trackBy: trackByDocumentId" 
+                     class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50"
+                     [class.opacity-50]="isDocumentUploading(document.fileDocumentId?.toString())">
                   
                   <div class="flex items-center space-x-2 flex-1">
+                    <!-- Checkbox para selección en lote -->
+                    <mat-checkbox
+                      [checked]="isDocumentSelectedForBatch(document.fileDocumentId?.toString() || '')"
+                      (change)="toggleDocumentForBatch(document.fileDocumentId?.toString() || '')"
+                      [disabled]="!document.fileDocumentId || !selectedFiles[document.fileDocumentId?.toString()] || filesExceedingSize[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString() || '')"
+                      style="margin-right: 8px;">
+                    </mat-checkbox>
+                    
                     <mat-icon [class]="getDocumentStatusColor(document.status, document.idCurrentStatus)" style="font-size: 16px;">
                       {{ getDocumentStatusIcon(document.status, document.idCurrentStatus) }}
                     </mat-icon>
@@ -331,6 +369,10 @@
                       <div class="font-medium text-gray-900 text-sm">{{ document.fileName || document.documentName }}</div>
                       <div *ngIf="document.hasExpiration === '1' && document.expirationDate" class="text-xs text-gray-500">
                         Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
+                      </div>
+                      <div *ngIf="isDocumentUploading(document.fileDocumentId?.toString())" class="text-xs text-blue-600 flex items-center mt-1">
+                        <mat-spinner diameter="12" class="mr-1"></mat-spinner>
+                        Cargando...
                       </div>
                     </div>
                   </div>
@@ -347,22 +389,29 @@
                       <button 
                         mat-stroked-button 
                         (click)="fileInput.click()"
-                        [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
+                        [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
                         class="text-xs">
                         <mat-icon class="mr-1" style="font-size: 14px;">attach_file</mat-icon>
-                        {{ selectedFiles[document.fileDocumentId?.toString()] ? selectedFiles[document.fileDocumentId.toString()].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
+                        {{ selectedFiles[document.fileDocumentId?.toString()] ? selectedFiles[document.fileDocumentId?.toString()].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
                       </button>
                     </div>
 
-                    <button 
-                      mat-raised-button 
-                      color="primary"
-                      (click)="uploadDocument(document)"
-                      [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4'"
-                      class="text-xs">
-                      <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
-                      {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
-                    </button>
+                    <div class="flex flex-col">
+                      <button 
+                        mat-raised-button 
+                        color="primary"
+                        (click)="uploadDocument(document)"
+                        [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || filesExceedingSize[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
+                        class="text-xs">
+                        <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
+                        {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
+                      </button>
+                      <!-- Mensaje de error de tamaño -->
+                      <span *ngIf="filesExceedingSize[document.fileDocumentId?.toString()]" 
+                            class="text-xs text-red-600 mt-1">
+                        No se permiten archivos mayores a {{ maxFileSizeMB }}MB
+                      </span>
+                    </div>
 
                     <button 
                       mat-raised-button 

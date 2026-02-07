@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +13,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { Cliente, FiltrosValidacion, ValidacionService } from '../../mesa-control/validacion/validacion.service';
@@ -27,6 +29,7 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -37,7 +40,9 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
     MatProgressSpinnerModule,
     MatCardModule,
     MatSnackBarModule,
-    MatTableModule
+    MatTableModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './global.component.html',
   styleUrls: ['./global.component.scss']
@@ -52,6 +57,16 @@ export class GlobalComponent implements OnInit, OnDestroy {
   selectedFase: string = '';
   searchTerm = '';
   showCancelledOrders = false;
+  
+  registrationDateRangeGroup = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null)
+  });
+  
+  liberationDateRangeGroup = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null)
+  });
 
   loadingAgencias = false;
   loadingProcesos = false;
@@ -59,6 +74,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
   refreshing = false;
   agenciasCargadas = false;
   procesosCargados = false;
+  exportingExcel = false;
 
   clientesOriginales: Cliente[] = [];
   clientesFiltrados: Cliente[] = [];
@@ -75,9 +91,37 @@ export class GlobalComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private authService: AuthService,
     private dialog: MatDialog
-  ) {}
+  ) {
+    // Suscribirse a cambios en los grupos de rango de fecha
+    this.registrationDateRangeGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.aplicarFiltros();
+      });
+
+    this.liberationDateRangeGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.aplicarFiltros();
+      });
+  }
 
   ngOnInit(): void {
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgency = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgency) {
+          this.selectedAgency = agenciaId;
+        }
+      });
+
     this.inicializarUsuario();
     this.cargarAgencias();
     this.cargarProcesos();
@@ -90,21 +134,27 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
   onAgenciaChange(): void {
     if (this.selectedAgency !== null && this.selectedAgency !== undefined) {
+      // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
       
+      // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+      // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+      // seleccionarAgencia() ya maneja el caché local
+      /*
       // Actualizar la agencia predeterminada del usuario
       this.defaultAgencyService.actualizarAgenciaPredeterminada(this.selectedAgency).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ GlobalComponent - Agencia predeterminada actualizada:', this.selectedAgency);
+
           } else {
-            console.warn('⚠️ GlobalComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ GlobalComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
+      */
     } else {
       this.defaultAgencyService.limpiarSeleccion();
     }
@@ -133,6 +183,14 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.aplicarFiltros();
   }
 
+  limpiarFiltros(): void {
+    this.selectedFase = '';
+    this.searchTerm = '';
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
+    this.aplicarFiltros();
+  }
+
   recargarFiltros(): void {
     this.refreshing = true;
     this.selectedAgency = null;
@@ -140,6 +198,8 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.selectedFase = '';
     this.searchTerm = '';
     this.showCancelledOrders = false;
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
 
     this.cargarAgencias(true);
     this.cargarProcesos(true);
@@ -160,7 +220,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando agencias en Global:', error);
+          console.error('Error cargando agencias:', error);
           this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
           this.agencias = [];
           this.loadingAgencias = false;
@@ -177,23 +237,38 @@ export class GlobalComponent implements OnInit, OnDestroy {
         }
 
         if (!showMessage && this.agencias.length > 0) {
-          this.defaultAgencyService
-            .establecerAgenciaPredeterminada(true)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  this.selectedAgency = agenciaId;
-                  this.onAgenciaChange();
-                }
-              },
-              error: () => {
-                if (this.agencias.length > 0) {
-                  this.selectedAgency = this.agencias[0].Id;
-                  this.onAgenciaChange();
-                }
-              }
-            });
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
+          setTimeout(() => {
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgency = savedAgencyId;
+              this.onAgenciaChange();
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService
+                .establecerAgenciaPredeterminada(true)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (agenciaId) => {
+                    if (agenciaId && this.agencias.some(ag => ag.Id === agenciaId)) {
+                      this.selectedAgency = agenciaId;
+                      this.onAgenciaChange();
+                    }
+                  },
+                  error: () => {
+                    // Si falla y hay agencias, seleccionar la primera
+                    if (this.agencias.length > 0) {
+                      this.selectedAgency = this.agencias[0].Id;
+                      this.onAgenciaChange();
+                    }
+                  }
+                });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         }
       });
   }
@@ -207,7 +282,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   private configurarColumnas(): void {
-    const columnasBase = [
+    this.clientesDisplayedColumns = [
       'ndCliente',
       'ndPedido',
       'cliente',
@@ -219,24 +294,6 @@ export class GlobalComponent implements OnInit, OnDestroy {
       'documentosNoAprobados',
       'documentos'
     ];
-
-    if (this.isAdminUser) {
-      this.clientesDisplayedColumns = [
-        'ndCliente',
-        'ndPedido',
-        'idFile',
-        'cliente',
-        'proceso',
-        'fase',
-        'operacion',
-        'registro',
-        'fechaLiberacion',
-        'documentosNoAprobados',
-        'documentos'
-      ];
-    } else {
-      this.clientesDisplayedColumns = columnasBase;
-    }
   }
 
   private cargarProcesos(showMessage: boolean = false): void {
@@ -248,7 +305,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando procesos en Global:', error);
+
           this.snackBar.open('Error al cargar procesos', 'Cerrar', { duration: 3000 });
           this.procesos = [];
           this.loadingProcesos = false;
@@ -296,7 +353,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando pedidos para Global:', error);
+
           this.snackBar.open('Error al cargar pedidos', 'Cerrar', { duration: 3000 });
           this.loadingClientes = false;
           this.clientesOriginales = [];
@@ -334,8 +391,8 @@ export class GlobalComponent implements OnInit, OnDestroy {
     }
 
     if (this.selectedFase) {
-      const faseNormalizada = this.selectedFase.toLowerCase();
-      data = data.filter((cliente) => (cliente.fase || '').toLowerCase() === faseNormalizada);
+      // Comparar IdCurrentState con el valor de la fase seleccionada
+      data = data.filter((cliente) => String(cliente.IdCurrentState) === this.selectedFase);
     }
 
     if (this.searchTerm) {
@@ -352,7 +409,71 @@ export class GlobalComponent implements OnInit, OnDestroy {
       });
     }
 
+    // Filtro por fecha de registro
+    const registrationRange = this.registrationDateRangeGroup.value;
+    if (registrationRange.start || registrationRange.end) {
+      data = data.filter((cliente) => {
+        if (!cliente.registro) return false;
+        const registroDate = new Date(cliente.registro);
+        registroDate.setHours(0, 0, 0, 0);
+        
+        if (registrationRange.start) {
+          const startDate = new Date(registrationRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          if (registroDate < startDate) return false;
+        }
+        
+        if (registrationRange.end) {
+          const endDate = new Date(registrationRange.end);
+          endDate.setHours(23, 59, 59, 999);
+          if (registroDate > endDate) return false;
+        }
+        
+        return true;
+      });
+    }
+
+    // Filtro por fecha de liberación
+    const liberationRange = this.liberationDateRangeGroup.value;
+    if (liberationRange.start || liberationRange.end) {
+      data = data.filter((cliente) => {
+        if (!cliente.fechaLiberacion) return false;
+        const liberationDate = new Date(cliente.fechaLiberacion);
+        liberationDate.setHours(0, 0, 0, 0);
+        
+        if (liberationRange.start) {
+          const startDate = new Date(liberationRange.start);
+          startDate.setHours(0, 0, 0, 0);
+          if (liberationDate < startDate) return false;
+        }
+        
+        if (liberationRange.end) {
+          const endDate = new Date(liberationRange.end);
+          endDate.setHours(23, 59, 59, 999);
+          if (liberationDate > endDate) return false;
+        }
+        
+        return true;
+      });
+    }
+
     this.clientesFiltrados = data;
+  }
+
+  hasRegistrationDateRange(): boolean {
+    return !!(this.registrationDateRangeGroup.value.start || this.registrationDateRangeGroup.value.end);
+  }
+
+  hasLiberationDateRange(): boolean {
+    return !!(this.liberationDateRangeGroup.value.start || this.liberationDateRangeGroup.value.end);
+  }
+
+  clearRegistrationDateRange(): void {
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+  }
+
+  clearLiberationDateRange(): void {
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
   }
 
   openDocumentsDialog(cliente: Cliente): void {
@@ -370,6 +491,83 @@ export class GlobalComponent implements OnInit, OnDestroy {
           cliente.documentosNoAprobados = result.documentosNoAprobados;
         }
       });
+  }
+
+  exportarExcel(): void {
+    if (this.clientesFiltrados.length === 0) {
+      this.snackBar.open('No hay datos para exportar', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.exportingExcel = true;
+
+    try {
+      // Preparar datos para Excel (sin la columna de documentos)
+      const datos = this.clientesFiltrados.map(cliente => ({
+        'ND Cliente': cliente.ndCliente || '',
+        'ND Pedido': cliente.ndPedido || '',
+        'Cliente': cliente.cliente || '',
+        'Proceso': cliente.proceso || '',
+        'Fase': cliente.fase || '',
+        'Operación': cliente.operacion || '',
+        'Registro': cliente.registro ? new Date(cliente.registro).toLocaleDateString('es-MX') : '',
+        'Fecha Liberación': cliente.fechaLiberacion ? new Date(cliente.fechaLiberacion).toLocaleDateString('es-MX') : '—',
+        'Documentos Pendientes': cliente.documentosNoAprobados ?? 0
+      }));
+
+      // Crear CSV (compatible con Excel)
+      const headers = Object.keys(datos[0]);
+      const csvContent = [
+        headers.join(','),
+        ...datos.map(row => 
+          headers.map(header => {
+            const value = (row as any)[header];
+            // Escapar comillas y envolver en comillas si contiene comas
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Agregar BOM para UTF-8 (para que Excel reconozca caracteres especiales)
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // Obtener nombre de la agencia seleccionada
+      let nombreAgencia = 'Todas';
+      if (this.selectedAgency !== null) {
+        const agenciaSeleccionada = this.agencias.find(a => a.Id === this.selectedAgency);
+        if (agenciaSeleccionada && agenciaSeleccionada.Name) {
+          // Limpiar el nombre de la agencia para usar en el nombre del archivo (remover caracteres especiales)
+          nombreAgencia = agenciaSeleccionada.Name.replace(/[^a-zA-Z0-9]/g, '_');
+        }
+      }
+
+      // Formatear fecha de descarga (YYYY-MM-DD)
+      const fechaDescarga = new Date().toISOString().split('T')[0];
+      
+      // Crear nombre del archivo: {nombreAgencia}ordenes_{fecha}.csv
+      const nombreArchivo = `${nombreAgencia}ordenes_${fechaDescarga}.csv`;
+      
+      // Crear URL y descargar
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nombreArchivo;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      this.snackBar.open('Datos exportados exitosamente', 'Cerrar', { duration: 3000 });
+    } catch (error) {
+
+      this.snackBar.open('Error al exportar datos', 'Cerrar', { duration: 3000 });
+    } finally {
+      this.exportingExcel = false;
+    }
   }
 }
 

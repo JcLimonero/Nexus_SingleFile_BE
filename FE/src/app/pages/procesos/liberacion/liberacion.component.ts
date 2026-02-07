@@ -15,13 +15,16 @@ import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
-import { Subject, takeUntil } from 'rxjs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Subject, takeUntil, Observable, throwError, of } from 'rxjs';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { ClientSelectionDialogComponent } from '../integracion/client-selection-dialog.component';
+import { DocumentosNoConfiguradosDialogComponent } from './documentos-no-configurados-dialog/documentos-no-configurados-dialog.component';
 
 @Component({
   selector: 'vex-liberacion',
@@ -42,7 +45,8 @@ import { ClientSelectionDialogComponent } from '../integracion/client-selection-
     MatTableModule,
     MatMenuModule,
     MatPaginatorModule,
-    MatTabsModule
+    MatTabsModule,
+    MatCheckboxModule
   ],
   templateUrl: './liberacion.component.html',
   styleUrls: ['./liberacion.component.scss']
@@ -99,6 +103,10 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   requiredDocuments: any[] = [];
   documentsLoading = false;
   selectedFiles: { [key: string]: File } = {};
+  filesExceedingSize: { [key: string]: boolean } = {}; // Rastrear archivos que exceden el tamaño máximo
+  selectedDocumentsForBatch: Set<string> = new Set(); // Documentos seleccionados para carga en lote
+  uploadingDocuments: Set<string> = new Set();
+  maxFileSizeMB = environment.maxFileSizeMB || 100; // Tamaño máximo configurable
   documentTabs: Array<{ id: string; name: string; documents: any[]; hasPending: boolean; hasRejected: boolean }> = [];
   selectedTabIndex = 0;
   
@@ -119,7 +127,21 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 LiberacionComponent inicializado');
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgencyId = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgencyId) {
+          this.selectedAgencyId = agenciaId;
+        }
+      });
+
     this.loadLiberationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
@@ -131,7 +153,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       const idFile = params['idFile'];
       
       if (idCliente && (idPedido || idFile)) {
-        console.log('🔍 Parámetros encontrados en URL:', { idCliente, idPedido, idFile });
+
         // Esperar a que las agencias se carguen antes de seleccionar
         setTimeout(() => {
           this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
@@ -173,31 +195,45 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.agencies = agencias;
           this.agenciesLoading = false;
           
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  this.selectedAgencyId = agenciaId;
-                  this.onAgencyChange(agenciaId);
-                } else if (this.agencies.length > 0) {
-                  const primeraAgencia = this.agencies[0];
-                  this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id);
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgencyId = savedAgencyId;
+              this.onAgencyChange(savedAgencyId);
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+                next: (agenciaId) => {
+                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
+                    this.selectedAgencyId = agenciaId;
+                    this.onAgencyChange(agenciaId);
+                  } else if (this.agencies.length > 0) {
+                    // Solo como último recurso, seleccionar la primera
+                    const primeraAgencia = this.agencies[0];
+                    this.selectedAgencyId = primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.Id);
+                  }
+                },
+                error: (error) => {
+                  console.error('Error estableciendo agencia predeterminada:', error);
+                  // Si falla y hay agencias, seleccionar la primera
+                  if (this.agencies.length > 0) {
+                    const primeraAgencia = this.agencies[0];
+                    this.selectedAgencyId = primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.Id);
+                  }
                 }
-              },
-              error: (error) => {
-                console.error('❌ Error estableciendo agencia predeterminada:', error);
-                if (this.agencies.length > 0) {
-                  const primeraAgencia = this.agencies[0];
-                  this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id);
-                }
-              }
-            });
-          }, 100);
+              });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('🏢 Error cargando agencias:', error);
+          console.error('Error cargando agencias:', error);
           this.agencies = [];
           this.agenciesLoading = false;
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', { duration: 3000 });
@@ -209,21 +245,31 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.selectedAgencyId = agencyId;
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
     
+    // Actualizar el caché usando seleccionarAgencia (ya actualiza cookie y BehaviorSubject)
+    if (agencyId !== null) {
+      this.defaultAgencyService.seleccionarAgencia(agencyId);
+    }
+    
+    // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+    // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
+    // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+    /*
     // Actualizar la agencia predeterminada del usuario
     if (agencyId !== null) {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ LiberacionComponent - Agencia predeterminada actualizada:', agencyId);
+
           } else {
-            console.warn('⚠️ LiberacionComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ LiberacionComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     }
+    */
   }
 
   clearAgencyFilter(): void {
@@ -306,7 +352,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.clientsLoading = false;
         },
         error: (error: any) => {
-          console.error('❌ Error buscando clientes:', error);
+
           this.clients = [];
           this.clientsLoading = false;
           this.snackBar.open('Error al buscar clientes', 'Cerrar', { duration: 3000 });
@@ -322,6 +368,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
+    this.selectedDocumentsForBatch.clear();
   }
 
   clearAllClientData(): void {
@@ -335,6 +383,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.filesLoading = false;
     this.requiredDocuments = [];
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
+    this.selectedDocumentsForBatch.clear();
     this.documentsLoading = false;
     this.clientsLoading = false;
     this.orderSearchTerm = '';
@@ -349,6 +399,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
+    this.selectedDocumentsForBatch.clear();
     this.orderSearchTerm = '';
     this.currentPage = 0;
 
@@ -360,10 +412,9 @@ export class LiberacionComponent implements OnInit, OnDestroy {
    * Seleccionar cliente y pedido automáticamente desde parámetros de URL
    */
   private seleccionarClienteYPedidoDesdeURL(idCliente: string, idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando cliente y pedido desde URL:', { idCliente, idPedido, idFile });
-    
+
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
-      console.log('⚠️ No hay agencia seleccionada, esperando...');
+
       setTimeout(() => {
         this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
       }, 500);
@@ -380,7 +431,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
             const clienteEncontrado = clientes.find(c => String(c.ndCliente) === String(idCliente));
             
             if (clienteEncontrado) {
-              console.log('✅ Cliente encontrado:', clienteEncontrado);
+
               // Seleccionar el cliente
               this.selectClient(clienteEncontrado);
               
@@ -389,20 +440,20 @@ export class LiberacionComponent implements OnInit, OnDestroy {
                 this.seleccionarPedidoDesdeURL(idPedido, idFile);
               }, 1000);
             } else {
-              console.log('⚠️ Cliente no encontrado en resultados');
+
               this.snackBar.open('Cliente no encontrado', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
-            console.log('⚠️ No se encontraron clientes');
+
             this.snackBar.open('Cliente no encontrado', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error buscando cliente:', error);
+
           this.snackBar.open('Error al buscar cliente', 'Cerrar', {
             duration: 3000
           });
@@ -414,10 +465,9 @@ export class LiberacionComponent implements OnInit, OnDestroy {
    * Seleccionar pedido automáticamente desde parámetros de URL
    */
   private seleccionarPedidoDesdeURL(idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando pedido desde URL:', { idPedido, idFile });
-    
+
     if (!this.files || this.files.length === 0) {
-      console.log('⚠️ No hay pedidos cargados aún, esperando...');
+
       setTimeout(() => {
         this.seleccionarPedidoDesdeURL(idPedido, idFile);
       }, 500);
@@ -436,7 +486,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     }
 
     if (pedidoEncontrado) {
-      console.log('✅ Pedido encontrado:', pedidoEncontrado);
+
       this.selectFile(pedidoEncontrado);
       this.snackBar.open(`Pedido ${pedidoEncontrado.numeroPedido} seleccionado`, 'Cerrar', {
         duration: 3000
@@ -449,7 +499,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
         replaceUrl: true
       });
     } else {
-      console.log('⚠️ Pedido no encontrado');
+
       this.snackBar.open('Pedido no encontrado', 'Cerrar', {
         duration: 3000
       });
@@ -482,6 +532,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
+    this.selectedDocumentsForBatch.clear();
     this.orderSearchTerm = '';
     this.currentPage = 0;
     this.updateFilesDisplay();
@@ -518,7 +570,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.filesLoading = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando files de liberación:', error);
+
           this.files = [];
           this.filesLoading = false;
           this.snackBar.open('Error al cargar los pedidos del cliente', 'Cerrar', { duration: 3000 });
@@ -560,7 +612,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           this.documentsLoading = false;
         },
         error: (error) => {
-          console.error('❌ Error cargando documentos:', error);
+
           this.requiredDocuments = [];
           this.documentTabs = [];
           this.documentsLoading = false;
@@ -569,40 +621,355 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Abre el diálogo con los documentos de tipo Liberación que el pedido seleccionado no tiene configurados.
+   */
+  openDocumentosNoConfiguradosDialog(): void {
+    if (!this.selectedFile?.fileId) return;
+    const pedidoLabel = this.selectedFile.numeroPedido
+      ? `N° ${this.selectedFile.numeroPedido}${this.selectedFile.proceso ? ' • ' + this.selectedFile.proceso : ''}`
+      : undefined;
+    const d = this.dialog.open(DocumentosNoConfiguradosDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      data: { fileId: String(this.selectedFile.fileId), pedidoLabel } as { fileId: string; pedidoLabel?: string }
+    });
+    d.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: { added?: boolean } | undefined) => {
+        if (result?.added && this.selectedFile?.fileId) {
+          this.loadRequiredDocuments(String(this.selectedFile.fileId));
+        }
+      });
+  }
+
   onFileSelected(event: any, documentFileId: string | number): void {
-    const file = event.target.files[0];
-    if (file) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const maxSizeBytes = (environment.maxFileSizeMB || 100) * 1024 * 1024; // Convertir MB a bytes
       const key = documentFileId.toString();
-      this.selectedFiles[key] = file;
+      
+      // Validar tamaño del archivo
+      if (file.size > maxSizeBytes) {
+        // Archivo excede el tamaño máximo
+        this.filesExceedingSize[key] = true;
+        this.selectedFiles[key] = file; // Guardar referencia para mostrar el nombre
+        // Remover de selección en lote si estaba
+        this.selectedDocumentsForBatch.delete(key);
+        
+        // Mostrar mensaje de error
+        this.snackBar.open(
+          `El archivo excede el tamaño máximo permitido de ${environment.maxFileSizeMB}MB`,
+          'Cerrar',
+          { duration: 5000 }
+        );
+      } else {
+        // Archivo válido
+        this.filesExceedingSize[key] = false;
+        this.selectedFiles[key] = file;
+        // Automáticamente marcar el documento para carga en lote si tiene archivo
+        this.selectedDocumentsForBatch.add(key);
+      }
     }
   }
 
-  uploadDocument(document: any): void {
+  /**
+   * Toggle selección de documento para carga en lote
+   */
+  toggleDocumentForBatch(documentId: string): void {
+    if (!documentId) return;
+    
+    if (this.selectedDocumentsForBatch.has(documentId)) {
+      this.selectedDocumentsForBatch.delete(documentId);
+    } else {
+      // Solo permitir seleccionar si tiene archivo seleccionado y no excede el tamaño
+      if (this.selectedFiles[documentId] && !this.filesExceedingSize[documentId]) {
+        this.selectedDocumentsForBatch.add(documentId);
+      } else if (this.filesExceedingSize[documentId]) {
+        this.snackBar.open(`El archivo excede el tamaño máximo de ${this.maxFileSizeMB}MB`, 'Cerrar', {
+          duration: 3000
+        });
+      } else {
+        this.snackBar.open('Debe seleccionar un archivo primero', 'Cerrar', {
+          duration: 2000
+        });
+      }
+    }
+  }
+
+  /**
+   * Verificar si un documento está seleccionado para carga en lote
+   */
+  isDocumentSelectedForBatch(documentId: string | null | undefined): boolean {
+    if (!documentId) return false;
+    return this.selectedDocumentsForBatch.has(documentId);
+  }
+
+  /**
+   * Obtener cantidad de documentos seleccionados para carga en lote
+   */
+  getSelectedDocumentsCount(): number {
+    return this.selectedDocumentsForBatch.size;
+  }
+
+  /**
+   * Verificar si hay documentos seleccionados para carga en lote
+   */
+  hasDocumentsSelectedForBatch(): boolean {
+    return this.selectedDocumentsForBatch.size > 0;
+  }
+
+  /**
+   * Verificar si un documento se está cargando
+   */
+  isDocumentUploading(documentId: string | null | undefined): boolean {
+    if (!documentId) return false;
+    return this.uploadingDocuments.has(documentId);
+  }
+
+  /**
+   * Verificar si hay archivos que exceden el tamaño en la selección para carga masiva
+   */
+  hasFilesExceedingSizeInBatch(): boolean {
+    return Array.from(this.selectedDocumentsForBatch).some(docId => 
+      this.filesExceedingSize[docId]
+    );
+  }
+
+  /**
+   * Obtener cantidad de archivos que exceden el tamaño en la selección para carga masiva
+   */
+  getFilesExceedingSizeCount(): number {
+    return Array.from(this.selectedDocumentsForBatch).filter(docId => 
+      this.filesExceedingSize[docId]
+    ).length;
+  }
+
+  /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'documento';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
+  }
+
+  /**
+   * Cargar todos los documentos seleccionados en lote
+   */
+  uploadMultipleDocuments(): void {
+    if (!this.hasDocumentsSelectedForBatch()) {
+      this.snackBar.open('Debe seleccionar al menos un documento para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Obtener todos los documentos de todos los tabs que estén seleccionados
+    const documentsToUpload: any[] = [];
+    this.documentTabs.forEach(tab => {
+      tab.documents.forEach(doc => {
+        const docKey = doc.fileDocumentId?.toString();
+        if (docKey &&
+            this.selectedDocumentsForBatch.has(docKey) && 
+            this.selectedFiles[docKey] &&
+            !this.filesExceedingSize[docKey] && // Excluir archivos que exceden el tamaño
+            doc.idCurrentStatus !== '3' && 
+            doc.idCurrentStatus !== '4') {
+          documentsToUpload.push(doc);
+        }
+      });
+    });
+    
+    // Verificar si hay archivos que exceden el tamaño
+    const filesExceedingCount: any[] = [];
+    this.documentTabs.forEach(tab => {
+      tab.documents.forEach(doc => {
+        const docKey = doc.fileDocumentId?.toString();
+        if (docKey &&
+            this.selectedDocumentsForBatch.has(docKey) && 
+            this.filesExceedingSize[docKey]) {
+          filesExceedingCount.push(doc);
+        }
+      });
+    });
+    
+    if (filesExceedingCount.length > 0) {
+      this.snackBar.open(
+        `${filesExceedingCount.length} archivo(s) exceden el tamaño máximo de ${environment.maxFileSizeMB}MB y no se pueden cargar`,
+        'Cerrar',
+        { duration: 5000 }
+      );
+    }
+
+    if (documentsToUpload.length === 0) {
+      this.snackBar.open('No hay documentos válidos para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Marcar todos como cargando
+    documentsToUpload.forEach(doc => {
+      const docKey = doc.fileDocumentId?.toString();
+      if (docKey) {
+        this.uploadingDocuments.add(docKey);
+      }
+    });
+
+    // Cargar documentos secuencialmente para evitar sobrecarga
+    let completed = 0;
+    let failed = 0;
+    const total = documentsToUpload.length;
+
+    documentsToUpload.forEach((document, index) => {
+      setTimeout(() => {
+        const docKey = document.fileDocumentId?.toString();
+        if (!docKey) return;
+
+        this.uploadDocumentInternal(document, false).subscribe({
+          next: () => {
+            completed++;
+            this.selectedDocumentsForBatch.delete(docKey);
+            this.uploadingDocuments.delete(docKey);
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          },
+          error: () => {
+            failed++;
+            this.uploadingDocuments.delete(docKey);
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          }
+        });
+      }, index * 200); // Pequeño delay entre cada carga para evitar sobrecarga
+    });
+  }
+
+  /**
+   * Método interno para cargar un documento
+   */
+  private uploadDocumentInternal(document: any, showIndividualMessage: boolean = true): Observable<any> {
     const documentKey = document.fileDocumentId?.toString();
     if (!documentKey || !this.selectedFiles[documentKey]) {
-      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
-      return;
+      const errorMsg = 'Debe seleccionar un archivo';
+      if (showIndividualMessage) {
+        this.snackBar.open(errorMsg, 'Cerrar', {
+          duration: 3000
+        });
+      }
+      return throwError(() => new Error(errorMsg));
     }
 
     const isReplacing = document.idCurrentStatus === '2';
     const actionText = isReplacing ? 'reemplazando' : 'cargando';
 
-    const formData = new FormData();
-    formData.append('file', this.selectedFiles[documentKey]);
-    formData.append('idSingleFile', this.selectedFile.fileId.toString());
-    formData.append('idDocumentFile', document.fileDocumentId.toString());
+    // Obtener archivo y sanitizar su nombre
+    let file = this.selectedFiles[documentKey];
+    file = this.sanitizeFileName(file);
 
-    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', { duration: 3000 });
+    // Obtener el nombre del archivo desde la vista view_document_name
+    const params = new HttpParams()
+      .set('idDocumentByFile', document.fileDocumentId.toString())
+      .set('idFile', this.selectedFile.fileId.toString());
+
+    // Primero consultar el nombre del archivo desde la vista, luego renombrar y subir
+    return this.http.get<any>(`${environment.apiBaseUrl}/api/documents/get-file-name`, { params })
+      .pipe(
+        catchError((error) => {
+          // Si falla la consulta, usar el nombre del documento requerido (documentName)
+          console.warn('No se pudo obtener el nombre desde la vista, usando nombre del documento requerido:', error);
+          return of({ success: false, useDocumentName: true }); // Retornar un objeto para que continue el flujo
+        }),
+        switchMap((response) => {
+          // Renombrar el archivo si se obtuvo el nombre de la vista o usar documentName como fallback
+          let newFileName: string | null = null;
+          
+          if (response.success && response.data?.file_name_original) {
+            // Usar el nombre de la vista
+            const fileNameFromView = response.data.file_name_original;
+            const originalExtension = file.name.split('.').pop();
+            const fileNameBase = fileNameFromView.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
+            newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
+            console.log('Archivo renombrado desde vista:', newFileName);
+          } else if (response.useDocumentName && document.documentName) {
+            // Usar el nombre del documento requerido como fallback
+            const originalExtension = file.name.split('.').pop();
+            const fileNameBase = document.documentName.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
+            newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
+            console.log('Archivo renombrado usando documentName:', newFileName);
+          }
+
+          // Si se obtuvo un nuevo nombre, crear un nuevo File
+          if (newFileName) {
+            file = new File([file], newFileName, { type: file.type });
+          }
+
+          // Preparar datos para Vanguardia API
+          const formData = new FormData();
+          formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
+          formData.append('idSingleFile', this.selectedFile.fileId.toString());
+          formData.append('idDocumentFile', document.fileDocumentId.toString());
+
+          // Usar API de Vanguardia
+          return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData);
+        })
+      )
+      .pipe(
+        takeUntil(this.destroy$),
+        tap((response) => {
+          if (showIndividualMessage) {
+            this.snackBar.open(`Documento ${document.documentName || document.fileName} ${actionText} exitosamente`, 'Cerrar', { duration: 3000 });
+          }
+          
+          // Recargar documentos para mostrar el estado actualizado
           this.loadRequiredDocuments(this.selectedFile.fileId);
+          // Limpiar archivo seleccionado
           delete this.selectedFiles[documentKey];
+          delete this.filesExceedingSize[documentKey];
+          // Remover de selección en lote si estaba
+          this.selectedDocumentsForBatch.delete(documentKey);
           this.buildDocumentTabs();
-        },
-        error: (error) => {
-          console.error('❌ Error subiendo documento a Backblaze:', error);
+        }),
+        catchError((error) => {
 
           let errorMessage = 'Error desconocido';
           if (error.status === 0) {
@@ -623,9 +990,34 @@ export class LiberacionComponent implements OnInit, OnDestroy {
             errorMessage = error.message;
           }
 
-          this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', { duration: 8000 });
-        }
-      });
+          if (showIndividualMessage) {
+            this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', { duration: 8000 });
+          }
+
+          return throwError(() => new Error(errorMessage));
+        })
+      );
+  }
+
+  /**
+   * Cargar un documento individual
+   */
+  uploadDocument(document: any): void {
+    const documentKey = document.fileDocumentId?.toString();
+    if (!documentKey || !this.selectedFiles[documentKey]) {
+      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.uploadingDocuments.add(documentKey);
+    this.uploadDocumentInternal(document, true).subscribe({
+      next: () => {
+        this.uploadingDocuments.delete(documentKey);
+      },
+      error: () => {
+        this.uploadingDocuments.delete(documentKey);
+      }
+    });
   }
 
   viewDocument(document: any): void {
@@ -680,6 +1072,10 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       case 'optional': return 'help';
       default: return 'help';
     }
+  }
+
+  trackByDocumentId(index: number, document: any): string {
+    return document.fileDocumentId?.toString() || document.documentId?.toString() || index.toString();
   }
 
   getDocumentStatusColor(status: string, idCurrentStatus?: string): string {

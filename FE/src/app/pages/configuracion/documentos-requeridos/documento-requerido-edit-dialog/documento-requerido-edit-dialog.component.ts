@@ -78,6 +78,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   // Filtro para mostrar solo seleccionados
   showOnlySelected: boolean = false;
 
+  // Validación de configuración existente
+  configuracionExiste: boolean = false;
+  validandoConfiguracion: boolean = false;
+  mensajeValidacion: string = '';
+
   constructor(
     private fb: FormBuilder,
     private documentoRequeridoService: DocumentoRequeridoService,
@@ -95,6 +100,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         IdAgency: string;
         IdCostumerType: string;
         IdOperationType: string;
+        Enabled?: string;
       };
     },
     private snackBar: MatSnackBar
@@ -132,20 +138,39 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
     // Si tenemos configuración predefinida, aplicarla
     if (this.data.configuracion) {
+      // Determinar el estado: si no está definido o es '1' o es string vacío, se considera habilitado
+      const enabledValue = this.data.configuracion.Enabled;
+      const isEnabled = enabledValue === undefined || enabledValue === '' || enabledValue === '1' || String(enabledValue) === '1';
+      
       this.documentoForm.patchValue({
         IdProcess: this.data.configuracion.IdProcess,
         IdAgency: this.data.configuracion.IdAgency,
         IdCostumerType: this.data.configuracion.IdCostumerType,
-        IdOperationType: this.data.configuracion.IdOperationType
+        IdOperationType: this.data.configuracion.IdOperationType,
+        enabled: isEnabled
+      });
+    }
+
+    // Solo en modo create, agregar listeners para validar en tiempo real
+    if (this.data.mode === 'create') {
+      // Escuchar cambios en los campos de configuración
+      this.documentoForm.get('IdAgency')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
+      });
+      this.documentoForm.get('IdProcess')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
+      });
+      this.documentoForm.get('IdCostumerType')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
+      });
+      this.documentoForm.get('IdOperationType')?.valueChanges.subscribe(() => {
+        this.validarConfiguracionExistente();
       });
     }
   }
 
   private loadExistingDocuments(): void {
-    console.log('🔄 Cargando documentos existentes...');
-    console.log('📋 Configuración:', this.data.configuracion);
-    console.log('📄 Tipos de documento disponibles:', this.tiposDocumento?.length || 0);
-    
+
     // Cargar documentos existentes para esta configuración
     if (this.data.configuracion) {
       const filters = {
@@ -155,36 +180,25 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         IdOperationType: this.data.configuracion.IdOperationType
       };
 
-      console.log('🔍 Filtros para buscar documentos:', filters);
-
       this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
         next: (response: any) => {
-          console.log('✅ Respuesta del servicio:', response);
+
           if (response?.success && response.data?.documentos) {
             // Extraer los IDs de los tipos de documento ya configurados
             const existingDocumentTypeIds = response.data.documentos.map((doc: any) => doc.IdDocumentType);
-            console.log('📋 IDs de documentos existentes:', existingDocumentTypeIds);
-            console.log('📋 Número de documentos encontrados:', response.data.documentos.length);
-            console.log('📋 Primeros 3 documentos:', response.data.documentos.slice(0, 3));
+
+            
             
             // Actualizar el formulario con los documentos existentes
-            console.log('🔄 Antes de actualizar el formulario:');
-            console.log('📝 selectedDocumentTypes actual:', this.selectedDocumentTypes);
-            
+
             this.selectedDocumentTypes = existingDocumentTypeIds;
+
             
-            console.log('🔄 Después de actualizar el formulario:');
-            console.log('📝 selectedDocumentTypes nuevo:', this.selectedDocumentTypes);
-            
-            console.log('✅ Formulario actualizado con documentos existentes');
-            console.log('📝 Estado del formulario:', this.documentoForm.value.selectedDocumentTypes);
-            console.log('📝 Valor del control selectedDocumentTypes:', this.documentoForm.get('selectedDocumentTypes')?.value);
             
             // Verificar que el formulario se actualizó correctamente
             setTimeout(() => {
-              console.log('🔄 Verificación después de 100ms:');
-              console.log('📝 Estado del formulario:', this.documentoForm.value.selectedDocumentTypes);
-              console.log('📝 Valor del control selectedDocumentTypes:', this.documentoForm.get('selectedDocumentTypes')?.value);
+
+              
               this.debugFormState();
             }, 100);
             
@@ -192,15 +206,15 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             this.filteredTiposDocumento = [...this.tiposDocumento];
             this.applyFilters();
           } else {
-            console.log('⚠️ No se encontraron documentos existentes o respuesta inválida');
+
           }
         },
         error: (error: any) => {
-          console.error('❌ Error cargando documentos existentes:', error);
+
         }
       });
     } else {
-      console.log('⚠️ No hay configuración disponible para cargar documentos existentes');
+
     }
   }
 
@@ -217,7 +231,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando procesos:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -231,7 +245,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando agencias:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -245,7 +259,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de cliente:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -259,7 +273,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de operación:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -280,7 +294,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
-        console.error('Error cargando tipos de documento:', error);
+
         this.checkCatalogsLoaded();
       }
     });
@@ -288,20 +302,18 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   private checkCatalogsLoaded(): void {
     this.catalogsProcessed++;
-    console.log(`📊 Catálogo procesado: ${this.catalogsProcessed}/${this.totalCatalogs}`);
-    
+
     // Si todos los catálogos han sido procesados, quitar el loading
     if (this.catalogsProcessed >= this.totalCatalogs) {
-      console.log('✅ Todos los catálogos han sido cargados');
+
       this.loadingCatalogs = false;
       
       // Si estamos en modo edición, cargar documentos existentes DESPUÉS de que todos los catálogos estén listos
       if (this.data.mode === 'edit') {
-        console.log('🔄 Modo edición detectado, cargando documentos existentes...');
-        console.log('📋 Configuración disponible:', this.data.configuracion);
+
         this.loadExistingDocuments();
       } else {
-        console.log('🆕 Modo creación detectado, no se cargan documentos existentes');
+
       }
     }
   }
@@ -322,6 +334,60 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     }
   }
 
+  /**
+   * Validar si la configuración ya existe (en tiempo real)
+   */
+  validarConfiguracionExistente(): void {
+    // Solo validar si todos los campos están completos
+    const IdAgency = this.documentoForm.get('IdAgency')?.value;
+    const IdProcess = this.documentoForm.get('IdProcess')?.value;
+    const IdCostumerType = this.documentoForm.get('IdCostumerType')?.value;
+    const IdOperationType = this.documentoForm.get('IdOperationType')?.value;
+
+    if (!IdAgency || !IdProcess || !IdCostumerType || !IdOperationType) {
+      // Si falta algún campo, resetear el estado
+      this.configuracionExiste = false;
+      this.mensajeValidacion = '';
+      return;
+    }
+
+    this.validandoConfiguracion = true;
+    this.mensajeValidacion = 'Verificando...';
+
+    const filters = {
+      IdProcess: IdProcess,
+      IdAgency: IdAgency,
+      IdCostumerType: IdCostumerType,
+      IdOperationType: IdOperationType
+    };
+
+    this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
+      next: (response) => {
+        this.validandoConfiguracion = false;
+        if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
+          // Ya existe una configuración
+          this.configuracionExiste = true;
+          const procesoName = this.procesos.find(p => p.Id === IdProcess)?.Name || 'N/A';
+          const agenciaName = this.agencias.find(a => a.Id === IdAgency)?.Name || 'N/A';
+          const clienteName = this.tiposCliente.find(c => c.Id === IdCostumerType)?.Name || 'N/A';
+          const operacionName = this.tiposOperacion.find(o => o.Id === IdOperationType)?.Name || 'N/A';
+          this.mensajeValidacion = `Ya existe una configuración para: ${agenciaName} - ${procesoName} - ${clienteName} - ${operacionName}`;
+        } else {
+          // No existe, se puede crear
+          this.configuracionExiste = false;
+          this.mensajeValidacion = '';
+        }
+      },
+      error: (error) => {
+        this.validandoConfiguracion = false;
+
+        // En caso de error, permitir crear (el backend también validará)
+        this.configuracionExiste = false;
+        this.mensajeValidacion = '';
+      }
+    });
+  }
+
   private createDocumentoRequerido(): void {
     if (this.selectedDocumentTypes.length === 0) {
       this.snackBar.open('Debes seleccionar al menos un tipo de documento', 'Error', {
@@ -331,6 +397,20 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       return;
     }
 
+    // Si ya sabemos que existe, no proceder
+    if (this.configuracionExiste) {
+      this.snackBar.open('Esta configuración ya existe. Por favor, edita la configuración existente o selecciona diferentes parámetros.', 'Advertencia', {
+        duration: 5000
+      });
+      this.loading = false;
+      return;
+    }
+
+    // Proceder con la creación
+    this.proceedWithCreation();
+  }
+
+  private proceedWithCreation(): void {
     // Crear múltiples documentos, uno por cada tipo seleccionado
     let createdCount = 0;
     let errorCount = 0;
@@ -351,6 +431,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             createdCount++;
           } else {
             errorCount++;
+            // Si el error es porque ya existe, mostrarlo
+            if (response.message && response.message.toLowerCase().includes('existe') || 
+                response.message && response.message.toLowerCase().includes('duplicado')) {
+
+            }
           }
           
           // Verificar si todos los documentos han sido procesados
@@ -380,9 +465,17 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
               });
               this.dialogRef.close(true);
             } else {
-              this.snackBar.open('Error al crear configuraciones', 'Error', {
-                duration: 3000
-              });
+              // Verificar si el error es por duplicado
+              const errorMessage = error?.error?.message || error?.message || '';
+              if (errorMessage.toLowerCase().includes('existe') || errorMessage.toLowerCase().includes('duplicado')) {
+                this.snackBar.open('Esta configuración ya existe. Por favor, edita la configuración existente.', 'Advertencia', {
+                  duration: 5000
+                });
+              } else {
+                this.snackBar.open('Error al crear configuraciones', 'Error', {
+                  duration: 3000
+                });
+              }
             }
             this.loading = false;
           }
@@ -392,7 +485,77 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   }
 
   private updateDocumentoRequerido(): void {
-    if (!this.data.documento) return;
+    // Si no hay documento pero hay configuración, actualizar solo el estado de la configuración
+    if (!this.data.documento && this.data.configuracion) {
+      // Obtener el ID de la configuración buscando un documento de esa configuración
+      const filters = {
+        IdProcess: this.documentoForm.value.IdProcess,
+        IdAgency: this.documentoForm.value.IdAgency,
+        IdCostumerType: this.documentoForm.value.IdCostumerType,
+        IdOperationType: this.documentoForm.value.IdOperationType
+      };
+
+      this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
+        next: (response) => {
+          if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
+            // Obtener el IdConfigurationProcess del primer documento
+            const firstDoc = response.data.documentos[0];
+            const configProcessId = firstDoc.IdConfigurationProcess;
+
+            // Actualizar el estado de la configuración usando el primer documento como referencia
+            const documentoData: DocumentoRequeridoUpdateRequest = {
+              Id: firstDoc.Id,
+              IdProcess: this.documentoForm.value.IdProcess,
+              IdAgency: this.documentoForm.value.IdAgency,
+              IdCostumerType: this.documentoForm.value.IdCostumerType,
+              IdOperationType: this.documentoForm.value.IdOperationType,
+              IdDocumentType: firstDoc.IdDocumentType,
+              Enabled: this.documentoForm.value.enabled ? '1' : '0'
+            };
+
+            // Actualizar documentos y luego actualizar el ConfigurationProcess
+            this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.Id, documentoData).subscribe({
+              next: (updateResponse) => {
+                if (updateResponse.success) {
+                  // Ahora actualizar todos los documentos de esta configuración con el nuevo estado
+                  // y actualizar el ConfigurationProcess
+                  this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
+                } else {
+                  this.snackBar.open(updateResponse.message || 'Error al actualizar configuración', 'Error', {
+                    duration: 3000
+                  });
+                  this.loading = false;
+                }
+              },
+              error: (error) => {
+                this.snackBar.open('Error al actualizar configuración', 'Error', {
+                  duration: 3000
+                });
+                this.loading = false;
+              }
+            });
+          } else {
+            this.snackBar.open('No se encontró la configuración para actualizar', 'Error', {
+              duration: 3000
+            });
+            this.loading = false;
+          }
+        },
+        error: (error) => {
+          this.snackBar.open('Error al buscar la configuración', 'Error', {
+            duration: 3000
+          });
+          this.loading = false;
+        }
+      });
+      return;
+    }
+
+    // Si hay documento específico, actualizar normalmente
+    if (!this.data.documento) {
+      this.loading = false;
+      return;
+    }
 
     if (this.selectedDocumentTypes.length === 0) {
       this.snackBar.open('Debes seleccionar al menos un tipo de documento', 'Error', {
@@ -416,16 +579,23 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     this.documentoRequeridoService.updateDocumentoRequerido(this.data.documento.Id, documentoData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
-            duration: 2000
-          });
-          this.dialogRef.close(true);
+          // Actualizar también el ConfigurationProcess
+          const configProcessId = this.data.documento?.IdConfigurationProcess;
+          if (configProcessId) {
+            this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
+          } else {
+            this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
+              duration: 2000
+            });
+            this.dialogRef.close(true);
+            this.loading = false;
+          }
         } else {
           this.snackBar.open(response.message || 'Error al actualizar configuración', 'Error', {
             duration: 3000
           });
+          this.loading = false;
         }
-        this.loading = false;
       },
       error: (error) => {
         this.snackBar.open('Error al actualizar configuración', 'Error', {
@@ -434,6 +604,19 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Actualizar el estado del ConfigurationProcess
+   */
+  private updateConfigurationProcessStatus(configProcessId: string, enabled: boolean): void {
+    // El backend ahora actualiza automáticamente el ConfigurationProcess cuando se actualiza Enabled
+    // Solo cerramos el diálogo
+    this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
+      duration: 2000
+    });
+    this.dialogRef.close(true);
+    this.loading = false;
   }
 
   onCancel(): void {
@@ -454,11 +637,10 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     
     // Solo mostrar logs para los primeros 5 documentos para no saturar la consola
     if (parseInt(documentTypeId) <= 5) {
-      console.log(`🔍 Verificando si ${documentTypeId} está seleccionado: ${isSelected}`);
-      console.log(`📋 Tipos seleccionados actuales:`, this.selectedDocumentTypes);
-      console.log(`📝 Tipo de selectedTypes:`, typeof this.selectedDocumentTypes, Array.isArray(this.selectedDocumentTypes));
-      console.log(`📝 documentTypeId:`, documentTypeId, typeof documentTypeId);
-      console.log(`📝 Comparación:`, this.selectedDocumentTypes.includes(documentTypeId));
+
+      
+
+      
     }
     
     return isSelected;
@@ -478,10 +660,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.selectedDocumentTypes.splice(index, 1);
       }
     }
-    
-    console.log('🔄 Documento cambiado:', documentTypeId, 'checked:', event.checked);
-    console.log('📋 Tipos seleccionados actualizados:', this.selectedDocumentTypes);
-    
+
     // Reaplicar filtros después del cambio
     this.applyFilters();
   }
@@ -489,16 +668,14 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   // Método para manejar el cambio en el filtro de solo seleccionados
   onShowOnlySelectedChange(event: any): void {
     this.showOnlySelected = event.checked;
-    console.log('🔄 Filtro "Solo seleccionados" cambiado:', this.showOnlySelected);
-    console.log('📋 Tipos seleccionados actuales:', this.selectedDocumentTypes);
-    console.log('📄 Total de tipos de documento:', this.tiposDocumento.length);
+
     this.applyFilters();
   }
 
   // Método para limpiar solo el filtro de seleccionados
   clearShowOnlySelectedFilter(): void {
     this.showOnlySelected = false;
-    console.log('🔄 Filtro "Solo seleccionados" limpiado');
+
     this.applyFilters();
   }
 
@@ -534,12 +711,9 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   // Método temporal para debuggear el estado del formulario
   debugFormState(): void {
-    console.log('🔍 DEBUG - Estado del formulario:');
-    console.log('📝 selectedDocumentTypes:', this.selectedDocumentTypes);
-    console.log('📝 Tipo de selectedDocumentTypes:', typeof this.selectedDocumentTypes);
-    console.log('📝 Es array:', Array.isArray(this.selectedDocumentTypes));
-    console.log('📝 Longitud:', this.selectedDocumentTypes.length);
-    console.log('📝 Estado completo del formulario:', this.documentoForm.value);
+
+    
+
   }
 
   // Método para filtrar tipos de documento
@@ -623,12 +797,8 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   // Método para aplicar todos los filtros
   private applyFilters(): void {
-    console.log('🔍 Aplicando filtros...');
-    console.log('📝 showOnlySelected:', this.showOnlySelected);
-    console.log('📝 selectedDocumentTypes:', this.selectedDocumentTypes);
-    
+
     let filtered = [...this.tiposDocumento];
-    console.log('📄 Total inicial:', filtered.length);
 
     // Filtro por nombre
     if (this.searchTerm && this.searchTerm.trim() !== '') {
@@ -636,7 +806,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         tipo.Name.toLowerCase().includes(searchLower)
       );
-      console.log('🔍 Después de filtro por nombre:', filtered.length);
+
     }
 
     // Filtro por fase
@@ -644,7 +814,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         tipo.ProcessTypeName === this.selectedPhase
       );
-      console.log('🔍 Después de filtro por fase:', filtered.length);
+
     }
 
     // Filtro por subfase
@@ -652,7 +822,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         tipo.SubProcessName === this.selectedSubPhase
       );
-      console.log('🔍 Después de filtro por subfase:', filtered.length);
+
     }
 
     // Filtro por solo seleccionados
@@ -661,12 +831,12 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       filtered = filtered.filter(tipo => 
         this.selectedDocumentTypes.includes(tipo.Id)
       );
-      console.log('🔍 Después de filtro "Solo seleccionados":', filtered.length, '(antes:', beforeFilter, ')');
-      console.log('🔍 IDs seleccionados:', this.selectedDocumentTypes);
-      console.log('🔍 Tipos filtrados:', filtered.map(t => ({ id: t.Id, name: t.Name })));
+      
+
+      
     }
 
     this.filteredTiposDocumento = filtered;
-    console.log('✅ Filtrado final:', this.filteredTiposDocumento.length);
+
   }
 }

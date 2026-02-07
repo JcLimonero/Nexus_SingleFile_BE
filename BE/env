@@ -21,7 +21,7 @@ app.baseURL = 'http://localhost:402/'
 
 # Configuración de base de datos
 database.default.hostname = localhost
-database.default.database = singlefile_db
+database.default.database = single_file
 database.default.username = root
 database.default.password = 00@Limonero
 database.default.DBDriver = MySQLi

@@ -112,7 +112,7 @@ export class AttentionPeriodDialogComponent implements OnInit {
         this.loading = false;
       },
       error: (error: any) => {
-        console.error('Error loading orders by attention period:', error);
+
         this.error = 'Error al cargar los pedidos del período seleccionado';
         this.orders = [];
         this.totalOrders = 0;

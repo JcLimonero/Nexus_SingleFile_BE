@@ -73,20 +73,19 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: AttentionPeriodData[]) => {
-          console.log('Datos de período de atención recibidos:', data);
-          
+
           if (data && Array.isArray(data)) {
             this.attentionData = data;
             this.totalCases = data.reduce((total, item) => total + item.count, 0);
           } else {
-            console.warn('Datos no válidos recibidos:', data);
+
             this.attentionData = [];
             this.totalCases = 0;
           }
           this.loading = false;
         },
         error: (error: any) => {
-          console.error('Error loading attention period data:', error);
+
           this.error = 'Error al cargar los datos de período de atención';
           this.attentionData = [];
           this.totalCases = 0;

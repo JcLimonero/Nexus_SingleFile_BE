@@ -277,13 +277,14 @@ export class AuthService {
       return false;
     }
     
-    // Verificar si el token expira en los próximos 5 minutos
-    const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
-    if (expiration < fiveMinutesFromNow) {
-      // Token expira pronto, renovar automáticamente
-      this.refreshAccessToken().subscribe();
+    // Verificar si el token ya expiró
+    if (Date.now() >= expiration) {
+      // Token expirado, no está autenticado
+      return false;
     }
     
+    // Token válido (no hacer refresh automático aquí para evitar problemas de timing)
+    // El refresh se manejará en el AuthGuard cuando sea necesario
     return true;
   }
 
@@ -299,7 +300,7 @@ export class AuthService {
    */
   isAdmin(): boolean {
     const user = this.getCurrentUser();
-    return user ? user.role_id === '7' : false;
+    return user ? (user.role_id === '7' || user.role_id === '8') : false;
   }
 
   /**

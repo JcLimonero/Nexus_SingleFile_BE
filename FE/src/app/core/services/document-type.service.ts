@@ -142,4 +142,37 @@ export class DocumentTypeService {
   getActiveSubProcesses(): Observable<any> {
     return this.http.get(`${this.apiBaseService.buildApiUrl('file-sub-status/active')}`);
   }
+
+  /**
+   * Obtener configuraciones donde se usa un tipo de documento específico
+   */
+  getConfigurations(id: string): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/configurations`);
+  }
+
+  /**
+   * Eliminar un tipo de documento de una configuración específica
+   */
+  deleteConfiguration(documentTypeId: string, configurationId: number): Observable<any> {
+    return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${documentTypeId}/configuration/${configurationId}`);
+  }
+
+  /**
+   * Obtener configuraciones donde este tipo de documento aún NO está asociado (para agregado masivo).
+   */
+  getConfigurationsToAdd(documentTypeId: string): Observable<{ success: boolean; data?: { configurations: any[]; total: number }; message?: string }> {
+    return this.http.get<{ success: boolean; data?: { configurations: any[]; total: number }; message?: string }>(
+      `${this.apiBaseService.buildApiUrl(this.API_URL)}/${documentTypeId}/configurations-to-add`
+    );
+  }
+
+  /**
+   * Agregar este tipo de documento a varias configuraciones a la vez.
+   */
+  addToConfigurations(documentTypeId: string, configurationIds: number[]): Observable<{ success: boolean; message?: string; data?: { added: number } }> {
+    return this.http.post<{ success: boolean; message?: string; data?: { added: number } }>(
+      `${this.apiBaseService.buildApiUrl(this.API_URL)}/${documentTypeId}/add-to-configurations`,
+      { configurationIds }
+    );
+  }
 }

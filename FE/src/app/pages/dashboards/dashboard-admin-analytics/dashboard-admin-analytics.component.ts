@@ -115,6 +115,21 @@ export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgencyId = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgencyId) {
+          this.selectedAgencyId = agenciaId;
+        }
+      });
+
     // Cargar usuario actual PRIMERO
     this.loadCurrentUser();
     
@@ -174,21 +189,31 @@ export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {
       this.currentFilters = { ...this.currentFilters, userId: undefined };
     }
     
+    // Actualizar el caché usando seleccionarAgencia (ya actualiza cookie y BehaviorSubject)
+    if (agencyId !== null) {
+      this.defaultAgencyService.seleccionarAgencia(agencyId);
+    }
+    
+    // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+    // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
+    // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+    /*
     // Actualizar la agencia predeterminada del usuario
     if (agencyId !== null) {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ DashboardAdminAnalyticsComponent - Agencia predeterminada actualizada:', agencyId);
+
           } else {
-            console.warn('⚠️ DashboardAdminAnalyticsComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ DashboardAdminAnalyticsComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     }
+    */
     
     this.loadDashboardData();
   }
@@ -231,27 +256,34 @@ export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {
         next: (agencias) => {
           this.agencies = agencias;
           
-          // Establecer agencia predeterminada
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  this.selectedAgencyId = agenciaId;
-                  this.onAgencyChange(agenciaId);
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgencyId = savedAgencyId;
+              this.onAgencyChange(savedAgencyId);
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+                next: (agenciaId) => {
+                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
+                    this.selectedAgencyId = agenciaId;
+                    this.onAgencyChange(agenciaId);
+                  }
+                },
+                error: (error) => {
+                  console.error('Error estableciendo agencia predeterminada:', error);
                 }
-              },
-              error: (error) => {
-                // Si falla, intentar seleccionar la primera agencia disponible
-                if (this.agencies.length > 0) {
-                  const primeraAgencia = this.agencies[0];
-                  this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id);
-                }
-              }
-            });
-          }, 100);
+              });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
+          console.error('Error cargando agencias:', error);
           this.agencies = [];
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
             duration: 3000
@@ -336,8 +368,8 @@ export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {
       return false;
     }
     
-    // Verificar por role_id (admin tiene role_id = '7')
-    if (user.role_id === '7' || user.role_id === 7) {
+    // Verificar por role_id (admin tiene role_id = '7' o '8')
+    if (user.role_id === '7' || user.role_id === 7 || user.role_id === '8' || user.role_id === 8) {
       return true;
     }
     

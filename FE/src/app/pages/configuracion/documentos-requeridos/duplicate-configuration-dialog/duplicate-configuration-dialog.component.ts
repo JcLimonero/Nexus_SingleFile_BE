@@ -84,7 +84,7 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       await this.checkExistingConfigurations();
       
     } catch (error) {
-      console.error('Error cargando agencias:', error);
+
       this.snackBar.open('Error cargando agencias', 'Error', { duration: 3000 });
     } finally {
       this.loading = false;
@@ -114,7 +114,7 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
         .map(result => result.agency);
 
     } catch (error) {
-      console.error('Error verificando configuraciones existentes:', error);
+
       // En caso de error, mostrar todas las agencias disponibles
     }
   }
@@ -197,7 +197,7 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       this.dialogRef.close({ success: true, agenciesCount: this.selectedAgencies.length });
 
     } catch (error) {
-      console.error('Error duplicando configuración:', error);
+
       this.snackBar.open('Error duplicando configuración', 'Error', { duration: 3000 });
     } finally {
       this.loading = false;

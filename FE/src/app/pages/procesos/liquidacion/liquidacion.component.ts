@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -14,7 +14,9 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { Subject, takeUntil } from 'rxjs';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Subject, takeUntil, Observable, throwError, of } from 'rxjs';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -40,10 +42,12 @@ import { ClientSelectionDialogComponent } from '../integracion/client-selection-
     MatDialogModule,
     MatTableModule,
     MatMenuModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatCheckboxModule
   ],
   templateUrl: './liquidacion.component.html',
-  styleUrls: ['./liquidacion.component.scss']
+  styleUrls: ['./liquidacion.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LiquidacionComponent implements OnInit, OnDestroy {
   loading = false;
@@ -98,6 +102,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   requiredDocuments: any[] = [];
   documentsLoading = false;
   selectedFiles: { [key: string]: File } = {};
+  filesExceedingSize: { [key: string]: boolean } = {}; // Rastrear archivos que exceden el tamaño máximo
+  selectedDocumentsForBatch: Set<string> = new Set(); // Documentos seleccionados para carga en lote
+  uploadingDocuments: Set<string> = new Set();
+  maxFileSizeMB = environment.maxFileSizeMB || 100; // Tamaño máximo configurable
   addingLiquidationDocument = false;
   
   // Process properties - Fixed process for liquidation
@@ -113,11 +121,27 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private clientSearchService: ClientSearchService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 LiquidacionComponent inicializado');
+    // Obtener la agencia guardada inmediatamente al inicializar
+    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    if (savedAgencyId !== null) {
+      this.selectedAgencyId = savedAgencyId;
+    }
+
+    // Suscribirse a los cambios de agencia del servicio compartido
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null && agenciaId !== this.selectedAgencyId) {
+          this.selectedAgencyId = agenciaId;
+          this.cdr.markForCheck();
+        }
+      });
+
     this.loadLiquidationStatus();
     this.loadAgencies();
     this.checkUserPermissions();
@@ -129,7 +153,6 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       const idFile = params['idFile'];
       
       if (idCliente && (idPedido || idFile)) {
-        console.log('🔍 Parámetros encontrados en URL:', { idCliente, idPedido, idFile });
         // Esperar a que las agencias se carguen antes de seleccionar
         setTimeout(() => {
           this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
@@ -219,37 +242,54 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {
-          console.log('🏢 Agencias asignadas al usuario:', agencias);
           this.agencies = agencias;
           this.agenciesLoading = false;
+          // Forzar actualización de la vista después de cargar agencias
+          this.cdr.markForCheck();
           
-          // Establecer agencia predeterminada
+          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-              next: (agenciaId) => {
-                if (agenciaId) {
-                  console.log('✅ Agencia predeterminada establecida:', agenciaId);
-                  this.selectedAgencyId = agenciaId;
-                  this.onAgencyChange(agenciaId);
-                } else {
-                  console.warn('⚠️ No se pudo establecer agencia predeterminada');
+            // Obtener la agencia guardada
+            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            
+            // Verificar que la agencia guardada existe en la lista
+            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+              // La agencia guardada existe, usarla
+              this.selectedAgencyId = savedAgencyId;
+              this.onAgencyChange(savedAgencyId);
+              this.cdr.markForCheck();
+            } else {
+              // Si no hay agencia guardada válida, establecer la predeterminada
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+                next: (agenciaId) => {
+                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
+                    this.selectedAgencyId = agenciaId;
+                    this.onAgencyChange(agenciaId);
+                    this.cdr.markForCheck();
+                  } else if (this.agencies.length > 0) {
+                    // Solo como último recurso, seleccionar la primera
+                    const primeraAgencia = this.agencies[0];
+                    this.selectedAgencyId = primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.Id);
+                    this.cdr.markForCheck();
+                  }
+                },
+                error: (error) => {
+                  console.error('Error estableciendo agencia predeterminada:', error);
+                  // Si falla y hay agencias, seleccionar la primera
+                  if (this.agencies.length > 0) {
+                    const primeraAgencia = this.agencies[0];
+                    this.selectedAgencyId = primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.Id);
+                    this.cdr.markForCheck();
+                  }
                 }
-              },
-              error: (error) => {
-                console.error('❌ Error estableciendo agencia predeterminada:', error);
-                // Si falla, intentar seleccionar la primera agencia disponible
-                if (this.agencies.length > 0) {
-                  const primeraAgencia = this.agencies[0];
-                  console.log('🔄 Seleccionando primera agencia disponible como fallback:', primeraAgencia);
-                  this.selectedAgencyId = primeraAgencia.Id;
-                  this.onAgencyChange(primeraAgencia.Id);
-                }
-              }
-            });
-          }, 100);
+              });
+            }
+          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('🏢 Error cargando agencias:', error);
+          console.error('Error cargando agencias:', error);
           this.agencies = [];
           this.agenciesLoading = false;
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
@@ -263,24 +303,35 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.selectedAgencyId = agencyId;
     // Encontrar y guardar el objeto agencia completo
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
-    // Aquí puedes agregar lógica adicional cuando cambie la agencia seleccionada
-    console.log('Selected agency:', agencyId, 'Agency object:', this.selectedAgency);
     
+    // Actualizar el caché usando seleccionarAgencia (ya actualiza localStorage y BehaviorSubject)
+    if (agencyId !== null) {
+      this.defaultAgencyService.seleccionarAgencia(agencyId);
+    }
+    
+    // Forzar actualización de la vista con OnPush
+    this.cdr.markForCheck();
+    
+    // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
+    // seleccionarAgencia() ya actualiza el caché (localStorage y BehaviorSubject)
+    // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
+    /*
     // Actualizar la agencia predeterminada del usuario
     if (agencyId !== null) {
       this.defaultAgencyService.actualizarAgenciaPredeterminada(agencyId).subscribe({
         next: (success) => {
           if (success) {
-            console.log('✅ LiquidacionComponent - Agencia predeterminada actualizada:', agencyId);
+
           } else {
-            console.warn('⚠️ LiquidacionComponent - No se pudo actualizar la agencia predeterminada');
+
           }
         },
         error: (error) => {
-          console.error('❌ LiquidacionComponent - Error actualizando agencia predeterminada:', error);
+
         }
       });
     }
+    */
   }
 
   clearAgencyFilter(): void {
@@ -344,41 +395,42 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.clientsLoading = true;
     this.showClientResults = true;
 
-    this.clientSearchService.searchClients(
-      this.selectedAgencyId!,
-      this.clientSearchTerm.trim(),
-      50,
-      this.LIQUIDACION_STATE_ID
-    )
+    // Buscar clientes sin filtrar por estado (igual que en integración)
+    // El filtro de estado (liquidación) se aplica al cargar los pedidos, no al buscar clientes
+    this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
-          console.log('🔍 Clientes en liquidación encontrados:', response);
 
           if (response && response.success && response.data && response.data.clientes) {
             this.clients = response.data.clientes;
-
+            this.cdr.markForCheck();
+            
+            // Si hay múltiples resultados, mostrar diálogo
             if (this.clients.length > 1) {
               this.showClientSelectionDialog();
             } else if (this.clients.length === 1) {
+              // Si hay solo un resultado, seleccionarlo automáticamente
               this.selectClient(this.clients[0]);
             } else {
-              this.snackBar.open('No se encontraron clientes con pedidos en Liquidación', 'Cerrar', {
+              this.snackBar.open('No se encontraron clientes con el término de búsqueda', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
             this.clients = [];
-            this.snackBar.open('No se encontraron clientes con pedidos en Liquidación', 'Cerrar', {
+            this.snackBar.open('No se encontraron clientes con el término de búsqueda', 'Cerrar', {
               duration: 3000
             });
           }
-
+          
           this.clientsLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
-          console.error('❌ Error buscando clientes:', error);
+
           this.clients = [];
+          this.cdr.markForCheck();
           this.clientsLoading = false;
           this.snackBar.open('Error al buscar clientes', 'Cerrar', {
             duration: 3000
@@ -396,11 +448,12 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
+    this.selectedDocumentsForBatch.clear();
   }
 
   clearAllClientData(): void {
-    console.log('🧹 Limpiando todos los datos del cliente anterior...');
-    
+
     // Limpiar datos del cliente
     this.selectedClient = null;
     this.clients = [];
@@ -416,6 +469,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     // Limpiar documentos
     this.requiredDocuments = [];
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
     this.documentsLoading = false;
     
     // Limpiar estado de carga
@@ -425,12 +479,11 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.orderSearchTerm = '';
     this.currentPage = 0;
     this.totalItems = 0;
-    
-    console.log('✅ Todos los datos del cliente anterior han sido limpiados');
+
   }
 
   selectClient(client: any): void {
-    console.log('Cliente seleccionado:', client);
+
     this.selectedClient = client;
     this.showClientResults = false; // Ocultar resultados después de seleccionar
     this.clientSearchTerm = ''; // Limpiar el campo de búsqueda
@@ -439,6 +492,8 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
+    this.selectedDocumentsForBatch.clear();
     
     // Limpiar búsqueda y paginación de pedidos
     this.orderSearchTerm = '';
@@ -456,10 +511,9 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
    * Seleccionar cliente y pedido automáticamente desde parámetros de URL
    */
   private seleccionarClienteYPedidoDesdeURL(idCliente: string, idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando cliente y pedido desde URL:', { idCliente, idPedido, idFile });
-    
+
     if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
-      console.log('⚠️ No hay agencia seleccionada, esperando...');
+
       setTimeout(() => {
         this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
       }, 500);
@@ -476,7 +530,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
             const clienteEncontrado = clientes.find(c => String(c.ndCliente) === String(idCliente));
             
             if (clienteEncontrado) {
-              console.log('✅ Cliente encontrado:', clienteEncontrado);
+
               // Seleccionar el cliente
               this.selectClient(clienteEncontrado);
               
@@ -485,20 +539,20 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
                 this.seleccionarPedidoDesdeURL(idPedido, idFile);
               }, 1000);
             } else {
-              console.log('⚠️ Cliente no encontrado en resultados');
+
               this.snackBar.open('Cliente no encontrado', 'Cerrar', {
                 duration: 3000
               });
             }
           } else {
-            console.log('⚠️ No se encontraron clientes');
+
             this.snackBar.open('Cliente no encontrado', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error buscando cliente:', error);
+
           this.snackBar.open('Error al buscar cliente', 'Cerrar', {
             duration: 3000
           });
@@ -510,10 +564,9 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
    * Seleccionar pedido automáticamente desde parámetros de URL
    */
   private seleccionarPedidoDesdeURL(idPedido?: string, idFile?: string): void {
-    console.log('🔍 Seleccionando pedido desde URL:', { idPedido, idFile });
-    
+
     if (!this.files || this.files.length === 0) {
-      console.log('⚠️ No hay pedidos cargados aún, esperando...');
+
       setTimeout(() => {
         this.seleccionarPedidoDesdeURL(idPedido, idFile);
       }, 500);
@@ -532,7 +585,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     }
 
     if (pedidoEncontrado) {
-      console.log('✅ Pedido encontrado:', pedidoEncontrado);
+
       this.selectFile(pedidoEncontrado);
       this.snackBar.open(`Pedido ${pedidoEncontrado.numeroPedido} seleccionado`, 'Cerrar', {
         duration: 3000
@@ -545,7 +598,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
         replaceUrl: true
       });
     } else {
-      console.log('⚠️ Pedido no encontrado');
+
       this.snackBar.open('Pedido no encontrado', 'Cerrar', {
         duration: 3000
       });
@@ -576,6 +629,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.requiredDocuments = [];
     this.selectedFile = null;
     this.selectedFiles = {};
+    this.filesExceedingSize = {};
     // Limpiar búsqueda y paginación
     this.orderSearchTerm = '';
     this.currentPage = 0;
@@ -603,19 +657,29 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📁 Files de liquidación encontrados:', response);
-          
+
           if (response && response.success && response.data && response.data.files) {
-            this.files = response.data.files;
+            // Normalizar nombres de propiedades a minúsculas para asegurar consistencia (igual que en integración)
+            this.files = response.data.files.map((file: any) => ({
+              ...file,
+              // Asegurar que los campos estén en minúsculas (por si vienen en mayúsculas)
+              year: file.year || file.Year || null,
+              modelo: file.modelo || file.Modelo || null,
+              version: file.version || file.Version || null,
+              vin: file.vin || file.VIN || file.Vin || null,
+              // Mapear version a vehiculo para compatibilidad con el HTML
+              vehiculo: file.version || file.Version || file.vehiculo || null
+            }));
           } else {
             this.files = [];
           }
           
           this.updateFilesDisplay();
           this.filesLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('❌ Error cargando files de liquidación:', error);
+
           this.files = [];
           this.filesLoading = false;
           this.snackBar.open('Error al cargar los pedidos del cliente', 'Cerrar', {
@@ -631,7 +695,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
 
   // Métodos para acciones de pedidos
   liquidarPedido(file: any): void {
-    console.log('Liquidando pedido:', file.numeroPedido);
+
     // Aquí implementarías la lógica para liquidar el pedido
     this.snackBar.open(`Pedido ${file.numeroPedido} liquidado exitosamente`, 'Cerrar', {
       duration: 3000
@@ -639,7 +703,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   }
 
   revisarPedido(file: any): void {
-    console.log('Revisando pedido:', file.numeroPedido);
+
     // Aquí implementarías la lógica para revisar el pedido
     this.snackBar.open(`Pedido ${file.numeroPedido} enviado a revisión`, 'Cerrar', {
       duration: 3000
@@ -650,11 +714,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   selectFile(file: any): void {
     this.selectedFile = file;
     this.loadRequiredDocuments(file.fileId); // Usar fileId en lugar de numeroPedido
+    this.cdr.markForCheck();
   }
 
   loadRequiredDocuments(fileId: string): void {
     this.documentsLoading = true;
     this.requiredDocuments = [];
+    this.cdr.markForCheck();
 
     let params = new HttpParams();
     params = params.set('fileId', fileId);
@@ -664,8 +730,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('📄 Documentos requeridos para liquidación:', response);
-          
+
           if (response && response.success && response.data && response.data.documents) {
             this.requiredDocuments = response.data.documents;
           } else {
@@ -673,11 +738,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           }
           
           this.documentsLoading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('❌ Error cargando documentos:', error);
+
           this.requiredDocuments = [];
           this.documentsLoading = false;
+          this.cdr.markForCheck();
           this.snackBar.open('Error al cargar documentos requeridos', 'Cerrar', {
             duration: 3000
           });
@@ -711,7 +778,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
         this.loadRequiredDocuments(fileId);
       },
       error: (error) => {
-        console.error('❌ Error agregando documento de liquidación:', error);
+
         const errorMessage = error?.error?.message || 'No se pudo agregar el documento de Liquidación';
         this.snackBar.open(errorMessage, 'Cerrar', { duration: 4000 });
         this.addingLiquidationDocument = false;
@@ -723,51 +790,335 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   }
 
   onFileSelected(event: any, documentFileId: string | number): void {
-    const file = event.target.files[0];
-    if (file) {
-      const key = documentFileId.toString();
-      this.selectedFiles[key] = file;
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const maxSizeBytes = (environment.maxFileSizeMB || 100) * 1024 * 1024; // Convertir MB a bytes
+      const docId = documentFileId.toString();
+      
+      // Validar tamaño del archivo
+      if (file.size > maxSizeBytes) {
+        // Archivo excede el tamaño máximo
+        this.filesExceedingSize[docId] = true;
+        this.selectedFiles[docId] = file; // Guardar referencia para mostrar el nombre
+        // Remover de selección en lote si estaba
+        this.selectedDocumentsForBatch.delete(docId);
+        
+        // Mostrar mensaje de error
+        this.snackBar.open(
+          `El archivo excede el tamaño máximo permitido de ${environment.maxFileSizeMB}MB`,
+          'Cerrar',
+          { duration: 5000 }
+        );
+      } else {
+        // Archivo válido
+        this.filesExceedingSize[docId] = false;
+        this.selectedFiles[docId] = file;
+        // Automáticamente marcar el documento para carga en lote si tiene archivo
+        this.selectedDocumentsForBatch.add(docId);
+      }
+      
+      // Forzar detección de cambios
+      this.cdr.markForCheck();
+      return;
     }
+    
   }
 
-  uploadDocument(document: any): void {
-    const documentKey = document.fileDocumentId?.toString();
-    if (!documentKey || !this.selectedFiles[documentKey]) {
-      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', {
+  /**
+   * Toggle selección de documento para carga en lote
+   */
+  toggleDocumentForBatch(documentId: string): void {
+    if (!documentId) return;
+    
+    if (this.selectedDocumentsForBatch.has(documentId)) {
+      this.selectedDocumentsForBatch.delete(documentId);
+    } else {
+      // Solo permitir seleccionar si tiene archivo seleccionado y no excede el tamaño
+      if (this.selectedFiles[documentId] && !this.filesExceedingSize[documentId]) {
+        this.selectedDocumentsForBatch.add(documentId);
+      } else if (this.filesExceedingSize[documentId]) {
+        this.snackBar.open(`El archivo excede el tamaño máximo de ${this.maxFileSizeMB}MB`, 'Cerrar', {
+          duration: 3000
+        });
+      } else {
+        this.snackBar.open('Debe seleccionar un archivo primero', 'Cerrar', {
+          duration: 2000
+        });
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Verificar si un documento está seleccionado para carga en lote
+   */
+  isDocumentSelectedForBatch(documentId: string | null | undefined): boolean {
+    if (!documentId) return false;
+    return this.selectedDocumentsForBatch.has(documentId);
+  }
+
+  /**
+   * Obtener cantidad de documentos seleccionados para carga en lote
+   */
+  getSelectedDocumentsCount(): number {
+    return this.selectedDocumentsForBatch.size;
+  }
+
+  /**
+   * Verificar si hay documentos seleccionados para carga en lote
+   */
+  hasDocumentsSelectedForBatch(): boolean {
+    return this.selectedDocumentsForBatch.size > 0;
+  }
+
+  /**
+   * Verificar si un documento se está cargando
+   */
+  isDocumentUploading(documentId: string | null | undefined): boolean {
+    if (!documentId) return false;
+    return this.uploadingDocuments.has(documentId);
+  }
+
+  /**
+   * Verificar si hay archivos que exceden el tamaño en la selección para carga masiva
+   */
+  hasFilesExceedingSizeInBatch(): boolean {
+    return Array.from(this.selectedDocumentsForBatch).some(docId => 
+      this.filesExceedingSize[docId]
+    );
+  }
+
+  /**
+   * Obtener cantidad de archivos que exceden el tamaño en la selección para carga masiva
+   */
+  getFilesExceedingSizeCount(): number {
+    return Array.from(this.selectedDocumentsForBatch).filter(docId => 
+      this.filesExceedingSize[docId]
+    ).length;
+  }
+
+  /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'documento';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
+  }
+
+  /**
+   * Cargar todos los documentos seleccionados en lote
+   */
+  uploadMultipleDocuments(): void {
+    if (!this.hasDocumentsSelectedForBatch()) {
+      this.snackBar.open('Debe seleccionar al menos un documento para cargar', 'Cerrar', {
         duration: 3000
       });
       return;
+    }
+
+    const documentsToUpload = this.requiredDocuments.filter(doc => {
+      const docKey = doc.fileDocumentId?.toString();
+      return docKey &&
+        this.selectedDocumentsForBatch.has(docKey) && 
+        this.selectedFiles[docKey] &&
+        !this.filesExceedingSize[docKey] && // Excluir archivos que exceden el tamaño
+        doc.idCurrentStatus !== '3' && 
+        doc.idCurrentStatus !== '4';
+    });
+    
+    // Verificar si hay archivos que exceden el tamaño
+    const filesExceedingCount = this.requiredDocuments.filter(doc => {
+      const docKey = doc.fileDocumentId?.toString();
+      return docKey &&
+        this.selectedDocumentsForBatch.has(docKey) && 
+        this.filesExceedingSize[docKey];
+    }).length;
+    
+    if (filesExceedingCount > 0) {
+      this.snackBar.open(
+        `${filesExceedingCount} archivo(s) exceden el tamaño máximo de ${environment.maxFileSizeMB}MB y no se pueden cargar`,
+        'Cerrar',
+        { duration: 5000 }
+      );
+    }
+
+    if (documentsToUpload.length === 0) {
+      this.snackBar.open('No hay documentos válidos para cargar', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    // Marcar todos como cargando
+    documentsToUpload.forEach(doc => {
+      const docKey = doc.fileDocumentId?.toString();
+      if (docKey) {
+        this.uploadingDocuments.add(docKey);
+      }
+    });
+    this.cdr.markForCheck();
+
+    // Cargar documentos secuencialmente para evitar sobrecarga
+    let completed = 0;
+    let failed = 0;
+    const total = documentsToUpload.length;
+
+    documentsToUpload.forEach((document, index) => {
+      setTimeout(() => {
+        const docKey = document.fileDocumentId?.toString();
+        if (!docKey) return;
+
+        this.uploadDocumentInternal(document, false).subscribe({
+          next: () => {
+            completed++;
+            this.selectedDocumentsForBatch.delete(docKey);
+            this.uploadingDocuments.delete(docKey);
+            this.cdr.markForCheck();
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          },
+          error: () => {
+            failed++;
+            this.uploadingDocuments.delete(docKey);
+            this.cdr.markForCheck();
+            
+            if (completed + failed === total) {
+              // Todos los documentos procesados
+              this.snackBar.open(`${completed} de ${total} documentos cargados exitosamente${failed > 0 ? `, ${failed} fallaron` : ''}`, 'Cerrar', {
+                duration: 5000
+              });
+              // Recargar documentos para mostrar el estado actualizado
+              this.loadRequiredDocuments(this.selectedFile.fileId);
+            }
+          }
+        });
+      }, index * 200); // Pequeño delay entre cada carga para evitar sobrecarga
+    });
+  }
+
+  /**
+   * Método interno para cargar un documento
+   */
+  private uploadDocumentInternal(document: any, showIndividualMessage: boolean = true): Observable<any> {
+    const documentKey = document.fileDocumentId?.toString();
+    if (!documentKey || !this.selectedFiles[documentKey]) {
+      const errorMsg = 'Debe seleccionar un archivo';
+      if (showIndividualMessage) {
+        this.snackBar.open(errorMsg, 'Cerrar', {
+          duration: 3000
+        });
+      }
+      return throwError(() => new Error(errorMsg));
     }
 
     // Mostrar mensaje diferente si se está reemplazando
     const isReplacing = document.idCurrentStatus === '2';
     const actionText = isReplacing ? 'reemplazando' : 'cargando';
 
-    // Preparar datos para Backblaze según documentación API
-    const formData = new FormData();
-    formData.append('file', this.selectedFiles[documentKey]); // File: Archivo a subir
-    formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
-    formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
+    // Obtener archivo y sanitizar su nombre
+    let file = this.selectedFiles[documentKey];
+    file = this.sanitizeFileName(file);
 
-    // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
-    this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          console.log('📤 Documento subido exitosamente a Vanguardia:', response);
+    // Obtener el nombre del archivo desde la vista view_document_name
+    const params = new HttpParams()
+      .set('idDocumentByFile', document.fileDocumentId.toString())
+      .set('idFile', this.selectedFile.fileId.toString());
+
+    // Primero consultar el nombre del archivo desde la vista, luego renombrar y subir
+    return this.http.get<any>(`${environment.apiBaseUrl}/api/documents/get-file-name`, { params })
+      .pipe(
+        catchError((error) => {
+          // Si falla la consulta, usar el nombre del documento requerido (documentName)
+          console.warn('No se pudo obtener el nombre desde la vista, usando nombre del documento requerido:', error);
+          return of({ success: false, useDocumentName: true }); // Retornar un objeto para que continue el flujo
+        }),
+        switchMap((response) => {
+          // Renombrar el archivo si se obtuvo el nombre de la vista o usar documentName como fallback
+          let newFileName: string | null = null;
           
-          this.snackBar.open(`Documento ${document.documentName} ${actionText} exitosamente`, 'Cerrar', {
-            duration: 3000
-          });
+          if (response.success && response.data?.file_name_original) {
+            // Usar el nombre de la vista
+            const fileNameFromView = response.data.file_name_original;
+            const originalExtension = file.name.split('.').pop();
+            const fileNameBase = fileNameFromView.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
+            newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
+            console.log('Archivo renombrado desde vista:', newFileName);
+          } else if (response.useDocumentName && document.documentName) {
+            // Usar el nombre del documento requerido como fallback
+            const originalExtension = file.name.split('.').pop();
+            const fileNameBase = document.documentName.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
+            newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
+            console.log('Archivo renombrado usando documentName:', newFileName);
+          }
+
+          // Si se obtuvo un nuevo nombre, crear un nuevo File
+          if (newFileName) {
+            file = new File([file], newFileName, { type: file.type });
+          }
+
+          // Preparar datos para Backblaze según documentación API
+          const formData = new FormData();
+          formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
+          formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
+          formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
+
+          // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
+          return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData);
+        })
+      )
+      .pipe(
+        takeUntil(this.destroy$),
+        tap((response) => {
+
+          if (showIndividualMessage) {
+            this.snackBar.open(`Documento ${document.documentName || document.fileName} ${actionText} exitosamente`, 'Cerrar', {
+              duration: 3000
+            });
+          }
           
-          // Recargar documentos
+          // Recargar documentos para mostrar el estado actualizado
           this.loadRequiredDocuments(this.selectedFile.fileId);
           // Limpiar archivo seleccionado
           delete this.selectedFiles[documentKey];
-        },
-        error: (error) => {
-          console.error('❌ Error subiendo documento a Backblaze:', error);
-          
+          delete this.filesExceedingSize[documentKey];
+          // Remover de selección en lote si estaba
+          this.selectedDocumentsForBatch.delete(documentKey);
+          this.cdr.markForCheck();
+        }),
+        catchError((error) => {
+
           let errorMessage = 'Error desconocido';
           
           if (error.status === 0) {
@@ -788,24 +1139,51 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
             errorMessage = error.message;
           }
           
-          this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', {
-            duration: 8000
-          });
-        }
-      });
+          if (showIndividualMessage) {
+            this.snackBar.open(`Error subiendo documento: ${errorMessage}`, 'Cerrar', {
+              duration: 8000
+            });
+          }
+          
+          return throwError(() => new Error(errorMessage));
+        })
+      );
   }
 
+  /**
+   * Cargar un documento individual
+   */
+  uploadDocument(document: any): void {
+    const documentKey = document.fileDocumentId?.toString();
+    if (!documentKey || !this.selectedFiles[documentKey]) {
+      this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    this.uploadingDocuments.add(documentKey);
+    this.cdr.markForCheck();
+    this.uploadDocumentInternal(document, true).subscribe({
+      next: () => {
+        this.uploadingDocuments.delete(documentKey);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.uploadingDocuments.delete(documentKey);
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
   viewDocument(document: any): void {
-    console.log('🖱️ CLICK EN BOTÓN VER - viewDocument ejecutándose');
-    console.log('🔍 viewDocument llamado con:', document);
-    
+
     if (document.documentContainer) {
-      console.log('📁 Usando documentContainer:', document.documentContainer);
+
       // Usar documentContainer para obtener URL privada de Backblaze
       this.getBackblazePrivateUrl(document.documentContainer, document);
     } else {
-      console.log('❌ No hay documentContainer disponible');
+
       this.snackBar.open('No se puede visualizar el documento', 'Cerrar', {
         duration: 3000
       });
@@ -813,8 +1191,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   }
 
   private getBackblazePrivateUrl(fileName: string, document: any): void {
-    console.log('🔍 getBackblazePrivateUrl llamado con:', { fileName, document });
-    
+
     const duration = 3600; // 1 hora por defecto
     const params = new URLSearchParams({
       file: fileName,
@@ -822,34 +1199,33 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     });
 
     const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
-    console.log('🔗 URL completa:', url);
 
     // El proxy agregará X-Provider-Token automáticamente
     this.http.get<any>(url)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('🔗 URL privada obtenida:', response);
+
           if (response.data && response.data.url) {
-            console.log('🌐 Abriendo URL en nueva pestaña:', response.data.url);
+
             const newWindow = window.open(response.data.url, '_blank');
             if (newWindow) {
-              console.log('✅ Nueva pestaña abierta correctamente');
+
             } else {
-              console.error('❌ No se pudo abrir nueva pestaña (posible bloqueador de pop-ups)');
+              
               this.snackBar.open('No se pudo abrir el documento. Verifica que no tengas bloqueado el navegador de pop-ups.', 'Cerrar', {
                 duration: 5000
               });
             }
           } else {
-            console.error('❌ Respuesta sin URL válida:', response);
+
             this.snackBar.open('No se pudo obtener la URL del documento', 'Cerrar', {
               duration: 3000
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error obteniendo URL privada de Backblaze:', error);
+
           this.snackBar.open('Error al obtener URL del documento', 'Cerrar', {
             duration: 3000
           });
@@ -955,6 +1331,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
 
   private updateFilesDisplay(): void {
     this.filterAndPaginateFiles();
+  }
+
+  trackByDocumentId(index: number, document: any): string {
+    return document.fileDocumentId?.toString() || document.documentId?.toString() || index.toString();
   }
 }
 

@@ -117,25 +117,23 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: AdvisorDistributionData[]) => {
-          console.log('Datos recibidos:', data); // Debug log
-          console.log('Tipo de datos:', typeof data);
-          console.log('Es array:', Array.isArray(data));
-          console.log('Longitud:', data?.length);
-          console.log('Primer elemento:', data?.[0]);
+           // Debug log
+
           
+
           if (data && Array.isArray(data)) {
             this.advisorData = data;
-            console.log('advisorData asignado:', this.advisorData);
+
             this.updateChart();
           } else {
-            console.warn('Datos no válidos recibidos:', data);
+
             this.advisorData = [];
             this.updateChart();
           }
           this.loading = false;
         },
         error: (error: any) => {
-          console.error('Error loading advisor distribution data:', error);
+
           this.error = 'Error al cargar los datos de asesores';
           this.advisorData = [];
           this.updateChart();
@@ -145,14 +143,13 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
   }
 
   private updateChart(): void {
-    console.log('updateChart() llamado');
-    console.log('advisorData:', this.advisorData);
-    console.log('advisorData type:', typeof this.advisorData);
-    console.log('advisorData isArray:', Array.isArray(this.advisorData));
+    
+
+    
     
     // Validar que advisorData existe y es un array
     if (!this.advisorData || !Array.isArray(this.advisorData) || this.advisorData.length === 0) {
-      console.log('Datos vacíos o inválidos, inicializando gráfico vacío');
+
       this.series = [];
       this.options = {
         ...this.options,
@@ -166,25 +163,17 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
     }
 
     try {
-      console.log('Procesando datos del gráfico...');
-      console.log('Primer elemento advisorData:', this.advisorData[0]);
-      
+
       const categories = this.advisorData.map(item => {
-        console.log('Procesando item:', item);
+
         return item.advisorName || 'Sin nombre';
       });
-      console.log('Categories generadas:', categories);
-      
+
       const approvedData = this.advisorData.map(item => item.approved || 0);
       const pendingData = this.advisorData.map(item => item.pending || 0);
       const rejectedData = this.advisorData.map(item => item.rejected || 0);
 
-      console.log('Datos aprobados:', approvedData);
-      console.log('Datos pendientes:', pendingData);
-      console.log('Datos rechazados:', rejectedData);
-
       this.totalCases = this.advisorData.reduce((total, advisor) => total + (advisor.total || 0), 0);
-      console.log('Total casos:', this.totalCases);
 
       this.series = [
         {
@@ -200,7 +189,6 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
           data: rejectedData
         }
       ];
-      console.log('Series configuradas:', this.series);
 
       this.options = {
         ...this.options,
@@ -209,11 +197,9 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
           categories: categories
         }
       };
-      console.log('Opciones actualizadas:', this.options);
-      console.log('Categorías asignadas a xaxis:', this.options.xaxis?.categories);
-      
+
     } catch (error) {
-      console.error('Error updating chart:', error);
+
       this.series = [];
       this.totalCases = 0;
     }

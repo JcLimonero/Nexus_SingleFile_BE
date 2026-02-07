@@ -1,6 +1,6 @@
 
 
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -40,17 +40,19 @@ export class WidgetAgencyMetricsComponent implements OnInit, OnDestroy, OnChange
 
   private destroy$ = new Subject<void>();
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadAgencyMetrics();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('🏢 AgencyMetrics ngOnChanges called with changes:', changes);
+
     if (changes['agencyId'] && !changes['agencyId'].firstChange) {
-      console.log('🏢 AgencyMetrics: Agency changed, triggering data reload');
-      console.log('🏢 AgencyMetrics: New agencyId:', this.agencyId);
+
       this.loadAgencyMetrics();
     }
   }
@@ -66,23 +68,21 @@ export class WidgetAgencyMetricsComponent implements OnInit, OnDestroy, OnChange
 
     // Solo aplicar filtro de agencia, ignorar filtros de fecha
     const filters: AnalyticsFilters | undefined = this.agencyId ? { agencyId: this.agencyId } : undefined;
-    
-    console.log('🏢 AgencyMetrics: Loading agency metrics with filters:', filters);
-    console.log('🏢 AgencyMetrics: Current agencyId:', this.agencyId);
-    console.log('🏢 AgencyMetrics: Filters object:', filters);
 
     this.analyticsService.getAgencyMetrics(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (metrics) => {
-          console.log('🏢 AgencyMetrics: Received metrics:', metrics);
+
           this.agencyMetrics = metrics;
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
-          console.error('🏢 AgencyMetrics: Error loading agency metrics:', error);
+
           this.error = 'Error al cargar métricas de agencia';
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }

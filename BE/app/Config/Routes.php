@@ -7,27 +7,27 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // Manejar solicitudes OPTIONS para CORS
-$routes->options('(:any)', function() {
-    $response = service('response');
-    $response->setHeader('Access-Control-Allow-Origin', '*');
-    $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
-    $response->setHeader('Access-Control-Max-Age', '7200');
-    return $response->setStatusCode(200);
-});
+// $routes->options('(:any)', function() {
+//     $response = service('response');
+//     $response->setHeader('Access-Control-Allow-Origin', '*');
+//     $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+//     $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+//     $response->setHeader('Access-Control-Max-Age', '7200');
+//     return $response->setStatusCode(200);
+// });
 
 // Rutas de la API
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) {
     
     // Manejar OPTIONS para todas las rutas de API
-    $routes->options('(:any)', function() {
-        $response = service('response');
-        $response->setHeader('Access-Control-Allow-Origin', '*');
-        $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
-        $response->setHeader('Access-Control-Max-Age', '7200');
-        return $response->setStatusCode(200);
-    });
+    // $routes->options('(:any)', function() {
+    //     $response = service('response');
+    //     $response->setHeader('Access-Control-Allow-Origin', '*');
+    //     $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    //     $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+    //     $response->setHeader('Access-Control-Max-Age', '7200');
+    //     return $response->setStatusCode(200);
+    // });
     
         // Rutas de autenticación
     $routes->group('auth', function($routes) {
@@ -109,6 +109,10 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('search', 'DocumentType::search');
         $routes->get('stats', 'DocumentType::stats');
         $routes->get('active', 'DocumentType::active');
+        $routes->get('(:num)/configurations-to-add', 'DocumentType::getConfigurationsToAdd/$1');
+        $routes->post('(:num)/add-to-configurations', 'DocumentType::addToConfigurations/$1');
+        $routes->get('(:num)/configurations', 'DocumentType::getConfigurations/$1');
+        $routes->delete('(:num)/configuration/(:num)', 'DocumentType::deleteConfiguration/$1/$2');
         $routes->get('(:num)', 'DocumentType::show/$1');
         $routes->put('(:num)', 'DocumentType::update/$1');
         $routes->delete('(:num)', 'DocumentType::delete/$1');
@@ -306,6 +310,11 @@ $routes->group('backblaze', function($routes) {
     $routes->get('get-private-url', 'VanguardiaProxy::getPrivateUrl');
 });
 
+// Rutas de proxy a APIs Vanguardia (vgd)
+$routes->group('vgd', function($routes) {
+    $routes->get('singlefileinvoices', 'VanguardiaProxy::singlefileInvoices');
+});
+
 // Rutas de files/pedidos (Principal)
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
@@ -314,14 +323,19 @@ $routes->group('files', function($routes) {
     $routes->post('create-from-vanguardia-new', 'Files::createFromVanguardiaNew');
     $routes->post('create-file-test', 'Files::createFileTest');
     $routes->post('check-existing-orders', 'Files::checkExistingOrders');
+    $routes->post('repair-client-relation', 'Files::repairClientRelation');
     $routes->post('delete', 'Files::deleteFile');
+    $routes->post('compare-dms-orders', 'Files::compareDmsOrders');
 });
 
 
 // Rutas de documentos
 $routes->group('documents', function($routes) {
     $routes->get('required', 'Documents::getRequiredDocuments');
+    $routes->get('missing-liberation', 'Documents::getMissingLiberationDocuments');
+    $routes->get('get-file-name', 'Documents::getFileName');
     $routes->post('upload', 'Documents::uploadDocument');
+    $routes->post('add-to-file', 'Documents::addDocumentsToFile');
 });
     
     // Rutas de validación de clientes (Mesa de Control)
@@ -329,6 +343,8 @@ $routes->group('documents', function($routes) {
         $routes->get('clientes', 'Validacion::getClientes');
         $routes->get('estadisticas', 'Validacion::getEstadisticas');
         $routes->get('documentos', 'Validacion::getDocumentos');
+        $routes->get('diagnostico', 'Validacion::diagnosticoPedido');
+        $routes->post('reparar-relacion', 'Validacion::repararRelacion');
         $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
         $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');
         $routes->delete('eliminar-pedido', 'Validacion::eliminarPedido');

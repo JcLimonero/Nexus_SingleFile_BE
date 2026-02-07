@@ -16,6 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../../../core/interfaces/user.interface';
 import { UserService } from '../../../core/services/user.service';
+import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
 import { UserAccessDialogComponent } from './user-access-dialog/user-access-dialog.component';
 
@@ -61,9 +63,32 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   constructor(
     private userService: UserService,
+    private defaultAgencyService: DefaultAgencyService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
+
+  /** Roles 7 (Administrador) y 8 (Soporte) no se muestran en listados, excepto si quien está logueado es Administrador (7). */
+  private readonly restrictedRoleIds = new Set(['7', '8']);
+
+  /** Si el usuario logueado es Administrador (7), puede ver roles 7 y 8 en listados. */
+  get isLoggedInAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user ? String(user.role_id) === '7' : false;
+  }
+
+  get rolesForFilter(): UserRole[] {
+    if (this.isLoggedInAdmin) {
+      return this.roles;
+    }
+    return this.roles.filter(r => !this.restrictedRoleIds.has(String(r.Id)));
+  }
+
+  /** Ocultar rol en tabla (mostrar "—") cuando es 7 u 8 y el logueado NO es admin. */
+  isHiddenRole(roleId: string): boolean {
+    return !this.isLoggedInAdmin && this.restrictedRoleIds.has(String(roleId));
+  }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -150,8 +175,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
-        console.warn('Error al cargar agencias de usuarios:', error);
-        
+
         // En caso de error, inicializar arrays vacíos para todos los usuarios
         this.users.forEach(user => {
           user.AssignedAgencies = [];
@@ -190,18 +214,23 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
   loadAgencies(): void {
     this.loadingCatalogs = true;
-    this.userService.getAgencies().subscribe({
-      next: (response: AgencyResponse) => {
-        if (response.success) {
-          this.agencies = response.data.agencies.filter(agency => agency.Enabled === '1');
-        } else {
-          this.snackBar.open(response.message || 'Error al cargar agencias', 'Error', {
-            duration: 3000
-          });
-        }
+    // Usar DefaultAgencyService que maneja caché en localStorage
+    this.defaultAgencyService.obtenerAgencias().subscribe({
+      next: (agencias) => {
+        // Filtrar solo agencias habilitadas y convertir al formato esperado
+        this.agencies = agencias
+          .filter(ag => this.defaultAgencyService.esAgenciaHabilitada(ag))
+          .map(ag => ({
+            Id: ag.Id.toString(),
+            Name: ag.Name,
+            Enabled: typeof ag.Enabled === 'boolean' ? (ag.Enabled ? '1' : '0') : 
+                     typeof ag.Enabled === 'string' ? ag.Enabled : 
+                     ag.Enabled.toString()
+          })) as Agency[];
         this.checkCatalogsLoaded();
       },
       error: (error) => {
+        console.error('Error cargando agencias:', error);
         this.snackBar.open('Error al cargar agencias', 'Error', {
           duration: 3000
         });
@@ -218,9 +247,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     
     if (catalogsProcessed >= totalCatalogs) {
       this.loadingCatalogs = false;
-      console.log('✅ Catálogos procesados - Roles:', this.roles.length, 
-                  'Agencias:', this.agencies.length);
-      
+
       // Si no hay catálogos, mostrar mensaje de error
       if (this.roles.length === 0 && this.agencies.length === 0) {
         this.snackBar.open('No se pudieron cargar los catálogos. Verifica la conexión con el backend.', 'Error', { duration: 5000 });
@@ -418,8 +445,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
       };
     }
   }
-
-
 
   getPageRange(): string {
     if (!this.paginator || this.dataSource.filteredData.length === 0) {

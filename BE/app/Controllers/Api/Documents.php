@@ -92,6 +92,127 @@ class Documents extends BaseController
         }
     }
 
+    /**
+     * GET /api/documents/missing-liberation?fileId=X
+     * Devuelve los tipos de documento de Liberación (IdProcessType=3) que el pedido no tiene configurados
+     * (no existe DocumentByFile para ese fileId + IdDocumentType).
+     */
+    public function getMissingLiberationDocuments()
+    {
+        try {
+            $fileId = $this->request->getGet('fileId');
+            if (!$fileId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro fileId es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            $idProcessType = '3'; // Liberación (File_Status.Id)
+
+            $sql = "
+                SELECT dt.Id as documentId, dt.Name as documentName, dt.Required as isRequired,
+                       dt.ReqExpiration as hasExpiration, fs.Name as processTypeName,
+                       fss.Name as subProcessName
+                FROM DocumentType dt
+                INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id
+                LEFT JOIN File_SubStatus fss ON fss.Id = dt.IdSubProcess
+                WHERE dt.IdProcessType = ?
+                AND dt.Id NOT IN (
+                    SELECT df.IdDocumentType
+                    FROM DocumentByFile df
+                    WHERE df.IdFile = ? AND df.Enabled = 1
+                )
+                ORDER BY dt.Required DESC, dt.Name ASC
+            ";
+            $query = $this->db->query($sql, [$idProcessType, $fileId]);
+            $results = $query->getResultArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Documentos de liberación no configurados',
+                'data' => ['documents' => $results, 'total' => count($results)]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Documents::getMissingLiberationDocuments: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * POST /api/documents/add-to-file
+     * Crea registros en DocumentByFile para los tipos de documento indicados en el expediente (fileId).
+     * Body JSON: { "fileId": number, "documentTypeIds": number[] }
+     */
+    public function addDocumentsToFile()
+    {
+        try {
+            $json = $this->request->getJSON(true);
+            $fileId = $json['fileId'] ?? null;
+            $documentTypeIds = $json['documentTypeIds'] ?? [];
+            if (!$fileId || !is_array($documentTypeIds) || empty($documentTypeIds)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Se requieren fileId y documentTypeIds (array no vacío)',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            $fileId = (int) $fileId;
+            $documentTypeIds = array_map('intval', array_values(array_unique($documentTypeIds)));
+            $userId = (int) ($json['userId'] ?? 0);
+            $currentDate = date('Y-m-d H:i:s');
+            $added = 0;
+            foreach ($documentTypeIds as $idDocumentType) {
+                if ($idDocumentType <= 0) continue;
+                $exists = $this->db->query(
+                    "SELECT 1 FROM DocumentByFile WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
+                    [$fileId, $idDocumentType]
+                )->getRow();
+                if ($exists) continue;
+                $docType = $this->db->query("SELECT Id, Name FROM DocumentType WHERE Id = ?", [$idDocumentType])->getRow();
+                if (!$docType) continue;
+                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM DocumentByFile")->getRow();
+                $nextId = (int) $nextIdRow->nextId;
+                $documentData = [
+                    'Id' => $nextId,
+                    'IdFile' => $fileId,
+                    'IdDocumentType' => $idDocumentType,
+                    'Name' => $docType->Name ?? 'Documento sin nombre',
+                    'Comment' => null,
+                    'ExperationDate' => null,
+                    'PathDocument' => null,
+                    'Enabled' => 1,
+                    'RegistrationDate' => $currentDate,
+                    'UpdateDate' => null,
+                    'LastUserUpdate' => $userId ?: null,
+                    'IdLastUserUpdate' => $userId ?: null,
+                    'IdValidation' => null,
+                    'IdCurrentStatus' => 1,
+                    'IdDocumentError' => null,
+                    'ServerPath' => null
+                ];
+                $this->db->table('DocumentByFile')->insert($documentData);
+                $added++;
+            }
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $added ? "Se agregaron {$added} documento(s) al expediente." : 'Ningún documento nuevo agregado.',
+                'data' => ['added' => $added]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Documents::addDocumentsToFile: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
     public function uploadDocument()
     {
         try {
@@ -166,6 +287,58 @@ class Documents extends BaseController
 
         } catch (\Exception $e) {
             error_log("Error en Documents::uploadDocument: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/documents/get-file-name
+     * Obtener el nombre del archivo desde la vista view_document_name
+     */
+    public function getFileName()
+    {
+        try {
+            $idDocumentByFile = $this->request->getGet('idDocumentByFile');
+            $idFile = $this->request->getGet('idFile');
+
+            if (!$idDocumentByFile || !$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Los parámetros idDocumentByFile e idFile son requeridos',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            // Consultar la vista view_document_name
+            $query = $this->db->query(
+                "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",
+                [$idDocumentByFile, $idFile]
+            );
+
+            $result = $query->getRow();
+
+            if ($result && !empty($result->file_name_original)) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Nombre de archivo obtenido exitosamente',
+                    'data' => [
+                        'file_name_original' => $result->file_name_original
+                    ]
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró el registro en la vista view_document_name',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+        } catch (\Exception $e) {
+            error_log("Error en Documents::getFileName: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage(),

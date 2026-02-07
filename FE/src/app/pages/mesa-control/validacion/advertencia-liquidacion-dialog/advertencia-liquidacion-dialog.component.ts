@@ -54,7 +54,8 @@ export interface AdvertenciaLiquidacionData {
       </div>
 
       <div class="dialog-actions">
-        <button mat-stroked-button color="primary" (click)="cerrar()">Continuar a Liquidación</button>
+        <button mat-button (click)="cancelar()">Cancelar</button>
+        <button mat-stroked-button color="primary" (click)="confirmar()">Continuar a Liquidación</button>
       </div>
     </div>
   `,
@@ -187,8 +188,12 @@ export class AdvertenciaLiquidacionDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: AdvertenciaLiquidacionData
   ) {}
 
-  cerrar(): void {
-    this.dialogRef.close();
+  cancelar(): void {
+    this.dialogRef.close(false);
+  }
+
+  confirmar(): void {
+    this.dialogRef.close(true);
   }
 }
 

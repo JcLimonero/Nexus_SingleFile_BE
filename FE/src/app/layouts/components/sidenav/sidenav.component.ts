@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'vex-sidenav',
@@ -36,12 +37,16 @@ import { AuthService } from '../../../core/services/auth.service';
 export class SidenavComponent implements OnInit {
   @Input() collapsed: boolean = false;
   collapsedOpen$ = this.layoutService.sidenavCollapsedOpen$;
-  title$ = this.configService.config$.pipe(
-    map((config) => config.sidenav.title)
+  /** Título en sidebar: branding.appTitle o branding.clientName (configurable vía assets/config/branding.json) */
+  title$ = this.brandingService.getBranding$().pipe(
+    map((b) => b.appTitle ?? b.clientName)
   );
-  imageUrl$ = this.configService.config$.pipe(
-    map((config) => config.sidenav.imageUrl)
+  /** Logo en sidebar (configurable vía assets/config/branding.json) */
+  imageUrl$ = this.brandingService.getBranding$().pipe(
+    map((b) => b.logoApp)
   );
+  /** Si hay theme.logoColor, se aplica filtro de color al logo */
+  logoColor$ = this.brandingService.getBranding$().pipe(map((b) => b.theme?.logoColor));
   showCollapsePin$ = this.configService.config$.pipe(
     map((config) => config.sidenav.showCollapsePin)
   );
@@ -63,7 +68,8 @@ export class SidenavComponent implements OnInit {
     private configService: VexConfigService,
     private readonly popoverService: VexPopoverService,
     private readonly dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private readonly brandingService: BrandingService
   ) {}
 
   ngOnInit() {}
@@ -91,7 +97,7 @@ export class SidenavComponent implements OnInit {
   }
 
   openProfileMenu(origin: HTMLDivElement): void {
-    console.log('SidenavComponent: Abriendo menú de perfil...');
+
     try {
       const popoverRef = this.popoverService.open({
         content: SidenavUserMenuComponent,
@@ -112,9 +118,9 @@ export class SidenavComponent implements OnInit {
         switchMap((ref) => ref.afterClosed$.pipe(map(() => false))),
         startWith(true)
       );
-      console.log('SidenavComponent: Menú de perfil abierto correctamente');
+
     } catch (error) {
-      console.error('SidenavComponent: Error al abrir menú de perfil:', error);
+
     }
   }
 

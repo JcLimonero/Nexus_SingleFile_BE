@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, of } from 'rxjs';
 import { takeUntil, map, catchError } from 'rxjs/operators';
@@ -119,7 +119,10 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
   error: string | null = null;
   totalCases = 0;
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -156,12 +159,14 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
             this.updateChart();
           }
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
           this.error = 'Error al cargar los datos semanales';
           this.weeklyData = [];
           this.updateChart();
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -174,14 +179,14 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
     }
 
     try {
-      // Crear array de datos para cada día de la semana
       const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
       const chartData = daysOfWeek.map(day => {
         const dayData = this.weeklyData.find(item => item.dayName === day);
-        return dayData ? dayData.count : 0;
+        const v = dayData ? dayData.count : 0;
+        return typeof v === 'number' && !Number.isNaN(v) ? v : 0;
       });
 
-      this.totalCases = this.weeklyData.reduce((total, day) => total + day.count, 0);
+      this.totalCases = this.weeklyData.reduce((total, day) => total + (Number(day.count) || 0), 0);
 
       this.series = [
         {

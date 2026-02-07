@@ -15,30 +15,17 @@ class ClientSearch extends BaseController
     }
 
     /**
-     * Buscar clientes usando la vista view_client
+     * Buscar clientes usando la vista view_client_relations
+     * Búsqueda por ndCliente e idAgency
      * GET /api/client-search/search
      */
     public function search()
     {
         try {
-            // Obtener parámetros de la petición
             $idAgency = $this->request->getGet('idAgency');
             $searchTerm = $this->request->getGet('search');
             $limit = (int) $this->request->getGet('limit') ?: 50;
-            $statusIdParam = $this->request->getGet('statusId');
-            $statusId = null;
-            if ($statusIdParam !== null && $statusIdParam !== '') {
-                if (!is_numeric($statusIdParam)) {
-                    return $this->response->setJSON([
-                        'success' => false,
-                        'message' => 'El parámetro statusId debe ser numérico',
-                        'data' => null
-                    ])->setStatusCode(400);
-                }
-                $statusId = (int) $statusIdParam;
-            }
 
-            // Validar parámetros requeridos
             if (!$idAgency) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -47,76 +34,24 @@ class ClientSearch extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Construir la consulta usando la vista view_client
             $sql = "
-                SELECT DISTINCT
-                    vc.Id as idCliente,
-                    vc.ndClient as ndCliente,
-                    TRIM(CONCAT(COALESCE(vc.Name, ''), ' ', COALESCE(vc.LastName, ''), ' ', COALESCE(vc.MotherLastName, ''))) as cliente,
-                    vc.Name as nombre,
-                    vc.LastName as apellidoPaterno,
-                    vc.MotherLastName as apellidoMaterno,
-                    vc.RFC as rfc,
-                    vc.Email as email,
-                    vc.TelNumber as telefono,
-                    vc.TelNumber2 as telefono2,
-                    vc.RazonSocial as razonSocial,
-                    vc.CURP as curp,
-                    vc.Adviser as asesor,
-                    vc.AgencyOrigin as agenciaOrigen,
-                    vc.RegistrationDate as fechaRegistro,
-                    vc.UpdateDate as fechaActualizacion,
-                    vc.idAgency as idAgency
+                SELECT idCliente, ndCliente, cliente, IdHeaderClient,
+                    nombre, apellidoPaterno, apellidoMaterno, rfc, email, telefono, telefono2,
+                    razonSocial, curp, asesor, agenciaOrigen, fechaRegistro, fechaActualizacion, idAgency
+                FROM view_client_relations
+                WHERE idAgency = ?
             ";
-
-            $joins = "";
-            $conditions = " WHERE vc.idAgency = ?";
             $params = [$idAgency];
 
-            if ($statusId !== null) {
-                $joins .= " INNER JOIN HeaderClient hc_status ON hc_status.IdClient = vc.Id";
-                $joins .= " INNER JOIN File f ON f.IdClient = hc_status.Id";
-                $conditions .= " AND f.IdAgency = ? AND f.IdCurrentState = ?";
-                $params[] = $idAgency;
-                $params[] = $statusId;
-            }
-
-            $sql .= " FROM view_client vc" . $joins . $conditions;
-            
-            // Aplicar filtro de búsqueda si se proporciona
-            if ($searchTerm && trim($searchTerm) !== '') {
+            if ($searchTerm !== null && trim($searchTerm) !== '') {
                 $searchTerm = trim($searchTerm);
-                
-                // Si es un número, buscar en ndClient (número de cliente)
-                if (is_numeric($searchTerm)) {
-                    $sql .= " AND vc.ndClient LIKE ?";
-                    $searchPattern = "%{$searchTerm}%";
-                    $params[] = $searchPattern;
-                } else {
-                    // Si es texto, buscar en RazonSocial (nombre/razón social)
-                    $sql .= " AND vc.RazonSocial LIKE ?";
-                    $searchPattern = "%{$searchTerm}%";
-                    $params[] = $searchPattern;
-                }
+                $sql .= " AND TRIM(ndCliente) LIKE ?";
+                $params[] = "%{$searchTerm}%";
             }
 
-            // Filtrar por estado de file si se proporciona
-            if ($statusId !== null) {
-                $sql .= " AND EXISTS (
-                    SELECT 1 
-                    FROM HeaderClient hc
-                    INNER JOIN File f ON f.IdClient = hc.Id
-                    WHERE hc.IdClient = vc.Id
-                        AND f.IdAgency = vc.idAgency
-                        AND f.IdCurrentState = ?
-                )";
-                $params[] = $statusId;
-            }
-            
-            $sql .= " ORDER BY vc.ndClient ASC LIMIT ?";
+            $sql .= " ORDER BY ndCliente ASC LIMIT ?";
             $params[] = $limit;
 
-            // Debug: Log de la consulta
             error_log("ClientSearch::search - SQL: " . $sql);
             error_log("ClientSearch::search - Params: " . json_encode($params));
             
@@ -124,17 +59,30 @@ class ClientSearch extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
             
+            // Asegurar que los datos estén en UTF-8 correctamente codificados
+            array_walk_recursive($results, function(&$value) {
+                if (is_string($value)) {
+                    if (!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
+                    }
+                }
+            });
+            
             // Debug: Log de resultados
             error_log("ClientSearch::search - Results count: " . count($results));
 
-            return $this->response->setJSON([
+            $response = [
                 'success' => true,
                 'message' => 'Clientes obtenidos exitosamente',
                 'data' => [
                     'clientes' => $results,
                     'total' => count($results)
                 ]
-            ]);
+            ];
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/json; charset=UTF-8')
+                ->setJSON($response, JSON_UNESCAPED_UNICODE);
 
         } catch (\Exception $e) {
             error_log("Error en ClientSearch::search: " . $e->getMessage());

@@ -36,7 +36,7 @@
 ### ✅ Autenticación con APIs de Vanguardia
 4. **Header `X-Provider-Token` agregado** a todas las llamadas:
    - API de búsqueda de clientes (`singlefilecustomer`)
-   - API de pedidos (`singlefileorders`)
+   - API de pedidos (`singlefileorderslastest`)
    - API de subida de archivos (`backblaze/upload`)
    - API de obtención de URLs privadas (`get-private-url`)
 5. **Error 403 resuelto** en todas las integraciones con Vanguardia

@@ -21,6 +21,10 @@ export interface DocumentoRequerido {
   // Campos del tipo de documento
   Required?: string;
   ReqExpiration?: string;
+  IdProcessType?: string;
+  IdSubProcess?: string;
+  ProcessTypeName?: string;
+  SubProcessName?: string;
 }
 
 export interface DocumentoRequeridoCreateRequest {

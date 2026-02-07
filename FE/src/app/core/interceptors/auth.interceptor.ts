@@ -19,11 +19,20 @@ export const AuthInterceptor: HttpInterceptorFn = (
 
 
   // Solo agregar token a llamadas del backend (usando environment o URLs relativas)
-  const isBackendCall = request.url.includes(environment.apiBaseUrl.replace('http://', '')) ||
+  // Extraer el host y puerto de la URL base para detectar llamadas al backend
+  const apiBaseHost = environment.apiBaseUrl.replace(/^https?:\/\//, '').split('/')[0];
+  const isBackendCall = request.url.includes(apiBaseHost) ||
                        request.url.startsWith('/api') ||
-                       request.url.includes('192.168.190.140:401');
+                       request.url.startsWith(environment.apiBaseUrl);
 
   if (isBackendCall) {
+    // Determinar si es una ruta de autenticación (no requiere token)
+    const isAuthRoute = request.url.includes('/auth/login') || 
+                       request.url.includes('/auth/refresh') || 
+                       request.url.includes('/auth/register') ||
+                       request.url.includes('/auth/forgot-password') ||
+                       request.url.includes('/auth/update-email');
+    
     if (token && isAuthenticated) {
       // Clonar la request y agregar el header de autorización
       const authRequest = request.clone({
@@ -35,31 +44,42 @@ export const AuthInterceptor: HttpInterceptorFn = (
 
       return next(authRequest).pipe(
         catchError((error: HttpErrorResponse) => {
-          if (error.status === 401 && !request.url.includes('/auth/refresh')) {
-            // Token expirado, intentar renovar
-            return handleTokenRefresh(request, next, authService, router);
+          // Solo manejar 401 Unauthorized como error de autenticación
+          if (error.status === 401 && !isAuthRoute) {
+            // Token expirado o inválido, intentar renovar
+            return handleTokenRefresh(request, next, authService, router).pipe(
+              catchError((refreshError) => {
+                // Si la renovación falla, redirigir al login inmediatamente
+                redirectToLogin(router, authService);
+                return throwError(() => refreshError);
+              })
+            );
           }
+          // Para otros errores (500, timeout, etc.), simplemente propagar el error
+          // No redirigir al login automáticamente
           return throwError(() => error);
         })
       );
     } else {
-      // Si no hay token y no es una ruta de autenticación, redirigir al login
-      if (!isAuthenticated && !request.url.includes('/auth/login') && !request.url.includes('/auth/refresh')) {
-        // Limpiar datos de autenticación antes de redirigir
-        authService.logout().subscribe({
-          next: () => {
-            router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-          },
-          error: () => {
-            // Si falla el logout, redirigir de todas formas
-            router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-          }
-        });
+      // Si no hay token pero es una ruta de autenticación, permitir la petición
+      if (isAuthRoute) {
+        return next(request);
       }
-
-      // IMPORTANTE: Siempre procesar la request, incluso sin token
-      // El backend se encargará de devolver 401 si es necesario
-      return next(request);
+      
+      // Si no hay token y no es una ruta de autenticación, procesar la petición
+      // pero agregar un listener para manejar el 401 del backend
+      return next(request).pipe(
+        catchError((error: HttpErrorResponse) => {
+          // Solo redirigir al login si el backend devuelve 401 Unauthorized
+          // NO redirigir en errores de red, timeout, 500, etc.
+          if (error.status === 401 && !isAuthRoute) {
+            // Redirigir al login cuando se recibe 401 (sesión expirada)
+            redirectToLogin(router, authService);
+          }
+          // Propagar el error para que el componente lo maneje
+          return throwError(() => error);
+        })
+      );
     }
   } else if (request.url.startsWith('/api')) {
 
@@ -71,14 +91,56 @@ export const AuthInterceptor: HttpInterceptorFn = (
       url: absoluteUrl
     });
 
-    // Procesar la request con la URL absoluta
-    return next(absoluteRequest);
+    // Procesar la request con la URL absoluta y manejar errores 401
+    return next(absoluteRequest).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Si es un error 401, redirigir al login
+        if (error.status === 401) {
+          redirectToLogin(router, authService);
+        }
+        return throwError(() => error);
+      })
+    );
   } else if (request.url.startsWith('http')) {
-    return next(request);
+    // Manejar errores 401 también en llamadas HTTP externas (como Vanguardia)
+    return next(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Si es un error 401 de cualquier API, redirigir al login
+        // Solo si es una llamada que requiere autenticación
+        if (error.status === 401 && !request.url.includes('/auth/')) {
+          redirectToLogin(router, authService);
+        }
+        return throwError(() => error);
+      })
+    );
   } else {
     return next(request);
   }
 };
+
+/**
+ * Función auxiliar para redirigir al login cuando la sesión expira
+ */
+function redirectToLogin(router: Router, authService: AuthService): void {
+  // Evitar redirecciones múltiples
+  if (router.url === '/login') {
+    return;
+  }
+
+  // Limpiar datos de autenticación localmente
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('current_user');
+  localStorage.removeItem('token_expiration');
+
+  // Redirigir al login con la URL actual como returnUrl
+  setTimeout(() => {
+    router.navigate(['/login'], { 
+      queryParams: { returnUrl: router.url },
+      replaceUrl: true 
+    });
+  }, 100);
+}
 
 /**
  * Manejar renovación automática del token
@@ -127,15 +189,7 @@ function handleTokenRefresh(
       }
 
       // Si no se pudo renovar el token, redirigir al login
-      authService.logout().subscribe({
-        next: () => {
-          router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-        },
-        error: () => {
-          // Si falla el logout, redirigir de todas formas
-          router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-        }
-      });
+      redirectToLogin(router, authService);
 
       return throwError(() => new Error('Token refresh failed'));
     })

@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-2">
+<div class="validacion-container min-h-screen bg-gray-50 p-2">
   <style>
     /* Ocultar completamente los hints de los combos para que no ocupen espacio */
     .mat-mdc-form-field-subscript-wrapper,
@@ -220,7 +220,7 @@
             <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
               No hay agencias disponibles (debugging)
             </mat-option>
-            <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
+            <mat-option *ngFor="let agencia of agencias; trackBy: trackByAgenciaId" [value]="agencia.Id">
               {{ agencia.Name }}
             </mat-option>
           </mat-select>
@@ -228,7 +228,7 @@
 
         <mat-form-field appearance="outline" class="min-w-0 mr-2.5 compact-field" style="width: 206px;">
           <mat-label>Proceso</mat-label>
-          <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos || procesos.length === 0" (selectionChange)="onProcesoChange()">
+          <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos" (selectionChange)="onProcesoChange()">
             <mat-option *ngIf="loadingProcesos" value="" disabled>
               <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
               Cargando procesos...
@@ -236,7 +236,8 @@
             <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
               No hay procesos disponibles
             </mat-option>
-            <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
+            <mat-option [value]="0">Todos los procesos</mat-option>
+            <mat-option *ngFor="let proceso of procesos; trackBy: trackByProcesoId" [value]="proceso.Id">
               {{ proceso.Name }}
             </mat-option>
           </mat-select>
@@ -246,7 +247,7 @@
           <mat-label>Fase</mat-label>
           <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
             <mat-option value="">Todas las fases</mat-option>
-            <mat-option *ngFor="let fase of fases" [value]="fase.value">
+            <mat-option *ngFor="let fase of fases; trackBy: trackByFaseValue" [value]="fase.value">
               {{ fase.name }}
             </mat-option>
           </mat-select>
@@ -258,7 +259,7 @@
           <input matInput
                  [(ngModel)]="searchTerm"
                  (input)="onSearchChange()"
-                 placeholder="Pedido, cliente o nombre"
+                 placeholder="N° Cliente, pedido o nombre"
                  class="text-sm">
           <mat-icon matSuffix class="text-gray-400">search</mat-icon>
         </mat-form-field>
@@ -307,8 +308,9 @@
             <mat-spinner diameter="40"></mat-spinner>
           </div>
 
-                        <div matSort>
-                          <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table" *ngIf="!loading">
+          <div class="overflow-x-auto" *ngIf="!loading">
+            <div matSort>
+              <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table">
             <!-- Columna ND Cliente -->
             <ng-container matColumnDef="ndCliente">
               <th mat-header-cell *matHeaderCellDef mat-sort-header="ndCliente" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
@@ -332,7 +334,17 @@
               </td>
             </ng-container>
 
-            <!-- Columna ID File (solo para administradores) -->
+            <!-- Columna Tipo de cliente -->
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="tipoCliente" class="w-36 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Tipo de cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                {{ item.tipoCliente || '—' }}
+              </td>
+            </ng-container>
+
+            <!-- Columna ID File (solo para roles 7 y 8, al inicio) -->
             <ng-container matColumnDef="idFile">
               <th mat-header-cell *matHeaderCellDef mat-sort-header="idFile" class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
                 ID File
@@ -419,7 +431,7 @@
                 Fecha de Liberación
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
-                {{ item.fechaLiberacion | date:'yyyy-MM-dd' }}
+                {{ item.fechaLiberacion ? (item.fechaLiberacion | date:'yyyy-MM-dd HH:mm') : '-' }}
               </td>
             </ng-container>
 
@@ -447,15 +459,15 @@
                     <mat-icon>download</mat-icon>
                     <span>Descargar archivo</span>
                   </button>
-                  <button mat-menu-item *ngIf="item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
+                  <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
                     <mat-icon>cancel</mat-icon>
                     <span>Cancelar pedido</span>
                   </button>
-                  <button mat-menu-item *ngIf="item.fase !== 'Liberado'" (click)="onExcepcion(item); $event.stopPropagation()">
+                  <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onExcepcion(item); $event.stopPropagation()">
                     <mat-icon>warning</mat-icon>
                     <span>Excepción en el pedido</span>
                   </button>
-                  <button mat-menu-item *ngIf="isManagerOrAdmin" [matMenuTriggerFor]="adminSubMenu">
+                  <button mat-menu-item *ngIf="isAdmin" [matMenuTriggerFor]="adminSubMenu">
                     <mat-icon>admin_panel_settings</mat-icon>
                     <span>Administrar</span>
                     <mat-icon class="ml-auto">keyboard_arrow_right</mat-icon>
@@ -480,6 +492,8 @@
                       (click)="onClienteSelect(row)"
                       [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.idFile === row.idFile}"></tr>
                 </table>
+            </div>
+          </div>
 
                 <!-- Paginador -->
                 <mat-paginator
@@ -492,7 +506,6 @@
                   showFirstLastButtons
                   aria-label="Seleccionar página de clientes">
                 </mat-paginator>
-                          </div>
         </div>
       </mat-card>
 
@@ -517,12 +530,19 @@
 
           <!-- Tabla de documentos cuando hay cliente seleccionado -->
           <div *ngIf="selectedCliente && !loading">
-            <!-- Información de documentos -->
-            <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600">
-              Mostrando {{ documentosDataSource.length }} documentos para el cliente {{ selectedCliente.cliente }} (Pedido: {{ selectedCliente.ndPedido }})
+            <!-- Información de documentos: cliente, pedido, VIN, modelo y año (OrderByCar) -->
+            <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span>Mostrando {{ documentosDataSource.length }} documentos para el cliente <strong>{{ selectedCliente.cliente }}</strong></span>
+              <span class="text-gray-500">|</span>
+              <span><strong>Pedido:</strong> {{ selectedCliente.ndPedido }}</span>
+              <span class="text-gray-700"><strong>VIN:</strong> {{ selectedCliente.vin || '—' }}</span>
+              <span class="text-gray-700"><strong>Modelo:</strong> {{ selectedCliente.modelo || '—' }}</span>
+              <span class="text-gray-700"><strong>Versión:</strong> {{ selectedCliente.version || '—' }}</span>
+              <span class="text-gray-700"><strong>Año:</strong> {{ selectedCliente.year ?? '—' }}</span>
             </div>
 
-                      <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table" *ngIf="documentosDataSource.length > 0">
+            <div class="overflow-x-auto" *ngIf="documentosDataSource.length > 0">
+              <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table">
             <!-- Columna Proceso -->
             <ng-container matColumnDef="proceso">
               <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
@@ -661,7 +681,7 @@
                 Eliminar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button *ngIf="isManagerOrAdmin"
+                <button *ngIf="isAdmin"
                         mat-icon-button
                         color="warn"
                         class="!w-6 !h-6 !min-h-6 !p-0"
@@ -669,7 +689,7 @@
                         matTooltip="Eliminar documento">
                   <mat-icon class="!text-sm">delete_outline</mat-icon>
                 </button>
-                <span *ngIf="!isManagerOrAdmin" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!isAdmin" class="text-xs text-gray-400">-</span>
               </td>
             </ng-container>
 
@@ -752,6 +772,7 @@
             <tr mat-header-row *matHeaderRowDef="documentosDisplayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: documentosDisplayedColumns;" class="!min-h-0 !h-10"></tr>
           </table>
+            </div>
 
           <!-- Mensaje cuando no hay documentos -->
           <div *ngIf="documentosDataSource.length === 0" class="flex justify-center items-center py-8 text-gray-500">

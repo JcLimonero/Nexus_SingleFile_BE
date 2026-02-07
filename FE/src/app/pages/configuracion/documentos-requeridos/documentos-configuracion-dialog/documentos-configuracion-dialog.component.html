@@ -1,0 +1,123 @@
+<div class="dialog-container p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4 pb-4 border-b">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900">Documentos de la Configuración</h2>
+      <p class="text-sm text-gray-600 mt-1">
+        <span class="font-medium">Agencia:</span> {{ data.configuracion.AgenciaName || 'N/A' }} | 
+        <span class="font-medium">Proceso:</span> {{ data.configuracion.ProcesoName || 'N/A' }} | 
+        <span class="font-medium">Tipo Cliente:</span> {{ data.configuracion.TipoClienteName || 'N/A' }} | 
+        <span class="font-medium">Tipo Operación:</span> {{ data.configuracion.TipoOperacionName || 'N/A' }}
+      </p>
+    </div>
+    <button mat-icon-button (click)="cerrar()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Tabla de Documentos -->
+  <div class="bg-white rounded-lg shadow-sm border overflow-hidden mb-4">
+    <div *ngIf="dataSource.length > 0" class="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
+      Mostrando {{ dataSource.length }} documento(s)
+    </div>
+
+    <div *ngIf="dataSource.length === 0" class="text-center py-8">
+      <mat-icon class="text-gray-400 text-6xl mb-4">description</mat-icon>
+      <p class="text-gray-500 text-lg">No hay documentos configurados</p>
+    </div>
+
+    <table *ngIf="dataSource.length > 0" mat-table [dataSource]="dataSource" class="w-full compact-table" style="line-height: 1;">
+      <!-- Columna Tipo de Documento -->
+      <ng-container matColumnDef="tipoDocumento">
+        <th mat-header-cell *matHeaderCellDef class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Tipo de Documento
+        </th>
+        <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
+          {{ element.TipoDocumentoName || 'N/A' }}
+        </td>
+      </ng-container>
+
+      <!-- Columna Etapa -->
+      <ng-container matColumnDef="etapa">
+        <th mat-header-cell *matHeaderCellDef class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Etapa
+        </th>
+        <td mat-cell *matCellDef="let element" class="py-0">
+          <span class="text-xs text-gray-700" *ngIf="element.ProcessTypeName">
+            {{ element.ProcessTypeName }}
+          </span>
+          <span class="text-xs text-gray-400 italic" *ngIf="!element.ProcessTypeName">
+            N/A
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Sub-Etapa -->
+      <ng-container matColumnDef="subEtapa">
+        <th mat-header-cell *matHeaderCellDef class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Sub-Etapa
+        </th>
+        <td mat-cell *matCellDef="let element" class="py-0">
+          <span class="text-xs text-gray-700" *ngIf="element.SubProcessName">
+            {{ element.SubProcessName }}
+          </span>
+          <span class="text-xs text-gray-400 italic" *ngIf="!element.SubProcessName">
+            N/A
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Requerido -->
+      <ng-container matColumnDef="requerido">
+        <th mat-header-cell *matHeaderCellDef class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Requerido
+        </th>
+        <td mat-cell *matCellDef="let element" class="text-center py-0">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                [ngClass]="element.Required === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+            {{ element.Required === '1' ? 'Sí' : 'No' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Requiere Expiración -->
+      <ng-container matColumnDef="requiereExpiracion">
+        <th mat-header-cell *matHeaderCellDef class="w-24 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+          Expiración
+        </th>
+        <td mat-cell *matCellDef="let element" class="text-center py-0">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                [ngClass]="element.ReqExpiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
+            {{ element.ReqExpiration === '1' ? 'Sí' : 'No' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Columna Enabled -->
+      <ng-container matColumnDef="enabled">
+        <th mat-header-cell *matHeaderCellDef class="text-center py-1 bg-gray-50 text-xs font-medium text-gray-700" style="max-width: 50px; width: 50px;">
+          Estado
+        </th>
+        <td mat-cell *matCellDef="let element" class="text-center py-0" style="max-width: 50px; width: 50px;">
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                [ngClass]="element.Enabled === '1' || element.Enabled === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+            {{ element.Enabled === '1' || element.Enabled === 1 ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row 
+          *matRowDef="let row; columns: displayedColumns;"
+          class="cursor-pointer hover:bg-gray-50 transition-colors !min-h-0 !h-8">
+      </tr>
+    </table>
+  </div>
+
+  <!-- Acciones -->
+  <div class="flex justify-end gap-3">
+    <button mat-raised-button color="primary" (click)="cerrar()">
+      Cerrar
+    </button>
+  </div>
+</div>

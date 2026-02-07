@@ -68,7 +68,7 @@
         <mat-label>Rol</mat-label>
         <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todos los roles</mat-option>
-          <mat-option *ngFor="let role of roles" [value]="role.Id">
+          <mat-option *ngFor="let role of rolesForFilter" [value]="role.Id">
             {{ role.Name }}
           </mat-option>
         </mat-select>
@@ -129,7 +129,7 @@
   </div>
 
   <!-- Tabla -->
-  <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto">
     <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna ID -->
       <ng-container matColumnDef="Id">
@@ -178,7 +178,7 @@
         </th>
         <td mat-cell *matCellDef="let user" class="text-left py-0">
           <span class="text-xs">
-            {{ getRoleName(user.IdUserRol) }}
+            {{ isHiddenRole(user.IdUserRol) ? '—' : getRoleName(user.IdUserRol) }}
           </span>
         </td>
       </ng-container>

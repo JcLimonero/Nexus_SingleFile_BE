@@ -1,5 +1,27 @@
 <div class="global-container">
   <mat-card class="filters-card filtro-container">
+    <!-- Toggle Mostrar Cancelados y Botón Exportar Excel -->
+    <div class="flex items-center justify-between mb-4 pb-3 border-b">
+      <mat-slide-toggle
+        [(ngModel)]="showCancelledOrders"
+        (change)="onToggleCancelledOrders()"
+        class="text-sm">
+        <span class="ml-2 text-xs text-gray-600">Mostrar cancelados</span>
+      </mat-slide-toggle>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="exportarExcel()"
+        [disabled]="clientesFiltrados.length === 0 || exportingExcel"
+        matTooltip="Exportar a Excel"
+        class="flex items-center gap-2">
+        <mat-icon *ngIf="!exportingExcel">download</mat-icon>
+        <mat-spinner *ngIf="exportingExcel" diameter="16" class="inline"></mat-spinner>
+        {{ exportingExcel ? 'Exportando...' : 'Exportar Excel' }}
+      </button>
+    </div>
+
     <div class="filters-grid">
       <mat-form-field appearance="outline" class="filter-field filter-field--wide">
         <mat-label>Agencia</mat-label>
@@ -60,30 +82,58 @@
         <mat-icon matSuffix class="text-gray-400">search</mat-icon>
       </mat-form-field>
 
-      <div class="filters-actions">
+      <!-- Filtro por Fecha de Registro -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Rango Fecha Registro</mat-label>
+        <mat-date-range-input [formGroup]="registrationDateRangeGroup" [rangePicker]="registrationDatePicker">
+          <input matStartDate formControlName="start" placeholder="Inicio" (click)="registrationDatePicker.open()">
+          <input matEndDate formControlName="end" placeholder="Fin" (click)="registrationDatePicker.open()">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="registrationDatePicker"></mat-datepicker-toggle>
+        <mat-date-range-picker #registrationDatePicker></mat-date-range-picker>
         <button
+          *ngIf="hasRegistrationDateRange()"
           mat-icon-button
-          *ngIf="searchTerm"
-          (click)="clearSearch()"
-          class="text-gray-500 hover:text-red-600 !w-8 !h-8"
-          matTooltip="Limpiar búsqueda">
+          matSuffix
+          color="warn"
+          size="small"
+          (click)="clearRegistrationDateRange(); $event.stopPropagation()"
+          matTooltip="Limpiar filtro de fecha de registro">
           <mat-icon>clear</mat-icon>
         </button>
+      </mat-form-field>
 
-        <mat-slide-toggle
-          [(ngModel)]="showCancelledOrders"
-          (change)="onToggleCancelledOrders()"
-          class="text-sm">
-          <span class="ml-2 text-xs text-gray-600">Mostrar cancelados</span>
-        </mat-slide-toggle>
-
+      <!-- Filtro por Fecha de Liberación -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Rango Fecha Liberación</mat-label>
+        <mat-date-range-input [formGroup]="liberationDateRangeGroup" [rangePicker]="liberationDatePicker">
+          <input matStartDate formControlName="start" placeholder="Inicio" (click)="liberationDatePicker.open()">
+          <input matEndDate formControlName="end" placeholder="Fin" (click)="liberationDatePicker.open()">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="liberationDatePicker"></mat-datepicker-toggle>
+        <mat-date-range-picker #liberationDatePicker></mat-date-range-picker>
         <button
+          *ngIf="hasLiberationDateRange()"
           mat-icon-button
-          class="text-gray-600 hover:text-blue-600 transition-colors"
-          (click)="recargarFiltros()"
-          [disabled]="loadingAgencias || loadingProcesos || refreshing"
-          matTooltip="Recargar filtros">
-          <mat-icon [class.animate-spin]="loadingAgencias || loadingProcesos || refreshing">refresh</mat-icon>
+          matSuffix
+          color="warn"
+          size="small"
+          (click)="clearLiberationDateRange(); $event.stopPropagation()"
+          matTooltip="Limpiar filtro de fecha de liberación">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <div class="filters-actions">
+        <button
+          mat-stroked-button
+          color="warn"
+          (click)="limpiarFiltros()"
+          [disabled]="!selectedFase && !searchTerm && !hasRegistrationDateRange() && !hasLiberationDateRange()"
+          matTooltip="Limpiar filtros"
+          class="flex items-center gap-2">
+          <mat-icon>clear_all</mat-icon>
+          Limpiar Filtros
         </button>
       </div>
     </div>
@@ -110,11 +160,6 @@
         <ng-container matColumnDef="ndPedido">
           <th mat-header-cell *matHeaderCellDef> ND Pedido </th>
           <td mat-cell *matCellDef="let cliente"> {{ cliente.ndPedido }} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="idFile">
-          <th mat-header-cell *matHeaderCellDef> ID File </th>
-          <td mat-cell *matCellDef="let cliente"> {{ cliente.idFile }} </td>
         </ng-container>
 
         <ng-container matColumnDef="cliente">

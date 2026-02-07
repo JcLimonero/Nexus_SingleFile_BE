@@ -39,6 +39,7 @@ export interface VanguardiaClientImportResponse {
     fechaActualizacion: string;
     headerClientId: number;
     relationId: number;
+    idAgency?: number | string; // Opcional: puede venir como número o string
   };
 }
 

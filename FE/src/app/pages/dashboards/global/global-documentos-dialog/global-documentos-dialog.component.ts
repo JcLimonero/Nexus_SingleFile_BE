@@ -94,7 +94,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando documentos en dialogo global:', error);
+
           this.error = 'Error al cargar los documentos.';
           this.loading = false;
           this.documentos = [];
@@ -112,6 +112,38 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     this.documentosPendientes = this.documentos.filter(
       (doc) => Number(doc.idEstatus) !== 4 && Number(doc.idEstatus) !== 0
     ).length;
+  }
+
+  /**
+   * Sanitizar nombre de archivo: remover caracteres especiales como comas, acentos, etc.
+   */
+  private sanitizeFileName(file: File): File {
+    // Obtener nombre original
+    let fileName = file.name;
+    
+    // Remover caracteres especiales: comas, comillas, paréntesis, corchetes, etc.
+    fileName = fileName.replace(/[,'"()[\]{}]/g, '');
+    
+    // Reemplazar espacios múltiples con un solo espacio
+    fileName = fileName.replace(/\s+/g, ' ');
+    
+    // Remover acentos y caracteres diacríticos
+    fileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    // Trim de espacios al inicio y final
+    fileName = fileName.trim();
+    
+    // Si el nombre quedó vacío, usar un nombre por defecto
+    if (!fileName) {
+      fileName = 'documento';
+    }
+    
+    // Si el nombre cambió, crear un nuevo Blob con el nombre sanitizado
+    if (fileName !== file.name) {
+      return new File([file], fileName, { type: file.type });
+    }
+    
+    return file;
   }
 
   isDocumentoStatus(documento: Documento, status: number): boolean {
@@ -148,14 +180,17 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const file = this.selectedFiles[clave];
+    let file = this.selectedFiles[clave];
     if (!file) {
       this.snackBar.open('Debe seleccionar un archivo', 'Cerrar', { duration: 3000 });
       return;
     }
 
+    // Sanitizar nombre del archivo
+    file = this.sanitizeFileName(file);
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file); // Archivo con nombre sanitizado
     formData.append('idSingleFile', this.data.cliente.idFile.toString());
     formData.append('idDocumentFile', clave);
 
@@ -171,7 +206,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
           this.cargarDocumentos(false);
         },
         error: (error) => {
-          console.error('Error subiendo documento desde dialogo global:', error);
+
           this.snackBar.open('Error al subir el documento', 'Cerrar', { duration: 4000 });
         }
       });
@@ -246,7 +281,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error obteniendo URL privada de Backblaze:', error);
+
           this.snackBar.open('Error al obtener la URL del documento', 'Cerrar', {
             duration: 3000
           });

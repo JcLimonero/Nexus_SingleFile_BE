@@ -51,7 +51,7 @@ export class WidgetDocumentMetricsComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading document stats:', error);
+
           this.error = 'Error al cargar estadísticas de documentos';
           this.loading = false;
         }

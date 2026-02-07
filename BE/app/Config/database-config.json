@@ -1,10 +1,10 @@
 {
   "database": {
-    "hostname": "192.168.190.140",
+    "hostname": "127.0.0.1",
     "port": 3306,
-    "database": "singlefile_db",
-    "username": "vgd_testing",
-    "password": "00@DealerSolutions",
+    "database": "single_file",
+    "username": "root",
+    "password": "root",
     "driver": "MySQLi",
     "prefix": "",
     "charset": "utf8mb4",

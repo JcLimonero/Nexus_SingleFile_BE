@@ -81,22 +81,65 @@ class DocumentoRequerido extends BaseController
     public function show($id = null)
     {
         try {
+            // Log para debug
+            log_message('info', "DocumentoRequerido::show - ID recibido como parámetro: " . var_export($id, true));
+            log_message('info', "DocumentoRequerido::show - Tipo de ID: " . gettype($id));
+            log_message('info', "DocumentoRequerido::show - URI completa: " . $this->request->getUri()->getPath());
+            log_message('info', "DocumentoRequerido::show - Segmentos URI: " . json_encode($this->request->getUri()->getSegments()));
+            
+            // Obtener el ID de la URI si no viene como parámetro
+            if (!$id || $id === '') {
+                // Intentar obtener de los segmentos de la URI usando getSegment
+                $uriSegments = $this->request->getUri()->getSegments();
+                log_message('info', "DocumentoRequerido::show - Total segmentos: " . count($uriSegments));
+                
+                // Buscar el segmento después de 'documento-requerido' o 'api/documento-requerido'
+                $foundIndex = false;
+                foreach ($uriSegments as $index => $segment) {
+                    if ($segment === 'documento-requerido' && isset($uriSegments[$index + 1])) {
+                        $potentialId = $uriSegments[$index + 1];
+                        if (is_numeric($potentialId)) {
+                            $id = (int)$potentialId;
+                            log_message('info', "DocumentoRequerido::show - ID extraído después de 'documento-requerido': {$id}");
+                            break;
+                        }
+                    }
+                }
+                
+                // Si aún no tenemos ID, intentar desde el último segmento
+                if (!$id && !empty($uriSegments)) {
+                    $lastSegment = end($uriSegments);
+                    if (is_numeric($lastSegment)) {
+                        $id = (int)$lastSegment;
+                        log_message('info', "DocumentoRequerido::show - ID extraído del último segmento: {$id}");
+                    }
+                }
+            }
+            
             if (!$id) {
+                log_message('error', "DocumentoRequerido::show - ID no proporcionado");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'ID del documento requerido es requerido'
                 ])->setStatusCode(400);
             }
 
+            // Convertir a entero para asegurar consistencia
+            $id = (int)$id;
+            log_message('info', "DocumentoRequerido::show - Buscando documento con ID: {$id}");
+
             $documento = $this->documentoRequeridoModel->find($id);
             
             if (!$documento) {
+                log_message('warning', "DocumentoRequerido::show - Documento con ID {$id} no encontrado");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Documento requerido no encontrado'
                 ])->setStatusCode(404);
             }
 
+            log_message('info', "DocumentoRequerido::show - Documento encontrado: " . json_encode($documento));
+            
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documento requerido obtenido exitosamente',
@@ -105,6 +148,7 @@ class DocumentoRequerido extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en DocumentoRequerido::show: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener documento requerido: ' . $e->getMessage()
@@ -181,6 +225,26 @@ class DocumentoRequerido extends BaseController
     public function update($id = null)
     {
         try {
+            // Obtener el ID de la URI si no viene como parámetro (similar a show)
+            if (!$id) {
+                $uriSegments = $this->request->getUri()->getSegments();
+                foreach ($uriSegments as $index => $segment) {
+                    if ($segment === 'documento-requerido' && isset($uriSegments[$index + 1])) {
+                        $potentialId = $uriSegments[$index + 1];
+                        if (is_numeric($potentialId)) {
+                            $id = (int)$potentialId;
+                            break;
+                        }
+                    }
+                }
+                if (!$id && !empty($uriSegments)) {
+                    $lastSegment = end($uriSegments);
+                    if (is_numeric($lastSegment)) {
+                        $id = (int)$lastSegment;
+                    }
+                }
+            }
+            
             if (!$id) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -190,39 +254,164 @@ class DocumentoRequerido extends BaseController
 
             $data = $this->request->getJSON(true);
             
-            // Verificar si el documento existe
-            $existingDocumento = $this->documentoRequeridoModel->find($id);
+            // Log para debug
+            log_message('info', "DocumentoRequerido::update - ID: {$id}, Data recibida: " . json_encode($data));
+            
+            // Verificar si el documento existe y obtenerlo con sus relaciones
+            $existingDocumento = $this->documentoRequeridoModel->findWithRelations($id);
             if (!$existingDocumento) {
+                log_message('error', "DocumentoRequerido::update - Documento con ID {$id} no encontrado");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Documento requerido no encontrado'
                 ])->setStatusCode(404);
             }
+            
+            // Log para debug
+            log_message('info', "DocumentoRequerido::update - Documento existente: " . json_encode($existingDocumento));
 
+            // Determinar si solo se está actualizando Enabled
+            // Si solo viene Enabled, o si todos los demás campos son iguales a los existentes
+            $isOnlyEnabledUpdate = false;
+            
+            // Normalizar valores para comparación (convertir a string para comparación consistente)
+            $normalizeValue = function($value) {
+                return (string)$value;
+            };
+            
+            if (count($data) === 1 && isset($data['Enabled'])) {
+                // Caso 1: Solo viene Enabled en el request
+                $isOnlyEnabledUpdate = true;
+                log_message('info', "DocumentoRequerido::update - Solo viene Enabled en el request");
+            } else {
+                // Caso 2: Vienen otros campos, verificar si son iguales a los existentes
+                $configFieldsMatch = true;
+                
+                // Comparar cada campo de configuración (ignorar 'Id' y 'Enabled' del request)
+                $configFields = ['IdProcess', 'IdAgency', 'IdCostumerType', 'IdOperationType', 'IdDocumentType'];
+                foreach ($configFields as $field) {
+                    if (isset($data[$field])) {
+                        $requestValue = $normalizeValue($data[$field]);
+                        $existingValue = isset($existingDocumento[$field]) ? $normalizeValue($existingDocumento[$field]) : null;
+                        
+                        if ($requestValue !== $existingValue) {
+                            $configFieldsMatch = false;
+                            log_message('info', "DocumentoRequerido::update - Campo {$field} difiere: Request={$requestValue}, Existing={$existingValue}");
+                            break;
+                        }
+                    }
+                }
+                
+                // Si los campos de configuración coinciden y viene Enabled, es solo actualización de Enabled
+                if ($configFieldsMatch && isset($data['Enabled'])) {
+                    $isOnlyEnabledUpdate = true;
+                    log_message('info', "DocumentoRequerido::update - Campos de configuración coinciden, solo se actualiza Enabled");
+                }
+            }
+            
+            log_message('info', "DocumentoRequerido::update - Es solo actualización de Enabled: " . ($isOnlyEnabledUpdate ? 'Sí' : 'No'));
+            
             // Verificar si ya existe otro documento requerido para la misma configuración
-            if (isset($data['IdProcess']) && isset($data['IdAgency']) && 
+            // Solo si se están actualizando los campos de configuración (no solo Enabled)
+            if (!$isOnlyEnabledUpdate && isset($data['IdProcess']) && isset($data['IdAgency']) && 
                 isset($data['IdCostumerType']) && isset($data['IdOperationType']) && 
                 isset($data['IdDocumentType'])) {
                 
-                if ($this->documentoRequeridoModel->existsDocumentoRequerido(
-                    $data['IdProcess'], 
-                    $data['IdAgency'], 
-                    $data['IdCostumerType'], 
-                    $data['IdOperationType'], 
-                    $data['IdDocumentType'],
-                    $id
-                )) {
-                    return $this->response->setJSON([
-                        'success' => false,
-                        'message' => 'Ya existe un documento requerido para esta configuración'
-                    ])->setStatusCode(400);
+                // Verificar si los valores realmente están cambiando
+                $configChanged = (
+                    $normalizeValue($data['IdProcess']) !== $normalizeValue($existingDocumento['IdProcess']) ||
+                    $normalizeValue($data['IdAgency']) !== $normalizeValue($existingDocumento['IdAgency']) ||
+                    $normalizeValue($data['IdCostumerType']) !== $normalizeValue($existingDocumento['IdCostumerType']) ||
+                    $normalizeValue($data['IdOperationType']) !== $normalizeValue($existingDocumento['IdOperationType']) ||
+                    $normalizeValue($data['IdDocumentType']) !== $normalizeValue($existingDocumento['IdDocumentType'])
+                );
+                
+                log_message('info', "DocumentoRequerido::update - Configuración cambió: " . ($configChanged ? 'Sí' : 'No'));
+                
+                // Solo validar duplicados si la configuración realmente está cambiando
+                if ($configChanged) {
+                    if ($this->documentoRequeridoModel->existsDocumentoRequerido(
+                        $data['IdProcess'], 
+                        $data['IdAgency'], 
+                        $data['IdCostumerType'], 
+                        $data['IdOperationType'], 
+                        $data['IdDocumentType'],
+                        $id
+                    )) {
+                        log_message('warning', "DocumentoRequerido::update - Ya existe un documento con esta configuración");
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => 'Ya existe un documento requerido para esta configuración'
+                        ])->setStatusCode(400);
+                    }
                 }
             }
 
+            // Si solo se actualiza Enabled, preparar datos mínimos y actualizar directamente ConfigurationProcess
+            if ($isOnlyEnabledUpdate) {
+                $enabledValue = $data['Enabled'] === '1' || $data['Enabled'] === 1 ? 1 : 0;
+                log_message('info', "DocumentoRequerido::update - Actualizando solo Enabled a: {$enabledValue}");
+                
+                // Actualizar directamente el ConfigurationProcess relacionado
+                $configProcessModel = new \App\Models\ConfigurationProcessModel();
+                $configProcessId = $existingDocumento['IdConfigurationProcess'] ?? null;
+                
+                if ($configProcessId) {
+                    $updateResult = $configProcessModel->update($configProcessId, [
+                        'Enabled' => $enabledValue,
+                        'UpdateDate' => date('Y-m-d H:i:s'),
+                        'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                    ]);
+                    
+                    if ($updateResult) {
+                        log_message('info', "DocumentoRequerido::update - ConfigurationProcess actualizado exitosamente");
+                        // Obtener el documento actualizado con relaciones
+                        $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
+                            'Id' => $id
+                        ]);
+                        
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Estado del documento requerido actualizado exitosamente',
+                            'data' => $documentoActualizado[0] ?? $existingDocumento
+                        ]);
+                    } else {
+                        log_message('error', "DocumentoRequerido::update - Error al actualizar ConfigurationProcess");
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => 'Error al actualizar el estado'
+                        ])->setStatusCode(500);
+                    }
+                } else {
+                    log_message('error', "DocumentoRequerido::update - No se encontró IdConfigurationProcess");
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'No se encontró la configuración de proceso asociada'
+                    ])->setStatusCode(400);
+                }
+            }
+            
+            // Si no es solo Enabled, usar el flujo normal de actualización
+            $updateData = $data;
+
             // Actualizar el documento requerido usando el modelo
-            $result = $this->documentoRequeridoModel->updateDocumentoRequerido($id, $data);
+            $result = $this->documentoRequeridoModel->updateDocumentoRequerido($id, $updateData);
             
             if ($result) {
+                // Si se actualizó el estado Enabled, actualizar también el ConfigurationProcess
+                if (isset($updateData['Enabled'])) {
+                    $configProcessModel = new \App\Models\ConfigurationProcessModel();
+                    $configProcessId = $existingDocumento['IdConfigurationProcess'] ?? null;
+                    
+                    if ($configProcessId) {
+                        $configProcessModel->update($configProcessId, [
+                            'Enabled' => $updateData['Enabled'] === '1' || $updateData['Enabled'] === 1 ? 1 : 0,
+                            'UpdateDate' => date('Y-m-d H:i:s'),
+                            'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                        ]);
+                    }
+                }
+                
                 // Obtener el documento actualizado con relaciones
                 $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
                     'Id' => $id

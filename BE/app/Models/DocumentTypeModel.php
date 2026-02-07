@@ -86,6 +86,77 @@ class DocumentTypeModel extends Model
     }
 
     /**
+     * Obtener configuraciones donde se usa un tipo de documento
+     */
+    public function getConfigurationsByDocumentType($documentTypeId)
+    {
+        // Asegurar que el ID sea un entero para la comparación
+        $documentTypeId = (int)$documentTypeId;
+        
+        // Log para debug
+        log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Buscando configuraciones para documento ID: {$documentTypeId}");
+        
+        $builder = $this->db->table('ConfigurationProcess_DocumentType cpd');
+        
+        $builder->select('
+            cpd.Id as IdConfigurationProcessDocumentType,
+            cpd.IdDocumentType,
+            cp.Id as IdConfigurationProcess,
+            cp.IdProcess,
+            cp.IdAgency,
+            cp.IdCostumerType,
+            cp.IdOperationType,
+            CAST(cp.Enabled AS UNSIGNED) as ConfigurationEnabled,
+            p.Name as ProcesoName,
+            a.Name as AgenciaName,
+            ct.Name as TipoClienteName,
+            ot.Name as TipoOperacionName
+        ');
+        
+        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'inner');
+        $builder->join('Process p', 'p.Id = cp.IdProcess', 'left');
+        // INNER JOIN: excluir configuraciones donde la agencia es N/A (nombre nulo, vacío o literal "N/A")
+        $builder->join(
+            'Agency a',
+            'a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != "" AND UPPER(TRIM(a.Name)) != "N/A"',
+            'inner'
+        );
+        $builder->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left');
+        $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
+        
+        // Usar comparación estricta - asegurar que el tipo de dato coincida
+        $builder->where('cpd.IdDocumentType', $documentTypeId);
+        
+        // Excluir también por IdAgency nulo o 0 (redundante con INNER JOIN pero explícito)
+        $builder->where('cp.IdAgency IS NOT NULL');
+        $builder->where('cp.IdAgency !=', 0);
+        
+        $builder->orderBy('a.Name', 'ASC');
+        $builder->orderBy('p.Name', 'ASC');
+        
+        $result = $builder->get()->getResultArray();
+        
+        // Validación adicional: filtrar resultados para asegurar que todos pertenezcan al documento correcto
+        $filteredResult = [];
+        foreach ($result as $row) {
+            $rowDocTypeId = (int)($row['IdDocumentType'] ?? 0);
+            if ($rowDocTypeId === $documentTypeId) {
+                $filteredResult[] = $row;
+            } else {
+                log_message('error', "DocumentTypeModel::getConfigurationsByDocumentType - Configuración con IdDocumentType incorrecto. Esperado: {$documentTypeId}, Encontrado: {$rowDocTypeId}, Row: " . json_encode($row));
+            }
+        }
+        
+        // Log para debug
+        log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Encontradas " . count($result) . " configuraciones (después del query), " . count($filteredResult) . " después de validación para documento ID: {$documentTypeId}");
+        if (count($filteredResult) > 0) {
+            log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Primera configuración validada: " . json_encode($filteredResult[0]));
+        }
+        
+        return $filteredResult;
+    }
+
+    /**
      * Obtener tipos de documento con relaciones
      */
     public function getDocumentTypesWithRelations($filters = [])

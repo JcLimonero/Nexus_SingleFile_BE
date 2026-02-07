@@ -76,13 +76,30 @@
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",
                   "maximumWarning": "4mb",
                   "maximumError": "5mb"
                 }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
               ]
+            },
+            "singlefile": {
+              "baseHref": "/singlefile/",
+              "optimization": false,
+              "outputHashing": "none",
+              "sourceMap": true,
+              "namedChunks": true,
+              "extractLicenses": false,
+              "vendorChunk": true,
+              "buildOptimizer": false
             }
           }
         },
@@ -95,6 +112,9 @@
           "configurations": {
             "production": {
               "buildTarget": "vex:build:production"
+            },
+            "singlefile": {
+              "buildTarget": "vex:build:singlefile"
             }
           }
         },

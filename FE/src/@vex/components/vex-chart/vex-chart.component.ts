@@ -77,9 +77,22 @@ export class VexChartComponent implements OnInit, OnChanges {
   }
 
   private _createElement() {
-    if (this.series) {
-      this.options.series = this.series;
+    const hasSeries =
+      this.series &&
+      Array.isArray(this.series) &&
+      this.series.length > 0 &&
+      (typeof this.series[0] === 'number' ||
+        (this.series[0] && Array.isArray((this.series[0] as any).data) && (this.series[0] as any).data.length > 0));
+
+    if (!hasSeries) {
+      if (this.chart) {
+        this.chart.destroy();
+        this.chart = undefined;
+      }
+      return;
     }
+
+    this.options.series = this.series;
 
     if (this.chart) {
       this.chart.destroy();

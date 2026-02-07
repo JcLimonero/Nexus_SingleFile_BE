@@ -79,7 +79,7 @@ SELECT
     a.Name as Agencia,
     COUNT(dbf.Id) as TotalDocumentos
 FROM File f
-JOIN HeaderClient hc ON f.IdClient = hc.Id
+JOIN HeaderClient hc ON hc.IdClient = f.IdClient
 JOIN Client c ON hc.IdClient = c.Id
 JOIN Process p ON f.IdProcess = p.Id
 JOIN Agency a ON f.IdAgency = a.Id

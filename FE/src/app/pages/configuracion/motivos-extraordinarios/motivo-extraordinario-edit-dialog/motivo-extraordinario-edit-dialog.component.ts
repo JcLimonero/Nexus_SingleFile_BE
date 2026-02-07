@@ -93,8 +93,7 @@ export class MotivoExtraordinarioEditDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error actualizando motivo extraordinario:', error);
-          
+
           // Obtener mensaje de error más descriptivo
           let errorMessage = 'Error al actualizar el motivo extraordinario';
           
@@ -107,7 +106,7 @@ export class MotivoExtraordinarioEditDialogComponent implements OnInit {
           
           // Log adicional para debug
           if (error.error && error.error.debug_info) {
-            console.log('Debug info del error:', error.error.debug_info);
+
           }
           
           this.loading = false;
@@ -120,8 +119,7 @@ export class MotivoExtraordinarioEditDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error creando motivo extraordinario:', error);
-          
+
           // Obtener mensaje de error más descriptivo
           let errorMessage = 'Error al crear el motivo extraordinario';
           
@@ -134,7 +132,7 @@ export class MotivoExtraordinarioEditDialogComponent implements OnInit {
           
           // Log adicional para debug
           if (error.error && error.error.debug_info) {
-            console.log('Debug info del error:', error.error.debug_info);
+
           }
           
           this.loading = false;
