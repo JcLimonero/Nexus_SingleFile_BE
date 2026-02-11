@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8080',  // Puerto correcto del backend
+  apiBaseUrl: 'http://localhost:8080',  // Debe coincidir con: php spark serve --port=8080
   maxFileSizeMB: 10,  // Tamaño máximo de archivo en MB (configurable)
   active_debug: false,  // Habilitar logs de actividad de usuarios
   vanguardia: {

@@ -74,13 +74,13 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            // 'cors',
+            'cors',  // Maneja preflight OPTIONS y headers CORS
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
         ],
         'after' => [
-            // 'customcors', // Desactivado temporalmente para evitar conflictos
+            // 'customcors', // Desactivado - usa el filtro 'cors' de CodeIgniter
             // 'honeypot',
             // 'secureheaders',
             // 'cors',

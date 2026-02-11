@@ -19,18 +19,35 @@ use CodeIgniter\Router\RouteCollection;
 // Rutas de la API
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) {
     
-    // Manejar OPTIONS para todas las rutas de API
-    // $routes->options('(:any)', function() {
-    //     $response = service('response');
-    //     $response->setHeader('Access-Control-Allow-Origin', '*');
-    //     $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    //     $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
-    //     $response->setHeader('Access-Control-Max-Age', '7200');
-    //     return $response->setStatusCode(200);
-    // });
+    // Preflight OPTIONS para TODA la API (agency, auth/login, agency/1, etc.): debe ir primero
+    $corsOptions = static function () {
+        $request = service('request');
+        $response = service('response');
+        $origin = $request->getHeaderLine('Origin');
+        $allowed = ['http://localhost:3600', 'http://localhost:4200', 'http://localhost:402'];
+        if ($origin && (in_array($origin, $allowed, true) || preg_match('#\Ahttp://(localhost|127\.0\.0\.1):\d+\z#', $origin))) {
+            $response->setHeader('Access-Control-Allow-Origin', $origin);
+        } else {
+            $response->setHeader('Access-Control-Allow-Origin', '*');
+        }
+        $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+        $response->setHeader('Access-Control-Max-Age', '7200');
+        return $response->setStatusCode(200);
+    };
+    $routes->options('(:any)', $corsOptions);
+    $routes->options('(:any)/(:any)', $corsOptions);
+    $routes->options('(:any)/(:any)/(:any)', $corsOptions);
+    $routes->options('(:any)/(:any)/(:any)/(:any)', $corsOptions);
     
-        // Rutas de autenticación
+    // Rutas de autenticación
     $routes->group('auth', function($routes) {
+        $routes->get('login', static function () {
+            return service('response')
+                ->setStatusCode(405)
+                ->setHeader('Allow', 'POST')
+                ->setJSON(['success' => false, 'message' => 'Use POST method for login']);
+        });
         $routes->post('login', 'Auth::login');
         $routes->post('update-email', 'Auth::updateEmail');
         $routes->post('verify', 'Auth::verify');
