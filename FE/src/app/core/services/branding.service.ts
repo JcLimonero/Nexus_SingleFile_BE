@@ -64,13 +64,13 @@ const DEFAULT_BRANDING: BrandingConfig = {
   appTitle: 'Nexus Q Tech',
   pageTitle: 'NexFile by Nexus Q Tech',
   layoutStyle: 'poseidon',
-  logoLogin: 'assets/img/icons/logos/nexus/login.svg',
-  logoApp: 'assets/img/icons/logos/nexusQtech.svg',
-  logoFooter: 'assets/img/icons/logos/nexusQtech.svg',
-  logoLoading: 'assets/img/icons/logos/logo_loading_blue.svg',
-  favicon: 'assets/img/icons/logos/logo_loading_blue.svg',
-  footerText: 'Grupo Vanguardia',
-  footerLink: 'https://www.grupovanguardia.com'
+  logoLogin: 'assets/img/icons/logos/nexus/login.png',
+  logoApp: 'assets/img/icons/logos/nexus/logo.png',
+  logoFooter: 'assets/img/icons/logos/nexus/logo.png',
+  logoLoading: 'assets/img/icons/logos/nexus/logo.png',
+  favicon: 'assets/img/icons/logos/nexus/favicon.ico',
+  footerText: 'Developed by Nexus Q Tech',
+  footerLink: 'https://www.nexusqtech.com'
 };
 
 const VALID_LAYOUT_STYLES: LayoutStyleName[] = ['apollo', 'poseidon', 'hermes', 'ares', 'zeus', 'ikaros'];
