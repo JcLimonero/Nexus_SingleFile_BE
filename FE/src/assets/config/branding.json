@@ -1,12 +1,13 @@
 {
   "clientName": "Nexus Q Tech",
   "appTitle": "Nexus Q Tech",
-  "pageTitle": "Expediente Único",
+  "pageTitle": "NexFile One by Nexus Q Tech",
   "layoutStyle": "zeus",
-  "logoLogin": "assets/img/icons/logos/logo_login.svg",
-  "logoApp": "assets/img/icons/logos/logo_login.svg",
-  "logoFooter": "assets/img/icons/logos/logo_footer.svg",
-  "logoLoading": "assets/img/icons/logos/logo_login.svg",
+  "logoLogin": "assets/img/icons/logos/nexus/login.png", 
+  "logoApp": "assets/img/icons/logos/nexus/logo.png",       
+  "logoFooter": "assets/img/icons/logos/nexus/logo.png",
+  "logoLoading": "assets/img/icons/logos/nexus/logo.png",
+  "favicon": "assets/img/icons/logos/nexus/favicon.ico",
   "footerText": "Developed by Nexus Q Tech",
   "footerLink": "https://www.nexusqtech.com",
   "menuColors": {

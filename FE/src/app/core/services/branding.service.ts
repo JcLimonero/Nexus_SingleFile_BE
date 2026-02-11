@@ -48,6 +48,8 @@ export interface BrandingConfig {
   logoFooter: string;
   /** Imagen del splash/loading entre pantallas (antes de que cargue la app) */
   logoLoading?: string;
+  /** Favicon de la pestaña del navegador (ej: assets/.../favicon.ico) */
+  favicon?: string;
   /** Texto visible en el footer (si no se define, se usa clientName) */
   footerText?: string;
   footerLink: string;
@@ -58,14 +60,15 @@ export interface BrandingConfig {
 }
 
 const DEFAULT_BRANDING: BrandingConfig = {
-  clientName: 'Grupo Vanguardia',
-  appTitle: 'Expediente Único',
-  pageTitle: 'Expediente Único by Grupo Vanguardia',
+  clientName: 'Nexus Q Tech',
+  appTitle: 'Nexus Q Tech',
+  pageTitle: 'NexFile by Nexus Q Tech',
   layoutStyle: 'poseidon',
-  logoLogin: 'assets/img/icons/logos/logo_login.svg',
+  logoLogin: 'assets/img/icons/logos/nexus/login.svg',
   logoApp: 'assets/img/icons/logos/nexusQtech.svg',
   logoFooter: 'assets/img/icons/logos/nexusQtech.svg',
   logoLoading: 'assets/img/icons/logos/logo_loading_blue.svg',
+  favicon: 'assets/img/icons/logos/logo_loading_blue.svg',
   footerText: 'Grupo Vanguardia',
   footerLink: 'https://www.grupovanguardia.com'
 };
@@ -97,6 +100,7 @@ export class BrandingService {
           if (typeof document !== 'undefined') {
             document.title = merged.pageTitle ?? `${merged.appTitle ?? merged.clientName} by ${merged.clientName}`;
             this.applyBrandingTheme(merged);
+            this.applyFavicon(merged.favicon);
           }
         }),
         catchError(() => {
@@ -111,6 +115,7 @@ export class BrandingService {
       this.branding$.next(c);
       if (typeof document !== 'undefined') {
         document.title = c.pageTitle ?? `${c.appTitle ?? c.clientName} by ${c.clientName}`;
+        this.applyFavicon(c.favicon);
       }
       return c;
     });
@@ -125,6 +130,24 @@ export class BrandingService {
   /** Configuración actual (valor inmediato). */
   getBranding(): BrandingConfig {
     return this.branding$.value;
+  }
+
+  /**
+   * Actualiza el favicon del documento con la URL del branding.
+   */
+  private applyFavicon(faviconUrl?: string): void {
+    if (typeof document === 'undefined' || !faviconUrl?.trim()) return;
+    const ext = faviconUrl.toLowerCase().split('.').pop() ?? '';
+    const type = ext === 'png' ? 'image/png' : (ext === 'svg' ? 'image/svg+xml' : 'image/x-icon');
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      link.setAttribute('type', type);
+      document.head.appendChild(link);
+    }
+    link.href = faviconUrl;
+    link.type = type;
   }
 
   /**
