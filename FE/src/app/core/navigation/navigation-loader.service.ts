@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { VexLayoutService } from '@vex/services/vex-layout.service';
 import { NavigationItem } from './navigation-item.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from '../services/auth.service';
@@ -22,8 +21,7 @@ export class NavigationLoaderService {
   }
 
   constructor(
-    private layoutService: VexLayoutService,
-    private authService: AuthService
+    private readonly authService: AuthService
   ) {
     this.loadNavigation();
   }

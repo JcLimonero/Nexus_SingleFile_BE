@@ -33,7 +33,7 @@
     <div class="vex-sidenav-toolbar__divider"></div>
   </div>
 
-  <vex-scrollbar class="flex-1 flex flex-col">
+  <app-scrollbar class="flex-1 flex flex-col">
     <div class="pt-6 flex-1">
       <vex-sidenav-item
         *ngFor="let item of items$ | async; trackBy: trackByRoute"
@@ -47,24 +47,18 @@
         <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-12 select-none" [class.branding-logo-tint]="logoColor$ | async" />
       </ng-container>
     </div>
-  </vex-scrollbar>
+  </app-scrollbar>
 
   <div
     *ngIf="userVisible$ | async"
     class="vex-sidenav-user__container flex-none">
-    <div
-      #userProfileMenuOriginRef
-      (click)="openProfileMenu(userProfileMenuOriginRef)"
-      [class.vex-sidenav-user--open]="userMenuOpen$ | async"
-      class="vex-sidenav-user flex items-center"
+    <button
+      #sidenavUserMenuTrigger="matMenuTrigger"
+      [matMenuTriggerFor]="sidenavUserMenu"
+      class="vex-sidenav-user flex items-center w-full border-0 bg-transparent text-left"
       style="cursor: pointer; user-select: none; padding: 12px;"
       matRipple
       matRippleColor="var(--vex-sidenav-item-ripple-color)">
-      <!-- Imagen del asesor oculta temporalmente -->
-      <!-- <img
-        alt="User Avatar"
-        class="vex-sidenav-user__image flex-none"
-        src="../../../../assets/img/avatars/1.jpg" /> -->
       <div class="vex-sidenav-user__content flex-auto">
         <div class="vex-sidenav-user__title">{{ (currentUser$ | async)?.name || 'Usuario' }}</div>
         <div class="vex-sidenav-user__subtitle">{{ (currentUser$ | async)?.role_name || 'Rol no definido' }}</div>
@@ -72,6 +66,9 @@
       <mat-icon
         class="vex-sidenav-user__dropdown-icon flex-none"
         svgIcon="mat:arrow_drop_down"></mat-icon>
-    </div>
+    </button>
+    <mat-menu #sidenavUserMenu="matMenu" class="sidenav-user-menu" xPosition="before" yPosition="above">
+      <vex-sidenav-user-menu (closeMenu)="closeUserMenu(sidenavUserMenuTrigger)"></vex-sidenav-user-menu>
+    </mat-menu>
   </div>
 </div>

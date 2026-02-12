@@ -6,7 +6,7 @@ import { ContactsEditComponent } from '../components/contacts-edit/contacts-edit
 import { MatDialog } from '@angular/material/dialog';
 import { Contact } from '../interfaces/contact.interface';
 import { contactsData } from '../../../../../static-data/contacts';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../../core/utils/track-by';
 import { stagger40ms } from '@vex/animations/stagger.animation';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { scaleFadeIn400ms } from '@vex/animations/scale-fade-in.animation';

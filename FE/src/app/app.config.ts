@@ -20,23 +20,20 @@ import { provideQuillConfig } from 'ngx-quill';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { ActivityLogInterceptor } from './core/interceptors/activity-log.interceptor';
 import { BrandingService } from './core/services/branding.service';
-import { VexConfigService } from '@vex/config/vex-config.service';
-import { VexConfigName } from '@vex/config/vex-config.interface';
-
-const VALID_LAYOUT_STYLES: string[] = ['apollo', 'poseidon', 'hermes', 'ares', 'zeus', 'ikaros'];
+import { AppSplashScreenService } from './core/services/app-splash-screen.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: APP_INITIALIZER,
-      useFactory: (branding: BrandingService, vexConfig: VexConfigService) => () =>
-        branding.load().then(() => {
-          const b = branding.getBranding();
-          if (b.layoutStyle && VALID_LAYOUT_STYLES.includes(b.layoutStyle)) {
-            vexConfig.setConfig(b.layoutStyle as VexConfigName);
-          }
-        }),
-      deps: [BrandingService, VexConfigService],
+      useFactory: (branding: BrandingService) => () => branding.load(),
+      deps: [BrandingService],
+      multi: true
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (splash: AppSplashScreenService) => () => {},
+      deps: [AppSplashScreenService],
       multi: true
     },
     importProvidersFrom(
@@ -60,40 +57,14 @@ export const appConfig: ApplicationConfig = {
     ),
 
     provideVex({
-      /**
-       * The config that will be used by default.
-       * This can be changed at runtime via the config panel or using the VexConfigService.
-       */
       config: vexConfigs.poseidon,
-      /**
-       * Only themes that are available in the config in tailwind.config.ts should be listed here.
-       * Any theme not listed here will not be available in the config panel.
-       */
       availableThemes: [
-        {
-          name: 'Default',
-          className: 'vex-theme-default'
-        },
-        {
-          name: 'Teal',
-          className: 'vex-theme-teal'
-        },
-        {
-          name: 'Green',
-          className: 'vex-theme-green'
-        },
-        {
-          name: 'Purple',
-          className: 'vex-theme-purple'
-        },
-        {
-          name: 'Red',
-          className: 'vex-theme-red'
-        },
-        {
-          name: 'Orange',
-          className: 'vex-theme-orange'
-        }
+        { name: 'Default', className: 'vex-theme-default' },
+        { name: 'Teal', className: 'vex-theme-teal' },
+        { name: 'Green', className: 'vex-theme-green' },
+        { name: 'Purple', className: 'vex-theme-purple' },
+        { name: 'Red', className: 'vex-theme-red' },
+        { name: 'Orange', className: 'vex-theme-orange' }
       ]
     }),
     provideNavigation(),

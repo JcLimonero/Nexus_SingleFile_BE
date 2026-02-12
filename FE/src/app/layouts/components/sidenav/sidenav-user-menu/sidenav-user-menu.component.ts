@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { VexPopoverRef } from '@vex/components/vex-popover/vex-popover-ref';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { NgFor, NgIf } from '@angular/common';
@@ -13,36 +12,19 @@ import { AuthService } from '../../../../core/services/auth.service';
   standalone: true,
   imports: [MatIconModule, MatRippleModule, NgFor, NgIf, RouterLink]
 })
-export class SidenavUserMenuComponent implements OnInit {
-  constructor(
-    private popoverRef: VexPopoverRef<SidenavUserMenuComponent>,
-    private authService: AuthService
-  ) {}
+export class SidenavUserMenuComponent {
+  @Output() closeMenu = new EventEmitter<void>();
 
-  ngOnInit() {}
+  constructor(private readonly authService: AuthService) {}
 
-  close() {
-    this.popoverRef.close();
+  close(): void {
+    this.closeMenu.emit();
   }
 
-  logout() {
-
-    try {
-      this.authService.logout().subscribe({
-        next: () => {
-
-          this.close();
-          // El servicio ya maneja la redirección
-        },
-        error: (error) => {
-
-          this.close();
-          // El servicio ya maneja la redirección incluso en caso de error
-        }
-      });
-    } catch (error) {
-
-      this.close();
-    }
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => this.close(),
+      error: () => this.close()
+    });
   }
 }

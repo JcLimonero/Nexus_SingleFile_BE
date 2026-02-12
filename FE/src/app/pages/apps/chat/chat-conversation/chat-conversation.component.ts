@@ -10,7 +10,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { Chat, ChatMessage } from '../chat.component';
 import { chatMessages } from '../../../../../static-data/chat-messages';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../../core/utils/track-by';
 import { map } from 'rxjs/operators';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';

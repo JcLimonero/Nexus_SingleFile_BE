@@ -7,6 +7,21 @@ import chroma from 'chroma-js';
 import { PluginUtils } from 'tailwindcss/types/config';
 import addTypographyPlugin from '@tailwindcss/typography';
 
+/** Paleta NexFile: #1F3C72 navy, #274880 royal, #90B2D6 sky, #688EAF steel, #E0EDEF light */
+const appPalette = {
+  50: '#E0EDEF',   // light
+  100: '#C8E0E5',
+  200: '#90B2D6',  // sky
+  300: '#90B2D6',
+  400: '#688EAF',  // steel
+  500: '#688EAF',
+  600: '#274880',  // royal (primary)
+  700: '#1F3C72', // navy
+  800: '#1F3C72',
+  900: '#1A3059',
+  950: '#151F3D'
+};
+
 export const themes: VexThemes = {
   default: {
     colors: {
@@ -17,7 +32,7 @@ export const themes: VexThemes = {
           darker: '700'
         },
         palette: {
-          ...colors.sky
+          ...appPalette
         }
       },
       'on-primary': {

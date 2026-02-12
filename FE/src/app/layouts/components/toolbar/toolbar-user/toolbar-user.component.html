@@ -1,15 +1,15 @@
-<div
-  #originRef
-  (click)="showPopover(originRef)"
-  [class.bg-hover]="dropdownOpen"
-  class="flex items-center rounded cursor-pointer relative transition duration-400 ease-out-swift select-none py-1 pr-1 pl-3 hover:bg-hover"
+<button
+  #userMenuTrigger="matMenuTrigger"
+  [matMenuTriggerFor]="userMenu"
+  class="toolbar-user flex items-center rounded-lg cursor-pointer select-none py-2 pl-3 pr-2 gap-3 hover:bg-black/5 dark:hover:bg-white/5 border-0 bg-transparent text-left transition-colors duration-200"
   matRipple>
-  <div
-    class="body-1 font-medium leading-snug ltr:mr-3 rtl:ml-3 hidden sm:block">
+  <span class="toolbar-user__name text-sm font-medium truncate max-w-[140px] hidden sm:inline">
     {{ (currentUser$ | async)?.name || 'Usuario' }}
-  </div>
-  <div
-    class="rounded-full h-9 w-9 flex items-center justify-center text-primary-600 bg-primary-600/10">
-    <mat-icon svgIcon="mat:person"></mat-icon>
-  </div>
-</div>
+  </span>
+  <span class="toolbar-user__avatar rounded-full h-9 w-9 flex items-center justify-center flex-shrink-0 text-primary-600 bg-primary-600/10">
+    <mat-icon svgIcon="mat:person" class="!w-5 !h-5"></mat-icon>
+  </span>
+</button>
+<mat-menu #userMenu="matMenu" class="toolbar-user-menu" xPosition="before" yPosition="below">
+  <vex-toolbar-user-dropdown (closeMenu)="closeUserMenu(userMenuTrigger)"></vex-toolbar-user-dropdown>
+</mat-menu>

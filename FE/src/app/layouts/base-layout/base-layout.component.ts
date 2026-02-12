@@ -7,7 +7,7 @@ import {
   Inject,
   OnInit
 } from '@angular/core';
-import { VexLayoutService } from '@vex/services/vex-layout.service';
+import { AppLayoutService } from '../../core/services/app-layout.service';
 import {
   MatSidenavContainer,
   MatSidenavModule
@@ -20,15 +20,15 @@ import {
   Scroll
 } from '@angular/router';
 import { filter, map, startWith, withLatestFrom } from 'rxjs/operators';
-import { combineLatest, Observable } from 'rxjs';
-import { checkRouterChildsData } from '@vex/utils/check-router-childs-data';
+import { combineLatest } from 'rxjs';
+import { checkRouterChildsData } from '../../core/utils/check-router-childs-data';
 import { AsyncPipe, DOCUMENT, NgIf, NgTemplateOutlet } from '@angular/common';
-import { VexConfigService } from '@vex/config/vex-config.service';
-import { SearchComponent } from '../components/toolbar/search/search.component';
-import { VexProgressBarComponent } from '@vex/components/vex-progress-bar/vex-progress-bar.component';
-import { isNil } from '@vex/utils/is-nil';
+import { LayoutConfigService } from '../../core/layout/layout-config.service';
+import { AppProgressBarComponent } from '../components/app-progress-bar/app-progress-bar.component';
+import { isNil } from '../../core/utils/is-nil';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { VexConfig } from '@vex/config/vex-config.interface';
+import { AppLayoutConfig } from '../../core/layout/layout-config.interface';
+import { SearchComponent } from '../components/toolbar/search/search.component';
 
 @Component({
   selector: 'vex-base-layout',
@@ -36,7 +36,7 @@ import { VexConfig } from '@vex/config/vex-config.interface';
   styleUrls: ['./base-layout.component.scss'],
   standalone: true,
   imports: [
-    VexProgressBarComponent,
+    AppProgressBarComponent,
     SearchComponent,
     MatSidenavModule,
     NgTemplateOutlet,
@@ -46,19 +46,10 @@ import { VexConfig } from '@vex/config/vex-config.interface';
   ]
 })
 export class BaseLayoutComponent implements OnInit, AfterViewInit {
-  config$: Observable<VexConfig> = this.configService.config$;
+  config$ = this.configService.config$;
 
-  /**
-   * Check if footer should be visible
-   */
   isFooterVisible$ = combineLatest([
-    /**
-     * Check if footer is enabled in the config
-     */
-    this.configService.config$.pipe(map((config) => config.footer.visible)),
-    /**
-     * Check if footer is enabled on the current route
-     */
+    this.configService.config$.pipe(map((c) => c.footer.visible)),
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
       startWith(null),
@@ -71,13 +62,11 @@ export class BaseLayoutComponent implements OnInit, AfterViewInit {
     )
   ]).pipe(
     map(([configEnabled, routeEnabled]) => {
-      if (isNil(routeEnabled)) {
-        return configEnabled;
-      }
-
+      if (isNil(routeEnabled)) return configEnabled;
       return configEnabled && routeEnabled;
     })
   );
+
   sidenavCollapsed$ = this.layoutService.sidenavCollapsed$;
   isDesktop$ = this.layoutService.isDesktop$;
 
@@ -97,23 +86,19 @@ export class BaseLayoutComponent implements OnInit, AfterViewInit {
   @ContentChild(MatSidenavContainer, { static: true })
   sidenavContainer!: MatSidenavContainer;
 
-  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private readonly layoutService: VexLayoutService,
-    private readonly configService: VexConfigService,
+    private readonly layoutService: AppLayoutService,
+    private readonly configService: LayoutConfigService,
     private readonly router: Router,
     @Inject(DOCUMENT) private readonly document: Document
   ) {}
 
-  ngOnInit() {
-    /**
-     * Open sidenav on desktop when layout is not vertical
-     * Close sidenav on mobile or when layout is vertical
-     */
+  ngOnInit(): void {
     combineLatest([
       this.isDesktop$,
-      this.configService.select((config) => config.layout === 'vertical')
+      this.configService.select((c) => c.layout === 'vertical')
     ])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([isDesktop, isVerticalLayout]) => {
@@ -124,71 +109,47 @@ export class BaseLayoutComponent implements OnInit, AfterViewInit {
         }
       });
 
-    /**
-     * Mobile only:
-     * Close Sidenav after Navigating somewhere (e.g. when a user clicks a link in the Sidenav)
-     */
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
         withLatestFrom(this.isDesktop$),
-        filter(([event, matches]) => !matches),
+        filter(([, isDesktop]) => !isDesktop),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => this.layoutService.closeSidenav());
   }
 
   ngAfterViewInit(): void {
-    /**
-     * Enable Scrolling to specific parts of the page using the Router
-     */
     this.router.events
       .pipe(
         filter<Event, Scroll>((e: Event): e is Scroll => e instanceof Scroll),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((e) => {
+        if (!this.sidenavContainer?.scrollable) return;
         if (e.position) {
-          // backward navigation
           this.sidenavContainer.scrollable.scrollTo({
             start: e.position[0],
             top: e.position[1]
           });
         } else if (e.anchor) {
-          // anchor navigation
-
           const scroll = (anchor: HTMLElement) =>
             this.sidenavContainer.scrollable.scrollTo({
               behavior: 'smooth',
               top: anchor.offsetTop,
               left: anchor.offsetLeft
             });
-
           let anchorElem = this.document.getElementById(e.anchor);
-
           if (anchorElem) {
             scroll(anchorElem);
           } else {
             setTimeout(() => {
-              if (!e.anchor) {
-                return;
-              }
-
-              anchorElem = this.document.getElementById(e.anchor);
-
-              if (!anchorElem) {
-                return;
-              }
-
-              scroll(anchorElem);
+              anchorElem = e.anchor ? this.document.getElementById(e.anchor) : null;
+              if (anchorElem) scroll(anchorElem);
             }, 100);
           }
         } else {
-          // forward navigation
-          this.sidenavContainer.scrollable.scrollTo({
-            top: 0,
-            start: 0
-          });
+          this.sidenavContainer.scrollable.scrollTo({ top: 0, start: 0 });
         }
       });
   }

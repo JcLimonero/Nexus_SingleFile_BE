@@ -5,7 +5,7 @@ import {
   Guide,
   GuideCategory
 } from '../../apps/help-center/help-center-guides/help-center-guides.component';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../core/utils/track-by';
 import { stagger60ms } from '@vex/animations/stagger.animation';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { NgFor } from '@angular/common';

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../../core/utils/track-by';
 import { MatDialog } from '@angular/material/dialog';
 import { HelpCenterGuidesGuideComponent } from './help-center-guides-guide/help-center-guides-guide.component';
 import { MatIconModule } from '@angular/material/icon';

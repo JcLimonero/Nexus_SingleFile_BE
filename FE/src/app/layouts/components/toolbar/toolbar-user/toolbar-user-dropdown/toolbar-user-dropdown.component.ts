@@ -2,10 +2,11 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  OnInit
+  EventEmitter,
+  OnInit,
+  Output
 } from '@angular/core';
-import { VexPopoverRef } from '@vex/components/vex-popover/vex-popover-ref';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../../../core/utils/track-by';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -54,8 +55,9 @@ export interface OnlineStatus {
   ]
 })
 export class ToolbarUserDropdownComponent implements OnInit {
+  @Output() closeMenu = new EventEmitter<void>();
   currentUser$: Observable<User | null>;
-  
+
   items: MenuItem[] = [
     {
       id: '1',
@@ -101,7 +103,6 @@ export class ToolbarUserDropdownComponent implements OnInit {
 
   constructor(
     private cd: ChangeDetectorRef,
-    private popoverRef: VexPopoverRef<ToolbarUserDropdownComponent>,
     private authService: AuthService
   ) {
     this.currentUser$ = this.authService.currentUser$;
@@ -114,11 +115,11 @@ export class ToolbarUserDropdownComponent implements OnInit {
     this.cd.markForCheck();
   }
 
-  close() {
-    this.popoverRef.close();
+  close(): void {
+    this.closeMenu.emit();
   }
 
-  logout() {
+  logout(): void {
     this.authService.logout().subscribe({
       next: () => this.close(),
       error: () => this.close()

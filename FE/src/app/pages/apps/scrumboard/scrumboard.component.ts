@@ -10,7 +10,7 @@ import {
   transferArrayItem
 } from '@angular/cdk/drag-drop';
 import { ScrumboardCard } from './interfaces/scrumboard-card.interface';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../core/utils/track-by';
 import {
   scrumboards,
   scrumboardUsers

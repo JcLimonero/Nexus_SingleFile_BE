@@ -1,13 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnInit
-} from '@angular/core';
-import { VexPopoverService } from '@vex/components/vex-popover/vex-popover.service';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ToolbarUserDropdownComponent } from './toolbar-user-dropdown/toolbar-user-dropdown.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '../../../../core/services/auth.service';
@@ -18,49 +13,21 @@ import { AsyncPipe, NgIf } from '@angular/common';
   templateUrl: './toolbar-user.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatRippleModule, MatIconModule, AsyncPipe, NgIf]
+  imports: [
+    MatRippleModule,
+    MatIconModule,
+    MatMenuModule,
+    ToolbarUserDropdownComponent,
+    AsyncPipe,
+    NgIf
+  ]
 })
-export class ToolbarUserComponent implements OnInit {
-  dropdownOpen: boolean = false;
-  currentUser$: Observable<User | null>;
+export class ToolbarUserComponent {
+  currentUser$: Observable<User | null> = this.authService.currentUser$;
 
-  constructor(
-    private popover: VexPopoverService,
-    private cd: ChangeDetectorRef,
-    private authService: AuthService
-  ) {
-    this.currentUser$ = this.authService.currentUser$;
-  }
+  constructor(private readonly authService: AuthService) {}
 
-  ngOnInit() {}
-
-  showPopover(originRef: HTMLElement) {
-    this.dropdownOpen = true;
-    this.cd.markForCheck();
-
-    const popoverRef = this.popover.open({
-      content: ToolbarUserDropdownComponent,
-      origin: originRef,
-      offsetY: 12,
-      position: [
-        {
-          originX: 'center',
-          originY: 'top',
-          overlayX: 'center',
-          overlayY: 'bottom'
-        },
-        {
-          originX: 'end',
-          originY: 'bottom',
-          overlayX: 'end',
-          overlayY: 'top'
-        }
-      ]
-    });
-
-    popoverRef.afterClosed$.subscribe(() => {
-      this.dropdownOpen = false;
-      this.cd.markForCheck();
-    });
+  closeUserMenu(trigger: MatMenuTrigger): void {
+    trigger.closeMenu();
   }
 }

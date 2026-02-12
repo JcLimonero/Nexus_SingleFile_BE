@@ -7,7 +7,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import { VexLayoutService } from '@vex/services/vex-layout.service';
+import { AppLayoutService } from '../../../../core/services/app-layout.service';
 import { filter } from 'rxjs/operators';
 import { ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
 import { SearchService } from './search.service';
@@ -30,7 +30,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   ]
 })
 export class SearchComponent implements OnInit, OnDestroy {
-  show$ = this.layoutService.searchOpen$;
+  show$ = this.appLayoutService.searchOpen$;
   searchCtrl = new UntypedFormControl();
 
   @ViewChild('searchInput', { static: true }) input?: ElementRef;
@@ -38,7 +38,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
   constructor(
-    private layoutService: VexLayoutService,
+    private appLayoutService: AppLayoutService,
     private searchService: SearchService
   ) {}
 
@@ -57,7 +57,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   close() {
-    this.layoutService.closeSearch();
+    this.appLayoutService.closeSearch();
     this.searchCtrl.setValue(undefined);
     this.searchService.isOpenSubject.next(false);
   }
@@ -68,7 +68,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.layoutService.closeSearch();
+    this.appLayoutService.closeSearch();
     this.searchCtrl.setValue(undefined);
     this.searchService.isOpenSubject.next(false);
   }

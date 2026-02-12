@@ -3,7 +3,7 @@ import { MailService } from '../services/mail.service';
 import { VexLayoutService } from '@vex/services/vex-layout.service';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { stagger40ms } from '@vex/animations/stagger.animation';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../../core/utils/track-by';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Mail } from '../interfaces/mail.interface';
 import {

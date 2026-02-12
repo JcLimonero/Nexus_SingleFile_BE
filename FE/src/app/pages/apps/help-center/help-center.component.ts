@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Link } from '@vex/interfaces/link.interface';
-import { trackByRoute } from '@vex/utils/track-by';
+import { trackByRoute } from '../../../core/utils/track-by';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { stagger40ms } from '@vex/animations/stagger.animation';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';

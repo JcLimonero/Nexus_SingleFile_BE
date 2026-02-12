@@ -1,55 +1,56 @@
 <div
   [class.container]="isVerticalLayout$ | async"
-  class="toolbar text-default w-full px-6 flex items-center">
-  <button
-    (click)="openSidenav()"
-    [class.hidden]="isDesktop$ | async"
-    mat-icon-button
-    type="button">
-    <mat-icon svgIcon="mat:menu"></mat-icon>
-  </button>
-
-  <!-- Logo y Título - Layout Vertical -->
-  <a
-    *ngIf="isVerticalLayout$ | async"
-    [routerLink]="['/']"
-    class="ltr:mr-4 rtl:ml-4 flex items-center">
-    <ng-container *ngIf="(logoApp$ | async) as logoApp">
-      <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="w-8 select-none" [class.branding-logo-tint]="logoColor$ | async" />
-    </ng-container>
-    <h1
+  class="toolbar text-default w-full flex items-center">
+  <!-- Izquierda: solo logo (y menú móvil) -->
+  <div class="toolbar__start flex items-center min-w-0 flex-shrink-0">
+    <button
+      (click)="openSidenav()"
       [class.hidden]="isDesktop$ | async"
-      class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none">
-      {{ dynamicTitle$ | async }}
-    </h1>
-  </a>
-
-  <!-- Título - Layout Horizontal -->
-  <div
-    *ngIf="isHorizontalLayout$ | async"
-    class="ltr:mr-4 rtl:ml-4 flex items-center">
-    <h1 class="text-2xl font-bold tracking-wide ltr:pl-4 rtl:pr-4 m-0 select-none text-gray-900">
-      {{ dynamicTitle$ | async }}
-    </h1>
+      class="toolbar__menu-btn"
+      mat-icon-button
+      type="button">
+      <mat-icon svgIcon="mat:menu"></mat-icon>
+    </button>
+    <a
+      *ngIf="isVerticalLayout$ | async"
+      [routerLink]="['/']"
+      class="toolbar__brand flex items-center no-underline min-w-0">
+      <ng-container *ngIf="(logoApp$ | async) as logoApp">
+        <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="toolbar__logo w-8 h-8 select-none flex-shrink-0" [class.branding-logo-tint]="logoColor$ | async" />
+      </ng-container>
+      <h1
+        [class.hidden]="isDesktop$ | async"
+        class="toolbar__title text-xl font-semibold tracking-tight ltr:pl-3 rtl:pr-3 m-0 select-none truncate">
+        {{ dynamicTitle$ | async }}
+      </h1>
+    </a>
+    <div
+      *ngIf="isHorizontalLayout$ | async"
+      class="flex items-center min-w-0">
+      <h1 class="toolbar__title text-xl font-semibold tracking-tight m-0 select-none truncate text-gray-900">
+        {{ dynamicTitle$ | async }}
+      </h1>
+    </div>
   </div>
 
-  <div
+  <span class="toolbar__spacer flex-1 min-w-4" aria-hidden="true"></span>
+
+  <!-- Centro: navegación -->
+  <nav
     *ngIf="(isVerticalLayout$ | async) && (isNavbarInToolbar$ | async)"
     [class.hidden]="!(isDesktop$ | async)"
-    class="px-6 flex-none flex items-center">
+    class="toolbar__nav flex items-center gap-1 flex-shrink-0 justify-center"
+    role="navigation">
     <vex-navigation-item
       *ngFor="let item of navigationItems$ | async"
       [item]="item"></vex-navigation-item>
-  </div>
+  </nav>
 
-  <span class="flex-1"></span>
+  <span class="toolbar__spacer flex-1 min-w-4" aria-hidden="true"></span>
 
-  <div class="-mx-1 flex items-center">
-    <div class="px-1" hidden>
-      <vex-toolbar-notifications></vex-toolbar-notifications>
-    </div>
-
-    <div *ngIf="userVisible$ | async" class="px-1">
+  <!-- Derecha: solo usuario -->
+  <div class="toolbar__end flex items-center flex-shrink-0 justify-end">
+    <div *ngIf="userVisible$ | async" class="toolbar__user">
       <vex-toolbar-user></vex-toolbar-user>
     </div>
   </div>

@@ -7,8 +7,8 @@ import { animate, AnimationBuilder, style } from '@angular/animations';
 @Injectable({
   providedIn: 'root'
 })
-export class VexSplashScreenService {
-  splashScreenElem?: HTMLElement;
+export class AppSplashScreenService {
+  splashScreenElem: HTMLElement | undefined;
 
   constructor(
     private router: Router,
@@ -16,8 +16,7 @@ export class VexSplashScreenService {
     private animationBuilder: AnimationBuilder
   ) {
     this.splashScreenElem =
-      this.document.body.querySelector('#app-splash-screen') ?? undefined;
-
+      (this.document.body.querySelector('#app-splash-screen') as HTMLElement | null) ?? undefined;
     if (this.splashScreenElem) {
       this.router.events
         .pipe(
@@ -28,21 +27,17 @@ export class VexSplashScreenService {
     }
   }
 
-  hide() {
+  hide(): void {
+    if (!this.splashScreenElem) return;
     const player = this.animationBuilder
       .build([
-        style({
-          opacity: 1
-        }),
+        style({ opacity: 1 }),
         animate(
           '400ms cubic-bezier(0.25, 0.8, 0.25, 1)',
-          style({
-            opacity: 0
-          })
+          style({ opacity: 0 })
         )
       ])
       .create(this.splashScreenElem);
-
     player.onDone(() => this.splashScreenElem?.remove());
     player.play();
   }

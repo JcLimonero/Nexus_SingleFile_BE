@@ -9,7 +9,7 @@ import {
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
 import { Observable, of } from 'rxjs';
 import { delay, filter, startWith, switchMap } from 'rxjs/operators';
-import { trackById } from '@vex/utils/track-by';
+import { trackById } from '../../../core/utils/track-by';
 import { stagger80ms } from '@vex/animations/stagger.animation';
 import {
   NavigationEnd,
