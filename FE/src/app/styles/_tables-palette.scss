@@ -1,5 +1,5 @@
 /**
- * Tablas: estilo sobrio. Cabecera con paleta (navy), cuerpo blanco sin colores intercalados.
+ * Tablas: estilo sobrio. Cabecera con color de toolbar, cuerpo blanco sin colores intercalados.
  */
 
 /* ========== Tablas HTML ========== */
@@ -15,12 +15,12 @@ table.app-table,
 
   thead tr,
   th {
-    background: var(--app-palette-navy, #1F3C72) !important;
+    background: #202630 !important;
     color: #fff !important;
     font-weight: 600;
     padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: 2px solid var(--app-palette-royal, #274880);
+    border-bottom: 2px solid #202630;
   }
 
   tbody tr {
@@ -57,14 +57,38 @@ table.app-table,
 }
 
 /* ========== Angular Material ========== */
-.mat-mdc-table .mat-mdc-header-row {
-  background: var(--app-palette-navy, #1F3C72) !important;
+/* Header: #202630 (azul gris oscuro) */
+table.mat-mdc-table .mat-mdc-header-row,
+table.mat-mdc-table tr.mat-mdc-header-row,
+.mat-mdc-table .mat-mdc-header-row,
+.mat-mdc-table tr.mat-mdc-header-row {
+  background: #202630 !important;
+}
 
-  .mat-mdc-header-cell {
-    color: #fff !important;
-    font-weight: 600 !important;
-    border-bottom: 2px solid var(--app-palette-royal, #274880) !important;
-  }
+table.mat-mdc-table .mat-mdc-header-cell,
+table.mat-mdc-table th.mat-mdc-header-cell,
+.mat-mdc-table .mat-mdc-header-cell,
+.mat-mdc-table th.mat-mdc-header-cell {
+  background: #202630 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #202630 !important;
+}
+
+.table-container .mat-mdc-table .mat-mdc-header-row,
+.table-container .mat-mdc-table .mat-mdc-header-cell,
+.table-container .mat-mdc-table th.mat-mdc-header-cell {
+  background: #202630 !important;
+  color: #fff !important;
+}
+
+/* Por si Material usa solo atributos */
+table[mat-table] tr[mat-header-row],
+table[mat-table] th[mat-header-cell] {
+  background: #202630 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #202630 !important;
 }
 
 .mat-mdc-table .mat-mdc-row {
@@ -98,8 +122,9 @@ table.app-table,
 
 /* Clase opcional */
 .app-tables-palette .mat-mdc-header-row,
-.app-tables-palette .mat-mdc-header-cell {
-  background: var(--app-palette-navy, #1F3C72) !important;
+.app-tables-palette .mat-mdc-header-cell,
+.app-tables-palette th.mat-mdc-header-cell {
+  background: #202630 !important;
   color: #fff !important;
 }
 

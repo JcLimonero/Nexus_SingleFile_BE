@@ -1,20 +1,22 @@
 <div
   [class.container]="isVerticalLayout$ | async"
-  class="toolbar text-default w-full flex items-center">
-  <!-- Izquierda: solo logo (y menú móvil) -->
-  <div class="toolbar__start flex items-center min-w-0 flex-shrink-0">
-    <button
-      (click)="openSidenav()"
-      [class.hidden]="isDesktop$ | async"
-      class="toolbar__menu-btn"
-      mat-icon-button
-      type="button">
-      <mat-icon svgIcon="mat:menu"></mat-icon>
-    </button>
+  class="toolbar text-default w-full flex " style="max-width: 100% !important; flex-direction: row-reverese;">
+  <!-- Izquierda: menú móvil + usuario + navegación -->
+
+  <!-- Derecha: logo y título -->
+  <div class="toolbar__end flex items-center flex-shrink-0 min-w-0" >
+    <div
+    *ngIf="isHorizontalLayout$ | async"
+    class="ltr:ml-2 rtl:mr-2 flex items-center min-w-0">
+    <h1 class="toolbar__title text-xl font-semibold tracking-tight m-0 select-none truncate text-gray-900">
+      {{ dynamicTitle$ | async }}
+    </h1>
+  </div>
+  
     <a
       *ngIf="isVerticalLayout$ | async"
       [routerLink]="['/']"
-      class="toolbar__brand flex items-center no-underline min-w-0">
+      class="toolbar__brand flex items-center ltr:ml-2 rtl:mr-2 no-underline min-w-0">
       <ng-container *ngIf="(logoApp$ | async) as logoApp">
         <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="toolbar__logo w-8 h-8 select-none flex-shrink-0" [class.branding-logo-tint]="logoColor$ | async" />
       </ng-container>
@@ -24,36 +26,38 @@
         {{ dynamicTitle$ | async }}
       </h1>
     </a>
-    <div
-      *ngIf="isHorizontalLayout$ | async"
-      class="flex items-center min-w-0">
-      <h1 class="toolbar__title text-xl font-semibold tracking-tight m-0 select-none truncate text-gray-900">
-        {{ dynamicTitle$ | async }}
-      </h1>
-    </div>
+
+   
   </div>
 
   <span class="toolbar__spacer flex-1 min-w-4" aria-hidden="true"></span>
 
-  <!-- Centro: navegación -->
-  <nav
-    *ngIf="(isVerticalLayout$ | async) && (isNavbarInToolbar$ | async)"
-    [class.hidden]="!(isDesktop$ | async)"
-    class="toolbar__nav flex items-center gap-1 flex-shrink-0 justify-center"
-    role="navigation">
-    <vex-navigation-item
-      *ngFor="let item of navigationItems$ | async"
-      [item]="item"></vex-navigation-item>
-  </nav>
+  <div class="toolbar__start flex items-center gap-2 min-w-0 flex-shrink-0">
+    <button
+      (click)="openSidenav()"
+      [class.hidden]="isDesktop$ | async"
+      class="toolbar__menu-btn"
+      mat-icon-button
+      type="button">
+      <mat-icon svgIcon="mat:menu"></mat-icon>
+    </button>
 
-  <span class="toolbar__spacer flex-1 min-w-4" aria-hidden="true"></span>
-
-  <!-- Derecha: solo usuario -->
-  <div class="toolbar__end flex items-center flex-shrink-0 justify-end">
-    <div *ngIf="userVisible$ | async" class="toolbar__user">
+    <div *ngIf="userVisible$ | async" class="toolbar__user flex-shrink-0">
       <vex-toolbar-user></vex-toolbar-user>
     </div>
+
+    <nav
+      *ngIf="(isVerticalLayout$ | async) && (isNavbarInToolbar$ | async)"
+      [class.hidden]="!(isDesktop$ | async)"
+      class="toolbar__nav flex items-center gap-1 flex-shrink-0"
+      role="navigation">
+      <vex-navigation-item
+        *ngFor="let item of navigationItems$ | async"
+        [item]="item"></vex-navigation-item>
+    </nav>
   </div>
+
+  
 </div>
 
 <vex-navigation
