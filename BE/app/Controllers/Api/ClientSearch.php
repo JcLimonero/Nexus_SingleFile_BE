@@ -25,6 +25,7 @@ class ClientSearch extends BaseController
             $idAgency = $this->request->getGet('idAgency');
             $searchTerm = $this->request->getGet('search');
             $limit = (int) $this->request->getGet('limit') ?: 50;
+            $exact = $this->request->getGet('exact') === '1' || $this->request->getGet('exact') === 'true';
 
             if (!$idAgency) {
                 return $this->response->setJSON([
@@ -45,8 +46,13 @@ class ClientSearch extends BaseController
 
             if ($searchTerm !== null && trim($searchTerm) !== '') {
                 $searchTerm = trim($searchTerm);
-                $sql .= " AND TRIM(ndCliente) LIKE ?";
-                $params[] = "%{$searchTerm}%";
+                if ($exact) {
+                    $sql .= " AND TRIM(ndCliente) = ?";
+                    $params[] = $searchTerm;
+                } else {
+                    $sql .= " AND TRIM(ndCliente) LIKE ?";
+                    $params[] = "%{$searchTerm}%";
+                }
             }
 
             $sql .= " ORDER BY ndCliente ASC LIMIT ?";

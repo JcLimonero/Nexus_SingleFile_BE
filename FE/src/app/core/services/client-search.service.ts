@@ -44,15 +44,25 @@ export class ClientSearchService {
    * @param idAgency ID de la agencia
    * @param searchTerm Término de búsqueda
    * @param limit Límite de resultados
-   * @returns Observable con los resultados
+   * @param statusId ID de estado (opcional)
+   * @param exactMatch Si true, busca solo por número de cliente exacto (ndCliente = searchTerm)
    */
-  searchClients(idAgency: number, searchTerm: string, limit: number = 50, statusId?: number): Observable<ClientSearchResponse> {
+  searchClients(
+    idAgency: number,
+    searchTerm: string,
+    limit: number = 50,
+    statusId?: number,
+    exactMatch?: boolean
+  ): Observable<ClientSearchResponse> {
     let params = new HttpParams();
     params = params.set('idAgency', idAgency.toString());
     params = params.set('search', searchTerm);
     params = params.set('limit', limit.toString());
     if (typeof statusId === 'number') {
       params = params.set('statusId', statusId.toString());
+    }
+    if (exactMatch === true) {
+      params = params.set('exact', '1');
     }
 
     return this.http.get<ClientSearchResponse>(`${environment.apiBaseUrl}/api/client-search/search`, { params });
@@ -87,13 +97,13 @@ export class ClientSearchService {
   }
 
   /**
-   * Buscar clientes por número de cliente específico
+   * Buscar clientes por número de cliente exacto
    * @param idAgency ID de la agencia
    * @param clientNumber Número de cliente
-   * @returns Observable con los resultados
+   * @returns Observable con los resultados (solo coincidencia exacta en ndCliente)
    */
   searchByClientNumber(idAgency: number, clientNumber: string, statusId?: number): Observable<ClientSearchResponse> {
-    return this.searchClients(idAgency, clientNumber, 10, statusId);
+    return this.searchClients(idAgency, clientNumber, 10, statusId, true);
   }
 
   /**

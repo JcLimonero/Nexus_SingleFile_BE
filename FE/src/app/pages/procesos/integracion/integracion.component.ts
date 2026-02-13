@@ -415,8 +415,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.clientsLoading = true;
     this.showClientResults = true;
 
-    // Usar el Id de la agencia seleccionada (que corresponde a File.IdAgency en la vista)
-    this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
+    // Búsqueda por número exacto de cliente (ndCliente) para evitar conflictos con coincidencias parciales
+    this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50, undefined, true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
@@ -588,7 +588,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             // Intentar buscarlo por ndDMS en la agencia actual
             const ndDMS = importData.ndDMS;
             if (ndDMS && this.selectedAgencyId) {
-              this.clientSearchService.searchClients(this.selectedAgencyId, ndDMS, 10)
+              this.clientSearchService.searchClients(this.selectedAgencyId, ndDMS, 10, undefined, true)
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                   next: (searchResponse: ClientSearchResponse) => {
@@ -711,8 +711,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Buscar el cliente por ndCliente
-    this.clientSearchService.searchClients(this.selectedAgency.IdAgency, idCliente, 50)
+    // Buscar el cliente por número exacto (ndCliente)
+    this.clientSearchService.searchClients(this.selectedAgency.IdAgency, idCliente, 50, undefined, true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
