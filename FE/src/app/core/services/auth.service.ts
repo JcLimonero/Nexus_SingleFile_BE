@@ -6,6 +6,7 @@ import { tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ApiBaseService } from './api-base.service';
 import { ActivityLogService } from './activity-log.service';
+import { DefaultAgencyService } from './default-agency.service';
 
 export interface User {
   id: string;
@@ -62,7 +63,8 @@ export class AuthService {
     private http: HttpClient,
     private apiBaseService: ApiBaseService,
     private router: Router,
-    private activityLogService: ActivityLogService
+    private activityLogService: ActivityLogService,
+    private defaultAgencyService: DefaultAgencyService
   ) {
     this.loadStoredAuth();
   }
@@ -195,11 +197,16 @@ export class AuthService {
         if (currentUser) {
           this.activityLogService.logLogout(currentUser.username || currentUser.email);
         }
+        // Limpiar cache de agencias para que el siguiente usuario cargue sus datos
+        this.defaultAgencyService.limpiarCacheAgencias();
+        this.defaultAgencyService.limpiarSeleccion();
         this.clearAuthData();
         this.router.navigate(['/login']);
       }),
       catchError(error => {
         // Aunque falle el logout en el backend, limpiar datos locales
+        this.defaultAgencyService.limpiarCacheAgencias();
+        this.defaultAgencyService.limpiarSeleccion();
         this.clearAuthData();
         this.router.navigate(['/login']);
         return throwError(() => error);

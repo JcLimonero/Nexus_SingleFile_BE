@@ -87,9 +87,9 @@ export class DefaultAgencyService {
   }
 
   /**
-   * Limpiar cache de agencias
+   * Limpiar cache de agencias (público para usar en logout)
    */
-  private limpiarCacheAgencias(): void {
+  limpiarCacheAgencias(): void {
     try {
       localStorage.removeItem(this.STORAGE_KEY_AGENCIAS);
       localStorage.removeItem(this.STORAGE_KEY_AGENCIAS_TIMESTAMP);

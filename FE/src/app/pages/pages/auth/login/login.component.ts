@@ -16,6 +16,7 @@ import { NgIf } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService, AuthResponse } from '../../../../core/services/auth.service';
+import { DefaultAgencyService } from '../../../../core/services/default-agency.service';
 import { UpdateEmailDialogComponent } from './update-email-dialog.component';
 import { BrandingService } from '../../../../core/services/branding.service';
 import { AsyncPipe } from '@angular/common';
@@ -60,6 +61,7 @@ export class LoginComponent {
     private readonly fb: FormBuilder,
     private readonly router: Router,
     private readonly authService: AuthService,
+    private readonly defaultAgencyService: DefaultAgencyService,
     private readonly snackBar: MatSnackBar,
     private readonly cdr: ChangeDetectorRef,
     private readonly dialog: MatDialog,
@@ -92,25 +94,16 @@ export class LoginComponent {
               duration: 3000
             });
             
-            // Esperar un momento para asegurar que los datos de autenticación estén guardados
-            // antes de navegar (evita problemas de timing con el interceptor)
-            setTimeout(() => {
-              // Verificar que el token esté disponible antes de navegar
-              const token = this.authService.getToken();
-              if (token && this.authService.isAuthenticated()) {
-                this.router.navigate(['/']).then(() => {
-
-                }).catch(error => {
-
-                });
-              } else {
-
-                // Si el token no está disponible aún, esperar un poco más
-                setTimeout(() => {
-                  this.router.navigate(['/']);
-                }, 200);
+            // Forzar actualización del cache de agencias para el usuario actual
+            this.defaultAgencyService.obtenerAgencias(true).subscribe({
+              next: () => {
+                this.router.navigate(['/']);
+              },
+              error: () => {
+                // Si falla la carga de agencias, navegar igual (se cargarán después)
+                this.router.navigate(['/']);
               }
-            }, 100);
+            });
           } else {
             this.snackBar.open(response.message || 'Error en el inicio de sesión', 'Error', {
               duration: 5000
