@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
@@ -73,6 +73,55 @@ export class ConsolidacionDmsService {
         }
         return { data: list, raw: response };
       }),
+      catchError(() => of({ data: [] }))
+    );
+  }
+
+  /**
+   * Obtener pedidos del DMS para múltiples agencias (un solo mes/año).
+   * Cada fila incluye el campo `agencyName` para mostrar en la tabla.
+   */
+  getPedidosDmsMultiAgencias(
+    agencies: { idAgency: number | string; name: string }[],
+    deliveryMonth: number,
+    deliveryYear: number
+  ): Observable<{ data: PedidoDms[] }> {
+    if (!agencies || agencies.length === 0) {
+      return of({ data: [] });
+    }
+    const requests = agencies.map(a =>
+      this.getPedidosDms(a.idAgency, deliveryMonth, deliveryYear).pipe(
+        map(({ data }) =>
+          data.map(row => ({ ...row, agencyName: a.name }))
+        )
+      )
+    );
+    return forkJoin(requests).pipe(
+      map(results => ({
+        data: results.reduce((acc, rows) => acc.concat(rows), [])
+      })),
+      catchError(() => of({ data: [] }))
+    );
+  }
+
+  /**
+   * Obtener pedidos del DMS para múltiples agencias y varios periodos (mes/año).
+   * Combina los resultados de todos los periodos.
+   */
+  getPedidosDmsMultiAgenciasForPeriods(
+    agencies: { idAgency: number | string; name: string }[],
+    periods: { month: number; year: number }[]
+  ): Observable<{ data: PedidoDms[] }> {
+    if (!agencies || agencies.length === 0 || !periods || periods.length === 0) {
+      return of({ data: [] });
+    }
+    const requests = periods.map(({ month, year }) =>
+      this.getPedidosDmsMultiAgencias(agencies, month, year)
+    );
+    return forkJoin(requests).pipe(
+      map(results => ({
+        data: results.reduce((acc, r) => acc.concat(r.data), [] as PedidoDms[])
+      })),
       catchError(() => of({ data: [] }))
     );
   }

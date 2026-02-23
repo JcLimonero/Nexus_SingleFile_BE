@@ -7,7 +7,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,6 +19,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service';
 
@@ -28,6 +33,7 @@ import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service'
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -38,6 +44,11 @@ import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service'
   MatIconModule,
   MatSnackBarModule,
   MatTooltipModule,
+  MatMenuModule,
+  MatCheckboxModule,
+  MatDatepickerModule,
+  MatNativeDateModule,
+  MatInputModule,
 ],
   templateUrl: './consolidacion-dms.component.html',
   styleUrl: './consolidacion-dms.component.scss',
@@ -51,12 +62,26 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   loading = false;
   loadingAgencias = false;
   agencias: Agencia[] = [];
-  selectedAgencyId: number | null = null;
+  selectedAgencyIds: number[] = [];
 
-  // Filtro mes/año (default: mes actual)
+  // Filtro de período
   private now = new Date();
-  selectedMonth: number = this.now.getMonth() + 1; // 1-12
-  selectedYear: number = this.now.getFullYear();
+  periodPreset: 'mes_actual' | 'mes_anterior' | 'ultimos_2' | 'ultimos_3' | 'este_anio' | 'rango' = 'mes_actual';
+
+  // Solo para rango personalizado: un solo control de rango de fechas
+  rangeDateGroup = new FormGroup({
+    start: new FormControl<Date | null>(new Date(this.now.getFullYear(), this.now.getMonth(), 1)),
+    end: new FormControl<Date | null>(new Date(this.now.getFullYear(), this.now.getMonth() + 1, 0))
+  });
+
+  periodPresets: { value: 'mes_actual' | 'mes_anterior' | 'ultimos_2' | 'ultimos_3' | 'este_anio' | 'rango'; label: string }[] = [
+    { value: 'mes_actual', label: 'Mes actual' },
+    { value: 'mes_anterior', label: 'Mes anterior' },
+    { value: 'ultimos_2', label: 'Últimos 2 meses' },
+    { value: 'ultimos_3', label: 'Últimos 3 meses' },
+    { value: 'este_anio', label: 'Este año (ene-act)' },
+    { value: 'rango', label: 'Rango personalizado' },
+  ];
 
   meses: { value: number; label: string }[] = [
     { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
@@ -65,6 +90,21 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     { value: 10, label: 'Octubre' }, { value: 11, label: 'Noviembre' }, { value: 12, label: 'Diciembre' }
   ];
   anios: number[] = [];
+
+  // Filtros adicionales (se aplican sobre los datos ya cargados)
+  filterEstatus: number | null = null;
+  private fullData: PedidoDms[] = [];
+
+  estatusOptions: { value: number | null; label: string }[] = [
+    { value: null, label: 'Todos' },
+    { value: 0, label: 'Sin Integrar' },
+    { value: 1, label: 'Integración' },
+    { value: 2, label: 'Liquidación' },
+    { value: 3, label: 'Liberación' },
+    { value: 4, label: 'Liberado' },
+    { value: 5, label: 'Cancelado' },
+    { value: 6, label: 'Liberado por Excepción' },
+  ];
 
   displayedColumns: string[] = [];
   dataSource = new MatTableDataSource<PedidoDms>([]);
@@ -101,6 +141,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     'timestamp_dms': 'Fecha DMS',
     'timestampDMS': 'Fecha DMS',
     'TimestampDMS': 'Fecha DMS',
+    'agencyName': 'Agencia',
   };
 
   constructor(
@@ -136,7 +177,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
           // Seleccionar por defecto la agencia guardada en localStorage
           const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
           if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
-            this.selectedAgencyId = savedAgencyId;
+            this.selectedAgencyIds = [savedAgencyId];
           }
           this.loadingAgencias = false;
           this.cdr.markForCheck();
@@ -149,46 +190,195 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       });
   }
 
-  onAgenciaChange(): void {
-    this.cargarPedidos();
+  get isAllAgenciesSelected(): boolean {
+    return this.agencias.length > 0 && this.selectedAgencyIds.length === this.agencias.length;
   }
 
-  get selectedAgency(): Agencia | undefined {
-    if (this.selectedAgencyId == null) return undefined;
-    return this.agencias.find((a) => a.Id === this.selectedAgencyId);
+  get isSomeAgenciesSelected(): boolean {
+    return this.selectedAgencyIds.length > 0 && this.selectedAgencyIds.length < this.agencias.length;
+  }
+
+  toggleTodos(checked: boolean): void {
+    if (checked) {
+      this.selectedAgencyIds = this.agencias.map(a => a.Id);
+    } else {
+      this.selectedAgencyIds = [];
+      this.dataSource.data = [];
+      this.displayedColumns = [];
+    }
+    this.cdr.markForCheck();
+  }
+
+  toggleAgency(agencyId: number, checked: boolean): void {
+    if (checked) {
+      if (!this.selectedAgencyIds.includes(agencyId)) {
+        this.selectedAgencyIds = [...this.selectedAgencyIds, agencyId];
+      }
+    } else {
+      this.selectedAgencyIds = this.selectedAgencyIds.filter(id => id !== agencyId);
+      if (this.selectedAgencyIds.length === 0) {
+        this.dataSource.data = [];
+        this.displayedColumns = [];
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  isAgencySelected(agencyId: number): boolean {
+    return this.selectedAgencyIds.includes(agencyId);
+  }
+
+  get selectedAgencies(): Agencia[] {
+    return this.agencias.filter(a => this.selectedAgencyIds.includes(a.Id));
+  }
+
+  aplicarFiltros(): void {
+    let filtered = [...this.fullData];
+    if (this.filterEstatus != null) {
+      if (this.filterEstatus === 0) {
+        // Sin Integrar: state null, vacío, 0 o NaN
+        filtered = filtered.filter(row => {
+          const v = row['state'] ?? row['State'];
+          if (v == null || v === '') return true;
+          const num = typeof v === 'number' ? v : parseInt(String(v), 10);
+          return Number.isNaN(num) || num === 0;
+        });
+      } else {
+        filtered = filtered.filter(row => {
+          const v = row['state'] ?? row['State'];
+          const num = typeof v === 'number' ? v : parseInt(String(v), 10);
+          return !Number.isNaN(num) && num === this.filterEstatus;
+        });
+      }
+    }
+    this.dataSource.data = filtered;
+    if (filtered.length > 0 && this.displayedColumns.length === 0) {
+      this.displayedColumns = this.buildColumns(filtered[0], true);
+    } else if (filtered.length === 0) {
+      this.displayedColumns = this.fullData.length > 0 ? this.buildColumns(this.fullData[0], true) : [];
+    }
+    this.cdr.markForCheck();
+  }
+
+  onFilterChange(): void {
+    this.aplicarFiltros();
+  }
+
+  /** Devuelve la lista de periodos (mes, año) a consultar según el preset o rango seleccionado. */
+  private getPeriodsToFetch(): { month: number; year: number }[] {
+    const periods: { month: number; year: number }[] = [];
+    const y = this.now.getFullYear();
+    const m = this.now.getMonth() + 1; // 1-12
+
+    switch (this.periodPreset) {
+      case 'mes_actual':
+        periods.push({ month: m, year: y });
+        break;
+      case 'mes_anterior': {
+        const prev = new Date(y, this.now.getMonth() - 1);
+        periods.push({ month: prev.getMonth() + 1, year: prev.getFullYear() });
+        break;
+      }
+      case 'ultimos_2': {
+        for (let i = 1; i >= 0; i--) {
+          const d = new Date(y, this.now.getMonth() - i);
+          periods.push({ month: d.getMonth() + 1, year: d.getFullYear() });
+        }
+        break;
+      }
+      case 'ultimos_3': {
+        for (let i = 2; i >= 0; i--) {
+          const d = new Date(y, this.now.getMonth() - i);
+          periods.push({ month: d.getMonth() + 1, year: d.getFullYear() });
+        }
+        break;
+      }
+      case 'este_anio': {
+        for (let i = 0; i <= this.now.getMonth(); i++) {
+          const d = new Date(y, i);
+          periods.push({ month: d.getMonth() + 1, year: d.getFullYear() });
+        }
+        break;
+      }
+      case 'rango': {
+        const start = this.rangeDateGroup.value.start;
+        const end = this.rangeDateGroup.value.end;
+        if (!start || !end || start > end) break;
+        const from = start.getFullYear() * 12 + start.getMonth();
+        const to = end.getFullYear() * 12 + end.getMonth();
+        for (let ym = from; ym <= to; ym++) {
+          const year = Math.floor(ym / 12);
+          const month = (ym % 12) + 1;
+          periods.push({ month, year });
+        }
+        break;
+      }
+    }
+    return periods;
+  }
+
+  get periodLabel(): string {
+    const periods = this.getPeriodsToFetch();
+    if (periods.length === 0) return 'Sin período';
+    if (periods.length === 1) {
+      const m = this.meses.find(x => x.value === periods[0].month);
+      return `${m?.label ?? periods[0].month} ${periods[0].year}`;
+    }
+    const first = periods[0];
+    const last = periods[periods.length - 1];
+    const m1 = this.meses.find(x => x.value === first.month);
+    const m2 = this.meses.find(x => x.value === last.month);
+    return `${m1?.label ?? first.month}/${first.year} - ${m2?.label ?? last.month}/${last.year}`;
   }
 
   cargarPedidos(): void {
-    const agencia = this.selectedAgency;
-    if (!agencia || !agencia['IdAgency']) {
+    const selected = this.selectedAgencies.filter(a => a['IdAgency']);
+    if (selected.length === 0) {
       this.dataSource.data = [];
       this.displayedColumns = [];
       this.cdr.markForCheck();
-      if (this.selectedAgencyId != null) {
-        this.snackBar.open('La agencia seleccionada no tiene IdAgency configurado', 'Cerrar', {
+      if (this.selectedAgencyIds.length > 0) {
+        this.snackBar.open('Las agencias seleccionadas no tienen IdAgency configurado', 'Cerrar', {
           duration: 3000,
         });
       }
       return;
     }
 
+    this.cargarPedidosMultiAgencias(selected);
+  }
+
+  private cargarPedidosMultiAgencias(selected: Agencia[]): void {
+    const agenciesWithId = selected
+      .filter(a => a['IdAgency'])
+      .map(a => ({ idAgency: a['IdAgency'], name: a.Name || '' }));
+    if (agenciesWithId.length === 0) {
+      this.snackBar.open('No hay agencias con IdAgency configurado', 'Cerrar', { duration: 3000 });
+      return;
+    }
     this.loading = true;
     this.cdr.markForCheck();
+    const periods = this.getPeriodsToFetch();
+    if (periods.length === 0) {
+      this.snackBar.open('Seleccione un rango de fechas válido', 'Cerrar', { duration: 3000 });
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
     this.consolidacionDmsService
-      .getPedidosDms(agencia['IdAgency'], this.selectedMonth, this.selectedYear)
+      .getPedidosDmsMultiAgenciasForPeriods(agenciesWithId, periods)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ data }) => {
           this.loading = false;
-          this.dataSource.data = data || [];
-          if (this.dataSource.data.length > 0) {
-            this.displayedColumns = this.buildColumns(this.dataSource.data[0]);
-          } else {
-            this.displayedColumns = [];
+          this.fullData = data || [];
+          this.aplicarFiltros();
+          if (this.displayedColumns.length === 0 && this.fullData.length > 0) {
+            this.displayedColumns = this.buildColumns(this.fullData[0], true);
           }
           this.dataSource.paginator = this.paginator;
           this.cdr.markForCheck();
-          this.snackBar.open(`${this.dataSource.data.length} pedidos del DMS`, 'Cerrar', {
+          this.snackBar.open(`${this.fullData.length} pedidos del DMS (${selected.length} agencias)`, 'Cerrar', {
             duration: 2000,
           });
         },
@@ -202,9 +392,10 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       });
   }
 
-  private buildColumns(row: PedidoDms): string[] {
+  private buildColumns(row: PedidoDms, includeAgencyColumn: boolean): string[] {
     // Columnas preferidas en orden específico
     const preferred = [
+      ...(includeAgencyColumn ? ['agencyName'] as const : []),
       'order_dms',
       'orderDMS',
       'OrderDMS',
@@ -239,6 +430,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     // Filtrar columnas que no queremos mostrar
     const excludedColumns = [
       'idAgency', 'IdAgency', 'idagency', 'IDAgency',
+      ...(includeAgencyColumn ? [] : ['agencyName']),
       'delivery_month', 'delivery_year',
       'timestamp_dms_month', 'timestamp_dms_year',
     ];
@@ -320,9 +512,11 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
 
       let nombreAgencia = 'consolidacion_dms';
-      const agencia = this.selectedAgency;
-      if (agencia && agencia['Name']) {
-        nombreAgencia = String(agencia['Name']).replace(/[^a-zA-Z0-9]/g, '_');
+      const sel = this.selectedAgencies;
+      if (sel.length > 1) {
+        nombreAgencia = 'consolidacion_dms_multi_agencias';
+      } else if (sel.length === 1 && sel[0]['Name']) {
+        nombreAgencia = String(sel[0]['Name']).replace(/[^a-zA-Z0-9]/g, '_');
       }
       const fechaDescarga = new Date().toISOString().split('T')[0];
       const nombreArchivo = `consolidacion_dms_${nombreAgencia}_${fechaDescarga}.csv`;

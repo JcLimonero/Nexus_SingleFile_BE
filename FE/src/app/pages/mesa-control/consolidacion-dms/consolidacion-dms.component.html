@@ -6,42 +6,70 @@
 
   <mat-card class="filtro-card mb-4">
     <mat-card-content>
-      <div class="flex flex-wrap items-center gap-4" style="align-items: baseline;">
-        <mat-form-field appearance="outline" class="w-64">
-          <mat-label>Agencia</mat-label>
-          <mat-select
-            [(ngModel)]="selectedAgencyId"
+      <div class="filtro-row">
+        <div class="agencia-select-wrapper filtro-field">
+          <label class="agencia-select-label">Agencia</label>
+          <button
+            mat-stroked-button
+            type="button"
+            [matMenuTriggerFor]="agenciaMenu"
             [disabled]="loadingAgencias || agencias.length === 0"
-            (selectionChange)="onAgenciaChange()">
-            <mat-option [value]="null">Seleccione agencia</mat-option>
-            <mat-option *ngIf="loadingAgencias" [value]="null" disabled>
-              <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
-              Cargando agencias...
-            </mat-option>
-            <mat-option *ngIf="!loadingAgencias && agencias.length === 0" [value]="null" disabled>
-              No hay agencias disponibles
-            </mat-option>
-            <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
-              {{ agencia.Name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-40">
-          <mat-label>Mes</mat-label>
-          <mat-select [(ngModel)]="selectedMonth">
-            <mat-option *ngFor="let m of meses" [value]="m.value">{{ m.label }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-32">
-          <mat-label>A&#241;o</mat-label>
-          <mat-select [(ngModel)]="selectedYear">
-            <mat-option *ngFor="let y of anios" [value]="y">{{ y }}</mat-option>
+            class="agencia-select-trigger">
+            <span class="agencia-select-text">
+              {{ loadingAgencias ? 'Cargando...' : (agencias.length === 0 ? 'No hay agencias' : (selectedAgencyIds.length === 0 ? 'Seleccione agencias' : (selectedAgencyIds.length === agencias.length ? 'Todas las agencias' : selectedAgencyIds.length + ' agencia(s)'))) }}
+            </span>
+            <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+        </div>
+        <mat-menu #agenciaMenu="matMenu" class="agencia-multi-select-menu">
+          <div class="px-3 py-2 border-b border-gray-200" (click)="$event.stopPropagation()">
+            <mat-checkbox
+              [checked]="isAllAgenciesSelected"
+              [indeterminate]="isSomeAgenciesSelected"
+              (change)="toggleTodos($event.checked)"
+              (click)="$event.stopPropagation()">
+              Todos
+            </mat-checkbox>
+          </div>
+          <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
+            <div *ngFor="let agencia of agencias" class="px-3 py-1">
+              <mat-checkbox
+                [checked]="isAgencySelected(agencia.Id)"
+                (change)="toggleAgency(agencia.Id, $event.checked)"
+                (click)="$event.stopPropagation()">
+                {{ agencia.Name }}
+              </mat-checkbox>
+            </div>
+          </div>
+        </mat-menu>
+        <div class="periodo-select-wrapper filtro-field">
+          <mat-form-field appearance="outline" class="filtro-field filtro-periodo-preset" subscriptSizing="dynamic">
+            <mat-label>Período</mat-label>
+            <mat-select [(ngModel)]="periodPreset" name="periodPreset">
+              <mat-option *ngFor="let p of periodPresets" [value]="p.value">{{ p.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field *ngIf="periodPreset === 'rango'" appearance="outline" class="filtro-field filtro-rango-fechas" subscriptSizing="dynamic">
+            <mat-label>Rango de fechas</mat-label>
+            <mat-date-range-input [formGroup]="rangeDateGroup" [rangePicker]="rangePicker">
+              <input matStartDate formControlName="start" placeholder="Inicio" (click)="rangePicker.open()">
+              <input matEndDate formControlName="end" placeholder="Fin" (click)="rangePicker.open()">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangePicker></mat-date-range-picker>
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="filtro-field filtro-estatus" subscriptSizing="dynamic">
+          <mat-label>Estatus</mat-label>
+          <mat-select [(ngModel)]="filterEstatus" name="estatus" (selectionChange)="onFilterChange()">
+            <mat-option *ngFor="let opt of estatusOptions" [value]="opt.value">{{ opt.label }}</mat-option>
           </mat-select>
         </mat-form-field>
         <button
           mat-raised-button
           color="primary"
-          [disabled]="loading || selectedAgencyId == null"
+          class="filtro-btn"
+          [disabled]="loading || selectedAgencyIds.length === 0"
           (click)="cargarPedidos()">
           <mat-icon *ngIf="!loading">refresh</mat-icon>
           <mat-spinner *ngIf="loading" diameter="20" class="inline-block align-middle"></mat-spinner>
@@ -50,6 +78,7 @@
         <button
           mat-stroked-button
           color="primary"
+          class="filtro-btn"
           [disabled]="dataSource.data.length === 0 || exportingExcel"
           (click)="exportarExcel()"
           matTooltip="Exportar a Excel"
@@ -66,7 +95,7 @@
     <mat-card-content>
       <div *ngIf="displayedColumns.length === 0" class="py-8 text-center text-gray-500">
         <mat-icon class="block mx-auto mb-2 text-4xl">inbox</mat-icon>
-        Seleccione una agencia y pulse «Cargar pedidos» para ver los pedidos del DMS.
+        Seleccione una o más agencias y pulse «Cargar pedidos» para ver los pedidos del DMS.
       </div>
       <div *ngIf="displayedColumns.length > 0" class="table-container overflow-x-auto">
         <table mat-table [dataSource]="dataSource" class="w-full">
