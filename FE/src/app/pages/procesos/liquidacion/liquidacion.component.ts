@@ -397,7 +397,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
 
     // Buscar clientes sin filtrar por estado (igual que en integración)
     // El filtro de estado (liquidación) se aplica al cargar los pedidos, no al buscar clientes
-    this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
+    this.clientSearchService.searchOrGetById(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
@@ -521,7 +521,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     }
 
     // Buscar el cliente por ndCliente
-    this.clientSearchService.searchClients(this.selectedAgency.IdAgency, idCliente, 50)
+    this.clientSearchService.searchOrGetById(this.selectedAgency.IdAgency, idCliente, 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {

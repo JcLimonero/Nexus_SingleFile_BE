@@ -325,7 +325,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.clientsLoading = true;
     this.showClientResults = true;
 
-    this.clientSearchService.searchClients(
+    this.clientSearchService.searchOrGetById(
       this.selectedAgencyId!,
       this.clientSearchTerm.trim(),
       50,
@@ -422,7 +422,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     }
 
     // Buscar el cliente por ndCliente
-    this.clientSearchService.searchClients(this.selectedAgency.IdAgency, idCliente, 50, this.LIBERACION_STATE_ID)
+    this.clientSearchService.searchOrGetById(this.selectedAgency.IdAgency, idCliente, 50, this.LIBERACION_STATE_ID)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {

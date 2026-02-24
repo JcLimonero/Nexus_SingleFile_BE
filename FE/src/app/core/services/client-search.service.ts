@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface ClientSearchResult {
@@ -87,13 +88,43 @@ export class ClientSearchService {
   }
 
   /**
+   * Busca clientes: si el término es numérico puro, usa búsqueda exacta por ID (getClientById);
+   * si no, usa búsqueda parcial (searchClients). Evita coincidencias parciales al buscar por ID (ej. "38" no devuelve 138, 380).
+   */
+  searchOrGetById(
+    idAgency: number,
+    searchTerm: string,
+    limit: number = 50,
+    statusId?: number
+  ): Observable<ClientSearchResponse> {
+    const trimmed = searchTerm.trim();
+    if (/^\d+$/.test(trimmed)) {
+      const id = parseInt(trimmed, 10);
+      return this.getClientById(id, idAgency).pipe(
+        map((r: any) => {
+          const cliente = r?.data?.cliente;
+          return {
+            success: r?.success ?? false,
+            message: r?.message ?? '',
+            data: {
+              clientes: cliente ? [cliente] : [],
+              total: cliente ? 1 : 0,
+            },
+          };
+        })
+      );
+    }
+    return this.searchClients(idAgency, searchTerm, limit, statusId);
+  }
+
+  /**
    * Buscar clientes por número de cliente específico
    * @param idAgency ID de la agencia
    * @param clientNumber Número de cliente
    * @returns Observable con los resultados
    */
   searchByClientNumber(idAgency: number, clientNumber: string, statusId?: number): Observable<ClientSearchResponse> {
-    return this.searchClients(idAgency, clientNumber, 10, statusId);
+    return this.searchOrGetById(idAgency, clientNumber, 10, statusId);
   }
 
   /**
