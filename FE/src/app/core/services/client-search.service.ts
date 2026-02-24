@@ -113,7 +113,8 @@ export class ClientSearchService {
           };
         }),
         catchError((err) => {
-          // 404 = cliente no encontrado: devolver vacío para que el flujo llame a Vanguardia
+          // IMPORTANTE: NO ELIMINAR NI MOVER. 404 = cliente no encontrado en SingleFile:
+          // devolver vacío para que performClientSearch llame a searchClientInVanguardia (API apisvanguardia).
           if (err?.status === 404) {
             return of({
               success: true,
