@@ -54,7 +54,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   searchTerm = '';
   statusFilter = '';
   
-  displayedColumns: string[] = ['Id', 'IdAgency', 'Name', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['Id', 'IdAgency', 'Name', 'Enabled'];
   
   loading = false;
 

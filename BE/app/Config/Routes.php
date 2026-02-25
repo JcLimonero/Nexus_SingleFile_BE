@@ -63,6 +63,12 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('force-migration', 'PasswordManager::forceMigration');
     });
     
+    // Rutas de compañías
+    $routes->group('company', function($routes) {
+        $routes->get('/', 'Company::index');
+        $routes->post('/', 'Company::create');
+    });
+
     // Rutas de agencias
     $routes->group('agency', function($routes) {
         $routes->get('/', 'Agency::index');

@@ -21,6 +21,11 @@ $filtro-control-height: calc(56px * 0.7);
     min-width: 120px;
   }
 
+  &.filtro-compania {
+    width: 180px;
+    min-width: 180px;
+  }
+
   &.filtro-periodo-preset {
     width: 180px;
     min-width: 180px;
@@ -95,16 +100,18 @@ $filtro-control-height: calc(56px * 0.7);
   }
 
   .agencia-select-trigger {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
     justify-content: space-between;
     width: 100%;
-    height: $filtro-control-height;
-    padding: 0 16px;
+    height: $filtro-control-height !important;
+    min-height: $filtro-control-height !important;
+    padding: 0 16px !important;
     margin: 0;
     text-align: left;
     font-weight: 400;
     font-size: 14px;
+    line-height: 1 !important;
     border: 1px solid rgba(0, 0, 0, 0.38);
     border-radius: 4px;
     background: white;
@@ -122,6 +129,9 @@ $filtro-control-height: calc(56px * 0.7);
       font-size: 14px;
       font-weight: 400;
       text-align: left;
+      display: flex;
+      align-items: center;
+      line-height: 1;
     }
 
     mat-icon {

@@ -88,6 +88,12 @@ export class NavigationLoaderService {
             label: 'Validación',
             route: '/mesa-control/validacion',
             icon: 'mat:verified'
+          },
+          {
+            type: 'link',
+            label: 'Clientes',
+            route: '/mesa-control/clientes',
+            icon: 'mat:people'
           }
         ]
       },

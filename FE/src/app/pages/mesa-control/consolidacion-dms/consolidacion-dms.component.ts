@@ -25,6 +25,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
+import { CompanyService, Company } from '../../../core/services/company.service';
 import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service';
 
 @Component({
@@ -62,6 +63,8 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   loading = false;
   loadingAgencias = false;
   agencias: Agencia[] = [];
+  companies: Company[] = [];
+  filterCompania: number | null = null; // Filtro por compañía (agrupa agencias)
   selectedAgencyIds: number[] = [];
 
   // Filtro de período
@@ -147,6 +150,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private defaultAgencyService: DefaultAgencyService,
+    private companyService: CompanyService,
     private consolidacionDmsService: ConsolidacionDmsService,
     private snackBar: MatSnackBar
   ) {}
@@ -158,6 +162,57 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       this.anios.push(y);
     }
     this.cargarAgencias();
+    this.cargarCompanias();
+  }
+
+  private cargarCompanias(): void {
+    this.companyService.getCompanies().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        if (res.success && res.data?.companies) {
+          const raw = res.data.companies as unknown as Array<Record<string, unknown>>;
+          this.companies = raw.map((c) => ({
+            Id: (c['Id'] ?? c['id']) as number,
+            Name: String(c['Name'] ?? c['name'] ?? c['company_name'] ?? '')
+          }));
+          this.cdr.markForCheck();
+        }
+      }
+    });
+  }
+
+  /** Obtiene el nombre de una compañía (soporta distintas claves del API) */
+  getCompanyName(c: Company): string {
+    const rec = c as unknown as Record<string, unknown>;
+    const raw = rec['Name'] ?? rec['name'] ?? rec['company_name'];
+    return raw != null ? String(raw) : '';
+  }
+
+  /** Obtiene el ID de una compañía (soporta distintas claves del API) */
+  getCompanyId(c: Company): number {
+    const rec = c as unknown as Record<string, unknown>;
+    const raw = rec['Id'] ?? rec['id'];
+    return typeof raw === 'number' ? raw : Number(raw) || 0;
+  }
+
+  /** Agencias filtradas por compañía seleccionada */
+  get agenciasFiltradas(): Agencia[] {
+    if (!this.filterCompania) return this.agencias;
+    const idComp = Number(this.filterCompania);
+    return this.agencias.filter(a => {
+      const aId = a['IdCompany'] ?? a['id_company'] ?? a['idCompany'];
+      if (aId == null || aId === '') return false;
+      return Number(aId) === idComp;
+    });
+  }
+
+  /** Texto del botón selector de agencias */
+  get agenciaSelectorLabel(): string {
+    if (this.loadingAgencias) return 'Cargando...';
+    const list = this.agenciasFiltradas;
+    if (list.length === 0) return this.filterCompania ? 'Sin agencias en esta compañía' : 'No hay agencias';
+    if (this.selectedAgencyIds.length === 0) return 'Seleccione agencias';
+    const allSelected = list.every(a => this.selectedAgencyIds.includes(a.Id)) && this.selectedAgencyIds.length === list.length;
+    return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
   }
 
   ngOnDestroy(): void {
@@ -168,8 +223,9 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   private cargarAgencias(): void {
     this.loadingAgencias = true;
     this.cdr.markForCheck();
+    // forceRefresh para asegurar IdCompany (evita cache antiguo sin compañía)
     this.defaultAgencyService
-      .obtenerAgencias()
+      .obtenerAgencias(true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (lista) => {
@@ -191,20 +247,28 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   }
 
   get isAllAgenciesSelected(): boolean {
-    return this.agencias.length > 0 && this.selectedAgencyIds.length === this.agencias.length;
+    const list = this.agenciasFiltradas;
+    return list.length > 0 && list.every(a => this.selectedAgencyIds.includes(a.Id));
   }
 
   get isSomeAgenciesSelected(): boolean {
-    return this.selectedAgencyIds.length > 0 && this.selectedAgencyIds.length < this.agencias.length;
+    const list = this.agenciasFiltradas;
+    const selectedInList = list.filter(a => this.selectedAgencyIds.includes(a.Id)).length;
+    return selectedInList > 0 && selectedInList < list.length;
   }
 
   toggleTodos(checked: boolean): void {
+    const list = this.agenciasFiltradas;
     if (checked) {
-      this.selectedAgencyIds = this.agencias.map(a => a.Id);
+      const idsToAdd = list.map(a => a.Id).filter(id => !this.selectedAgencyIds.includes(id));
+      this.selectedAgencyIds = [...this.selectedAgencyIds, ...idsToAdd];
     } else {
-      this.selectedAgencyIds = [];
-      this.dataSource.data = [];
-      this.displayedColumns = [];
+      const idsToRemove = list.map(a => a.Id);
+      this.selectedAgencyIds = this.selectedAgencyIds.filter(id => !idsToRemove.includes(id));
+      if (this.selectedAgencyIds.length === 0) {
+        this.dataSource.data = [];
+        this.displayedColumns = [];
+      }
     }
     this.cdr.markForCheck();
   }
@@ -262,6 +326,21 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   onFilterChange(): void {
     this.aplicarFiltros();
+  }
+
+  limpiarFiltros(): void {
+    this.filterCompania = null;
+    this.selectedAgencyIds = [];
+    this.periodPreset = 'mes_actual';
+    this.rangeDateGroup.setValue({
+      start: new Date(this.now.getFullYear(), this.now.getMonth(), 1),
+      end: new Date(this.now.getFullYear(), this.now.getMonth() + 1, 0)
+    });
+    this.filterEstatus = null;
+    this.dataSource.data = [];
+    this.displayedColumns = [];
+    this.fullData = [];
+    this.cdr.markForCheck();
   }
 
   /** Devuelve la lista de periodos (mes, año) a consultar según el preset o rango seleccionado. */
