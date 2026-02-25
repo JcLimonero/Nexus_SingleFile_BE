@@ -188,6 +188,39 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.snackBar.open(`Descargando archivo para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
   }
 
+  onImprimirIdentificacion(cliente: any): void {
+    this.validacionService.imprimirIdentificacionCliente(cliente.idFile)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `identificacion_cliente_${(cliente.cliente || cliente.idFile).toString().replace(/[^a-zA-Z0-9_-]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          this.snackBar.open('Identificación descargada correctamente', 'Cerrar', { duration: 3000 });
+        },
+        error: (err) => {
+          let msg = 'Error al generar la identificación';
+          if (err?.error instanceof Blob) {
+            err.error.text().then((text: string) => {
+              try {
+                const json = JSON.parse(text);
+                msg = json?.message || msg;
+              } catch {
+                // usar msg por defecto
+              }
+              this.snackBar.open(msg, 'Cerrar', { duration: 5000 });
+            });
+          } else {
+            msg = err?.error?.message || err?.message || msg;
+            this.snackBar.open(msg, 'Cerrar', { duration: 5000 });
+          }
+        }
+      });
+  }
+
   /**
    * Validar documento - abrir dialog para aprobar/rechazar
    */

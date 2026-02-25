@@ -431,6 +431,16 @@ export class ValidacionService {
   }
 
   /**
+   * Imprimir identificación de cliente - genera y descarga PDF vía PDF Generator API
+   */
+  imprimirIdentificacionCliente(idFile: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/api/clients-validation/imprimir-identificacion`, {
+      params: { idFile: idFile.toString() },
+      responseType: 'blob'
+    });
+  }
+
+  /**
    * Obtener estadísticas
    */
   obtenerEstadisticas(filtros: FiltrosValidacion = {}): Observable<any> {

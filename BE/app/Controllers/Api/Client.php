@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
+use Config\AML;
 
 class Client extends BaseController
 {
@@ -12,6 +13,217 @@ class Client extends BaseController
     public function __construct()
     {
         $this->db = \Config\Database::connect();
+    }
+
+    /**
+     * Listar clientes con expediente para módulo Mesa de Control > Clientes.
+     * Solo gerentes (6) y administradores (7). Solo clientes que tengan al menos un File.
+     * GET /api/client/list
+     * Params: search (cliente/ndCliente), idAgency (opcional), limit, offset
+     */
+    public function list()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido'
+                ])->setStatusCode(401);
+            }
+
+            $roleId = (int) ($currentUser['role_id'] ?? 0);
+            if (!in_array($roleId, [6, 7], true)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Acceso denegado. Solo gerentes y administradores pueden ver este módulo.'
+                ])->setStatusCode(403);
+            }
+
+            $search = trim((string) $this->request->getGet('search'));
+            $idAgency = $this->request->getGet('idAgency');
+            $limit = (int) ($this->request->getGet('limit') ?: 100);
+            $offset = (int) ($this->request->getGet('offset') ?: 0);
+            $limit = max(1, min(500, $limit));
+            $offset = max(0, $offset);
+
+            $amlConfig = config(AML::class);
+            $umbral = (float) $amlConfig->umbralAnualPorCompania;
+            $vistaAML = $amlConfig->vistaMontos;
+            $anioActual = (int) date('Y');
+
+            $sql = "
+                SELECT
+                    c.Id as idCliente,
+                    MIN(ctr.IdTotalDealer) as ndCliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
+                    MIN(hc.Id) as idHeaderClient,
+                    (aml.idCliente IS NOT NULL) as excedeUmbralAML
+                FROM Client c
+                INNER JOIN HeaderClient hc ON hc.IdClient = c.Id
+                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+                INNER JOIN File f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                LEFT JOIN (
+                    SELECT DISTINCT idCliente
+                    FROM {$vistaAML}
+                    WHERE anio = ? AND totalMonto >= ?
+                ) aml ON aml.idCliente = c.Id
+                WHERE 1=1
+            ";
+            $params = [$anioActual, $umbral];
+
+            if ($idAgency !== null && $idAgency !== '') {
+                $sql .= " AND ctr.IdAgency = ?";
+                $params[] = (int) $idAgency;
+            }
+
+            if ($search !== '') {
+                $pattern = "%{$search}%";
+                $sql .= " AND (
+                    ctr.IdTotalDealer LIKE ?
+                    OR c.RazonSocial LIKE ?
+                    OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
+                    OR c.Name LIKE ?
+                    OR c.LastName LIKE ?
+                    OR c.MotherLastName LIKE ?
+                )";
+                $params[] = $pattern;
+                $params[] = $pattern;
+                $params[] = $pattern;
+                $params[] = $pattern;
+                $params[] = $pattern;
+                $params[] = $pattern;
+            }
+
+            $sql .= " GROUP BY c.Id";
+
+            $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
+            $countQuery = $this->db->query($countSql, $params);
+            $total = (int) ($countQuery->getRow()->total ?? 0);
+
+            $sql .= " ORDER BY cliente ASC LIMIT ? OFFSET ?";
+            $params[] = $limit;
+            $params[] = $offset;
+
+            $query = $this->db->query($sql, $params);
+            $clientes = $query->getResultArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Clientes obtenidos exitosamente',
+                'data' => [
+                    'clientes' => $clientes,
+                    'total' => $total,
+                    'limit' => $limit,
+                    'offset' => $offset
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Client::list - " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Obtener expedientes de un cliente agrupados por Cliente/Compañía/Agencia.
+     * GET /api/client/:idHeaderClient/expedientes
+     */
+    public function expedientes($idHeaderClient = null)
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido'
+                ])->setStatusCode(401);
+            }
+
+            $roleId = (int) ($currentUser['role_id'] ?? 0);
+            if (!in_array($roleId, [6, 7], true)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Acceso denegado.'
+                ])->setStatusCode(403);
+            }
+
+            if (!$idHeaderClient) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'ID de HeaderClient requerido'
+                ])->setStatusCode(400);
+            }
+
+            $idHeaderClient = (int) $idHeaderClient;
+
+            $sql = "
+                SELECT
+                    f.Id as idFile,
+                    f.IdOrderTotal as ndPedido,
+                    f.RegistrationDate as registro,
+                    fs.Name as estatus,
+                    p.Name as proceso,
+                    ot.Name as operacion,
+                    ct.Name as tipoCliente,
+                    a.Name as agencia,
+                    a.Id as idAgency,
+                    co.Name as compania,
+                    c.Id as idCliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
+                    MAX(ctr.IdTotalDealer) as ndCliente,
+                    MAX(COALESCE(obc1.Amount, obc2.Amount)) as monto
+                FROM HeaderClient hc
+                INNER JOIN Client c ON c.Id = hc.IdClient
+                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+                INNER JOIN File f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder
+                LEFT JOIN (
+                    SELECT obc2a.IdTotalDealer, obc2a.idagency, obc2a.Amount
+                    FROM OrderByCar obc2a
+                    INNER JOIN (
+                        SELECT IdTotalDealer, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
+                        FROM OrderByCar
+                        GROUP BY IdTotalDealer, idagency
+                    ) obc2b ON obc2a.IdTotalDealer = obc2b.IdTotalDealer
+                        AND obc2a.idagency = obc2b.idagency
+                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.IdOrder IS NULL
+                    AND obc2.IdTotalDealer = f.IdOrderTotal
+                    AND obc2.idagency = f.IdAgency
+                INNER JOIN Agency a ON a.Id = f.IdAgency
+                LEFT JOIN Company co ON a.IdCompany = co.Id
+                LEFT JOIN Process p ON f.IdProcess = p.Id
+                LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
+                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE hc.Id = ?
+                GROUP BY f.Id, f.IdOrderTotal, f.RegistrationDate, fs.Name, p.Name, ot.Name, ct.Name, a.Name, a.Id, co.Name, c.Id
+                ORDER BY co.Name ASC, a.Name ASC, f.RegistrationDate DESC
+            ";
+
+            $query = $this->db->query($sql, [$idHeaderClient]);
+            $expedientes = $query->getResultArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Expedientes obtenidos exitosamente',
+                'data' => [
+                    'expedientes' => $expedientes,
+                    'total' => count($expedientes)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Client::expedientes - " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
     }
 
     /**
@@ -40,7 +252,7 @@ class Client extends BaseController
                 SELECT 
                     c.Id as idCliente,
                     ctr.IdTotalDealer as ndCliente,
-                    TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
+                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))) as cliente,
                     c.Name as nombre,
                     c.LastName as apellidoPaterno,
                     c.MotherLastName as apellidoMaterno,

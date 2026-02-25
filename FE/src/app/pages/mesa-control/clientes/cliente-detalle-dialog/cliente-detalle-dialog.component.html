@@ -1,0 +1,61 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h2 class="text-xl font-bold text-gray-900">Expedientes del cliente</h2>
+      <p class="text-gray-600 text-sm mt-1">{{ data.cliente }} (ND: {{ data.ndCliente }})</p>
+    </div>
+    <button mat-icon-button (click)="onClose()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-spinner *ngIf="loading" diameter="40" class="mx-auto my-8"></mat-spinner>
+
+  <div *ngIf="!loading && grupos.length === 0" class="py-8 text-center text-gray-500">
+    <mat-icon class="text-4xl mb-2">folder_off</mat-icon>
+    <p>No hay expedientes para este cliente.</p>
+  </div>
+
+  <div *ngIf="!loading && grupos.length > 0" class="space-y-6 max-h-[70vh] overflow-y-auto">
+    <div *ngFor="let grupo of grupos" class="border rounded-lg overflow-hidden">
+      <div class="bg-gray-100 px-4 py-2 font-medium text-gray-800">
+        {{ grupo.compania }} / {{ grupo.agencia }}
+      </div>
+      <div class="overflow-x-auto">
+      <table mat-table [dataSource]="grupo.dataSource" class="w-full">
+        <ng-container matColumnDef="ndPedido">
+          <th mat-header-cell *matHeaderCellDef>ND Pedido</th>
+          <td mat-cell *matCellDef="let row">{{ row.ndPedido }}</td>
+        </ng-container>
+        <ng-container matColumnDef="proceso">
+          <th mat-header-cell *matHeaderCellDef>Proceso</th>
+          <td mat-cell *matCellDef="let row">{{ row.proceso || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="operacion">
+          <th mat-header-cell *matHeaderCellDef>Operación</th>
+          <td mat-cell *matCellDef="let row">{{ row.operacion || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="tipoCliente">
+          <th mat-header-cell *matHeaderCellDef>Tipo Cliente</th>
+          <td mat-cell *matCellDef="let row">{{ row.tipoCliente || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="estatus">
+          <th mat-header-cell *matHeaderCellDef>Estatus</th>
+          <td mat-cell *matCellDef="let row">{{ row.estatus || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="monto">
+          <th mat-header-cell *matHeaderCellDef>Monto</th>
+          <td mat-cell *matCellDef="let row">{{ formatMonto(row.monto) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="registro">
+          <th mat-header-cell *matHeaderCellDef>Registro</th>
+          <td mat-cell *matCellDef="let row">{{ formatDate(row.registro) }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="pageSizeOptions" [pageSize]="10" showFirstLastButtons></mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>

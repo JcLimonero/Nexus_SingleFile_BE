@@ -324,7 +324,9 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
 
 // Rutas de clientes
 $routes->group('client', function($routes) {
+    $routes->get('list', 'Client::list');
     $routes->get('search', 'Client::search');
+    $routes->get('(:num)/expedientes', 'Client::expedientes/$1');
 });
 
 // Rutas de Proxy a Backblaze (para evitar CORS y agregar X-Provider-Token)
@@ -376,6 +378,7 @@ $routes->group('documents', function($routes) {
         $routes->post('validar-documento', 'Validacion::validarDocumento');
         $routes->post('aprobar-documento', 'Validacion::aprobarDocumento');
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
+        $routes->get('imprimir-identificacion', 'Validacion::imprimirIdentificacionCliente');
     });
 
     // Rutas de búsqueda de clientes usando vista
