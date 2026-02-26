@@ -177,6 +177,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('expedientes-alerta-pld', 'ReportesCumplimiento::expedientesAlertaPld');
         $routes->get('resumen-por-agencia', 'ReportesCumplimiento::resumenPorAgencia');
         $routes->get('documentos-pendientes', 'ReportesCumplimiento::documentosPendientes');
+        $routes->get('expedientes-sin-beneficiario', 'ReportesCumplimiento::expedientesSinBeneficiario');
+        $routes->get('expedientes-sin-aviso', 'ReportesCumplimiento::expedientesSinAviso');
     });
 
     // Rutas de analytics

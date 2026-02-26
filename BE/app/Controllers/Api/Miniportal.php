@@ -91,8 +91,11 @@ class Miniportal extends BaseController
 
         $this->filePldModel->recordAvisoMiniportal($idFile, $signatureData);
 
+        // Siempre registrar en file_pld_geolog la acción de aceptar aviso (auditoría PLD)
         if ($lat !== null && $lon !== null && is_numeric($lat) && is_numeric($lon)) {
             $this->geoLogModel->log($idFile, (float) $lat, (float) $lon, 'Aceptar aviso');
+        } else {
+            $this->geoLogModel->log($idFile, 0.0, 0.0, 'Aceptar aviso');
         }
 
         return $this->response->setJSON([

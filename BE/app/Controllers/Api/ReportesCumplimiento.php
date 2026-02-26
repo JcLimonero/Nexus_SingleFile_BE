@@ -227,7 +227,7 @@ class ReportesCumplimiento extends BaseController
                     a.Id as idAgency,
                     a.Name as nombreAgencia,
                     dbf.IdCurrentStatus as idEstatus,
-                    dfs.Description as nombreEstatus,
+                    dfs.Name as nombreEstatus,
                     COUNT(*) as total
                 FROM DocumentByFile dbf
                 INNER JOIN File f ON dbf.IdFile = f.Id
@@ -243,7 +243,7 @@ class ReportesCumplimiento extends BaseController
                 $params[] = (int) $idAgency;
             }
 
-            $sql .= " GROUP BY a.Id, a.Name, dbf.IdCurrentStatus, dfs.Description ORDER BY a.Name, dbf.IdCurrentStatus";
+            $sql .= " GROUP BY a.Id, a.Name, dbf.IdCurrentStatus, dfs.Name ORDER BY a.Name, dbf.IdCurrentStatus";
 
             $query = $this->db->query($sql, $params);
             $rows = $query->getResultArray();
@@ -275,6 +275,220 @@ class ReportesCumplimiento extends BaseController
             ]);
         } catch (\Exception $e) {
             log_message('error', 'ReportesCumplimiento::documentosPendientes - ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al generar el reporte',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/reportes-cumplimiento/expedientes-sin-beneficiario
+     * Expedientes de persona moral (IdCostumerType=3) sin beneficiarios finales capturados.
+     */
+    public function expedientesSinBeneficiario()
+    {
+        $user = $this->requireComplianceOfficer();
+        if (!$user) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Acceso denegado. Solo gerentes y administradores pueden ver reportes de cumplimiento.'
+            ])->setStatusCode(403);
+        }
+
+        try {
+            $idAgency = $this->request->getGet('idAgency');
+            $anio = (int) ($this->request->getGet('anio') ?: date('Y'));
+            $limit = (int) ($this->request->getGet('limit') ?: 25);
+            $offset = (int) ($this->request->getGet('offset') ?: 0);
+            $limit = max(1, min(100, $limit));
+
+            $sql = "
+                SELECT
+                    f.Id as idFile,
+                    f.IdOrderTotal as ndPedido,
+                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
+                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    ) as cliente,
+                    ct.Name as tipoCliente,
+                    a.Name as agencia,
+                    p.Name as proceso,
+                    fs.Name as fase,
+                    f.RegistrationDate as registro
+                FROM File f
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE f.IdCostumerType = 3
+                AND f.IdCurrentState NOT IN (5)
+                AND YEAR(f.RegistrationDate) = ?
+                AND NOT EXISTS (
+                    SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.IdFile = f.Id
+                )
+            ";
+            $params = [$anio];
+
+            if ($idAgency !== null && $idAgency !== '') {
+                $sql .= " AND f.IdAgency = ?";
+                $params[] = (int) $idAgency;
+            }
+
+            $sql .= " ORDER BY f.RegistrationDate DESC";
+
+            $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
+            $countQuery = $this->db->query($countSql, $params);
+            $total = (int) ($countQuery->getRow()->total ?? 0);
+
+            $sql .= " LIMIT ? OFFSET ?";
+            $params[] = $limit;
+            $params[] = $offset;
+
+            $query = $this->db->query($sql, $params);
+            $rows = $query->getResultArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
+                    'expedientes' => $rows,
+                    'total' => $total,
+                    'limit' => $limit,
+                    'offset' => $offset,
+                    'anio' => $anio
+                ]
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'ReportesCumplimiento::expedientesSinBeneficiario - ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al generar el reporte',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * GET /api/reportes-cumplimiento/expedientes-sin-aviso
+     * Expedientes sin aviso de privacidad aceptado.
+     * Incluye: sin registro en file_pld, o con registro pero AvisoPrivacidadEntregado != 1.
+     */
+    public function expedientesSinAviso()
+    {
+        $user = $this->requireComplianceOfficer();
+        if (!$user) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Acceso denegado. Solo gerentes y administradores pueden ver reportes de cumplimiento.'
+            ])->setStatusCode(403);
+        }
+
+        try {
+            $idAgency = $this->request->getGet('idAgency');
+            $anioParam = $this->request->getGet('anio');
+            $anio = $anioParam !== null && $anioParam !== '' ? (int) $anioParam : 0;
+
+            $sql = "
+                SELECT
+                    f.Id as idFile,
+                    f.IdOrderTotal as ndPedido,
+                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
+                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    ) as cliente,
+                    ct.Name as tipoCliente,
+                    a.Name as agencia,
+                    p.Name as proceso,
+                    fs.Name as fase,
+                    f.RegistrationDate as registro
+                FROM File f
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                WHERE f.IdCurrentState NOT IN (5)
+                AND NOT EXISTS (
+                    SELECT 1 FROM file_pld fp
+                    WHERE fp.IdFile = f.Id AND fp.AvisoPrivacidadEntregado = 1
+                )
+            ";
+            $params = [];
+
+            if ($anio > 0) {
+                $sql .= " AND YEAR(f.RegistrationDate) = ?";
+                $params[] = $anio;
+            }
+
+            if ($idAgency !== null && $idAgency !== '') {
+                $sql .= " AND f.IdAgency = ?";
+                $params[] = (int) $idAgency;
+            }
+
+            $sql .= " ORDER BY f.RegistrationDate DESC";
+
+            try {
+                $query = $this->db->query($sql, $params);
+                $rows = $query->getResultArray();
+            } catch (\Exception $sub) {
+                if (strpos($sub->getMessage(), "doesn't exist") !== false || strpos($sub->getMessage(), 'exist') !== false) {
+                    $sqlFallback = "
+                        SELECT
+                            f.Id as idFile,
+                            f.IdOrderTotal as ndPedido,
+                            COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
+                                TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                            ) as cliente,
+                            ct.Name as tipoCliente,
+                            a.Name as agencia,
+                            p.Name as proceso,
+                            fs.Name as fase,
+                            f.RegistrationDate as registro
+                        FROM File f
+                        INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
+                        INNER JOIN Client c ON hc.IdClient = c.Id
+                        LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                        INNER JOIN Agency a ON f.IdAgency = a.Id
+                        INNER JOIN Process p ON f.IdProcess = p.Id
+                        INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                        WHERE f.IdCurrentState NOT IN (5)
+                    ";
+                    $paramsFallback = [];
+                    if ($anio > 0) {
+                        $sqlFallback .= " AND YEAR(f.RegistrationDate) = ?";
+                        $paramsFallback[] = $anio;
+                    }
+                    if ($idAgency !== null && $idAgency !== '') {
+                        $sqlFallback .= " AND f.IdAgency = ?";
+                        $paramsFallback[] = (int) $idAgency;
+                    }
+                    $sqlFallback .= " ORDER BY f.RegistrationDate DESC";
+                    $query = $this->db->query($sqlFallback, $paramsFallback);
+                    $rows = $query->getResultArray();
+                } else {
+                    throw $sub;
+                }
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
+                    'expedientes' => $rows,
+                    'total' => count($rows),
+                    'anio' => $anio
+                ]
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'ReportesCumplimiento::expedientesSinAviso - ' . $e->getMessage());
+            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'La tabla file_pld no existe. Ejecuta la migración: DB/migrations/create_file_pld_tables.sql',
+                    'error' => $e->getMessage()
+                ])->setStatusCode(500);
+            }
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar el reporte',
@@ -322,12 +536,33 @@ class ReportesCumplimiento extends BaseController
             $qDoc = $this->db->query($sqlDoc);
             $documentosPendientes = (int) ($qDoc->getRow()->total ?? 0);
 
+            // Expedientes persona moral sin beneficiarios (año actual)
+            $sqlBenef = "
+                SELECT COUNT(*) as total FROM File f
+                WHERE f.IdCostumerType = 3 AND f.IdCurrentState NOT IN (5)
+                AND YEAR(f.RegistrationDate) = ?
+                AND NOT EXISTS (SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.IdFile = f.Id)
+            ";
+            $qBenef = $this->db->query($sqlBenef, [$anioActual]);
+            $expedientesSinBeneficiario = (int) ($qBenef->getRow()->total ?? 0);
+
+            // Expedientes sin aviso de privacidad aceptado (año actual)
+            $sqlAviso = "
+                SELECT COUNT(*) as total FROM File f
+                WHERE f.IdCurrentState NOT IN (5) AND YEAR(f.RegistrationDate) = ?
+                AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.IdFile = f.Id AND fp.AvisoPrivacidadEntregado = 1)
+            ";
+            $qAviso = $this->db->query($sqlAviso, [$anioActual]);
+            $expedientesSinAviso = (int) ($qAviso->getRow()->total ?? 0);
+
             return $this->response->setJSON([
                 'success' => true,
                 'data' => [
                     'clientesAlertaAml' => $clientesAlertaAml,
                     'expedientesActivos' => $expedientesActivos,
                     'documentosPendientes' => $documentosPendientes,
+                    'expedientesSinBeneficiario' => $expedientesSinBeneficiario,
+                    'expedientesSinAviso' => $expedientesSinAviso,
                     'umbralAml' => $umbral,
                     'anio' => $anioActual
                 ]

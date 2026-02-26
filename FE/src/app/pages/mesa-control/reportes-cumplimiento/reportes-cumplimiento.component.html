@@ -5,8 +5,8 @@
   </div>
 
   <!-- Dashboard resumen -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
-    <mat-card *ngIf="loadingDashboard" class="col-span-3 flex justify-center items-center p-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
+    <mat-card *ngIf="loadingDashboard" class="col-span-full flex justify-center items-center p-8">
       <mat-spinner diameter="40"></mat-spinner>
     </mat-card>
     <mat-card *ngIf="dashboard && !loadingDashboard">
@@ -32,6 +32,39 @@
         </div>
       </mat-card-content>
     </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-orange-600" style="font-size: 36px; width: 36px; height: 36px;">description</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Documentos pendientes</p>
+            <p class="text-2xl font-bold">{{ dashboard.documentosPendientes }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-purple-600" style="font-size: 36px; width: 36px; height: 36px;">people_outline</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Persona moral sin beneficiarios</p>
+            <p class="text-2xl font-bold">{{ dashboard.expedientesSinBeneficiario ?? 0 }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-teal-600" style="font-size: 36px; width: 36px; height: 36px;">privacy_tip</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Sin aviso de privacidad</p>
+            <p class="text-2xl font-bold">{{ dashboard.expedientesSinAviso ?? 0 }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <!-- Filtros -->
@@ -45,9 +78,10 @@
             <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="min-w-[120px]">
+        <mat-form-field appearance="outline" class="min-w-[140px]">
           <mat-label>Año</mat-label>
           <mat-select [(ngModel)]="filterAnio" (selectionChange)="onFilterChange()">
+            <mat-option [value]="null">Todos los años</mat-option>
             <mat-option *ngFor="let y of aniosDisponibles" [value]="y">{{ y }}</mat-option>
           </mat-select>
         </mat-form-field>
@@ -129,6 +163,145 @@
             <tr class="mat-row" *matNoDataRow>
               <td class="mat-cell" [attr.colspan]="displayedColumnsExpedientes.length">
                 No hay expedientes en alerta PLD
+              </td>
+            </tr>
+          </table>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+    <mat-tab label="Documentos pendientes">
+      <mat-card class="mt-4">
+        <mat-card-content>
+          <p class="text-sm text-gray-500 mb-4">Documentos con estatus pendiente de validación (1, 2, 3) por agencia. Expedientes no cancelados.</p>
+          <div *ngIf="loadingDocumentos" class="flex justify-center p-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          <div *ngIf="!loadingDocumentos && documentosPendientes.length" class="space-y-4">
+            <mat-accordion multi="true">
+              <mat-expansion-panel *ngFor="let ag of documentosPendientes" class="mb-2">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <mat-icon class="mr-2">store</mat-icon>
+                    {{ ag.nombreAgencia }}
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    {{ ag.total }} documentos pendientes
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                <div class="flex flex-wrap gap-3 pt-2">
+                  <div *ngFor="let e of ag.porEstatus" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100">
+                    <span class="text-sm font-medium">{{ e.nombreEstatus || 'Sin estatus' }}</span>
+                    <span class="text-sm text-gray-600">{{ e.total }}</span>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </div>
+          <div *ngIf="!loadingDocumentos && !documentosPendientes.length" class="text-center py-12 text-gray-500">
+            <mat-icon class="text-4xl mb-2">check_circle</mat-icon>
+            <p>No hay documentos pendientes de validación</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+    <mat-tab label="Expedientes sin beneficiario">
+      <mat-card class="mt-4">
+        <mat-card-content>
+          <p class="text-sm text-gray-500 mb-4">Expedientes de persona moral sin beneficiarios finales capturados. Requieren atención para cumplimiento PLD.</p>
+          <div *ngIf="loadingSinBeneficiario" class="flex justify-center p-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          <table mat-table [dataSource]="dataSourceSinBeneficiario" *ngIf="!loadingSinBeneficiario" class="w-full">
+            <ng-container matColumnDef="ndPedido">
+              <th mat-header-cell *matHeaderCellDef>No. Pedido</th>
+              <td mat-cell *matCellDef="let row">{{ row.ndPedido }}</td>
+            </ng-container>
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <td mat-cell *matCellDef="let row">{{ row.cliente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef>Tipo</th>
+              <td mat-cell *matCellDef="let row">{{ row.tipoCliente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="agencia">
+              <th mat-header-cell *matHeaderCellDef>Agencia</th>
+              <td mat-cell *matCellDef="let row">{{ row.agencia }}</td>
+            </ng-container>
+            <ng-container matColumnDef="proceso">
+              <th mat-header-cell *matHeaderCellDef>Proceso</th>
+              <td mat-cell *matCellDef="let row">{{ row.proceso }}</td>
+            </ng-container>
+            <ng-container matColumnDef="fase">
+              <th mat-header-cell *matHeaderCellDef>Fase</th>
+              <td mat-cell *matCellDef="let row">{{ row.fase }}</td>
+            </ng-container>
+            <ng-container matColumnDef="registro">
+              <th mat-header-cell *matHeaderCellDef>Registro</th>
+              <td mat-cell *matCellDef="let row">{{ formatDate(row.registro) }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsSinBeneficiario"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsSinBeneficiario;"></tr>
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" [attr.colspan]="displayedColumnsSinBeneficiario.length">
+                No hay expedientes persona moral sin beneficiarios
+              </td>
+            </tr>
+          </table>
+          <mat-paginator
+            *ngIf="!loadingSinBeneficiario && totalSinBeneficiario > 0"
+            [length]="totalSinBeneficiario"
+            [pageSize]="pageSizeSinBeneficiario"
+            [pageSizeOptions]="pageSizeOptionsSinBeneficiario"
+            [pageIndex]="pageIndexSinBeneficiario"
+            (page)="onPageChangeSinBeneficiario($event)"
+            showFirstLastButtons
+            aria-label="Paginación expedientes sin beneficiario">
+          </mat-paginator>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+    <mat-tab label="Expedientes sin aviso de privacidad">
+      <mat-card class="mt-4">
+        <mat-card-content>
+          <p class="text-sm text-gray-500 mb-4">Expedientes activos sin aviso de privacidad aceptado. Requieren captura desde Miniportal o agencia.</p>
+          <div *ngIf="loadingSinAviso" class="flex justify-center p-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          <table mat-table [dataSource]="dataSourceSinAviso" *ngIf="!loadingSinAviso" class="w-full">
+            <ng-container matColumnDef="ndPedido">
+              <th mat-header-cell *matHeaderCellDef>No. Pedido</th>
+              <td mat-cell *matCellDef="let row">{{ row.ndPedido }}</td>
+            </ng-container>
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <td mat-cell *matCellDef="let row">{{ row.cliente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef>Tipo</th>
+              <td mat-cell *matCellDef="let row">{{ row.tipoCliente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="agencia">
+              <th mat-header-cell *matHeaderCellDef>Agencia</th>
+              <td mat-cell *matCellDef="let row">{{ row.agencia }}</td>
+            </ng-container>
+            <ng-container matColumnDef="proceso">
+              <th mat-header-cell *matHeaderCellDef>Proceso</th>
+              <td mat-cell *matCellDef="let row">{{ row.proceso }}</td>
+            </ng-container>
+            <ng-container matColumnDef="fase">
+              <th mat-header-cell *matHeaderCellDef>Fase</th>
+              <td mat-cell *matCellDef="let row">{{ row.fase }}</td>
+            </ng-container>
+            <ng-container matColumnDef="registro">
+              <th mat-header-cell *matHeaderCellDef>Registro</th>
+              <td mat-cell *matCellDef="let row">{{ formatDate(row.registro) }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsSinBeneficiario"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsSinBeneficiario;"></tr>
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" [attr.colspan]="displayedColumnsSinBeneficiario.length">
+                No hay expedientes sin aviso de privacidad
               </td>
             </tr>
           </table>
