@@ -2,7 +2,7 @@
   <!-- Header con info de usuario -->
   <div class="dropdown-header">
     <div class="dropdown-header-avatar">
-      <mat-icon svgIcon="mat:person_outline"></mat-icon>
+      <img src="assets/img/avatars/user-avatar-default.png" alt="Usuario" class="dropdown-header-avatar-img">
     </div>
     <div class="dropdown-header-info">
       <div class="dropdown-header-name">{{ (currentUser$ | async)?.name || 'Usuario' }}</div>
@@ -12,13 +12,6 @@
 
   <!-- Items del menú -->
   <div class="dropdown-content">
-    <!-- Estado en línea -->
-    <div class="dropdown-item dropdown-item--status" [matMenuTriggerFor]="statusMenu">
-      <mat-icon [svgIcon]="activeStatus.icon" [ngClass]="activeStatus.colorClass" class="dropdown-item-icon"></mat-icon>
-      <span class="dropdown-item-label">{{ activeStatus.label }}</span>
-      <mat-icon svgIcon="mat:chevron_right" class="dropdown-item-chevron"></mat-icon>
-    </div>
-
     <a
       (click)="close()"
       *ngFor="let item of items; trackBy: trackById"
@@ -38,13 +31,3 @@
     </a>
   </div>
 </div>
-
-<mat-menu #statusMenu="matMenu" xPosition="before" yPosition="below">
-  <button
-    (click)="setStatus(status)"
-    *ngFor="let status of statuses; trackBy: trackById"
-    mat-menu-item>
-    <mat-icon [ngClass]="status.colorClass" [svgIcon]="status.icon"></mat-icon>
-    <span>{{ status.label }}</span>
-  </button>
-</mat-menu>

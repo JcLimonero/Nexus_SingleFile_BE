@@ -1,6 +1,5 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   EventEmitter,
   OnInit,
@@ -10,8 +9,7 @@ import { trackById } from '../../../../../core/utils/track-by';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
-import { NgFor, NgClass, NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { MatRippleModule } from '@angular/material/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../../core/services/auth.service';
@@ -28,13 +26,6 @@ export interface MenuItem {
   route: string;
 }
 
-export interface OnlineStatus {
-  id: string;
-  label: string;
-  icon: string;
-  colorClass: string;
-}
-
 @Component({
   selector: 'vex-toolbar-user-dropdown',
   templateUrl: './toolbar-user-dropdown.component.html',
@@ -45,11 +36,9 @@ export interface OnlineStatus {
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    MatMenuModule,
     NgFor,
     MatRippleModule,
     RouterLink,
-    NgClass,
     NgIf,
     AsyncPipe
   ]
@@ -70,50 +59,13 @@ export class ToolbarUserDropdownComponent implements OnInit {
     // Ocultas por el momento: Mi Bandeja, Mis Proyectos, Información de Facturación
   ];
 
-  statuses: OnlineStatus[] = [
-    {
-      id: 'online',
-      label: 'En línea',
-      icon: 'mat:check_circle',
-      colorClass: 'text-green-600'
-    },
-    {
-      id: 'away',
-      label: 'Ausente',
-      icon: 'mat:access_time',
-      colorClass: 'text-orange-600'
-    },
-    {
-      id: 'dnd',
-      label: 'No molestar',
-      icon: 'mat:do_not_disturb',
-      colorClass: 'text-red-600'
-    },
-    {
-      id: 'offline',
-      label: 'Desconectado',
-      icon: 'mat:offline_bolt',
-      colorClass: 'text-gray-600'
-    }
-  ];
-
-  activeStatus: OnlineStatus = this.statuses[0];
-
   trackById = trackById;
 
-  constructor(
-    private cd: ChangeDetectorRef,
-    private authService: AuthService
-  ) {
+  constructor(private authService: AuthService) {
     this.currentUser$ = this.authService.currentUser$;
   }
 
   ngOnInit() {}
-
-  setStatus(status: OnlineStatus) {
-    this.activeStatus = status;
-    this.cd.markForCheck();
-  }
 
   close(): void {
     this.closeMenu.emit();

@@ -36,9 +36,9 @@
   }
 }
 
-.toolbar-user-avatar-icon {
-  width: 24px !important;
-  height: 24px !important;
-  font-size: 24px;
-  color: #2B3A47;
+.toolbar-user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
