@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
 import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse } from '../../../core/interfaces/user.interface';
 import { UserService } from '../../../core/services/user.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
@@ -41,7 +42,8 @@ import { UserAccessDialogComponent } from './user-access-dialog/user-access-dial
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatCardModule
   ]
 })
 export class UsuariosComponent implements OnInit, AfterViewInit {

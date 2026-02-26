@@ -19,6 +19,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule, MatTabGroup } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 
 // Importar servicios existentes
 import { ProcesoService } from '../../../core/services/proceso.service';
@@ -56,7 +57,8 @@ import { DocumentosConfiguracionDialogComponent } from './documentos-configuraci
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTabsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCardModule
   ]
 })
 export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {

@@ -1,12 +1,9 @@
-<div class="clientes min-h-screen bg-gray-50 p-4">
-  <div class="mb-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-1">Clientes</h1>
-    
-  </div>
-
-  <mat-card class="mb-4">
-    <mat-card-content>
-      <div class="flex flex-wrap items-center gap-4">
+<div class="clientes">
+  <!-- Card de filtros (mismo tamaño y ubicación que Integración, Liquidación, Liberación, Consolidación DMS, Validación) -->
+  <div class="filters-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+        <div class="flex flex-wrap items-center justify-between gap-3">
         <mat-form-field appearance="outline" class="min-w-[200px]">
           <mat-label>Buscar (cliente, ndCliente)</mat-label>
           <input matInput [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Nombre o número de cliente">
@@ -33,11 +30,12 @@
           <mat-icon>clear_all</mat-icon>
           <span class="ml-2">Limpiar filtros</span>
         </button>
-      </div>
-    </mat-card-content>
-  </mat-card>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-  <mat-card>
+  <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
     <mat-card-content>
       <div class="overflow-x-auto">
         <table mat-table [dataSource]="dataSource" class="w-full">

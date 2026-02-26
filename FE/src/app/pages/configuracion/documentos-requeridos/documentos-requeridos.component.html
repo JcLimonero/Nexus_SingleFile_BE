@@ -29,35 +29,34 @@
     <!-- Tab 1: Configuraciones Generales -->
     <mat-tab label="Configuraciones Generales">
       <div class="p-6">
-        <!-- Filtro de Agencia para Tab 1 -->
-        <div class="bg-gray-50 rounded-lg shadow-sm border p-4 mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Filtro de Agencia</h3>
-            <button 
-              mat-stroked-button 
-              color="accent" 
-              (click)="loadConfiguraciones()"
-              [disabled]="loadingConfiguraciones"
-              matTooltip="Recargar configuraciones"
-              class="flex items-center gap-2">
-              <mat-icon [class.animate-spin]="loadingConfiguraciones">refresh</mat-icon>
-              Recargar
-            </button>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Agencia -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Agencia</mat-label>
-              <mat-select [(ngModel)]="selectedAgencyForConfiguraciones" (ngModelChange)="onAgencyFilterChange()" [disabled]="loadingCatalogs">
-                <mat-option value="">Todas las agencias</mat-option>
-                <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-                  {{ agency.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-            </mat-form-field>
-          </div>
+        <!-- Card de filtros (mismo tamaño y ubicación que Integración, Clientes, etc.) -->
+        <div class="filters-section mb-2">
+          <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <mat-card-content class="p-2">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <mat-form-field appearance="outline" class="min-w-48">
+                  <mat-label>Agencia</mat-label>
+                  <mat-select [(ngModel)]="selectedAgencyForConfiguraciones" (ngModelChange)="onAgencyFilterChange()" [disabled]="loadingCatalogs">
+                    <mat-option value="">Todas las agencias</mat-option>
+                    <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+                      {{ agency.Name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                </mat-form-field>
+                <button 
+                  mat-stroked-button 
+                  color="accent" 
+                  (click)="loadConfiguraciones()"
+                  [disabled]="loadingConfiguraciones"
+                  matTooltip="Recargar configuraciones"
+                  class="flex items-center gap-2">
+                  <mat-icon [class.animate-spin]="loadingConfiguraciones">refresh</mat-icon>
+                  Recargar
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
         </div>
 
         <!-- Tabla de Configuraciones Agrupadas -->
@@ -219,104 +218,96 @@
     <!-- Tab 2: Vista Detallada (Actual) -->
     <mat-tab label="Vista Detallada">
       <div class="p-6">
-        <!-- Filtros de Configuración -->
-        <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Selección de Configuración</h3>
-            
-            <!-- Botones de acción a la derecha -->
-            <div class="flex items-center gap-3">
-              <!-- Botón de Limpiar Filtros -->
-              <button 
-                mat-stroked-button 
-                color="warn" 
-                (click)="clearFilters()"
-                [disabled]="!selectedProcess && !selectedAgency && !selectedCustomerType && !selectedOperationType"
-                matTooltip="Limpiar selección"
-                class="flex items-center gap-2">
-                <mat-icon>clear_all</mat-icon>
-                Limpiar Selección
-              </button>
-              
-              <!-- Botón de Reload -->
-              <button 
-                mat-stroked-button 
-                color="accent" 
-                (click)="refreshData()"
-                [disabled]="loading"
-                matTooltip="Recargar datos"
-                class="flex items-center gap-2">
-                <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
-                Recargar
-              </button>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Agencia -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Agencia</mat-label>
-              <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                <mat-option value="">Seleccionar todas las agencias</mat-option>
-                <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-                  {{ agency.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-            </mat-form-field>
+        <!-- Card de filtros (mismo tamaño y ubicación que Integración, Clientes, etc.) -->
+        <div class="filters-section mb-2">
+          <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <mat-card-content class="p-2">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <mat-form-field appearance="outline" class="min-w-48">
+                  <mat-label>Agencia</mat-label>
+                  <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                    <mat-option value="">Seleccionar todas las agencias</mat-option>
+                    <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+                      {{ agency.Name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                </mat-form-field>
 
-            <!-- Proceso -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Proceso</mat-label>
-              <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                <mat-option value="">Seleccionar todos los procesos</mat-option>
-                <mat-option *ngFor="let process of processes" [value]="process.Id">
-                  {{ process.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-            </mat-form-field>
+                <mat-form-field appearance="outline" class="min-w-48">
+                  <mat-label>Proceso</mat-label>
+                  <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                    <mat-option value="">Seleccionar todos los procesos</mat-option>
+                    <mat-option *ngFor="let process of processes" [value]="process.Id">
+                      {{ process.Name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                </mat-form-field>
 
-            <!-- Tipo de Cliente -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Tipo de Cliente</mat-label>
-              <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
-                <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.Id">
-                  {{ customerType.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-            </mat-form-field>
+                <mat-form-field appearance="outline" class="min-w-48">
+                  <mat-label>Tipo de Cliente</mat-label>
+                  <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                    <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
+                    <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.Id">
+                      {{ customerType.Name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                </mat-form-field>
 
-            <!-- Tipo Operación -->
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Tipo Operación</mat-label>
-              <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
-                <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.Id">
-                  {{ operationType.Name }}
-                </mat-option>
-              </mat-select>
-              <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-            </mat-form-field>
-          </div>
+                <mat-form-field appearance="outline" class="min-w-48">
+                  <mat-label>Tipo Operación</mat-label>
+                  <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                    <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
+                    <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.Id">
+                      {{ operationType.Name }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                </mat-form-field>
 
-          <!-- Mensaje de estado de catálogos -->
-          <div *ngIf="loadingCatalogs" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div class="flex items-center gap-2 text-blue-700">
-              <mat-spinner diameter="20"></mat-spinner>
-              <span class="text-sm font-medium">Cargando catálogos...</span>
-            </div>
-          </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    mat-stroked-button 
+                    color="warn" 
+                    (click)="clearFilters()"
+                    [disabled]="!selectedProcess && !selectedAgency && !selectedCustomerType && !selectedOperationType"
+                    matTooltip="Limpiar selección"
+                    class="flex items-center gap-2">
+                    <mat-icon>clear_all</mat-icon>
+                    Limpiar
+                  </button>
+                  <button 
+                    mat-stroked-button 
+                    color="accent" 
+                    (click)="refreshData()"
+                    [disabled]="loading"
+                    matTooltip="Recargar datos"
+                    class="flex items-center gap-2">
+                    <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+                    Recargar
+                  </button>
+                </div>
+              </div>
 
-          <div *ngIf="!loadingCatalogs && (processes.length === 0 || agencies.length === 0 || customerTypes.length === 0 || operationTypes.length === 0)" 
-               class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div class="flex items-center gap-2 text-yellow-700">
-              <mat-icon>warning</mat-icon>
-              <span class="text-sm">Algunos catálogos no se pudieron cargar. Verifica la conexión.</span>
-            </div>
-          </div>
+              <!-- Mensaje de estado de catálogos -->
+              <div *ngIf="loadingCatalogs" class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center gap-2 text-blue-700">
+                  <mat-spinner diameter="20"></mat-spinner>
+                  <span class="text-sm font-medium">Cargando catálogos...</span>
+                </div>
+              </div>
+
+              <div *ngIf="!loadingCatalogs && (processes.length === 0 || agencies.length === 0 || customerTypes.length === 0 || operationTypes.length === 0)" 
+                   class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center gap-2 text-yellow-700">
+                  <mat-icon>warning</mat-icon>
+                  <span class="text-sm">Algunos catálogos no se pudieron cargar. Verifica la conexión.</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
         </div>
 
         <!-- Tabla -->

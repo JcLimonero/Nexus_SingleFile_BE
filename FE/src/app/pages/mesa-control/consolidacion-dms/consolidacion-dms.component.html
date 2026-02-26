@@ -1,11 +1,8 @@
-<div class="consolidacion-dms min-h-screen bg-gray-50 p-4">
-  <div class="mb-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-1">Consolidaci&#243;n DMS</h1>
-   
-  </div>
-
-  <mat-card class="filtro-card mb-4">
-    <mat-card-content>
+<div class="consolidacion-dms">
+  <!-- Card de filtros (mismo tamaño y ubicación que Integración, Liquidación, Liberación) -->
+  <div class="filters-section mb-2">
+  <mat-card class="filtro-card bg-white rounded-lg shadow-sm border border-gray-200">
+    <mat-card-content class="p-2">
       <div class="filtro-row">
         <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic" floatLabel="always">
           <mat-label>Razón social</mat-label>
@@ -109,8 +106,9 @@
       </div>
     </mat-card-content>
   </mat-card>
+  </div>
 
-  <mat-card class="tabla-card">
+  <mat-card class="tabla-card bg-white rounded-lg shadow-sm border border-gray-200">
     <mat-card-content>
       <div *ngIf="displayedColumns.length === 0" class="py-8 text-center text-gray-500">
         <mat-icon class="block mx-auto mb-2 text-4xl">inbox</mat-icon>

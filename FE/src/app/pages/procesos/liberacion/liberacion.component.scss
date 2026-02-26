@@ -1,19 +1,20 @@
 .liberacion-container {
-  padding: 16px;
-  max-width: 100%;
-  margin: 0 auto;
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
+
+// Ocultar hints de form fields (igual que Integración)
+.liberacion-container ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
 }
 
 .filters-section {
-  .mat-card {
-    border-radius: 8px;
+  mat-card {
+    border-radius: 0.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .mat-form-field {
-    .mat-form-field-wrapper {
-      padding-bottom: 0;
-    }
+    border: 1px solid #e5e7eb;
   }
 }
 
@@ -230,6 +231,30 @@
 
   &--danger {
     color: #ef4444;
+  }
+}
+
+// Responsive design (igual que Integración y Liquidación)
+@media (max-width: 768px) {
+  .liberacion-container {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    .flex {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mat-form-field {
+      width: 100%;
+    }
+  }
+
+  .client-info-section {
+    .grid {
+      grid-template-columns: 1fr;
+    }
   }
 }
 

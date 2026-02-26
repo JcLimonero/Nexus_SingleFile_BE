@@ -172,6 +172,8 @@ export class ToolbarComponent implements OnInit {
         return 'Tipos de Cliente';
       } else if (url.includes('/catalogos')) {
         return 'Catálogos';
+      } else if (url.includes('/logs-activity')) {
+        return 'Logs de Actividad';
       } else {
         return 'Configuración';
       }

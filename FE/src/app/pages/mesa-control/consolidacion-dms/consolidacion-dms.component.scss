@@ -1,4 +1,20 @@
-// Estilos del módulo Consolidación DMS
+// Estilos del módulo Consolidación DMS (mismo tamaño y ubicación que Integración, Liquidación, Liberación)
+
+.consolidacion-dms {
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #f9fafb;
+}
+
+.filters-section {
+  mat-card.filtro-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+}
 
 $filtro-field-height: 56px;
 $filtro-control-height: calc(56px * 0.7);
@@ -145,6 +161,28 @@ $filtro-control-height: calc(56px * 0.7);
     mat-icon {
       margin-left: 8px;
       flex-shrink: 0;
+    }
+  }
+}
+
+// Responsive design (igual que Integración, Liquidación, Liberación)
+@media (max-width: 768px) {
+  .consolidacion-dms {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    .filtro-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filtro-field,
+    .agencia-select-wrapper,
+    .periodo-select-wrapper,
+    .filtro-buttons {
+      width: 100%;
+      min-width: 100%;
     }
   }
 }

@@ -1,4 +1,4 @@
-<div class="validacion-container min-h-screen bg-gray-50 p-2">
+<div class="validacion-container">
   <style>
     /* Ocultar completamente los hints de los combos para que no ocupen espacio */
     .mat-mdc-form-field-subscript-wrapper,
@@ -25,12 +25,6 @@
       padding-bottom: 0 !important;
     }
 
-    /* Reducir el padding interno de los campos */
-    .mat-mdc-form-field-infix {
-      padding-top: 4px !important;
-      padding-bottom: 4px !important;
-      min-height: 16px !important;
-    }
 
     /* Cambiar padding de todas las celdas de tabla de py-2 a py-0 */
     .py-2 {
@@ -45,62 +39,6 @@
       padding-bottom: 0 !important;
     }
 
-    /* Estilos ultra compactos para TODOS los combos del filtro */
-    .filtro-container .mat-mdc-form-field-infix {
-      padding-top: 1px !important;
-      padding-bottom: 1px !important;
-      min-height: 8px !important;
-      height: 8px !important;
-      max-height: 8px !important;
-    }
-
-    /* Forzar altura en todos los campos del filtro */
-    .filtro-container .mat-mdc-form-field {
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-    }
-
-    /* Reducir altura del wrapper del campo */
-    .filtro-container .mat-mdc-text-field-wrapper {
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-    }
-
-    /* Estilos específicos para todos los mat-select dentro del filtro */
-    .filtro-container .mat-mdc-select {
-      height: 24px !important;
-      min-height: 24px !important;
-      max-height: 24px !important;
-      line-height: 24px !important;
-    }
-
-    /* Reducir altura de las opciones del select */
-    .filtro-container .mat-mdc-option {
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
-      line-height: 28px !important;
-    }
-
-    /* Estilos ultra compactos para el combo de fase */
-    .combo-fase .mat-mdc-form-field-infix {
-      padding-top: 1px !important;
-      padding-bottom: 1px !important;
-      min-height: 8px !important;
-      height: 8px !important;
-      max-height: 8px !important;
-    }
-
-    .combo-fase .mat-mdc-form-field {
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-    }
-
     /* Animación de spinner para el botón de recarga */
     .animate-spin {
       animation: spin 1s linear infinite;
@@ -113,28 +51,6 @@
       to {
         transform: rotate(360deg);
       }
-    }
-
-    .combo-fase .mat-mdc-text-field-wrapper {
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-    }
-
-    .combo-fase .mat-mdc-select {
-      height: 24px !important;
-      min-height: 24px !important;
-      max-height: 24px !important;
-      line-height: 24px !important;
-    }
-
-    .combo-fase .mat-mdc-option {
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
-      line-height: 28px !important;
     }
 
     /* Estilos para iconos de la sección de filtros de estado - reducidos a la mitad */
@@ -153,64 +69,14 @@
       line-height: 24px !important;
     }
 
-    /* Reducir también el padding del contenedor del filtro */
-    .filtro-container {
-      padding: 8px !important;
-      margin-bottom: 16px !important;
-    }
-
-    /* Reducir el gap entre elementos del grid */
-    .filtro-grid {
-      gap: 1px !important;
-    }
-
-    /* Estilos ultra compactos para los filtros principales */
-    .filtro-container .mat-mdc-form-field-infix {
-      padding-top: 1px !important;
-      padding-bottom: 1px !important;
-      min-height: 8px !important;
-      height: 8px !important;
-      max-height: 8px !important;
-    }
-
-    .filtro-container .mat-mdc-form-field {
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-    }
-
-    .filtro-container .mat-mdc-text-field-wrapper {
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-    }
-
-    .filtro-container .mat-mdc-select {
-      height: 24px !important;
-      min-height: 24px !important;
-      max-height: 24px !important;
-      line-height: 24px !important;
-    }
-
-    .filtro-container .mat-mdc-option {
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
-      line-height: 28px !important;
-    }
   </style>
 
-          <!-- Header Principal -->
-    <div class="mb-2">
-      <!-- Título y detalle removidos - ahora se muestran en el toolbar -->
-    </div>
-
-        <!-- Filtros Principales -->
-    <div class="bg-white rounded-lg shadow-sm border mb-1 filtro-container" style="padding: 20px !important; min-height: 80px;">
-      <div class="flex flex-wrap items-center justify-between gap-3 filtro-grid">
-        <mat-form-field appearance="outline" class="min-w-0 mr-2.5 compact-field" style="width: 250px;">
+  <!-- Card de filtros (mismo tamaño y ubicación que Integración, Liquidación, Liberación, Consolidación DMS) -->
+  <div class="filters-section mb-2">
+    <mat-card class="filtro-card bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <mat-form-field appearance="outline" class="min-w-48">
           <mat-label>Agencia</mat-label>
           <mat-select [(ngModel)]="selectedAgency" [disabled]="loadingAgencias || agencias.length === 0" (selectionChange)="onAgenciaChange()">
             <mat-option *ngIf="loadingAgencias" value="" disabled>
@@ -226,7 +92,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="min-w-0 mr-2.5 compact-field" style="width: 206px;">
+        <mat-form-field appearance="outline" class="min-w-48">
           <mat-label>Proceso</mat-label>
           <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos" (selectionChange)="onProcesoChange()">
             <mat-option *ngIf="loadingProcesos" value="" disabled>
@@ -243,7 +109,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="min-w-0 mr-2.5 compact-field" style="width: 206px;">
+        <mat-form-field appearance="outline" class="min-w-48">
           <mat-label>Fase</mat-label>
           <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
             <mat-option value="">Todas las fases</mat-option>
@@ -254,7 +120,7 @@
         </mat-form-field>
 
         <!-- Buscador integrado -->
-        <mat-form-field appearance="outline" class="flex-1 min-w-0 mr-2.5 compact-field">
+        <mat-form-field appearance="outline" class="flex-1 min-w-48">
           <mat-label>Buscar</mat-label>
           <input matInput
                  [(ngModel)]="searchTerm"
@@ -296,10 +162,12 @@
       <div class="text-xs text-gray-500 mt-1 px-1" *ngIf="searchTerm">
         Mostrando {{ clientesDataSource.data.length }} de {{ totalRecords }} registros
       </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
       <!-- Tabla de Clientes/Procesos -->
-      <mat-card class="mb-2 card-clientes">
+      <mat-card class="mb-2 card-clientes bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-2">
           <!-- Título de tabla removido -->
 
@@ -524,7 +392,7 @@
 
 
       <!-- Tabla de Documentos -->
-      <mat-card class="mb-4">
+      <mat-card class="mb-4 bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-2">
           <!-- Título de tabla removido -->
 

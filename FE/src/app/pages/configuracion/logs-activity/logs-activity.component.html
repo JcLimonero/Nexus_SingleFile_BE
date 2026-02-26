@@ -1,75 +1,5 @@
 <div class="p-6">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Logs de Actividad</h1>
-      <p class="text-gray-600 mt-1">Monitoreo completo de todas las acciones realizadas por los usuarios</p>
-    </div>
-    <div class="flex gap-2">
-      <button 
-        mat-raised-button 
-        color="warn" 
-        (click)="cleanOldLogs()"
-        class="flex items-center gap-2">
-        <mat-icon>delete_sweep</mat-icon>
-        Limpiar Logs Antiguos
-      </button>
-      
-      <!-- Menú de exportación -->
-      <div class="export-menu-container" #exportMenuContainer>
-        <button 
-          mat-raised-button 
-          color="accent" 
-          [disabled]="loading"
-          (click)="toggleExportMenu($event)"
-          matTooltip="Exportar logs de actividad a Excel"
-          matTooltipPosition="above"
-          class="flex items-center gap-2">
-          <mat-spinner *ngIf="loading" diameter="16" class="mr-1"></mat-spinner>
-          <mat-icon *ngIf="!loading">download</mat-icon>
-          {{ loading ? 'Exportando...' : 'Exportar' }}
-          <mat-icon class="ml-1 transition-transform" [class.rotate-180]="showExportMenu">expand_more</mat-icon>
-        </button>
-        
-        <!-- Menú desplegable -->
-        <div 
-          *ngIf="showExportMenu"
-          class="export-menu animate-fade-in">
-          <button 
-            (click)="exportLogs()"
-            [disabled]="loading || dataSource.data.length === 0"
-            class="export-menu-item">
-            <mat-icon class="menu-item-icon">table_chart</mat-icon>
-            <span class="menu-item-text">Exportar Página Actual</span>
-            <span class="menu-item-count">({{ dataSource.data.length }} registros)</span>
-          </button>
-          
-          <button 
-            (click)="exportAllLogs()"
-            [disabled]="loading"
-            class="export-menu-item">
-            <mat-icon class="text-sm">cloud_download</mat-icon>
-            <span class="menu-item-text">Exportar Todos los Logs</span>
-            <span class="menu-item-count">({{ totalLogs }} total)</span>
-          </button>
-          
-          <div class="export-menu-divider"></div>
-          
-          <button 
-            (click)="exportLogsByDateRange()"
-            [disabled]="loading || (!filters.start_date && !filters.end_date)"
-            class="export-menu-item">
-            <mat-icon class="menu-item-icon">date_range</mat-icon>
-            <span class="menu-item-text">Exportar por Rango de Fechas</span>
-            <span class="menu-item-count">
-              {{ filters.start_date || filters.end_date ? 'Filtrado' : 'Sin filtros' }}
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Estadísticas -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow-sm border p-4">
@@ -124,67 +54,125 @@
     </div>
   </div>
 
-  <!-- Filtros -->
-  <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+  <!-- Card de filtros (mismo acomodo que Integración, Usuarios, etc.) -->
+  <div class="filters-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Búsqueda por texto -->
+          <mat-form-field appearance="outline" class="w-36 flex-shrink-0" style="width: 20%;">
+            <mat-label>Buscar logs</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="filters.user_id" 
+              (ngModelChange)="applyFilters()"
+              placeholder="Buscar por usuario..."
+              maxlength="100">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
 
-    <div class="flex flex-wrap gap-4 items-start">
-      <!-- Búsqueda por texto -->
-      <mat-form-field appearance="outline" class="flex-1 min-w-48">
-        <mat-label>Buscar logs</mat-label>
-        <input 
-          matInput 
-          [(ngModel)]="filters.user_id" 
-          (ngModelChange)="applyFilters()"
-          placeholder="Buscar por usuario..."
-          maxlength="100">
-        <mat-icon matSuffix>🔍</mat-icon>
-      </mat-form-field>
+          <!-- Filtro por acción -->
+          <mat-form-field appearance="outline" class="w-32 flex-shrink-0" style="width: 20%;">
+            <mat-label>Acción</mat-label>
+            <mat-select [(ngModel)]="filters.action" (ngModelChange)="applyFilters()">
+              <mat-option value="">Todas las acciones</mat-option>
+              <mat-option *ngFor="let action of actionOptions" [value]="action">
+                {{ action }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
 
-      <!-- Filtro por acción -->
-      <mat-form-field appearance="outline" class="flex-1 min-w-48">
-        <mat-label>Acción</mat-label>
-        <mat-select [(ngModel)]="filters.action" (ngModelChange)="applyFilters()">
-          <mat-option value="">Todas las acciones</mat-option>
-          <mat-option *ngFor="let action of actionOptions" [value]="action">
-            {{ action }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+          <!-- Filtro por fecha inicio -->
+          <mat-form-field appearance="outline" class="w-32 flex-shrink-0" style="width: 20%;">
+            <mat-label>Fecha inicio</mat-label>
+            <input matInput [matDatepicker]="startPicker" [(ngModel)]="filters.start_date" (ngModelChange)="applyFilters()">
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
 
-      <!-- Filtro por fecha inicio -->
-      <mat-form-field appearance="outline" class="flex-1 min-w-48">
-        <mat-label>Fecha inicio</mat-label>
-        <input matInput [matDatepicker]="startPicker" [(ngModel)]="filters.start_date" (ngModelChange)="applyFilters()">
-        <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-        <mat-datepicker #startPicker></mat-datepicker>
-      </mat-form-field>
+          <!-- Filtro por fecha fin -->
+          <mat-form-field appearance="outline" class="w-32 flex-shrink-0" style="width: 20%;">
+            <mat-label>Fecha fin</mat-label>
+            <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.end_date" (ngModelChange)="applyFilters()">
+            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
 
-      <!-- Filtro por fecha fin -->
-      <mat-form-field appearance="outline" class="flex-1 min-w-48">
-        <mat-label>Fecha fin</mat-label>
-        <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.end_date" (ngModelChange)="applyFilters()">
-        <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-        <mat-datepicker #endPicker></mat-datepicker>
-      </mat-form-field>
-
-      <!-- Botones de filtros -->
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="applyFilters()"
-        class="flex items-center gap-2">
-        <mat-icon>filter_list</mat-icon>
-        Aplicar Filtros
-      </button>
-      
-      <button 
-        mat-stroked-button 
-        (click)="clearFilters()"
-        class="flex items-center gap-2">
-        <mat-icon>clear</mat-icon>
-        Limpiar Filtros
-      </button>
-    </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button 
+              mat-stroked-button 
+              color="warn" 
+              (click)="clearFilters()"
+              matTooltip="Limpiar todos los filtros"
+              class="flex items-center gap-2">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar
+            </button>
+            <button 
+              mat-stroked-button 
+              color="accent" 
+              (click)="applyFilters()"
+              matTooltip="Aplicar filtros"
+              class="flex items-center gap-2">
+              <mat-icon>filter_list</mat-icon>
+              Aplicar
+            </button>
+            <button 
+              mat-icon-button 
+              color="warn"
+              (click)="cleanOldLogs()"
+              matTooltip="Limpiar logs antiguos">
+              <mat-icon>delete_sweep</mat-icon>
+            </button>
+            <!-- Menú de exportación -->
+            <div class="export-menu-container" #exportMenuContainer>
+              <button 
+                mat-icon-button 
+                color="accent"
+                [disabled]="loading"
+                (click)="toggleExportMenu($event)"
+                matTooltip="Exportar logs de actividad"
+                matTooltipPosition="above">
+                <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="!loading">download</mat-icon>
+              </button>
+              <!-- Menú desplegable -->
+              <div 
+                *ngIf="showExportMenu"
+                class="export-menu animate-fade-in">
+                <button 
+                  (click)="exportLogs()"
+                  [disabled]="loading || dataSource.data.length === 0"
+                  class="export-menu-item">
+                  <mat-icon class="menu-item-icon">table_chart</mat-icon>
+                  <span class="menu-item-text">Exportar Página Actual</span>
+                  <span class="menu-item-count">({{ dataSource.data.length }} registros)</span>
+                </button>
+                <button 
+                  (click)="exportAllLogs()"
+                  [disabled]="loading"
+                  class="export-menu-item">
+                  <mat-icon class="text-sm">cloud_download</mat-icon>
+                  <span class="menu-item-text">Exportar Todos los Logs</span>
+                  <span class="menu-item-count">({{ totalLogs }} total)</span>
+                </button>
+                <div class="export-menu-divider"></div>
+                <button 
+                  (click)="exportLogsByDateRange()"
+                  [disabled]="loading || (!filters.start_date && !filters.end_date)"
+                  class="export-menu-item">
+                  <mat-icon class="menu-item-icon">date_range</mat-icon>
+                  <span class="menu-item-text">Exportar por Rango de Fechas</span>
+                  <span class="menu-item-count">
+                    {{ filters.start_date || filters.end_date ? 'Filtrado' : 'Sin filtros' }}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <!-- Tabla -->

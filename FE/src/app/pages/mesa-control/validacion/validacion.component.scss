@@ -1,4 +1,26 @@
-// Estilos específicos para el componente de validación
+// Estilos específicos para el componente de validación (mismo acomodo que Integración, Liquidación, Liberación, Consolidación DMS)
+
+.validacion-container {
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #f9fafb;
+}
+
+.filters-section {
+  mat-card.filtro-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+
+  // Igual que Integración: ocultar hints, tamaño estándar de form fields
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+  }
+}
+
 .space-y-6 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1.5rem;
 }
@@ -334,95 +356,22 @@
   }
 }
 
-// Estilos para filtros compactos
-.filtro-container {
-  // Padding del contenedor aumentado para que sea más grande que los filtros
-  padding: 20px !important;
-  min-height: 80px !important;
-  
-  // Asegurar que el contenedor sea visiblemente más grande
-  box-sizing: border-box !important;
-  
-  // Hacer los mat-form-field más compactos con mayor especificidad
-  .compact-field {
-    // Reducir altura inmediatamente visible
-    .mat-mdc-form-field-infix {
-      min-height: 44px !important;
-      padding: 8px 0 !important;
-    }
-    
-    .mat-mdc-form-field-subscript-wrapper {
-      margin-top: 2px !important;
-      min-height: 0 !important;
-      display: none !important;
-    }
-    
-    .mat-mdc-text-field-wrapper {
-      padding: 0 8px !important;
-    }
-    
-    .mat-mdc-form-field-flex {
-      align-items: center !important;
-    }
-    
-    // Reducir altura en pantallas grandes
-    @media (min-width: 1024px) {
-      .mat-mdc-form-field-infix {
-        min-height: 40px !important;
-        padding: 6px 0 !important;
-      }
-      
-      .mat-mdc-form-field-subscript-wrapper {
-        margin-top: 1px !important;
-        display: none !important;
-      }
-      
-      .mat-mdc-text-field-wrapper {
-        padding: 0 6px !important;
-      }
-    }
-    
-    // En pantallas muy grandes, hacer aún más compacto
-    @media (min-width: 1440px) {
-      .mat-mdc-form-field-infix {
-        min-height: 36px !important;
-        padding: 4px 0 !important;
-      }
-      
-      .mat-mdc-form-field-subscript-wrapper {
-        margin-top: 0px !important;
-        display: none !important;
-      }
-      
-      .mat-mdc-text-field-wrapper {
-        padding: 0 4px !important;
-      }
-    }
-  }
-  
-  // Reducir tamaño de botones
-  .mat-mdc-icon-button {
-    width: 36px !important;
-    height: 36px !important;
-    line-height: 36px !important;
-    
-    @media (min-width: 1024px) {
-      width: 32px !important;
-      height: 32px !important;
-      line-height: 32px !important;
-    }
-    
-    @media (min-width: 1440px) {
-      width: 28px !important;
-      height: 28px !important;
-      line-height: 28px !important;
-    }
-  }
-}
 
-// Adaptación móvil: reducir padding en pantallas pequeñas
-.validacion-container {
-  @media (max-width: 768px) {
-    padding: 8px !important;
+// Responsive design (igual que Integración, Liquidación, Liberación, Consolidación DMS)
+@media (max-width: 768px) {
+  .validacion-container {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    .flex {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .mat-form-field {
+      width: 100% !important;
+      min-width: 100% !important;
+    }
   }
 }

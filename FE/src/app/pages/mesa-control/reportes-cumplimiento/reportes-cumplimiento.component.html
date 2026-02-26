@@ -1,10 +1,5 @@
 <div class="reportes-cumplimiento min-h-screen bg-gray-50 p-4">
-  <div class="mb-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-1">Reportes de Cumplimiento</h1>
-    <p class="text-gray-600 text-sm">Indicadores PLD/AML para el Oficial de Cumplimiento</p>
-  </div>
-
-  <!-- Dashboard resumen -->
+   <!-- Dashboard resumen -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
     <mat-card *ngIf="loadingDashboard" class="col-span-full flex justify-center items-center p-8">
       <mat-spinner diameter="40"></mat-spinner>
