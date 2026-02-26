@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { TipoOperacion, TipoOperacionResponse } from '../../../../core/interfaces/tipo-operacion.interface';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
 import { TipoOperacionEditDialogComponent } from './tipo-operacion-edit-dialog/tipo-operacion-edit-dialog.component';
@@ -36,7 +37,8 @@ import { TipoOperacionEditDialogComponent } from './tipo-operacion-edit-dialog/t
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCardModule
   ]
 })
 export class TiposOperacionComponent implements OnInit, AfterViewInit {

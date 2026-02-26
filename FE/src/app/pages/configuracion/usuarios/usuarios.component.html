@@ -1,16 +1,5 @@
 <div class="p-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-6">   
-    <button 
-      mat-raised-button 
-      color="primary" 
-      (click)="openCreateDialog()"
-      class="flex items-center gap-2">
-      <mat-icon>add_circle</mat-icon>
-      Nuevo Usuario
-    </button>
-  </div>
-
+ 
   <!-- Card de filtros (mismo tamaño y ubicación que Integración, Clientes, etc.) -->
   <div class="filters-section mb-2">
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -97,6 +86,15 @@
               class="flex items-center gap-2">
               <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
               Recargar
+            </button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="openCreateDialog()"
+              matTooltip="Crear nuevo usuario"
+              class="flex items-center gap-2">
+              <mat-icon>add_circle</mat-icon>
+              Nuevo Usuario
             </button>
           </div>
         </div>

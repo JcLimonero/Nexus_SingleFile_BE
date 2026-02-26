@@ -45,7 +45,8 @@ import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edi
     MatCardModule,
     MatDividerModule
   ],
-  templateUrl: './agencias.component.html'
+  templateUrl: './agencias.component.html',
+  styleUrls: ['./agencias.component.scss']
 })
 export class AgenciasComponent implements OnInit, AfterViewInit {
   agencias: Agency[] = [];

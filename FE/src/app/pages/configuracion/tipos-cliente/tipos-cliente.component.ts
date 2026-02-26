@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { CostumerType, CostumerTypeResponse } from '../../../core/interfaces/costumer-type.interface';
 import { CostumerTypeService } from '../../../core/services/costumer-type.service';
 import { CostumerTypeEditDialogComponent } from './costumer-type-edit-dialog/costumer-type-edit-dialog.component';
@@ -36,7 +37,8 @@ import { CostumerTypeEditDialogComponent } from './costumer-type-edit-dialog/cos
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCardModule
   ]
 })
 export class TiposClienteComponent implements OnInit, AfterViewInit {

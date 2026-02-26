@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
 
 import { FileExtraordinaryReason, FileExtraordinaryReasonService, FileExtraordinaryReasonFilters } from 'src/app/core/services/file-extraordinary-reason.service';
 import { MotivoExtraordinarioEditDialogComponent } from './motivo-extraordinario-edit-dialog/motivo-extraordinario-edit-dialog.component';
@@ -38,7 +39,8 @@ import { MotivoExtraordinarioEditDialogComponent } from './motivo-extraordinario
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatCardModule
   ]
 })
 export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {

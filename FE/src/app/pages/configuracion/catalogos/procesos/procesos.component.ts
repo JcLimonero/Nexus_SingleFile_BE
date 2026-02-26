@@ -46,7 +46,8 @@ import { ProcesoEditDialogComponent, ProcesoEditDialogData } from './proceso-edi
     MatDividerModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './procesos.component.html'
+  templateUrl: './procesos.component.html',
+  styleUrls: ['./procesos.component.scss']
 })
 export class ProcesosComponent implements OnInit, AfterViewInit {
   procesos: Proceso[] = [];

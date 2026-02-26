@@ -1,78 +1,66 @@
 <div class="p-6">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-4">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Motivos Extraordinarios</h1>
-      <p class="text-gray-600 mt-1">Gestión de motivos de excepción y cancelación</p>
-    </div>
-    <button 
-      mat-raised-button 
-      color="primary" 
-      (click)="addFileExtraordinaryReason()"
-      class="flex items-center gap-2">
-      <mat-icon>add_circle</mat-icon>
-      Nuevo Motivo
-    </button>
-  </div>
+  <!-- Card de filtros (mismo acomodo que Integración, Procesos, etc.) -->
+  <div class="filters-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <!-- Búsqueda por texto -->
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Buscar motivos</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="filters.search" 
+              (ngModelChange)="applyFilters()"
+              placeholder="Buscar por nombre..."
+              maxlength="100">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
 
-  <!-- Filtros -->
-  <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      
-      <!-- Espacio vacío a la izquierda -->
-      <div></div>
-      
-      <!-- Botones de acción a la derecha -->
-      <div class="flex items-center gap-3">
-        <!-- Botón de Limpiar Filtros -->
-        <button 
-          mat-stroked-button 
-          color="warn" 
-          (click)="clearFilters()"
-          [disabled]="!filters.search && !filters.id_type_reason"
-          matTooltip="Limpiar filtros"
-          class="flex items-center gap-2">
-          <mat-icon>clear_all</mat-icon>
-          Limpiar Filtros
-        </button>
-        
-        <!-- Botón de Reload en filtros -->
-        <button 
-          mat-stroked-button 
-          color="accent" 
-          (click)="refreshData()"
-          [disabled]="loading"
-          matTooltip="Recargar datos"
-          class="flex items-center gap-2">
-          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
-          Recargar
-        </button>
-      </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Búsqueda por texto -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Buscar motivos</mat-label>
-        <input 
-          matInput 
-          [(ngModel)]="filters.search" 
-          (ngModelChange)="applyFilters()"
-          placeholder="Buscar por nombre..."
-          maxlength="100">
-        <mat-icon matSuffix>🔍</mat-icon>
-      </mat-form-field>
+          <!-- Filtro por tipo de razón -->
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Tipo de Razón</mat-label>
+            <mat-select [(ngModel)]="filters.id_type_reason" (ngModelChange)="applyFilters()">
+              <mat-option value="">Todos</mat-option>
+              <mat-option value="2">Excepción</mat-option>
+              <mat-option value="1">Cancelación</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-      <!-- Filtro por tipo de razón -->
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Tipo de Razón</mat-label>
-        <mat-select [(ngModel)]="filters.id_type_reason" (ngModelChange)="applyFilters()">
-          <mat-option value="">Todos</mat-option>
-          <mat-option value="2">Excepción</mat-option>
-          <mat-option value="1">Cancelación</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+          <div class="flex items-center gap-2">
+            <button 
+              mat-stroked-button 
+              color="warn" 
+              (click)="clearFilters()"
+              [disabled]="!filters.search && !filters.id_type_reason"
+              matTooltip="Limpiar todos los filtros"
+              class="flex items-center gap-2">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar
+            </button>
+            <button 
+              mat-stroked-button 
+              color="accent" 
+              (click)="refreshData()"
+              [disabled]="loading"
+              matTooltip="Recargar datos"
+              class="flex items-center gap-2">
+              <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+              Recargar
+            </button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="addFileExtraordinaryReason()"
+              matTooltip="Crear nuevo motivo"
+              class="flex items-center gap-2">
+              <mat-icon>add_circle</mat-icon>
+              Nuevo Motivo
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <!-- Tabla de datos -->

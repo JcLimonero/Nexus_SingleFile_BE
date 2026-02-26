@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/document-type.interface';
 import { DocumentTypeService } from '../../../core/services/document-type.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
@@ -38,7 +39,8 @@ import { AddToConfigurationsDialogComponent } from './add-to-configurations-dial
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCardModule
   ]
 })
 export class TiposDocumentoComponent implements OnInit, AfterViewInit {
