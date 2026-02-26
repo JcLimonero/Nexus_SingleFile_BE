@@ -40,35 +40,35 @@
   <mat-divider class="text-border"></mat-divider>
 
   <mat-dialog-content class="flex flex-col">
-    <mat-form-field class="mt-6">
+    <mat-form-field appearance="outline" class="mt-6">
       <mat-label>Name</mat-label>
       <input cdkFocusInitial formControlName="name" matInput />
 
       <mat-icon matIconPrefix svgIcon="mat:person"></mat-icon>
     </mat-form-field>
 
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>Phone</mat-label>
       <input formControlName="phone" matInput />
 
       <mat-icon matIconPrefix svgIcon="mat:phone"></mat-icon>
     </mat-form-field>
 
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>E-Mail</mat-label>
       <input formControlName="email" matInput />
 
       <mat-icon matIconPrefix svgIcon="mat:email"></mat-icon>
     </mat-form-field>
 
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>Company</mat-label>
       <input formControlName="company" matInput />
 
       <mat-icon matIconPrefix svgIcon="mat:business"></mat-icon>
     </mat-form-field>
 
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>Birthday</mat-label>
       <input
         [matDatepicker]="datepickerRef"
@@ -81,7 +81,7 @@
       <mat-datepicker #datepickerRef></mat-datepicker>
     </mat-form-field>
 
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>Notes</mat-label>
       <textarea formControlName="notes" matInput></textarea>
     </mat-form-field>

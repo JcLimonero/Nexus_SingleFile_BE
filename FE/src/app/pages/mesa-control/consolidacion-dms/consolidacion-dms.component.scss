@@ -59,14 +59,22 @@ $filtro-control-height: calc(56px * 0.7);
   }
 }
 
+.filtro-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+}
+
 .filtro-btn {
   height: $filtro-control-height !important;
   min-height: $filtro-control-height !important;
   min-width: 160px;
-  margin-bottom: 0;
+  margin: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   box-sizing: border-box;
 }
 

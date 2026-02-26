@@ -64,7 +64,9 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   loadingAgencias = false;
   agencias: Agencia[] = [];
   companies: Company[] = [];
-  filterCompania: number | null = null; // Filtro por razón social (agrupa agencias)
+  /** Valor centinela para "Todas" (mat-select no muestra bien null) */
+  readonly COMPANIA_TODAS = -1;
+  filterCompania: number = -1; // Filtro por razón social (agrupa agencias)
   selectedAgencyIds: number[] = [];
 
   // Filtro de período
@@ -95,11 +97,13 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   anios: number[] = [];
 
   // Filtros adicionales (se aplican sobre los datos ya cargados)
-  filterEstatus: number | null = null;
+  /** Valor centinela para "Todos" en Estatus (mat-select no muestra bien null) */
+  readonly ESTATUS_TODAS = -1;
+  filterEstatus: number = -1;
   private fullData: PedidoDms[] = [];
 
-  estatusOptions: { value: number | null; label: string }[] = [
-    { value: null, label: 'Todos' },
+  estatusOptions: { value: number; label: string }[] = [
+    { value: -1, label: 'Todos' },
     { value: 0, label: 'Sin Integrar' },
     { value: 1, label: 'Integración' },
     { value: 2, label: 'Liquidación' },
@@ -196,7 +200,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   /** Agencias filtradas por razón social seleccionada */
   get agenciasFiltradas(): Agencia[] {
-    if (!this.filterCompania) return this.agencias;
+    if (this.filterCompania === this.COMPANIA_TODAS) return this.agencias;
     const idComp = Number(this.filterCompania);
     return this.agencias.filter(a => {
       const aId = a['IdCompany'] ?? a['id_company'] ?? a['idCompany'];
@@ -209,7 +213,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   get agenciaSelectorLabel(): string {
     if (this.loadingAgencias) return 'Cargando...';
     const list = this.agenciasFiltradas;
-    if (list.length === 0) return this.filterCompania ? 'Sin agencias para esta razón social' : 'No hay agencias';
+    if (list.length === 0) return this.filterCompania !== this.COMPANIA_TODAS ? 'Sin agencias para esta razón social' : 'No hay agencias';
     if (this.selectedAgencyIds.length === 0) return 'Seleccione agencias';
     const allSelected = list.every(a => this.selectedAgencyIds.includes(a.Id)) && this.selectedAgencyIds.length === list.length;
     return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
@@ -298,7 +302,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   aplicarFiltros(): void {
     let filtered = [...this.fullData];
-    if (this.filterEstatus != null) {
+    if (this.filterEstatus !== this.ESTATUS_TODAS) {
       if (this.filterEstatus === 0) {
         // Sin Integrar: state null, vacío, 0 o NaN
         filtered = filtered.filter(row => {
@@ -329,14 +333,14 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
-    this.filterCompania = null;
+    this.filterCompania = this.COMPANIA_TODAS;
     this.selectedAgencyIds = [];
     this.periodPreset = 'mes_actual';
     this.rangeDateGroup.setValue({
       start: new Date(this.now.getFullYear(), this.now.getMonth(), 1),
       end: new Date(this.now.getFullYear(), this.now.getMonth() + 1, 0)
     });
-    this.filterEstatus = null;
+    this.filterEstatus = this.ESTATUS_TODAS;
     this.dataSource.data = [];
     this.displayedColumns = [];
     this.fullData = [];

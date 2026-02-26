@@ -6,7 +6,7 @@
 </div>
 
 <mat-dialog-content>
-  <mat-form-field class="block w-full">
+  <mat-form-field appearance="outline" class="block w-full">
     <mat-label>To</mat-label>
     <input cdkFocusInitial matInput type="text" />
 
@@ -21,18 +21,18 @@
   </mat-form-field>
 
   <div [@dropdown]="dropdownOpen" class="overflow-hidden">
-    <mat-form-field class="block w-full">
+    <mat-form-field appearance="outline" class="block w-full">
       <mat-label>Cc</mat-label>
       <input matInput type="text" />
     </mat-form-field>
 
-    <mat-form-field class="block w-full">
+    <mat-form-field appearance="outline" class="block w-full">
       <mat-label>Bcc</mat-label>
       <input matInput type="text" />
     </mat-form-field>
   </div>
 
-  <mat-form-field class="block w-full">
+  <mat-form-field appearance="outline" class="block w-full">
     <mat-label>Subject</mat-label>
     <input matInput type="text" />
   </mat-form-field>

@@ -15,7 +15,7 @@
   <!-- Formulario -->
   <form (ngSubmit)="saveMotivo()" class="space-y-4">
     <!-- Nombre del motivo -->
-    <mat-form-field class="w-full">
+    <mat-form-field appearance="outline" class="w-full">
       <mat-label>Nombre del Motivo</mat-label>
       <input
         matInput
@@ -29,7 +29,7 @@
     </mat-form-field>
 
     <!-- Tipo de Razón -->
-    <mat-form-field class="w-full">
+    <mat-form-field appearance="outline" class="w-full">
       <mat-label>Tipo de Razón</mat-label>
       <mat-select [(ngModel)]="motivo.IdTypeReason" name="idTypeReason" required>
         <mat-option *ngFor="let option of tipoRazonOptions" [value]="option.value">
@@ -40,7 +40,7 @@
     </mat-form-field>
 
     <!-- Estado -->
-    <mat-form-field class="w-full">
+    <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estado</mat-label>
       <mat-select [(ngModel)]="motivo.Enabled" name="enabled" required>
         <mat-option [value]="1">Habilitado</mat-option>

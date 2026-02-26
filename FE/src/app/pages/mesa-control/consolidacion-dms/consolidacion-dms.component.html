@@ -7,10 +7,10 @@
   <mat-card class="filtro-card mb-4">
     <mat-card-content>
       <div class="filtro-row">
-        <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic">
+        <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic" floatLabel="always">
           <mat-label>Razón social</mat-label>
           <mat-select [(ngModel)]="filterCompania" name="filterCompania">
-            <mat-option [value]="null">Todas</mat-option>
+            <mat-option [value]="COMPANIA_TODAS">Todas</mat-option>
             <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
           </mat-select>          
         </mat-form-field>
@@ -40,7 +40,7 @@
           </div>
           <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
             <div *ngIf="agenciasFiltradas.length === 0" class="px-3 py-4 text-gray-500 text-sm">
-              {{ filterCompania ? 'No hay agencias para esta razón social' : 'No hay agencias disponibles' }}
+              {{ filterCompania !== COMPANIA_TODAS ? 'No hay agencias para esta razón social' : 'No hay agencias disponibles' }}
             </div>
             <div *ngFor="let agencia of agenciasFiltradas" class="px-3 py-1">
               <mat-checkbox
@@ -53,13 +53,13 @@
           </div>
         </mat-menu>
         <div class="periodo-select-wrapper filtro-field">
-          <mat-form-field appearance="outline" class="filtro-field filtro-periodo-preset" subscriptSizing="dynamic">
+          <mat-form-field appearance="outline" class="filtro-field filtro-periodo-preset" subscriptSizing="dynamic" floatLabel="always">
             <mat-label>Período</mat-label>
             <mat-select [(ngModel)]="periodPreset" name="periodPreset">
               <mat-option *ngFor="let p of periodPresets" [value]="p.value">{{ p.label }}</mat-option>
             </mat-select>
           </mat-form-field>
-          <mat-form-field *ngIf="periodPreset === 'rango'" appearance="outline" class="filtro-field filtro-rango-fechas" subscriptSizing="dynamic">
+          <mat-form-field *ngIf="periodPreset === 'rango'" appearance="outline" class="filtro-field filtro-rango-fechas" subscriptSizing="dynamic" floatLabel="always">
             <mat-label>Rango de fechas</mat-label>
             <mat-date-range-input [formGroup]="rangeDateGroup" [rangePicker]="rangePicker">
               <input matStartDate formControlName="start" placeholder="Inicio" (click)="rangePicker.open()">
@@ -69,42 +69,43 @@
             <mat-date-range-picker #rangePicker></mat-date-range-picker>
           </mat-form-field>
         </div>
-        <mat-form-field appearance="outline" class="filtro-field filtro-estatus" subscriptSizing="dynamic">
+        <mat-form-field appearance="outline" class="filtro-field filtro-estatus" subscriptSizing="dynamic" floatLabel="always">
           <mat-label>Estatus</mat-label>
           <mat-select [(ngModel)]="filterEstatus" name="estatus" (selectionChange)="onFilterChange()">
             <mat-option *ngFor="let opt of estatusOptions" [value]="opt.value">{{ opt.label }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button
-          mat-raised-button
-          color="primary"
-          class="filtro-btn"
-          [disabled]="loading || selectedAgencyIds.length === 0"
-          (click)="cargarPedidos()">
-          <mat-icon *ngIf="!loading">refresh</mat-icon>
-          <mat-spinner *ngIf="loading" diameter="20" class="inline-block align-middle"></mat-spinner>
-          <span class="ml-2">{{ loading ? 'Cargando...' : 'Cargar pedidos' }}</span>
-        </button>
-        <button
-          mat-stroked-button
-          color="primary"
-          class="filtro-btn"
-          [disabled]="dataSource.data.length === 0 || exportingExcel"
-          (click)="exportarExcel()"
-          matTooltip="Exportar a Excel"
-          class="flex items-center gap-2">
-          <mat-icon *ngIf="!exportingExcel">download</mat-icon>
-          <mat-spinner *ngIf="exportingExcel" diameter="20" class="inline-block"></mat-spinner>
-          <span>{{ exportingExcel ? 'Exportando...' : 'Exportar Excel' }}</span>
-        </button>
-        <button
-          mat-stroked-button
-          class="filtro-btn"
-          (click)="limpiarFiltros()"
-          matTooltip="Restablecer todos los filtros">
-          <mat-icon>clear_all</mat-icon>
-          <span class="ml-2">Limpiar filtros</span>
-        </button>
+        <div class="filtro-buttons">
+          <button
+            mat-raised-button
+            color="primary"
+            class="filtro-btn"
+            [disabled]="loading || selectedAgencyIds.length === 0"
+            (click)="cargarPedidos()">
+            <mat-icon *ngIf="!loading">refresh</mat-icon>
+            <mat-spinner *ngIf="loading" diameter="20" class="inline-block align-middle"></mat-spinner>
+            <span>{{ loading ? 'Cargando...' : 'Cargar pedidos' }}</span>
+          </button>
+          <button
+            mat-stroked-button
+            color="primary"
+            class="filtro-btn"
+            [disabled]="dataSource.data.length === 0 || exportingExcel"
+            (click)="exportarExcel()"
+            matTooltip="Exportar a Excel">
+            <mat-icon *ngIf="!exportingExcel">download</mat-icon>
+            <mat-spinner *ngIf="exportingExcel" diameter="20" class="inline-block"></mat-spinner>
+            <span>{{ exportingExcel ? 'Exportando...' : 'Exportar Excel' }}</span>
+          </button>
+          <button
+            mat-stroked-button
+            class="filtro-btn"
+            (click)="limpiarFiltros()"
+            matTooltip="Restablecer todos los filtros">
+            <mat-icon>clear_all</mat-icon>
+            <span>Limpiar filtros</span>
+          </button>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>

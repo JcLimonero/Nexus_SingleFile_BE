@@ -2,7 +2,7 @@
   <div class="p-6 md:min-w-[300px] flex-none">
     <h2 class="title mt-0 mb-4">Preview</h2>
 
-    <mat-form-field class="w-300 max-w-full">
+    <mat-form-field appearance="outline" class="w-300 max-w-full">
       <mat-label>Select a State</mat-label>
       <input [formControl]="stateCtrl" [matAutocomplete]="auto" matInput />
       <mat-autocomplete #auto="matAutocomplete">

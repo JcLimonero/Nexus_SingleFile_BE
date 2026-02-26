@@ -1,0 +1,60 @@
+/**
+ * Estilo homologado para combos/selects (mat-form-field + mat-select).
+ * Basado en el diseño del combo "Período": label arriba, borde gris claro, esquinas redondeadas.
+ */
+
+/* Variables para combos homologados */
+:root {
+  --app-combo-border-color: #ced4da;
+  --app-combo-border-radius: 6px;
+  --app-combo-label-color: #6c757d;
+  --app-combo-bg: #ffffff;
+}
+
+/* Aplicar a todos los mat-form-field (combos y inputs) - estilo Período */
+.mat-mdc-form-field {
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--app-combo-bg);
+  }
+
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: var(--app-combo-border-color) !important;
+  }
+
+  .mdc-notched-outline__leading {
+    border-radius: var(--app-combo-border-radius) 0 0 var(--app-combo-border-radius) !important;
+  }
+
+  .mdc-notched-outline__trailing {
+    border-radius: 0 var(--app-combo-border-radius) var(--app-combo-border-radius) 0 !important;
+  }
+
+  .mat-mdc-floating-label {
+    color: var(--app-combo-label-color) !important;
+  }
+
+  /* Reducir espacio del subscript (hints/errores) cuando está vacío - mantener limpio como Período */
+  .mat-mdc-form-field-subscript-wrapper {
+    min-height: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  &.mat-focused {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: var(--app-palette-royal, #274880) !important;
+      border-width: 2px !important;
+    }
+  }
+
+  .mat-mdc-select {
+    color: #343a40;
+  }
+
+  .mat-mdc-select-arrow {
+    color: var(--app-combo-label-color) !important;
+  }
+}
