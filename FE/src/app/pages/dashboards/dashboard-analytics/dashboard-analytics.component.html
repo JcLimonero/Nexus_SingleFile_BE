@@ -3,8 +3,28 @@
               <!-- Filtros unificados -->
               <div class="filters-container">
                 <div class="filters-row">
-                  <!-- Filtro por Agencia -->
+                  <!-- Filtros Razón social + Agencia (ligados) -->
                   <div class="filter-group">
+                    <div class="filter-field-wrapper">
+                      <label class="filter-label">Razón social</label>
+                      <mat-form-field appearance="outline" class="filter-field no-label">
+                        <mat-select
+                          placeholder="Todas"
+                          [value]="filterCompania"
+                          (selectionChange)="onCompaniaChange($event.value)"
+                          [disabled]="loading || !hasCompanies()">
+                          <mat-option [value]="null">Todas</mat-option>
+                          <mat-option
+                            *ngFor="let c of companies; trackBy: trackByCompanyId"
+                            [value]="c.Id">
+                            {{ c.Name }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
+                        <mat-hint align="start" *ngIf="!loading && !hasCompanies()">Sin razones sociales</mat-hint>
+                      </mat-form-field>
+                    </div>
+
                     <div class="filter-field-wrapper">
                       <label class="filter-label">Agencia</label>
                       <mat-form-field appearance="outline" class="filter-field no-label">
@@ -12,16 +32,18 @@
                           placeholder="Seleccionar agencia"
                           [value]="selectedAgencyId"
                           (selectionChange)="onAgencyChange($event.value)"
-                          [disabled]="loading || !hasAgencies()">
+                          [disabled]="loading || agenciesFiltradas.length === 0">
                           <mat-option [value]="null">Todas las agencias</mat-option>
                           <mat-option
-                            *ngFor="let agency of agencies; trackBy: trackByAgencyId"
+                            *ngFor="let agency of agenciesFiltradas; trackBy: trackByAgencyId"
                             [value]="agency.Id">
                             {{ agency.Name }}
                           </mat-option>
                         </mat-select>
                         <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
-                        <mat-hint align="start" *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
+                        <mat-hint align="start" *ngIf="!loading && agenciesFiltradas.length === 0">
+                          {{ filterCompania ? 'Sin agencias para esta razón social' : 'Sin agencias' }}
+                        </mat-hint>
                       </mat-form-field>
                     </div>
 

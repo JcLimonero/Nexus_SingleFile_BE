@@ -38,6 +38,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { AgencyService } from '../../../core/services/agency.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { Company } from '../../../core/services/company.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -91,11 +92,13 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   currentFilters: AnalyticsFilters = {};
+  filterCompania: number | null = null;
   selectedAgencyId: number | null = null;
   selectedDateRange: DateRange | null = null;
   selectedUserId: number | null = null;
   showManualDateInputs = false;
-  agencies: any[] = [];
+  agencies: { Id: number; Name: string; IdCompany?: number }[] = [];
+  companies: Company[] = [];
   users: any[] = [];
   dateRangeForm: FormGroup;
   activeDateRange: string | null = null;
@@ -158,7 +161,6 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     // Cargar usuario actual PRIMERO
     this.loadCurrentUser();
 
-    // Cargar agencias (esto establecerá la agencia predeterminada y cargará el dashboard)
     this.loadAgencies();
 
     // Establecer "Este mes" como período por defecto
@@ -195,6 +197,36 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           this.changeDetector.markForCheck();
         }
       });
+  }
+
+  onCompaniaChange(companiaId: number | null): void {
+    this.filterCompania = companiaId;
+    const filtradas = this.agenciesFiltradas;
+    const selectedInList = this.selectedAgencyId != null && filtradas.some(a => a.Id === this.selectedAgencyId);
+    if (!selectedInList) {
+      this.selectedAgencyId = null;
+      this.currentFilters = { ...this.currentFilters, agencyId: undefined };
+      this.loadUsers(null);
+    }
+    this.changeDetector.markForCheck();
+    this.filtersChange$.next();
+  }
+
+  get agenciesFiltradas(): { Id: number; Name: string }[] {
+    if (!this.filterCompania) return this.agencies;
+    const idComp = Number(this.filterCompania);
+    return this.agencies.filter(a => {
+      const aId = (a as any).IdCompany ?? (a as any).id_company ?? (a as any).idCompany;
+      return (aId ?? 0) === idComp;
+    });
+  }
+
+  trackByCompanyId(index: number, c: Company): number {
+    return (c as any).Id ?? (c as any).id ?? 0;
+  }
+
+  hasCompanies(): boolean {
+    return Array.isArray(this.companies) && this.companies.length > 0;
   }
 
   onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
@@ -277,12 +309,34 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     return dateRange.startDate <= dateRange.endDate;
   }
 
+  /** Construir companies desde las agencias (cada una tiene IdCompany y CompanyName del API) */
+  private buildCompaniesFromAgencies(agencias: { Id: number; Name: string; IdCompany?: number; CompanyName?: string }[]): Company[] {
+    const map = new Map<number, Company>();
+    for (const a of agencias) {
+      const idComp = a.IdCompany ?? 0;
+      if (!map.has(idComp)) {
+        map.set(idComp, {
+          Id: idComp,
+          Name: (a as any).CompanyName ?? (a as any).companyName ?? (idComp === 0 ? 'Sin asignar' : `Empresa ${idComp}`)
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.Name.localeCompare(b.Name));
+  }
+
   private loadAgencies(): void {
     this.defaultAgencyService.obtenerAgencias()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {
-          this.agencies = agencias;
+          const mapped = agencias.map(a => ({
+            Id: a.Id,
+            Name: a.Name,
+            IdCompany: (a as any).IdCompany ?? (a as any).id_company ?? (a as any).idCompany,
+            CompanyName: (a as any).CompanyName ?? (a as any).companyName
+          }));
+          this.agencies = mapped;
+          this.companies = this.buildCompaniesFromAgencies(mapped);
           this.changeDetector.markForCheck();
 
           // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
@@ -578,11 +632,11 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   hasAnyFilter(): boolean {
-    return this.selectedAgencyId !== null || this.selectedUserId !== null || this.hasDateRange();
+    return this.filterCompania !== null || this.selectedAgencyId !== null || this.selectedUserId !== null || this.hasDateRange();
   }
 
   clearAllFilters(): void {
-    // Limpiar agencia
+    this.filterCompania = null;
     this.selectedAgencyId = null;
 
     // Limpiar usuario
