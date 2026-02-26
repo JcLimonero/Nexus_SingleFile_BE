@@ -1,3 +1,11 @@
+// Contenedor homologado con Integración (mismo padding y ubicación)
+.catalogos-container {
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
+
 // Card de filtros homologado con Integración, Procesos, etc.
 .filters-section {
   mat-card {
