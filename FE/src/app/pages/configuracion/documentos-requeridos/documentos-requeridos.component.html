@@ -64,7 +64,7 @@
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
           <!-- Información de registros -->
           <div *ngIf="!loadingConfiguraciones && dataSourceConfiguraciones.data.length > 0" class="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
-            Mostrando {{ dataSourceConfiguraciones.data.length }} configuraciones
+            Mostrando {{ getPageRangeConfiguraciones() }} de {{ dataSourceConfiguraciones.data.length }} configuraciones
           </div>
           
           <div class="relative overflow-x-auto">
@@ -204,7 +204,7 @@
             </div>
           </div>
 
-          <!-- Paginación -->
+          <!-- Paginación (10 registros por defecto) -->
           <mat-paginator 
             #configuracionesPaginator
             [pageSizeOptions]="[10, 25, 50, 100, 200, 500, 1000]" 
@@ -480,10 +480,10 @@
             </div>
           </div>
 
-          <!-- Paginación -->
+          <!-- Paginación (10 registros por defecto) -->
           <mat-paginator 
             [pageSizeOptions]="[10, 25, 50, 100, 200, 500, 1000]" 
-            [pageSize]="25"
+            [pageSize]="10"
             showFirstLastButtons 
             aria-label="Seleccionar página de documentos requeridos">
           </mat-paginator>

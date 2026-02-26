@@ -113,8 +113,6 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Configurar paginador y sort para el Tab 2
     if (this.paginator) {
-      // Asegurar que el pageSize sea 25 para mostrar más registros
-      this.paginator.pageSize = 25;
       this.dataSource.paginator = this.paginator;
     }
     if (this.sort) {
@@ -135,8 +133,6 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
         this.dataSource.sort = this.sort;
       }
       if (!this.dataSource.paginator && this.paginator) {
-        // Asegurar que el pageSize sea 25
-        this.paginator.pageSize = 25;
         this.dataSource.paginator = this.paginator;
       }
     }, 100);
@@ -330,19 +326,6 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
               
               this.dataSource.data = documentos;
               
-              // Asegurar que el paginador tenga el pageSize correcto después de cargar datos
-              setTimeout(() => {
-
-                if (this.paginator) {
-                  // Forzar el pageSize a 25 si está en 10
-                  if (this.paginator.pageSize === 10) {
-
-                    this.paginator.pageSize = 25;
-                    this.paginator._changePageSize(25);
-                  }
-
-                }
-              }, 100);
             } else {
               this.snackBar.open(response.message || 'Error al cargar documentos', 'Error', { duration: 3000 });
               this.dataSource.data = [];
@@ -706,6 +689,18 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
         );
       }
     });
+  }
+
+  /**
+   * Obtener rango de página actual para Configuraciones Generales
+   */
+  getPageRangeConfiguraciones(): string {
+    if (!this.configuracionesPaginator || this.dataSourceConfiguraciones.data.length === 0) {
+      return '0-0';
+    }
+    const start = this.configuracionesPaginator.pageIndex * this.configuracionesPaginator.pageSize + 1;
+    const end = Math.min(start + this.configuracionesPaginator.pageSize - 1, this.dataSourceConfiguraciones.data.length);
+    return `${start}-${end}`;
   }
 
   /**
