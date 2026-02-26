@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  ElementRef,
   HostBinding,
   inject,
   Input,
@@ -57,7 +58,11 @@ export class SidenavItemComponent implements OnInit, OnChanges {
   isDropdown = this.navigationService.isDropdown;
   isSubheading = this.navigationService.isSubheading;
 
+  flyoutTop: string = 'auto';
+  flyoutBottom: string = 'auto';
+
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
+  private readonly el: ElementRef = inject(ElementRef);
 
   constructor(
     private router: Router,
@@ -85,6 +90,15 @@ export class SidenavItemComponent implements OnInit, OnChanges {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((item) => this.onOpenChange(item));
+
+    this.navigationService.closeAll$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.isOpen) {
+          this.isOpen = false;
+          this.cd.markForCheck();
+        }
+      });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -99,8 +113,32 @@ export class SidenavItemComponent implements OnInit, OnChanges {
 
   toggleOpen() {
     this.isOpen = !this.isOpen;
+
+    if (this.isOpen && this.level === 0) {
+      const rect = this.el.nativeElement.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const childCount = (this.item as NavigationDropdown).children?.length || 0;
+      // Estimate flyout height: each item ~44px + 22px padding
+      const estimatedHeight = childCount * 44 + 22;
+      const spaceBelow = viewportHeight - rect.top;
+
+      if (estimatedHeight <= spaceBelow) {
+        // Fits below: align top with the item
+        this.flyoutTop = rect.top + 'px';
+        this.flyoutBottom = 'auto';
+      } else {
+        // Doesn't fit: anchor to bottom of viewport with margin
+        this.flyoutTop = 'auto';
+        this.flyoutBottom = '12px';
+      }
+    }
+
     this.navigationService.triggerOpenChange(this.item as NavigationDropdown);
     this.cd.markForCheck();
+  }
+
+  onLinkClick() {
+    this.navigationService.triggerCloseAll();
   }
 
   onOpenChange(item: NavigationDropdown) {
@@ -121,13 +159,11 @@ export class SidenavItemComponent implements OnInit, OnChanges {
   onRouteChange() {
     if (this.hasActiveChilds(this.item as NavigationDropdown)) {
       this.isActive = true;
-      this.isOpen = true;
-      this.navigationService.triggerOpenChange(this.item as NavigationDropdown);
+      // Don't auto-open dropdowns in collapsed icon-bar mode
       this.cd.markForCheck();
     } else {
       this.isActive = false;
       this.isOpen = false;
-      this.navigationService.triggerOpenChange(this.item as NavigationDropdown);
       this.cd.markForCheck();
     }
   }

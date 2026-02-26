@@ -38,19 +38,10 @@ export class LayoutComponent {
   config$: Observable<AppLayoutConfig> = this.configService.config$;
 
   sidenavCollapsed$ = this.layoutService.sidenavCollapsed$;
-  sidenavDisableClose$ = this.layoutService.isDesktop$;
-  sidenavFixedInViewport$ = this.layoutService.isDesktop$.pipe(
-    map((isDesktop) => !isDesktop)
-  );
-  sidenavMode$: Observable<MatDrawerMode> = combineLatest([
-    this.layoutService.isDesktop$,
-    this.configService.select((config) => config.layout)
-  ]).pipe(
-    map(([isDesktop, layout]) =>
-      !isDesktop || layout === 'vertical' ? 'over' : 'side'
-    )
-  );
-  sidenavOpen$ = this.layoutService.sidenavOpen$;
+  sidenavDisableClose$ = true;
+  sidenavFixedInViewport$ = false;
+  sidenavMode$: Observable<MatDrawerMode> = new Observable(sub => sub.next('side'));
+  sidenavOpen$ = new Observable<boolean>(sub => sub.next(true));
   quickpanelOpen$ = this.layoutService.quickpanelOpen$;
 
   constructor(

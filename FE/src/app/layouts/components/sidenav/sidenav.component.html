@@ -1,74 +1,18 @@
 <div
-  (mouseenter)="collapseOpenSidenav()"
-  (mouseleave)="collapseCloseSidenav()"
   [class.collapsed]="collapsed"
-  [class.open]="collapsed && (collapsedOpen$ | async)"
   class="vex-sidenav flex flex-col">
   <div class="vex-sidenav-toolbar__container">
-    <div class="sidenav-toolbar flex-none flex items-center">
-      <ng-container *ngIf="(imageUrl$ | async) as url">
-        <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-10 select-none flex-none" [class.branding-logo-tint]="logoColor$ | async" />
-      </ng-container>
-      <h2 class="vex-sidenav-toolbar__headline flex-auto">
-        {{ title$ | async }}
-      </h2>
-      <button
-        (click)="toggleCollapse()"
-        *ngIf="showCollapsePin$ | async"
-        class="vex-sidenav-toolbar__collapse-toggle -mr-4 leading-none flex-none hidden lg:block"
-        mat-icon-button
-        type="button">
-        <mat-icon
-          *ngIf="!collapsed"
-          class="icon-xs"
-          svgIcon="mat:radio_button_checked"></mat-icon>
-        <mat-icon
-          *ngIf="collapsed"
-          class="icon-xs"
-          svgIcon="mat:radio_button_unchecked"></mat-icon>
-      </button>
-    </div>
-
-
     <div class="vex-sidenav-toolbar__divider"></div>
   </div>
 
   <app-scrollbar class="flex-1 flex flex-col">
-    <div class="pt-6 flex-1">
+    <div class="flex-1">
       <vex-sidenav-item
         *ngFor="let item of items$ | async; trackBy: trackByRoute"
         [item]="item"
         [level]="0"></vex-sidenav-item>
     </div>
 
-    <div
-      class="vex-sidenav-footer flex items-center justify-center opacity-20 px-6 py-6 select-none flex-none">
-      <ng-container *ngIf="(imageUrl$ | async) as url">
-        <img *ngIf="url?.trim()" [src]="url" alt="Logo" class="w-12 select-none" [class.branding-logo-tint]="logoColor$ | async" />
-      </ng-container>
-    </div>
-  </app-scrollbar>
 
-  <div
-    *ngIf="userVisible$ | async"
-    class="vex-sidenav-user__container flex-none">
-    <button
-      #sidenavUserMenuTrigger="matMenuTrigger"
-      [matMenuTriggerFor]="sidenavUserMenu"
-      class="vex-sidenav-user flex items-center w-full border-0 bg-transparent text-left"
-      style="cursor: pointer; user-select: none; padding: 12px;"
-      matRipple
-      matRippleColor="var(--vex-sidenav-item-ripple-color)">
-      <div class="vex-sidenav-user__content flex-auto">
-        <div class="vex-sidenav-user__title">{{ (currentUser$ | async)?.name || 'Usuario' }}</div>
-        <div class="vex-sidenav-user__subtitle">{{ (currentUser$ | async)?.role_name || 'Rol no definido' }}</div>
-      </div>
-      <mat-icon
-        class="vex-sidenav-user__dropdown-icon flex-none"
-        svgIcon="mat:arrow_drop_down"></mat-icon>
-    </button>
-    <mat-menu #sidenavUserMenu="matMenu" class="sidenav-user-menu" xPosition="before" yPosition="above">
-      <vex-sidenav-user-menu (closeMenu)="closeUserMenu(sidenavUserMenuTrigger)"></vex-sidenav-user-menu>
-    </mat-menu>
-  </div>
+  </app-scrollbar>
 </div>

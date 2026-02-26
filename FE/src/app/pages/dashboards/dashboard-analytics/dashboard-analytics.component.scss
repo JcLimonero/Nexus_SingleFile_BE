@@ -2,6 +2,61 @@
 @import '../components/widgets/shared-metric-widget-styles.scss';
 
 // CSS global para forzar el grid de métricas principales - Optimizado para mejor uso del espacio
+.metrics-section-container {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #EFF0F0;
+
+  .section-title {
+    margin-bottom: 16px !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+  }
+}
+
+.temporal-section-container {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #EFF0F0;
+  margin-top: 4px;
+
+  .section-title {
+    margin-bottom: 16px !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+  }
+
+  // Grid para análisis temporal - 2 charts lado a lado
+  .temporal-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr !important;
+    }
+
+    .chart-container {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: 100% !important;
+    }
+
+    vex-widget-trend-chart,
+    vex-widget-weekly-chart {
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+    }
+  }
+}
+
 .metrics-main-grid {
   display: grid !important;
   grid-template-columns: repeat(6, 1fr) !important;
@@ -42,17 +97,129 @@
   }
 }
 
+// Estilos para filtros del dashboard
+.filters-container {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #EFF0F0;
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+  max-width: 260px;
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2B2B2B;
+  padding-left: 2px;
+}
+
+.filter-field {
+  width: 100%;
+
+  &.no-label ::ng-deep {
+    .mat-mdc-floating-label {
+      display: none !important;
+    }
+
+    .mdc-notched-outline__notch {
+      border-top: 1px solid #E5E2E1 !important;
+    }
+
+    .mat-mdc-form-field-infix {
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+    }
+  }
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background: #F8F9FA !important;
+      border-radius: 10px !important;
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #E5E2E1 !important;
+    }
+
+    .mdc-notched-outline__leading {
+      border-radius: 10px 0 0 10px !important;
+    }
+
+    .mdc-notched-outline__trailing {
+      border-radius: 0 10px 10px 0 !important;
+    }
+
+    .mat-mdc-form-field-flex {
+      height: 44px;
+      align-items: center;
+    }
+
+    .mat-mdc-select-trigger {
+      font-size: 13px;
+      color: #2B2B2B;
+    }
+
+    .mat-mdc-floating-label {
+      font-size: 13px;
+      color: #77797B;
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      font-size: 11px;
+    }
+
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: var(--vex-color-primary, #0ea5e9) !important;
+        border-width: 2px !important;
+      }
+    }
+
+    .mat-mdc-select-arrow {
+      color: #ADACAC;
+    }
+  }
+}
+
 // Estilos globales para el dashboard de analytics - Optimizado para mejor uso del espacio
 .dashboard-analytics {
   // Espaciado general del dashboard optimizado
-  padding: 0.375rem; // Reducido de 0.5rem
+  padding: 0;
   
   @media (min-width: 768px) {
-    padding: 0.75rem; // Reducido de 1rem
+    padding: 0;
   }
   
   .dashboard-section {
-    margin-bottom: 1rem; // Reducido de 1.25rem
+    margin-bottom: 1rem;
+    padding: 0;
     
     .section-title {
       margin-bottom: 0.75rem; // Reducido de 1rem
@@ -158,50 +325,7 @@
     }
   }
 
-  // Flexbox específico para análisis temporal - Optimizado para 2 widgets en el mismo renglón
-  .temporal-grid {
-    display: flex !important;
-    gap: 0.5rem !important;
-    width: 100% !important;
-    flex-wrap: wrap !important;
-    
-    // Solo en móviles muy pequeños usar 1 columna
-    @media (max-width: 480px) {
-      flex-direction: column !important;
-    }
-    
-    // Asegurar que siempre sea 2 columnas en pantallas medianas y grandes
-    @media (min-width: 481px) {
-      flex-direction: row !important;
-    }
-    
-    // Estilos específicos para contenedores de gráficos
-    .chart-container {
-      flex: 1 !important;
-      min-width: 0 !important; // Permite que se contraigan
-      width: 100% !important;
-      
-      @media (min-width: 481px) {
-        flex: 1 1 50% !important; // Cada uno ocupa 50% del ancho
-        max-width: 50% !important;
-      }
-    }
-    
-    // Forzar que los widgets se comporten correctamente
-    vex-widget-trend-chart,
-    vex-widget-weekly-chart {
-      width: 100% !important;
-      height: 100% !important;
-      display: block !important;
-      
-      .card,
-      .vex-card {
-        width: 100% !important;
-        height: 100% !important;
-        display: block !important;
-      }
-    }
-  }
+  // (temporal-grid styles moved to .temporal-section-container above)
 
   // Solución específica para proceso y distribución - CSS Grid para forzar layout en la misma fila
   .process-distribution-grid {

@@ -38,14 +38,14 @@ export class NavigationLoaderService {
             type: 'link',
             label: 'Analytics',
             route: '/',
-            icon: 'mat:insights',
+            icon: 'mat:bar_chart',
             routerLinkActiveOptions: { exact: true }
           },
           {
             type: 'link',
             label: 'Global',
             route: '/dashboards/global',
-            icon: 'mat:dashboard_customize'
+            icon: 'mat:public'
           }
         ]
       },
@@ -54,22 +54,29 @@ export class NavigationLoaderService {
         label: 'Procesos',
         children: [
           {
-            type: 'link',
-            label: 'Integración',
-            route: '/procesos/integracion',
-            icon: 'mat:sync'
-          },
-          {
-            type: 'link',
-            label: 'Liquidación',
-            route: '/procesos/liquidacion',
-            icon: 'mat:account_balance'
-          },
-          {
-            type: 'link',
-            label: 'Liberación',
-            route: '/procesos/liberacion',
-            icon: 'mat:verified'
+            type: 'dropdown',
+            label: 'Procesos',
+            icon: 'mat:account_tree',
+            children: [
+              {
+                type: 'link',
+                label: 'Integración',
+                route: '/procesos/integracion',
+                icon: 'mat:merge_type'
+              },
+              {
+                type: 'link',
+                label: 'Liquidación',
+                route: '/procesos/liquidacion',
+                icon: 'mat:request_quote'
+              },
+              {
+                type: 'link',
+                label: 'Liberación',
+                route: '/procesos/liberacion',
+                icon: 'mat:lock_open'
+              }
+            ]
           }
         ]
       },
@@ -81,13 +88,13 @@ export class NavigationLoaderService {
             type: 'link',
             label: 'Consolidación DMS',
             route: '/mesa-control/consolidacion-dms',
-            icon: 'mat:folder_special'
+            icon: 'mat:inventory'
           },
           {
             type: 'link',
             label: 'Validación',
             route: '/mesa-control/validacion',
-            icon: 'mat:verified'
+            icon: 'mat:fact_check'
           },
           {
             type: 'link',
@@ -110,19 +117,19 @@ export class NavigationLoaderService {
           {
             type: 'dropdown',
             label: 'Catálogos',
-            icon: 'mat:category',
+            icon: 'mat:auto_stories',
             children: [
               {
                 type: 'link',
                 label: 'Agencias',
                 route: '/configuracion/catalogos/agencias',
-                icon: 'mat:business'
+                icon: 'mat:storefront'
               },
               {
                 type: 'link',
                 label: 'Procesos',
                 route: '/configuracion/catalogos/procesos',
-                icon: 'mat:assignment'
+                icon: 'mat:list_alt'
               },
               {
                 type: 'link',
@@ -134,25 +141,25 @@ export class NavigationLoaderService {
                 type: 'link',
                 label: 'Tipos de Cliente',
                 route: '/configuracion/catalogos/tipos-cliente',
-                icon: 'mat:person_outline'
+                icon: 'mat:badge'
               },
               {
                 type: 'link',
                 label: 'Tipos de Documento',
                 route: '/configuracion/catalogos/tipos-documento',
-                icon: 'mat:description'
+                icon: 'mat:file_copy'
               },
               {
                 type: 'link',
                 label: 'Motivos de Aprobación y Rechazo',
                 route: '/configuracion/motivos-rechazo',
-                icon: 'mat:block'
+                icon: 'mat:thumbs_up_down'
               },
               {
                 type: 'link',
                 label: 'Motivos Extraordinarios',
                 route: '/configuracion/motivos-extraordinarios',
-                icon: 'mat:warning'
+                icon: 'mat:report_problem'
               }
             ]
           },
@@ -160,19 +167,19 @@ export class NavigationLoaderService {
             type: 'link',
             label: 'Configuración de Documentos Requeridos',
             route: '/configuracion/documentos-requeridos',
-            icon: 'mat:assignment'
+            icon: 'mat:checklist'
           },
           {
             type: 'link',
             label: 'Usuarios',
             route: '/configuracion/usuarios',
-            icon: 'mat:people'
+            icon: 'mat:group'
           },
           {
             type: 'link',
             label: 'Logs de Actividad',
             route: '/configuracion/logs-activity',
-            icon: 'mat:history'
+            icon: 'mat:schedule'
           }
         ]
       }

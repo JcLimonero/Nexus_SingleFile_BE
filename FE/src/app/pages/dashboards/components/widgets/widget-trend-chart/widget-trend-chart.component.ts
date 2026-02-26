@@ -57,80 +57,116 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
   options: ApexOptions = defaultChartOptions({
     grid: {
       show: true,
-      strokeDashArray: 3,
+      borderColor: '#F0F0F0',
+      strokeDashArray: 4,
       padding: {
         left: 16,
-        top: 8,    // Reducido de 20
-        right: 8,  // Reducido de 20
-        bottom: 8  // Reducido de 20
+        top: 8,
+        right: 12,
+        bottom: 8
       }
     },
     chart: {
       type: 'line',
-      height: 280, // Reducido de 350 para ocupar menos espacio
+      height: 280,
       sparkline: {
         enabled: false
       },
       zoom: {
         enabled: false
-      }
+      },
+      toolbar: {
+        show: false
+      },
+      fontFamily: 'Inter, sans-serif'
     },
     stroke: {
       curve: 'smooth',
-      width: 3
+      width: 2.5
     },
-    colors: ['#10b981', '#ef4444', '#3b82f6'],
+    colors: ['#34D399', '#F87171', '#60A5FA'],
     labels: this.getMonthLabels(),
     xaxis: {
       type: 'category',
       labels: {
         show: true,
         style: {
-          cssClass: 'text-secondary fill-current caption font-medium',
-          fontFamily: 'inherit'
+          colors: '#868C92',
+          fontSize: '11px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 500
         }
+      },
+      axisBorder: {
+        show: false
+      },
+      axisTicks: {
+        show: false
       }
     },
     yaxis: {
       labels: {
         show: true,
         style: {
-          cssClass: 'text-secondary fill-current caption font-medium',
-          fontFamily: 'inherit'
+          colors: ['#868C92'],
+          fontSize: '11px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 500
         },
         formatter: function (val: number) {
-          return Math.round(val).toString(); // Quitar decimales del eje Y
+          return Math.round(val).toString();
         }
       }
     },
     legend: {
       show: true,
       position: 'top',
-      horizontalAlign: 'left',
-      itemMargin: {
-        horizontal: 4,
-        vertical: 2  // Reducido de 4
+      horizontalAlign: 'right',
+      fontSize: '12px',
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 500,
+      labels: {
+        colors: '#77797B'
       },
-      offsetY: -5  // Reducir espacio superior
+      markers: {
+        width: 8,
+        height: 8,
+        radius: 4,
+        strokeWidth: 0
+      },
+      itemMargin: {
+        horizontal: 12,
+        vertical: 0
+      },
+      offsetY: -4
     },
     tooltip: {
       enabled: true,
       style: {
-        fontSize: '14px',
+        fontSize: '13px',
         fontFamily: 'Inter, sans-serif'
       },
       fillSeriesColor: false,
       theme: 'light',
       shared: true,
       intersect: false,
-      y: {
-        formatter: function (val: number, opts: any) {
-          const seriesName = opts.w.config.series[opts.seriesIndex].name;
-          return `<div style="padding: 4px;">
-                    <div style="font-weight: 600; margin-bottom: 2px;">${seriesName}</div>
-                    <div style="color: #6b7280;">${Math.round(val)} expedientes</div>
-                  </div>`;
+      custom: function({ series, seriesIndex, dataPointIndex, w }: any) {
+        const month = w.globals.labels[dataPointIndex] || w.globals.categoryLabels[dataPointIndex] || '';
+        let rows = '';
+        for (let i = 0; i < w.config.series.length; i++) {
+          const name = w.config.series[i].name;
+          const color = w.config.colors[i];
+          const val = Math.round(series[i][dataPointIndex] || 0);
+          rows += `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+            <span style="color:#77797B;font-size:12px;">${name}</span>
+            <span style="margin-left:auto;font-weight:600;color:#2B2B2B;font-size:12px;">${val}</span>
+          </div>`;
         }
+        return `<div style="background:#FFFFFF;border:1px solid #EFF0F0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);padding:10px 14px;min-width:160px;">
+          <div style="font-weight:600;color:#2B2B2B;font-size:13px;margin-bottom:6px;border-bottom:1px solid #F0F0F0;padding-bottom:6px;">${month}</div>
+          ${rows}
+        </div>`;
       }
     }
   });
