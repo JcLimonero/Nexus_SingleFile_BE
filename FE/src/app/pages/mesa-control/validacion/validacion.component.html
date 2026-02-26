@@ -536,12 +536,12 @@
           </div>
 
           <!-- Loading cuando se están cargando documentos -->
-          <div *ngIf="loading && selectedCliente" class="flex justify-center items-center py-8">
+          <div *ngIf="loadingDocumentos && selectedCliente" class="flex justify-center items-center py-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
 
           <!-- Tabla de documentos cuando hay cliente seleccionado -->
-          <div *ngIf="selectedCliente && !loading">
+          <div *ngIf="selectedCliente && !loadingDocumentos">
             <!-- Información de documentos: cliente, pedido, VIN, modelo y año (OrderByCar) -->
             <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-1">
               <span>Mostrando {{ documentosDataSource.length }} documentos para el cliente <strong>{{ selectedCliente.cliente }}</strong></span>

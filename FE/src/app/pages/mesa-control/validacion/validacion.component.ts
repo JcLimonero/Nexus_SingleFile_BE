@@ -81,6 +81,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Estado del componente
   loading = false;
+  loadingDocumentos = false;
   loadingAgencias = false;
   loadingProcesos = false; // Specific loading state for processes
   error = '';
@@ -961,7 +962,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private cargarDocumentosCliente(idFile: number): void {
 
-    this.loading = true;
+    this.loadingDocumentos = true;
 
     this.validacionService.cargarDocumentos(idFile)
       .pipe(
@@ -975,14 +976,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.verificarAvanceFaseLiquidacion(documentos);
           this.verificarAvanceFaseLiberacion(documentos);
           this.verificarAvanceFaseLiberado(documentos);
-          this.loading = false;
+          this.loadingDocumentos = false;
           this.cdr.markForCheck();
         },
         error: (error) => {
 
           this.mostrarError('Error cargando documentos del archivo');
           this.documentosDataSource = [];
-          this.loading = false;
+          this.loadingDocumentos = false;
           this.cdr.markForCheck();
         }
       });
@@ -1574,7 +1575,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     
     
 
-    this.loading = true;
+    this.loadingDocumentos = true;
 
     const url = `${environment.apiBaseUrl}/api/document/${documento.idDocumentByFile}`;
 
@@ -1582,8 +1583,6 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-
-          this.loading = false;
 
           this.snackBar.open(
             `Documento "${documento.documento}" eliminado exitosamente`,
@@ -1599,7 +1598,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
 
-          this.loading = false;
+          this.loadingDocumentos = false;
+          this.cdr.markForCheck();
 
           let errorMessage = 'Error desconocido al eliminar el documento';
 
