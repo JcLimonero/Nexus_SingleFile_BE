@@ -76,7 +76,7 @@ const DEFAULT_BRANDING: BrandingConfig = {
   logoApp: 'assets/img/icons/logos/nexusQtech.svg',
   logoFooter: 'assets/img/icons/logos/nexusQtech.svg',
   logoLoading: 'assets/img/icons/logos/logo_loading_blue.svg',
-  favicon: 'assets/img/icons/logos/logo_loading_blue.svg',
+  favicon: 'assets/img/icons/logos/nexus/login.ico',
   footerText: 'Grupo Vanguardia',
   footerLink: 'https://www.grupovanguardia.com'
 };
