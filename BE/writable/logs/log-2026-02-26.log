@@ -410,3 +410,33 @@ Stack trace:
 #10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
 #11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
 #12 {main}
+ERROR - 2026-02-26 19:17:53 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(542): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1820)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('950dda18-01f6-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 19:18:26 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(542): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(9510)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('6c3deef3-f053-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
