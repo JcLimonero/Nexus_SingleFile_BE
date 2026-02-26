@@ -124,10 +124,10 @@
               color="accent"
               (click)="recargarDatos()"
               [disabled]="loadingClientes || selectedAgency === null || selectedProcess === null"
-              matTooltip="Recargar datos"
+              matTooltip="Cargar datos"
               class="flex items-center gap-2">
               <mat-icon [class.animate-spin]="loadingClientes">refresh</mat-icon>
-              Recargar
+              Cargar
             </button>
             <button
               mat-stroked-button

@@ -74,14 +74,15 @@
         </mat-form-field>
         <div class="filtro-buttons">
           <button
-            mat-raised-button
-            color="primary"
+            mat-stroked-button
+            color="accent"
             class="filtro-btn"
             [disabled]="loading || selectedAgencyIds.length === 0"
-            (click)="cargarPedidos()">
+            (click)="cargarPedidos()"
+            matTooltip="Cargar datos">
             <mat-icon *ngIf="!loading">refresh</mat-icon>
             <mat-spinner *ngIf="loading" diameter="20" class="inline-block align-middle"></mat-spinner>
-            <span>{{ loading ? 'Cargando...' : 'Cargar pedidos' }}</span>
+            <span>{{ loading ? 'Cargando...' : 'Cargar' }}</span>
           </button>
           <button
             mat-stroked-button
@@ -112,7 +113,7 @@
     <mat-card-content>
       <div *ngIf="displayedColumns.length === 0" class="py-8 text-center text-gray-500">
         <mat-icon class="block mx-auto mb-2 text-4xl">inbox</mat-icon>
-        Seleccione una o más agencias y pulse «Cargar pedidos» para ver los pedidos del DMS.
+        Seleccione una o más agencias y pulse «Cargar» para ver los pedidos del DMS.
       </div>
       <div *ngIf="displayedColumns.length > 0" class="table-container overflow-x-auto">
         <table mat-table [dataSource]="dataSource" class="w-full">

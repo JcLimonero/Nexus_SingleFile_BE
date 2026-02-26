@@ -28,7 +28,18 @@
         </button>
         <button style="align-self: flex-start;" mat-stroked-button (click)="clearFilters()" [disabled]="loading">
           <mat-icon>clear_all</mat-icon>
-          <span class="ml-2">Limpiar filtros</span>
+          <span class="ml-2">Limpiar</span>
+        </button>
+        <button
+          style="align-self: flex-start;"
+          mat-stroked-button
+          color="accent"
+          (click)="refreshData()"
+          [disabled]="loading"
+          matTooltip="Cargar datos"
+          class="flex items-center gap-2">
+          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+          Cargar
         </button>
         </div>
       </mat-card-content>

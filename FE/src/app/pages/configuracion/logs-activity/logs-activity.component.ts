@@ -154,6 +154,13 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * Recargar datos con los filtros actuales
+   */
+  refreshData(): void {
+    this.loadLogs();
+  }
+
+  /**
    * Limpiar filtros
    */
   clearFilters(): void {

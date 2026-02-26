@@ -101,7 +101,6 @@
           <div class="flex items-center gap-2 flex-shrink-0">
             <button 
               mat-stroked-button 
-              color="warn" 
               (click)="clearFilters()"
               matTooltip="Limpiar todos los filtros"
               class="flex items-center gap-2">
@@ -111,6 +110,15 @@
             <button 
               mat-stroked-button 
               color="accent" 
+              (click)="refreshData()"
+              [disabled]="loading"
+              matTooltip="Cargar datos"
+              class="flex items-center gap-2">
+              <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+              Cargar
+            </button>
+            <button 
+              mat-stroked-button 
               (click)="applyFilters()"
               matTooltip="Aplicar filtros"
               class="flex items-center gap-2">

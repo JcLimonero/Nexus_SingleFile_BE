@@ -392,7 +392,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 type="button"
                 (click)="recargarProcesos()"
                 [disabled]="loadingProcesses || creating"
-                matTooltip="Recargar procesos"
+                matTooltip="Cargar procesos"
                 class="mt-1">
                 <mat-icon [class.animate-spin]="loadingProcesses">refresh</mat-icon>
               </button>
@@ -421,7 +421,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 type="button"
                 (click)="recargarTiposCliente()"
                 [disabled]="loadingCostumerTypes || creating"
-                matTooltip="Recargar tipos de cliente"
+                matTooltip="Cargar tipos de cliente"
                 class="mt-1">
                 <mat-icon [class.animate-spin]="loadingCostumerTypes">refresh</mat-icon>
               </button>
@@ -450,7 +450,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 type="button"
                 (click)="recargarTiposOperacion()"
                 [disabled]="loadingOperationTypes || creating"
-                matTooltip="Recargar tipos de operación"
+                matTooltip="Cargar tipos de operación"
                 class="mt-1">
                 <mat-icon [class.animate-spin]="loadingOperationTypes">refresh</mat-icon>
               </button>

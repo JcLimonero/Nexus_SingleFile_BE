@@ -167,6 +167,10 @@ export class ClientesComponent implements OnInit, OnDestroy {
     this.loadClientes();
   }
 
+  refreshData(): void {
+    this.loadClientes();
+  }
+
   openDetalle(row: ClienteMesa): void {
     this.dialog.open(ClienteDetalleDialogComponent, {
       width: '800px',
