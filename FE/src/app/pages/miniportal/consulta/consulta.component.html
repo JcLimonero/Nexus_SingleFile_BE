@@ -102,6 +102,11 @@
                       </button>
                       <ng-container *ngIf="!isDocumentoAprobado(doc) && !puedeAprobarDocumento(doc)">
                         <input #fileInput type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" (change)="onFileSelected(doc, $event)">
+                        <button mat-stroked-button type="button" [disabled]="uploadingIds.has(doc.idDocumentByFile)" (click)="abrirCamaraDocumento(doc)" class="doc-btn">
+                          <mat-spinner *ngIf="uploadingIds.has(doc.idDocumentByFile)" diameter="18" class="doc-btn-spinner"></mat-spinner>
+                          <mat-icon *ngIf="!uploadingIds.has(doc.idDocumentByFile)">document_scanner</mat-icon>
+                          Tomar foto
+                        </button>
                         <button mat-stroked-button color="accent" type="button" [disabled]="uploadingIds.has(doc.idDocumentByFile)" (click)="fileInput.click()" class="doc-btn">
                           <mat-spinner *ngIf="uploadingIds.has(doc.idDocumentByFile)" diameter="18" class="doc-btn-spinner"></mat-spinner>
                           <mat-icon *ngIf="!uploadingIds.has(doc.idDocumentByFile)">cloud_upload</mat-icon>

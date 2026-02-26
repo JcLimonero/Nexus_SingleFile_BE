@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import {
   MiniportalService,
@@ -16,6 +17,10 @@ import {
   MiniportalExpedienteResponse,
   DocumentoMiniportal
 } from '../../../core/services/miniportal.service';
+import {
+  DocumentCameraDialogComponent,
+  DocumentCameraDialogData
+} from '../document-camera-dialog/document-camera-dialog.component';
 
 @Component({
   selector: 'app-consulta-miniportal',
@@ -53,7 +58,8 @@ export class ConsultaMiniportalComponent implements OnInit {
     private miniportalService: MiniportalService,
     private cdr: ChangeDetectorRef,
     private snackBar: MatSnackBar,
-    private brandingService: BrandingService
+    private brandingService: BrandingService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -157,6 +163,21 @@ export class ConsultaMiniportalComponent implements OnInit {
     if (!file) return;
     input.value = '';
     this.subirDocumento(doc, file);
+  }
+
+  abrirCamaraDocumento(doc: DocumentoMiniportal): void {
+    if (this.isDocumentoAprobado(doc) || this.uploadingIds.has(doc.idDocumentByFile)) return;
+    const dialogRef = this.dialog.open(DocumentCameraDialogComponent, {
+      width: '520px',
+      maxWidth: '95vw',
+      data: { documentName: doc.documento } as DocumentCameraDialogData,
+      disableClose: false
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.file) {
+        this.subirDocumento(doc, result.file);
+      }
+    });
   }
 
   subirDocumento(doc: DocumentoMiniportal, file: File): void {
