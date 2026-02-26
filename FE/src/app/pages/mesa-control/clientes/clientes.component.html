@@ -19,14 +19,14 @@
             <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-checkbox [(ngModel)]="filterSoloUmbralAML" (change)="onFilterChange()" matTooltip="Mostrar solo clientes que superan el umbral AML">
+        <mat-checkbox style="align-self: flex-start;" [(ngModel)]="filterSoloUmbralAML" (change)="onFilterChange()" matTooltip="Mostrar solo clientes que superan el umbral AML">
           Solo en umbral AML
         </mat-checkbox>
-        <button mat-stroked-button (click)="onSearch()" [disabled]="loading">
+        <button style="align-self: flex-start;" mat-stroked-button (click)="onSearch()" [disabled]="loading">
           <mat-icon>search</mat-icon>
           <span class="ml-2">Buscar</span>
         </button>
-        <button mat-stroked-button (click)="clearFilters()" [disabled]="loading">
+        <button style="align-self: flex-start;" mat-stroked-button (click)="clearFilters()" [disabled]="loading">
           <mat-icon>clear_all</mat-icon>
           <span class="ml-2">Limpiar filtros</span>
         </button>
