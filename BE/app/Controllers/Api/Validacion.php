@@ -25,12 +25,17 @@ class Validacion extends BaseController
     private function logActivity($action, $description, $changeDetails = null, $entityId = null)
     {
         try {
-            // Obtener información del usuario desde el token JWT
-            $userId = 1; // TODO: Obtener del token JWT
-            $username = 'admin'; // TODO: Obtener del token JWT
-            
+            $currentUser = $this->getAuthenticatedUser();
+            $userId = $currentUser['user_id'] ?? 'sistema';
+            $username = $currentUser['email'] ?? 'sistema';
+            if (empty($username) || $username === 'sistema') {
+                $authModel = new \App\Models\AuthModel();
+                $userRow = $authModel->getUserById($userId);
+                $username = $userRow['User'] ?? $userRow['Name'] ?? (string) $userId;
+            }
+
             $logData = [
-                'user_id' => $userId,
+                'user_id' => (string) $userId,
                 'username' => $username,
                 'action' => $action,
                 'description' => $description,
@@ -1470,17 +1475,19 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
-                // Registrar actividad en el log
+                // Registrar actividad en el log (incluir file_id para historial por expediente)
+                $idFile = $documento['IdFile'] ?? null;
                 $this->logActivity(
                     'VALIDAR_DOCUMENTO',
                     "Documento {$idDocumentByFile} validado",
                     [
+                        'file_id' => $idFile,
                         'documento_id' => $idDocumentByFile,
                         'estado_anterior' => 'Listo para validar (3)',
                         'estado_nuevo' => 'Validado y aprobado (4)',
                         'fecha_validacion' => $updateData['UpdateDate']
                     ],
-                    $idDocumentByFile
+                    $idFile
                 );
 
                 return $this->response->setJSON([
@@ -1623,18 +1630,20 @@ class Validacion extends BaseController
                 $accion = $nuevoEstatus == 4 ? 'APROBAR_DOCUMENTO' : 'RECHAZAR_DOCUMENTO';
                 $mensaje = $nuevoEstatus == 4 ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
                 
-                // Registrar actividad en el log
+                // Registrar actividad en el log (incluir file_id para historial por expediente)
+                $idFile = $documento['IdFile'] ?? null;
                 $this->logActivity(
                     $accion,
                     "Documento {$idDocumentByFile} " . ($nuevoEstatus == 4 ? 'aprobado' : 'rechazado'),
                     [
+                        'file_id' => $idFile,
                         'documento_id' => $idDocumentByFile,
                         'estado_anterior' => $estadoAnterior,
                         'estado_nuevo' => $estadoNuevo,
                         'comentario' => $comentario,
                         'fecha_procesamiento' => $updateData['UpdateDate']
                     ],
-                    $idDocumentByFile
+                    $idFile
                 );
 
                 return $this->response->setJSON([
@@ -1714,17 +1723,19 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
-                // Registrar actividad en el log
+                // Registrar actividad en el log (incluir file_id para historial por expediente)
+                $idFile = $documento['IdFile'] ?? null;
                 $this->logActivity(
                     'PREPARAR_DOCUMENTO',
                     "Documento {$idDocumentByFile} preparado para validación",
                     [
+                        'file_id' => $idFile,
                         'documento_id' => $idDocumentByFile,
                         'estado_anterior' => 'Pendiente de validación (2)',
                         'estado_nuevo' => 'Listo para validar (3)',
                         'fecha_preparacion' => $updateData['UpdateDate']
                     ],
-                    $idDocumentByFile
+                    $idFile
                 );
 
                 return $this->response->setJSON([
@@ -1753,5 +1764,253 @@ class Validacion extends BaseController
                 'data' => null
             ])->setStatusCode(500);
         }
+    }
+
+    /**
+     * Imprimir identificación de cliente - genera PDF vía PDF Generator API
+     * GET /api/clients-validation/imprimir-identificacion?idFile=123
+     */
+    public function imprimirIdentificacionCliente()
+    {
+        try {
+            $idFile = (int) $this->request->getGet('idFile');
+            if (!$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idFile es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $config = config('PdfGenerator');
+            if (empty($config->apiKey) || empty($config->apiSecret) || empty($config->workspaceEmail)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'PDF Generator no está configurado. Verifique pdfGenerator.apiKey, pdfGenerator.apiSecret y pdfGenerator.workspaceEmail en .env',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+
+            // Obtener datos del cliente (incluye campos de Client para template identificación)
+            $cliente = $this->db->query("
+                SELECT 
+                    f.Id as idFile,
+                    COALESCE(
+                        (SELECT ctr1.IdTotalDealer FROM Client_Total_Relation ctr1 
+                         WHERE ctr1.idHeaderClient = hc.Id AND ctr1.IdAgency = f.IdAgency LIMIT 1),
+                        (SELECT ctr2.IdTotalDealer FROM Client_Total_Relation ctr2 
+                         WHERE ctr2.idHeaderClient = hc.Id LIMIT 1),
+                        ''
+                    ) as ndCliente,
+                    f.IdOrderTotal as ndPedido,
+                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''), 
+                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    ) as cliente,
+                    c.Name as nombre,
+                    c.LastName as apellidoPaterno,
+                    c.MotherLastName as apellidoMaterno,
+                    c.RFC as rfc,
+                    c.CURP as curp,
+                    c.Email as email,
+                    c.TelNumber as telefono,
+                    c.TelNumber2 as telefono2,
+                    c.RazonSocial as razonSocial,
+                    f.IdCostumerType as idCostumerType,
+                    ct.Name as tipoCliente,
+                    p.Name as proceso,
+                    ot.Name as operacion,
+                    a.Name as agencia,
+                    fs.Name as fase,
+                    COALESCE(obc1.VIN, obc2.VIN) as vin,
+                    COALESCE(obc1.Modelo, obc2.Modelo) as modelo,
+                    COALESCE(obc1.Year, obc2.Year) as year,
+                    COALESCE(obc1.CarType, obc2.CarType) as version
+                FROM File f
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN OperationType ot ON f.IdOperation = ot.Id
+                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN Agency a ON f.IdAgency = a.Id
+                LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder
+                LEFT JOIN (
+                    SELECT obc2a.IdTotalDealer, obc2a.idagency, obc2a.VIN, obc2a.Modelo, obc2a.Year, obc2a.CarType
+                    FROM OrderByCar obc2a
+                    INNER JOIN (
+                        SELECT IdTotalDealer, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
+                        FROM OrderByCar GROUP BY IdTotalDealer, idagency
+                    ) obc2b ON obc2a.IdTotalDealer = obc2b.IdTotalDealer
+                        AND obc2a.idagency = obc2b.idagency
+                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.IdOrder IS NULL AND obc2.IdTotalDealer = f.IdOrderTotal AND obc2.idagency = f.IdAgency
+                WHERE f.Id = ?
+            ", [$idFile])->getRowArray();
+
+            if (!$cliente) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Cliente/pedido no encontrado',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
+
+            $idCostumerType = (int) ($cliente['idCostumerType'] ?? 0);
+            $isClienteMoral = ($idCostumerType === 3);
+
+            if ($isClienteMoral) {
+                // Template 1606181 - Cliente moral (IdCostumerType = 3)
+                $templateId = (int) $config->templateIdIdentificacionMoral;
+                $templateData = [
+                    'actividad_giro_mercantil_u_objeto_social_row_1' => '',
+                    'apellido_materno_row_1' => (string) ($cliente['apellidoMaterno'] ?? ''),
+                    'apellido_paterno_row_1' => (string) ($cliente['apellidoPaterno'] ?? ''),
+                    'autoridad_que_la_emite_row_1' => '',
+                    'c_digo_postal_row_1' => '',
+                    'c_u_r_p_row_1' => (string) ($cliente['curp'] ?? ''),
+                    'calle_avenida_o_v_a_row_1' => '',
+                    'ciudad_poblaci_n_o_entidad_federativa_row_1' => '',
+                    'colonia_o_urbanizaci_n_row_1' => '',
+                    'correo_el_ctronico_row_1' => (string) ($cliente['email'] ?? ''),
+                    'demarcaci_n_pol_tica_o_municipio_row_1' => '',
+                    'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => '',
+                    'denominaci_n_o_raz_n_social_row_1' => (string) ($cliente['razonSocial'] ?? $cliente['cliente'] ?? ''),
+                    'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => '',
+                    'extensi_n_en_su_caso_row_1' => '',
+                    'extranjero' => '',
+                    'fecha_de_constituci_n_row_1' => '',
+                    'fecha_de_elaboraci_n_del_formato_row_1' => date('Y-m-d'),
+                    'fecha_de_nacimiento_row_1' => '',
+                    'n_mero_exterior_row_1' => '',
+                    'n_mero_interior_en_su_caso_row_1' => '',
+                    'n_mero_o_folio_row_1' => (string) ($cliente['ndPedido'] ?? ''),
+                    'n_mero_telef_nico_con_clave_lada_row_1' => (string) ($cliente['telefono'] ?? $cliente['telefono2'] ?? ''),
+                    'nacional' => '',
+                    'nombre_completo_y_firma_del_representante_o_apoderado_legal' => '',
+                    'nombre_de_la_identificaci_n_row_1' => '',
+                    'nombre_s_sin_abreviaturas_row_1' => (string) ($cliente['nombre'] ?? ''),
+                    'nombre_y_firma_del_funcionario_o_empleado_que_realiz_el_cotejo' => '',
+                    'pa_s_de_nacimiento_row_1' => '',
+                    'pa_s_de_nacionalidad_row_1' => '',
+                    'pa_s_row_1' => '',
+                    'r_f_c_row_1' => (string) ($cliente['rfc'] ?? ''),
+                ];
+            } else {
+                // Template 1606176 - Cliente físico (IdCostumerType != 3)
+                $templateId = (int) $config->templateIdIdentificacionFisico;
+                $templateData = [
+                    'apellido_materno_row_1' => (string) ($cliente['apellidoMaterno'] ?? ''),
+                    'apellido_paterno_row_1' => (string) ($cliente['apellidoPaterno'] ?? ''),
+                    'autoridad_que_la_emite_row_1' => '',
+                    'c_digo_postal_row_1' => '',
+                    'c_u_r_p_row_1' => (string) ($cliente['curp'] ?? ''),
+                    'calle_avenida_o_v_a_row_1' => '',
+                    'ciudad_poblaci_n_o_entidad_federativa_row_1' => '',
+                    'colonia_o_urbanizaci_n_row_1' => '',
+                    'correo_el_ctronico_row_1' => (string) ($cliente['email'] ?? ''),
+                    'demarcaci_n_pol_tica_o_municipio_row_1' => '',
+                    'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => '',
+                    'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => '',
+                    'extensi_n_en_su_caso_row_1' => '',
+                    'extranjero' => '',
+                    'fecha_de_elaboraci_n_del_formato_row_1' => date('Y-m-d'),
+                    'fecha_de_nacimiento_row_1' => '',
+                    'n_mero_exterior_row_1' => '',
+                    'n_mero_interior_en_su_caso_row_1' => '',
+                    'n_mero_o_folio_row_1' => (string) ($cliente['ndPedido'] ?? ''),
+                    'n_mero_telef_nico_con_clave_lada_row_1' => (string) ($cliente['telefono'] ?? $cliente['telefono2'] ?? ''),
+                    'nacional' => '',
+                    'no_existe_un_due_o_beneficiario_o_beneficiario_controlador_en_la_presente_operaci_n' => '',
+                    'nombre_completo_y_firma_del_cliente' => (string) ($cliente['cliente'] ?? ''),
+                    'nombre_de_la_identificaci_n_row_1' => '',
+                    'nombre_s_sin_abreviaturas_row_1' => (string) ($cliente['nombre'] ?? ''),
+                    'nombre_y_firma_del_funcionario_o_empleado_que_realiz_el_cotejo' => '',
+                    'pa_s_de_nacimiento_row_1' => '',
+                    'pa_s_de_nacionalidad_row_1' => '',
+                    'pa_s_row_1' => '',
+                    'r_f_c_row_1' => (string) ($cliente['rfc'] ?? ''),
+                    's_existe_un_due_o_beneficiario_o_beneficiario_controlador_en_la_presente_operaci_n' => '',
+                ];
+            }
+
+            // Generar JWT para PDF Generator API
+            $jwt = $this->generatePdfGeneratorJwt($config->apiKey, $config->apiSecret, $config->workspaceEmail);
+
+            // Llamar a PDF Generator API - merge con template
+            $client = \Config\Services::curlrequest();
+            $response = $client->request('POST', $config->baseUrl . '/documents/generate', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $jwt,
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/pdf',
+                ],
+                'json' => [
+                    'template' => [
+                        'id' => $templateId,
+                        'data' => $templateData,
+                    ],
+                    'output' => 'file',
+                ],
+                'http_errors' => false,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            $body = $response->getBody();
+
+            if ($statusCode !== 200 && $statusCode !== 201) {
+                $errorBody = $response->getBody();
+                error_log("PDF Generator API error ($statusCode): " . $errorBody);
+                $apiMessage = 'Error al generar el PDF';
+                $decoded = json_decode($errorBody, true);
+                if (!empty($decoded['message'])) {
+                    $apiMessage = $decoded['message'];
+                } elseif ($statusCode === 401) {
+                    $apiMessage = 'Credenciales inválidas. Verifique API Key y Secret en .env';
+                } elseif ($statusCode === 404) {
+                    $apiMessage = 'Template no accesible. Verifique que el workspace (email en .env) tenga acceso al template ' . $templateId . ' en PDF Generator API.';
+                }
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => $apiMessage,
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+
+            $filename = 'identificacion_cliente_' . ($cliente['cliente'] ?? $idFile) . '_' . date('Y-m-d') . '.pdf';
+            $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $filename);
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/pdf')
+                ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->setBody($body);
+
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::imprimirIdentificacionCliente: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al generar identificación: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    private function generatePdfGeneratorJwt(string $apiKey, string $apiSecret, string $workspaceEmail): string
+    {
+        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+        $payload = [
+            'iss' => $apiKey,
+            'sub' => $workspaceEmail,
+            'exp' => time() + 60,
+        ];
+        $headerB64 = $this->base64UrlEncode(json_encode($header));
+        $payloadB64 = $this->base64UrlEncode(json_encode($payload));
+        $signature = hash_hmac('sha256', $headerB64 . '.' . $payloadB64, $apiSecret, true);
+        $signatureB64 = $this->base64UrlEncode($signature);
+        return $headerB64 . '.' . $payloadB64 . '.' . $signatureB64;
+    }
+
+    private function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }

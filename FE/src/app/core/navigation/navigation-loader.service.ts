@@ -95,6 +95,18 @@ export class NavigationLoaderService {
             label: 'Validación',
             route: '/mesa-control/validacion',
             icon: 'mat:fact_check'
+          },
+          {
+            type: 'link',
+            label: 'Clientes',
+            route: '/mesa-control/clientes',
+            icon: 'mat:people'
+          },
+          {
+            type: 'link',
+            label: 'Reportes Cumplimiento',
+            route: '/mesa-control/reportes-cumplimiento',
+            icon: 'mat:assessment'
           }
         ]
       },

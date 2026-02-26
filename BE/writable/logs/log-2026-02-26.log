@@ -1,0 +1,30 @@
+ERROR - 2026-02-26 02:38:52 --> mysqli_sql_exception: Unknown column 'dfs.Description' in 'field list' in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/ReportesCumplimiento.php(243): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->documentosPendientes()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#11 {main}
+ERROR - 2026-02-26 02:38:52 --> ReportesCumplimiento::documentosPendientes - Unknown column 'dfs.Description' in 'field list'
+ERROR - 2026-02-26 02:40:38 --> mysqli_sql_exception: Unknown column 'dfs.Description' in 'field list' in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/ReportesCumplimiento.php(243): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->documentosPendientes()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#11 {main}
+ERROR - 2026-02-26 02:40:38 --> ReportesCumplimiento::documentosPendientes - Unknown column 'dfs.Description' in 'field list'

@@ -139,6 +139,10 @@ export class ToolbarComponent implements OnInit {
         return 'Validación';
       } else if (url.includes('/consolidacion-dms')) {
         return 'Consolidación DMS';
+      } else if (url.includes('/clientes')) {
+        return 'Clientes';
+      } else if (url.includes('/reportes-cumplimiento')) {
+        return 'Reportes de Cumplimiento';
       } else if (url.includes('/dashboard')) {
         return 'Dashboard Principal';
       } else if (url.includes('/monitoreo')) {
@@ -183,21 +187,6 @@ export class ToolbarComponent implements OnInit {
         return 'Liberación';
       } else {
         return 'Procesos';
-      }
-    }
-    
-    // Mesa de Control
-    if (url.includes('/mesa-control')) {
-      if (url.includes('/validacion')) {
-        return 'VaConsolidación DMS';
-      } else if (url.includes('/monitoreo')) {
-        return 'Monitoreo';
-      } else if (url.includes('/reportes')) {
-        return 'Reportes';
-      } else if (url.includes('/dashboard')) {
-        return 'Dashboard';
-      } else {
-        return 'Mesa de Control';
       }
     }
     

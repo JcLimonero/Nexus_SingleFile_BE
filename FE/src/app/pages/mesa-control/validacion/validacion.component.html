@@ -459,6 +459,10 @@
                     <mat-icon>download</mat-icon>
                     <span>Descargar archivo</span>
                   </button>
+                  <button mat-menu-item (click)="onImprimirIdentificacion(item); $event.stopPropagation()">
+                    <mat-icon>badge</mat-icon>
+                    <span>Imprimir identificación de cliente</span>
+                  </button>
                   <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
                     <mat-icon>cancel</mat-icon>
                     <span>Cancelar pedido</span>

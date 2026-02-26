@@ -41,7 +41,7 @@ class Agency extends BaseController
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
             
             // Validar parámetros de ordenamiento
-            $allowedSortFields = ['Name', 'IdAgency', 'RegistrationDate', 'UpdateDate'];
+            $allowedSortFields = ['Name', 'CompanyName', 'IdAgency', 'RegistrationDate', 'UpdateDate'];
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'Name';
             }
@@ -200,6 +200,7 @@ class Agency extends BaseController
             // Preparar datos para inserción
             $agencyData = [
                 'Name' => trim($data['Name']),
+                'IdCompany' => !empty($data['IdCompany']) ? (int)$data['IdCompany'] : null,
                 'IdAgency' => $data['IdAgency'] ?? null,
                 'Enabled' => $data['Enabled'] ?? 1,
                 'AgencyConnection' => $data['AgencyConnection'] ?? null,
@@ -342,6 +343,7 @@ class Agency extends BaseController
             // Preparar datos para actualización
             $updateData = [
                 'Name' => trim($data['Name']),
+                'IdCompany' => isset($data['IdCompany']) ? ($data['IdCompany'] ? (int)$data['IdCompany'] : null) : ($existingAgency['IdCompany'] ?? null),
                 'IdAgency' => $data['IdAgency'] ?? $existingAgency['IdAgency'],
                 'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $existingAgency['Enabled'],
                 'AgencyConnection' => isset($data['AgencyConnection']) ? $data['AgencyConnection'] : ($existingAgency['AgencyConnection'] ?? null),

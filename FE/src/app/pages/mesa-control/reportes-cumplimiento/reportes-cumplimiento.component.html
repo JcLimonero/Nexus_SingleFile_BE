@@ -1,0 +1,117 @@
+<div class="reportes-cumplimiento min-h-screen bg-gray-50 p-4">
+  <div class="mb-4">
+    <h1 class="text-2xl font-bold text-gray-900 mb-1">Reportes de Cumplimiento</h1>
+    <p class="text-gray-600 text-sm">Indicadores PLD/AML para el Oficial de Cumplimiento</p>
+  </div>
+
+  <!-- Dashboard resumen -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
+    <mat-card *ngIf="loadingDashboard" class="col-span-3 flex justify-center items-center p-8">
+      <mat-spinner diameter="40"></mat-spinner>
+    </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-amber-600" style="font-size: 36px; width: 36px; height: 36px;">warning</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Clientes en alerta PLD</p>
+            <p class="text-2xl font-bold">{{ dashboard.clientesAlertaAml }}</p>
+            <p class="text-xs text-gray-400">Superan umbral {{ formatCurrency(dashboard.umbralAml) }}/año</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-blue-600" style="font-size: 36px; width: 36px; height: 36px;">folder</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Expedientes activos {{ dashboard.anio }}</p>
+            <p class="text-2xl font-bold">{{ dashboard.expedientesActivos }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="mb-4">
+    <mat-card-content>
+      <div class="flex flex-wrap items-center gap-4">
+        <mat-form-field appearance="outline" class="min-w-[180px]">
+          <mat-label>Agencia</mat-label>
+          <mat-select [(ngModel)]="filterAgency" (selectionChange)="onFilterChange()">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="min-w-[120px]">
+          <mat-label>Año</mat-label>
+          <mat-select [(ngModel)]="filterAnio" (selectionChange)="onFilterChange()">
+            <mat-option *ngFor="let y of aniosDisponibles" [value]="y">{{ y }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabs de reportes -->
+  <mat-tab-group>
+    <mat-tab label="Expedientes en alerta PLD">
+      <mat-card class="mt-4">
+        <mat-card-content>
+          <p class="text-sm text-gray-500 mb-4">Clientes cuyas operaciones superan el umbral anual por razón social.</p>
+          <div *ngIf="loadingExpedientes" class="flex justify-center p-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          <table mat-table [dataSource]="dataSourceExpedientes" *ngIf="!loadingExpedientes" class="w-full">
+            <ng-container matColumnDef="ndCliente">
+              <th mat-header-cell *matHeaderCellDef>ND Cliente</th>
+              <td mat-cell *matCellDef="let row">{{ row.ndCliente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef>Cliente</th>
+              <td mat-cell *matCellDef="let row">{{ row.cliente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="totalMonto">
+              <th mat-header-cell *matHeaderCellDef>Monto total (MXN)</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalMonto) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="anio">
+              <th mat-header-cell *matHeaderCellDef>Año</th>
+              <td mat-cell *matCellDef="let row">{{ row.anio }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsExpedientes"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsExpedientes;"></tr>
+            <tr class="mat-row" *matNoDataRow>
+              <td class="mat-cell" [attr.colspan]="displayedColumnsExpedientes.length">
+                No hay expedientes en alerta PLD
+              </td>
+            </tr>
+          </table>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+    <mat-tab label="Resumen por agencia">
+      <mat-card class="mt-4">
+        <mat-card-content>
+          <p class="text-sm text-gray-500 mb-4">Expedientes por razón social y agencia en {{ filterAnio }}.</p>
+          <div *ngIf="loadingResumen" class="flex justify-center p-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          <div *ngIf="!loadingResumen && resumenGrupos.length" class="space-y-4">
+            <div *ngFor="let g of resumenGrupos" class="border rounded p-4">
+              <h4 class="font-semibold text-gray-900 mb-2">{{ g.razonSocial }} / {{ g.nombreAgencia }} (Total: {{ g.total }})</h4>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let e of g.porEstado" class="px-2 py-1 bg-gray-100 rounded text-sm">
+                  {{ e.nombreEstado }}: {{ e.total }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="!loadingResumen && !resumenGrupos.length" class="text-gray-500">Sin datos</p>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+  </mat-tab-group>
+</div>

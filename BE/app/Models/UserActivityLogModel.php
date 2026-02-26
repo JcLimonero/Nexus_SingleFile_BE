@@ -248,4 +248,21 @@ class UserActivityLogModel extends Model
         $cutoffDate = date('Y-m-d H:i:s', strtotime("-{$days} days"));
         return $this->where('created_at <', $cutoffDate)->delete();
     }
+
+    /**
+     * Obtener historial de cambios por expediente (idFile)
+     * Busca en change_details por file_id o cliente_id (idFile)
+     */
+    public function getLogsByExpediente($idFile, $limit = 50, $offset = 0)
+    {
+        $idFile = (int) $idFile;
+        return $this->groupStart()
+            ->like('change_details', '"file_id":' . $idFile, 'both')
+            ->orLike('change_details', '"file_id":"' . $idFile . '"', 'both')
+            ->orLike('change_details', '"cliente_id":' . $idFile, 'both')
+            ->orLike('change_details', '"cliente_id":"' . $idFile . '"', 'both')
+            ->groupEnd()
+            ->orderBy('created_at', 'DESC')
+            ->findAll($limit, $offset);
+    }
 }

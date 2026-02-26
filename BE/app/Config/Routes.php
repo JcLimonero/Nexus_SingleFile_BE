@@ -63,6 +63,12 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('force-migration', 'PasswordManager::forceMigration');
     });
     
+    // Rutas de compañías
+    $routes->group('company', function($routes) {
+        $routes->get('/', 'Company::index');
+        $routes->post('/', 'Company::create');
+    });
+
     // Rutas de agencias
     $routes->group('agency', function($routes) {
         $routes->get('/', 'Agency::index');
@@ -158,10 +164,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     $routes->group('user-activity-logs', function($routes) {
         $routes->get('/', 'UserActivityLog::index');
         $routes->post('/', 'UserActivityLog::create');
+        $routes->get('expediente/(:num)', 'UserActivityLog::getExpedienteLogs/$1');
         $routes->get('user/(:any)', 'UserActivityLog::getUserLogs/$1');
         $routes->get('action/(:any)', 'UserActivityLog::getActionLogs/$1');
         $routes->get('stats', 'UserActivityLog::getStats');
         $routes->delete('clean', 'UserActivityLog::cleanOldLogs');
+    });
+
+    // Rutas de reportes para Oficial de Cumplimiento (PLD/AML)
+    $routes->group('reportes-cumplimiento', function($routes) {
+        $routes->get('dashboard', 'ReportesCumplimiento::dashboard');
+        $routes->get('expedientes-alerta-pld', 'ReportesCumplimiento::expedientesAlertaPld');
+        $routes->get('resumen-por-agencia', 'ReportesCumplimiento::resumenPorAgencia');
+        $routes->get('documentos-pendientes', 'ReportesCumplimiento::documentosPendientes');
     });
 
     // Rutas de analytics
@@ -318,7 +333,9 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
 
 // Rutas de clientes
 $routes->group('client', function($routes) {
+    $routes->get('list', 'Client::list');
     $routes->get('search', 'Client::search');
+    $routes->get('(:num)/expedientes', 'Client::expedientes/$1');
 });
 
 // Rutas de Proxy a Backblaze (para evitar CORS y agregar X-Provider-Token)
@@ -370,6 +387,7 @@ $routes->group('documents', function($routes) {
         $routes->post('validar-documento', 'Validacion::validarDocumento');
         $routes->post('aprobar-documento', 'Validacion::aprobarDocumento');
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
+        $routes->get('imprimir-identificacion', 'Validacion::imprimirIdentificacionCliente');
     });
 
     // Rutas de búsqueda de clientes usando vista
