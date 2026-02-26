@@ -51,71 +51,66 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
   labels: string[] = [];
   options: ApexOptions = defaultChartOptions({
     chart: {
-      type: 'area',
-      height: 200,
-      toolbar: {
-        show: false
-      },
-      sparkline: {
-        enabled: false
-      }
+      type: 'donut',
+      height: 220,
+      toolbar: { show: false },
+      sparkline: { enabled: false },
     },
     colors: [
-      '#10b981', // Verde para entregados
-      '#ef4444', // Rojo para cancelados
-      '#3b82f6'  // Azul para en proceso
+      '#10b981', // Entregados - verde (igual que Análisis temporal)
+      '#ef4444', // Cancelados - rojo
+      '#3b82f6'  // En Proceso - azul
     ],
     plotOptions: {
-      area: {
-        fillTo: 'end'
+      pie: {
+        donut: {
+          size: '85%',
+          background: 'transparent',
+          labels: {
+            show: true,
+            name: {
+              show: true,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#2B2B2B',
+              offsetY: -6
+            },
+            value: {
+              show: true,
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#2B2B2B',
+              offsetY: 6,
+              formatter: function (val: string) {
+                return val;
+              }
+            },
+            total: {
+              show: true,
+              showAlways: false,
+              label: 'Total',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: '#868C92',
+              formatter: (w: any) => {
+                const sum = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
+                return sum;
+              }
+            }
+          }
+        }
       }
     },
     dataLabels: {
-      enabled: true,
-      formatter: function (val: number) {
-        return val.toString();
-      },
-      style: {
-        fontSize: '11px',
-        fontWeight: 600,
-        colors: ['#ffffff']
-      }
+      enabled: false
     },
     stroke: {
-      curve: 'smooth',
-      width: 2
+      show: true,
+      width: 2,
+      colors: ['#fff']
     },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.7,
-        opacityTo: 0.3,
-        stops: [0, 100]
-      }
-    },
-    xaxis: {
-      categories: ['Entregados', 'Cancelados', 'En Proceso'],
-      labels: {
-        style: {
-          fontSize: '12px',
-          fontWeight: 500,
-          colors: ['#6b7280']
-        }
-      }
-    },
-    yaxis: {
-      labels: {
-        style: {
-          fontSize: '12px',
-          fontWeight: 500,
-          colors: ['#374151']
-        }
-      }
-    },
-    grid: {
-      borderColor: '#e5e7eb',
-      strokeDashArray: 3
+    legend: {
+      show: false
     },
     tooltip: {
       enabled: true,
@@ -125,26 +120,12 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
         }
       }
     },
-    legend: {
-      show: true,
-      position: 'bottom',
-      horizontalAlign: 'center',
-      fontSize: '12px',
-      fontFamily: 'Inter, sans-serif',
-      fontWeight: 500,
-      labels: {
-        colors: ['#374151']
-      }
-    },
     responsive: [
       {
         breakpoint: 480,
         options: {
           chart: {
-            height: 150
-          },
-          legend: {
-            fontSize: '10px'
+            height: 200
           }
         }
       }
@@ -155,6 +136,9 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
   loading = true;
   error: string | null = null;
   totalCases = 0;
+
+  /** Index of the legend item currently hovered, or null if none. */
+  hoveredIndex: number | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -219,28 +203,24 @@ export class WidgetDistributionMetricsDonutComponent implements OnInit, OnDestro
       return;
     }
 
-    // Preparar datos para el chart (area: formato { name, data }[])
+    // Preparar datos para el chart (donut: array de valores)
     this.labels = ['Entregados', 'Cancelados', 'En Proceso'];
     const data = [
       this.distributionMetrics.entregados.total,
       this.distributionMetrics.canceladas.total,
       this.distributionMetrics.proceso.total
     ].map((v) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0));
-    this.series = [{ name: 'Distribución', data }];
+    this.series = data;
     this.totalCases = this.distributionMetrics.total;
-
-    // Actualizar las opciones del gráfico
-    this.options = {
-      ...this.options,
-      xaxis: {
-        ...this.options.xaxis,
-        categories: this.labels
-      }
-    };
   }
 
   refresh(): void {
     this.loadDistributionMetrics();
+  }
+
+  /** Called when a legend item is hovered or unhovered. */
+  onLegendHover(index: number | null): void {
+    this.hoveredIndex = index;
   }
 
   getStatusCount(): number {

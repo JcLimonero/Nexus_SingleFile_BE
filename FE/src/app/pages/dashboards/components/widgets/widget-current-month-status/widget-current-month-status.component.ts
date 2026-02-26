@@ -38,14 +38,19 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
   @Input() userId: number | null = null;
   @Input() showDetails = true;
 
+  readonly chartColors = [
+    '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+    '#14b8a6', '#0ea5e9', '#eab308', '#dc2626', '#a855f7'
+  ];
+
   series: ApexAxisChartSeries = [];
   options: ApexOptions = defaultChartOptions({
     chart: {
       type: 'donut',
-      height: 350,
-      sparkline: {
-        enabled: false
-      }
+      height: 220,
+      toolbar: { show: false },
+      sparkline: { enabled: false }
     },
     colors: [
       '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -54,31 +59,28 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
     ],
     labels: [],
     legend: {
-      show: true,
-      position: 'bottom',
-      horizontalAlign: 'center',
-      itemMargin: {
-        horizontal: 8,
-        vertical: 4
-      }
+      show: false
     },
     plotOptions: {
       pie: {
         donut: {
-          size: '70%',
+          size: '85%',
+          background: 'transparent',
           labels: {
             show: true,
             name: {
               show: true,
-              fontSize: '14px',
+              fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#374151'
+              color: '#2B2B2B',
+              offsetY: -6
             },
             value: {
               show: true,
-              fontSize: '16px',
+              fontSize: '1.25rem',
               fontWeight: 700,
-              color: '#111827',
+              color: '#2B2B2B',
+              offsetY: 6,
               formatter: function (val: string) {
                 return val;
               }
@@ -87,9 +89,9 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
               show: true,
               showAlways: false,
               label: 'Total',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: '#6b7280',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: '#868C92',
               formatter: function (w: any) {
                 const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
                 return total.toString();
@@ -101,6 +103,11 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
     },
     dataLabels: {
       enabled: false
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['#fff']
     },
     tooltip: {
       enabled: true,
@@ -220,5 +227,9 @@ export class WidgetCurrentMonthStatusComponent implements OnInit, OnDestroy, OnC
 
   getTotalCases(): number {
     return this.statusData.reduce((total, item) => total + item.totalCases, 0);
+  }
+
+  getStatusColor(index: number): string {
+    return this.chartColors[index % this.chartColors.length] || '#6b7280';
   }
 }

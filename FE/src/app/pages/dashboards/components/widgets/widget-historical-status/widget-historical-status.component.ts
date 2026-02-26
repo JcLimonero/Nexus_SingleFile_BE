@@ -40,50 +40,61 @@ export class WidgetHistoricalStatusComponent implements OnInit, OnDestroy, OnCha
   options: ApexOptions = defaultChartOptions({
     chart: {
       type: 'bar',
-      height: 350,
-      sparkline: {
-        enabled: false
-      }
+      height: 260,
+      toolbar: { show: false },
+      sparkline: { enabled: false }
+    },
+    legend: {
+      show: false
     },
     colors: [
-      '#10b981', // Verde para entregados
-      '#3b82f6', // Azul para en proceso
-      '#ef4444', // Rojo para cancelados
-      '#f59e0b', // Amarillo para otros estados
-      '#8b5cf6', // Púrpura para estados adicionales
-      '#06b6d4', // Cian para más estados
-      '#84cc16', // Lima para estados adicionales
-      '#f97316'  // Naranja para más estados
+      '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+      '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'
     ],
     fill: {
       type: 'solid',
-      opacity: 0.8
+      opacity: 0.9
     },
     plotOptions: {
       bar: {
-        horizontal: true,
-        borderRadius: 4,
-        barHeight: '60%',
-        distributed: false
+        horizontal: false,
+        borderRadius: 6,
+        columnWidth: '60%',
+        distributed: true
+      }
+    },
+    states: {
+      hover: {
+        filter: {
+          type: 'darken',
+          value: 0.1
+        }
+      },
+      active: {
+        filter: {
+          type: 'darken',
+          value: 0.15
+        }
       }
     },
     dataLabels: {
       enabled: true,
+      offsetY: -4,
       formatter: function (val: number, opts: any) {
         const total = opts.w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
         const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
-        return `${val} (${percentage}%)`;
+        return `${percentage}%`;
       },
       style: {
         fontSize: '11px',
         fontWeight: 600,
-        colors: ['#ffffff']
+        colors: ['#2B2B2B']
       }
     },
     tooltip: {
       enabled: true,
       style: {
-        fontSize: '14px',
+        fontSize: '13px',
         fontFamily: 'Inter, sans-serif'
       },
       fillSeriesColor: false,
@@ -98,25 +109,33 @@ export class WidgetHistoricalStatusComponent implements OnInit, OnDestroy, OnCha
       }
     },
     xaxis: {
+      type: 'category',
       categories: [],
       labels: {
-        style: {
-          fontSize: '12px',
-          fontWeight: 500
-        }
-      }
+        show: false
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false }
     },
     yaxis: {
       labels: {
+        show: true,
         style: {
-          fontSize: '12px',
-          fontWeight: 500
+          fontSize: '11px',
+          fontWeight: 500,
+          colors: '#868C92'
         }
-      }
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false }
     },
     grid: {
-      borderColor: '#f1f5f9',
-      strokeDashArray: 4
+      show: true,
+      borderColor: '#EFF0F0',
+      strokeDashArray: 2,
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
+      padding: { left: 0, right: 0 }
     },
     responsive: [
       {
@@ -198,30 +217,26 @@ export class WidgetHistoricalStatusComponent implements OnInit, OnDestroy, OnCha
       return;
     }
 
-    // Preparar datos para el chart de barras horizontales
+    // Preparar datos para el chart de barras verticales
     this.labels = this.historicalStatusData.map(item => item.statusName);
     const data = this.historicalStatusData.map(item => item.totalCases);
     this.totalCases = data.reduce((total, cases) => total + cases, 0);
 
-    // Crear series con colores específicos para cada barra
-    const seriesData = data.map((value, index) => ({
-      x: this.labels[index],
-      y: value,
-      fillColor: this.getStatusColor(this.labels[index])
-    }));
-
-    this.series = [{
-      name: 'Expedientes',
-      data: seriesData
-    }];
-
+    // Colores para cada barra (distributed: true)
+    const barColors = this.labels.map(label => this.getStatusColor(label));
     this.options = {
       ...this.options,
+      colors: barColors,
       xaxis: {
         ...this.options.xaxis,
         categories: this.labels
       }
     };
+
+    this.series = [{
+      name: 'Expedientes',
+      data: data
+    }];
   }
 
   refresh(): void {

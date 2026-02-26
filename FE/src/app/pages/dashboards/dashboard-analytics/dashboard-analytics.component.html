@@ -285,22 +285,25 @@
         </div>
       </div>
 
-      <!-- Resto de widgets de distribución y estatus -->
-      <div class="distribution-grid">
-
-        <!-- Distribución de expedientes por estatus -->
-        <div class="widget-container">
+      <!-- Expedientes por Estatus y Estatus del Mes - en fila horizontal -->
+      <div class="status-status-grid"
+           style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 0.5rem !important; width: 100% !important; margin-bottom: 0.75rem !important;">
+        <div class="widget-container"
+             style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-status-distribution
             [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-status-distribution>
         </div>
-
-        <!-- Distribución de expedientes por estatus - Mes Actual -->
-        <div class="widget-container">
+        <div class="widget-container"
+             style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-current-month-status
             [agencyId]="selectedAgencyId"
             [userId]="selectedUserId"></vex-widget-current-month-status>
         </div>
+      </div>
+
+      <!-- Resto de widgets de distribución y estatus -->
+      <div class="distribution-grid">
 
         <!-- Widget de Estatus Histórico -->
         <div class="widget-container">
