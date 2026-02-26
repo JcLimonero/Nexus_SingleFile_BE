@@ -148,12 +148,15 @@
             </mat-slide-toggle>
           </div>
 
-          <button mat-icon-button
-                  class="text-gray-600 hover:text-blue-600 transition-colors"
-                  (click)="recargarDatos()"
-                  [disabled]="loading || loadingAgencias || loadingProcesos"
-                  matTooltip="Recargar datos">
+          <button
+            mat-stroked-button
+            color="accent"
+            (click)="recargarDatos()"
+            [disabled]="loading || loadingAgencias || loadingProcesos"
+            matTooltip="Recargar datos"
+            class="flex items-center gap-2">
             <mat-icon [class.animate-spin]="loading || loadingAgencias || loadingProcesos">refresh</mat-icon>
+            Recargar
           </button>
         </div>
       </div>
