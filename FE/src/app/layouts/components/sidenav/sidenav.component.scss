@@ -4,64 +4,167 @@
   height: 100%;
   @apply transition-all duration-400 ease-out-swift;
   width: var(--vex-sidenav-width);
+  border-right: 1px solid #E5E2E1;
 
   &.collapsed {
     width: var(--vex-sidenav-collapsed-width);
 
-    &:not(.open) {
-      .vex-sidenav-toolbar__headline,
-      .vex-sidenav-toolbar__collapse-toggle {
-        opacity: 0;
-        padding-inline-start: var(--vex-sidenav-item-padding-horizontal);
-      }
-
-      ::ng-deep {
-        .vex-sidenav-item__icon {
-          margin-inline-end: var(--vex-sidenav-item-padding-horizontal);
-        }
-
-        .vex-sidenav-subheading,
-        .vex-sidenav-item__badge,
-        .vex-sidenav-item__label,
-        .vex-sidenav-user__title,
-        .vex-sidenav-user__subtitle,
-        .vex-sidenav-user__dropdown-icon,
-        .vex-sidenav-search__placeholder,
-        .vex-sidenav-search__keybind {
-          opacity: 0;
-        }
-
-        .vex-sidenav-user {
-          @apply pr-2.5;
-        }
-
-        .simplebar-track.simplebar-vertical {
-          visibility: hidden !important;
-        }
-      }
+    .vex-sidenav-toolbar__headline,
+    .vex-sidenav-toolbar__collapse-toggle {
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
     }
 
     ::ng-deep {
-      .vex-sidenav-subheading,
+      // Icono centrado, sin margen lateral
+      .vex-sidenav-item__icon {
+        margin-inline-end: 0;
+      }
+
+      // Label visible debajo del icono (multi-línea)
       .vex-sidenav-item__label {
-        @apply transition-all duration-400 ease-out-swift;
+        opacity: 1;
+        font-size: 9px;
+        line-height: 1.25;
+        text-align: center;
+        white-space: normal;
+        word-break: break-word;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        max-width: 100%;
+        padding: 0 2px;
       }
 
-      .vex-sidenav-item__badge {
-        @apply transition-all duration-200 ease-out-swift;
-      }
-    }
-
-    &.open {
-      width: var(--vex-sidenav-width);
-
-      .vex-sidenav-toolbar__collapse-toggle {
-        @apply transition-all duration-400 ease-out-swift;
+      // Items en columna (icono arriba, label abajo)
+      .vex-sidenav-item {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 4px;
+        min-height: 44px;
+        gap: 1px;
       }
 
-      ::ng-deep {
-        .vex-sidenav-item__badge {
-          @apply transition-all duration-400 ease-out-swift;
+      // Ocultar lo que no cabe en icon-bar
+      .vex-sidenav-subheading,
+      .vex-sidenav-item__badge,
+      .vex-sidenav-item__dropdown-icon,
+      .vex-sidenav-user__title,
+      .vex-sidenav-user__subtitle,
+      .vex-sidenav-user__dropdown-icon,
+      .vex-sidenav-search__placeholder,
+      .vex-sidenav-search__keybind {
+        display: none;
+      }
+
+      // Dropdown como flyout lateral en icon-bar
+      .vex-sidenav-item__dropdown {
+        position: fixed;
+        left: calc(var(--vex-sidenav-collapsed-width, 72px) + 6px);
+        min-width: 210px;
+        background: #FFFFFF;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        z-index: 999;
+        overflow: hidden !important;
+        max-height: calc(100vh - 24px);
+        overflow-y: auto !important;
+        padding: 8px 0 14px 0;
+
+        // Mostrar sub-items dentro del flyout (override display:none)
+        vex-sidenav-item {
+          display: block !important;
+        }
+
+        // Items del flyout en estilo card limpio
+        .vex-sidenav-item {
+          flex-direction: row;
+          align-items: center;
+          padding: 12px 20px;
+          min-height: 44px;
+          gap: 12px;
+          color: #2B2B2B;
+          border-radius: 0;
+          transition: background 0.15s ease, color 0.15s ease;
+          background: transparent;
+          border-left: 3px solid transparent;
+
+          &:hover {
+            background: #F5F5F5 !important;
+            color: #2B2B2B !important;
+
+            .vex-sidenav-item__label {
+              color: #2B2B2B !important;
+            }
+
+            .vex-sidenav-item__icon {
+              color: #2B2B2B !important;
+            }
+          }
+
+          &.vex-sidenav-item--active {
+            background: transparent !important;
+            border-left: 3px solid var(--vex-color-primary, #0ea5e9);
+
+            .vex-sidenav-item__label {
+              color: var(--vex-color-primary, #0ea5e9) !important;
+              font-weight: 600;
+            }
+
+            .vex-sidenav-item__icon {
+              color: var(--vex-color-primary, #0ea5e9) !important;
+            }
+          }
+        }
+
+        .vex-sidenav-item__label {
+          font-size: 14px;
+          font-weight: 400;
+          text-align: left;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          color: #2B2B2B;
+        }
+
+        .vex-sidenav-item__icon {
+          margin-inline-end: 0;
+          color: #77797B;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .vex-sidenav-user {
+        @apply pr-2.5;
+        justify-content: center;
+      }
+
+      .simplebar-track.simplebar-vertical {
+        visibility: hidden !important;
+      }
+
+      .simplebar-content-wrapper {
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      .simplebar-content {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        padding: 8px 0 !important;
+
+        > div {
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: space-evenly !important;
+          height: 100% !important;
         }
       }
     }

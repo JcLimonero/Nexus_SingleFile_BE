@@ -13,12 +13,12 @@ export interface AppLayoutConfig {
 }
 
 export const DEFAULT_LAYOUT_CONFIG: AppLayoutConfig = {
-  layout: 'vertical',
+  layout: 'horizontal',
   boxed: false,
   toolbar: { fixed: true, user: { visible: true } },
   sidenav: {
     title: 'NexFile One',
-    showCollapsePin: true,
+    showCollapsePin: false,
     user: { visible: true },
     search: { visible: true }
   },

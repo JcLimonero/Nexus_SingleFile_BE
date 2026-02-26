@@ -3,6 +3,7 @@
   [fragment]="item.fragment"
   [routerLinkActiveOptions]="item.routerLinkActiveOptions || { exact: false }"
   [routerLink]="item.route"
+  (click)="onLinkClick()"
   class="vex-sidenav-item"
   matRipple
   matRippleColor="var(--vex-sidenav-item-ripple-color)"
@@ -63,7 +64,7 @@
       class="vex-sidenav-item__dropdown-icon"
       svgIcon="mat:keyboard_arrow_right"></mat-icon>
   </div>
-  <div [@dropdown]="isOpen" class="vex-sidenav-item__dropdown">
+  <div [@dropdown]="isOpen" class="vex-sidenav-item__dropdown" [style.top]="flyoutTop" [style.bottom]="flyoutBottom">
     <vex-sidenav-item
       *ngFor="let subItem of item.children"
       [item]="subItem"

@@ -75,3 +75,17 @@ html, body {
 
 /* Diseño unificado de tablas con la paleta de la aplicación */
 @import "./app/styles/tables-palette";
+
+/* Toolbar user dropdown - mat-menu panel override */
+.mat-mdc-menu-panel.toolbar-user-menu {
+  border-radius: 12px !important;
+  overflow: visible !important;
+  max-height: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}

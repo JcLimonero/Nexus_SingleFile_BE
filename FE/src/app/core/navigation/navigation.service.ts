@@ -17,12 +17,19 @@ export class NavigationService {
   private _openChangeSubject = new Subject<NavigationDropdown>();
   openChange$ = this._openChangeSubject.asObservable();
 
+  private _closeAllSubject = new Subject<void>();
+  closeAll$ = this._closeAllSubject.asObservable();
+
   constructor(
     private readonly navigationLoaderService: NavigationLoaderService
   ) {}
 
   triggerOpenChange(item: NavigationDropdown) {
     this._openChangeSubject.next(item);
+  }
+
+  triggerCloseAll() {
+    this._closeAllSubject.next();
   }
 
   isLink(item: NavigationItem): item is NavigationLink {

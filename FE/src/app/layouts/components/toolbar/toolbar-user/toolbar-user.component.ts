@@ -11,6 +11,7 @@ import { AsyncPipe, NgIf } from '@angular/common';
 @Component({
   selector: 'vex-toolbar-user',
   templateUrl: './toolbar-user.component.html',
+  styleUrls: ['./toolbar-user.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [

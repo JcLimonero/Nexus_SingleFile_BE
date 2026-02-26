@@ -1,0 +1,44 @@
+// Botón circular de usuario en toolbar
+.toolbar-user-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  outline: none;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.toolbar-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #E5E2E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s ease;
+
+  .toolbar-user-btn:hover & {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.toolbar-user-avatar-icon {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 24px;
+  color: #2B3A47;
+}

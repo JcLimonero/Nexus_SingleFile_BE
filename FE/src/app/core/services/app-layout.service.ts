@@ -14,7 +14,7 @@ export class AppLayoutService {
   private _sidenavOpenSubject = new BehaviorSubject<boolean>(false);
   sidenavOpen$ = this._sidenavOpenSubject.asObservable();
 
-  private _sidenavCollapsedSubject = new BehaviorSubject<boolean>(false);
+  private _sidenavCollapsedSubject = new BehaviorSubject<boolean>(true);
   sidenavCollapsed$ = this._sidenavCollapsedSubject.asObservable();
 
   private _sidenavCollapsedOpenSubject = new BehaviorSubject<boolean>(false);
@@ -47,14 +47,7 @@ export class AppLayoutService {
   isLtLg = () => this.breakpointObserver.isMatched('(max-width: 1279px)');
   isMobile = () => this.breakpointObserver.isMatched('(max-width: 599px)');
 
-  constructor(private readonly breakpointObserver: BreakpointObserver) {
-    this.isDesktop$
-      .pipe(
-        filter((matches) => !matches),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => this.expandSidenav());
-  }
+  constructor(private readonly breakpointObserver: BreakpointObserver) {}
 
   openQuickpanel(): void {
     this._quickpanelOpenSubject.next(true);

@@ -35,6 +35,12 @@ export interface MenuColorsConfig {
   subheadingColor?: string;
 }
 
+/** Colores del tool menu (toolbar principal). */
+export interface ToolMenuColorsConfig {
+  /** Color de fondo del toolbar */
+  backgroundColor?: string;
+}
+
 export interface BrandingConfig {
   clientName: string;
   /** Título en sidebar/menú (si no se define, se usa clientName) */
@@ -55,6 +61,8 @@ export interface BrandingConfig {
   footerLink: string;
   /** Colores del menú lateral (iconos, textos, subheadings). Si no se define, se usan los del tema. */
   menuColors?: MenuColorsConfig;
+  /** Colores del tool menu (toolbar). */
+  toolMenuColors?: ToolMenuColorsConfig;
   /** Tema de colores (primary, color de logos). Opcional. */
   theme?: ThemeConfig;
 }
@@ -172,6 +180,12 @@ export class BrandingService {
       if (menuColors.iconColorHover) vars.push(`--vex-sidenav-item-icon-color-hover: ${menuColors.iconColorHover}`);
       if (menuColors.iconColorActive) vars.push(`--vex-sidenav-item-icon-color-active: ${menuColors.iconColorActive}`);
       if (menuColors.subheadingColor) vars.push(`--vex-sidenav-subheading-color: ${menuColors.subheadingColor}`);
+    }
+
+    // Toolbar (tool menu)
+    const toolMenuColors = config.toolMenuColors;
+    if (toolMenuColors?.backgroundColor) {
+      vars.push(`--app-toolmenu-background: ${toolMenuColors.backgroundColor}`);
     }
 
     // Color principal (Vex usa rgb(var(--vex-color-primary-500)) con formato "r, g, b")

@@ -143,3 +143,12 @@
 :host(:first-child) .vex-sidenav-subheading {
   @apply -mt-3;
 }
+
+/** In collapsed icon-bar mode, hide sub-level items */
+:host-context(.collapsed) {
+  @for $i from 1 through 6 {
+    &.item-level-#{$i} {
+      display: none;
+    }
+  }
+}

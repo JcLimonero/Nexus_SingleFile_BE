@@ -1,5 +1,5 @@
 :host {
-  background: var(--vex-toolbar-background);
+  background: var(--app-toolmenu-background, var(--vex-toolbar-background));
   box-sizing: border-box;
   display: block;
   white-space: nowrap;
@@ -57,3 +57,5 @@
 a {
   text-decoration: none;
 }
+
+

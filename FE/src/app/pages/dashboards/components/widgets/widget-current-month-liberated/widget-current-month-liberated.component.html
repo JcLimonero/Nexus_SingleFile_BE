@@ -12,9 +12,7 @@
   <mat-card *ngIf="!loading && !error && data" class="metric-card">
     <div class="flex items-center space-x-4 p-4">
       <div class="flex-shrink-0">
-        <div class="icon-container rounded-lg flex items-center justify-center"
-             [class.bg-green-100]="data.total > 0"
-             [class.bg-gray-100]="data.total === 0">
+        <div class="icon-container flex items-center justify-center">
           <mat-icon class="widget-icon"
                     [class.text-green-600]="data.total > 0"
                     [class.text-gray-400]="data.total === 0">check_circle</mat-icon>

@@ -1,46 +1,52 @@
 
 <div class="w-full space-y-3 dashboard-analytics">
               <!-- Filtros unificados -->
-              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-4 w-full filters-container">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
+              <div class="filters-container">
+                <div class="filters-row">
                   <!-- Filtro por Agencia -->
-                  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
-                    <mat-form-field appearance="outline" class="w-full sm:w-48 lg:w-48">
-                      <mat-label>Agencia</mat-label>
-                      <mat-select
-                        [value]="selectedAgencyId"
-                        (selectionChange)="onAgencyChange($event.value)"
-                        [disabled]="loading || !hasAgencies()">
-                        <mat-option [value]="null">Todas las agencias</mat-option>
-                        <mat-option
-                          *ngFor="let agency of agencies; trackBy: trackByAgencyId"
-                          [value]="agency.Id">
-                          {{ agency.Name }}
-                        </mat-option>
-                      </mat-select>
-                      <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
-                      <mat-hint align="start" *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
-                    </mat-form-field>
+                  <div class="filter-group">
+                    <div class="filter-field-wrapper">
+                      <label class="filter-label">Agencia</label>
+                      <mat-form-field appearance="outline" class="filter-field no-label">
+                        <mat-select
+                          placeholder="Seleccionar agencia"
+                          [value]="selectedAgencyId"
+                          (selectionChange)="onAgencyChange($event.value)"
+                          [disabled]="loading || !hasAgencies()">
+                          <mat-option [value]="null">Todas las agencias</mat-option>
+                          <mat-option
+                            *ngFor="let agency of agencies; trackBy: trackByAgencyId"
+                            [value]="agency.Id">
+                            {{ agency.Name }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
+                        <mat-hint align="start" *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
+                      </mat-form-field>
+                    </div>
 
                     <!-- Filtro por Usuario -->
-                    <mat-form-field appearance="outline" class="w-full sm:w-64 lg:w-96">
-                      <mat-label>Usuario</mat-label>
-                      <mat-select
-                        #userSelect
-                        [value]="selectedUserId"
-                        (selectionChange)="onUserChange($event.value)"
-                        [disabled]="loading || !hasUsers() || isUserFilterDisabled">
-                        <mat-option [value]="null">Todos los usuarios</mat-option>
-                        <mat-option
-                          *ngFor="let user of users; trackBy: trackByUserId"
-                          [value]="user.Id">
-                          {{ user.Name }}
-                        </mat-option>
-                      </mat-select>
-                      <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
-                      <mat-hint align="start" *ngIf="!loading && !hasUsers()">Sin usuarios</mat-hint>
-                      <mat-hint align="end" *ngIf="isUserFilterDisabled">Filtro deshabilitado para su rol</mat-hint>
-                    </mat-form-field>
+                    <div class="filter-field-wrapper">
+                      <label class="filter-label">Usuario</label>
+                      <mat-form-field appearance="outline" class="filter-field no-label">
+                        <mat-select
+                          #userSelect
+                          placeholder="Seleccionar usuario"
+                          [value]="selectedUserId"
+                          (selectionChange)="onUserChange($event.value)"
+                          [disabled]="loading || !hasUsers() || isUserFilterDisabled">
+                          <mat-option [value]="null">Todos los usuarios</mat-option>
+                          <mat-option
+                            *ngFor="let user of users; trackBy: trackByUserId"
+                            [value]="user.Id">
+                            {{ user.Name }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
+                        <mat-hint align="start" *ngIf="!loading && !hasUsers()">Sin usuarios</mat-hint>
+                        <mat-hint align="end" *ngIf="isUserFilterDisabled">Filtro deshabilitado para su rol</mat-hint>
+                      </mat-form-field>
+                    </div>
                   </div>
 
                   <!-- Filtros de Fechas - OCULTOS -->
@@ -180,7 +186,7 @@
   <div *ngIf="!loading && !error">
 
     <!-- ===== SECCIÓN 1: MÉTRICAS PRINCIPALES ===== -->
-    <div class="dashboard-section">
+    <div class="metrics-section-container">
       <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
         <mat-icon class="mr-2 text-blue-600">dashboard</mat-icon>
         Métricas Principales
@@ -229,7 +235,7 @@
     </div>
 
     <!-- ===== SECCIÓN 2: ANÁLISIS TEMPORAL ===== -->
-    <div class="dashboard-section">
+    <div class="temporal-section-container">
       <h2 class="section-title text-xl font-semibold text-gray-800 flex items-center">
         <mat-icon class="mr-2 text-green-600">trending_up</mat-icon>
         Análisis Temporal

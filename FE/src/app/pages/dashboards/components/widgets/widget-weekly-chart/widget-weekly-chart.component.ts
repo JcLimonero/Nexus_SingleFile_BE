@@ -4,7 +4,6 @@ import { Subject, of } from 'rxjs';
 import { takeUntil, map, catchError } from 'rxjs/operators';
 import { AnalyticsService } from '../../../../../core/services/analytics.service';
 import { ApexOptions, VexChartComponent } from '@vex/components/vex-chart/vex-chart.component';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -24,7 +23,6 @@ export interface WeeklyData {
   imports: [
     CommonModule,
     VexChartComponent,
-    MatCardModule,
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
@@ -43,74 +41,99 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
   options: ApexOptions = {
     chart: {
       type: 'line',
-      height: 280, // Reducido de 350 para ocupar menos espacio
+      height: 280,
       sparkline: {
         enabled: false
-      }
+      },
+      toolbar: {
+        show: false
+      },
+      fontFamily: 'Inter, sans-serif'
     },
-    colors: ['#3b82f6'],
+    colors: ['#60A5FA'],
     stroke: {
       curve: 'smooth',
-      width: 3
+      width: 2.5
     },
     markers: {
-      size: 5, // Reducido de 6
-      colors: ['#3b82f6'],
-      strokeColors: '#ffffff',
+      size: 4,
+      colors: ['#60A5FA'],
+      strokeColors: '#FFFFFF',
       strokeWidth: 2,
       hover: {
-        size: 7 // Reducido de 8
+        size: 6
       }
     },
     dataLabels: {
       enabled: true,
       formatter: function (val: number) {
-        return Math.round(val).toString(); // Quitar decimales
+        return Math.round(val).toString();
       },
       style: {
-        fontSize: '10px', // Reducido de 12px
+        fontSize: '10px',
         fontWeight: 600,
-        colors: ['#3b82f6']
+        colors: ['#77797B']
+      },
+      offsetY: -8,
+      background: {
+        enabled: false
       }
     },
     tooltip: {
       enabled: true,
       shared: false,
       intersect: false,
-      y: {
-        formatter: function (val: number) {
-          return Math.round(val).toString(); // Quitar decimales
-        }
+      custom: function({ series, seriesIndex, dataPointIndex, w }: any) {
+        const day = w.globals.categoryLabels[dataPointIndex] || w.config.xaxis.categories[dataPointIndex] || '';
+        const val = Math.round(series[seriesIndex][dataPointIndex] || 0);
+        return `<div style="background:#FFFFFF;border:1px solid #EFF0F0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);padding:10px 14px;min-width:120px;">
+          <div style="font-weight:600;color:#2B2B2B;font-size:13px;margin-bottom:6px;border-bottom:1px solid #F0F0F0;padding-bottom:6px;">${day}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#60A5FA;flex-shrink:0;"></span>
+            <span style="color:#77797B;font-size:12px;">Expedientes</span>
+            <span style="margin-left:auto;font-weight:600;color:#2B2B2B;font-size:12px;">${val}</span>
+          </div>
+        </div>`;
       }
     },
     xaxis: {
       categories: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
       labels: {
         style: {
-          fontSize: '11px', // Reducido de 12px
+          colors: '#868C92',
+          fontSize: '11px',
+          fontFamily: 'Inter, sans-serif',
           fontWeight: 500
         }
+      },
+      axisBorder: {
+        show: false
+      },
+      axisTicks: {
+        show: false
       }
     },
     yaxis: {
       labels: {
         style: {
-          fontSize: '11px', // Reducido de 12px
+          colors: ['#868C92'],
+          fontSize: '11px',
+          fontFamily: 'Inter, sans-serif',
           fontWeight: 500
         },
         formatter: function (val: number) {
-          return Math.round(val).toString(); // Quitar decimales del eje Y
+          return Math.round(val).toString();
         }
       }
     },
     grid: {
-      borderColor: '#f1f5f9',
-      strokeDashArray: 3, // Reducido de 4
+      borderColor: '#F0F0F0',
+      strokeDashArray: 4,
       padding: {
         left: 16,
-        top: 8,    // Reducido para ocupar menos espacio
-        right: 8,  // Reducido para ocupar menos espacio
-        bottom: 8  // Reducido para ocupar menos espacio
+        top: 8,
+        right: 12,
+        bottom: 8
       }
     }
   };

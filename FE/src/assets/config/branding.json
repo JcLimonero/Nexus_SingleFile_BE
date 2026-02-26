@@ -3,26 +3,28 @@
   "appTitle": "Nexus Q Tech",
   "pageTitle": "NexFile One by Nexus Q Tech",
   "layoutStyle": "zeus",
-  "logoLogin": "assets/img/icons/logos/nexus/login.png", 
-  "logoApp": "assets/img/icons/logos/nexus/logo.png",       
+  "logoLogin": "assets/img/icons/logos/total/login.png", 
+  "logoApp": "assets/img/icons/logos/total/logo_total.png",       
   "logoFooter": "assets/img/icons/logos/nexus/logo.png",
-  "logoLoading": "assets/img/icons/logos/nexus/logo.png",
-  "favicon": "assets/img/icons/logos/nexus/favicon.ico",
+  "logoLoading": "assets/img/icons/logos/total/logo_total.png",
+  "favicon": "assets/img/icons/logos/total/favicon.ico",
   "footerText": "Developed by Nexus Q Tech",
   "footerLink": "https://www.nexusqtech.com",
   "menuColors": {
-    "backgroundColor": "#1e293b",
-    "iconColor": "#ffffff",
-    "textColor": "rgba(255,255,255,0.8)",
-    "textColorHover": "#ffffff",
-    "textColorActive": "#ffffff",
-    "iconColorHover": "#ffffff",
-    "iconColorActive": "#ffffff",
+    "backgroundColor": "#DBDBDBS",
+    "iconColor": "#2B2B2B",
+    "textColor": "#2B2B2B",
+    "textColorHover": "#303D48",
+    "textColorActive": "#2B2B2B",
+    "iconColorHover": "#303D48",
+    "iconColorActive": "#2B2B2B",
     "subheadingColor": "#ffffff"
   },
+  "toolMenuColors": {
+    "backgroundColor": "#BABCBF"
+  },
   "theme": {
-    "primaryColor": "#0ea5e9",
-    "logoColor": "#ffffff"
+    "primaryColor": "#0ea5e9"
   },
   "_layoutStylesHelp": {
     "apollo": "Horizontal, navbar abajo del toolbar",
