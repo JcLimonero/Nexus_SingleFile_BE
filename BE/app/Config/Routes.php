@@ -372,6 +372,14 @@ $routes->group('documents', function($routes) {
     $routes->post('add-to-file', 'Documents::addDocumentsToFile');
 });
     
+    // Miniportal - API pública (sin auth)
+    $routes->get('miniportal/(:segment)', 'Miniportal::getExpediente/$1');
+    $routes->get('miniportal/(:segment)/documents', 'Miniportal::getDocumentos/$1');
+    $routes->get('miniportal/(:segment)/document-url', 'Miniportal::getDocumentUrl/$1');
+    $routes->post('miniportal/(:segment)/upload', 'Miniportal::uploadDocument/$1');
+    $routes->post('miniportal/(:segment)/accept', 'Miniportal::acceptAviso/$1');
+    $routes->post('miniportal/(:segment)/geolocation', 'Miniportal::logGeolocation/$1');
+
     // Rutas de validación de clientes (Mesa de Control)
     $routes->group('clients-validation', function($routes) {
         $routes->get('clientes', 'Validacion::getClientes');
@@ -387,6 +395,7 @@ $routes->group('documents', function($routes) {
         $routes->post('validar-documento', 'Validacion::validarDocumento');
         $routes->post('aprobar-documento', 'Validacion::aprobarDocumento');
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
+        $routes->post('generar-token-miniportal', 'Validacion::generarTokenMiniportal');
         $routes->get('imprimir-identificacion', 'Validacion::imprimirIdentificacionCliente');
     });
 

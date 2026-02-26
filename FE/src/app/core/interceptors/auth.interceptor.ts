@@ -31,7 +31,8 @@ export const AuthInterceptor: HttpInterceptorFn = (
                        request.url.includes('/auth/refresh') || 
                        request.url.includes('/auth/register') ||
                        request.url.includes('/auth/forgot-password') ||
-                       request.url.includes('/auth/update-email');
+                       request.url.includes('/auth/update-email') ||
+                       request.url.includes('/miniportal/');
     
     if (token && isAuthenticated) {
       // Clonar la request y agregar el header de autorización

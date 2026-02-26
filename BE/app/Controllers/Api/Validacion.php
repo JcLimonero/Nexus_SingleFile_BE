@@ -2013,4 +2013,62 @@ class Validacion extends BaseController
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
+
+    /**
+     * POST /api/clients-validation/generar-token-miniportal
+     * Generar enlace único para Miniportal (requiere auth)
+     */
+    public function generarTokenMiniportal()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Token de autorización requerido'
+                ])->setStatusCode(401);
+            }
+
+            $data = $this->request->getJSON(true) ?? $this->request->getPost();
+            $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            if (!$idFile) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'idFile es requerido'
+                ])->setStatusCode(400);
+            }
+
+            $shareTokenModel = new \App\Models\FileShareTokenModel();
+            $tokenData = $shareTokenModel->getOrCreateToken($idFile);
+            if (!$tokenData) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo generar el token'
+                ])->setStatusCode(500);
+            }
+
+            $frontendUrl = env('miniportal.frontendUrl', env('app.frontendUrl', 'http://localhost:4200'));
+            $miniportalUrl = rtrim($frontendUrl, '/') . '/consulta/' . $tokenData['Token'];
+
+            $this->logActivity('GENERAR_TOKEN_MINIPORTAL', "Token Miniportal generado para expediente {$idFile}", [
+                'file_id' => $idFile,
+                'token' => $tokenData['Token']
+            ], $idFile);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
+                    'token' => $tokenData['Token'],
+                    'url' => $miniportalUrl,
+                    'idFile' => $idFile
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Validacion::generarTokenMiniportal - " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al generar el token: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
 }

@@ -1,0 +1,116 @@
+<div class="miniportal-container min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <!-- Logo -->
+    <div *ngIf="(logoLogin$ | async) as logoUrl" class="flex justify-center mb-4">
+      <img *ngIf="logoUrl?.trim()" [src]="logoUrl" alt="Logo" class="h-16 w-auto object-contain" />
+    </div>
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-12">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p class="mt-4 text-gray-600">Cargando expediente...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!loading && error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <mat-icon class="text-red-500 text-5xl mb-2">error_outline</mat-icon>
+      <h2 class="text-lg font-semibold text-red-800 mb-2">Enlace inválido o expirado</h2>
+      <p class="text-red-700 text-sm">{{ error }}</p>
+    </div>
+
+    <!-- Expediente -->
+    <mat-card *ngIf="!loading && !error && expediente" class="shadow-lg">
+      <mat-card-header class="pb-4 flex flex-col">
+        <mat-card-title class="text-xl text-center">Consulta de expediente</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Aviso de confidencialidad (si no aceptado) -->
+        <div *ngIf="!avisoAceptado" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h3 class="font-semibold text-amber-800 mb-2">Aviso de confidencialidad</h3>
+          <p class="text-sm text-amber-900 mb-4">
+            Al continuar, acepta que la información de este expediente es confidencial y solo debe ser utilizada para los fines autorizados.
+          </p>
+          <mat-checkbox [(ngModel)]="aceptadoCheck" color="primary">
+            Acepto el aviso de confidencialidad
+          </mat-checkbox>
+          <div class="mt-4">
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="!aceptadoCheck || aceptando"
+              (click)="aceptarAviso()">
+              <mat-spinner *ngIf="aceptando" diameter="20" class="inline-block mr-2"></mat-spinner>
+              <mat-icon *ngIf="!aceptando">check_circle</mat-icon>
+              {{ aceptando ? 'Aceptando...' : 'Aceptar y continuar' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Datos del expediente (visible tras aceptar) -->
+        <div *ngIf="avisoAceptado" class="space-y-4">
+          <div class="space-y-3">
+            <div class="flex justify-between py-2 border-b">
+              <span class="text-gray-600">Cliente</span>
+              <span class="font-medium">{{ expediente.cliente }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b">
+              <span class="text-gray-600">Agencia</span>
+              <span class="font-medium">{{ expediente.agencia }}</span>
+            </div>
+          </div>
+
+          <!-- Detalles de la unidad -->
+          <div *ngIf="expediente.vin || expediente.modelo || expediente.year || expediente.version" class="pt-4 border-t">
+            <h4 class="font-semibold text-gray-800 mb-3">Detalles de la unidad</h4>
+            <div class="space-y-3">
+              <div *ngIf="expediente.vin" class="flex justify-between py-2 border-b">
+                <span class="text-gray-600">VIN</span>
+                <span class="font-mono text-sm font-medium">{{ expediente.vin }}</span>
+              </div>
+              <div *ngIf="expediente.modelo" class="flex justify-between py-2 border-b">
+                <span class="text-gray-600">Modelo</span>
+                <span class="font-medium">{{ expediente.modelo }}</span>
+              </div>
+              <div *ngIf="expediente.year" class="flex justify-between py-2 border-b">
+                <span class="text-gray-600">Año</span>
+                <span class="font-medium">{{ expediente.year }}</span>
+              </div>
+              <div *ngIf="expediente.version" class="flex justify-between py-2">
+                <span class="text-gray-600">Versión</span>
+                <span class="font-medium">{{ expediente.version }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documentos -->
+          <div class="pt-4 border-t">
+            <h4 class="font-semibold text-gray-800 mb-3">Documentos</h4>
+            <mat-spinner *ngIf="loadingDocumentos" diameter="24" class="inline-block"></mat-spinner>
+            <div *ngIf="!loadingDocumentos && documentos.length === 0" class="text-sm text-gray-500 py-2">
+              No hay documentos disponibles para cargar
+            </div>
+            <div *ngIf="!loadingDocumentos && documentos.length > 0" class="space-y-2">
+              <div *ngFor="let doc of documentos" class="flex items-center justify-between gap-2 py-2 px-3 bg-gray-50 rounded-lg flex-wrap">
+                <div class="flex-1 min-w-0">
+                  <span class="font-medium text-gray-800 block truncate">{{ doc.documento }}</span>
+                  <span class="text-xs text-gray-500">{{ doc.proceso }} · {{ doc.estatus }}</span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button *ngIf="doc.documentContainer" mat-stroked-button color="primary" (click)="verDocumento(doc)" [disabled]="uploadingIds.has(doc.idDocumentByFile)">
+                    <mat-icon class="align-middle">visibility</mat-icon>
+                    Ver
+                  </button>
+                  <input #fileInput type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" (change)="onFileSelected(doc, $event)">
+                  <button mat-stroked-button color="accent" type="button" [disabled]="uploadingIds.has(doc.idDocumentByFile)" (click)="fileInput.click()">
+                    <mat-spinner *ngIf="uploadingIds.has(doc.idDocumentByFile)" diameter="18" class="inline-block mr-1"></mat-spinner>
+                    <mat-icon *ngIf="!uploadingIds.has(doc.idDocumentByFile)" class="align-middle">cloud_upload</mat-icon>
+                    {{ doc.documentContainer ? 'Reemplazar' : 'Cargar' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

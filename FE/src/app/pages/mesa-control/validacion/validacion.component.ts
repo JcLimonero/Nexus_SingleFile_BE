@@ -409,6 +409,18 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
+  onCompartirWhatsApp(cliente: any): void {
+    this.validacionService.generarTokenMiniportal(cliente.idFile).subscribe({
+      next: (data) => {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+        this.snackBar.open('Enlace abierto en nueva ventana', 'Cerrar', { duration: 3000 });
+      },
+      error: (err) => {
+        this.snackBar.open(err?.message || 'Error al generar enlace', 'Cerrar', { duration: 5000 });
+      }
+    });
+  }
+
   // Método para prevenir la propagación del evento en el botón de acciones
   onActionsClick(event: Event): void {
     event.stopPropagation();

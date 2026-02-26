@@ -5,8 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ClientesMesaService, ExpedienteCliente } from '../../../../core/services/clientes-mesa.service';
+import { ValidacionService } from '../../validacion/validacion.service';
 
 export interface ClienteDetalleDialogData {
   idHeaderClient: number;
@@ -31,7 +35,10 @@ interface GrupoExpedientes {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatSnackBarModule
   ],
   templateUrl: './cliente-detalle-dialog.component.html',
   styleUrl: './cliente-detalle-dialog.component.scss'
@@ -39,7 +46,7 @@ interface GrupoExpedientes {
 export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit {
   loading = true;
   grupos: GrupoExpedientes[] = [];
-  displayedColumns = ['ndPedido', 'proceso', 'operacion', 'tipoCliente', 'estatus', 'monto', 'registro'];
+  displayedColumns = ['ndPedido', 'proceso', 'operacion', 'tipoCliente', 'estatus', 'monto', 'registro', 'acciones'];
   readonly pageSizeOptions = [5, 10, 25];
 
   @ViewChildren(MatPaginator) paginators!: QueryList<MatPaginator>;
@@ -47,7 +54,9 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit {
   constructor(
     public dialogRef: MatDialogRef<ClienteDetalleDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ClienteDetalleDialogData,
-    private clientesService: ClientesMesaService
+    private clientesService: ClientesMesaService,
+    private validacionService: ValidacionService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -123,5 +132,17 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit {
 
   onClose(): void {
     this.dialogRef.close();
+  }
+
+  onCompartirWhatsApp(exp: ExpedienteCliente): void {
+    this.validacionService.generarTokenMiniportal(exp.idFile).subscribe({
+      next: (data) => {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+        this.snackBar.open('Enlace abierto en nueva ventana', 'Cerrar', { duration: 3000 });
+      },
+      error: (err) => {
+        this.snackBar.open(err?.message || 'Error al generar enlace', 'Cerrar', { duration: 5000 });
+      }
+    });
   }
 }

@@ -228,6 +228,20 @@ export class ValidacionService {
   }
 
   /**
+   * Generar token y URL para Miniportal (compartir por WhatsApp)
+   */
+  generarTokenMiniportal(idFile: number): Observable<{ token: string; url: string; idFile: number }> {
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/generar-token-miniportal`, { idFile }).pipe(
+      map(response => {
+        if (response?.success && response?.data) {
+          return response.data;
+        }
+        throw new Error(response?.message || 'Error al generar enlace');
+      })
+    );
+  }
+
+  /**
    * Preparar documento para validación - cambiar estatus de "2" a "3"
    */
   prepararDocumento(idDocumentByFile: number): Observable<any> {

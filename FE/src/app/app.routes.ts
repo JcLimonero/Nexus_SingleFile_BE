@@ -28,6 +28,13 @@ export const appRoutes: VexRoutes = [
       ).then((m) => m.ForgotPasswordComponent)
   },
   {
+    path: 'consulta/:token',
+    loadComponent: () =>
+      import('./pages/miniportal/consulta/consulta.component').then(
+        (m) => m.ConsultaMiniportalComponent
+      )
+  },
+  {
     path: 'coming-soon',
     loadComponent: () =>
       import('./pages/pages/coming-soon/coming-soon.component').then(

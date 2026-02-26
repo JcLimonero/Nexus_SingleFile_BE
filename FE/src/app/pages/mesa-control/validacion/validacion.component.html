@@ -463,6 +463,10 @@
                     <mat-icon>badge</mat-icon>
                     <span>Imprimir identificación de cliente</span>
                   </button>
+                  <button mat-menu-item (click)="onCompartirWhatsApp(item); $event.stopPropagation()">
+                    <mat-icon>share</mat-icon>
+                    <span>Compartir por WhatsApp</span>
+                  </button>
                   <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
                     <mat-icon>cancel</mat-icon>
                     <span>Cancelar pedido</span>
