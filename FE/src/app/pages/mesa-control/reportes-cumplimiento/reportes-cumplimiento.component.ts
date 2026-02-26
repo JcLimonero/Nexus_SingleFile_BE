@@ -9,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';
 
 import { ReportesCumplimientoService, ReporteCumplimientoDashboard, ExpedienteAlertaPld, ResumenRazonSocialAgencia } from '../../../core/services/reportes-cumplimiento.service';
@@ -28,7 +29,8 @@ import { DefaultAgencyService } from '../../../core/services/default-agency.serv
     MatSelectModule,
     MatFormFieldModule,
     MatTooltipModule,
-    MatTabsModule
+    MatTabsModule,
+    MatExpansionModule
   ],
   templateUrl: './reportes-cumplimiento.component.html',
   styleUrls: ['./reportes-cumplimiento.component.scss']
@@ -41,6 +43,8 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   expedientesAlerta: ExpedienteAlertaPld[] = [];
   resumenGrupos: ResumenRazonSocialAgencia[] = [];
+  /** Resumen agrupado por razón social (calculado al recibir datos, no en getter para evitar loop) */
+  resumenPorRazonSocial: { razonSocial: string; agencias: ResumenRazonSocialAgencia[]; totalRazonSocial: number }[] = [];
 
   agencies: { Id: number; Name: string }[] = [];
   filterAgency: number | null = null;
@@ -115,13 +119,35 @@ export class ReportesCumplimientoComponent implements OnInit {
       next: (res) => {
         if (res.success && res.data?.grupos) {
           this.resumenGrupos = res.data.grupos;
+          this.resumenPorRazonSocial = this.agruparPorRazonSocial(res.data.grupos);
+        } else {
+          this.resumenPorRazonSocial = [];
         }
         this.loadingResumen = false;
       },
       error: () => {
+        this.resumenPorRazonSocial = [];
         this.loadingResumen = false;
       }
     });
+  }
+
+  private agruparPorRazonSocial(grupos: ResumenRazonSocialAgencia[]): { razonSocial: string; agencias: ResumenRazonSocialAgencia[]; totalRazonSocial: number }[] {
+    const map = new Map<string, { agencias: ResumenRazonSocialAgencia[]; total: number }>();
+    for (const g of grupos) {
+      const key = g.razonSocial;
+      if (!map.has(key)) {
+        map.set(key, { agencias: [], total: 0 });
+      }
+      const entry = map.get(key)!;
+      entry.agencias.push(g);
+      entry.total += g.total;
+    }
+    return Array.from(map.entries()).map(([razonSocial, { agencias, total }]) => ({
+      razonSocial,
+      agencias: agencias.sort((a, b) => a.nombreAgencia.localeCompare(b.nombreAgencia)),
+      totalRazonSocial: total
+    })).sort((a, b) => a.razonSocial.localeCompare(b.razonSocial));
   }
 
   onFilterChange(): void {

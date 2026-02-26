@@ -56,7 +56,50 @@
   </mat-card>
 
   <!-- Tabs de reportes -->
-  <mat-tab-group>
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab label="Resumen por razón social">
+      <div class="resumen-razon-social mt-4">
+        <div class="resumen-header mb-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-1">Resumen por razón social</h2>
+          <p class="text-sm text-gray-500">Expedientes agrupados por razón social y agencia en {{ filterAnio }}</p>
+        </div>
+        <div *ngIf="loadingResumen" class="flex justify-center p-12">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        <mat-accordion *ngIf="!loadingResumen && resumenPorRazonSocial.length" class="resumen-grupos" multi="true">
+          <mat-expansion-panel *ngFor="let grupo of resumenPorRazonSocial" class="resumen-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="resumen-panel-icon">business</mat-icon>
+                <span class="resumen-panel-titulo">{{ grupo.razonSocial }}</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ grupo.totalRazonSocial }} expedientes · {{ grupo.agencias.length }} agencia{{ grupo.agencias.length !== 1 ? 's' : '' }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="resumen-panel-content">
+              <div *ngFor="let ag of grupo.agencias" class="agencia-row">
+                <div class="agencia-header">
+                  <mat-icon class="agencia-icon">store</mat-icon>
+                  <span class="agencia-nombre">{{ ag.nombreAgencia }}</span>
+                  <span class="agencia-total">{{ ag.total }}</span>
+                </div>
+                <div class="estados-grid">
+                  <div *ngFor="let e of ag.porEstado" class="estado-chip">
+                    <span class="estado-nombre">{{ e.nombreEstado }}</span>
+                    <span class="estado-valor">{{ e.total }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+        <div *ngIf="!loadingResumen && !resumenGrupos.length" class="resumen-empty">
+          <mat-icon>folder_off</mat-icon>
+          <p>Sin datos para el año seleccionado</p>
+        </div>
+      </div>
+    </mat-tab>
     <mat-tab label="Expedientes en alerta PLD">
       <mat-card class="mt-4">
         <mat-card-content>
@@ -89,27 +132,6 @@
               </td>
             </tr>
           </table>
-        </mat-card-content>
-      </mat-card>
-    </mat-tab>
-    <mat-tab label="Resumen por agencia">
-      <mat-card class="mt-4">
-        <mat-card-content>
-          <p class="text-sm text-gray-500 mb-4">Expedientes por razón social y agencia en {{ filterAnio }}.</p>
-          <div *ngIf="loadingResumen" class="flex justify-center p-8">
-            <mat-spinner diameter="40"></mat-spinner>
-          </div>
-          <div *ngIf="!loadingResumen && resumenGrupos.length" class="space-y-4">
-            <div *ngFor="let g of resumenGrupos" class="border rounded p-4">
-              <h4 class="font-semibold text-gray-900 mb-2">{{ g.razonSocial }} / {{ g.nombreAgencia }} (Total: {{ g.total }})</h4>
-              <div class="flex flex-wrap gap-2">
-                <span *ngFor="let e of g.porEstado" class="px-2 py-1 bg-gray-100 rounded text-sm">
-                  {{ e.nombreEstado }}: {{ e.total }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <p *ngIf="!loadingResumen && !resumenGrupos.length" class="text-gray-500">Sin datos</p>
         </mat-card-content>
       </mat-card>
     </mat-tab>

@@ -29,7 +29,7 @@ class ReportesCumplimiento extends BaseController
             return null;
         }
         $roleId = (int) ($currentUser['role_id'] ?? 0);
-        if (!in_array($roleId, [6, 7], true)) {
+        if (!in_array($roleId, [6, 7, 8], true)) {
             return null;
         }
         return $currentUser;
