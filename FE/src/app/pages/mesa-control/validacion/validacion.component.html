@@ -299,7 +299,7 @@
     </div>
 
       <!-- Tabla de Clientes/Procesos -->
-      <mat-card class="mb-2">
+      <mat-card class="mb-2 card-clientes">
         <div class="p-2">
           <!-- Título de tabla removido -->
 
@@ -502,7 +502,8 @@
                               <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
                   <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;"
                       (click)="onClienteSelect(row)"
-                      [ngClass]="{'!min-h-0 !h-10 cursor-pointer hover:bg-blue-50 transition-colors': true, 'bg-blue-100 border-l-4 border-blue-500': selectedCliente?.idFile === row.idFile}"></tr>
+                      [class.clientes-row-selected]="selectedCliente?.idFile === row.idFile"
+                      class="cursor-pointer clientes-row"></tr>
                 </table>
             </div>
           </div>
