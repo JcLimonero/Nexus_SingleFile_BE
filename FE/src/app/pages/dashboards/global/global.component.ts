@@ -191,6 +191,10 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.aplicarFiltros();
   }
 
+  recargarDatos(): void {
+    this.intentarCargarClientes();
+  }
+
   recargarFiltros(): void {
     this.refreshing = true;
     this.selectedAgency = null;
