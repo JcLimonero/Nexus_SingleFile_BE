@@ -50,3 +50,333 @@ in SYSTEMPATH/Router/Router.php on line 741.
  6 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
  7 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
  8 SYSTEMPATH/rewrite.php(44): require_once('/Users/jclimonero/Developer/SingleFile/BE/public/index.php')
+ERROR - 2026-02-26 06:19:30 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:19:35 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:19:42 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:19:44 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:20:47 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:20:51 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:22:09 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:22:17 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:22:19 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:23:25 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:23:29 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(533): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:24:01 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(534): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:24:08 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:25:31 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:25:37 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:26:40 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:26:46 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:27:47 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1750)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('0f45a3c8-a9a1-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:27:53 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:28:47 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(9510)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('6c3deef3-f053-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:29:41 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(9510)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('6c3deef3-f053-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-26 06:29:57 --> mysqli_sql_exception: Table 'single_file.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(541): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1810)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('71d2cd60-b939-4...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}

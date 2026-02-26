@@ -199,6 +199,13 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
+        if ($this->isDocumentoAprobadoPorCliente($idDocumentByFile, $idFile)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Este documento ya fue aprobado por el cliente y no puede modificarse'
+            ])->setStatusCode(403);
+        }
+
         $fileName = $this->getFileNameFromView($idDocumentByFile, $idFile, $file);
         $vanguardiaUrl = 'https://apisvanguardia.com:400/backblaze/upload';
         $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
@@ -399,14 +406,156 @@ class Miniportal extends BaseController
     }
 
     /**
+     * POST /api/miniportal/:token/approve-document
+     * Marcar documento como aprobado por el cliente (no se puede modificar después)
+     */
+    public function approveDocument(string $token)
+    {
+        $tokenData = $this->shareTokenModel->validateToken($token);
+        if (!$tokenData) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Enlace inválido o expirado'
+            ])->setStatusCode(404);
+        }
+
+        $idFile = (int) $tokenData['IdFile'];
+        if (!$this->filePldModel->hasAvisoAceptado($idFile)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Debe aceptar el aviso de confidencialidad primero'
+            ])->setStatusCode(403);
+        }
+
+        $data = $this->request->getJSON(true) ?? $this->request->getPost();
+        $idDocumentByFile = (int) ($data['idDocumentByFile'] ?? $data['idDocumentFile'] ?? 0);
+
+        if (!$idDocumentByFile) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'idDocumentByFile es requerido'
+            ])->setStatusCode(400);
+        }
+
+        $doc = $this->db->table('DocumentByFile dbf')
+            ->select('dbf.Id, dbf.IdFile, dbf.IdCurrentStatus')
+            ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
+            ->where('dbf.Id', $idDocumentByFile)
+            ->where('dbf.IdFile', $idFile)
+            ->where('dbf.Enabled', 1)
+            ->where('dt.AvailableToClient', 1)
+            ->get()
+            ->getRowArray();
+
+        if (!$doc) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Documento no encontrado o no autorizado'
+            ])->setStatusCode(404);
+        }
+
+        if ((int) ($doc['IdCurrentStatus'] ?? 0) !== 4) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Solo se puede aprobar cuando el documento está en estatus 4'
+            ])->setStatusCode(403);
+        }
+
+        if ($this->isDocumentoAprobadoPorCliente($idDocumentByFile, $idFile)) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Documento ya estaba aprobado'
+            ]);
+        }
+
+        try {
+            $this->db->table('file_pld_documento_aprobado')->insert([
+                'IdDocumentByFile' => $idDocumentByFile,
+                'IdFile' => $idFile,
+                'AprobadoCliente' => 1,
+                'FechaAprobacion' => date('Y-m-d H:i:s')
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Miniportal::approveDocument - ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al registrar aprobación'
+            ])->setStatusCode(500);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Documento aprobado correctamente. Ya no podrá modificarse.'
+        ]);
+    }
+
+    /**
+     * Verificar si el documento fue aprobado por el cliente
+     */
+    private function isDocumentoAprobadoPorCliente(int $idDocumentByFile, int $idFile): bool
+    {
+        try {
+            $row = $this->db->table('file_pld_documento_aprobado')
+                ->where('IdDocumentByFile', $idDocumentByFile)
+                ->where('IdFile', $idFile)
+                ->where('AprobadoCliente', 1)
+                ->get()
+                ->getRowArray();
+            return !empty($row);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Obtener documentos del expediente para miniportal
      */
     private function getDocumentosByFile(int $idFile): array
+    {
+        try {
+            $sql = "
+                SELECT
+                    dbf.Id as idDocumentByFile,
+                    dbf.IdCurrentStatus as idEstatus,
+                    p.Name as proceso,
+                    fs.Name as fase,
+                    dbf.Name as documento,
+                    dt.Name as tipoDocumento,
+                    dfs.Name as estatus,
+                    dbf.RegistrationDate as fecha,
+                    dbf.IdDocumentContainer as documentContainer,
+                    dt.AvailableToClient as DisponibleCliente,
+                    CASE WHEN ap.Id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
+                FROM DocumentByFile dbf
+                INNER JOIN File f ON dbf.IdFile = f.Id
+                INNER JOIN Process p ON f.IdProcess = p.Id
+                INNER JOIN DocumentType dt ON dbf.IdDocumentType = dt.Id
+                INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id
+                INNER JOIN DocumentFile_Status dfs ON dbf.IdCurrentStatus = dfs.Id
+                LEFT JOIN file_pld_documento_aprobado ap ON ap.IdDocumentByFile = dbf.Id AND ap.IdFile = dbf.IdFile AND ap.AprobadoCliente = 1
+                WHERE dbf.IdFile = ?
+                AND dbf.Enabled = 1
+                AND dt.AvailableToClient = 1
+                ORDER BY p.Name ASC, fs.Name ASC, dt.Name ASC
+            ";
+            $query = $this->db->query($sql, [$idFile]);
+            return $query->getResultArray();
+        } catch (\Exception $e) {
+            error_log("Miniportal::getDocumentosByFile - " . $e->getMessage());
+            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+                return $this->getDocumentosByFileFallback($idFile);
+            }
+            throw $e;
+        }
+    }
+
+    private function getDocumentosByFileFallback(int $idFile): array
     {
         $builder = $this->db->table('DocumentByFile dbf');
         $results = $builder
             ->select('
                 dbf.Id as idDocumentByFile,
+                dbf.IdCurrentStatus as idEstatus,
                 p.Name as proceso,
                 fs.Name as fase,
                 dbf.Name as documento,
@@ -414,7 +563,8 @@ class Miniportal extends BaseController
                 dfs.Name as estatus,
                 dbf.RegistrationDate as fecha,
                 dbf.IdDocumentContainer as documentContainer,
-                dt.AvailableToClient as DisponibleCliente
+                dt.AvailableToClient as DisponibleCliente,
+                0 as aprobadoCliente
             ')
             ->join('File f', 'dbf.IdFile = f.Id', 'inner')
             ->join('Process p', 'f.IdProcess = p.Id', 'inner')

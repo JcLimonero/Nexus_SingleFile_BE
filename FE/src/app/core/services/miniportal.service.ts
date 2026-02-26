@@ -33,6 +33,7 @@ export interface MiniportalAcceptResponse {
 
 export interface DocumentoMiniportal {
   idDocumentByFile: number;
+  idEstatus?: number;
   proceso: string;
   fase: string;
   documento: string;
@@ -41,6 +42,7 @@ export interface DocumentoMiniportal {
   fecha: string;
   documentContainer: string;
   DisponibleCliente?: number;
+  aprobadoCliente?: number;
 }
 
 export interface MiniportalDocumentsResponse {
@@ -105,5 +107,10 @@ export class MiniportalService {
     formData.append('file', file);
     formData.append('idDocumentByFile', idDocumentByFile.toString());
     return this.http.post<{ success: boolean; message?: string }>(url, formData);
+  }
+
+  approveDocument(token: string, idDocumentByFile: number): Observable<{ success: boolean; message?: string }> {
+    const url = this.apiBase.buildApiUrl(`miniportal/${token}/approve-document`);
+    return this.http.post<{ success: boolean; message?: string }>(url, { idDocumentByFile });
   }
 }

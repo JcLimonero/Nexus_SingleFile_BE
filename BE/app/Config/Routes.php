@@ -379,6 +379,7 @@ $routes->group('documents', function($routes) {
     $routes->get('miniportal/(:segment)/documents', 'Miniportal::getDocumentos/$1');
     $routes->get('miniportal/(:segment)/document-url', 'Miniportal::getDocumentUrl/$1');
     $routes->post('miniportal/(:segment)/upload', 'Miniportal::uploadDocument/$1');
+    $routes->post('miniportal/(:segment)/approve-document', 'Miniportal::approveDocument/$1');
     $routes->post('miniportal/(:segment)/accept', 'Miniportal::acceptAviso/$1');
     $routes->post('miniportal/(:segment)/geolocation', 'Miniportal::logGeolocation/$1');
 

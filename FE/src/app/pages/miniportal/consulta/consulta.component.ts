@@ -45,6 +45,7 @@ export class ConsultaMiniportalComponent implements OnInit {
   documentos: DocumentoMiniportal[] = [];
   loadingDocumentos = false;
   uploadingIds = new Set<number>();
+  approvingIds = new Set<number>();
   logoLogin$ = this.brandingService.getBranding$().pipe(map((b) => b.logoLogin));
 
   constructor(
@@ -159,6 +160,7 @@ export class ConsultaMiniportalComponent implements OnInit {
   }
 
   subirDocumento(doc: DocumentoMiniportal, file: File): void {
+    if (this.isDocumentoAprobado(doc)) return;
     this.uploadingIds.add(doc.idDocumentByFile);
     this.cdr.markForCheck();
     this.miniportalService.uploadDocument(this.token, doc.idDocumentByFile, file).subscribe({
@@ -171,6 +173,34 @@ export class ConsultaMiniportalComponent implements OnInit {
       error: (err) => {
         this.uploadingIds.delete(doc.idDocumentByFile);
         this.snackBar.open(err.error?.message || err.message || 'Error al subir', 'Cerrar', { duration: 5000 });
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  isDocumentoAprobado(doc: DocumentoMiniportal): boolean {
+    return Number(doc.aprobadoCliente) === 1;
+  }
+
+  /** El checkbox de aprobación solo está habilitado cuando el documento está en estatus 4 */
+  puedeAprobarDocumento(doc: DocumentoMiniportal): boolean {
+    return Number(doc.idEstatus) === 4;
+  }
+
+  aprobarDocumento(doc: DocumentoMiniportal): void {
+    if (this.isDocumentoAprobado(doc)) return;
+    this.approvingIds.add(doc.idDocumentByFile);
+    this.cdr.markForCheck();
+    this.miniportalService.approveDocument(this.token, doc.idDocumentByFile).subscribe({
+      next: (res) => {
+        this.approvingIds.delete(doc.idDocumentByFile);
+        this.snackBar.open(res.message || 'Documento aprobado', 'Cerrar', { duration: 3000 });
+        this.cargarDocumentos();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.approvingIds.delete(doc.idDocumentByFile);
+        this.snackBar.open(err.error?.message || err.message || 'Error al aprobar', 'Cerrar', { duration: 5000 });
         this.cdr.markForCheck();
       }
     });
