@@ -114,6 +114,10 @@
                       </span>
                     </div>
                   </div>
+                  <div *ngIf="esDocumentoRechazado(doc)" class="doc-item-rechazo mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm font-medium text-red-800 mb-1">Documento rechazado</p>
+                    <p *ngIf="doc.comentarioRechazo?.trim()" class="text-sm text-red-700">{{ doc.comentarioRechazo }}</p>
+                  </div>
                   <div *ngIf="puedeAprobarDocumento(doc)" class="doc-item-approval">
                     <mat-checkbox
                       [checked]="isDocumentoAprobado(doc)"

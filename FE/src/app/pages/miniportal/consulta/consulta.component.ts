@@ -187,6 +187,11 @@ export class ConsultaMiniportalComponent implements OnInit {
     return Number(doc.idEstatus) === 4;
   }
 
+  /** Documento rechazado cuando idEstatus === 5 */
+  esDocumentoRechazado(doc: DocumentoMiniportal): boolean {
+    return Number(doc.idEstatus) === 5;
+  }
+
   aprobarDocumento(doc: DocumentoMiniportal): void {
     if (this.isDocumentoAprobado(doc)) return;
     this.approvingIds.add(doc.idDocumentByFile);

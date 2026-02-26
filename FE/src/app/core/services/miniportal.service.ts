@@ -34,6 +34,7 @@ export interface MiniportalAcceptResponse {
 export interface DocumentoMiniportal {
   idDocumentByFile: number;
   idEstatus?: number;
+  comentarioRechazo?: string | null;
   proceso: string;
   fase: string;
   documento: string;

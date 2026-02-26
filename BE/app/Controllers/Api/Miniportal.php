@@ -517,6 +517,7 @@ class Miniportal extends BaseController
                 SELECT
                     dbf.Id as idDocumentByFile,
                     dbf.IdCurrentStatus as idEstatus,
+                    dbf.Comment as comentarioRechazo,
                     p.Name as proceso,
                     fs.Name as fase,
                     dbf.Name as documento,
@@ -556,6 +557,7 @@ class Miniportal extends BaseController
             ->select('
                 dbf.Id as idDocumentByFile,
                 dbf.IdCurrentStatus as idEstatus,
+                dbf.Comment as comentarioRechazo,
                 p.Name as proceso,
                 fs.Name as fase,
                 dbf.Name as documento,
