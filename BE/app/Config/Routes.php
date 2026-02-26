@@ -397,6 +397,10 @@ $routes->group('documents', function($routes) {
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
         $routes->post('generar-token-miniportal', 'Validacion::generarTokenMiniportal');
         $routes->get('imprimir-identificacion', 'Validacion::imprimirIdentificacionCliente');
+        $routes->get('cliente-detalle', 'Validacion::getClienteDetalle');
+        $routes->get('beneficiarios', 'Validacion::getBeneficiarios');
+        $routes->post('beneficiarios', 'Validacion::addBeneficiario');
+        $routes->delete('beneficiarios/(:num)', 'Validacion::deleteBeneficiario/$1');
     });
 
     // Rutas de búsqueda de clientes usando vista

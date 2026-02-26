@@ -39,6 +39,7 @@ import { environment } from '../../../../environments/environment';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
 import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialog/advertencia-liberado-dialog.component';
+import { BeneficiariosDialogComponent, BeneficiariosDialogData } from './beneficiarios-dialog/beneficiarios-dialog.component';
 
 @Component({
   selector: 'vex-validacion',
@@ -418,6 +419,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       error: (err) => {
         this.snackBar.open(err?.message || 'Error al generar enlace', 'Cerrar', { duration: 5000 });
       }
+    });
+  }
+
+  onAgregarBeneficiarios(cliente: any): void {
+    const dialogData: BeneficiariosDialogData = { cliente };
+    this.dialog.open(BeneficiariosDialogComponent, {
+      width: '700px',
+      data: dialogData
     });
   }
 

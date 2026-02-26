@@ -467,6 +467,10 @@
                     <mat-icon>share</mat-icon>
                     <span>Compartir por WhatsApp</span>
                   </button>
+                  <button mat-menu-item (click)="onAgregarBeneficiarios(item); $event.stopPropagation()">
+                    <mat-icon>people</mat-icon>
+                    <span>Agregar beneficiarios</span>
+                  </button>
                   <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
                     <mat-icon>cancel</mat-icon>
                     <span>Cancelar pedido</span>

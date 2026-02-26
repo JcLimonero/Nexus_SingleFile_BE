@@ -615,6 +615,7 @@ class Validacion extends BaseController
                         TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
                     ) as cliente,
                     ct.Name as tipoCliente,
+                    f.IdCostumerType as idCostumerType,
                     p.Name as proceso,
                     ot.Name as operacion,
                     a.Name as agencia,
@@ -2069,6 +2070,142 @@ class Validacion extends BaseController
                 'success' => false,
                 'message' => 'Error al generar el token: ' . $e->getMessage()
             ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Obtener datos del cliente del expediente (para copiar como beneficiario)
+     */
+    public function getClienteDetalle()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $idFile = (int) $this->request->getGet('idFile');
+            if (!$idFile) {
+                return $this->response->setJSON(['success' => false, 'message' => 'idFile es requerido'])->setStatusCode(400);
+            }
+            $row = $this->db->query("
+                SELECT
+                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
+                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    ) as cliente,
+                    c.RFC as rfc,
+                    c.CURP as curp
+                FROM File f
+                INNER JOIN HeaderClient hc ON hc.IdClient = f.IdClient
+                INNER JOIN Client c ON hc.IdClient = c.Id
+                WHERE f.Id = ?
+            ", [$idFile])->getRowArray();
+            if (!$row) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Expediente no encontrado'])->setStatusCode(404);
+            }
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => [
+                    'cliente' => trim($row['cliente'] ?? ''),
+                    'rfc' => trim($row['rfc'] ?? '') ?: null,
+                    'curp' => trim($row['curp'] ?? '') ?: null
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Validacion::getClienteDetalle - " . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Obtener beneficiarios finales de un expediente
+     */
+    public function getBeneficiarios()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $idFile = (int) $this->request->getGet('idFile');
+            if (!$idFile) {
+                return $this->response->setJSON(['success' => false, 'message' => 'idFile es requerido'])->setStatusCode(400);
+            }
+            $model = new \App\Models\FilePldBeneficiarioFinalModel();
+            $beneficiarios = $model->getByFile($idFile);
+            return $this->response->setJSON(['success' => true, 'data' => $beneficiarios]);
+        } catch (\Exception $e) {
+            error_log("Validacion::getBeneficiarios - " . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Agregar beneficiario final a un expediente
+     */
+    public function addBeneficiario()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $data = $this->request->getJSON(true) ?? $this->request->getPost();
+            $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            $nombre = trim($data['nombre'] ?? $data['Nombre'] ?? '');
+            if (!$idFile || !$nombre) {
+                return $this->response->setJSON(['success' => false, 'message' => 'idFile y nombre son requeridos'])->setStatusCode(400);
+            }
+            $rfc = trim($data['rfc'] ?? $data['RFC'] ?? '') ?: null;
+            $curp = trim($data['curp'] ?? $data['CURP'] ?? '') ?: null;
+            $porcentaje = isset($data['porcentajeParticipacion']) ? (float) $data['porcentajeParticipacion'] : null;
+            if ($porcentaje !== null && ($porcentaje < 0 || $porcentaje > 100)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El porcentaje debe estar entre 0 y 100'])->setStatusCode(400);
+            }
+            $model = new \App\Models\FilePldBeneficiarioFinalModel();
+            if ($porcentaje !== null) {
+                $existentes = $model->getByFile($idFile);
+                $sumaActual = array_sum(array_map(fn($b) => (float) ($b['PorcentajeParticipacion'] ?? 0), $existentes));
+                if ($sumaActual + $porcentaje > 100) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'La suma de porcentajes no puede superar 100%. Actual: ' . round($sumaActual, 1) . '%'
+                    ])->setStatusCode(400);
+                }
+            }
+            $id = $model->add($idFile, $nombre, $rfc, $curp, $porcentaje);
+            if (!$id) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo agregar el beneficiario'])->setStatusCode(500);
+            }
+            $this->logActivity('AGREGAR_BENEFICIARIO', "Beneficiario agregado al expediente {$idFile}", ['idFile' => $idFile, 'nombre' => $nombre], $idFile);
+            return $this->response->setJSON(['success' => true, 'data' => ['id' => $id]]);
+        } catch (\Exception $e) {
+            error_log("Validacion::addBeneficiario - " . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Eliminar beneficiario final
+     */
+    public function deleteBeneficiario($id)
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $id = (int) $id;
+            if (!$id) {
+                return $this->response->setJSON(['success' => false, 'message' => 'ID de beneficiario inválido'])->setStatusCode(400);
+            }
+            $model = new \App\Models\FilePldBeneficiarioFinalModel();
+            if (!$model->remove($id)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se encontró el beneficiario'])->setStatusCode(404);
+            }
+            return $this->response->setJSON(['success' => true]);
+        } catch (\Exception $e) {
+            error_log("Validacion::deleteBeneficiario - " . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
         }
     }
 }

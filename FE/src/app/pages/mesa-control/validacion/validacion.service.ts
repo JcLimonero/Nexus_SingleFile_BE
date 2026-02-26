@@ -10,6 +10,8 @@ export interface Cliente {
   ndCliente: number;
   ndPedido: number;
   tipoCliente?: string | null;
+  /** IdCostumerType: 3 = Persona Moral (requiere beneficiarios) */
+  idCostumerType?: number | null;
   cliente: string;
   proceso: string;
   operacion: string;
@@ -223,6 +225,61 @@ export class ValidacionService {
       catchError(error => {
 
         throw error;
+      })
+    );
+  }
+
+  /**
+   * Obtener datos del cliente del expediente (para copiar como beneficiario)
+   */
+  getClienteDetalle(idFile: number): Observable<{ cliente: string; rfc: string | null; curp: string | null }> {
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/cliente-detalle`, {
+      params: { idFile }
+    }).pipe(
+      map(response => {
+        if (response?.success && response?.data) return response.data;
+        throw new Error(response?.message || 'Error al obtener datos del cliente');
+      })
+    );
+  }
+
+  /**
+   * Obtener beneficiarios finales de un expediente
+   */
+  getBeneficiarios(idFile: number): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/beneficiarios`, {
+      params: { idFile }
+    }).pipe(
+      map(response => response?.success && response?.data ? response.data : []),
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Agregar beneficiario final
+   */
+  addBeneficiario(idFile: number, data: { nombre: string; rfc?: string; curp?: string; porcentajeParticipacion?: number }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/beneficiarios`, {
+      idFile,
+      nombre: data.nombre,
+      rfc: data.rfc || null,
+      curp: data.curp || null,
+      porcentajeParticipacion: data.porcentajeParticipacion ?? null
+    }).pipe(
+      map(response => {
+        if (response?.success) return response.data;
+        throw new Error(response?.message || 'Error al agregar beneficiario');
+      })
+    );
+  }
+
+  /**
+   * Eliminar beneficiario final
+   */
+  deleteBeneficiario(id: number): Observable<void> {
+    return this.http.delete<any>(`${this.apiUrl}/api/clients-validation/beneficiarios/${id}`).pipe(
+      map(response => {
+        if (!response?.success) throw new Error(response?.message || 'Error al eliminar');
       })
     );
   }
