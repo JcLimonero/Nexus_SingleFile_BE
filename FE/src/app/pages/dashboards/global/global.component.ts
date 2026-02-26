@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,7 +11,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -41,13 +42,14 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
     MatCardModule,
     MatSnackBarModule,
     MatTableModule,
+    MatPaginatorModule,
     MatDatepickerModule,
     MatNativeDateModule
   ],
   templateUrl: './global.component.html',
   styleUrls: ['./global.component.scss']
 })
-export class GlobalComponent implements OnInit, OnDestroy {
+export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   agencias: any[] = [];
   procesos: any[] = [];
   fases: CatalogItem[] = FASES_CATALOG;
@@ -77,7 +79,9 @@ export class GlobalComponent implements OnInit, OnDestroy {
   exportingExcel = false;
 
   clientesOriginales: Cliente[] = [];
-  clientesFiltrados: Cliente[] = [];
+  clientesDataSource = new MatTableDataSource<Cliente>([]);
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   clientesDisplayedColumns: string[] = [];
 
@@ -125,6 +129,10 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.inicializarUsuario();
     this.cargarAgencias();
     this.cargarProcesos();
+  }
+
+  ngAfterViewInit(): void {
+    this.clientesDataSource.paginator = this.paginator;
   }
 
   ngOnDestroy(): void {
@@ -211,7 +219,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.refreshing = false;
       this.clientesOriginales = [];
-      this.clientesFiltrados = [];
+      this.clientesDataSource.data = [];
     }, 300);
   }
 
@@ -361,7 +369,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
           this.snackBar.open('Error al cargar pedidos', 'Cerrar', { duration: 3000 });
           this.loadingClientes = false;
           this.clientesOriginales = [];
-          this.clientesFiltrados = [];
+          this.clientesDataSource.data = [];
           return of([]);
         })
       )
@@ -461,7 +469,13 @@ export class GlobalComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.clientesFiltrados = data;
+    this.clientesDataSource.data = data;
+    // Conectar paginador cuando hay datos (puede no existir en el primer render)
+    setTimeout(() => {
+      if (this.paginator) {
+        this.clientesDataSource.paginator = this.paginator;
+      }
+    });
   }
 
   hasRegistrationDateRange(): boolean {
@@ -498,7 +512,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   exportarExcel(): void {
-    if (this.clientesFiltrados.length === 0) {
+    if (this.clientesDataSource.data.length === 0) {
       this.snackBar.open('No hay datos para exportar', 'Cerrar', { duration: 3000 });
       return;
     }
@@ -507,7 +521,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
     try {
       // Preparar datos para Excel (sin la columna de documentos)
-      const datos = this.clientesFiltrados.map(cliente => ({
+      const datos = this.clientesDataSource.data.map(cliente => ({
         'ND Cliente': cliente.ndCliente || '',
         'ND Pedido': cliente.ndPedido || '',
         'Cliente': cliente.cliente || '',
