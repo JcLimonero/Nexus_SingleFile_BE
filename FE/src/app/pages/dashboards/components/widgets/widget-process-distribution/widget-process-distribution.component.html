@@ -38,11 +38,24 @@
             <p class="no-data-text">No hay datos disponibles</p>
           </div>
 
-          <div *ngIf="processData.length > 0" class="chart-wrapper">
-            <vex-chart
-              [series]="series"
-              [options]="options">
-            </vex-chart>
+          <div *ngIf="processData.length > 0" class="chart-legend-flex">
+            <div class="donut-chart-area">
+              <vex-chart
+                [series]="series"
+                [options]="options">
+              </vex-chart>
+            </div>
+            <div class="vertical-legend">
+              <div class="legend-title">Procesos</div>
+              <div class="legend-items">
+                <div class="legend-item"
+                     *ngFor="let item of processData; let i = index">
+                  <span class="legend-color" [ngStyle]="{'background-color': getProcessColor(i)}"></span>
+                  <span class="legend-label">{{ item.processName }}</span>
+                  <span class="legend-value">{{ item.totalCases }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

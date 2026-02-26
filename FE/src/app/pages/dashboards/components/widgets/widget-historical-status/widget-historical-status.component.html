@@ -1,13 +1,12 @@
 <div class="vex-widget-historical-status">
   <mat-card class="vex-card">
     <mat-card-header class="vex-card-header">
-      <mat-card-title class="vex-card-title">
+      <div class="header-left">
         <mat-icon class="vex-card-title-icon">bar_chart</mat-icon>
-        <span>Expedientes por Estatus - Histórico</span>
-      </mat-card-title>
-      
-      <div class="vex-card-actions" *ngIf="showDetails">
-        <button mat-icon-button (click)="refresh()" [disabled]="loading">
+        <span class="chart-title">Expedientes por Estatus - Histórico</span>
+      </div>
+      <div class="header-right">
+        <button *ngIf="showDetails" mat-icon-button (click)="refresh()" [disabled]="loading" class="refresh-btn">
           <mat-icon>refresh</mat-icon>
         </button>
       </div>
@@ -17,7 +16,7 @@
       <div class="widget-content">
         <!-- Loading State -->
         <div *ngIf="loading" class="loading-container">
-          <mat-spinner diameter="40"></mat-spinner>
+          <mat-spinner diameter="32"></mat-spinner>
           <p class="loading-text">Cargando datos históricos...</p>
         </div>
 
@@ -38,24 +37,35 @@
             <p class="no-data-text">No hay datos históricos disponibles</p>
           </div>
 
-          <div *ngIf="historicalStatusData.length > 0" class="chart-wrapper">
-            <vex-chart
-              [series]="series"
-              [options]="options">
-            </vex-chart>
-          </div>
-        </div>
+          <ng-container *ngIf="historicalStatusData.length > 0">
+            <!-- Leyenda horizontal -->
+            <div class="horizontal-legend">
+              <div class="legend-item" *ngFor="let item of historicalStatusData">
+                <span class="legend-dot" [style.background-color]="getStatusColor(item.statusName)"></span>
+                <span class="legend-label">{{ item.statusName }}</span>
+              </div>
+            </div>
 
-        <!-- Summary Stats -->
-        <div *ngIf="!loading && !error && historicalStatusData.length > 0" class="summary-stats">
-          <div class="stat-item">
-            <span class="stat-label">Total Histórico:</span>
-            <span class="stat-value">{{ totalCases }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Estados:</span>
-            <span class="stat-value">{{ historicalStatusData.length }}</span>
-          </div>
+            <!-- Gráfico -->
+            <div class="chart-wrapper">
+              <vex-chart
+                [series]="series"
+                [options]="options">
+              </vex-chart>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="summary-stats">
+              <div class="stat-item">
+                <span class="stat-label">Total Histórico:</span>
+                <span class="stat-value">{{ totalCases }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Estados:</span>
+                <span class="stat-value">{{ historicalStatusData.length }}</span>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
     </mat-card-content>

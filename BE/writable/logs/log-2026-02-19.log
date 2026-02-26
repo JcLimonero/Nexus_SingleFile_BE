@@ -1,0 +1,102 @@
+ERROR - 2026-02-19 21:37:21 --> Error connecting to the database: mysqli_sql_exception: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `User`.*...', Array, false)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(925): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(35): CodeIgniter\Model->__call('get', Array)
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('carlos.limon@ne...', '00@Limonero')
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#14 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:246
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `User`.*...', Array, false)
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(925): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(35): CodeIgniter\Model->__call('get', Array)
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('carlos.limon@ne...', '00@Limonero')
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#13 {main}
+ERROR - 2026-02-19 21:37:43 --> Error connecting to the database: mysqli_sql_exception: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `User`.*...', Array, false)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(925): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(35): CodeIgniter\Model->__call('get', Array)
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('carlos.limon@ne...', '00@Limonero')
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#14 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:246
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `User`.*...', Array, false)
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(925): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(35): CodeIgniter\Model->__call('get', Array)
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('carlos.limon@ne...', '00@Limonero')
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#13 {main}
+ERROR - 2026-02-19 21:38:20 --> Error connecting to the database: mysqli_sql_exception: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('192.168.190.140', 'vgd_testing', Object(SensitiveParameterValue), 'single_file', 3306, '', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `User`.*...', Array, false)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(925): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(35): CodeIgniter\Model->__call('get', Array)
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('carlos.limon@ne...', '00@Limonero')
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#14 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:246
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `User`.*...', Array, false)
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(925): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(35): CodeIgniter\Model->__call('get', Array)
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('carlos.limon@ne...', '00@Limonero')
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#13 {main}
