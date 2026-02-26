@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ClientesMesaService, ClienteMesa } from '../../../core/services/clientes-mesa.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
@@ -37,7 +38,8 @@ import { ClienteDetalleDialogComponent } from './cliente-detalle-dialog/cliente-
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
+    MatCheckboxModule
   ],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss'
@@ -51,6 +53,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
   loading = false;
   searchTerm = '';
   filterAgency: number | null = null;
+  filterSoloUmbralAML = false;
   agencies: { Id: number; Name: string }[] = [];
   companies: { Id: number; Name: string }[] = [];
 
@@ -112,6 +115,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
     this.clientesService.list({
       search: this.searchTerm || undefined,
       idAgency: this.filterAgency ?? undefined,
+      onlyAmlUmbral: this.filterSoloUmbralAML || undefined,
       limit: this.pageSize,
       offset: this.pageIndex * this.pageSize
     }).pipe(takeUntil(this.destroy$)).subscribe({
@@ -155,6 +159,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
   clearFilters(): void {
     this.searchTerm = '';
     this.filterAgency = null;
+    this.filterSoloUmbralAML = false;
     this.pageIndex = 0;
     this.loadClientes();
   }

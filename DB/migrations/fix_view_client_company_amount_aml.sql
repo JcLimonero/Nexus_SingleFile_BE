@@ -1,10 +1,5 @@
--- Vista para alertas AML: total de operaciones por cliente, compañía y año.
--- Usada por el módulo Clientes para indicar cuándo un cliente supera el umbral.
--- Columnas esperadas: idCliente, idCompany, anio, totalMonto
---
--- IMPORTANTE: Usa la misma lógica de join que expedientes (IdOrder o IdOrderTotal+idagency)
--- para que el monto mostrado en detalle coincida con el usado para el umbral AML.
--- Amount NULL se trata como 0. Solo incluye clientes con totalMonto > 0 (HAVING).
+-- Corregir vista AML: Amount NULL se trata como 0. Solo incluye clientes con totalMonto > 0.
+-- Ejecutar: mysql -u usuario -p base_datos < fix_view_client_company_amount_aml.sql
 
 CREATE OR REPLACE VIEW view_client_company_amount AS
 SELECT
@@ -31,3 +26,4 @@ LEFT JOIN (
     AND obc2.idagency = f.IdAgency
 GROUP BY c.Id, a.IdCompany, YEAR(f.RegistrationDate)
 HAVING SUM(COALESCE(obc1.Amount, obc2.Amount, 0)) > 0;
+

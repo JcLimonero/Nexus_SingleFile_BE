@@ -42,6 +42,7 @@ class Client extends BaseController
 
             $search = trim((string) $this->request->getGet('search'));
             $idAgency = $this->request->getGet('idAgency');
+            $onlyAmlUmbral = $this->request->getGet('onlyAmlUmbral') === '1' || $this->request->getGet('onlyAmlUmbral') === 'true';
             $limit = (int) ($this->request->getGet('limit') ?: 100);
             $offset = (int) ($this->request->getGet('offset') ?: 0);
             $limit = max(1, min(500, $limit));
@@ -58,16 +59,14 @@ class Client extends BaseController
                     MIN(ctr.IdTotalDealer) as ndCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
                     MIN(hc.Id) as idHeaderClient,
-                    (aml.idCliente IS NOT NULL) as excedeUmbralAML
+                    (EXISTS (
+                        SELECT 1 FROM {$vistaAML} aml
+                        WHERE aml.idCliente = c.Id AND aml.anio = ? AND aml.totalMonto >= ?
+                    )) as excedeUmbralAML
                 FROM Client c
                 INNER JOIN HeaderClient hc ON hc.IdClient = c.Id
                 INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
                 INNER JOIN File f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
-                LEFT JOIN (
-                    SELECT DISTINCT idCliente
-                    FROM {$vistaAML}
-                    WHERE anio = ? AND totalMonto >= ?
-                ) aml ON aml.idCliente = c.Id
                 WHERE 1=1
             ";
             $params = [$anioActual, $umbral];
@@ -75,6 +74,15 @@ class Client extends BaseController
             if ($idAgency !== null && $idAgency !== '') {
                 $sql .= " AND ctr.IdAgency = ?";
                 $params[] = (int) $idAgency;
+            }
+
+            if ($onlyAmlUmbral) {
+                $sql .= " AND EXISTS (
+                    SELECT 1 FROM {$vistaAML} aml2
+                    WHERE aml2.idCliente = c.Id AND aml2.anio = ? AND aml2.totalMonto >= ?
+                )";
+                $params[] = $anioActual;
+                $params[] = $umbral;
             }
 
             if ($search !== '') {
@@ -107,6 +115,12 @@ class Client extends BaseController
 
             $query = $this->db->query($sql, $params);
             $clientes = $query->getResultArray();
+
+            // Asegurar que excedeUmbralAML sea boolean (MySQL puede devolver "0"/"1" como string)
+            foreach ($clientes as &$cli) {
+                $cli['excedeUmbralAML'] = (bool) (int) ($cli['excedeUmbralAML'] ?? 0);
+            }
+            unset($cli);
 
             return $this->response->setJSON([
                 'success' => true,
