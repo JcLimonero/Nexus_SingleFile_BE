@@ -1,8 +1,8 @@
 <div
   *ngIf="config$ | async as config"
   [class.app-layout-boxed]="config.boxed"
-  [class.app-layout-footer-enabled]="isFooterVisible$ | async"
-  [class.app-layout-footer-fixed]="config.footer.fixed && (isFooterVisible$ | async)"
+  [class.vex-layout-footer-enabled]="isFooterVisible$ | async"
+  [class.vex-layout-footer-fixed]="config.footer.fixed && (isFooterVisible$ | async)"
   [class.app-layout-horizontal]="config.layout === 'horizontal'"
   [class.app-layout-scroll-disabled]="scrollDisabled$ | async"
   [class.app-layout-search-overlay-open]="searchOpen$ | async"

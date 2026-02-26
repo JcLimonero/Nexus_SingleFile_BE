@@ -73,6 +73,14 @@ html, body {
   max-width: 100%;
 }
 
+/* Footer siempre visible y fijo al fondo */
+.vex-layout-footer-fixed .vex-footer {
+  bottom: 0 !important;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
 /* Diseño unificado de tablas con la paleta de la aplicación */
 @import "./app/styles/tables-palette";
 
