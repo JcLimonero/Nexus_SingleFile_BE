@@ -141,6 +141,8 @@ export class ToolbarComponent implements OnInit {
         return 'Consolidación DMS';
       } else if (url.includes('/clientes')) {
         return 'Clientes';
+      } else if (url.includes('/reportes-cumplimiento')) {
+        return 'Reportes de Cumplimiento';
       } else if (url.includes('/dashboard')) {
         return 'Dashboard Principal';
       } else if (url.includes('/monitoreo')) {

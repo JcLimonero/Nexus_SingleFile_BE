@@ -129,7 +129,8 @@ class Client extends BaseController
                     'clientes' => $clientes,
                     'total' => $total,
                     'limit' => $limit,
-                    'offset' => $offset
+                    'offset' => $offset,
+                    'amlUmbral' => $umbral
                 ]
             ]);
         } catch (\Exception $e) {

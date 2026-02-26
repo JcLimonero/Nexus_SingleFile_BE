@@ -63,6 +63,41 @@ class UserActivityLog extends BaseController
     }
 
     /**
+     * GET /api/user-activity-logs/expediente/{idFile}
+     * Obtener historial de cambios por expediente
+     */
+    public function getExpedienteLogs($idFile = null)
+    {
+        try {
+            if (!$idFile || !is_numeric($idFile)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'ID de expediente requerido'
+                ])->setStatusCode(400);
+            }
+
+            $limit = (int) $this->request->getGet('limit') ?: 50;
+            $offset = (int) $this->request->getGet('offset') ?: 0;
+
+            $logs = $this->userActivityLogModel->getLogsByExpediente($idFile, $limit, $offset);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $logs,
+                'id_file' => (int) $idFile
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en UserActivityLog::getExpedienteLogs: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener el historial del expediente',
+                'error' => $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * GET /api/user-activity-logs/user/{userId}
      * Obtener logs de un usuario específico
      */

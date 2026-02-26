@@ -8,12 +8,12 @@
     <mat-card-content>
       <div class="filtro-row">
         <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic">
-          <mat-label>Compañía</mat-label>
+          <mat-label>Razón social</mat-label>
           <mat-select [(ngModel)]="filterCompania" name="filterCompania">
             <mat-option [value]="null">Todas</mat-option>
             <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
           </mat-select>
-          <mat-hint>Filtrar agencias por compañía</mat-hint>
+          <mat-hint>Filtrar agencias por razón social</mat-hint>
         </mat-form-field>
         <div class="agencia-select-wrapper filtro-field">
           <label class="agencia-select-label">Agencia</label>
@@ -41,7 +41,7 @@
           </div>
           <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
             <div *ngIf="agenciasFiltradas.length === 0" class="px-3 py-4 text-gray-500 text-sm">
-              {{ filterCompania ? 'No hay agencias en esta compañía' : 'No hay agencias disponibles' }}
+              {{ filterCompania ? 'No hay agencias para esta razón social' : 'No hay agencias disponibles' }}
             </div>
             <div *ngFor="let agencia of agenciasFiltradas" class="px-3 py-1">
               <mat-checkbox

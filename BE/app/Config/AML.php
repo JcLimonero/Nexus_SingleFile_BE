@@ -15,7 +15,7 @@ class AML extends BaseConfig
      * Monto máximo permitido por cliente por compañía al año (MXN).
      * Superar este monto activa el indicador de atención.
      */
-    public float $umbralAnualPorCompania = 500000.00;
+    public float $umbralAnualPorCompania = 50000.00;
 
     /**
      * Nombre de la vista que calcula totales por cliente/compañía/período.

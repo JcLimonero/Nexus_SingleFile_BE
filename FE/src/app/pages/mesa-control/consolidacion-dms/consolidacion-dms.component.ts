@@ -64,7 +64,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   loadingAgencias = false;
   agencias: Agencia[] = [];
   companies: Company[] = [];
-  filterCompania: number | null = null; // Filtro por compañía (agrupa agencias)
+  filterCompania: number | null = null; // Filtro por razón social (agrupa agencias)
   selectedAgencyIds: number[] = [];
 
   // Filtro de período
@@ -180,21 +180,21 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Obtiene el nombre de una compañía (soporta distintas claves del API) */
+  /** Obtiene el nombre de una razón social (soporta distintas claves del API) */
   getCompanyName(c: Company): string {
     const rec = c as unknown as Record<string, unknown>;
     const raw = rec['Name'] ?? rec['name'] ?? rec['company_name'];
     return raw != null ? String(raw) : '';
   }
 
-  /** Obtiene el ID de una compañía (soporta distintas claves del API) */
+  /** Obtiene el ID de una razón social (soporta distintas claves del API) */
   getCompanyId(c: Company): number {
     const rec = c as unknown as Record<string, unknown>;
     const raw = rec['Id'] ?? rec['id'];
     return typeof raw === 'number' ? raw : Number(raw) || 0;
   }
 
-  /** Agencias filtradas por compañía seleccionada */
+  /** Agencias filtradas por razón social seleccionada */
   get agenciasFiltradas(): Agencia[] {
     if (!this.filterCompania) return this.agencias;
     const idComp = Number(this.filterCompania);
@@ -209,7 +209,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   get agenciaSelectorLabel(): string {
     if (this.loadingAgencias) return 'Cargando...';
     const list = this.agenciasFiltradas;
-    if (list.length === 0) return this.filterCompania ? 'Sin agencias en esta compañía' : 'No hay agencias';
+    if (list.length === 0) return this.filterCompania ? 'Sin agencias para esta razón social' : 'No hay agencias';
     if (this.selectedAgencyIds.length === 0) return 'Seleccione agencias';
     const allSelected = list.every(a => this.selectedAgencyIds.includes(a.Id)) && this.selectedAgencyIds.length === list.length;
     return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
@@ -223,7 +223,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   private cargarAgencias(): void {
     this.loadingAgencias = true;
     this.cdr.markForCheck();
-    // forceRefresh para asegurar IdCompany (evita cache antiguo sin compañía)
+    // forceRefresh para asegurar IdCompany (evita cache antiguo sin razón social)
     this.defaultAgencyService
       .obtenerAgencias(true)
       .pipe(takeUntil(this.destroy$))

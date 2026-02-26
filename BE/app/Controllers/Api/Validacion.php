@@ -25,12 +25,17 @@ class Validacion extends BaseController
     private function logActivity($action, $description, $changeDetails = null, $entityId = null)
     {
         try {
-            // Obtener información del usuario desde el token JWT
-            $userId = 1; // TODO: Obtener del token JWT
-            $username = 'admin'; // TODO: Obtener del token JWT
-            
+            $currentUser = $this->getAuthenticatedUser();
+            $userId = $currentUser['user_id'] ?? 'sistema';
+            $username = $currentUser['email'] ?? 'sistema';
+            if (empty($username) || $username === 'sistema') {
+                $authModel = new \App\Models\AuthModel();
+                $userRow = $authModel->getUserById($userId);
+                $username = $userRow['User'] ?? $userRow['Name'] ?? (string) $userId;
+            }
+
             $logData = [
-                'user_id' => $userId,
+                'user_id' => (string) $userId,
                 'username' => $username,
                 'action' => $action,
                 'description' => $description,
@@ -1470,17 +1475,19 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
-                // Registrar actividad en el log
+                // Registrar actividad en el log (incluir file_id para historial por expediente)
+                $idFile = $documento['IdFile'] ?? null;
                 $this->logActivity(
                     'VALIDAR_DOCUMENTO',
                     "Documento {$idDocumentByFile} validado",
                     [
+                        'file_id' => $idFile,
                         'documento_id' => $idDocumentByFile,
                         'estado_anterior' => 'Listo para validar (3)',
                         'estado_nuevo' => 'Validado y aprobado (4)',
                         'fecha_validacion' => $updateData['UpdateDate']
                     ],
-                    $idDocumentByFile
+                    $idFile
                 );
 
                 return $this->response->setJSON([
@@ -1623,18 +1630,20 @@ class Validacion extends BaseController
                 $accion = $nuevoEstatus == 4 ? 'APROBAR_DOCUMENTO' : 'RECHAZAR_DOCUMENTO';
                 $mensaje = $nuevoEstatus == 4 ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
                 
-                // Registrar actividad en el log
+                // Registrar actividad en el log (incluir file_id para historial por expediente)
+                $idFile = $documento['IdFile'] ?? null;
                 $this->logActivity(
                     $accion,
                     "Documento {$idDocumentByFile} " . ($nuevoEstatus == 4 ? 'aprobado' : 'rechazado'),
                     [
+                        'file_id' => $idFile,
                         'documento_id' => $idDocumentByFile,
                         'estado_anterior' => $estadoAnterior,
                         'estado_nuevo' => $estadoNuevo,
                         'comentario' => $comentario,
                         'fecha_procesamiento' => $updateData['UpdateDate']
                     ],
-                    $idDocumentByFile
+                    $idFile
                 );
 
                 return $this->response->setJSON([
@@ -1714,17 +1723,19 @@ class Validacion extends BaseController
                 ->update($updateData);
             
             if ($result) {
-                // Registrar actividad en el log
+                // Registrar actividad en el log (incluir file_id para historial por expediente)
+                $idFile = $documento['IdFile'] ?? null;
                 $this->logActivity(
                     'PREPARAR_DOCUMENTO',
                     "Documento {$idDocumentByFile} preparado para validación",
                     [
+                        'file_id' => $idFile,
                         'documento_id' => $idDocumentByFile,
                         'estado_anterior' => 'Pendiente de validación (2)',
                         'estado_nuevo' => 'Listo para validar (3)',
                         'fecha_preparacion' => $updateData['UpdateDate']
                     ],
-                    $idDocumentByFile
+                    $idFile
                 );
 
                 return $this->response->setJSON([

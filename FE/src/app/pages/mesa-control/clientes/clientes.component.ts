@@ -61,6 +61,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
   pageSize = 25;
   pageIndex = 0;
   pageSizeOptions = [10, 25, 50, 100];
+  /** Umbral PLD configurado (MXN) - viene del backend */
+  amlUmbral: number | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -124,6 +126,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
         if (res.success && res.data) {
           this.dataSource.data = res.data.clientes;
           this.totalRecords = res.data.total;
+          this.amlUmbral = res.data.amlUmbral ?? null;
         } else {
           this.dataSource.data = [];
           this.totalRecords = 0;
@@ -170,6 +173,12 @@ export class ClientesComponent implements OnInit, OnDestroy {
       maxWidth: '95vw',
       data: { idHeaderClient: row.idHeaderClient, cliente: row.cliente, ndCliente: row.ndCliente }
     });
+  }
+
+  /** Formatea el umbral PLD para mostrar en tooltips */
+  getAmlUmbralFormatted(): string {
+    if (this.amlUmbral == null) return '';
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(this.amlUmbral);
   }
 
   getPageRange(): string {

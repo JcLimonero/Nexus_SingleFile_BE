@@ -8,7 +8,7 @@ export interface ClienteMesa {
   ndCliente: string;
   cliente: string;
   idHeaderClient: number;
-  /** true si el cliente supera el umbral AML (operaciones por compañía en el año) */
+  /** true si el cliente supera el umbral PLD (operaciones por razón social en el año) */
   excedeUmbralAML?: boolean;
 }
 
@@ -37,6 +37,8 @@ export interface ClientesListResponse {
     total: number;
     limit: number;
     offset: number;
+    /** Umbral PLD configurado (MXN) - operaciones que superan este monto activan la alerta */
+    amlUmbral?: number;
   };
 }
 

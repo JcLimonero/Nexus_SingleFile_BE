@@ -164,10 +164,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     $routes->group('user-activity-logs', function($routes) {
         $routes->get('/', 'UserActivityLog::index');
         $routes->post('/', 'UserActivityLog::create');
+        $routes->get('expediente/(:num)', 'UserActivityLog::getExpedienteLogs/$1');
         $routes->get('user/(:any)', 'UserActivityLog::getUserLogs/$1');
         $routes->get('action/(:any)', 'UserActivityLog::getActionLogs/$1');
         $routes->get('stats', 'UserActivityLog::getStats');
         $routes->delete('clean', 'UserActivityLog::cleanOldLogs');
+    });
+
+    // Rutas de reportes para Oficial de Cumplimiento (PLD/AML)
+    $routes->group('reportes-cumplimiento', function($routes) {
+        $routes->get('dashboard', 'ReportesCumplimiento::dashboard');
+        $routes->get('expedientes-alerta-pld', 'ReportesCumplimiento::expedientesAlertaPld');
+        $routes->get('resumen-por-agencia', 'ReportesCumplimiento::resumenPorAgencia');
+        $routes->get('documentos-pendientes', 'ReportesCumplimiento::documentosPendientes');
     });
 
     // Rutas de analytics

@@ -94,6 +94,12 @@ export class NavigationLoaderService {
             label: 'Clientes',
             route: '/mesa-control/clientes',
             icon: 'mat:people'
+          },
+          {
+            type: 'link',
+            label: 'Reportes Cumplimiento',
+            route: '/mesa-control/reportes-cumplimiento',
+            icon: 'mat:assessment'
           }
         ]
       },

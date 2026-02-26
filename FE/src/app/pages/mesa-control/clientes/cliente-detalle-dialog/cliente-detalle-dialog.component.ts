@@ -68,11 +68,11 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit {
   private agruparPorCompaniaAgencia(expedientes: ExpedienteCliente[]): GrupoExpedientes[] {
     const map = new Map<string, GrupoExpedientes>();
     for (const exp of expedientes) {
-      const key = `${exp.compania ?? 'Sin compañía'}|${exp.agencia}|${exp.idAgency}`;
+      const key = `${exp.compania ?? 'Sin razón social'}|${exp.agencia}|${exp.idAgency}`;
       if (!map.has(key)) {
         const ds = new MatTableDataSource<ExpedienteCliente>([]);
         map.set(key, {
-          compania: exp.compania ?? 'Sin compañía',
+          compania: exp.compania ?? 'Sin razón social',
           agencia: exp.agencia,
           idAgency: exp.idAgency,
           expedientes: [],
