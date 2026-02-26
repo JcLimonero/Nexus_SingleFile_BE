@@ -49,6 +49,15 @@ export interface DocumentosPendientesAgencia {
   total: number;
 }
 
+export interface DocumentosPendientesGrupo {
+  razonSocial: string;
+  idCompany: number | null;
+  idAgency: number;
+  nombreAgencia: string;
+  porEstatus: { idEstatus: number; nombreEstatus: string; total: number }[];
+  total: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -60,39 +69,61 @@ export class ReportesCumplimientoService {
     private apiBase: ApiBaseService
   ) {}
 
-  getDashboard(): Observable<{ success: boolean; data: ReporteCumplimientoDashboard }> {
+  getDashboard(params?: { idCompany?: number }): Observable<{ success: boolean; data: ReporteCumplimientoDashboard }> {
+    let httpParams = new HttpParams();
+    if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/dashboard`);
-    return this.http.get<{ success: boolean; data: ReporteCumplimientoDashboard }>(url);
+    return this.http.get<{ success: boolean; data: ReporteCumplimientoDashboard }>(url, { params: httpParams });
   }
 
-  getExpedientesAlertaPld(params?: { idAgency?: number; limit?: number; offset?: number }): Observable<any> {
+  getExpedientesAlertaPld(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; limit?: number; offset?: number }): Observable<any> {
     let httpParams = new HttpParams();
-    if (params?.idAgency != null) httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    if (params?.idAgencies?.length) {
+      httpParams = httpParams.set('idAgency', params.idAgencies.join(','));
+    } else if (params?.idAgency != null) {
+      httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    }
+    if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/expedientes-alerta-pld`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
-  getResumenPorAgencia(params?: { idAgency?: number; anio?: number; mes?: number }): Observable<any> {
+  getResumenPorAgencia(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; anio?: number; mes?: number }): Observable<any> {
     let httpParams = new HttpParams();
-    if (params?.idAgency != null) httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    if (params?.idAgencies?.length) {
+      httpParams = httpParams.set('idAgency', params.idAgencies.join(','));
+    } else if (params?.idAgency != null) {
+      httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    }
+    if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params?.anio != null) httpParams = httpParams.set('anio', params.anio.toString());
     if (params?.mes != null) httpParams = httpParams.set('mes', params.mes.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/resumen-por-agencia`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
-  getDocumentosPendientes(params?: { idAgency?: number }): Observable<any> {
+  getDocumentosPendientes(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number }): Observable<any> {
     let httpParams = new HttpParams();
-    if (params?.idAgency != null) httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    if (params?.idAgencies?.length) {
+      httpParams = httpParams.set('idAgency', params.idAgencies.join(','));
+    } else if (params?.idAgency != null) {
+      httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    }
+    if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/documentos-pendientes`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
-  getExpedientesSinBeneficiario(params?: { idAgency?: number; anio?: number; limit?: number; offset?: number }): Observable<any> {
+  getExpedientesSinBeneficiario(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; anio?: number; limit?: number; offset?: number }): Observable<any> {
     let httpParams = new HttpParams();
-    if (params?.idAgency != null) httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    if (params?.idAgencies?.length) {
+      httpParams = httpParams.set('idAgency', params.idAgencies.join(','));
+    } else if (params?.idAgency != null) {
+      httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    }
+    if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params?.anio != null) httpParams = httpParams.set('anio', params.anio.toString());
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
@@ -100,10 +131,17 @@ export class ReportesCumplimientoService {
     return this.http.get<any>(url, { params: httpParams });
   }
 
-  getExpedientesSinAviso(params?: { idAgency?: number; anio?: number }): Observable<any> {
+  getExpedientesSinAviso(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; anio?: number; limit?: number; offset?: number }): Observable<any> {
     let httpParams = new HttpParams();
-    if (params?.idAgency != null) httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    if (params?.idAgencies?.length) {
+      httpParams = httpParams.set('idAgency', params.idAgencies.join(','));
+    } else if (params?.idAgency != null) {
+      httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    }
+    if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params?.anio != null && params?.anio !== undefined) httpParams = httpParams.set('anio', params.anio.toString());
+    if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/expedientes-sin-aviso`);
     return this.http.get<any>(url, { params: httpParams });
   }

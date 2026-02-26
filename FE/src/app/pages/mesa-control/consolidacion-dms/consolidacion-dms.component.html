@@ -12,8 +12,7 @@
           <mat-select [(ngModel)]="filterCompania" name="filterCompania">
             <mat-option [value]="null">Todas</mat-option>
             <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
-          </mat-select>
-          <mat-hint>Filtrar agencias por razón social</mat-hint>
+          </mat-select>          
         </mat-form-field>
         <div class="agencia-select-wrapper filtro-field">
           <label class="agencia-select-label">Agencia</label>

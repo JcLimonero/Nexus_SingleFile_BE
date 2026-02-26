@@ -71,14 +71,45 @@
   <mat-card class="mb-4">
     <mat-card-content>
       <div class="flex flex-wrap items-center gap-4">
-        <mat-form-field appearance="outline" class="min-w-[180px]">
-          <mat-label>Agencia</mat-label>
-          <mat-select [(ngModel)]="filterAgency" (selectionChange)="onFilterChange()">
+        <mat-form-field appearance="outline" class="filtro-field min-w-[200px]" subscriptSizing="dynamic">
+          <mat-label>Razón social</mat-label>
+          <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onFilterChange()">
             <mat-option [value]="null">Todas</mat-option>
-            <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
+            <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="min-w-[140px]">
+        <div class="filtro-field agencia-select-wrapper" [matMenuTriggerFor]="agenciaMenu" [class.agencia-disabled]="agenciesFiltradas.length === 0">
+          <mat-form-field appearance="outline" class="agencia-form-field" subscriptSizing="dynamic">
+            <mat-label>Agencia</mat-label>
+            <input matInput readonly [value]="agenciaSelectorLabel" (click)="$event.preventDefault()">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+          </mat-form-field>
+        </div>
+        <mat-menu #agenciaMenu="matMenu" class="agencia-multi-select-menu">
+          <div class="px-3 py-2 border-b border-gray-200" (click)="$event.stopPropagation()">
+            <mat-checkbox
+              [checked]="isAllAgenciesSelected"
+              [indeterminate]="isSomeAgenciesSelected"
+              (change)="toggleTodos($event.checked)"
+              (click)="$event.stopPropagation()">
+              Todas
+            </mat-checkbox>
+          </div>
+          <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
+            <div *ngIf="agenciesFiltradas.length === 0" class="px-3 py-4 text-gray-500 text-sm">
+              {{ filterCompania ? 'No hay agencias para esta razón social' : 'No hay agencias disponibles' }}
+            </div>
+            <div *ngFor="let agencia of agenciesFiltradas" class="px-3 py-1">
+              <mat-checkbox
+                [checked]="isAgencySelected(agencia.Id)"
+                (change)="toggleAgency(agencia.Id, $event.checked)"
+                (click)="$event.stopPropagation()">
+                {{ agencia.Name }}
+              </mat-checkbox>
+            </div>
+          </div>
+        </mat-menu>
+        <mat-form-field appearance="outline" class="filtro-field min-w-[140px]" subscriptSizing="dynamic">
           <mat-label>Año</mat-label>
           <mat-select [(ngModel)]="filterAnio" (selectionChange)="onFilterChange()">
             <mat-option [value]="null">Todos los años</mat-option>
@@ -170,39 +201,47 @@
       </mat-card>
     </mat-tab>
     <mat-tab label="Documentos pendientes">
-      <mat-card class="mt-4">
-        <mat-card-content>
-          <p class="text-sm text-gray-500 mb-4">Documentos con estatus pendiente de validación (1, 2, 3) por agencia. Expedientes no cancelados.</p>
-          <div *ngIf="loadingDocumentos" class="flex justify-center p-8">
-            <mat-spinner diameter="40"></mat-spinner>
-          </div>
-          <div *ngIf="!loadingDocumentos && documentosPendientes.length" class="space-y-4">
-            <mat-accordion multi="true">
-              <mat-expansion-panel *ngFor="let ag of documentosPendientes" class="mb-2">
-                <mat-expansion-panel-header>
-                  <mat-panel-title>
-                    <mat-icon class="mr-2">store</mat-icon>
-                    {{ ag.nombreAgencia }}
-                  </mat-panel-title>
-                  <mat-panel-description>
-                    {{ ag.total }} documentos pendientes
-                  </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div class="flex flex-wrap gap-3 pt-2">
-                  <div *ngFor="let e of ag.porEstatus" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100">
-                    <span class="text-sm font-medium">{{ e.nombreEstatus || 'Sin estatus' }}</span>
-                    <span class="text-sm text-gray-600">{{ e.total }}</span>
+      <div class="resumen-razon-social mt-4">
+        <div class="resumen-header mb-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-1">Documentos pendientes</h2>
+          <p class="text-sm text-gray-500">Documentos con estatus pendiente de validación (1, 2, 3) agrupados por razón social y agencia. Expedientes no cancelados.</p>
+        </div>
+        <div *ngIf="loadingDocumentos" class="flex justify-center p-12">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+        <mat-accordion *ngIf="!loadingDocumentos && documentosPorRazonSocial.length" class="resumen-grupos" multi="true">
+          <mat-expansion-panel *ngFor="let grupo of documentosPorRazonSocial" class="resumen-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="resumen-panel-icon">business</mat-icon>
+                <span class="resumen-panel-titulo">{{ grupo.razonSocial }}</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ grupo.totalRazonSocial }} documentos pendientes · {{ grupo.agencias.length }} agencia{{ grupo.agencias.length !== 1 ? 's' : '' }}
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="resumen-panel-content">
+              <div *ngFor="let ag of grupo.agencias" class="agencia-row">
+                <div class="agencia-header">
+                  <mat-icon class="agencia-icon">store</mat-icon>
+                  <span class="agencia-nombre">{{ ag.nombreAgencia }}</span>
+                  <span class="agencia-total">{{ ag.total }}</span>
+                </div>
+                <div class="estados-grid">
+                  <div *ngFor="let e of ag.porEstatus" class="estado-chip">
+                    <span class="estado-nombre">{{ e.nombreEstatus || 'Sin estatus' }}</span>
+                    <span class="estado-valor">{{ e.total }}</span>
                   </div>
                 </div>
-              </mat-expansion-panel>
-            </mat-accordion>
-          </div>
-          <div *ngIf="!loadingDocumentos && !documentosPendientes.length" class="text-center py-12 text-gray-500">
-            <mat-icon class="text-4xl mb-2">check_circle</mat-icon>
-            <p>No hay documentos pendientes de validación</p>
-          </div>
-        </mat-card-content>
-      </mat-card>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+        <div *ngIf="!loadingDocumentos && !documentosPorRazonSocial.length" class="resumen-empty">
+          <mat-icon>check_circle</mat-icon>
+          <p>No hay documentos pendientes de validación</p>
+        </div>
+      </div>
     </mat-tab>
     <mat-tab label="Expedientes sin beneficiario">
       <mat-card class="mt-4">
@@ -305,6 +344,16 @@
               </td>
             </tr>
           </table>
+          <mat-paginator
+            *ngIf="!loadingSinAviso && totalSinAviso > 0"
+            [length]="totalSinAviso"
+            [pageSize]="pageSizeSinAviso"
+            [pageSizeOptions]="pageSizeOptionsSinAviso"
+            [pageIndex]="pageIndexSinAviso"
+            (page)="onPageChangeSinAviso($event)"
+            showFirstLastButtons
+            aria-label="Paginación expedientes sin aviso">
+          </mat-paginator>
         </mat-card-content>
       </mat-card>
     </mat-tab>

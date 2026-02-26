@@ -1,6 +1,39 @@
+$filtro-control-height: 56px;
+
 .reportes-cumplimiento {
   mat-card {
     margin-bottom: 0.5rem;
+  }
+
+  .filtro-field.mat-mdc-form-field {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+
+  .agencia-multi-select-menu {
+    min-width: 280px;
+  }
+
+  .agencia-select-wrapper {
+    display: inline-block;
+    min-width: 180px;
+    cursor: pointer;
+
+    &.agencia-disabled {
+      cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .agencia-form-field {
+      width: 100%;
+      pointer-events: none;
+
+      input {
+        cursor: pointer;
+      }
+    }
   }
 }
 
