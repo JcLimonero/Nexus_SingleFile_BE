@@ -62,7 +62,7 @@
     >
     <mat-icon
       class="vex-sidenav-item__dropdown-icon"
-      svgIcon="mat:keyboard_arrow_right"></mat-icon>
+      [svgIcon]="isOpen ? 'mat:keyboard_arrow_up' : 'mat:keyboard_arrow_down'"></mat-icon>
   </div>
   <div [@dropdown]="isOpen" class="vex-sidenav-item__dropdown" [style.top]="flyoutTop" [style.bottom]="flyoutBottom">
     <vex-sidenav-item

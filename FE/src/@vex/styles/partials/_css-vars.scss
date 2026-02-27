@@ -3,9 +3,9 @@ body {
   // Typography
   --vex-font: theme("fontFamily.sans");
 
-  // Sidenav
-  --vex-sidenav-width: 280px;
-  --vex-sidenav-collapsed-width: 100px;
+  // Sidenav (expandido ~260px, colapsado solo iconos ~72px)
+  --vex-sidenav-width: 260px;
+  --vex-sidenav-collapsed-width: 72px;
 
   // Sidenav Item
   --vex-sidenav-item-min-height: 48px;

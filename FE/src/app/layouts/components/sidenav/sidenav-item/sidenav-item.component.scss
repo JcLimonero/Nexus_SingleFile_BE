@@ -49,7 +49,7 @@
 
   &.vex-sidenav-item--open {
     .vex-sidenav-item__dropdown-icon {
-      transform: rotate(90deg) !important;
+      transform: none;
     }
   }
 }

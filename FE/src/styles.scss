@@ -60,12 +60,53 @@ html, body {
 .app-layout-sidenav-container {
   min-width: 0;
   max-width: 100%;
+
+  /* Ancho del sidenav según estado colapsado/expandido */
+  .mat-drawer-side,
+  mat-sidenav {
+    width: var(--vex-sidenav-width) !important;
+    min-width: var(--vex-sidenav-width) !important;
+    max-width: var(--vex-sidenav-width) !important;
+    transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+  }
+}
+
+/* Sidenav colapsado: el contenedor padre tiene la clase */
+.app-layout-sidenav-collapsed .vex-layout-sidenav-container mat-sidenav:not(.vex-layout-quickpanel),
+.app-layout-sidenav-collapsed .vex-layout-sidenav-container .mat-drawer:not(.vex-layout-quickpanel) {
+  width: var(--vex-sidenav-collapsed-width) !important;
+  min-width: var(--vex-sidenav-collapsed-width) !important;
+  max-width: var(--vex-sidenav-collapsed-width) !important;
+}
+
+/* Contenido principal: margen según estado del sidenav para ajustarse al espacio disponible */
+@media (min-width: 1024px) {
+  body:not([dir="rtl"]) {
+    .app-layout-sidenav-collapsed .vex-layout-sidenav-content {
+      margin-left: var(--vex-sidenav-collapsed-width) !important;
+    }
+
+    .app-layout-container:not(.app-layout-sidenav-collapsed) .vex-layout-sidenav-content {
+      margin-left: var(--vex-sidenav-width) !important;
+    }
+  }
+
+  [dir="rtl"] {
+    .app-layout-sidenav-collapsed .vex-layout-sidenav-content {
+      margin-right: var(--vex-sidenav-collapsed-width) !important;
+    }
+
+    .app-layout-container:not(.app-layout-sidenav-collapsed) .vex-layout-sidenav-content {
+      margin-right: var(--vex-sidenav-width) !important;
+    }
+  }
 }
 
 .vex-layout-sidenav-content,
 .app-layout-content {
   min-width: 0;
   max-width: 100%;
+  transition: margin-left 0.3s ease, margin-right 0.3s ease;
 }
 
 .vex-layout-content.app-layout-main {

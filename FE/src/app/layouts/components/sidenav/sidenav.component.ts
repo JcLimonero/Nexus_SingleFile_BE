@@ -15,6 +15,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { BrandingService } from '../../../core/services/branding.service';
 
@@ -25,6 +26,7 @@ import { BrandingService } from '../../../core/services/branding.service';
   standalone: true,
   imports: [
     NgIf,
+    RouterLink,
     MatButtonModule,
     MatIconModule,
     MatRippleModule,

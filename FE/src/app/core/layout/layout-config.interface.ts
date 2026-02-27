@@ -18,7 +18,7 @@ export const DEFAULT_LAYOUT_CONFIG: AppLayoutConfig = {
   toolbar: { fixed: true, user: { visible: true } },
   sidenav: {
     title: 'NexFile One',
-    showCollapsePin: false,
+    showCollapsePin: true,
     user: { visible: true },
     search: { visible: true }
   },

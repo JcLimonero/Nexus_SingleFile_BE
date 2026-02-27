@@ -3,21 +3,12 @@
   class="toolbar text-default w-full flex " style="max-width: 100% !important; flex-direction: row-reverese;">
   <!-- Izquierda: menú móvil + usuario + navegación -->
 
-  <!-- Izquierda: logo y título -->
+  <!-- Izquierda: solo título (el logo está en el sidebar) -->
   <div class="toolbar__end flex items-center flex-shrink-0 min-w-0" >
-    <a
-      [routerLink]="['/']"
-      class="toolbar__brand flex items-center ltr:ml-2 rtl:mr-2 no-underline min-w-0">
-      <ng-container *ngIf="(logoApp$ | async) as logoApp">
-        <img *ngIf="logoApp?.trim()" [src]="logoApp" alt="Logo" class="toolbar__logo w-8 h-8 select-none flex-shrink-0" [class.branding-logo-tint]="logoColor$ | async" />
-      </ng-container>
-      <h1
-        class="toolbar__title text-xl font-semibold tracking-tight ltr:pl-3 rtl:pr-3 m-0 select-none truncate">
-        {{ dynamicTitle$ | async }}
-      </h1>
-    </a>
-
-   
+    <h1
+      class="toolbar__title text-xl font-semibold tracking-tight ltr:ml-2 rtl:mr-2 m-0 select-none truncate">
+      {{ dynamicTitle$ | async }}
+    </h1>
   </div>
 
   <span class="toolbar__spacer flex-1 min-w-4" aria-hidden="true"></span>
