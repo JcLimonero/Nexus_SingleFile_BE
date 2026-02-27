@@ -685,6 +685,36 @@ class Files extends BaseController
             }
             
             error_log("✅ VERIFICACIÓN FINAL: File con ID $fileId existe en la base de datos");
+
+            // Validación post-creación: relación cliente correcta y API singlefileorderslastest
+            $ndDMS = trim((string) ($clientId ?? $order['ndDMS'] ?? $order['ndCliente'] ?? $order['IdTotalDealer'] ?? ''));
+            $orderDms = trim((string) ($order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? ''));
+
+            // 1. Validación local: File.IdClient debe coincidir con view_client_relations (solo si tenemos ndDMS)
+            if ($ndDMS !== '') {
+                $localValidation = $this->validateFileClientRelation($fileId, $ndDMS, $internalAgencyId);
+                if (!$localValidation['valid']) {
+                    error_log("⚠️ VALIDACIÓN LOCAL FALLIDA - File {$fileId}: " . $localValidation['message']);
+                    $repairResult = $this->executeRepairClientRelation($ndDMS, $internalAgencyId, $fileId);
+                    if ($repairResult['success']) {
+                        error_log("✅ Reparación automática exitosa para File {$fileId}");
+                    } else {
+                        error_log("❌ Reparación fallida: " . $repairResult['message']);
+                    }
+                }
+            }
+
+            // 2. Validación con API singlefileorderslastest (diagnóstico, no bloqueante)
+            if ($ndDMS !== '' && $orderDms !== '' && $agency && !empty($agency->IdAgency)) {
+                $apiValidation = $this->validateFileWithSingleFileOrdersLatest(
+                    (string) $agency->IdAgency,
+                    $ndDMS,
+                    $orderDms
+                );
+                if (!$apiValidation['valid']) {
+                    error_log("⚠️ VALIDACIÓN API FALLIDA - File {$fileId}: " . $apiValidation['message']);
+                }
+            }
             
             return $this->response->setJSON([
                 'success' => true,
@@ -793,6 +823,148 @@ class Files extends BaseController
             log_message('info', 'getClientIdFromViewClientRelations: vista no usada - ' . $e->getMessage());
         }
         return null;
+    }
+
+    /**
+     * Valida que File.IdClient coincida con la relación esperada en view_client_relations.
+     * @param int $fileId ID del expediente
+     * @param string|null $ndDMS ndCliente
+     * @param int $idAgency Id interno de la agencia (Agency.Id)
+     * @return array{valid: bool, expectedIdClient: int|null, actualIdClient: int|null, message: string}
+     */
+    private function validateFileClientRelation($fileId, $ndDMS, $idAgency)
+    {
+        $ndDMS = trim((string) ($ndDMS ?? ''));
+        $idAgency = (int) $idAgency;
+        if ($ndDMS === '' || $idAgency <= 0) {
+            return ['valid' => false, 'expectedIdClient' => null, 'actualIdClient' => null, 'message' => 'ndDMS o idAgency inválidos'];
+        }
+
+        $file = $this->db->query("SELECT IdClient FROM File WHERE Id = ?", [$fileId])->getRowArray();
+        if (!$file) {
+            return ['valid' => false, 'expectedIdClient' => null, 'actualIdClient' => null, 'message' => 'Expediente no encontrado'];
+        }
+
+        $expected = $this->db->query("
+            SELECT idCliente FROM view_client_relations
+            WHERE TRIM(ndCliente) = ? AND idAgency = ?
+            LIMIT 1
+        ", [$ndDMS, $idAgency])->getRowArray();
+
+        if (!$expected || empty($expected['idCliente'])) {
+            return ['valid' => false, 'expectedIdClient' => null, 'actualIdClient' => (int) $file['IdClient'], 'message' => 'No existe relación en view_client_relations para ndCliente e idAgency'];
+        }
+
+        $expectedIdClient = (int) $expected['idCliente'];
+        $actualIdClient = (int) $file['IdClient'];
+        $valid = ($actualIdClient === $expectedIdClient);
+
+        return [
+            'valid' => $valid,
+            'expectedIdClient' => $expectedIdClient,
+            'actualIdClient' => $actualIdClient,
+            'message' => $valid ? 'Relación correcta' : "Relación incorrecta: File.IdClient={$actualIdClient}, esperado={$expectedIdClient}"
+        ];
+    }
+
+    /**
+     * Valida que el pedido exista en la API singlefileorderslastest.
+     * @param string $idAgency IdAgency externo (Agency.IdAgency)
+     * @param string $customerDMS ndCliente
+     * @param string $order_dms Número de pedido
+     * @return array{valid: bool, foundInApi: bool, message: string}
+     */
+    private function validateFileWithSingleFileOrdersLatest($idAgency, $customerDMS, $order_dms)
+    {
+        $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
+        $token = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
+
+        $params = http_build_query([
+            'idAgency' => $idAgency,
+            'customerDMS' => trim((string) $customerDMS),
+            'order_dms' => trim((string) $order_dms),
+            'perpage' => '50'
+        ]);
+
+        $url = "{$vanguardiaBaseUrl}/vgd/singlefileorderslastest?{$params}";
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_HTTPHEADER => [
+                'X-Provider-Token: ' . $token,
+                'Content-Type: application/json'
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            return ['valid' => false, 'foundInApi' => false, 'message' => "Error de conexión: {$curlError}"];
+        }
+        if ($httpCode !== 200) {
+            return ['valid' => false, 'foundInApi' => false, 'message' => "API no disponible (HTTP {$httpCode})"];
+        }
+
+        $data = json_decode($response, true);
+        $orders = $data['data'] ?? $data['orders'] ?? $data['results'] ?? (is_array($data) ? $data : []);
+        if (!is_array($orders)) {
+            $orders = [];
+        }
+
+        $orderDmsStr = trim((string) $order_dms);
+        foreach ($orders as $order) {
+            $od = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+            if ($od !== null && trim((string) $od) === $orderDmsStr) {
+                return ['valid' => true, 'foundInApi' => true, 'message' => 'Pedido encontrado en API'];
+            }
+        }
+
+        return ['valid' => false, 'foundInApi' => false, 'message' => "Pedido {$order_dms} no encontrado en singlefileorderslastest"];
+    }
+
+    /**
+     * Ejecutar reparación de relación cliente en un expediente.
+     * @param string $ndDMS ndCliente
+     * @param int $idAgency Id interno de la agencia (Agency.Id)
+     * @param int $idExpediente ID del expediente
+     * @return array{success: bool, idClient?: int, message: string}
+     */
+    private function executeRepairClientRelation($ndDMS, $idAgency, $idExpediente)
+    {
+        $ndDMS = trim((string) $ndDMS);
+        $idAgency = (int) $idAgency;
+        $idExpediente = (int) $idExpediente;
+
+        if ($ndDMS === '' || $idAgency <= 0 || $idExpediente <= 0) {
+            return ['success' => false, 'message' => 'Parámetros inválidos para reparación'];
+        }
+
+        $row = $this->db->query("
+            SELECT idCliente FROM view_client_relations
+            WHERE TRIM(ndCliente) = ? AND idAgency = ?
+            LIMIT 1
+        ", [$ndDMS, $idAgency])->getRowArray();
+
+        if (!$row || empty($row['idCliente'])) {
+            return ['success' => false, 'message' => 'No se encontró relación en view_client_relations para ndCliente e idAgency'];
+        }
+
+        $idClient = (int) $row['idCliente'];
+        $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+
+        if ($this->db->affectedRows() === 0) {
+            return ['success' => false, 'message' => 'No se actualizó ningún expediente'];
+        }
+
+        log_message('info', "executeRepairClientRelation: File.Id={$idExpediente} actualizado con IdClient={$idClient} (ndDMS={$ndDMS}, IdAgency={$idAgency})");
+        return ['success' => true, 'idClient' => $idClient, 'message' => 'Reparación exitosa'];
     }
 
     /**
@@ -1370,8 +1542,8 @@ class Files extends BaseController
 
     /**
      * Reparar relación de cliente en un expediente (File).
-     * Busca en view_client_relations por ndCliente e idAgency,
-     * obtiene idClient (HeaderClient.Id) y actualiza File.IdClient donde File.Id = idExpediente.
+     * POST /api/files/repair-client-relation
+     * Body: { ndDMS, idAgency, idExpediente } (idAgency = Agency.Id interno)
      */
     public function repairClientRelation()
     {
@@ -1407,46 +1579,28 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $ndDMS = trim((string) $ndDMS);
-            $idAgency = (int) $idAgency;
-            $idExpediente = (int) $idExpediente;
+            $idAgency = $this->getAgencyInternalId($idAgency);
+            $repairResult = $this->executeRepairClientRelation(
+                trim((string) $ndDMS),
+                (int) $idAgency,
+                (int) $idExpediente
+            );
 
-            // Buscar idCliente en view_client_relations por ndCliente e idAgency.
-            $row = $this->db->query("
-                SELECT idCliente FROM view_client_relations
-                WHERE TRIM(ndCliente) = ? AND idAgency = ?
-                LIMIT 1
-            ", [$ndDMS, $idAgency])->getRowArray();
-
-            $idClientVal = $row['idCliente'] ?? null;
-            if (!$row || empty($idClientVal)) {
+            if (!$repairResult['success']) {
+                $statusCode = $repairResult['message'] === 'No se encontró relación en view_client_relations para ndCliente e idAgency' ? 404 : 404;
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'No se encontró relación de cliente para el No Cliente y agencia indicados. Verifique que el cliente tenga relación en view_client_relations (Client_Total_Relation).',
+                    'message' => $repairResult['message'],
                     'data' => null
-                ])->setStatusCode(404);
+                ])->setStatusCode($statusCode);
             }
-
-            $idClient = (int) $idClientVal;
-
-            // Actualizar File.IdClient donde Id = idExpediente
-            $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
-            if ($this->db->affectedRows() === 0) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'No se actualizó ningún expediente. Verifique que el ID de expediente exista.',
-                    'data' => null
-                ])->setStatusCode(404);
-            }
-
-            log_message('info', "repairClientRelation: File.Id={$idExpediente} actualizado con IdClient={$idClient} (ndDMS={$ndDMS}, IdAgency={$idAgency})");
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Relación de cliente reparada correctamente',
                 'data' => [
-                    'idExpediente' => $idExpediente,
-                    'idClient' => $idClient
+                    'idExpediente' => (int) $idExpediente,
+                    'idClient' => $repairResult['idClient']
                 ]
             ]);
         } catch (\Throwable $e) {

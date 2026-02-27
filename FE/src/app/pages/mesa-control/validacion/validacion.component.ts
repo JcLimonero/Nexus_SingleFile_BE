@@ -79,9 +79,10 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private sortChangeSub: Subscription | null = null;
 
   // Estado del componente
-  loading = false;
+  loadingClientes = false;   // Tabla superior (clientes)
+  loadingDocumentos = false; // Tabla inferior (documentos)
   loadingAgencias = false;
-  loadingProcesos = false; // Specific loading state for processes
+  loadingProcesos = false;   // Specific loading state for processes
   error = '';
 
   /** Valor especial para "Todos los procesos" en el combo */
@@ -653,7 +654,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Conectar MatSort cuando la tabla esté en el DOM (*ngIf="!loading").
+   * Conectar MatSort cuando la tabla esté en el DOM (*ngIf="!loadingClientes").
    * Se llama desde ngAfterViewInit y tras cargar clientes para que el sort funcione al hacer clic en el encabezado.
    */
   private connectSort(): void {
@@ -907,7 +908,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private cargarDocumentosCliente(idFile: number): void {
 
-    this.loading = true;
+    this.loadingDocumentos = true;
 
     this.validacionService.cargarDocumentos(idFile)
       .pipe(
@@ -921,14 +922,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.verificarAvanceFaseLiquidacion(documentos);
           this.verificarAvanceFaseLiberacion(documentos);
           this.verificarAvanceFaseLiberado(documentos);
-          this.loading = false;
+          this.loadingDocumentos = false;
           this.cdr.markForCheck();
         },
         error: (error) => {
 
           this.mostrarError('Error cargando documentos del archivo');
           this.documentosDataSource = [];
-          this.loading = false;
+          this.loadingDocumentos = false;
           this.cdr.markForCheck();
         }
       });
@@ -1381,7 +1382,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   recargarDatos() {
 
     // Resetear estados de carga
-    this.loading = true;
+    this.loadingClientes = true;
     this.loadingAgencias = true;
     this.loadingProcesos = true;
 
@@ -1520,7 +1521,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     
     
 
-    this.loading = true;
+    this.loadingDocumentos = true;
 
     const url = `${environment.apiBaseUrl}/api/document/${documento.idDocumentByFile}`;
 
@@ -1529,7 +1530,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: (response) => {
 
-          this.loading = false;
+          this.loadingDocumentos = false;
 
           this.snackBar.open(
             `Documento "${documento.documento}" eliminado exitosamente`,
@@ -1545,7 +1546,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
 
-          this.loading = false;
+          this.loadingDocumentos = false;
 
           let errorMessage = 'Error desconocido al eliminar el documento';
 
@@ -1778,7 +1779,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const esTodosProcesos = this.selectedProcess === this.ALL_PROCESSES_VALUE;
 
-    this.loading = true;
+    this.loadingClientes = true;
 
     const filtros: FiltrosValidacion = {
       agencia: this.selectedAgency,
@@ -1794,7 +1795,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
           this.mostrarError('Error cargando clientes');
           this.clientesDataSource.data = [];
-          this.loading = false;
+          this.loadingClientes = false;
           return of([]);
         })
       )
@@ -1840,15 +1841,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             this.selectedCliente = null;
           }
 
-          this.loading = false;
+          this.loadingClientes = false;
           this.cdr.markForCheck();
-          // Conectar MatSort cuando la tabla ya esté en el DOM (*ngIf="!loading")
+          // Conectar MatSort cuando la tabla ya esté en el DOM (*ngIf="!loadingClientes")
           setTimeout(() => this.connectSort(), 0);
         },
         error: (error) => {
 
           this.clientesDataSource.data = [];
-          this.loading = false;
+          this.loadingClientes = false;
           this.cdr.markForCheck();
         }
       });
