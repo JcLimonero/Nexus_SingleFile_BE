@@ -5,77 +5,70 @@
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <!-- Búsqueda por texto -->
-          <mat-form-field appearance="outline" class="flex-1 min-w-48">
-        <mat-label>Buscar usuarios</mat-label>
-        <input 
-          matInput 
-          [(ngModel)]="searchTerm" 
-          (ngModelChange)="applyFilter()"
-          placeholder="Buscar por nombre, usuario o email..."
-          maxlength="100"
-          [disabled]="loadingCatalogs">
-        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-        <mat-icon *ngIf="!loadingCatalogs" matSuffix>search</mat-icon>
-      </mat-form-field>
+          <div class="flex items-center gap-3 flex-wrap">
+            <!-- Filtro por agencia -->
+            <mat-form-field appearance="outline" class="min-w-48">
+          <mat-label>Agencia Predeterminada</mat-label>
+          <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
+            <mat-option value="">Todas las agencias</mat-option>
+            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+              {{ agency.Name }}
+            </mat-option>
+          </mat-select>
+          <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+            </mat-form-field>
+  
+            <!-- Filtro por agencias asignadas -->
+            <mat-form-field appearance="outline" class="min-w-48">
+          <mat-label>Agencias Asignadas</mat-label>
+          <mat-select [(ngModel)]="assignedAgencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
+            <mat-option value="">Todas las agencias asignadas</mat-option>
+            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+              {{ agency.Name }}
+            </mat-option>
+          </mat-select>
+          <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+            </mat-form-field>
+  
+            <!-- Filtro por rol -->
+            <mat-form-field appearance="outline" class="min-w-48">
+          <mat-label>Rol</mat-label>
+          <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
+            <mat-option value="">Todos los roles</mat-option>
+            <mat-option *ngFor="let role of rolesForFilter" [value]="role.Id">
+              {{ role.Name }}
+            </mat-option>
+          </mat-select>
+          <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+        </mat-form-field>
+  
+            <!-- Filtro por estado -->
+            <mat-form-field appearance="outline" class="min-w-48">
+          <mat-label>Estado</mat-label>
+          <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
+            <mat-option value="">Todos los estados</mat-option>
+            <mat-option value="1">Activo</mat-option>
+            <mat-option value="0">Inactivo</mat-option>
+          </mat-select>
+          <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+            </mat-form-field>
 
-          <!-- Filtro por rol -->
-          <mat-form-field appearance="outline" class="min-w-48">
-        <mat-label>Rol</mat-label>
-        <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
-          <mat-option value="">Todos los roles</mat-option>
-          <mat-option *ngFor="let role of rolesForFilter" [value]="role.Id">
-            {{ role.Name }}
-          </mat-option>
-        </mat-select>
-        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-      </mat-form-field>
-
-          <!-- Filtro por agencia -->
-          <mat-form-field appearance="outline" class="min-w-48">
-        <mat-label>Agencia Predeterminada</mat-label>
-        <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
-          <mat-option value="">Todas las agencias</mat-option>
-          <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-            {{ agency.Name }}
-          </mat-option>
-        </mat-select>
-        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-      </mat-form-field>
-
-          <!-- Filtro por agencias asignadas -->
-          <mat-form-field appearance="outline" class="min-w-48">
-        <mat-label>Agencias Asignadas</mat-label>
-        <mat-select [(ngModel)]="assignedAgencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
-          <mat-option value="">Todas las agencias asignadas</mat-option>
-          <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-            {{ agency.Name }}
-          </mat-option>
-        </mat-select>
-        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-      </mat-form-field>
-
-          <!-- Filtro por estado -->
-          <mat-form-field appearance="outline" class="min-w-48">
-        <mat-label>Estado</mat-label>
-        <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
-          <mat-option value="">Todos los estados</mat-option>
-          <mat-option value="1">Activo</mat-option>
-          <mat-option value="0">Inactivo</mat-option>
-        </mat-select>
-        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-      </mat-form-field>
+            <!-- Búsqueda por texto -->
+            <mat-form-field appearance="outline" class="flex-1 w-[300px]">
+          <mat-label>Buscar usuarios</mat-label>
+          <input 
+            matInput 
+            [(ngModel)]="searchTerm" 
+            (ngModelChange)="applyFilter()"
+            placeholder="Buscar por nombre, usuario o email..."
+            maxlength="100"
+            [disabled]="loadingCatalogs">
+          <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+          <mat-icon *ngIf="!loadingCatalogs" matSuffix>search</mat-icon>
+            </mat-form-field>
+          </div>
 
           <div class="flex items-center gap-2">
-            <button 
-              mat-stroked-button 
-              (click)="clearFilters()"
-              [disabled]="!searchTerm && !roleFilter && !agencyFilter && !assignedAgencyFilter && !statusFilter"
-              matTooltip="Limpiar todos los filtros"
-              class="flex items-center gap-2">
-              <mat-icon>clear_all</mat-icon>
-              Limpiar
-            </button>
             <button 
               mat-stroked-button 
               color="accent" 
@@ -85,6 +78,15 @@
               class="flex items-center gap-2">
               <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
               Cargar
+            </button>
+            <button 
+              mat-stroked-button 
+              (click)="clearFilters()"
+              [disabled]="!searchTerm && !roleFilter && !agencyFilter && !assignedAgencyFilter && !statusFilter"
+              matTooltip="Limpiar todos los filtros"
+              class="flex items-center gap-2">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar
             </button>
             <button 
               mat-raised-button 

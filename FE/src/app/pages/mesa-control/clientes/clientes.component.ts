@@ -92,6 +92,12 @@ export class ClientesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (agencias) => {
           this.agencies = agencias.map(a => ({ Id: a.Id, Name: a.Name }));
+          // Selecciona el primer elemento por defecto si hay agencias
+          if (this.agencies.length > 0) {
+            this.filterAgency = this.agencies[0].Id;
+          } else {
+            this.filterAgency = null;
+          }
           this.cdr.markForCheck();
         }
       });

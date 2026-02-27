@@ -223,67 +223,47 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 300);
   }
 
-  private cargarAgencias(showMessage: boolean = false): void {
-    this.loadingAgencias = true;
+private cargarAgencias(showMessage: boolean = false): void {
+  this.loadingAgencias = true;
 
-    this.defaultAgencyService
-      .obtenerAgencias()
-      .pipe(
-        takeUntil(this.destroy$),
-        timeout(10000),
-        catchError((error) => {
-          console.error('Error cargando agencias:', error);
-          this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
-          this.agencias = [];
-          this.loadingAgencias = false;
-          return of([]);
-        })
-      )
-      .subscribe((agencias) => {
-        this.agencias = Array.isArray(agencias) ? agencias : [];
+  this.defaultAgencyService
+    .obtenerAgencias()
+    .pipe(
+      takeUntil(this.destroy$),
+      timeout(10000),
+      catchError((error) => {
+        console.error('Error cargando agencias:', error);
+        this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
+        this.agencias = [];
         this.loadingAgencias = false;
-        this.agenciasCargadas = true;
+        return of([]);
+      })
+    )
+    .subscribe((agencias) => {
+      this.agencias = Array.isArray(agencias) ? agencias : [];
+      this.loadingAgencias = false;
+      this.agenciasCargadas = true;
 
-        if (showMessage) {
-          this.snackBar.open('Agencias actualizadas', 'Cerrar', { duration: 2000 });
-        }
+      if (showMessage) {
+        this.snackBar.open('Agencias actualizadas', 'Cerrar', { duration: 2000 });
+      }
 
-        if (!showMessage && this.agencias.length > 0) {
-          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
-          setTimeout(() => {
-            // Obtener la agencia guardada
-            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-            
-            // Verificar que la agencia guardada existe en la lista
-            if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
-              // La agencia guardada existe, usarla
-              this.selectedAgency = savedAgencyId;
-              this.onAgenciaChange();
-            } else {
-              // Si no hay agencia guardada válida, establecer la predeterminada
-              this.defaultAgencyService
-                .establecerAgenciaPredeterminada(true)
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                  next: (agenciaId) => {
-                    if (agenciaId && this.agencias.some(ag => ag.Id === agenciaId)) {
-                      this.selectedAgency = agenciaId;
-                      this.onAgenciaChange();
-                    }
-                  },
-                  error: () => {
-                    // Si falla y hay agencias, seleccionar la primera
-                    if (this.agencias.length > 0) {
-                      this.selectedAgency = this.agencias[0].Id;
-                      this.onAgenciaChange();
-                    }
-                  }
-                });
-            }
-          }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
-        }
-      });
-  }
+      if (!showMessage && this.agencias.length > 0) {
+        setTimeout(() => {
+          const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+
+          if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+            this.selectedAgency = savedAgencyId;
+            this.onAgenciaChange();
+          } else {
+            // ✅ Seleccionar primer item por default
+            this.selectedAgency = this.agencias[0].Id;
+            this.onAgenciaChange();
+          }
+        }, 150);
+      }
+    });
+}
 
   private inicializarUsuario(): void {
     const user = this.authService.getCurrentUser();

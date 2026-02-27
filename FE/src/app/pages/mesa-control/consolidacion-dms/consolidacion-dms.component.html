@@ -3,75 +3,77 @@
   <div class="filters-section mb-2">
   <mat-card class="filtro-card bg-white rounded-lg shadow-sm border border-gray-200">
     <mat-card-content class="p-2">
-      <div class="filtro-row">
-        <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic" floatLabel="always">
-          <mat-label>Razón social</mat-label>
-          <mat-select [(ngModel)]="filterCompania" name="filterCompania">
-            <mat-option [value]="COMPANIA_TODAS">Todas</mat-option>
-            <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
-          </mat-select>          
-        </mat-form-field>
-        <div class="agencia-select-wrapper filtro-field">
-          <label class="agencia-select-label">Agencia</label>
-          <button
-            mat-stroked-button
-            type="button"
-            [matMenuTriggerFor]="agenciaMenu"
-            [disabled]="loadingAgencias || agencias.length === 0"
-            class="agencia-select-trigger">
-            <span class="agencia-select-text">
-              {{ agenciaSelectorLabel }}
-            </span>
-            <mat-icon>arrow_drop_down</mat-icon>
-          </button>
-        </div>
-        <mat-menu #agenciaMenu="matMenu" class="agencia-multi-select-menu">
-          <div class="px-3 py-2 border-b border-gray-200" (click)="$event.stopPropagation()">
-            <mat-checkbox
-              [checked]="isAllAgenciesSelected"
-              [indeterminate]="isSomeAgenciesSelected"
-              (change)="toggleTodos($event.checked)"
-              (click)="$event.stopPropagation()">
-              Todos
-            </mat-checkbox>
+      <div class="filtro-row justify-between">
+        <div class="filtro-row">
+          <div class="agencia-select-wrapper filtro-field">
+            <label class="agencia-select-label">Agencia</label>
+            <button
+              mat-stroked-button
+              type="button"
+              [matMenuTriggerFor]="agenciaMenu"
+              [disabled]="loadingAgencias || agencias.length === 0"
+              class="agencia-select-trigger">
+              <span class="agencia-select-text">
+                {{ agenciaSelectorLabel }}
+              </span>
+              <mat-icon>arrow_drop_down</mat-icon>
+            </button>
           </div>
-          <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
-            <div *ngIf="agenciasFiltradas.length === 0" class="px-3 py-4 text-gray-500 text-sm">
-              {{ filterCompania !== COMPANIA_TODAS ? 'No hay agencias para esta razón social' : 'No hay agencias disponibles' }}
-            </div>
-            <div *ngFor="let agencia of agenciasFiltradas" class="px-3 py-1">
+          <mat-menu #agenciaMenu="matMenu" class="agencia-multi-select-menu">
+            <div class="px-3 py-2 border-b border-gray-200" (click)="$event.stopPropagation()">
               <mat-checkbox
-                [checked]="isAgencySelected(agencia.Id)"
-                (change)="toggleAgency(agencia.Id, $event.checked)"
+                [checked]="isAllAgenciesSelected"
+                [indeterminate]="isSomeAgenciesSelected"
+                (change)="toggleTodos($event.checked)"
                 (click)="$event.stopPropagation()">
-                {{ agencia.Name }}
+                Todos
               </mat-checkbox>
             </div>
+            <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">
+              <div *ngIf="agenciasFiltradas.length === 0" class="px-3 py-4 text-gray-500 text-sm">
+                {{ filterCompania !== COMPANIA_TODAS ? 'No hay agencias para esta razón social' : 'No hay agencias disponibles' }}
+              </div>
+              <div *ngFor="let agencia of agenciasFiltradas" class="px-3 py-1">
+                <mat-checkbox
+                  [checked]="isAgencySelected(agencia.Id)"
+                  (change)="toggleAgency(agencia.Id, $event.checked)"
+                  (click)="$event.stopPropagation()">
+                  {{ agencia.Name }}
+                </mat-checkbox>
+              </div>
+            </div>
+          </mat-menu>
+          <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic" floatLabel="always">
+            <mat-label>Razón social</mat-label>
+            <mat-select [(ngModel)]="filterCompania" name="filterCompania">
+              <mat-option [value]="-1">Todas</mat-option>
+              <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
+            </mat-select>          
+          </mat-form-field>
+          <div class="periodo-select-wrapper filtro-field">
+            <mat-form-field appearance="outline" class="filtro-field filtro-periodo-preset" subscriptSizing="dynamic" floatLabel="always">
+              <mat-label>Período</mat-label>
+              <mat-select [(ngModel)]="periodPreset" name="periodPreset">
+                <mat-option *ngFor="let p of periodPresets" [value]="p.value">{{ p.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field *ngIf="periodPreset === 'rango'" appearance="outline" class="filtro-field filtro-rango-fechas" subscriptSizing="dynamic" floatLabel="always">
+              <mat-label>Rango de fechas</mat-label>
+              <mat-date-range-input [formGroup]="rangeDateGroup" [rangePicker]="rangePicker">
+                <input matStartDate formControlName="start" placeholder="Inicio" (click)="rangePicker.open()">
+                <input matEndDate formControlName="end" placeholder="Fin" (click)="rangePicker.open()">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #rangePicker></mat-date-range-picker>
+            </mat-form-field>
           </div>
-        </mat-menu>
-        <div class="periodo-select-wrapper filtro-field">
-          <mat-form-field appearance="outline" class="filtro-field filtro-periodo-preset" subscriptSizing="dynamic" floatLabel="always">
-            <mat-label>Período</mat-label>
-            <mat-select [(ngModel)]="periodPreset" name="periodPreset">
-              <mat-option *ngFor="let p of periodPresets" [value]="p.value">{{ p.label }}</mat-option>
+          <mat-form-field appearance="outline" class="filtro-field filtro-estatus" subscriptSizing="dynamic" floatLabel="always">
+            <mat-label>Estatus</mat-label>
+            <mat-select [(ngModel)]="filterEstatus" name="estatus" (selectionChange)="onFilterChange()">
+              <mat-option *ngFor="let opt of estatusOptions" [value]="opt.value">{{ opt.label }}</mat-option>
             </mat-select>
           </mat-form-field>
-          <mat-form-field *ngIf="periodPreset === 'rango'" appearance="outline" class="filtro-field filtro-rango-fechas" subscriptSizing="dynamic" floatLabel="always">
-            <mat-label>Rango de fechas</mat-label>
-            <mat-date-range-input [formGroup]="rangeDateGroup" [rangePicker]="rangePicker">
-              <input matStartDate formControlName="start" placeholder="Inicio" (click)="rangePicker.open()">
-              <input matEndDate formControlName="end" placeholder="Fin" (click)="rangePicker.open()">
-            </mat-date-range-input>
-            <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
-            <mat-date-range-picker #rangePicker></mat-date-range-picker>
-          </mat-form-field>
         </div>
-        <mat-form-field appearance="outline" class="filtro-field filtro-estatus" subscriptSizing="dynamic" floatLabel="always">
-          <mat-label>Estatus</mat-label>
-          <mat-select [(ngModel)]="filterEstatus" name="estatus" (selectionChange)="onFilterChange()">
-            <mat-option *ngFor="let opt of estatusOptions" [value]="opt.value">{{ opt.label }}</mat-option>
-          </mat-select>
-        </mat-form-field>
         <div class="filtro-buttons">
           <button
             mat-stroked-button
