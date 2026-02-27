@@ -419,6 +419,301 @@ class Validacion extends BaseController
     }
 
     /**
+     * Listar expedientes que requieren corrección desde la tabla expedientes_corregir.
+     * Solo administrador (role_id = 7).
+     * GET /api/clients-validation/expedientes-corregir
+     */
+    public function expedientesCorregir()
+    {
+        try {
+            if (!$this->isCurrentUserAdmin()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Acceso denegado. Solo administradores.',
+                    'data' => null
+                ])->setStatusCode(403);
+            }
+
+            $rows = $this->db->query("
+                SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS, ec.api_result, ec.created_at,
+                       a.Name as nombreAgencia
+                FROM expedientes_corregir ec
+                INNER JOIN Agency a ON a.Id = ec.idAgency
+                    WHERE  (ec.api_result IS NULL OR NOT JSON_CONTAINS(ec.api_result, 'true', '$.success')) 
+                ORDER BY ec.idAgency ASC, ec.id ASC
+            ")->getResultArray();
+
+            $porAgencia = [];
+            $totalGeneral = 0;
+
+            foreach ($rows as $row) {
+                $idAgency = (int) $row['idAgency'];
+                if (!isset($porAgencia[$idAgency])) {
+                    $porAgencia[$idAgency] = [
+                        'idAgency' => $idAgency,
+                        'nombreAgencia' => $row['nombreAgencia'] ?? '',
+                        'total' => 0,
+                        'expedientes' => []
+                    ];
+                }
+
+                $apiResult = null;
+                if (!empty($row['api_result'])) {
+                    $decoded = json_decode($row['api_result'], true);
+                    $apiResult = is_array($decoded) ? $decoded : ['raw' => $row['api_result']];
+                }
+
+                $porAgencia[$idAgency]['expedientes'][] = [
+                    'id' => (int) $row['id'],
+                    'idFile' => (int) $row['idExpediente'],
+                    'idAgency' => $idAgency,
+                    'ndCliente' => $row['ndDMS'] ?? '',
+                    'api_result' => $apiResult,
+                    'created_at' => $row['created_at'] ?? null,
+                    'tipoReparacion' => 'repairClientRelation'
+                ];
+                $porAgencia[$idAgency]['total']++;
+                $totalGeneral++;
+            }
+
+            ksort($porAgencia);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Expedientes a corregir desde tabla expedientes_corregir',
+                'data' => [
+                    'porAgencia' => array_values($porAgencia),
+                    'totalGeneral' => $totalGeneral
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::expedientesCorregir: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Ejecutar la reparación de expedientes pendientes.
+     * Solo administrador.
+     * GET /api/clients-validation/expedientes-corregir/auto-reparar
+     * Query: ?todos=1 para reparar todos (en lotes de 50 hasta terminar).
+     */
+    public function autoRepararExpedientes()
+    {
+        try {
+            if (!$this->isCurrentUserAdmin()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Acceso denegado. Solo administradores.',
+                    'data' => null
+                ])->setStatusCode(403);
+            }
+
+            $todos = filter_var($this->request->getGet('todos'), FILTER_VALIDATE_BOOLEAN);
+            $limit = 50;
+
+            $reparadosTotal = 0;
+            $erroresTotal = [];
+
+            do {
+                $rows = $this->db->query("
+                    SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS
+                    FROM expedientes_corregir ec
+                    WHERE ec.api_result IS NULL and ec.idAgency = 9
+                    ORDER BY (ec.idAgency IN (20, 21, 22)) DESC, ec.idAgency ASC, ec.id ASC
+                    LIMIT ?
+                ", [$limit])->getResultArray();
+
+                foreach ($rows as $row) {
+                    $result = $this->ejecutarReparacionClientRelation(
+                        trim((string) ($row['ndDMS'] ?? '')),
+                        (int) $row['idAgency'],
+                        (int) $row['idExpediente']
+                    );
+                    if ($result['success']) {
+                        $reparadosTotal++;
+                    } else {
+                        $erroresTotal[] = [
+                            'idExpediente' => (int) $row['idExpediente'],
+                            'ndDMS' => $row['ndDMS'],
+                            'mensaje' => $result['message']
+                        ];
+                    }
+                }
+            } while ($todos && count($rows) === $limit);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => "Reparación completada: {$reparadosTotal} reparado(s), " . count($erroresTotal) . " error(es)",
+                'data' => [
+                    'reparados' => $reparadosTotal,
+                    'errores' => $erroresTotal,
+                    'total_procesados' => $reparadosTotal + count($erroresTotal)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            error_log("Error en Validacion::autoRepararExpedientes: " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error interno: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Ejecutar la reparación de File.IdClient para un expediente.
+     * Retorna ['success' => bool, 'idClient' => int|null, 'message' => string].
+     */
+    private function ejecutarReparacionClientRelation(string $ndDMS, int $idAgency, int $idExpediente): array
+    {
+        try {
+            if ($ndDMS === '') {
+                $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, 'ndDMS vacío');
+                return ['success' => false, 'idClient' => null, 'message' => 'ndDMS vacío'];
+            }
+
+            $row = $this->db->query("
+                SELECT idCliente FROM view_client_relations
+                WHERE TRIM(ndCliente) = ? AND idAgency = ?
+                LIMIT 1
+            ", [$ndDMS, $idAgency])->getRowArray();
+
+            $idClientVal = $row['idCliente'] ?? null;
+            if (!$row || empty($idClientVal)) {
+                $msg = 'No se encontró relación en view_client_relations';
+                $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg);
+                return ['success' => false, 'idClient' => null, 'message' => $msg];
+            }
+
+            $idClient = (int) $idClientVal;
+            $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+            if ($this->db->affectedRows() === 0) {
+                $msg = 'No se actualizó ningún expediente';
+                $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg);
+                return ['success' => false, 'idClient' => null, 'message' => $msg];
+            }
+
+            log_message('info', "autoRepararExpedientes: File.Id={$idExpediente} actualizado con IdClient={$idClient}");
+
+            $this->db->query("
+                UPDATE expedientes_corregir SET api_result = ?
+                WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
+            ", [json_encode(['success' => true, 'idClient' => $idClient]), $idExpediente, $idAgency, $ndDMS]);
+
+            return ['success' => true, 'idClient' => $idClient, 'message' => 'OK'];
+        } catch (\Throwable $e) {
+            $msg = $e->getMessage();
+            log_message('error', "ejecutarReparacionClientRelation: expediente {$idExpediente} - {$msg}");
+            $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg, $e);
+            return ['success' => false, 'idClient' => null, 'message' => $msg];
+        }
+    }
+
+    /**
+     * Guardar error en expedientes_corregir.api_result con request y detalle del error.
+     */
+    private function guardarErrorExpediente(int $idExpediente, int $idAgency, string $ndDMS, string $message, ?\Throwable $e = null): void
+    {
+        $payload = [
+            'success' => false,
+            'message' => $message,
+            'request' => [
+                'ndDMS' => $ndDMS,
+                'idAgency' => $idAgency,
+                'idExpediente' => $idExpediente
+            ]
+        ];
+        if ($e !== null) {
+            $payload['errorCode'] = $e->getCode();
+            $payload['errorDetail'] = $e->getMessage();
+            $payload['errorFile'] = basename($e->getFile());
+            $payload['errorLine'] = $e->getLine();
+            if ($e->getPrevious()) {
+                $prev = $e->getPrevious();
+                $payload['errorPrevious'] = $prev->getMessage();
+                $payload['errorPreviousCode'] = $prev->getCode();
+            }
+        }
+        try {
+            $this->db->query("
+                UPDATE expedientes_corregir SET api_result = ?
+                WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
+            ", [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
+        } catch (\Throwable $e2) {
+            log_message('error', 'No se pudo registrar error en expedientes_corregir: ' . $e2->getMessage());
+        }
+    }
+
+    /**
+     * Llamar API singlefileorderslastest y devolver array de pedidos.
+     */
+    private function callSinglefileorderslastest(string $agencyConnection, string $ndCliente): array
+    {
+        $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
+        $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
+
+        $url = $vanguardiaBaseUrl . '/vgd/singlefileorderslastest?'
+            . 'customerDMS=' . urlencode($ndCliente)
+            . '&connectionstring=' . urlencode($agencyConnection)
+            . '&perpage=1000';
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'X-Provider-Token: ' . $vanguardiaToken,
+                'Content-Type: application/json'
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || $httpCode >= 400) {
+            return [];
+        }
+
+        $data = json_decode($response, true);
+        $ordersData = null;
+
+        if (is_array($data)) {
+            $ordersData = $data;
+        } elseif ($data && isset($data['data']) && is_array($data['data'])) {
+            $ordersData = $data['data'];
+        } elseif ($data && isset($data['data']['orders']) && is_array($data['data']['orders'])) {
+            $ordersData = $data['data']['orders'];
+        } elseif ($data && isset($data['orders']) && is_array($data['orders'])) {
+            $ordersData = $data['orders'];
+        } elseif ($data && isset($data['data']['data']) && is_array($data['data']['data'])) {
+            $ordersData = $data['data']['data'];
+        } elseif ($data && isset($data['data']['results']) && is_array($data['data']['results'])) {
+            $ordersData = $data['data']['results'];
+        } elseif ($data && isset($data['results']) && is_array($data['results'])) {
+            $ordersData = $data['results'];
+        }
+
+        if (!$ordersData || !is_array($ordersData)) {
+            return [];
+        }
+
+        $orders = [];
+        foreach ($ordersData as $o) {
+            $orderDms = $o['numeroPedido'] ?? $o['orderNumber'] ?? $o['id'] ?? $o['order_dms'] ?? $o['orderDMS'] ?? $o['OrderDMS'] ?? null;
+            if ($orderDms !== null && $orderDms !== '') {
+                $orders[] = array_merge($o, ['order_dms' => trim((string) $orderDms)]);
+            }
+        }
+        return $orders;
+    }
+
+    /**
      * Reparar relación Client_Total_Relation faltante para un File.
      * Si el pedido no aparece en validación por falta de relación cliente-agencia,
      * este endpoint la crea.

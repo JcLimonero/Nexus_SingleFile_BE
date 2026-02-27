@@ -199,11 +199,49 @@ export class ValidacionService {
   }
 
   /**
+   * Obtener expedientes que requieren corrección (sin Client_Total_Relation), agrupados por agencia.
+   * Solo administrador.
+   */
+  getExpedientesCorregir(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/expedientes-corregir`);
+  }
+
+  /**
+   * Reparar los siguientes 10 expedientes pendientes.
+   * Solo administrador.
+   */
+  autoRepararSiguientes10(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/expedientes-corregir/auto-reparar`);
+  }
+
+  /**
+   * Reparar todos los expedientes pendientes.
+   * Solo administrador.
+   */
+  autoRepararTodos(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/expedientes-corregir/auto-reparar`, {
+      params: { todos: 1 }
+    });
+  }
+
+  /**
    * Reparar relación Client_Total_Relation faltante para un File
    */
   repararRelacion(idFile: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/api/clients-validation/reparar-relacion`, {
       idFile: idFile
+    });
+  }
+
+  /**
+   * Reparar File.IdClient incorrecto (usa view_client_relations).
+   * Para expedientes con tipoReparacion = 'repairClientRelation'
+   */
+  repairClientRelation(ndDMS: string, idAgency: number, idExpediente: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/files/repair-client-relation`, {
+      ndDMS,
+      idAgency,
+      idExpediente
     });
   }
 

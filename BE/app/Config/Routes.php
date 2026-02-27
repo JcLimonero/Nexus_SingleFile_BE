@@ -389,6 +389,8 @@ $routes->group('documents', function($routes) {
         $routes->get('estadisticas', 'Validacion::getEstadisticas');
         $routes->get('documentos', 'Validacion::getDocumentos');
         $routes->get('diagnostico', 'Validacion::diagnosticoPedido');
+        $routes->get('expedientes-corregir', 'Validacion::expedientesCorregir');
+        $routes->get('expedientes-corregir/auto-reparar', 'Validacion::autoRepararExpedientes');
         $routes->post('reparar-relacion', 'Validacion::repararRelacion');
         $routes->post('cancelar-pedido', 'Validacion::cancelarPedido');
         $routes->post('excepcion-pedido', 'Validacion::excepcionPedido');

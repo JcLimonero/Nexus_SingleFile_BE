@@ -107,6 +107,12 @@ export class NavigationLoaderService {
             label: 'Reportes Cumplimiento',
             route: '/mesa-control/reportes-cumplimiento',
             icon: 'mat:assessment'
+          },
+          {
+            type: 'link',
+            label: 'Expedientes a Corregir',
+            route: '/mesa-control/expedientes-corregir',
+            icon: 'mat:build'
           }
         ]
       },

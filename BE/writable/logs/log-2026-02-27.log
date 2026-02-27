@@ -1,0 +1,238 @@
+CRITICAL - 2026-02-27 04:07:54 --> ErrorException: Maximum execution time of 30 seconds exceeded
+[Method: GET, Route: api/clients-validation/expedientes-corregir/auto-reparar]
+in SYSTEMPATH/Database/MySQLi/Connection.php on line 327.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+ERROR - 2026-02-27 05:32:27 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+CRITICAL - 2026-02-27 05:32:27 --> CodeIgniter\Database\Exceptions\DatabaseException: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+[Method: CLI, Route: expedientes:auto-reparar/5000]
+in SYSTEMPATH/Database/BaseConnection.php on line 684.
+ 1 SYSTEMPATH/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` SET `IdClient` = :IdClient:
+WHERE `Id` = :Id:', [...], false)
+ 2 APPPATH/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update([...])
+ 3 APPPATH/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), [...])
+ 4 SYSTEMPATH/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run([...])
+ 5 SYSTEMPATH/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:auto-reparar', [...])
+ 6 SYSTEMPATH/Boot.php(388): CodeIgniter\CLI\Console->run()
+ 7 SYSTEMPATH/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+ 8 ROOTPATH/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+CRITICAL - 2026-02-27 05:32:27 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+in SYSTEMPATH/Database/MySQLi/Connection.php on line 332.
+ 1 SYSTEMPATH/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 2 SYSTEMPATH/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 3 SYSTEMPATH/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` SET `IdClient` = :IdClient:
+WHERE `Id` = :Id:', [...], false)
+ 4 APPPATH/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update([...])
+ 5 APPPATH/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), [...])
+ 6 SYSTEMPATH/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run([...])
+ 7 SYSTEMPATH/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:auto-reparar', [...])
+ 8 SYSTEMPATH/Boot.php(388): CodeIgniter\CLI\Console->run()
+ 9 SYSTEMPATH/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+10 ROOTPATH/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+CRITICAL - 2026-02-27 05:32:27 --> [Caused by] mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+in SYSTEMPATH/Database/MySQLi/Connection.php on line 327.
+ 1 SYSTEMPATH/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562', 0)
+ 2 SYSTEMPATH/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 3 SYSTEMPATH/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 4 SYSTEMPATH/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` SET `IdClient` = :IdClient:
+WHERE `Id` = :Id:', [...], false)
+ 5 APPPATH/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update([...])
+ 6 APPPATH/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), [...])
+ 7 SYSTEMPATH/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run([...])
+ 8 SYSTEMPATH/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:auto-reparar', [...])
+ 9 SYSTEMPATH/Boot.php(388): CodeIgniter\CLI\Console->run()
+10 SYSTEMPATH/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+11 ROOTPATH/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+ERROR - 2026-02-27 05:44:04 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+CRITICAL - 2026-02-27 05:44:04 --> CodeIgniter\Database\Exceptions\DatabaseException: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+[Method: CLI, Route: expedientes:auto-reparar/3000]
+in SYSTEMPATH/Database/BaseConnection.php on line 684.
+ 1 SYSTEMPATH/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` SET `IdClient` = :IdClient:
+WHERE `Id` = :Id:', [...], false)
+ 2 APPPATH/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update([...])
+ 3 APPPATH/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), [...])
+ 4 SYSTEMPATH/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run([...])
+ 5 SYSTEMPATH/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:auto-reparar', [...])
+ 6 SYSTEMPATH/Boot.php(388): CodeIgniter\CLI\Console->run()
+ 7 SYSTEMPATH/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+ 8 ROOTPATH/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+CRITICAL - 2026-02-27 05:44:04 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+in SYSTEMPATH/Database/MySQLi/Connection.php on line 332.
+ 1 SYSTEMPATH/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 2 SYSTEMPATH/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 3 SYSTEMPATH/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` SET `IdClient` = :IdClient:
+WHERE `Id` = :Id:', [...], false)
+ 4 APPPATH/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update([...])
+ 5 APPPATH/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), [...])
+ 6 SYSTEMPATH/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run([...])
+ 7 SYSTEMPATH/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:auto-reparar', [...])
+ 8 SYSTEMPATH/Boot.php(388): CodeIgniter\CLI\Console->run()
+ 9 SYSTEMPATH/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+10 ROOTPATH/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+CRITICAL - 2026-02-27 05:44:04 --> [Caused by] mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+in SYSTEMPATH/Database/MySQLi/Connection.php on line 327.
+ 1 SYSTEMPATH/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562', 0)
+ 2 SYSTEMPATH/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 3 SYSTEMPATH/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` SET `IdClient` = 2996
+WHERE `Id` = 3562')
+ 4 SYSTEMPATH/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` SET `IdClient` = :IdClient:
+WHERE `Id` = :Id:', [...], false)
+ 5 APPPATH/Commands/Expedientes/AutoReparar.php(78): CodeIgniter\Database\BaseBuilder->update([...])
+ 6 APPPATH/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), [...])
+ 7 SYSTEMPATH/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run([...])
+ 8 SYSTEMPATH/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:auto-reparar', [...])
+ 9 SYSTEMPATH/Boot.php(388): CodeIgniter\CLI\Console->run()
+10 SYSTEMPATH/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+11 ROOTPATH/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+ERROR - 2026-02-27 06:00:36 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Files.php(1434): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->repairClientRelation()
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-27 06:00:36 --> repairClientRelation: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+ERROR - 2026-02-27 06:11:47 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Files.php(1434): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->repairClientRelation()
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-27 06:11:47 --> repairClientRelation: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))
+ERROR - 2026-02-27 06:39:23 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(110): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+ERROR - 2026-02-27 06:39:29 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(110): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+ERROR - 2026-02-27 06:39:38 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(110): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+ERROR - 2026-02-27 06:42:15 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(110): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+ERROR - 2026-02-27 06:42:27 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(110): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Commands/Expedientes/AutoReparar.php(43): App\Commands\Expedientes\AutoReparar->ejecutarReparacion(Object(CodeIgniter\Database\MySQLi\Connection), Array)
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): App\Commands\Expedientes\AutoReparar->run(Array)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('expedientes:aut...', Array)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#10 /Users/jclimonero/Developer/SingleFile/BE/spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#11 {main}
+ERROR - 2026-02-27 06:44:00 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`)) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('UPDATE `File` S...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('UPDATE `File` S...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('UPDATE `File` S...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2521): CodeIgniter\Database\BaseConnection->query('UPDATE `File` S...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Files.php(1434): CodeIgniter\Database\BaseBuilder->update(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Files->repairClientRelation()
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Files))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#12 {main}
+ERROR - 2026-02-27 06:44:00 --> repairClientRelation: Cannot add or update a child row: a foreign key constraint fails (`single_file`.`file`, CONSTRAINT `file_ibfk_1` FOREIGN KEY (`IdClient`) REFERENCES `headerclient` (`Id`))

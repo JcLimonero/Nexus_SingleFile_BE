@@ -13,6 +13,7 @@ export const ROUTE_ACCESS: Record<string, number[] | 'all'> = {
   '/mesa-control/validacion': [5, 6, 7, 8, 14],
   '/mesa-control/clientes': [6, 7, 8],
   '/mesa-control/reportes-cumplimiento': [6, 7, 8],
+  '/mesa-control/expedientes-corregir': [7],
 };
 
 /** Rutas bajo /configuracion requieren roles 6, 7 y 8 (8 = mismo acceso que 7). */

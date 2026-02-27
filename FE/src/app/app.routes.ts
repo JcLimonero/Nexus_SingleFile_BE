@@ -357,6 +357,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/mesa-control/reportes-cumplimiento/reportes-cumplimiento.component').then(
                 (m) => m.ReportesCumplimientoComponent
               )
+          },
+          {
+            path: 'expedientes-corregir',
+            loadComponent: () =>
+              import('./pages/mesa-control/expedientes-corregir/expedientes-corregir.component').then(
+                (m) => m.ExpedientesCorregirComponent
+              )
           }
         ]
       },

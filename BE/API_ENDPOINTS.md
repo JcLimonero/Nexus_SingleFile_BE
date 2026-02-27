@@ -255,6 +255,8 @@ Base URL: `http://localhost:8080/api` (o el que uses en `php spark serve`).
 | GET | `/clients-validation/estadisticas` | Estadísticas |
 | GET | `/clients-validation/documentos` | Documentos |
 | GET | `/clients-validation/diagnostico` | Diagnóstico pedido |
+| GET | `/clients-validation/expedientes-corregir` | Listar expedientes a corregir |
+| GET | `/clients-validation/expedientes-corregir/auto-reparar` | Auto-reparar primeros 10 pendientes (para cron) |
 | POST | `/clients-validation/reparar-relacion` | Reparar relación |
 | POST | `/clients-validation/cancelar-pedido` | Cancelar pedido |
 | POST | `/clients-validation/excepcion-pedido` | Excepción pedido |

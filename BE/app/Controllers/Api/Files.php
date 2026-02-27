@@ -1420,6 +1420,7 @@ class Files extends BaseController
 
             $idClientVal = $row['idCliente'] ?? null;
             if (!$row || empty($idClientVal)) {
+                $this->guardarErrorRepair($ndDMS, $idAgency, $idExpediente, 'No se encontró relación en view_client_relations');
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se encontró relación de cliente para el No Cliente y agencia indicados. Verifique que el cliente tenga relación en view_client_relations (Client_Total_Relation).',
@@ -1432,6 +1433,7 @@ class Files extends BaseController
             // Actualizar File.IdClient donde Id = idExpediente
             $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
             if ($this->db->affectedRows() === 0) {
+                $this->guardarErrorRepair($ndDMS, $idAgency, $idExpediente, 'No se actualizó ningún expediente');
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se actualizó ningún expediente. Verifique que el ID de expediente exista.',
@@ -1440,6 +1442,13 @@ class Files extends BaseController
             }
 
             log_message('info', "repairClientRelation: File.Id={$idExpediente} actualizado con IdClient={$idClient} (ndDMS={$ndDMS}, IdAgency={$idAgency})");
+
+            $apiResultJson = json_encode(['success' => true, 'idClient' => $idClient]);
+            $this->db->query("
+                UPDATE expedientes_corregir
+                SET api_result = ?
+                WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
+            ", [$apiResultJson, $idExpediente, $idAgency, $ndDMS]);
 
             return $this->response->setJSON([
                 'success' => true,
@@ -1451,11 +1460,59 @@ class Files extends BaseController
             ]);
         } catch (\Throwable $e) {
             log_message('error', 'repairClientRelation: ' . $e->getMessage());
+            $input = $this->request->getJSON(true) ?: $this->request->getPost();
+            $payload = [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'request' => [
+                    'ndDMS' => $input['ndDMS'] ?? $input['ndCliente'] ?? null,
+                    'idAgency' => $input['idAgency'] ?? $input['agencyId'] ?? null,
+                    'idExpediente' => $input['idExpediente'] ?? $input['fileId'] ?? null
+                ],
+                'errorCode' => $e->getCode(),
+                'errorDetail' => $e->getMessage(),
+                'errorFile' => basename($e->getFile()),
+                'errorLine' => $e->getLine()
+            ];
+            if ($e->getPrevious()) {
+                $prev = $e->getPrevious();
+                $payload['errorPrevious'] = $prev->getMessage();
+                $payload['errorPreviousCode'] = $prev->getCode();
+            }
+            try {
+                $ex = (int) ($payload['request']['idExpediente'] ?? 0);
+                $ag = (int) ($payload['request']['idAgency'] ?? 0);
+                $nd = trim((string) ($payload['request']['ndDMS'] ?? ''));
+                if ($ex > 0 && $ag > 0) {
+                    $this->db->query("UPDATE expedientes_corregir SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
+                        [json_encode($payload), $ex, $ag, $nd]);
+                }
+            } catch (\Throwable $e2) {
+                log_message('error', 'No se pudo registrar error en expedientes_corregir: ' . $e2->getMessage());
+            }
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al reparar relación: ' . $e->getMessage(),
                 'data' => null
             ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Guardar error en expedientes_corregir.api_result con request y detalle.
+     */
+    private function guardarErrorRepair(string $ndDMS, int $idAgency, int $idExpediente, string $message): void
+    {
+        try {
+            $payload = [
+                'success' => false,
+                'message' => $message,
+                'request' => ['ndDMS' => $ndDMS, 'idAgency' => $idAgency, 'idExpediente' => $idExpediente]
+            ];
+            $this->db->query("UPDATE expedientes_corregir SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
+                [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
+        } catch (\Throwable $e) {
+            log_message('error', 'guardarErrorRepair: ' . $e->getMessage());
         }
     }
 
