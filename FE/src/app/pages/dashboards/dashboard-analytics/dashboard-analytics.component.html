@@ -6,37 +6,13 @@
                   <!-- Filtros Razón social + Agencia (ligados) -->
                   <div class="filter-group">
                     <div class="filter-field-wrapper">
-                      <label class="filter-label">Razón social</label>
-                      <mat-form-field appearance="outline" class="filter-field no-label">
+                      <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Agencia</mat-label>
                         <mat-select
-                          placeholder="Todas"
-                          [value]="filterCompania"
-                          (selectionChange)="onCompaniaChange($event.value)"
-                          [disabled]="loading || !hasCompanies()">
-                          <mat-option [value]="null">Todas</mat-option>
-                          <mat-option
-                            *ngFor="let c of companies; trackBy: trackByCompanyId"
-                            [value]="c.Id">
-                            {{ c.Name }}
-                          </mat-option>
-                        </mat-select>
-                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
-                        <mat-hint align="start" *ngIf="!loading && !hasCompanies()">Sin razones sociales</mat-hint>
-                      </mat-form-field>
-                    </div>
-
-                    <div class="filter-field-wrapper">
-                      <label class="filter-label">Agencia</label>
-                      <mat-form-field appearance="outline" class="filter-field no-label">
-                        <mat-select
-                          placeholder="Seleccionar agencia"
-                          [value]="selectedAgencyId"
+                          [value]="agenciesFiltradas.length ? agenciesFiltradas[0].Id : null"
                           (selectionChange)="onAgencyChange($event.value)"
                           [disabled]="loading || agenciesFiltradas.length === 0">
-                          <mat-option [value]="null">Todas las agencias</mat-option>
-                          <mat-option
-                            *ngFor="let agency of agenciesFiltradas; trackBy: trackByAgencyId"
-                            [value]="agency.Id">
+                          <mat-option *ngFor="let agency of agenciesFiltradas; let i = index; trackBy: trackByAgencyId" [value]="agency.Id">
                             {{ agency.Name }}
                           </mat-option>
                         </mat-select>
@@ -47,20 +23,32 @@
                       </mat-form-field>
                     </div>
 
+                    <div class="filter-field-wrapper">
+                      <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Razón social</mat-label>
+                        <mat-select
+                          [value]="companies.length ? companies[0].Id : null"
+                          (selectionChange)="onCompaniaChange($event.value)"
+                          [disabled]="loading || !hasCompanies()">
+                          <mat-option *ngFor="let c of companies; let i = index; trackBy: trackByCompanyId" [value]="c.Id">
+                            {{ c.Name }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
+                        <mat-hint align="start" *ngIf="!loading && !hasCompanies()">Sin razones sociales</mat-hint>
+                      </mat-form-field>
+                    </div>
+                    
                     <!-- Filtro por Usuario -->
                     <div class="filter-field-wrapper">
-                      <label class="filter-label">Usuario</label>
-                      <mat-form-field appearance="outline" class="filter-field no-label">
+                      <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Usuario</mat-label>
                         <mat-select
                           #userSelect
-                          placeholder="Seleccionar usuario"
-                          [value]="selectedUserId"
+                          [value]="users.length ? users[0].Id : null"
                           (selectionChange)="onUserChange($event.value)"
                           [disabled]="loading || !hasUsers() || isUserFilterDisabled">
-                          <mat-option [value]="null">Todos los usuarios</mat-option>
-                          <mat-option
-                            *ngFor="let user of users; trackBy: trackByUserId"
-                            [value]="user.Id">
+                          <mat-option *ngFor="let user of users; let i = index; trackBy: trackByUserId" [value]="user.Id">
                             {{ user.Name }}
                           </mat-option>
                         </mat-select>

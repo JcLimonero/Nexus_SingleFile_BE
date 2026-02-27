@@ -66,13 +66,6 @@
   <mat-card class="mb-4">
     <mat-card-content>
       <div class="flex flex-wrap items-center gap-4">
-        <mat-form-field appearance="outline" class="filtro-field min-w-[200px]" subscriptSizing="dynamic">
-          <mat-label>Razón social</mat-label>
-          <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onFilterChange()">
-            <mat-option [value]="null">Todas</mat-option>
-            <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
-          </mat-select>
-        </mat-form-field>
         <div class="filtro-field agencia-select-wrapper" [matMenuTriggerFor]="agenciaMenu" [class.agencia-disabled]="agenciesFiltradas.length === 0">
           <mat-form-field appearance="outline" class="agencia-form-field" subscriptSizing="dynamic">
             <mat-label>Agencia</mat-label>
@@ -104,6 +97,13 @@
             </div>
           </div>
         </mat-menu>
+        <mat-form-field appearance="outline" class="filtro-field min-w-[200px]" subscriptSizing="dynamic">
+          <mat-label>Razón social</mat-label>
+          <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onFilterChange()">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
+          </mat-select>
+        </mat-form-field>
         <mat-form-field appearance="outline" class="filtro-field min-w-[140px]" subscriptSizing="dynamic">
           <mat-label>Año</mat-label>
           <mat-select [(ngModel)]="filterAnio" (selectionChange)="onFilterChange()">

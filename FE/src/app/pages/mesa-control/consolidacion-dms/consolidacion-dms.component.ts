@@ -167,22 +167,36 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     }
     this.cargarAgencias();
     this.cargarCompanias();
+    // Selecciona el primer elemento de companies por defecto si existe
+    if (this.companies && this.companies.length > 0) {
+      this.filterCompania = this.getCompanyId(this.companies[0]);
+    }
   }
 
   private cargarCompanias(): void {
-    this.companyService.getCompanies().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res) => {
-        if (res.success && res.data?.companies) {
-          const raw = res.data.companies as unknown as Array<Record<string, unknown>>;
-          this.companies = raw.map((c) => ({
-            Id: (c['Id'] ?? c['id']) as number,
-            Name: String(c['Name'] ?? c['name'] ?? c['company_name'] ?? '')
-          }));
-          this.cdr.markForCheck();
-        }
-      }
-    });
+  this.companyService.getCompanies().pipe(takeUntil(this.destroy$)).subscribe({
+    next: (res) => {
+      if (res.success && res.data?.companies) {
+        const raw = res.data.companies as unknown as Array<Record<string, unknown>>;
+        this.companies = raw.map((c) => ({
+          Id: (c['Id'] ?? c['id']) as number,
+          Name: String(c['Name'] ?? c['name'] ?? c['company_name'] ?? '')
+        }));
+
+        // ✅ Esperar a que el mat-select renderice las opciones
+        setTimeout(() => {
+  if (this.companies.length > 0) {
+    const id = this.getCompanyId(this.companies[0]);
+    console.log('ID primera compañía:', id);  // ← ¿qué imprime?
+    console.log('companies:', this.companies); // ← ¿cómo luce el objeto?
+    this.filterCompania = id;
   }
+  this.cdr.markForCheck();
+}, 0);
+      }
+    }
+  });
+}
 
   /** Obtiene el nombre de una razón social (soporta distintas claves del API) */
   getCompanyName(c: Company): string {

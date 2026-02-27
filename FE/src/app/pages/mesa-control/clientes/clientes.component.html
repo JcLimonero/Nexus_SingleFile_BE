@@ -4,43 +4,44 @@
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
-        <mat-form-field appearance="outline" class="min-w-[200px]">
-          <mat-label>Buscar (cliente, ndCliente)</mat-label>
-          <input matInput [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Nombre o número de cliente">
-          <mat-icon matSuffix (click)="onSearch()" class="cursor-pointer">search</mat-icon>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="min-w-[180px]">
-          <mat-label>Agencia</mat-label>
-          <mat-select [(ngModel)]="filterAgency" (selectionChange)="onFilterChange()">
-            <mat-option [value]="null">Todas</mat-option>
-            <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <div class="flex items-center gap-1" style="align-self: flex-start;">
-          <mat-checkbox [(ngModel)]="filterSoloUmbralAML" (change)="onFilterChange()" matTooltip="Mostrar solo clientes que superan el umbral PLD">
-            Solo en umbral PLD
-          </mat-checkbox>
-          <mat-icon [matTooltip]="'Alerta PLD: clientes cuyas operaciones superan el umbral anual por razón social (' + (getAmlUmbralFormatted() || 'configurado en backend') + '). Requieren atención por cumplimiento de Prevención de Lavado de Dinero.'" class="text-gray-400 cursor-help text-base" style="font-size: 18px; width: 18px; height: 18px;">info</mat-icon>
-        </div>
-        <button style="align-self: flex-start;" mat-stroked-button (click)="onSearch()" [disabled]="loading">
-          <mat-icon>search</mat-icon>
-          <span class="ml-2">Buscar</span>
-        </button>
-        <button style="align-self: flex-start;" mat-stroked-button (click)="clearFilters()" [disabled]="loading">
-          <mat-icon>clear_all</mat-icon>
-          <span class="ml-2">Limpiar</span>
-        </button>
-        <button
-          style="align-self: flex-start;"
-          mat-stroked-button
-          color="accent"
-          (click)="refreshData()"
-          [disabled]="loading"
-          matTooltip="Cargar datos"
-          class="flex items-center gap-2">
-          <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
-          Cargar
-        </button>
+          <div class="flex items-center gap-3 flex-wrap">
+            <mat-form-field appearance="outline" class="min-w-[180px]">
+              <mat-label>Agencia</mat-label>
+              <mat-select [(ngModel)]="filterAgency" (selectionChange)="onFilterChange()">
+                <mat-option [value]="null">Todas</mat-option>
+                <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-[500px]">
+              <mat-label>Buscar (cliente, ndCliente)</mat-label>
+              <input matInput [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Nombre o número de cliente">
+              <mat-icon matSuffix (click)="onSearch()" class="cursor-pointer">search</mat-icon>
+            </mat-form-field>
+            <div class="flex items-center gap-1" style="align-self: flex-start;">
+              <mat-checkbox [(ngModel)]="filterSoloUmbralAML" (change)="onFilterChange()" matTooltip="Mostrar solo clientes que superan el umbral PLD">
+                Solo en umbral PLD
+              </mat-checkbox>
+              <mat-icon [matTooltip]="'Alerta PLD: clientes cuyas operaciones superan el umbral anual por razón social (' + (getAmlUmbralFormatted() || 'configurado en backend') + '). Requieren atención por cumplimiento de Prevención de Lavado de Dinero.'" class="text-gray-400 cursor-help text-base" style="font-size: 18px; width: 18px; height: 18px;">info</mat-icon>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button
+              style="align-self: flex-start;"
+              mat-stroked-button
+              color="accent"
+              (click)="refreshData()"
+              [disabled]="loading"
+              matTooltip="Cargar datos"
+              class="flex items-center gap-2">
+              <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+              Cargar
+            </button>
+            <button style="align-self: flex-start;" mat-stroked-button (click)="clearFilters()" [disabled]="loading">
+              <mat-icon>clear_all</mat-icon>
+              <span class="ml-2">Limpiar</span>
+            </button>
+            
+          </div>
         </div>
       </mat-card-content>
     </mat-card>
