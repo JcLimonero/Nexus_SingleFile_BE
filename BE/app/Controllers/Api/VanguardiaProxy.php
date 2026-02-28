@@ -105,7 +105,7 @@ class VanguardiaProxy extends BaseController
             $url = "https://apisvanguardia.com:400/backblaze/upload";
             
             // Obtener el archivo
-            $file = $this->request->getFile('file');
+            $file = $this->request->getFile('expedient');
             $idSingleFile = $this->request->getPost('idSingleFile');
             $idDocumentFile = $this->request->getPost('idDocumentFile');
 
@@ -124,7 +124,7 @@ class VanguardiaProxy extends BaseController
             $delimiter = '-------------' . $boundary;
             
             $postData = $this->buildMultipartData([
-                'file' => [
+                'expedient' => [
                     'filename' => $fileName,
                     'content' => file_get_contents($file->getTempName()),
                     'mimetype' => $file->getClientMimeType()
@@ -268,15 +268,15 @@ class VanguardiaProxy extends BaseController
      * Obtener el nombre del archivo desde la vista view_document_name
      * Usa file_name_original de la vista pero mantiene la extensión del archivo subido
      */
-    private function getFileNameFromView($idDocumentByFile, $idFile, $file)
+    private function getFileNameFromView($idFileDocument, $idFile, $file)
     {
         try {
             $db = \Config\Database::connect();
             
             // Consultar la vista view_document_name
             $query = $db->query(
-                "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",
-                [$idDocumentByFile, $idFile]
+                "SELECT file_name_original FROM view_document_name WHERE IdFileDocument = ? AND IdFile = ?",
+                [$idFileDocument, $idFile]
             );
             
             $result = $query->getRow();
@@ -300,7 +300,7 @@ class VanguardiaProxy extends BaseController
                 return $finalFileName;
             } else {
                 // Si no se encuentra en la vista, usar el nombre original del archivo
-                error_log("No se encontró registro en view_document_name para IdDocumentByFile={$idDocumentByFile}, IdFile={$idFile}. Usando nombre original del archivo.");
+                error_log("No se encontró registro en view_document_name para IdFileDocument={$idFileDocument}, IdFile={$idFile}. Usando nombre original del archivo.");
                 return $file->getClientName();
             }
         } catch (\Exception $e) {

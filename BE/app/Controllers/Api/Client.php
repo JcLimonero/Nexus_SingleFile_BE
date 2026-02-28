@@ -58,15 +58,15 @@ class Client extends BaseController
                     c.Id as idCliente,
                     MIN(ctr.IdDMS) as ndCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
-                    MIN(hc.Id) as idHeaderClient,
+                    MIN(hc.Id) as idClientHeader,
                     (EXISTS (
                         SELECT 1 FROM {$vistaAML} aml
                         WHERE aml.idCliente = c.Id AND aml.anio = ? AND aml.totalMonto >= ?
                     )) as excedeUmbralAML
                 FROM client c
-                INNER JOIN header_client hc ON hc.IdClient = c.Id
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
-                INNER JOIN file f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                INNER JOIN client_header hc ON hc.IdClient = c.Id
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
+                INNER JOIN expedient f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
                 WHERE 1=1
             ";
             $params = [$anioActual, $umbral];
@@ -145,9 +145,9 @@ class Client extends BaseController
 
     /**
      * Obtener expedientes de un cliente agrupados por Cliente/Compañía/Agencia.
-     * GET /api/client/:idHeaderClient/expedientes
+     * GET /api/client/:idClientHeader/expedientes
      */
-    public function expedientes($idHeaderClient = null)
+    public function expedientes($idClientHeader = null)
     {
         try {
             $currentUser = $this->getAuthenticatedUser();
@@ -166,14 +166,14 @@ class Client extends BaseController
                 ])->setStatusCode(403);
             }
 
-            if (!$idHeaderClient) {
+            if (!$idClientHeader) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'ID de HeaderClient requerido'
+                    'message' => 'ID de ClientHeader requerido'
                 ])->setStatusCode(400);
             }
 
-            $idHeaderClient = (int) $idHeaderClient;
+            $idClientHeader = (int) $idClientHeader;
 
             $sql = "
                 SELECT
@@ -191,17 +191,17 @@ class Client extends BaseController
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
                     MAX(ctr.IdDMS) as ndCliente,
                     MAX(COALESCE(obc1.Amount, obc2.Amount)) as monto
-                FROM header_client hc
+                FROM client_header hc
                 INNER JOIN client c ON c.Id = hc.IdClient
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
-                INNER JOIN file f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
-                LEFT JOIN order_by_car obc1 ON obc1.Id = f.IdOrder
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
+                INNER JOIN expedient f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
                 LEFT JOIN (
                     SELECT obc2a.IdDMS, obc2a.idagency, obc2a.Amount
-                    FROM order_by_car obc2a
+                    FROM order obc2a
                     INNER JOIN (
                         SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                        FROM order_by_car
+                        FROM order
                         GROUP BY IdDMS, idagency
                     ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
                         AND obc2a.idagency = obc2b.idagency
@@ -220,7 +220,7 @@ class Client extends BaseController
                 ORDER BY co.Name ASC, a.Name ASC, f.RegistrationDate DESC
             ";
 
-            $query = $this->db->query($sql, [$idHeaderClient]);
+            $query = $this->db->query($sql, [$idClientHeader]);
             $expedientes = $query->getResultArray();
 
             return $this->response->setJSON([
@@ -282,9 +282,9 @@ class Client extends BaseController
                     c.RegistrationDate as fechaRegistro,
                     c.UpdateDate as fechaActualizacion
                 FROM client c
-                INNER JOIN header_client hc ON c.Id = hc.IdClient
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
-                INNER JOIN file f ON f.IdClient = c.Id
+                INNER JOIN client_header hc ON c.Id = hc.IdClient
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
+                INNER JOIN expedient f ON f.IdClient = c.Id
                 WHERE f.IdAgency = ?
                 AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
             ";

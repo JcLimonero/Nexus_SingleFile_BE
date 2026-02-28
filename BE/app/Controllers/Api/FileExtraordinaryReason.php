@@ -37,7 +37,7 @@ class FileExtraordinaryReason extends ResourceController
                 'success' => true,
                 'message' => 'Motivos extraordinarios obtenidos exitosamente',
                 'data' => [
-                    'file_extraordinary_reasons' => $motivos,
+                    'file_exception_reason' => $motivos,
                     'total' => $total
                 ]
             ]);

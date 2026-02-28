@@ -21,7 +21,7 @@ class Cache extends BaseConfig
      * The name of the preferred handler that should be used. If for some reason
      * it is not available, the $backupHandler will be used in its place.
      */
-    public string $handler = 'file';
+    public string $handler = 'expedient';
 
     /**
      * --------------------------------------------------------------------------
@@ -29,7 +29,7 @@ class Cache extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * The name of the handler that will be used in case the first one is
-     * unreachable. Often, 'file' is used here since the filesystem is
+     * unreachable. Often, 'expedient' is used here since the filesystem is
      * always available, though that's not always practical for the app.
      */
     public string $backupHandler = 'dummy';
@@ -134,7 +134,7 @@ class Cache extends BaseConfig
      */
     public array $validHandlers = [
         'dummy'     => DummyHandler::class,
-        'file'      => FileHandler::class,
+        'expedient'      => FileHandler::class,
         'memcached' => MemcachedHandler::class,
         'predis'    => PredisHandler::class,
         'redis'     => RedisHandler::class,

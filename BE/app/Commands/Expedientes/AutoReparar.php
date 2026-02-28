@@ -107,7 +107,7 @@ class AutoReparar extends BaseCommand
             }
 
             $idClient = (int) $vcr['idCliente'];
-            $db->table('file')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+            $db->table('expedient')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
             if ($db->affectedRows() === 0) {
                 $this->guardarError($db, $row, 'File no actualizado');
                 return false;

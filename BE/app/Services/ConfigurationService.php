@@ -15,11 +15,11 @@ class ConfigurationService
     /**
      * Validar que la configuración existe y está habilitada
      */
-    public function validateConfigurationExists($processId, $costumerTypeId, $operationTypeId, $agencyId)
+    public function validateConfigurationExists($processId, $customerTypeId, $operationTypeId, $agencyId)
     {
         error_log("=== VALIDANDO CONFIGURACIÓN ===");
         error_log("IdProcess: " . $processId);
-        error_log("IdCostumerType: " . $costumerTypeId);
+        error_log("IdCustomerType: " . $customerTypeId);
         error_log("IdOperationType: " . $operationTypeId);
         error_log("IdAgency: " . $agencyId);
         
@@ -32,9 +32,9 @@ class ConfigurationService
                 AND Enabled = 1";
 
         error_log("Query SQL: " . $sql);
-        error_log("Parámetros: " . json_encode([$processId, $costumerTypeId, $operationTypeId, $agencyId]));
+        error_log("Parámetros: " . json_encode([$processId, $customerTypeId, $operationTypeId, $agencyId]));
 
-        $query = $this->db->query($sql, [$processId, $costumerTypeId, $operationTypeId, $agencyId]);
+        $query = $this->db->query($sql, [$processId, $customerTypeId, $operationTypeId, $agencyId]);
         $result = $query->getRow();
 
         error_log("Resultado del query: " . json_encode($result));
@@ -53,7 +53,7 @@ class ConfigurationService
                     cp.IdProcess,
                     p.Name as ProcessName,
                     cp.IdCustomerType,
-                    ct.Name as CostumerTypeName,
+                    ct.Name as CustomerTypeName,
                     cp.IdOperationType,
                     ot.Name as OperationTypeName,
                     cp.IdAgency,
@@ -94,7 +94,7 @@ class ConfigurationService
     /**
      * Obtener tipos de cliente habilitados por proceso y agencia
      */
-    public function getCostumerTypesByProcessAndAgency($processId, $agencyId)
+    public function getCustomerTypesByProcessAndAgency($processId, $agencyId)
     {
         $sql = "SELECT DISTINCT ct.Id, ct.Name
                 FROM customertype ct
@@ -112,7 +112,7 @@ class ConfigurationService
     /**
      * Obtener tipos de operación habilitados por proceso, tipo de cliente y agencia
      */
-    public function getOperationTypesByProcessCostumerTypeAndAgency($processId, $costumerTypeId, $agencyId)
+    public function getOperationTypesByProcessCustomerTypeAndAgency($processId, $customerTypeId, $agencyId)
     {
         $sql = "SELECT DISTINCT ot.Id, ot.Name
                 FROM operation_type ot
@@ -124,7 +124,7 @@ class ConfigurationService
                 AND ot.Enabled = 1
                 ORDER BY ot.Name";
 
-        $query = $this->db->query($sql, [$processId, $costumerTypeId, $agencyId]);
+        $query = $this->db->query($sql, [$processId, $customerTypeId, $agencyId]);
         return $query->getResultArray();
     }
 
@@ -133,7 +133,7 @@ class ConfigurationService
      */
     public function getAllEnabledConfigurations()
     {
-        $sql = "SELECT cp.*, p.Name as ProcessName, ct.Name as CostumerTypeName, 
+        $sql = "SELECT cp.*, p.Name as ProcessName, ct.Name as CustomerTypeName, 
                        ot.Name as OperationTypeName, a.Name as AgencyName
                 FROM configuration_process cp
                 INNER JOIN process p ON cp.IdProcess = p.Id
@@ -153,11 +153,11 @@ class ConfigurationService
     /**
      * Crear nueva configuración
      */
-    public function createConfiguration($processId, $costumerTypeId, $operationTypeId, $agencyId, $userId)
+    public function createConfiguration($processId, $customerTypeId, $operationTypeId, $agencyId, $userId)
     {
         $data = [
             'IdProcess' => $processId,
-            'IdCustomerType' => $costumerTypeId,
+            'IdCustomerType' => $customerTypeId,
             'IdOperationType' => $operationTypeId,
             'IdAgency' => $agencyId,
             'Enabled' => 1,

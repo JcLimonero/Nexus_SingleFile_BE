@@ -149,7 +149,7 @@ class Document extends BaseController
                 'Id' => $newId,
                 'Name' => trim($data['Name']),
                 'Comment' => $data['Comment'] ?? null,
-                'ExperationDate' => $data['ExperationDate'] ?? null,
+                'ExpirationDate' => $data['ExpirationDate'] ?? null,
                 'PathDocument' => $data['PathDocument'] ?? null,
                 'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : 1,
                 'IdFile' => $data['IdFile'],
@@ -271,7 +271,7 @@ class Document extends BaseController
             $updateData = [
                 'Name' => isset($data['Name']) ? trim($data['Name']) : $document['Name'],
                 'Comment' => $data['Comment'] ?? $document['Comment'],
-                'ExperationDate' => $data['ExperationDate'] ?? $document['ExperationDate'],
+                'ExpirationDate' => $data['ExpirationDate'] ?? $document['ExpirationDate'],
                 'PathDocument' => $data['PathDocument'] ?? $document['PathDocument'],
                 'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $document['Enabled'],
                 'IdValidation' => $data['IdValidation'] ?? $document['IdValidation'],
@@ -584,7 +584,7 @@ class Document extends BaseController
     private function getMaxId()
     {
         $db = \Config\Database::connect();
-        $query = $db->query('SELECT MAX(Id) as max_id FROM document_by_file');
+        $query = $db->query('SELECT MAX(Id) as max_id FROM file_document');
         $result = $query->getRow();
         return $result ? (int)$result->max_id : 0;
     }

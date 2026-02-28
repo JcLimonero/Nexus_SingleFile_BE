@@ -25,7 +25,7 @@ class BackblazeController extends BaseController
             }
 
             // Obtener parámetros de la URL
-            $fileName = $this->request->getGet('file');
+            $fileName = $this->request->getGet('expedient');
             $duration = $this->request->getGet('duration') ?? 3600; // Default 1 hora
 
             // Validar parámetros requeridos
@@ -59,7 +59,7 @@ class BackblazeController extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'url' => $privateUrl,
-                'file' => $fileName,
+                'expedient' => $fileName,
                 'duration' => $duration,
                 'expires_at' => date('Y-m-d H:i:s', time() + $duration)
             ]);

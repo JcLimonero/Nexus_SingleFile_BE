@@ -33,8 +33,8 @@ if (defined('SHOW_DEBUG_BACKTRACE') && SHOW_DEBUG_BACKTRACE) {
         $padClass = '       '; // 7 spaces
         $c        = str_pad($i + 1, 3, ' ', STR_PAD_LEFT);
 
-        if (isset($error['file'])) {
-            $filepath = clean_path($error['file']) . ':' . $error['line'];
+        if (isset($error['expedient'])) {
+            $filepath = clean_path($error['expedient']) . ':' . $error['line'];
 
             CLI::write($c . $padFile . CLI::color($filepath, 'yellow'));
         } else {

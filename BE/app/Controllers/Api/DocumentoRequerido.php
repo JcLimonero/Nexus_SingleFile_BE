@@ -31,7 +31,7 @@ class DocumentoRequerido extends BaseController
             $filters = [
                 'IdProcess' => $this->request->getGet('IdProcess'),
                 'IdAgency' => $this->request->getGet('IdAgency'),
-                'IdCostumerType' => $this->request->getGet('IdCostumerType'),
+                'IdCustomerType' => $this->request->getGet('IdCustomerType'),
                 'IdOperationType' => $this->request->getGet('IdOperationType'),
                 'IdDocumentType' => $this->request->getGet('IdDocumentType'),
                 'Required' => $this->request->getGet('Required') !== null ? (int)$this->request->getGet('Required') : null,
@@ -176,7 +176,7 @@ class DocumentoRequerido extends BaseController
             if ($this->documentoRequeridoModel->existsDocumentoRequerido(
                 $data['IdProcess'], 
                 $data['IdAgency'], 
-                $data['IdCostumerType'], 
+                $data['IdCustomerType'], 
                 $data['IdOperationType'], 
                 $data['IdDocumentType']
             )) {
@@ -194,7 +194,7 @@ class DocumentoRequerido extends BaseController
                 $documentoCreado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
                     'IdProcess' => $data['IdProcess'],
                     'IdAgency' => $data['IdAgency'],
-                    'IdCostumerType' => $data['IdCostumerType'],
+                    'IdCustomerType' => $data['IdCustomerType'],
                     'IdOperationType' => $data['IdOperationType']
                 ]);
                 
@@ -288,7 +288,7 @@ class DocumentoRequerido extends BaseController
                 $configFieldsMatch = true;
                 
                 // Comparar cada campo de configuración (ignorar 'Id' y 'Enabled' del request)
-                $configFields = ['IdProcess', 'IdAgency', 'IdCostumerType', 'IdOperationType', 'IdDocumentType'];
+                $configFields = ['IdProcess', 'IdAgency', 'IdCustomerType', 'IdOperationType', 'IdDocumentType'];
                 foreach ($configFields as $field) {
                     if (isset($data[$field])) {
                         $requestValue = $normalizeValue($data[$field]);
@@ -314,14 +314,14 @@ class DocumentoRequerido extends BaseController
             // Verificar si ya existe otro documento requerido para la misma configuración
             // Solo si se están actualizando los campos de configuración (no solo Enabled)
             if (!$isOnlyEnabledUpdate && isset($data['IdProcess']) && isset($data['IdAgency']) && 
-                isset($data['IdCostumerType']) && isset($data['IdOperationType']) && 
+                isset($data['IdCustomerType']) && isset($data['IdOperationType']) && 
                 isset($data['IdDocumentType'])) {
                 
                 // Verificar si los valores realmente están cambiando
                 $configChanged = (
                     $normalizeValue($data['IdProcess']) !== $normalizeValue($existingDocumento['IdProcess']) ||
                     $normalizeValue($data['IdAgency']) !== $normalizeValue($existingDocumento['IdAgency']) ||
-                    $normalizeValue($data['IdCostumerType']) !== $normalizeValue($existingDocumento['IdCostumerType']) ||
+                    $normalizeValue($data['IdCustomerType']) !== $normalizeValue($existingDocumento['IdCustomerType']) ||
                     $normalizeValue($data['IdOperationType']) !== $normalizeValue($existingDocumento['IdOperationType']) ||
                     $normalizeValue($data['IdDocumentType']) !== $normalizeValue($existingDocumento['IdDocumentType'])
                 );
@@ -333,7 +333,7 @@ class DocumentoRequerido extends BaseController
                     if ($this->documentoRequeridoModel->existsDocumentoRequerido(
                         $data['IdProcess'], 
                         $data['IdAgency'], 
-                        $data['IdCostumerType'], 
+                        $data['IdCustomerType'], 
                         $data['IdOperationType'], 
                         $data['IdDocumentType'],
                         $id
@@ -586,7 +586,7 @@ class DocumentoRequerido extends BaseController
             $documentosFuente = $this->documentoRequeridoModel->getDocumentosRequeridos([
                 'IdProcess' => $source['IdProcess'],
                 'IdAgency' => $source['IdAgency'],
-                'IdCostumerType' => $source['IdCostumerType'],
+                'IdCustomerType' => $source['IdCustomerType'],
                 'IdOperationType' => $source['IdOperationType']
             ]);
 
@@ -605,7 +605,7 @@ class DocumentoRequerido extends BaseController
                 if ($this->documentoRequeridoModel->existsDocumentoRequerido(
                     $target['IdProcess'], 
                     $target['IdAgency'], 
-                    $target['IdCostumerType'], 
+                    $target['IdCustomerType'], 
                     $target['IdOperationType'], 
                     $documento['IdDocumentType']
                 )) {
@@ -617,7 +617,7 @@ class DocumentoRequerido extends BaseController
                 $duplicateData = [
                     'IdProcess' => $target['IdProcess'],
                     'IdAgency' => $target['IdAgency'],
-                    'IdCostumerType' => $target['IdCostumerType'],
+                    'IdCustomerType' => $target['IdCustomerType'],
                     'IdOperationType' => $target['IdOperationType'],
                     'IdDocumentType' => $documento['IdDocumentType']
                 ];
@@ -661,7 +661,7 @@ class DocumentoRequerido extends BaseController
      */
     private function validateRequiredFields($data)
     {
-        $requiredFields = ['IdProcess', 'IdAgency', 'IdCostumerType', 'IdOperationType', 'IdDocumentType'];
+        $requiredFields = ['IdProcess', 'IdAgency', 'IdCustomerType', 'IdOperationType', 'IdDocumentType'];
         
         foreach ($requiredFields as $field) {
             if (!isset($data[$field]) || empty($data[$field])) {

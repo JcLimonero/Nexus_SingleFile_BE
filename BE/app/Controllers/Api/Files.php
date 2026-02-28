@@ -34,7 +34,7 @@ class Files extends BaseController
                             SELECT 
                                 f.Id as fileId,
                                 f.IdOrderTotal as numeroPedido,
-                                f.IdInventary as numeroInventario,
+                                f.IdInventory as numeroInventario,
                                 p.Name as proceso,
                                 ot.Name as operacion,
                                 ct.Name as tipoCliente,
@@ -45,16 +45,16 @@ class Files extends BaseController
                                 a.Name as agencia,
                                 f.RegistrationDate as fechaRegistro,
                                 fs.Name as estatus
-                            FROM file f
-                            INNER JOIN header_client hc ON hc.IdClient = f.IdClient
-                            INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                            FROM expedient f
+                            INNER JOIN client_header hc ON hc.IdClient = f.IdClient
+                            INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
                                 AND ctr.IdAgency = f.IdAgency
                             LEFT JOIN process p ON f.IdProcess = p.Id
                             LEFT JOIN operation_type ot ON f.IdOperation = ot.Id
                             LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                             LEFT JOIN agency a ON f.IdAgency = a.Id
                             LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
-                            LEFT JOIN order_by_car obc ON f.IdOrderTotal = obc.IdDMS
+                            LEFT JOIN order obc ON f.IdOrderTotal = obc.IdDMS
                             WHERE TRIM(ctr.IdDMS) = ?
                         ";
 
@@ -113,13 +113,13 @@ class Files extends BaseController
             // Query mejorado para obtener TODOS los files/pedidos por agencia y cliente
             // Usamos INNER JOIN con Agency para asegurar que existe la agencia
             // LEFT JOINs con otras tablas para no perder registros aunque falten datos relacionados
-            // IMPORTANTE: Usamos subconsulta para OrderByCar para evitar duplicados cuando hay múltiples registros
+            // IMPORTANTE: Usamos subconsulta para Order para evitar duplicados cuando hay múltiples registros
             // La subconsulta selecciona el registro más reciente por IdDMS
             $sql = "
                 SELECT 
                     f.Id as fileId,
                     f.IdOrderTotal as numeroPedido,
-                    f.IdInventary as numeroInventario,
+                    f.IdInventory as numeroInventario,
                     p.Name as proceso,
                     ot.Name as operacion,
                     ct.Name as tipoCliente,
@@ -130,7 +130,7 @@ class Files extends BaseController
                     a.Name as agencia,
                     f.RegistrationDate as fechaRegistro,
                     fs.Name as estatus
-                FROM file f
+                FROM expedient f
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN process p ON f.IdProcess = p.Id
                 LEFT JOIN operation_type ot ON f.IdOperation = ot.Id
@@ -143,10 +143,10 @@ class Files extends BaseController
                         obc1.Year,
                         obc1.Model,
                         obc1.VIN
-                    FROM order_by_car obc1
+                    FROM order obc1
                     INNER JOIN (
                         SELECT IdDMS, MAX(RegistrationDate) as MaxDate
-                        FROM order_by_car
+                        FROM order
                         GROUP BY IdDMS
                     ) obc2 ON obc1.IdDMS = obc2.IdDMS 
                         AND obc1.RegistrationDate = obc2.MaxDate
@@ -172,8 +172,8 @@ class Files extends BaseController
                 $ndClienteTrimmed = trim($ndCliente);
                 $sql .= " AND EXISTS (
                     SELECT 1
-                    FROM header_client hc 
-                    INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient 
+                    FROM client_header hc 
+                    INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader 
                     WHERE hc.IdClient = f.IdClient 
                     AND TRIM(ctr.IdDMS) = ?
                     AND ctr.IdAgency = f.IdAgency
@@ -182,7 +182,7 @@ class Files extends BaseController
             }
 
             // Agrupar por f.Id para asegurar un solo registro por pedido (evitar duplicados)
-            $sql .= " GROUP BY f.Id, f.IdOrderTotal, f.IdInventary, p.Name, ot.Name, ct.Name, 
+            $sql .= " GROUP BY f.Id, f.IdOrderTotal, f.IdInventory, p.Name, ot.Name, ct.Name, 
                              obc.CarType, obc.Year, obc.Model, obc.VIN, a.Name, f.RegistrationDate, fs.Name";
             $sql .= " ORDER BY f.RegistrationDate DESC";
             
@@ -211,7 +211,7 @@ class Files extends BaseController
                         a.IdAgencyDMS as AgencyIdAgencyDMS,
                         f.IdClient as IdClient,
                         fs.Name as estado
-                    FROM file f
+                    FROM expedient f
                     INNER JOIN agency a ON f.IdAgency = a.Id
                     LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                     WHERE f.IdOrderTotal = '35348'
@@ -228,23 +228,23 @@ class Files extends BaseController
                     error_log("Estado: " . ($pedidoResult['estado'] ?? 'NULL'));
                     error_log("IdClient (File.IdClient = Client.Id): " . ($idClient ?? 'NULL'));
                     
-                    // Verificar relaciones: File.IdClient = Client.Id; Client_Total_Relation usa idHeaderClient (HeaderClient.Id)
+                    // Verificar relaciones: File.IdClient = Client.Id; ClientDMSRelation usa idClientHeader (ClientHeader.Id)
                     $relacionSql = "
                         SELECT COUNT(*) as count
-                        FROM client_total_relation ctr 
-                        INNER JOIN header_client hc ON hc.Id = ctr.idHeaderClient AND hc.IdClient = ?
+                        FROM client_dms_relation ctr 
+                        INNER JOIN client_header hc ON hc.Id = ctr.idClientHeader AND hc.IdClient = ?
                         WHERE TRIM(ctr.IdDMS) = ?
                     ";
                     $relacionQuery = $this->db->query($relacionSql, [$idClient, trim($ndCliente)]);
                     $relacionResult = $relacionQuery->getRow();
-                    $relacionesConHeaderClient = $relacionResult->count ?? 0;
+                    $relacionesConClientHeader = $relacionResult->count ?? 0;
                     
-                    error_log("Relaciones Client_Total_Relation para Client.Id {$idClient} y ndCliente {$ndCliente}: {$relacionesConHeaderClient}");
+                    error_log("Relaciones ClientDMSRelation para Client.Id {$idClient} y ndCliente {$ndCliente}: {$relacionesConClientHeader}");
                     
                     // Verificar TODAS las relaciones del cliente 200495 (en cualquier agencia)
                     $todasRelacionesSql = "
-                        SELECT ctr.IdAgency, a.Name as nombreAgencia, ctr.IdDMS, ctr.idHeaderClient
-                        FROM client_total_relation ctr
+                        SELECT ctr.IdAgency, a.Name as nombreAgencia, ctr.IdDMS, ctr.idClientHeader
+                        FROM client_dms_relation ctr
                         INNER JOIN agency a ON ctr.IdAgency = a.Id
                         WHERE TRIM(ctr.IdDMS) = ?
                     ";
@@ -268,7 +268,7 @@ class Files extends BaseController
                         f.IdClient,
                         fs.Id as FileStatusId,
                         fs.Name as FileStatusName
-                    FROM file f
+                    FROM expedient f
                     LEFT JOIN agency a ON f.IdAgency = a.Id
                     LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                     WHERE f.Id = 12328
@@ -300,8 +300,8 @@ class Files extends BaseController
                     if ($ndCliente) {
                         $clientCheckSql = "
                             SELECT COUNT(*) as count
-                            FROM header_client hc 
-                            INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient 
+                            FROM client_header hc 
+                            INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader 
                             WHERE hc.IdClient = ? AND TRIM(ctr.IdDMS) = ?
                         ";
                         $clientCheckQuery = $this->db->query($clientCheckSql, [$diagnosticResult->IdClient, trim($ndCliente)]);
@@ -328,7 +328,7 @@ class Files extends BaseController
                     error_log("✅ Campos year, modelo, version, vin están presentes en los resultados");
                     error_log("Valores: year=" . ($results[0]['year'] ?? 'NULL') . ", modelo=" . ($results[0]['model'] ?? 'NULL') . ", version=" . ($results[0]['version'] ?? 'NULL') . ", vin=" . ($results[0]['vin'] ?? 'NULL'));
                 } else {
-                    error_log("⚠️ Campos year, modelo, version, vin NO están presentes o son NULL (esto es normal si no hay registro en OrderByCar)");
+                    error_log("⚠️ Campos year, modelo, version, vin NO están presentes o son NULL (esto es normal si no hay registro en Order)");
                 }
                 
                 // Log de todos los fileIds encontrados para diagnóstico
@@ -382,10 +382,10 @@ class Files extends BaseController
     }
     
     /**
-     * Endpoint de diagnóstico para verificar el JOIN con OrderByCar
+     * Endpoint de diagnóstico para verificar el JOIN con Order
      * GET /api/files/debug-join-orderbycar?agencyId=10082&ndCliente=200945&statusId=1
      */
-    public function debugJoinOrderByCar()
+    public function debugJoinOrder()
     {
         try {
             $agencyId = $this->request->getGet('agencyId');
@@ -404,7 +404,7 @@ class Files extends BaseController
                 SELECT 
                     f.Id as fileId,
                     f.IdOrderTotal as file_numeroPedido,
-                    f.IdInventary as numeroInventario,
+                    f.IdInventory as numeroInventario,
                     obc.Id as orderByCarId,
                     obc.Number as orderByCar_Number,
                     obc.IdDMS as orderByCar_IdDMS,
@@ -414,13 +414,13 @@ class Files extends BaseController
                     obc.VIN as vin,
                     CASE 
                         WHEN f.IdOrderTotal = obc.IdDMS THEN 'COINCIDENCIA CON IdDMS'
-                        WHEN obc.Id IS NULL THEN 'NO HAY REGISTRO EN OrderByCar'
+                        WHEN obc.Id IS NULL THEN 'NO HAY REGISTRO EN Order'
                         ELSE 'NO COINCIDE'
                     END as estado_join
-                FROM file f
+                FROM expedient f
                 LEFT JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
-                LEFT JOIN order_by_car obc ON f.IdOrderTotal = obc.IdDMS
+                LEFT JOIN order obc ON f.IdOrderTotal = obc.IdDMS
                 WHERE a.IdAgencyDMS = ?
             ";
 
@@ -434,8 +434,8 @@ class Files extends BaseController
             if ($ndCliente && trim($ndCliente) !== '') {
                 $sql .= " AND f.IdClient IN (
                     SELECT hc.IdClient 
-                    FROM header_client hc 
-                    INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient 
+                    FROM client_header hc 
+                    INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader 
                     WHERE TRIM(ctr.IdDMS) = ?
                     AND ctr.IdAgency = ?
                 )";
@@ -450,7 +450,7 @@ class Files extends BaseController
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Diagnóstico de JOIN con OrderByCar',
+                'message' => 'Diagnóstico de JOIN con Order',
                 'data' => [
                     'files' => $results,
                     'total' => count($results),
@@ -460,7 +460,7 @@ class Files extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            error_log("Error en Files::debugJoinOrderByCar: " . $e->getMessage());
+            error_log("Error en Files::debugJoinOrder: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
@@ -522,7 +522,7 @@ class Files extends BaseController
             }
 
             // Validar datos requeridos
-            $requiredFields = ['order', 'process', 'costumerType', 'operationType', 'clientId', 'agencyId'];
+            $requiredFields = ['order', 'process', 'customerType', 'operationType', 'clientId', 'agencyId'];
             foreach ($requiredFields as $field) {
                 if (!isset($input[$field])) {
                     return $this->response->setJSON([
@@ -534,14 +534,14 @@ class Files extends BaseController
 
             $order = $input['order'];
             $process = $input['process'];
-            $costumerType = $input['costumerType'];
+            $customerType = $input['customerType'];
             $operationType = $input['operationType'];
             $clientId = $input['clientId'];
             $agencyId = $input['agencyId'];
 
             // Extraer IDs de los objetos
             $processId = is_array($process) ? $process['Id'] : $process;
-            $costumerTypeId = is_array($costumerType) ? $costumerType['Id'] : $costumerType;
+            $customerTypeId = is_array($customerType) ? $customerType['Id'] : $customerType;
             $operationTypeId = is_array($operationType) ? $operationType['Id'] : $operationType;
 
             // Convertir IdAgency externo al Id interno de la agencia
@@ -555,7 +555,7 @@ class Files extends BaseController
             // Validar que la configuración existe
             $configurationExists = $this->validateConfigurationExists(
                 $processId, 
-                $costumerTypeId, 
+                $customerTypeId, 
                 $operationTypeId, 
                 $internalAgencyId
             );
@@ -602,21 +602,21 @@ class Files extends BaseController
             // Iniciar transacción
             $this->db->transStart();
 
-            // Crear o buscar OrderByCar PRIMERO (solo uno por combinación de IdDMS/VIN/idagency)
-            $orderByCarId = $this->getOrCreateOrderByCar($order, $currentUser['user_id'], $agencyId);
+            // Crear o buscar Order PRIMERO (solo uno por combinación de IdDMS/VIN/idagency)
+            $orderByCarId = $this->getOrCreateOrder($order, $currentUser['user_id'], $agencyId);
 
             if (!$orderByCarId) {
                 $this->db->transRollback();
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Error al crear o buscar el registro en OrderByCar'
+                    'message' => 'Error al crear o buscar el registro en Order'
                 ])->setStatusCode(500);
             }
 
-            error_log("✅ OrderByCar ID obtenido: " . $orderByCarId);
+            error_log("✅ Order ID obtenido: " . $orderByCarId);
 
-            // Crear file usando IdClient de view_client_relations (hc.IdClient), agencia y OrderByCar
-            $fileId = $this->createFile($order, $process, $costumerType, $operationType, $idClientResolved, $internalAgencyId, $currentUser['user_id'], $sellerId, $orderByCarId);
+            // Crear file usando IdClient de view_client_relations (hc.IdClient), agencia y Order
+            $fileId = $this->createFile($order, $process, $customerType, $operationType, $idClientResolved, $internalAgencyId, $currentUser['user_id'], $sellerId, $orderByCarId);
 
             if (!$fileId) {
                 $this->db->transRollback();
@@ -627,9 +627,9 @@ class Files extends BaseController
             }
 
             // Crear documentos asociados - pasar ambos IDs (interno y externo) para buscar correctamente
-            // IMPORTANTE: Este método DEBE crear TODOS los documentos requeridos en DocumentByFile
+            // IMPORTANTE: Este método DEBE crear TODOS los documentos requeridos en FileDocument
             try {
-                $documentsCreated = $this->createFileDocuments($fileId, $process['Id'], $costumerType['Id'], $operationType['Id'], $internalAgencyId, $agencyId, $currentUser['user_id']);
+                $documentsCreated = $this->createFileDocuments($fileId, $process['Id'], $customerType['Id'], $operationType['Id'], $internalAgencyId, $agencyId, $currentUser['user_id']);
                 
                 error_log("Total de documentos creados: " . $documentsCreated);
                 
@@ -659,7 +659,7 @@ class Files extends BaseController
                 error_log("DB error: " . json_encode($dbError));
                 
                 // Verificar si el File se creó antes del error
-                $verifyQuery = $this->db->query("SELECT Id FROM `file` WHERE Id = ?", [$fileId]);
+                $verifyQuery = $this->db->query("SELECT Id FROM `expedient` WHERE Id = ?", [$fileId]);
                 $verifyResult = $verifyQuery->getRow();
                 if ($verifyResult) {
                     error_log("⚠️ ADVERTENCIA: El File con ID $fileId existe pero la transacción falló. Puede haber datos inconsistentes.");
@@ -674,7 +674,7 @@ class Files extends BaseController
             }
             
             // Verificar que el File realmente existe después de la transacción
-            $verifyQuery = $this->db->query("SELECT Id FROM `file` WHERE Id = ?", [$fileId]);
+            $verifyQuery = $this->db->query("SELECT Id FROM `expedient` WHERE Id = ?", [$fileId]);
             $verifyResult = $verifyQuery->getRow();
             if (!$verifyResult) {
                 error_log("❌ ERROR CRÍTICO: El File con ID $fileId NO existe después de completar la transacción");
@@ -716,11 +716,11 @@ class Files extends BaseController
     /**
      * Validar que la configuración existe y está habilitada
      */
-    private function validateConfigurationExists($processId, $costumerTypeId, $operationTypeId, $agencyId)
+    private function validateConfigurationExists($processId, $customerTypeId, $operationTypeId, $agencyId)
     {
         error_log("=== VALIDANDO CONFIGURACIÓN (TEMPORAL - SIEMPRE TRUE) ===");
         error_log("IdProcess: " . $processId);
-        error_log("IdCostumerType: " . $costumerTypeId);
+        error_log("IdCustomerType: " . $customerTypeId);
         error_log("IdOperationType: " . $operationTypeId);
         error_log("IdAgency: " . $agencyId);
         
@@ -737,9 +737,9 @@ class Files extends BaseController
                 AND Enabled = 1";
 
         error_log("Query SQL: " . $sql);
-        error_log("Parámetros: " . json_encode([$processId, $costumerTypeId, $operationTypeId, $agencyId]));
+        error_log("Parámetros: " . json_encode([$processId, $customerTypeId, $operationTypeId, $agencyId]));
 
-        $query = $this->db->query($sql, [$processId, $costumerTypeId, $operationTypeId, $agencyId]);
+        $query = $this->db->query($sql, [$processId, $customerTypeId, $operationTypeId, $agencyId]);
         $result = $query->getRow();
 
         error_log("Resultado del query: " . json_encode($result));
@@ -796,14 +796,14 @@ class Files extends BaseController
     }
 
     /**
-     * Buscar cliente por ndCliente externo (HeaderClient.Id).
+     * Buscar cliente por ndCliente externo (ClientHeader.Id).
      * @deprecated Preferir getClientIdFromViewClientRelations(ndDMS, idAgency) para obtener IdClient (Client.Id).
      */
     private function getClientByExternalId($externalClientId)
     {
         $sql = "SELECT hc.Id 
-                FROM header_client hc
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                FROM client_header hc
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
                 WHERE ctr.IdDMS = ?";
         $query = $this->db->query($sql, [$externalClientId]);
         return $query->getRow();
@@ -812,14 +812,14 @@ class Files extends BaseController
     /**
      * Crear file en la base de datos
      */
-    private function createFile($order, $process, $costumerType, $operationType, $clientId, $internalAgencyId, $userId, $sellerId, $orderByCarId = null)
+    private function createFile($order, $process, $customerType, $operationType, $clientId, $internalAgencyId, $userId, $sellerId, $orderByCarId = null)
     {
         $currentDate = date('Y-m-d H:i:s');
         
         error_log("=== CREANDO FILE CON SELLER ID: " . $sellerId . " ===");
         
         // Obtener el siguiente ID disponible
-        $nextIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM `file`");
+        $nextIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM `expedient`");
         $nextIdResult = $nextIdQuery->getRow();
         $nextId = $nextIdResult->nextId;
         
@@ -832,13 +832,13 @@ class Files extends BaseController
             'IdClient' => $clientId,
             'IdAgency' => $internalAgencyId,
             'IdProcess' => $process['Id'],
-            'IdCustomerType' => $costumerType['Id'],
+            'IdCustomerType' => $customerType['Id'],
             'IdOperation' => $operationType['Id'],
             'IdSeller' => $sellerId,
             'IdCurrentState' => 1, // Integración
             'IdOrderTotal' => $idOrderTotal,
-            'IdOrder' => $orderByCarId, // Usar el ID de OrderByCar (foreign key)
-            'IdInventary' => $order['inventory'] ?? $order['inventario'] ?? null,
+            'IdOrder' => $orderByCarId, // Usar el ID de Order (foreign key)
+            'IdInventory' => $order['inventory'] ?? $order['inventario'] ?? null,
             'RegistrationDate' => $currentDate,
             'UpdateDate' => $currentDate,
             'IdLastUserUpdate' => $userId
@@ -856,7 +856,7 @@ class Files extends BaseController
             }
             
             // Intentar insertar el File
-            $result = $this->db->table('file')->insert($fileData);
+            $result = $this->db->table('expedient')->insert($fileData);
             
             // Verificar errores inmediatamente después de la inserción
             $dbError = $this->db->error();
@@ -890,7 +890,7 @@ class Files extends BaseController
             }
             
             // Siempre verificar que el registro realmente existe después de la inserción
-            $verifyQuery = $this->db->query("SELECT Id FROM `file` WHERE Id = ?", [$fileId]);
+            $verifyQuery = $this->db->query("SELECT Id FROM `expedient` WHERE Id = ?", [$fileId]);
             $verifyResult = $verifyQuery->getRow();
             if (!$verifyResult) {
                 error_log("❌ ERROR CRÍTICO: El File con ID $fileId NO existe después de la inserción");
@@ -923,12 +923,12 @@ class Files extends BaseController
 
     /**
      * Crear documentos asociados al file
-     * IMPORTANTE: Este método debe crear TODOS los documentos requeridos en DocumentByFile desde el inicio
+     * IMPORTANTE: Este método debe crear TODOS los documentos requeridos en FileDocument desde el inicio
      */
-    private function createFileDocuments($fileId, $processId, $costumerTypeId, $operationTypeId, $internalAgencyId, $externalAgencyId, $userId)
+    private function createFileDocuments($fileId, $processId, $customerTypeId, $operationTypeId, $internalAgencyId, $externalAgencyId, $userId)
     {
         error_log("=== INICIANDO createFileDocuments ===");
-        error_log("Parámetros: fileId=$fileId, processId=$processId, costumerTypeId=$costumerTypeId, operationTypeId=$operationTypeId, internalAgencyId=$internalAgencyId, externalAgencyId=$externalAgencyId, userId=$userId");
+        error_log("Parámetros: fileId=$fileId, processId=$processId, customerTypeId=$customerTypeId, operationTypeId=$operationTypeId, internalAgencyId=$internalAgencyId, externalAgencyId=$externalAgencyId, userId=$userId");
         
         // Buscar documentos requeridos usando AMBOS IDs de agencia
         // ConfigurationProcess puede usar el ID interno o externo, así que buscamos por ambos
@@ -945,9 +945,9 @@ class Files extends BaseController
                 ORDER BY dt.Name ASC";
 
         error_log("SQL para documentos requeridos: " . $sql);
-        error_log("Parámetros SQL: [$processId, $costumerTypeId, $operationTypeId, $internalAgencyId, $externalAgencyId]");
+        error_log("Parámetros SQL: [$processId, $customerTypeId, $operationTypeId, $internalAgencyId, $externalAgencyId]");
 
-        $query = $this->db->query($sql, [$processId, $costumerTypeId, $operationTypeId, $internalAgencyId, $externalAgencyId]);
+        $query = $this->db->query($sql, [$processId, $customerTypeId, $operationTypeId, $internalAgencyId, $externalAgencyId]);
         $requiredDocuments = $query->getResultArray();
 
         error_log("Documentos requeridos encontrados: " . count($requiredDocuments));
@@ -955,7 +955,7 @@ class Files extends BaseController
 
         // Si no hay documentos requeridos, retornar 0 pero no es un error
         if (empty($requiredDocuments)) {
-            error_log("⚠️ No se encontraron documentos requeridos para esta configuración (Process: $processId, CustomerType: $costumerTypeId, OperationType: $operationTypeId, Agency: $internalAgencyId/$externalAgencyId)");
+            error_log("⚠️ No se encontraron documentos requeridos para esta configuración (Process: $processId, CustomerType: $customerTypeId, OperationType: $operationTypeId, Agency: $internalAgencyId/$externalAgencyId)");
             return 0;
         }
 
@@ -965,12 +965,12 @@ class Files extends BaseController
             error_log("=== PROCESANDO DOCUMENTO " . ($index + 1) . " ===");
             error_log("Documento: " . json_encode($document));
             
-            // Obtener el siguiente ID disponible para DocumentByFile
-            $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM document_by_file");
+            // Obtener el siguiente ID disponible para FileDocument
+            $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM file_document");
             $nextDocIdResult = $nextDocIdQuery->getRow();
             $nextDocId = $nextDocIdResult->nextId;
             
-            error_log("Siguiente ID para DocumentByFile: " . $nextDocId);
+            error_log("Siguiente ID para FileDocument: " . $nextDocId);
             
             $currentDate = date('Y-m-d H:i:s');
             
@@ -981,7 +981,7 @@ class Files extends BaseController
                 'IdDocumentType' => $document['IdDocumentType'],
                 'Name' => $document['DocumentName'] ?? 'Documento sin nombre',
                 'Comment' => null,
-                'ExperationDate' => null,
+                'ExpirationDate' => null,
                 'PathDocument' => null,
                 'Enabled' => 1, // Documento habilitado
                 'RegistrationDate' => $currentDate,
@@ -1009,15 +1009,15 @@ class Files extends BaseController
                 // Continuar con la creación del documento aunque falle la búsqueda
             }
 
-            error_log("Datos del documento a insertar en DocumentByFile: " . json_encode($documentData));
+            error_log("Datos del documento a insertar en FileDocument: " . json_encode($documentData));
 
             try {
-                $result = $this->db->table('document_by_file')->insert($documentData);
+                $result = $this->db->table('file_document')->insert($documentData);
                 
                 if (!$result) {
                     $dbError = $this->db->error();
-                    error_log("ERROR al insertar documento en DocumentByFile. DB Error: " . json_encode($dbError));
-                    throw new \Exception("Error al insertar documento en DocumentByFile: " . ($dbError['message'] ?? 'Error desconocido'));
+                    error_log("ERROR al insertar documento en FileDocument. DB Error: " . json_encode($dbError));
+                    throw new \Exception("Error al insertar documento en FileDocument: " . ($dbError['message'] ?? 'Error desconocido'));
                 }
                 
                 $insertId = $this->db->insertID();
@@ -1123,13 +1123,13 @@ class Files extends BaseController
     }
 
     /**
-     * Buscar o crear registro en OrderByCar
+     * Buscar o crear registro en Order
      * Solo debe existir UN registro por combinación de IdDMS/VIN/idagency
      * Retorna el ID del registro (existente o creado)
      */
-    private function getOrCreateOrderByCar($order, $userId, $agencyId)
+    private function getOrCreateOrder($order, $userId, $agencyId)
     {
-        error_log("=== INICIANDO getOrCreateOrderByCar ===");
+        error_log("=== INICIANDO getOrCreateOrder ===");
         error_log("Datos del order: " . json_encode($order));
         error_log("AgencyId recibido: " . $agencyId);
         
@@ -1140,30 +1140,30 @@ class Files extends BaseController
         // Manejar NULLs correctamente en la búsqueda
         if ($vin === null || $vin === '') {
             $existingQuery = $this->db->query(
-                "SELECT Id FROM order_by_car WHERE IdDMS = ? AND (VIN IS NULL OR VIN = '') AND idagency = ?",
+                "SELECT Id FROM order WHERE IdDMS = ? AND (VIN IS NULL OR VIN = '') AND idagency = ?",
                 [$idDMS, $agencyId]
             );
         } else {
             $existingQuery = $this->db->query(
-                "SELECT Id FROM order_by_car WHERE IdDMS = ? AND VIN = ? AND idagency = ?",
+                "SELECT Id FROM order WHERE IdDMS = ? AND VIN = ? AND idagency = ?",
                 [$idDMS, $vin, $agencyId]
             );
         }
         $existing = $existingQuery->getRow();
         
         if ($existing) {
-            error_log("✅ OrderByCar ya existe con ID: " . $existing->Id);
+            error_log("✅ Order ya existe con ID: " . $existing->Id);
             return $existing->Id;
         }
         
-        error_log("⚠️ OrderByCar no existe, creando nuevo registro...");
+        error_log("⚠️ Order no existe, creando nuevo registro...");
         
-        // Obtener el siguiente ID disponible para OrderByCar
-        $nextIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM order_by_car");
+        // Obtener el siguiente ID disponible para Order
+        $nextIdQuery = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 as nextId FROM order");
         $nextIdResult = $nextIdQuery->getRow();
         $nextId = $nextIdResult->nextId;
         
-        error_log("Siguiente ID disponible para OrderByCar: " . $nextId);
+        error_log("Siguiente ID disponible para Order: " . $nextId);
         
         $currentDate = date('Y-m-d H:i:s');
         
@@ -1182,15 +1182,15 @@ class Files extends BaseController
             'idagency' => $agencyId // El idagency debe ser la agencia donde estamos intentando crear el expediente
         ];
 
-        error_log("Datos de OrderByCar a insertar: " . json_encode($orderByCarData));
+        error_log("Datos de Order a insertar: " . json_encode($orderByCarData));
 
         try {
-            $result = $this->db->table('order_by_car')->insert($orderByCarData);
+            $result = $this->db->table('order')->insert($orderByCarData);
             $insertId = $this->db->insertID();
             
             if (!$result) {
                 $dbError = $this->db->error();
-                error_log("❌ ERROR al insertar OrderByCar en la base de datos");
+                error_log("❌ ERROR al insertar Order en la base de datos");
                 error_log("DB error message: " . ($dbError['message'] ?? 'No error message'));
                 error_log("DB error code: " . ($dbError['code'] ?? 'No error code'));
                 error_log("DB error details: " . json_encode($dbError));
@@ -1203,10 +1203,10 @@ class Files extends BaseController
                 error_log("⚠️ insertID() no devolvió ID, usando ID especificado: " . $insertId);
             }
             
-            error_log("✅ OrderByCar creado exitosamente con ID: " . $insertId);
+            error_log("✅ Order creado exitosamente con ID: " . $insertId);
             return $insertId;
         } catch (\Exception $e) {
-            error_log("❌ EXCEPCIÓN al insertar OrderByCar: " . $e->getMessage());
+            error_log("❌ EXCEPCIÓN al insertar Order: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             $dbError = $this->db->error();
             if ($dbError) {
@@ -1298,7 +1298,7 @@ class Files extends BaseController
             }
 
             // Una sola consulta: todos los File existentes para esta agencia y estos IdOrderTotal (+ IdClient si filtraremos)
-            $builder = $this->db->table('file');
+            $builder = $this->db->table('expedient');
             $builder->select('Id, IdOrderTotal' . ($idClientFromView !== null ? ', IdClient' : ''));
             $builder->where('IdAgency', $agencyId);
             $builder->whereIn('IdOrderTotal', $orderDmsList);
@@ -1371,7 +1371,7 @@ class Files extends BaseController
     /**
      * Reparar relación de cliente en un expediente (File).
      * Busca en view_client_relations por ndCliente e idAgency,
-     * obtiene idClient (HeaderClient.Id) y actualiza File.IdClient donde File.Id = idExpediente.
+     * obtiene idClient (ClientHeader.Id) y actualiza File.IdClient donde File.Id = idExpediente.
      */
     public function repairClientRelation()
     {
@@ -1431,7 +1431,7 @@ class Files extends BaseController
             $idClient = (int) $idClientVal;
 
             // Actualizar File.IdClient donde Id = idExpediente
-            $this->db->table('file')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+            $this->db->table('expedient')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
             if ($this->db->affectedRows() === 0) {
                 $this->guardarErrorRepair($ndDMS, $idAgency, $idExpediente, 'No se actualizó ningún expediente');
                 return $this->response->setJSON([
@@ -1531,7 +1531,7 @@ class Files extends BaseController
         }
         
         // Obtener el cliente del file actual
-        $fileQuery = $this->db->query("SELECT IdClient FROM file WHERE Id = ?", [$fileId]);
+        $fileQuery = $this->db->query("SELECT IdClient FROM expedient WHERE Id = ?", [$fileId]);
         $file = $fileQuery->getRow();
         
         if (!$file) {
@@ -1545,8 +1545,8 @@ class Files extends BaseController
         // Buscar documentos del mismo cliente en otros files anteriores que estén aprobados (status 4)
         // Solo buscamos ServerPath ya que es el campo que realmente usamos para copiar
         $sql = "SELECT dbf.ServerPath, dbf.IdFile, dbf.RegistrationDate
-                FROM document_by_file dbf
-                INNER JOIN file f ON dbf.IdFile = f.Id
+                FROM file_document dbf
+                INNER JOIN expedient f ON dbf.IdFile = f.Id
                 WHERE f.IdClient = ? 
                 AND dbf.IdDocumentType = ?
                 AND dbf.IdFile != ?
@@ -1630,7 +1630,7 @@ class Files extends BaseController
             error_log("Usuario que elimina: " . $currentUser['user_id']);
 
             // Primero obtener el IdOrder del file antes de eliminarlo
-            $fileQuery = $this->db->query("SELECT IdOrder, IdOrderTotal FROM file WHERE Id = ?", [$fileId]);
+            $fileQuery = $this->db->query("SELECT IdOrder, IdOrderTotal FROM expedient WHERE Id = ?", [$fileId]);
             $file = $fileQuery->getRow();
             
             if (!$file) {
@@ -1648,22 +1648,22 @@ class Files extends BaseController
                 error_log("⚠️ No se encontró IdOrder en el File (puede ser NULL)");
             }
 
-            // Verificar ANTES de eliminar si hay otros Files que referencian el mismo OrderByCar
-            $shouldDeleteOrderByCar = false;
+            // Verificar ANTES de eliminar si hay otros Files que referencian el mismo Order
+            $shouldDeleteOrder = false;
             if ($orderByCarId) {
-                // Contar cuántos Files referencian este OrderByCar (incluyendo el actual)
-                $filesCountQuery = $this->db->query("SELECT COUNT(*) as count FROM file WHERE IdOrder = ?", [$orderByCarId]);
+                // Contar cuántos Files referencian este Order (incluyendo el actual)
+                $filesCountQuery = $this->db->query("SELECT COUNT(*) as count FROM expedient WHERE IdOrder = ?", [$orderByCarId]);
                 $filesCount = $filesCountQuery->getRow();
                 $totalFiles = $filesCount->count ?? 0;
                 
-                error_log("Total de Files que referencian OrderByCar $orderByCarId: $totalFiles");
+                error_log("Total de Files que referencian Order $orderByCarId: $totalFiles");
                 
-                // Si solo hay 1 File (el que vamos a eliminar), podemos eliminar el OrderByCar después
+                // Si solo hay 1 File (el que vamos a eliminar), podemos eliminar el Order después
                 if ($totalFiles == 1) {
-                    $shouldDeleteOrderByCar = true;
-                    error_log("✅ Se eliminará OrderByCar después de eliminar el File (solo había 1 File)");
+                    $shouldDeleteOrder = true;
+                    error_log("✅ Se eliminará Order después de eliminar el File (solo había 1 File)");
                 } else {
-                    error_log("⚠️ NO se eliminará OrderByCar porque hay $totalFiles Files que lo referencian");
+                    error_log("⚠️ NO se eliminará Order porque hay $totalFiles Files que lo referencian");
                 }
             }
 
@@ -1675,26 +1675,26 @@ class Files extends BaseController
             $this->db->query("SET FOREIGN_KEY_CHECKS = 0");
 
             // ORDEN CORRECTO DE ELIMINACIÓN:
-            // 1. DocumentByFile (depende de File)
-            $documentsDeleted = $this->db->query("DELETE FROM document_by_file WHERE IdFile = ?", [$fileId]);
+            // 1. FileDocument (depende de File)
+            $documentsDeleted = $this->db->query("DELETE FROM file_document WHERE IdFile = ?", [$fileId]);
             $documentsDeleted = $this->db->affectedRows();
-            error_log("1️⃣ Documentos eliminados de DocumentByFile: $documentsDeleted");
+            error_log("1️⃣ Documentos eliminados de FileDocument: $documentsDeleted");
 
-            // 2. File (depende de OrderByCar a través de IdOrder)
-            $fileDeleted = $this->db->query("DELETE FROM file WHERE Id = ?", [$fileId]);
+            // 2. File (depende de Order a través de IdOrder)
+            $fileDeleted = $this->db->query("DELETE FROM expedient WHERE Id = ?", [$fileId]);
             $fileDeleted = $this->db->affectedRows();
             error_log("2️⃣ File eliminado: $fileDeleted");
 
-            // 3. OrderByCar (solo si no hay más Files que lo referencien)
+            // 3. Order (solo si no hay más Files que lo referencien)
             $orderByCarDeleted = 0;
-            if ($shouldDeleteOrderByCar && $orderByCarId) {
-                $orderByCarDeleted = $this->db->query("DELETE FROM order_by_car WHERE Id = ?", [$orderByCarId]);
+            if ($shouldDeleteOrder && $orderByCarId) {
+                $orderByCarDeleted = $this->db->query("DELETE FROM order WHERE Id = ?", [$orderByCarId]);
                 $orderByCarDeleted = $this->db->affectedRows();
-                error_log("3️⃣ Registros OrderByCar eliminados: $orderByCarDeleted");
+                error_log("3️⃣ Registros Order eliminados: $orderByCarDeleted");
             } else if ($orderByCarId) {
-                error_log("3️⃣ OrderByCar NO eliminado (hay otros Files que lo referencian)");
+                error_log("3️⃣ Order NO eliminado (hay otros Files que lo referencian)");
             } else {
-                error_log("3️⃣ OrderByCar NO eliminado (IdOrder era NULL)");
+                error_log("3️⃣ Order NO eliminado (IdOrder era NULL)");
             }
 
             // Rehabilitar las verificaciones de clave foránea
@@ -1805,7 +1805,7 @@ class Files extends BaseController
                     fs.Name as estatus,
                     fs.Id as estatusId,
                     f.Id as fileId
-                FROM file f
+                FROM expedient f
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                 WHERE " . implode(' OR ', $placeholders) . "

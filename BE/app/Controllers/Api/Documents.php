@@ -41,13 +41,13 @@ class Documents extends BaseController
                     df.IdDocumentContainer as backblazeFileId,
                     df.RegistrationDate as uploadDate,
                     dt.ReqExpiration as hasExpiration,
-                    df.ExperationDate as expirationDate,
+                    df.ExpirationDate as expirationDate,
                     dt.IdSubProcess as subProcessId,
                     fss.Name as subProcessName,
                     CASE 
                         WHEN ISNULL(dt.ReqExpiration) THEN FALSE
                         WHEN dt.ReqExpiration = 0 THEN FALSE
-                        WHEN dt.ReqExpiration = 1 AND df.ExperationDate < CURDATE() THEN TRUE
+                        WHEN dt.ReqExpiration = 1 AND df.ExpirationDate < CURDATE() THEN TRUE
                         ELSE FALSE
                     END as hasExpired,    
                     dt.IdProcessType as documentProcessId,
@@ -56,8 +56,8 @@ class Documents extends BaseController
                     dfs.Name as fileStatusName,
                     df.IdDocumentContainer as documentContainer,
                     df.IdCurrentStatus as idCurrentStatus
-                FROM file f
-                INNER JOIN document_by_file df ON f.Id = df.IdFile
+                FROM expedient f
+                INNER JOIN file_document df ON f.Id = df.IdFile
                 INNER JOIN document_type dt ON df.IdDocumentType = dt.Id
                 INNER JOIN file_status fs ON dt.IdProcessType = fs.Id 
                 INNER JOIN document_file_status dfs ON dfs.Id = df.IdCurrentStatus 
@@ -95,7 +95,7 @@ class Documents extends BaseController
     /**
      * GET /api/documents/missing-liberation?fileId=X
      * Devuelve los tipos de documento de Liberación (IdProcessType=3) que el pedido no tiene configurados
-     * (no existe DocumentByFile para ese fileId + IdDocumentType).
+     * (no existe FileDocument para ese fileId + IdDocumentType).
      */
     public function getMissingLiberationDocuments()
     {
@@ -120,7 +120,7 @@ class Documents extends BaseController
                 WHERE dt.IdProcessType = ?
                 AND dt.Id NOT IN (
                     SELECT df.IdDocumentType
-                    FROM document_by_file df
+                    FROM file_document df
                     WHERE df.IdFile = ? AND df.Enabled = 1
                 )
                 ORDER BY dt.Required DESC, dt.Name ASC
@@ -145,7 +145,7 @@ class Documents extends BaseController
 
     /**
      * POST /api/documents/add-to-file
-     * Crea registros en DocumentByFile para los tipos de documento indicados en el expediente (fileId).
+     * Crea registros en FileDocument para los tipos de documento indicados en el expediente (fileId).
      * Body JSON: { "fileId": number, "documentTypeIds": number[] }
      */
     public function addDocumentsToFile()
@@ -169,13 +169,13 @@ class Documents extends BaseController
             foreach ($documentTypeIds as $idDocumentType) {
                 if ($idDocumentType <= 0) continue;
                 $exists = $this->db->query(
-                    "SELECT 1 FROM document_by_file WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
+                    "SELECT 1 FROM file_document WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
                     [$fileId, $idDocumentType]
                 )->getRow();
                 if ($exists) continue;
                 $docType = $this->db->query("SELECT Id, Name FROM document_type WHERE Id = ?", [$idDocumentType])->getRow();
                 if (!$docType) continue;
-                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM document_by_file")->getRow();
+                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM file_document")->getRow();
                 $nextId = (int) $nextIdRow->nextId;
                 $documentData = [
                     'Id' => $nextId,
@@ -183,7 +183,7 @@ class Documents extends BaseController
                     'IdDocumentType' => $idDocumentType,
                     'Name' => $docType->Name ?? 'Documento sin nombre',
                     'Comment' => null,
-                    'ExperationDate' => null,
+                    'ExpirationDate' => null,
                     'PathDocument' => null,
                     'Enabled' => 1,
                     'RegistrationDate' => $currentDate,
@@ -195,7 +195,7 @@ class Documents extends BaseController
                     'IdDocumentError' => null,
                     'ServerPath' => null
                 ];
-                $this->db->table('document_by_file')->insert($documentData);
+                $this->db->table('file_document')->insert($documentData);
                 $added++;
             }
             return $this->response->setJSON([
@@ -250,20 +250,20 @@ class Documents extends BaseController
                     $expirationDate = date('Y-m-d', strtotime('+' . $documentType->ExpirationDays . ' days'));
                 }
 
-                // Insertar o actualizar el registro en DocumentByFile
-                $existingDoc = $this->db->query("SELECT Id FROM document_by_file WHERE IdFile = ? AND IdDocumentType = ?", [$fileId, $documentTypeId])->getRow();
+                // Insertar o actualizar el registro en FileDocument
+                $existingDoc = $this->db->query("SELECT Id FROM file_document WHERE IdFile = ? AND IdDocumentType = ?", [$fileId, $documentTypeId])->getRow();
                 
                 if ($existingDoc) {
                     // Actualizar documento existente
                     $this->db->query("
-                        UPDATE DocumentByFile 
+                        UPDATE FileDocument 
                         SET FileName = ?, FilePath = ?, UploadDate = NOW(), ExpirationDate = ?
                         WHERE Id = ?
                     ", [$file->getClientName(), $filePath, $expirationDate, $existingDoc->Id]);
                 } else {
                     // Insertar nuevo documento
                     $this->db->query("
-                        INSERT INTO DocumentByFile (IdFile, IdDocumentType, FileName, FilePath, UploadDate, ExpirationDate)
+                        INSERT INTO FileDocument (IdFile, IdDocumentType, FileName, FilePath, UploadDate, ExpirationDate)
                         VALUES (?, ?, ?, ?, NOW(), ?)
                     ", [$fileId, $documentTypeId, $file->getClientName(), $filePath, $expirationDate]);
                 }
@@ -302,21 +302,21 @@ class Documents extends BaseController
     public function getFileName()
     {
         try {
-            $idDocumentByFile = $this->request->getGet('idDocumentByFile');
+            $idFileDocument = $this->request->getGet('idFileDocument');
             $idFile = $this->request->getGet('idFile');
 
-            if (!$idDocumentByFile || !$idFile) {
+            if (!$idFileDocument || !$idFile) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Los parámetros idDocumentByFile e idFile son requeridos',
+                    'message' => 'Los parámetros idFileDocument e idFile son requeridos',
                     'data' => null
                 ])->setStatusCode(400);
             }
 
             // Consultar la vista view_document_name
             $query = $this->db->query(
-                "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",
-                [$idDocumentByFile, $idFile]
+                "SELECT file_name_original FROM view_document_name WHERE IdFileDocument = ? AND IdFile = ?",
+                [$idFileDocument, $idFile]
             );
 
             $result = $query->getRow();

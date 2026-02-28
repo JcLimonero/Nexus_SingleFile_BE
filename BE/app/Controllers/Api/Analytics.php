@@ -110,7 +110,7 @@ class Analytics extends BaseController
                 $builder->where('RegistrationDate <=', $filters['end_date']);
             }
             if (!empty($filters['agency_id'])) {
-                $builder->join('File f', 'f.Id = DocumentByFile.IdFile')
+                $builder->join('expedient f', 'f.Id = FileDocument.IdFile')
                         ->where('f.IdAgency', $filters['agency_id']);
             }
             if (!empty($filters['document_type_id'])) {
@@ -125,7 +125,7 @@ class Analytics extends BaseController
             // Documentos por tipo
             $documentsByType = $this->documentModel->builder()
                 ->select('dt.Name as type, COUNT(*) as count')
-                ->join('DocumentType dt', 'dt.Id = DocumentByFile.IdDocumentType')
+                ->join('DocumentType dt', 'dt.Id = FileDocument.IdDocumentType')
                 ->groupBy('dt.Name')
                 ->get()
                 ->getResultArray();
@@ -140,7 +140,7 @@ class Analytics extends BaseController
             // Documentos por agencia
             $documentsByAgency = $this->documentModel->builder()
                 ->select('a.Name as agency, COUNT(*) as count')
-                ->join('File f', 'f.Id = DocumentByFile.IdFile')
+                ->join('expedient f', 'f.Id = FileDocument.IdFile')
                 ->join('Agency a', 'a.Id = f.IdAgency')
                 ->groupBy('a.Name')
                 ->orderBy('count', 'DESC')
@@ -414,7 +414,7 @@ class Analytics extends BaseController
                 $monthEnd = $currentYear . '-' . $currentMonth . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
                 
                 // OPTIMIZACIÓN: Una sola query con agregaciones condicionales
-                $query = $db->table('file')
+                $query = $db->table('expedient')
                     ->select('
                         SUM(CASE WHEN RegistrationDate >= "' . $todayStart . '" AND RegistrationDate <= "' . $todayEnd . '" THEN 1 ELSE 0 END) as todayCases,
                         SUM(CASE WHEN RegistrationDate >= "' . $monthStart . '" AND RegistrationDate <= "' . $monthEnd . '" THEN 1 ELSE 0 END) as monthlyCases,
@@ -497,7 +497,7 @@ class Analytics extends BaseController
             $proceso = array_fill(0, 12, 0);
             
             // Query optimizada: una sola consulta con GROUP BY
-            $query = $db->table('file')
+            $query = $db->table('expedient')
                 ->select('
                     MONTH(RegistrationDate) as month,
                     SUM(CASE WHEN IdCurrentState IN (4, 6) THEN 1 ELSE 0 END) as entregados,
@@ -568,7 +568,7 @@ class Analytics extends BaseController
                 $db = \Config\Database::connect();
 
             // Base query para el mes actual
-            $baseQuery = $db->table('file')
+            $baseQuery = $db->table('expedient')
                 ->where('YEAR(RegistrationDate)', date('Y'))
                 ->where('MONTH(RegistrationDate)', date('m'));
 
@@ -652,7 +652,7 @@ class Analytics extends BaseController
             }
 
             // Obtener distribución de estados en la tabla File
-            $currentStates = $db->table('file')
+            $currentStates = $db->table('expedient')
                 ->select('IdCurrentState, COUNT(*) as count')
                 ->groupBy('IdCurrentState')
                 ->orderBy('count', 'DESC')
@@ -662,7 +662,7 @@ class Analytics extends BaseController
             $data['current_states_distribution'] = $currentStates;
 
             // Obtener algunos ejemplos de archivos con diferentes estados
-            $sampleFiles = $db->table('file')
+            $sampleFiles = $db->table('expedient')
                 ->select('Id, IdCurrentState, RegistrationDate, CloseDate')
                 ->limit(10)
                 ->get()
@@ -695,7 +695,7 @@ class Analytics extends BaseController
             date_default_timezone_set('America/Mexico_City');
 
             // Consulta base para enero 2025
-            $baseQuery = $db->table('file')
+            $baseQuery = $db->table('expedient')
                 ->where('YEAR(RegistrationDate)', 2025)
                 ->where('MONTH(RegistrationDate)', 1);
 
@@ -715,7 +715,7 @@ class Analytics extends BaseController
             $proceso = $procesoQuery->whereIn('IdCurrentState', [1, 2, 3])->countAllResults();
 
             // Distribución por estado
-            $distributionByState = $db->table('file')
+            $distributionByState = $db->table('expedient')
                 ->select('IdCurrentState, COUNT(*) as count')
                 ->where('YEAR(RegistrationDate)', 2025)
                 ->where('MONTH(RegistrationDate)', 1)
@@ -725,7 +725,7 @@ class Analytics extends BaseController
                 ->getResultArray();
 
             // Algunos ejemplos de archivos de enero 2025
-            $sampleFiles = $db->table('file')
+            $sampleFiles = $db->table('expedient')
                 ->select('Id, IdCurrentState, RegistrationDate, CloseDate')
                 ->where('YEAR(RegistrationDate)', 2025)
                 ->where('MONTH(RegistrationDate)', 1)
@@ -767,14 +767,14 @@ class Analytics extends BaseController
             date_default_timezone_set('America/Mexico_City');
 
             // Consulta para expedientes entregados en enero 2025
-            $entregados = $db->table('file')
+            $entregados = $db->table('expedient')
                 ->where('YEAR(RegistrationDate)', 2025)
                 ->where('MONTH(RegistrationDate)', 1)
                 ->whereIn('IdCurrentState', [4, 6])
                 ->countAllResults();
 
             // Consulta para distribución por estado
-            $distributionByState = $db->table('file')
+            $distributionByState = $db->table('expedient')
                 ->select('IdCurrentState, COUNT(*) as count')
                 ->where('YEAR(RegistrationDate)', 2025)
                 ->where('MONTH(RegistrationDate)', 1)
@@ -785,8 +785,8 @@ class Analytics extends BaseController
 
             // Mostrar las consultas SQL manualmente
             $sqlQueries = [
-                'entregados_query' => "SELECT COUNT(*) FROM `file` WHERE YEAR(RegistrationDate) = 2025 AND MONTH(RegistrationDate) = 1 AND IdCurrentState IN (4, 6)",
-                'distribution_query' => "SELECT IdCurrentState, COUNT(*) as count FROM `file` WHERE YEAR(RegistrationDate) = 2025 AND MONTH(RegistrationDate) = 1 GROUP BY IdCurrentState ORDER BY count DESC"
+                'entregados_query' => "SELECT COUNT(*) FROM `expedient` WHERE YEAR(RegistrationDate) = 2025 AND MONTH(RegistrationDate) = 1 AND IdCurrentState IN (4, 6)",
+                'distribution_query' => "SELECT IdCurrentState, COUNT(*) as count FROM `expedient` WHERE YEAR(RegistrationDate) = 2025 AND MONTH(RegistrationDate) = 1 GROUP BY IdCurrentState ORDER BY count DESC"
             ];
 
             $data = [
@@ -818,7 +818,7 @@ class Analytics extends BaseController
             
             // Verificar si la tabla File existe
             $tables = $db->listTables();
-            $fileTableExists = in_array('file', $tables) || in_array('file', $tables);
+            $fileTableExists = in_array('expedient', $tables) || in_array('expedient', $tables);
             
             $result = [
                 'file_table_exists' => $fileTableExists,
@@ -831,7 +831,7 @@ class Analytics extends BaseController
             
             if ($fileTableExists) {
                 // Determinar el nombre correcto de la tabla
-                $tableName = in_array('file', $tables) ? 'file' : 'file';
+                $tableName = in_array('expedient', $tables) ? 'expedient' : 'expedient';
                 $result['file_table_name'] = $tableName;
                 
                 // Obtener estructura de la tabla
@@ -908,19 +908,19 @@ class Analytics extends BaseController
             
             // Verificar expedientes del día actual según el servidor
             $todayServer = date('Y-m-d');
-            $todayFiles = $db->table('file')
+            $todayFiles = $db->table('expedient')
                 ->where('DATE(RegistrationDate)', $todayServer)
                 ->get()
                 ->getResultArray();
             
             // Verificar expedientes del día 6 de septiembre específicamente
-            $september6Files = $db->table('file')
+            $september6Files = $db->table('expedient')
                 ->where('DATE(RegistrationDate)', '2025-09-06')
                 ->get()
                 ->getResultArray();
             
             // Verificar expedientes del día 7 de septiembre específicamente
-            $september7Files = $db->table('file')
+            $september7Files = $db->table('expedient')
                 ->where('DATE(RegistrationDate)', '2025-09-07')
                 ->get()
                 ->getResultArray();
@@ -933,7 +933,7 @@ class Analytics extends BaseController
                 'september_6_files' => $september6Files,
                 'september_7_files_count' => count($september7Files),
                 'september_7_files' => $september7Files,
-                'recent_files_sample' => $db->table('file')
+                'recent_files_sample' => $db->table('expedient')
                     ->orderBy('RegistrationDate', 'DESC')
                     ->limit(10)
                     ->get()
@@ -1010,19 +1010,19 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
             
             // Obtener la fecha más reciente
-            $latestDate = $db->table('file')
+            $latestDate = $db->table('expedient')
                 ->selectMax('RegistrationDate')
                 ->get()
                 ->getRowArray();
             
             // Obtener la fecha más antigua
-            $oldestDate = $db->table('file')
+            $oldestDate = $db->table('expedient')
                 ->selectMin('RegistrationDate')
                 ->get()
                 ->getRowArray();
             
             // Contar registros por año
-            $yearlyCount = $db->table('file')
+            $yearlyCount = $db->table('expedient')
                 ->select('YEAR(RegistrationDate) as year, COUNT(*) as count')
                 ->groupBy('YEAR(RegistrationDate)')
                 ->orderBy('year', 'DESC')
@@ -1031,7 +1031,7 @@ class Analytics extends BaseController
             
             // Contar registros por mes del año actual
             $currentYear = date('Y');
-            $monthlyCount = $db->table('file')
+            $monthlyCount = $db->table('expedient')
                 ->select('MONTH(RegistrationDate) as month, COUNT(*) as count')
                 ->where('YEAR(RegistrationDate)', $currentYear)
                 ->groupBy('MONTH(RegistrationDate)')
@@ -1177,7 +1177,7 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
 
             // Consulta para obtener distribución por proceso
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('p.Name as processName, COUNT(f.Id) as totalCases')
                 ->join('Process p', 'f.IdProcess = p.Id', 'left')
                 ->groupBy('p.Id, p.Name')
@@ -1238,7 +1238,7 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
 
             // Consulta para obtener distribución por estatus
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
                 ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
                 ->groupBy('fs.Id, fs.Name')
@@ -1310,7 +1310,7 @@ class Analytics extends BaseController
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
 
             // OPTIMIZACIÓN: Usar rangos de fechas en lugar de funciones de fecha
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
                 ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
                 ->where('f.RegistrationDate >=', $monthStart)
@@ -1393,7 +1393,7 @@ class Analytics extends BaseController
             $endDate = date('Y-m-t 23:59:59', strtotime('-1 month')); // Fin del mes pasado
             
             // OPTIMIZACIÓN: Una sola query con GROUP BY en lugar de múltiples queries
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('
                     YEAR(f.RegistrationDate) as year,
                     MONTH(f.RegistrationDate) as month,
@@ -1477,7 +1477,7 @@ class Analytics extends BaseController
             $currentYear = date('Y');
             $currentMonth = date('n'); // Mes sin ceros iniciales (1-12)
 
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
                 ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
                 ->groupBy('fs.Id, fs.Name')
@@ -1565,7 +1565,7 @@ class Analytics extends BaseController
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
             // OPTIMIZACIÓN: Usar IdCurrentState directamente en lugar de JOIN con File_Status
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('u.Name as advisorName, 
                          SUM(CASE WHEN f.IdCurrentState IN (4, 6) THEN 1 ELSE 0 END) as approved,
                          SUM(CASE WHEN f.IdCurrentState IN (1, 2, 3) THEN 1 ELSE 0 END) as pending,
@@ -1640,7 +1640,7 @@ class Analytics extends BaseController
             $mondayStart = $mondayOfWeek . ' 00:00:00';
             $sundayEnd = $sundayOfWeek . ' 23:59:59';
             
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('DATE(f.RegistrationDate) as day, 
                          DAYNAME(f.RegistrationDate) as dayName,
                          COUNT(f.Id) as count')
@@ -1728,7 +1728,7 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
 
             // Primero verificar si existen expedientes con RegistrationDate
-            $countQuery = $db->table('File f')
+            $countQuery = $db->table('expedient f')
                 ->select('COUNT(f.Id) as total')
                 ->where('f.RegistrationDate IS NOT NULL');
 
@@ -1759,7 +1759,7 @@ class Analytics extends BaseController
             }
 
         // OPTIMIZACIÓN: Reducir JOINs innecesarios - solo necesitamos Process para verificar Enabled
-        $query = $db->table('File f')
+        $query = $db->table('expedient f')
             ->join('Process p', 'f.IdProcess = p.Id', 'inner')
             ->select('
                 CASE 
@@ -1886,7 +1886,7 @@ class Analytics extends BaseController
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
             // Primero verificar si existen expedientes con RegistrationDate del mes actual
-            $countQuery = $db->table('File f')
+            $countQuery = $db->table('expedient f')
                 ->select('COUNT(f.Id) as total')
                 ->where('f.RegistrationDate IS NOT NULL')
                 ->where('f.RegistrationDate >=', $monthStart)
@@ -1920,7 +1920,7 @@ class Analytics extends BaseController
 
             // OPTIMIZACIÓN: Reducir JOINs innecesarios y usar rangos de fechas
             // Solo necesitamos JOIN con Process para verificar Enabled, el resto se puede simplificar
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->join('Process p', 'f.IdProcess = p.Id', 'inner')
                 ->select('
                     CASE 
@@ -2050,7 +2050,7 @@ class Analytics extends BaseController
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
             // OPTIMIZACIÓN: Usar IdCurrentState directamente en lugar de JOIN con File_Status
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->select('COUNT(f.Id) as total')
                 ->where('f.RegistrationDate IS NOT NULL')
                 ->where('f.RegistrationDate >=', $monthStart)
@@ -2119,7 +2119,7 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
 
             // Consulta para obtener expedientes liberados de toda la historia
-            $query = $db->table('File f')
+            $query = $db->table('expedient f')
                 ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
                 ->select('COUNT(f.Id) as total')
                 ->where('f.RegistrationDate IS NOT NULL')
@@ -2221,13 +2221,13 @@ class Analytics extends BaseController
                     f.CloseDate as fechaCierre,
                     DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) as diasAtencion,
                     fs.Name as estado
-                FROM file f
+                FROM expedient f
                 INNER JOIN file_status fs ON f.IdCurrentState = fs.IdClient
-                INNER JOIN header_client hc ON hc.IdClient = f.IdClient
+                INNER JOIN client_header hc ON hc.IdClient = f.IdClient
                 INNER JOIN client c ON hc.IdClient = c.Id
                 INNER JOIN process p ON f.IdProcess = p.Id
                 INNER JOIN operation_type ot ON f.IdOperation = ot.Id
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
             WHERE f.RegistrationDate IS NOT NULL
             AND COALESCE(f.CloseDate, CURDATE()) >= f.RegistrationDate
             AND {$dayCondition}

@@ -116,11 +116,11 @@ class ConfigurationProcessModel extends Model
     /**
      * Obtener configuración por parámetros
      */
-    public function getConfigurationByParams($idProcess, $idAgency, $idCostumerType, $idOperationType)
+    public function getConfigurationByParams($idProcess, $idAgency, $idCustomerType, $idOperationType)
     {
         return $this->where('IdProcess', $idProcess)
                     ->where('IdAgency', $idAgency)
-                    ->where('IdCustomerType', $idCostumerType)
+                    ->where('IdCustomerType', $idCustomerType)
                     ->where('IdOperationType', $idOperationType)
                     ->first();
     }
@@ -128,10 +128,10 @@ class ConfigurationProcessModel extends Model
     /**
      * Obtener o crear configuración de proceso
      */
-    public function getOrCreateConfiguration($idProcess, $idAgency, $idCostumerType, $idOperationType)
+    public function getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType)
     {
         // Buscar configuración existente
-        $config = $this->getConfigurationByParams($idProcess, $idAgency, $idCostumerType, $idOperationType);
+        $config = $this->getConfigurationByParams($idProcess, $idAgency, $idCustomerType, $idOperationType);
         
         if ($config) {
             return $config['Id'];
@@ -141,7 +141,7 @@ class ConfigurationProcessModel extends Model
         $insertData = [
             'IdProcess' => $idProcess,
             'IdAgency' => $idAgency,
-            'IdCustomerType' => $idCostumerType,
+            'IdCustomerType' => $idCustomerType,
             'IdOperationType' => $idOperationType,
             'Enabled' => 1,
             'IdLastUserUpdate' => 1 // TODO: Obtener ID del usuario actual

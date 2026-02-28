@@ -3,16 +3,16 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
-use App\Models\CostumerTypeModel;
+use App\Models\CustomerTypeModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class CostumerType extends BaseController
+class CustomerType extends BaseController
 {
-    protected $costumerTypeModel;
+    protected $customerTypeModel;
     
     public function __construct()
     {
-        $this->costumerTypeModel = new CostumerTypeModel();
+        $this->customerTypeModel = new CustomerTypeModel();
     }
     
     /**
@@ -63,20 +63,20 @@ class CostumerType extends BaseController
 
             // Obtener datos paginados o todos los registros
             if ($limit !== null) {
-                $costumerTypes = $builder->limit($limit, $offset)->get()->getResultArray();
+                $customerTypes = $builder->limit($limit, $offset)->get()->getResultArray();
             } else {
-                $costumerTypes = $builder->get()->getResultArray();
+                $customerTypes = $builder->get()->getResultArray();
             }
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Tipos de cliente obtenidos exitosamente',
                 'data' => [
-                    'costumer_types' => $costumerTypes,
+                    'customer_types' => $customerTypes,
                     'total' => $total,
                     'limit' => $limit ?? 'all',
                     'offset' => $offset,
-                    'count' => count($costumerTypes),
+                    'count' => count($customerTypes),
                     'sort_by' => $sortBy,
                     'sort_order' => $sortOrder,
                     'filter_enabled' => $enabled
@@ -84,7 +84,7 @@ class CostumerType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::index: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::index: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipos de cliente: ' . $e->getMessage()
@@ -110,7 +110,7 @@ class CostumerType extends BaseController
             }
             
             // Verificar si el nombre ya existe
-            $existingType = $this->costumerTypeModel->where('Name', $data['Name'])->first();
+            $existingType = $this->customerTypeModel->where('Name', $data['Name'])->first();
             if ($existingType) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -120,7 +120,7 @@ class CostumerType extends BaseController
 
             // Generar el siguiente ID manualmente
             $db = \Config\Database::connect();
-            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM CostumerType");
+            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM CustomerType");
             $maxIdResult = $maxIdQuery->getRow();
             $nextId = ($maxIdResult->max_id ?? 0) + 1;
             
@@ -131,7 +131,7 @@ class CostumerType extends BaseController
             $data['IdLastUserUpdate'] = session()->get('user_id') ?? 0;
             
             // Insertar tipo de cliente
-            $typeId = $this->costumerTypeModel->insert($data);
+            $typeId = $this->customerTypeModel->insert($data);
             
             if ($typeId) {
                 return $this->response->setJSON([
@@ -147,7 +147,7 @@ class CostumerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::create: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::create: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear tipo de cliente: ' . $e->getMessage()
@@ -172,14 +172,14 @@ class CostumerType extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('CustomerType ct');
             
-            $costumerType = $builder
+            $customerType = $builder
                 ->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')
                 ->join('User u', 'u.Id = ct.IdLastUserUpdate', 'left')
                 ->where('ct.Id', $id)
                 ->get()
                 ->getRowArray();
             
-            if (!$costumerType) {
+            if (!$customerType) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Tipo de cliente no encontrado'
@@ -189,11 +189,11 @@ class CostumerType extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Tipo de cliente obtenido exitosamente',
-                'data' => $costumerType
+                'data' => $customerType
             ]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::show: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::show: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipo de cliente: ' . $e->getMessage()
@@ -218,7 +218,7 @@ class CostumerType extends BaseController
             $data = $this->request->getJSON(true);
             
             // Verificar si el tipo de cliente existe
-            $existingType = $this->costumerTypeModel->find($id);
+            $existingType = $this->customerTypeModel->find($id);
             if (!$existingType) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -228,7 +228,7 @@ class CostumerType extends BaseController
             
             // Verificar nombre único (si se está cambiando)
             if (isset($data['Name']) && $data['Name'] !== $existingType['Name']) {
-                $duplicateType = $this->costumerTypeModel->where('Name', $data['Name'])->where('Id !=', $id)->first();
+                $duplicateType = $this->customerTypeModel->where('Name', $data['Name'])->where('Id !=', $id)->first();
                 if ($duplicateType) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -241,7 +241,7 @@ class CostumerType extends BaseController
             $data['IdLastUserUpdate'] = session()->get('user_id') ?? 0;
             
             // Actualizar tipo de cliente
-            $updated = $this->costumerTypeModel->update($id, $data);
+            $updated = $this->customerTypeModel->update($id, $data);
             
             if ($updated) {
                 return $this->response->setJSON([
@@ -256,7 +256,7 @@ class CostumerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::update: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::update: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar tipo de cliente: ' . $e->getMessage()
@@ -279,7 +279,7 @@ class CostumerType extends BaseController
             }
             
             // Verificar si el tipo de cliente existe
-            $existingType = $this->costumerTypeModel->find($id);
+            $existingType = $this->customerTypeModel->find($id);
             if (!$existingType) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -288,7 +288,7 @@ class CostumerType extends BaseController
             }
             
             // Eliminar tipo de cliente
-            $deleted = $this->costumerTypeModel->delete($id);
+            $deleted = $this->customerTypeModel->delete($id);
             
             if ($deleted) {
                 return $this->response->setJSON([
@@ -303,7 +303,7 @@ class CostumerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::delete: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::delete: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar tipo de cliente: ' . $e->getMessage()
@@ -326,7 +326,7 @@ class CostumerType extends BaseController
             }
             
             // Verificar si el tipo de cliente existe
-            $existingType = $this->costumerTypeModel->find($id);
+            $existingType = $this->customerTypeModel->find($id);
             if (!$existingType) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -336,7 +336,7 @@ class CostumerType extends BaseController
             
             // Cambiar estado
             $newStatus = $existingType['Enabled'] == 1 ? 0 : 1;
-            $updated = $this->costumerTypeModel->update($id, [
+            $updated = $this->customerTypeModel->update($id, [
                 'Enabled' => $newStatus,
                 'UpdateDate' => date('Y-m-d H:i:s'),
                 'IdLastUserUpdate' => session()->get('user_id') ?? 0
@@ -356,7 +356,7 @@ class CostumerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::toggleStatus: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::toggleStatus: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar estado del tipo de cliente: ' . $e->getMessage()
@@ -380,7 +380,7 @@ class CostumerType extends BaseController
                 ])->setStatusCode(400);
             }
             
-            $costumerTypes = $this->costumerTypeModel
+            $customerTypes = $this->customerTypeModel
                 ->like('Name', $query)
                 ->orderBy('Name', 'ASC')
                 ->findAll();
@@ -389,14 +389,14 @@ class CostumerType extends BaseController
                 'success' => true,
                 'message' => 'Búsqueda realizada exitosamente',
                 'data' => [
-                    'costumer_types' => $costumerTypes,
-                    'count' => count($costumerTypes),
+                    'customer_types' => $customerTypes,
+                    'count' => count($customerTypes),
                     'query' => $query
                 ]
             ]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::search: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::search: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la búsqueda: ' . $e->getMessage()
@@ -411,9 +411,9 @@ class CostumerType extends BaseController
     public function stats()
     {
         try {
-            $totalTypes = $this->costumerTypeModel->countAllResults();
-            $activeTypes = $this->costumerTypeModel->where('Enabled', 1)->countAllResults();
-            $inactiveTypes = $this->costumerTypeModel->where('Enabled', 0)->countAllResults();
+            $totalTypes = $this->customerTypeModel->countAllResults();
+            $activeTypes = $this->customerTypeModel->where('Enabled', 1)->countAllResults();
+            $inactiveTypes = $this->customerTypeModel->where('Enabled', 0)->countAllResults();
             
             return $this->response->setJSON([
                 'success' => true,
@@ -426,7 +426,7 @@ class CostumerType extends BaseController
             ]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::stats: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::stats: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -441,16 +441,16 @@ class CostumerType extends BaseController
     public function active()
     {
         try {
-            $costumerTypes = $this->costumerTypeModel->getActiveCostumerTypes();
+            $customerTypes = $this->customerTypeModel->getActiveCustomerTypes();
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Tipos de cliente activos obtenidos exitosamente',
-                'data' => $costumerTypes
+                'data' => $customerTypes
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en CostumerType::active: ' . $e->getMessage());
+            log_message('error', 'Error en CustomerType::active: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipos de cliente activos: ' . $e->getMessage()

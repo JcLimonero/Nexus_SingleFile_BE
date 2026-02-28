@@ -96,12 +96,12 @@ $errorId = uniqid('error', true);
                     <li>
                         <p>
                             <!-- Trace info -->
-                            <?php if (isset($row['file']) && is_file($row['file'])) : ?>
+                            <?php if (isset($row['expedient']) && is_file($row['expedient'])) : ?>
                                 <?php
                                 if (isset($row['function']) && in_array($row['function'], ['include', 'include_once', 'require', 'require_once'], true)) {
-                                    echo esc($row['function'] . ' ' . clean_path($row['file']));
+                                    echo esc($row['function'] . ' ' . clean_path($row['expedient']));
                                 } else {
-                                    echo esc(clean_path($row['file']) . ' : ' . $row['line']);
+                                    echo esc(clean_path($row['expedient']) . ' : ' . $row['line']);
                                 }
                                 ?>
                             <?php else: ?>
@@ -145,9 +145,9 @@ $errorId = uniqid('error', true);
                         </p>
 
                         <!-- Source? -->
-                        <?php if (isset($row['file']) && is_file($row['file']) && isset($row['class'])) : ?>
+                        <?php if (isset($row['expedient']) && is_file($row['expedient']) && isset($row['class'])) : ?>
                             <div class="source">
-                                <?= static::highlightFile($row['file'], $row['line']) ?>
+                                <?= static::highlightFile($row['expedient'], $row['line']) ?>
                             </div>
                         <?php endif; ?>
                     </li>

@@ -35,7 +35,7 @@ class ClientSearch extends BaseController
             }
 
             $sql = "
-                SELECT idCliente, ndCliente, cliente, IdHeaderClient,
+                SELECT idCliente, ndCliente, cliente, IdClientHeader,
                     nombre, apellidoPaterno, apellidoMaterno, rfc, email, telefono, telefono2,
                     razonSocial, curp, asesor, agenciaOrigen, fechaRegistro, fechaActualizacion, idAgency
                 FROM view_client_relations

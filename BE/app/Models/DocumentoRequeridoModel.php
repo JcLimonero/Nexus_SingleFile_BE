@@ -133,8 +133,8 @@ class DocumentoRequeridoModel extends Model
         if (!empty($filters['IdAgency'])) {
             $builder->where('cp.IdAgency', $filters['IdAgency']);
         }
-        if (!empty($filters['IdCostumerType'])) {
-            $builder->where('cp.IdCustomerType', $filters['IdCostumerType']);
+        if (!empty($filters['IdCustomerType'])) {
+            $builder->where('cp.IdCustomerType', $filters['IdCustomerType']);
         }
         if (!empty($filters['IdOperationType'])) {
             $builder->where('cp.IdOperationType', $filters['IdOperationType']);
@@ -176,8 +176,8 @@ class DocumentoRequeridoModel extends Model
         if (!empty($filters['IdAgency'])) {
             $builder->where('cp.IdAgency', $filters['IdAgency']);
         }
-        if (!empty($filters['IdCostumerType'])) {
-            $builder->where('cp.IdCustomerType', $filters['IdCostumerType']);
+        if (!empty($filters['IdCustomerType'])) {
+            $builder->where('cp.IdCustomerType', $filters['IdCustomerType']);
         }
         if (!empty($filters['IdOperationType'])) {
             $builder->where('cp.IdOperationType', $filters['IdOperationType']);
@@ -230,11 +230,11 @@ class DocumentoRequeridoModel extends Model
     /**
      * Obtener o crear configuración de proceso
      */
-    public function getOrCreateConfigurationProcess($idProcess, $idAgency, $idCostumerType, $idOperationType)
+    public function getOrCreateConfigurationProcess($idProcess, $idAgency, $idCustomerType, $idOperationType)
     {
         // Usar el model ConfigurationProcessModel
         $configProcessModel = new \App\Models\ConfigurationProcessModel();
-        return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCostumerType, $idOperationType);
+        return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType);
     }
 
     /**
@@ -267,14 +267,14 @@ class DocumentoRequeridoModel extends Model
     /**
      * Verificar si ya existe un documento requerido para la configuración
      */
-    public function existsDocumentoRequerido($idProcess, $idAgency, $idCostumerType, $idOperationType, $idDocumentType, $excludeId = null)
+    public function existsDocumentoRequerido($idProcess, $idAgency, $idCustomerType, $idOperationType, $idDocumentType, $excludeId = null)
     {
         $builder = $this->db->table('configuration_process_document_type cpd');
         $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
         
         $builder->where('cp.IdProcess', $idProcess)
                 ->where('cp.IdAgency', $idAgency)
-                ->where('cp.IdCustomerType', $idCostumerType)
+                ->where('cp.IdCustomerType', $idCustomerType)
                 ->where('cp.IdOperationType', $idOperationType)
                 ->where('cpd.IdDocumentType', $idDocumentType);
         
@@ -302,7 +302,7 @@ class DocumentoRequeridoModel extends Model
         $idConfigProcess = $this->getOrCreateConfigurationProcess(
             $data['IdProcess'],
             $data['IdAgency'],
-            $data['IdCostumerType'],
+            $data['IdCustomerType'],
             $data['IdOperationType']
         );
         
@@ -322,12 +322,12 @@ class DocumentoRequeridoModel extends Model
     {
         // Si se cambia la configuración, crear nueva o usar existente
         if (isset($data['IdProcess']) || isset($data['IdAgency']) || 
-            isset($data['IdCostumerType']) || isset($data['IdOperationType'])) {
+            isset($data['IdCustomerType']) || isset($data['IdOperationType'])) {
             
             $idConfigProcess = $this->getOrCreateConfigurationProcess(
                 $data['IdProcess'] ?? $data['IdProcess'],
                 $data['IdAgency'] ?? $data['IdAgency'],
-                $data['IdCostumerType'] ?? $data['IdCostumerType'],
+                $data['IdCustomerType'] ?? $data['IdCustomerType'],
                 $data['IdOperationType'] ?? $data['IdOperationType']
             );
             

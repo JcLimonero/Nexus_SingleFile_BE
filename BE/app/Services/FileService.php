@@ -28,7 +28,7 @@ class FileService
             error_log("Datos recibidos: " . json_encode($data));
 
             // Validar datos requeridos
-            $requiredFields = ['order', 'process', 'costumerType', 'operationType', 'clientId', 'agencyId'];
+            $requiredFields = ['order', 'process', 'customerType', 'operationType', 'clientId', 'agencyId'];
             foreach ($requiredFields as $field) {
                 if (!isset($data[$field])) {
                     throw new \Exception("Campo requerido: $field");
@@ -37,7 +37,7 @@ class FileService
 
             $order = $data['order'];
             $process = $data['process'];
-            $costumerType = $data['costumerType'];
+            $customerType = $data['customerType'];
             $operationType = $data['operationType'];
             $clientId = $data['clientId'];
             $agencyId = $data['agencyId'];
@@ -53,13 +53,13 @@ class FileService
             // Validar que la configuración existe
             error_log("=== VALIDANDO CONFIGURACIÓN ===");
             error_log("Proceso: " . $process['Id']);
-            error_log("Tipo Cliente: " . $costumerType['Id']);
+            error_log("Tipo Cliente: " . $customerType['Id']);
             error_log("Tipo Operación: " . $operationType['Id']);
             error_log("Agencia Interna: " . $internalAgencyId);
             
             $configurationExists = $this->configurationService->validateConfigurationExists(
                 $process['Id'], 
-                $costumerType['Id'], 
+                $customerType['Id'], 
                 $operationType['Id'], 
                 $internalAgencyId
             );
@@ -101,7 +101,7 @@ class FileService
             $this->db->transStart();
 
             // Crear file
-            $fileId = $this->createFile($order, $process, $costumerType, $operationType, $client->Id, $internalAgencyId, $data['userId'], $sellerId);
+            $fileId = $this->createFile($order, $process, $customerType, $operationType, $client->Id, $internalAgencyId, $data['userId'], $sellerId);
 
             if (!$fileId) {
                 $this->db->transRollback();
@@ -109,7 +109,7 @@ class FileService
             }
 
             // Crear documentos asociados
-            $documentsCreated = $this->createFileDocuments($fileId, $process['Id'], $costumerType['Id'], $operationType['Id'], $internalAgencyId, $data['userId']);
+            $documentsCreated = $this->createFileDocuments($fileId, $process['Id'], $customerType['Id'], $operationType['Id'], $internalAgencyId, $data['userId']);
 
             if (!$documentsCreated) {
                 $this->db->transRollback();
@@ -152,7 +152,7 @@ class FileService
     /**
      * Crear file en la base de datos
      */
-    private function createFile($order, $process, $costumerType, $operationType, $clientId, $internalAgencyId, $userId, $sellerId)
+    private function createFile($order, $process, $customerType, $operationType, $clientId, $internalAgencyId, $userId, $sellerId)
     {
         $currentDate = date('Y-m-d H:i:s');
         
@@ -164,14 +164,14 @@ class FileService
             'IdClient' => $clientId,
             'IdAgency' => $internalAgencyId,
             'IdProcess' => $process['Id'],
-            'IdCustomerType' => $costumerType['Id'],
+            'IdCustomerType' => $customerType['Id'],
             'IdOperation' => $operationType['Id'],
             'IdSeller' => $sellerId,
             'IdCurrentState' => 1, // Integración
             'IdOrderTotal' => $idOrderTotal,
-            // IdOrder debe ser el ID de OrderByCar (foreign key), no IdOrderTotal
+            // IdOrder debe ser el ID de Order (foreign key), no IdOrderTotal
             // Si no se proporciona orderByCarId, no se asigna (NULL por defecto)
-            'IdInventary' => $order['inventory'] ?? $order['inventario'] ?? null,
+            'IdInventory' => $order['inventory'] ?? $order['inventario'] ?? null,
             'RegistrationDate' => $currentDate,
             'UpdateDate' => $currentDate,
             'IdLastUserUpdate' => $userId
@@ -180,7 +180,7 @@ class FileService
         error_log("=== CREANDO FILE ===");
         error_log("File data a insertar: " . json_encode($fileData));
         
-        $this->db->table('file')->insert($fileData);
+        $this->db->table('expedient')->insert($fileData);
         $fileId = $this->db->insertID();
         
         // Debug: log de la inserción
@@ -201,12 +201,12 @@ class FileService
     /**
      * Crear documentos asociados al file
      */
-    private function createFileDocuments($fileId, $processId, $costumerTypeId, $operationTypeId, $agencyId, $userId)
+    private function createFileDocuments($fileId, $processId, $customerTypeId, $operationTypeId, $agencyId, $userId)
     {
         error_log("=== CREANDO DOCUMENTOS PARA FILE ID: " . $fileId . " ===");
         
         // Obtener documentos requeridos para esta configuración
-        $requiredDocuments = $this->getRequiredDocuments($processId, $costumerTypeId, $operationTypeId, $agencyId);
+        $requiredDocuments = $this->getRequiredDocuments($processId, $customerTypeId, $operationTypeId, $agencyId);
         
         if (empty($requiredDocuments)) {
             error_log("No hay documentos requeridos para esta configuración");
@@ -237,7 +237,7 @@ class FileService
     /**
      * Obtener documentos requeridos para una configuración
      */
-    private function getRequiredDocuments($processId, $costumerTypeId, $operationTypeId, $agencyId)
+    private function getRequiredDocuments($processId, $customerTypeId, $operationTypeId, $agencyId)
     {
         $sql = "SELECT DISTINCT dt.Id as IdDocumentType
                 FROM document_type dt
@@ -249,7 +249,7 @@ class FileService
                 AND pdt.Enabled = 1
                 AND dt.Enabled = 1";
 
-        $query = $this->db->query($sql, [$processId, $costumerTypeId, $operationTypeId, $agencyId]);
+        $query = $this->db->query($sql, [$processId, $customerTypeId, $operationTypeId, $agencyId]);
         return $query->getResultArray();
     }
 
@@ -262,8 +262,8 @@ class FileService
         error_log("ID externo: " . $externalClientId);
         
         $sql = "SELECT hc.Id 
-                FROM header_client hc
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                FROM client_header hc
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
                 WHERE ctr.IdDMS = ?";
         
         error_log("SQL: " . $sql);

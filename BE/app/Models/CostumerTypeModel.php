@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class CostumerTypeModel extends Model
+class CustomerTypeModel extends Model
 {
     protected $table            = 'customer_type';
     protected $primaryKey       = 'Id';
@@ -57,7 +57,7 @@ class CostumerTypeModel extends Model
     /**
      * Obtener tipos de cliente activos
      */
-    public function getActiveCostumerTypes()
+    public function getActiveCustomerTypes()
     {
         return $this->where('Enabled', 1)->orderBy('Name', 'ASC')->findAll();
     }
@@ -65,7 +65,7 @@ class CostumerTypeModel extends Model
     /**
      * Obtener tipo de cliente por nombre
      */
-    public function getCostumerTypeByName($name)
+    public function getCustomerTypeByName($name)
     {
         return $this->where('Name', $name)->first();
     }
@@ -75,12 +75,12 @@ class CostumerTypeModel extends Model
      */
     public function toggleStatus($id)
     {
-        $costumerType = $this->find($id);
-        if (!$costumerType) {
+        $customerType = $this->find($id);
+        if (!$customerType) {
             return false;
         }
 
-        $newStatus = $costumerType['Enabled'] == 1 ? 0 : 1;
+        $newStatus = $customerType['Enabled'] == 1 ? 0 : 1;
         return $this->update($id, ['Enabled' => $newStatus]);
     }
 }

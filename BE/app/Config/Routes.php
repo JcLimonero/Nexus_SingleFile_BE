@@ -114,15 +114,15 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
 
     // Rutas de tipos de cliente (CRUD)
     $routes->group('costumer-type', function($routes) {
-        $routes->get('/', 'CostumerType::index');
-        $routes->post('/', 'CostumerType::create');
-        $routes->get('search', 'CostumerType::search');
-        $routes->get('stats', 'CostumerType::stats');
-        $routes->get('active', 'CostumerType::active');
-        $routes->get('(:num)', 'CostumerType::show/$1');
-        $routes->put('(:num)', 'CostumerType::update/$1');
-        $routes->delete('(:num)', 'CostumerType::delete/$1');
-        $routes->patch('(:num)/toggle-status', 'CostumerType::toggleStatus/$1');
+        $routes->get('/', 'CustomerType::index');
+        $routes->post('/', 'CustomerType::create');
+        $routes->get('search', 'CustomerType::search');
+        $routes->get('stats', 'CustomerType::stats');
+        $routes->get('active', 'CustomerType::active');
+        $routes->get('(:num)', 'CustomerType::show/$1');
+        $routes->put('(:num)', 'CustomerType::update/$1');
+        $routes->delete('(:num)', 'CustomerType::delete/$1');
+        $routes->patch('(:num)/toggle-status', 'CustomerType::toggleStatus/$1');
     });
     
     // Rutas de tipos de documento (CRUD)

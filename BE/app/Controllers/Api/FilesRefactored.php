@@ -63,7 +63,7 @@ class FilesRefactored extends BaseController
         ]);
     }
 
-    public function getCostumerTypesByProcessAndAgency($processId, $agencyId)
+    public function getCustomerTypesByProcessAndAgency($processId, $agencyId)
     {
         // Implementación básica
         return $this->response->setJSON([
@@ -73,7 +73,7 @@ class FilesRefactored extends BaseController
         ]);
     }
 
-    public function getOperationTypesByProcessCostumerTypeAndAgency($processId, $costumerTypeId, $agencyId)
+    public function getOperationTypesByProcessCustomerTypeAndAgency($processId, $customerTypeId, $agencyId)
     {
         // Implementación básica
         return $this->response->setJSON([

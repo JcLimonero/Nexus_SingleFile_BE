@@ -84,11 +84,11 @@ class ReportesCumplimiento extends BaseController
                     aml.idCompany,
                     aml.anio
                 FROM client c
-                INNER JOIN header_client hc ON hc.IdClient = c.Id
-                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                INNER JOIN client_header hc ON hc.IdClient = c.Id
+                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
                 INNER JOIN agency a_ag ON a_ag.Id = ctr.IdAgency
                 INNER JOIN {$vistaAML} aml ON aml.idCliente = c.Id AND aml.anio = ? AND aml.totalMonto >= ?
-                INNER JOIN file f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                INNER JOIN expedient f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
                 WHERE 1=1
             ";
             $params = [$anioActual, $umbral];
@@ -166,7 +166,7 @@ class ReportesCumplimiento extends BaseController
                     f.IdCurrentState as idEstado,
                     fs.Name as nombreEstado,
                     COUNT(*) as total
-                FROM file f
+                FROM expedient f
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN company co ON a.IdCompany = co.Id
                 LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
@@ -260,8 +260,8 @@ class ReportesCumplimiento extends BaseController
                     dbf.IdCurrentStatus as idEstatus,
                     dfs.Name as nombreEstatus,
                     COUNT(*) as total
-                FROM document_by_file dbf
-                INNER JOIN file f ON dbf.IdFile = f.Id
+                FROM file_document dbf
+                INNER JOIN expedient f ON dbf.IdFile = f.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN company co ON a.IdCompany = co.Id
                 LEFT JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id
@@ -324,7 +324,7 @@ class ReportesCumplimiento extends BaseController
 
     /**
      * GET /api/reportes-cumplimiento/expedientes-sin-beneficiario
-     * Expedientes de persona moral (IdCostumerType=3) sin beneficiarios finales capturados.
+     * Expedientes de persona moral (IdCustomerType=3) sin beneficiarios finales capturados.
      */
     public function expedientesSinBeneficiario()
     {
@@ -356,7 +356,7 @@ class ReportesCumplimiento extends BaseController
                     p.Name as proceso,
                     fs.Name as fase,
                     f.RegistrationDate as registro
-                FROM file f
+                FROM expedient f
                 INNER JOIN client c ON f.IdClient = c.Id
                 LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
@@ -450,7 +450,7 @@ class ReportesCumplimiento extends BaseController
                     p.Name as proceso,
                     fs.Name as fase,
                     f.RegistrationDate as registro
-                FROM file f
+                FROM expedient f
                 INNER JOIN client c ON f.IdClient = c.Id
                 LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
@@ -506,7 +506,7 @@ class ReportesCumplimiento extends BaseController
                             p.Name as proceso,
                             fs.Name as fase,
                             f.RegistrationDate as registro
-                        FROM file f
+                        FROM expedient f
                         INNER JOIN client c ON f.IdClient = c.Id
                         LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                         INNER JOIN agency a ON f.IdAgency = a.Id
@@ -600,7 +600,7 @@ class ReportesCumplimiento extends BaseController
             $clientesAlertaAml = (int) ($qAml->getRow()->total ?? 0);
 
             // Total de expedientes activos (no cancelados) en el año
-            $sqlFiles = "SELECT COUNT(*) as total FROM file f INNER JOIN agency a ON f.IdAgency = a.Id WHERE YEAR(f.RegistrationDate) = ? AND f.IdCurrentState != 5";
+            $sqlFiles = "SELECT COUNT(*) as total FROM expedient f INNER JOIN agency a ON f.IdAgency = a.Id WHERE YEAR(f.RegistrationDate) = ? AND f.IdCurrentState != 5";
             $paramsFiles = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
                 $sqlFiles .= " AND a.IdCompany = ?";
@@ -611,8 +611,8 @@ class ReportesCumplimiento extends BaseController
 
             // Documentos pendientes de validación
             $sqlDoc = "
-                SELECT COUNT(*) as total FROM document_by_file dbf
-                INNER JOIN file f ON dbf.IdFile = f.Id
+                SELECT COUNT(*) as total FROM file_document dbf
+                INNER JOIN expedient f ON dbf.IdFile = f.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 WHERE dbf.IdCurrentStatus IN (1, 2, 3) AND f.IdCurrentState NOT IN (5)
             ";
@@ -626,7 +626,7 @@ class ReportesCumplimiento extends BaseController
 
             // Expedientes persona moral sin beneficiarios (año actual)
             $sqlBenef = "
-                SELECT COUNT(*) as total FROM file f
+                SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 WHERE f.IdCustomerType = 3 AND f.IdCurrentState NOT IN (5)
                 AND YEAR(f.RegistrationDate) = ?
@@ -642,7 +642,7 @@ class ReportesCumplimiento extends BaseController
 
             // Expedientes sin aviso de privacidad aceptado (año actual)
             $sqlAviso = "
-                SELECT COUNT(*) as total FROM file f
+                SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 WHERE f.IdCurrentState NOT IN (5) AND YEAR(f.RegistrationDate) = ?
                 AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.IdFile = f.Id AND fp.AvisoPrivacidadEntregado = 1)

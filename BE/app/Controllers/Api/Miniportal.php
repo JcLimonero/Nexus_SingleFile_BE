@@ -165,8 +165,8 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
-        $file = $this->request->getFile('file');
-        $idDocumentByFile = (int) ($this->request->getPost('idDocumentByFile') ?? $this->request->getPost('idDocumentFile') ?? 0);
+        $file = $this->request->getFile('expedient');
+        $idFileDocument = (int) ($this->request->getPost('idFileDocument') ?? $this->request->getPost('idDocumentFile') ?? 0);
 
         if (!$file || !$file->isValid()) {
             return $this->response->setJSON([
@@ -175,17 +175,17 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        if (!$idDocumentByFile) {
+        if (!$idFileDocument) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'idDocumentByFile es requerido'
+                'message' => 'idFileDocument es requerido'
             ])->setStatusCode(400);
         }
 
-        $doc = $this->db->table('document_by_file dbf')
+        $doc = $this->db->table('file_document dbf')
             ->select('dbf.Id, dbf.IdFile')
             ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->where('dbf.Id', $idDocumentByFile)
+            ->where('dbf.Id', $idFileDocument)
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.Enabled', 1)
             ->where('dt.AvailableToClient', 1)
@@ -199,27 +199,27 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
-        if ($this->isDocumentoAprobadoPorCliente($idDocumentByFile, $idFile)) {
+        if ($this->isDocumentoAprobadoPorCliente($idFileDocument, $idFile)) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Este documento ya fue aprobado por el cliente y no puede modificarse'
             ])->setStatusCode(403);
         }
 
-        $fileName = $this->getFileNameFromView($idDocumentByFile, $idFile, $file);
+        $fileName = $this->getFileNameFromView($idFileDocument, $idFile, $file);
         $vanguardiaUrl = 'https://apisvanguardia.com:400/backblaze/upload';
         $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
         $boundary = uniqid();
         $delimiter = '-------------' . $boundary;
 
         $postData = $this->buildMultipartData([
-            'file' => [
+            'expedient' => [
                 'filename' => $fileName,
                 'content' => file_get_contents($file->getTempName()),
                 'mimetype' => $file->getClientMimeType()
             ],
             'idSingleFile' => (string) $idFile,
-            'idDocumentFile' => (string) $idDocumentByFile
+            'idDocumentFile' => (string) $idFileDocument
         ], $delimiter);
 
         $ch = curl_init($vanguardiaUrl);
@@ -279,12 +279,12 @@ class Miniportal extends BaseController
         return $data;
     }
 
-    private function getFileNameFromView($idDocumentByFile, $idFile, $file): string
+    private function getFileNameFromView($idFileDocument, $idFile, $file): string
     {
         try {
             $query = $this->db->query(
-                "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",
-                [$idDocumentByFile, $idFile]
+                "SELECT file_name_original FROM view_document_name WHERE IdFileDocument = ? AND IdFile = ?",
+                [$idFileDocument, $idFile]
             );
             $result = $query->getRow();
             if ($result && !empty($result->file_name_original)) {
@@ -343,7 +343,7 @@ class Miniportal extends BaseController
         }
 
         $idFile = (int) $tokenData['IdFile'];
-        $fileContainer = $this->request->getGet('file');
+        $fileContainer = $this->request->getGet('expedient');
         if (!$fileContainer) {
             return $this->response->setJSON([
                 'success' => false,
@@ -351,7 +351,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $exists = $this->db->table('DocumentByFile dbf')
+        $exists = $this->db->table('FileDocument dbf')
             ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.IdDocumentContainer', $fileContainer)
@@ -428,19 +428,19 @@ class Miniportal extends BaseController
         }
 
         $data = $this->request->getJSON(true) ?? $this->request->getPost();
-        $idDocumentByFile = (int) ($data['idDocumentByFile'] ?? $data['idDocumentFile'] ?? 0);
+        $idFileDocument = (int) ($data['idFileDocument'] ?? $data['idDocumentFile'] ?? 0);
 
-        if (!$idDocumentByFile) {
+        if (!$idFileDocument) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'idDocumentByFile es requerido'
+                'message' => 'idFileDocument es requerido'
             ])->setStatusCode(400);
         }
 
-        $doc = $this->db->table('document_by_file dbf')
+        $doc = $this->db->table('file_document dbf')
             ->select('dbf.Id, dbf.IdFile, dbf.IdCurrentStatus')
             ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->where('dbf.Id', $idDocumentByFile)
+            ->where('dbf.Id', $idFileDocument)
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.Enabled', 1)
             ->where('dt.AvailableToClient', 1)
@@ -461,7 +461,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
-        if ($this->isDocumentoAprobadoPorCliente($idDocumentByFile, $idFile)) {
+        if ($this->isDocumentoAprobadoPorCliente($idFileDocument, $idFile)) {
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documento ya estaba aprobado'
@@ -470,7 +470,7 @@ class Miniportal extends BaseController
 
         try {
             $this->db->table('file_pld_documento_aprobado')->insert([
-                'IdDocumentByFile' => $idDocumentByFile,
+                'IdFileDocument' => $idFileDocument,
                 'IdFile' => $idFile,
                 'AprobadoCliente' => 1,
                 'FechaAprobacion' => date('Y-m-d H:i:s')
@@ -492,11 +492,11 @@ class Miniportal extends BaseController
     /**
      * Verificar si el documento fue aprobado por el cliente
      */
-    private function isDocumentoAprobadoPorCliente(int $idDocumentByFile, int $idFile): bool
+    private function isDocumentoAprobadoPorCliente(int $idFileDocument, int $idFile): bool
     {
         try {
             $row = $this->db->table('file_pld_documento_aprobado')
-                ->where('IdDocumentByFile', $idDocumentByFile)
+                ->where('IdFileDocument', $idFileDocument)
                 ->where('IdFile', $idFile)
                 ->where('AprobadoCliente', 1)
                 ->get()
@@ -515,7 +515,7 @@ class Miniportal extends BaseController
         try {
             $sql = "
                 SELECT
-                    dbf.Id as idDocumentByFile,
+                    dbf.Id as idFileDocument,
                     dbf.IdCurrentStatus as idEstatus,
                     dbf.Comment as comentarioRechazo,
                     p.Name as proceso,
@@ -527,13 +527,13 @@ class Miniportal extends BaseController
                     dbf.IdDocumentContainer as documentContainer,
                     dt.AvailableToClient as DisponibleCliente,
                     CASE WHEN ap.Id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
-                FROM document_by_file dbf
-                INNER JOIN file f ON dbf.IdFile = f.Id
+                FROM file_document dbf
+                INNER JOIN expedient f ON dbf.IdFile = f.Id
                 INNER JOIN process p ON f.IdProcess = p.Id
                 INNER JOIN document_type dt ON dbf.IdDocumentType = dt.Id
                 INNER JOIN file_status fs ON dt.IdProcessType = fs.Id
                 INNER JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id
-                LEFT JOIN file_pld_documento_aprobado ap ON ap.IdDocumentByFile = dbf.Id AND ap.IdFile = dbf.IdFile AND ap.AprobadoCliente = 1
+                LEFT JOIN file_pld_documento_aprobado ap ON ap.IdFileDocument = dbf.Id AND ap.IdFile = dbf.IdFile AND ap.AprobadoCliente = 1
                 WHERE dbf.IdFile = ?
                 AND dbf.Enabled = 1
                 AND dt.AvailableToClient = 1
@@ -552,10 +552,10 @@ class Miniportal extends BaseController
 
     private function getDocumentosByFileFallback(int $idFile): array
     {
-        $builder = $this->db->table('DocumentByFile dbf');
+        $builder = $this->db->table('FileDocument dbf');
         $results = $builder
             ->select('
-                dbf.Id as idDocumentByFile,
+                dbf.Id as idFileDocument,
                 dbf.IdCurrentStatus as idEstatus,
                 dbf.Comment as comentarioRechazo,
                 p.Name as proceso,
@@ -568,7 +568,7 @@ class Miniportal extends BaseController
                 dt.AvailableToClient as DisponibleCliente,
                 0 as aprobadoCliente
             ')
-            ->join('File f', 'dbf.IdFile = f.Id', 'inner')
+            ->join('expedient f', 'dbf.IdFile = f.Id', 'inner')
             ->join('Process p', 'f.IdProcess = p.Id', 'inner')
             ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->join('File_Status fs', 'dt.IdProcessType = fs.Id', 'inner')
@@ -602,17 +602,17 @@ class Miniportal extends BaseController
                 COALESCE(obc1.Model, obc2.Model) as modelo,
                 COALESCE(obc1.Year, obc2.Year) as year,
                 COALESCE(obc1.CarType, obc2.CarType) as version
-            FROM file f
+            FROM expedient f
             INNER JOIN client c ON f.IdClient = c.Id
             INNER JOIN agency a ON f.IdAgency = a.Id
             LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
-            LEFT JOIN order_by_car obc1 ON obc1.Id = f.IdOrder
+            LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
             LEFT JOIN (
                 SELECT obc2a.IdDMS, obc2a.idagency, obc2a.VIN, obc2a.Model, obc2a.Year, obc2a.CarType
-                FROM order_by_car obc2a
+                FROM order obc2a
                 INNER JOIN (
                     SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                    FROM order_by_car
+                    FROM order
                     GROUP BY IdDMS, idagency
                 ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
                     AND obc2a.idagency = obc2b.idagency

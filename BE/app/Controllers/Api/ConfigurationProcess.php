@@ -45,7 +45,7 @@ class ConfigurationProcess extends BaseController
                 cp.IdAgency,
                 a.Name as agencyName,
                 cp.IdCustomerType,
-                ct.Name as costumerTypeName,
+                ct.Name as customerTypeName,
                 cp.IdOperationType,
                 ot.Name as operationTypeName,
                 cp.Enabled,
@@ -71,7 +71,7 @@ class ConfigurationProcess extends BaseController
             // Organizar los datos por categorías para facilitar el uso en cascada
             $organizedData = [
                 'processes' => [],
-                'costumerTypes' => [],
+                'customerTypes' => [],
                 'operationTypes' => [],
                 'configurations' => $configurations
             ];
@@ -89,13 +89,13 @@ class ConfigurationProcess extends BaseController
             }
 
             // Extraer tipos de cliente únicos
-            $costumerTypeIds = [];
+            $customerTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdCustomerType'], $costumerTypeIds)) {
-                    $costumerTypeIds[] = $config['IdCustomerType'];
-                    $organizedData['costumerTypes'][] = [
+                if (!in_array($config['IdCustomerType'], $customerTypeIds)) {
+                    $customerTypeIds[] = $config['IdCustomerType'];
+                    $organizedData['customerTypes'][] = [
                         'Id' => $config['IdCustomerType'],
-                        'Name' => $config['costumerTypeName']
+                        'Name' => $config['customerTypeName']
                     ];
                 }
             }
@@ -162,7 +162,7 @@ class ConfigurationProcess extends BaseController
                 cp.IdAgency,
                 a.Name as agencyName,
                 cp.IdCustomerType,
-                ct.Name as costumerTypeName,
+                ct.Name as customerTypeName,
                 cp.IdOperationType,
                 ot.Name as operationTypeName,
                 cp.Enabled,
@@ -184,7 +184,7 @@ class ConfigurationProcess extends BaseController
             // Organizar los datos por categorías para facilitar el uso en cascada
             $organizedData = [
                 'processes' => [],
-                'costumerTypes' => [],
+                'customerTypes' => [],
                 'operationTypes' => [],
                 'configurations' => $configurations
             ];
@@ -202,13 +202,13 @@ class ConfigurationProcess extends BaseController
             }
 
             // Extraer tipos de cliente únicos
-            $costumerTypeIds = [];
+            $customerTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdCustomerType'], $costumerTypeIds)) {
-                    $costumerTypeIds[] = $config['IdCustomerType'];
-                    $organizedData['costumerTypes'][] = [
+                if (!in_array($config['IdCustomerType'], $customerTypeIds)) {
+                    $customerTypeIds[] = $config['IdCustomerType'];
+                    $organizedData['customerTypes'][] = [
                         'Id' => $config['IdCustomerType'],
-                        'Name' => $config['costumerTypeName']
+                        'Name' => $config['customerTypeName']
                     ];
                 }
             }
