@@ -8,9 +8,11 @@ use Firebase\JWT\Key;
 
 class AuthModel extends Model
 {
-    protected $table = 'User';
+    protected $table = 'user';
     protected $primaryKey = 'Id';
-    protected $allowedFields = ['Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol'];
+    protected $useAutoIncrement = false;
+    protected $allowedFields = ['Name', 'user', 'Pass', 'Mail', 'Enabled', 'IdUserRol'];
+    protected bool $updateOnlyChanged = false;
     
     // Configuración de JWT
     private $jwtSecret = 'singlefile-secret-key-2025';
@@ -28,8 +30,8 @@ class AuthModel extends Model
             $loginMethod = 'email'; // 'email' o 'username'
             
             // Primero intentar buscar por Mail (método nuevo)
-            $user = $this->select('User.*, UserRol.Name as RoleName')
-                        ->join('UserRol', 'User.IdUserRol = UserRol.Id', 'left')
+            $user = $this->select('User.Id, User.*, UserRol.Name as RoleName')
+                        ->join('user_role', 'User.IdUserRol = UserRol.Id', 'left')
                         ->where('User.Mail', $identifier)
                         ->where('User.Enabled', 1)
                         ->get()
@@ -37,8 +39,8 @@ class AuthModel extends Model
             
             // Si no se encuentra por Mail, intentar por User (método antiguo)
             if (!$user) {
-                $user = $this->select('User.*, UserRol.Name as RoleName')
-                            ->join('UserRol', 'User.IdUserRol = UserRol.Id', 'left')
+                $user = $this->select('User.Id, User.*, UserRol.Name as RoleName')
+                            ->join('user_role', 'User.IdUserRol = UserRol.Id', 'left')
                             ->where('User.User', $identifier)
                             ->where('User.Enabled', 1)
                             ->get()
@@ -62,7 +64,7 @@ class AuthModel extends Model
                             'requires_email' => true,
                             'message' => 'Para continuar, necesitas completar tu correo electrónico. Por favor, proporciona tu email para migrar al nuevo sistema de autenticación.',
                             'user_id' => $user['Id'],
-                            'username' => $user['User'],
+                            'username' => $user['user'],
                             'name' => $user['Name']
                         ];
                     }
@@ -93,7 +95,7 @@ class AuthModel extends Model
                         'id' => $user['Id'],
                         'name' => $user['Name'],
                         'email' => $user['Mail'],
-                        'username' => $user['User'],
+                        'username' => $user['user'],
                         'role_id' => $user['IdUserRol'],
                         'role_name' => $user['RoleName'] ?? 'Sin rol asignado',
                         'enabled' => $user['Enabled'],
@@ -198,14 +200,14 @@ class AuthModel extends Model
             $db = \Config\Database::connect();
             
             // Verificar si ya existe un refresh token para este usuario
-            $existingToken = $db->table('UserRefreshToken')
+            $existingToken = $db->table('user_refresh_token')
                 ->where('IdUser', $userId)
                 ->get()
                 ->getRowArray();
             
             if ($existingToken) {
                 // Actualizar token existente
-                $db->table('User_RefreshToken')
+                $db->table('user_refresh_token')
                     ->where('IdUser', $userId)
                     ->update([
                         'RefreshToken' => $refreshToken,
@@ -214,7 +216,7 @@ class AuthModel extends Model
                     ]);
             } else {
                 // Insertar nuevo token
-                $db->table('User_RefreshToken')->insert([
+                $db->table('user_refresh_token')->insert([
                     'IdUser' => $userId,
                     'RefreshToken' => $refreshToken,
                     'ExpirationDate' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
@@ -250,7 +252,7 @@ class AuthModel extends Model
             
             // Verificar que el token esté en la base de datos
             $db = \Config\Database::connect();
-            $storedToken = $db->table('User_RefreshToken')
+            $storedToken = $db->table('user_refresh_token')
                 ->where('IdUser', $decoded->user_id)
                 ->where('RefreshToken', $refreshToken)
                 ->where('ExpirationDate >', date('Y-m-d H:i:s'))
@@ -264,9 +266,9 @@ class AuthModel extends Model
                 ];
             }
             
-            // Obtener información del usuario
-            $user = $this->find($decoded->user_id);
-            if (!$user || $user['Enabled'] != 1) {
+            // Obtener información del usuario (incluyendo Id explícitamente)
+            $user = $this->select('Id, Name, user, Mail, Enabled, IdUserRol')->find($decoded->user_id);
+            if (!$user || !isset($user['Id']) || $user['Enabled'] != 1) {
                 return [
                     'success' => false,
                     'message' => 'Usuario no encontrado o deshabilitado'
@@ -298,7 +300,7 @@ class AuthModel extends Model
     {
         try {
             $db = \Config\Database::connect();
-            $db->table('User_RefreshToken')
+            $db->table('user_refresh_token')
                 ->where('IdUser', $userId)
                 ->delete();
             
@@ -336,6 +338,7 @@ class AuthModel extends Model
             $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
             
             $this->update($userId, [
+                'Id' => $userId,
                 'Pass' => $hashedPassword,
                 'password_migrated' => 1,
                 'UpdateDate' => date('Y-m-d H:i:s')
@@ -352,7 +355,7 @@ class AuthModel extends Model
      */
     public function getUserById($userId)
     {
-        return $this->find($userId);
+        return $this->select('Id, Name, user, Mail, Enabled, IdUserRol')->find($userId);
     }
     
     /**
@@ -360,8 +363,8 @@ class AuthModel extends Model
      */
     public function isUserEnabled($userId)
     {
-        $user = $this->find($userId);
-        return $user && $user['Enabled'] == 1;
+        $user = $this->select('Id, Enabled')->find($userId);
+        return $user && isset($user['Id']) && $user['Enabled'] == 1;
     }
     
     /**
@@ -379,9 +382,9 @@ class AuthModel extends Model
                 ];
             }
             
-            // Verificar que el usuario existe y obtener sus datos
-            $user = $this->find($userId);
-            if (!$user) {
+            // Verificar que el usuario existe y obtener sus datos (incluyendo Id explícitamente)
+            $user = $this->select('Id, Name, user, Pass, Mail, Enabled, IdUserRol, UserPass')->find($userId);
+            if (!$user || !isset($user['Id'])) {
                 return [
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -389,7 +392,7 @@ class AuthModel extends Model
             }
             
             // Verificar contraseña antes de permitir actualizar email
-            if (!$this->verifyPassword($password, $user['Pass'], $user['UserPass'])) {
+            if (!$this->verifyPassword($password, $user['Pass'], $user['UserPass'] ?? null)) {
                 return [
                     'success' => false,
                     'message' => 'Contraseña incorrecta. No se puede actualizar el email sin verificar la contraseña.'
@@ -409,8 +412,9 @@ class AuthModel extends Model
                 ];
             }
             
-            // Actualizar el email
+            // Actualizar el email (incluyendo Id en los datos)
             $this->update($userId, [
+                'Id' => $userId,
                 'Mail' => $email,
                 'UpdateDate' => date('Y-m-d H:i:s')
             ]);

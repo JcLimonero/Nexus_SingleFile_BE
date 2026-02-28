@@ -5,11 +5,11 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 /**
- * Modelo para file_pld_beneficiariofinal - beneficiarios finales por expediente.
+ * Model para file_pld_beneficiariofinal - beneficiarios finales por expediente.
  */
 class FilePldBeneficiarioFinalModel extends Model
 {
-    protected $table = 'FilePldBeneficiarioFinal';
+    protected $table = 'file_pld_beneficial_owner';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

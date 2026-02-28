@@ -182,7 +182,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $doc = $this->db->table('DocumentByFile dbf')
+        $doc = $this->db->table('document_by_file dbf')
             ->select('dbf.Id, dbf.IdFile')
             ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.Id', $idDocumentByFile)
@@ -437,7 +437,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $doc = $this->db->table('DocumentByFile dbf')
+        $doc = $this->db->table('document_by_file dbf')
             ->select('dbf.Id, dbf.IdFile, dbf.IdCurrentStatus')
             ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.Id', $idDocumentByFile)
@@ -527,12 +527,12 @@ class Miniportal extends BaseController
                     dbf.IdDocumentContainer as documentContainer,
                     dt.AvailableToClient as DisponibleCliente,
                     CASE WHEN ap.Id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
-                FROM DocumentByFile dbf
-                INNER JOIN File f ON dbf.IdFile = f.Id
-                INNER JOIN Process p ON f.IdProcess = p.Id
-                INNER JOIN DocumentType dt ON dbf.IdDocumentType = dt.Id
-                INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id
-                INNER JOIN DocumentFile_Status dfs ON dbf.IdCurrentStatus = dfs.Id
+                FROM document_by_file dbf
+                INNER JOIN file f ON dbf.IdFile = f.Id
+                INNER JOIN process p ON f.IdProcess = p.Id
+                INNER JOIN document_type dt ON dbf.IdDocumentType = dt.Id
+                INNER JOIN file_status fs ON dt.IdProcessType = fs.Id
+                INNER JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id
                 LEFT JOIN file_pld_documento_aprobado ap ON ap.IdDocumentByFile = dbf.Id AND ap.IdFile = dbf.IdFile AND ap.AprobadoCliente = 1
                 WHERE dbf.IdFile = ?
                 AND dbf.Enabled = 1
@@ -599,26 +599,26 @@ class Miniportal extends BaseController
                 COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))) as cliente,
                 a.Name as agencia,
                 COALESCE(obc1.VIN, obc2.VIN) as vin,
-                COALESCE(obc1.Modelo, obc2.Modelo) as modelo,
+                COALESCE(obc1.Model, obc2.Model) as modelo,
                 COALESCE(obc1.Year, obc2.Year) as year,
                 COALESCE(obc1.CarType, obc2.CarType) as version
-            FROM File f
-            INNER JOIN Client c ON f.IdClient = c.Id
-            INNER JOIN Agency a ON f.IdAgency = a.Id
-            LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
-            LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder
+            FROM file f
+            INNER JOIN client c ON f.IdClient = c.Id
+            INNER JOIN agency a ON f.IdAgency = a.Id
+            LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
+            LEFT JOIN order_by_car obc1 ON obc1.Id = f.IdOrder
             LEFT JOIN (
-                SELECT obc2a.IdTotalDealer, obc2a.idagency, obc2a.VIN, obc2a.Modelo, obc2a.Year, obc2a.CarType
-                FROM OrderByCar obc2a
+                SELECT obc2a.IdDMS, obc2a.idagency, obc2a.VIN, obc2a.Model, obc2a.Year, obc2a.CarType
+                FROM order_by_car obc2a
                 INNER JOIN (
-                    SELECT IdTotalDealer, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                    FROM OrderByCar
-                    GROUP BY IdTotalDealer, idagency
-                ) obc2b ON obc2a.IdTotalDealer = obc2b.IdTotalDealer
+                    SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
+                    FROM order_by_car
+                    GROUP BY IdDMS, idagency
+                ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
                     AND obc2a.idagency = obc2b.idagency
                     AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
             ) obc2 ON f.IdOrder IS NULL
-                AND obc2.IdTotalDealer = f.IdOrderTotal
+                AND obc2.IdDMS = f.IdOrderTotal
                 AND obc2.idagency = f.IdAgency
             WHERE f.Id = ? AND f.IdCurrentState != 5
         ";

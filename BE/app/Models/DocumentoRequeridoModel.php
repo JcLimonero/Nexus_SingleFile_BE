@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class DocumentoRequeridoModel extends Model
 {
-    protected $table            = 'ConfigurationProcessDocumentType';
+    protected $table            = 'configuration_process_document_type';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
@@ -88,7 +88,7 @@ class DocumentoRequeridoModel extends Model
      */
     public function getDocumentosRequeridos($filters = [], $limit = null, $offset = null, $sortBy = 'Id', $sortOrder = 'ASC')
     {
-        $builder = $this->builder('ConfigurationProcess_DocumentType cpd');
+        $builder = $this->builder('ConfigurationProcessDocumentType cpd');
         
         // Seleccionar campos con joins
         $builder->select('
@@ -123,8 +123,8 @@ class DocumentoRequeridoModel extends Model
         $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
         $builder->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left');
         $builder->join('DocumentType dt', 'dt.Id = cpd.IdDocumentType', 'left');
-        $builder->join('File_Status fs', 'fs.Id = dt.IdProcessType', 'left');
-        $builder->join('File_SubStatus sp', 'sp.Id = dt.IdSubProcess', 'left');
+        $builder->join('FileStatus fs', 'fs.Id = dt.IdProcessType', 'left');
+        $builder->join('FileSubStatus sp', 'sp.Id = dt.IdSubProcess', 'left');
         
         // Aplicar filtros
         if (!empty($filters['IdProcess'])) {
@@ -166,7 +166,7 @@ class DocumentoRequeridoModel extends Model
      */
     public function countDocumentosRequeridos($filters = [])
     {
-        $builder = $this->builder('ConfigurationProcess_DocumentType cpd');
+        $builder = $this->builder('ConfigurationProcessDocumentType cpd');
         $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
         
         // Aplicar filtros
@@ -201,19 +201,19 @@ class DocumentoRequeridoModel extends Model
         $total = $this->countAllResults();
         
         // Contar configuraciones únicas
-        $configuracionesCount = $this->db->table('ConfigurationProcess')
+        $configuracionesCount = $this->db->table('configuration_process')
                                         ->where('Enabled', 1)
                                         ->countAllResults();
         
         // Contar procesos únicos
-        $procesosCount = $this->db->table('ConfigurationProcess')
+        $procesosCount = $this->db->table('configuration_process')
                                  ->select('COUNT(DISTINCT IdProcess) as count')
                                  ->where('Enabled', 1)
                                  ->get()
                                  ->getRow()->count;
         
         // Contar agencias únicas
-        $agenciasCount = $this->db->table('ConfigurationProcess')
+        $agenciasCount = $this->db->table('configuration_process')
                                  ->select('COUNT(DISTINCT IdAgency) as count')
                                  ->where('Enabled', 1)
                                  ->get()
@@ -232,7 +232,7 @@ class DocumentoRequeridoModel extends Model
      */
     public function getOrCreateConfigurationProcess($idProcess, $idAgency, $idCostumerType, $idOperationType)
     {
-        // Usar el modelo ConfigurationProcessModel
+        // Usar el model ConfigurationProcessModel
         $configProcessModel = new \App\Models\ConfigurationProcessModel();
         return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCostumerType, $idOperationType);
     }
@@ -242,7 +242,7 @@ class DocumentoRequeridoModel extends Model
      */
     public function findWithRelations($id)
     {
-        $builder = $this->builder('ConfigurationProcess_DocumentType cpd');
+        $builder = $this->builder('ConfigurationProcessDocumentType cpd');
         
         $builder->select('
             cpd.Id,
@@ -269,7 +269,7 @@ class DocumentoRequeridoModel extends Model
      */
     public function existsDocumentoRequerido($idProcess, $idAgency, $idCostumerType, $idOperationType, $idDocumentType, $excludeId = null)
     {
-        $builder = $this->db->table('ConfigurationProcessDocumentType cpd');
+        $builder = $this->db->table('configuration_process_document_type cpd');
         $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
         
         $builder->where('cp.IdProcess', $idProcess)
@@ -334,8 +334,8 @@ class DocumentoRequeridoModel extends Model
             $data['IdConfigurationProcess'] = $idConfigProcess;
         }
         
-        // Actualizar solo los campos permitidos de ConfigurationProcess_DocumentType
-        // Nota: Enabled está en ConfigurationProcess, no en ConfigurationProcess_DocumentType
+        // Actualizar solo los campos permitidos de ConfigurationProcessDocumentType
+        // Nota: Enabled está en ConfigurationProcess, no en ConfigurationProcessDocumentType
         // El controlador se encargará de actualizar ConfigurationProcess si se envía Enabled
         $updateData = [];
         if (isset($data['IdDocumentType'])) $updateData['IdDocumentType'] = $data['IdDocumentType'];

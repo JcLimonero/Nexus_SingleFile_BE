@@ -9,7 +9,7 @@ class UpdateUserPasswordField extends Migration
     public function up()
     {
         // Cambiar el campo Pass de VARCHAR(50) a VARCHAR(255) para soportar hash bcrypt
-        $this->forge->modifyColumn('User', [
+        $this->forge->modifyColumn('user', [
             'Pass' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
@@ -19,7 +19,7 @@ class UpdateUserPasswordField extends Migration
         ]);
         
         // Agregar campo para tracking de migración de contraseñas
-        $this->forge->addColumn('User', [
+        $this->forge->addColumn('user', [
             'password_migrated' => [
                 'type' => 'TINYINT',
                 'constraint' => 1,
@@ -33,7 +33,7 @@ class UpdateUserPasswordField extends Migration
     public function down()
     {
         // Revertir cambios
-        $this->forge->modifyColumn('User', [
+        $this->forge->modifyColumn('user', [
             'Pass' => [
                 'type' => 'VARCHAR',
                 'constraint' => 50,
@@ -41,6 +41,6 @@ class UpdateUserPasswordField extends Migration
             ]
         ]);
         
-        $this->forge->dropColumn('User', 'password_migrated');
+        $this->forge->dropColumn('user', 'password_migrated');
     }
 }

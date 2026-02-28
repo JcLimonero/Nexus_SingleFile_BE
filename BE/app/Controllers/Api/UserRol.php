@@ -6,7 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\UserRolModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class UserRol extends BaseController
+class user_role extends BaseController
 {
     protected $userRolModel;
 
@@ -40,7 +40,7 @@ class UserRol extends BaseController
 
             // Construir la consulta
             $db = \Config\Database::connect();
-            $builder = $db->table('UserRol ur');
+            $builder = $db->table('user_rol ur');
             
             $builder->select('ur.Id, ur.Name, ur.Enabled, ur.RegistrationDate, ur.UpdateDate');
 
@@ -400,8 +400,8 @@ class UserRol extends BaseController
             $db = \Config\Database::connect();
             $rolesWithUserCount = $db->query("
                 SELECT ur.Id, ur.Name, ur.Enabled, COUNT(u.Id) as UserCount
-                FROM UserRol ur
-                LEFT JOIN User u ON u.IdUserRol = ur.Id
+                FROM user_role ur
+                LEFT JOIN user u ON u.IdUserRol = ur.Id
                 GROUP BY ur.Id, ur.Name, ur.Enabled
                 ORDER BY UserCount DESC, ur.Name ASC
             ")->getResultArray();

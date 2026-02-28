@@ -29,20 +29,20 @@ class UserService
         }
 
         // Buscar si ya existe un usuario con este ndConsultant
-        $existingUser = $this->db->table('User')
-            ->where('User', $ndConsultant)
+        $existingUser = $this->db->table('user')
+            ->where('user', $ndConsultant)
             ->orWhere('Mail', $ndConsultant . '@default.com')
             ->get()
             ->getRowArray();
 
         if ($existingUser) {
-            error_log("Usuario asesor encontrado: " . $existingUser['Id']);
+            error_log("Usuario advisor encontrado: " . $existingUser['Id']);
             return $existingUser['Id'];
         }
 
         // Verificar si ya existe un usuario con el mismo nombre
-        $duplicateUser = $this->db->table('User')
-            ->where('User', $ndConsultant)
+        $duplicateUser = $this->db->table('user')
+            ->where('user', $ndConsultant)
             ->get()
             ->getRowArray();
             
@@ -52,7 +52,7 @@ class UserService
         }
 
         // TEMPORAL: Usar usuario admin como fallback para evitar problemas de inserción
-        error_log("No se encontró usuario asesor para ndConsultant: " . $ndConsultant . ", usando usuario admin como fallback");
+        error_log("No se encontró usuario advisor para ndConsultant: " . $ndConsultant . ", usando usuario admin como fallback");
         return 1; // Usuario admin
     }
 
@@ -64,7 +64,7 @@ class UserService
         error_log("=== CREANDO NUEVO USUARIO ===");
         error_log("Datos de usuario: " . json_encode($userData));
         
-        $this->db->table('User')->insert($userData);
+        $this->db->table('user')->insert($userData);
         $newUserId = $this->db->insertID();
         
         error_log("DB error después de insert: " . ($this->db->error()['message'] ?? 'No error'));
@@ -79,8 +79,8 @@ class UserService
      */
     public function findUserByUsername($username)
     {
-        return $this->db->table('User')
-            ->where('User', $username)
+        return $this->db->table('user')
+            ->where('user', $username)
             ->get()
             ->getRowArray();
     }
@@ -90,7 +90,7 @@ class UserService
      */
     public function findUserByEmail($email)
     {
-        return $this->db->table('User')
+        return $this->db->table('user')
             ->where('Mail', $email)
             ->get()
             ->getRowArray();
@@ -115,7 +115,7 @@ class UserService
      */
     public function validateUserExists($userId)
     {
-        $user = $this->db->table('User')
+        $user = $this->db->table('user')
             ->where('Id', $userId)
             ->get()
             ->getRowArray();
@@ -128,7 +128,7 @@ class UserService
      */
     public function getUserById($userId)
     {
-        return $this->db->table('User')
+        return $this->db->table('user')
             ->where('Id', $userId)
             ->get()
             ->getRowArray();

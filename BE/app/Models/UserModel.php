@@ -6,21 +6,21 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
-    protected $table            = 'User';
+    protected $table            = 'user';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol',
+        'Id', 'Name', 'user', 'Pass', 'Mail', 'Enabled', 'IdUserRol',
         'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate',
         'IdUserTotal', 'DefaultAgency', 'password_migrated',
         'profile_image', 'image_type', 'image_size'
     ];
 
     protected bool $allowEmptyInserts = false;
-    protected bool $updateOnlyChanged = true;
+    protected bool $updateOnlyChanged = false;
 
     protected array $casts = [];
     protected array $castHandlers = [];
@@ -87,6 +87,7 @@ class UserModel extends Model
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
         
         return $this->update($userId, [
+            'Id' => $userId,
             'Pass' => $hashedPassword,
             'password_migrated' => 1,
             'UpdateDate' => date('Y-m-d H:i:s'),
@@ -110,6 +111,7 @@ class UserModel extends Model
         $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
         
         return $this->update($userId, [
+            'Id' => $userId,
             'Pass' => $hashedPassword,
             'password_migrated' => 1,
             'UpdateDate' => date('Y-m-d H:i:s')
@@ -131,6 +133,7 @@ class UserModel extends Model
     public function updateProfileImage($userId, $imageData, $imageType, $imageSize)
     {
         return $this->update($userId, [
+            'Id' => $userId,
             'profile_image' => $imageData,
             'image_type' => $imageType,
             'image_size' => $imageSize,
@@ -145,6 +148,7 @@ class UserModel extends Model
     public function removeProfileImage($userId)
     {
         return $this->update($userId, [
+            'Id' => $userId,
             'profile_image' => null,
             'image_type' => null,
             'image_size' => null,

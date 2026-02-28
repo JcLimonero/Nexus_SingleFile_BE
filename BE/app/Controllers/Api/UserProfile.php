@@ -50,7 +50,7 @@ class UserProfile extends BaseController
             $profileData = [
                 'Id' => $user['Id'],
                 'Name' => $user['Name'],
-                'User' => $user['User'],
+                'user' => $user['user'],
                 'Mail' => $user['Mail'],
                 'DefaultAgency' => $user['DefaultAgency'],
                 'IdUserRol' => $user['IdUserRol'],
@@ -361,7 +361,7 @@ class UserProfile extends BaseController
             
             // Verificar que la agencia existe
             $db = \Config\Database::connect();
-            $agencyExists = $db->table('Agency')->where('Id', $defaultAgencyId)->countAllResults() > 0;
+            $agencyExists = $db->table('agency')->where('Id', $defaultAgencyId)->countAllResults() > 0;
             
             if (!$agencyExists) {
                 return $this->response

@@ -21,7 +21,7 @@ class AgencyService
         error_log("ID recibido: " . $agencyId);
         
         // Primero intentar como ID externo (IdAgency)
-        $agency = $this->db->table('Agency')
+        $agency = $this->db->table('agency')
             ->where('IdAgency', $agencyId)
             ->get()
             ->getRowArray();
@@ -32,7 +32,7 @@ class AgencyService
         }
         
         // Si no se encuentra, intentar como ID interno
-        $agency = $this->db->table('Agency')
+        $agency = $this->db->table('agency')
             ->where('Id', $agencyId)
             ->get()
             ->getRowArray();
@@ -54,7 +54,7 @@ class AgencyService
         error_log("=== BUSCANDO AGENCIA POR ID EXTERNO ===");
         error_log("IdAgency externo: " . $externalAgencyId);
         
-        $agency = $this->db->table('Agency')
+        $agency = $this->db->table('agency')
             ->where('IdAgency', $externalAgencyId)
             ->get()
             ->getRowArray();
@@ -73,7 +73,7 @@ class AgencyService
      */
     public function validateAgencyExists($agencyId)
     {
-        $agency = $this->db->table('Agency')
+        $agency = $this->db->table('agency')
             ->where('Id', $agencyId)
             ->get()
             ->getRowArray();
@@ -86,7 +86,7 @@ class AgencyService
      */
     public function getEnabledAgencies()
     {
-        return $this->db->table('Agency')
+        return $this->db->table('agency')
             ->where('Enabled', 1)
             ->orderBy('Name', 'ASC')
             ->get()
@@ -98,7 +98,7 @@ class AgencyService
      */
     public function getAgencyById($agencyId)
     {
-        return $this->db->table('Agency')
+        return $this->db->table('agency')
             ->where('Id', $agencyId)
             ->get()
             ->getRowArray();

@@ -675,14 +675,14 @@ class DocumentType extends BaseController
                 SELECT cp.Id as IdConfigurationProcess, cp.IdProcess, p.Name as ProcesoName,
                        cp.IdAgency, a.Name as AgenciaName,                        cp.IdCustomerType, ct.Name as TipoClienteName,
                        cp.IdOperationType, ot.Name as TipoOperacionName, cp.Enabled
-                FROM ConfigurationProcess cp
-                LEFT JOIN Process p ON p.Id = cp.IdProcess
-                INNER JOIN Agency a ON a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != ''
+                FROM configuration_process cp
+                LEFT JOIN process p ON p.Id = cp.IdProcess
+                INNER JOIN agency a ON a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != ''
                 LEFT JOIN customertype ct ON ct.Id = cp.IdCustomerType
-                LEFT JOIN OperationType ot ON ot.Id = cp.IdOperationType
+                LEFT JOIN operation_type ot ON ot.Id = cp.IdOperationType
                 WHERE cp.Id NOT IN (
                     SELECT cpd.IdConfigurationProcess
-                    FROM ConfigurationProcess_DocumentType cpd
+                    FROM configuration_processDocumentType cpd
                     WHERE cpd.IdDocumentType = ?
                 )
                 ORDER BY p.Name, a.Name, ct.Name, ot.Name
@@ -797,7 +797,7 @@ class DocumentType extends BaseController
     private function getMaxId()
     {
         $db = \Config\Database::connect();
-        $query = $db->query('SELECT MAX(Id) as max_id FROM DocumentType');
+        $query = $db->query('SELECT MAX(Id) as max_id FROM document_type');
         $result = $query->getRow();
         return $result ? (int)$result->max_id : 0;
     }

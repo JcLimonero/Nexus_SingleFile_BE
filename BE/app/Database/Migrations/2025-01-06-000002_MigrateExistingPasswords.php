@@ -11,7 +11,7 @@ class MigrateExistingPasswords extends Migration
         $db = \Config\Database::connect();
         
         // Obtener todos los usuarios con contraseñas en texto plano
-        $users = $db->table('User')
+        $users = $db->table('user')
                     ->select('Id, Pass')
                     ->where('password_migrated', 0)
                     ->get()
@@ -22,7 +22,7 @@ class MigrateExistingPasswords extends Migration
             $hashedPassword = password_hash($user['Pass'], PASSWORD_DEFAULT);
             
             // Actualizar la contraseña encriptada y marcar como migrada
-            $db->table('User')
+            $db->table('user')
                ->where('Id', $user['Id'])
                ->update([
                    'Pass' => $hashedPassword,
@@ -41,7 +41,7 @@ class MigrateExistingPasswords extends Migration
         // Solo se puede marcar como no migradas
         $db = \Config\Database::connect();
         
-        $db->table('User')
+        $db->table('user')
            ->update(['password_migrated' => 0]);
     }
 }

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class DocumentTypeModel extends Model
 {
-    protected $table            = 'DocumentType';
+    protected $table            = 'document_type';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
@@ -96,7 +96,7 @@ class DocumentTypeModel extends Model
         // Log para debug
         log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Buscando configuraciones para documento ID: {$documentTypeId}");
         
-        $builder = $this->db->table('ConfigurationProcess_DocumentType cpd');
+        $builder = $this->db->table('configuration_process_document_type cpd');
         
         $builder->select('
             cpd.Id as IdConfigurationProcessDocumentType,
@@ -161,7 +161,7 @@ class DocumentTypeModel extends Model
      */
     public function getDocumentTypesWithRelations($filters = [])
     {
-        $builder = $this->db->table('DocumentType dt');
+        $builder = $this->db->table('document_type dt');
         
         $builder->select('
             dt.Id,
@@ -182,8 +182,8 @@ class DocumentTypeModel extends Model
 
         // JOINs para obtener las descripciones
         $builder->join('User u', 'u.Id = dt.IdLastUserUpdate', 'left');
-        $builder->join('`File_Status` fs', 'fs.Id = dt.IdProcessType', 'left'); // Tipo de proceso
-        $builder->join('`File_SubStatus` sp', 'sp.Id = dt.IdSubProcess', 'left'); // Subestado de archivo
+        $builder->join('`file_status` fs', 'fs.Id = dt.IdProcessType', 'left'); // Tipo de proceso
+        $builder->join('`file_sub_status` sp', 'sp.Id = dt.IdSubProcess', 'left'); // Subestado de archivo
 
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -233,10 +233,10 @@ class DocumentTypeModel extends Model
      */
     public function countDocumentTypesWithFilters($filters = [])
     {
-        $builder = $this->db->table('DocumentType dt');
+        $builder = $this->db->table('document_type dt');
         
-        $builder->join('`File_Status` fs', 'fs.Id = dt.IdProcessType', 'left');
-        $builder->join('`File_SubStatus` sp', 'sp.Id = dt.IdSubProcess', 'left');
+        $builder->join('`file_status` fs', 'fs.Id = dt.IdProcessType', 'left');
+        $builder->join('`file_sub_status` sp', 'sp.Id = dt.IdSubProcess', 'left');
 
         // Aplicar los mismos filtros
         if (!empty($filters['enabled'])) {
@@ -275,7 +275,7 @@ class DocumentTypeModel extends Model
      */
     public function getDocumentTypeWithRelations($id)
     {
-        $builder = $this->db->table('DocumentType dt');
+        $builder = $this->db->table('document_type dt');
         
         $builder->select('
             dt.Id,
@@ -295,8 +295,8 @@ class DocumentTypeModel extends Model
         ');
 
         $builder->join('User u', 'u.Id = dt.IdLastUserUpdate', 'left');
-        $builder->join('`File_Status` fs', 'fs.Id = dt.IdProcessType', 'left'); // Tipo de proceso
-        $builder->join('`File_SubStatus` sp', 'sp.Id = dt.IdSubProcess', 'left'); // Subestado de archivo
+        $builder->join('`file_status` fs', 'fs.Id = dt.IdProcessType', 'left'); // Tipo de proceso
+        $builder->join('`file_sub_status` sp', 'sp.Id = dt.IdSubProcess', 'left'); // Subestado de archivo
         
         $builder->where('dt.Id', $id);
 

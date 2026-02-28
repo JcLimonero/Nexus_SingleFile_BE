@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class DocumentModel extends Model
 {
-    protected $table            = 'DocumentByFile';
+    protected $table            = 'document_by_file';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
@@ -70,7 +70,7 @@ class DocumentModel extends Model
      */
     public function getDocumentsWithRelations($filters = [])
     {
-        $builder = $this->db->table('DocumentByFile d');
+        $builder = $this->db->table('document_by_file d');
         
         $builder->select('
             d.Id,
@@ -103,13 +103,13 @@ class DocumentModel extends Model
 
         // JOINs para obtener las descripciones
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('DocumentFile_Status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+        $builder->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
         $builder->join('DocumentFile_Error dfe', 'dfe.Id = d.IdDocumentError', 'left');
         $builder->join('User u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('File f', 'f.Id = d.IdFile', 'left');
-        $builder->join('File_Status fs', 'fs.Id = f.IdCurrentState', 'left');
-        // JOIN para obtener el tipo de proceso desde File_SubStatus
-        $builder->join('File_SubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
+        $builder->join('FileStatus fs', 'fs.Id = f.IdCurrentState', 'left');
+        // JOIN para obtener el tipo de proceso desde FileSubStatus
+        $builder->join('FileSubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
         // JOIN para obtener el subproceso
         $builder->join('Process sp', 'sp.Id = dt.IdSubProcess', 'left');
 
@@ -167,11 +167,11 @@ class DocumentModel extends Model
      */
     public function countDocumentsWithFilters($filters = [])
     {
-        $builder = $this->db->table('DocumentByFile d');
+        $builder = $this->db->table('document_by_file d');
         
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
         $builder->join('File f', 'f.Id = d.IdFile', 'left');
-        $builder->join('File_SubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
+        $builder->join('FileSubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
         $builder->join('Process sp', 'sp.Id = dt.IdSubProcess', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
@@ -218,7 +218,7 @@ class DocumentModel extends Model
     public function getDocumentWithRelations($id)
     {
         $result = $this->getDocumentsWithRelations(['limit' => 1]);
-        $builder = $this->db->table('DocumentByFile d');
+        $builder = $this->db->table('document_by_file d');
         
         $builder->select('
             d.Id,
@@ -246,11 +246,11 @@ class DocumentModel extends Model
         ');
 
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('DocumentFile_Status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+        $builder->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
         $builder->join('DocumentFile_Error dfe', 'dfe.Id = d.IdDocumentError', 'left');
         $builder->join('User u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('File f', 'f.Id = d.IdFile', 'left');
-        $builder->join('File_Status fs', 'fs.Id = f.IdCurrentState', 'left');
+        $builder->join('FileStatus fs', 'fs.Id = f.IdCurrentState', 'left');
         
         $builder->where('d.Id', $id);
 
@@ -348,7 +348,7 @@ class DocumentModel extends Model
             $disabled = $builder->where('Enabled', 0)->countAllResults(false);
             
             // Estadísticas por tipo de documento
-            $byTypeBuilder = $this->db->table('DocumentByFile d')
+            $byTypeBuilder = $this->db->table('document_by_file d')
                 ->select('dt.Name as DocumentType, COUNT(*) as Count')
                 ->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
                 
@@ -371,9 +371,9 @@ class DocumentModel extends Model
                 ->getResultArray();
 
             // Estadísticas por estado
-            $byStatusBuilder = $this->db->table('DocumentByFile d')
+            $byStatusBuilder = $this->db->table('document_by_file d')
                 ->select('dfs.Name as Status, COUNT(*) as Count')
-                ->join('DocumentFile_Status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+                ->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
                 
             if (!empty($filters['start_date'])) {
                 $byStatusBuilder->where('d.RegistrationDate >=', $filters['start_date']);

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class CostumerTypeModel extends Model
 {
-    protected $table            = 'CustomerType';
+    protected $table            = 'customer_type';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';

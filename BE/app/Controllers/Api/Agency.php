@@ -80,7 +80,7 @@ class Agency extends BaseController
                 $db = \Config\Database::connect();
                 
                 // Obtener IDs de agencias asignadas al usuario
-                $userAgencies = $db->table('AgencyUser')
+                $userAgencies = $db->table('agency_user')
                     ->select('IdAgency')
                     ->where('IdUser', $userId)
                     ->get()

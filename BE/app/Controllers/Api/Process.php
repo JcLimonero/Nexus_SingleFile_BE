@@ -72,7 +72,7 @@ class Process extends BaseController
                 $db = \Config\Database::connect();
                 
                 // Obtener IDs de procesos asignados al usuario
-                $userProcesses = $db->table('Process_User')
+                $userProcesses = $db->table('process_user')
                     ->select('IdProcess')
                     ->where('IdUser', $userId)
                     ->get()
@@ -115,7 +115,7 @@ class Process extends BaseController
                 $userId = $currentUser['user_id'];
                 $db = \Config\Database::connect();
                 
-                $builder = $db->table('Process_User pu')
+                $builder = $db->table('process_user pu')
                     ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
                     ->where('pu.IdUser', $userId);
                 

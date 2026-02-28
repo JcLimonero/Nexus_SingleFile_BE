@@ -24,7 +24,7 @@ class UserAccess extends BaseController
             $db = \Config\Database::connect();
 
             // Obtener agencias asignadas
-            $agencies = $db->table('AgencyUser au')
+            $agencies = $db->table('agency_user au')
                 ->select('au.IdAgency, a.Name as AgencyName, a.Enabled')
                 ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
                 ->where('au.IdUser', $userId)
@@ -33,7 +33,7 @@ class UserAccess extends BaseController
                 ->getResultArray();
 
             // Obtener procesos asignados
-            $processes = $db->table('ProcessUser pu')
+            $processes = $db->table('process_user pu')
                 ->select('pu.IdProcess, p.Name as ProcessName, p.Enabled')
                 ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
                 ->where('pu.IdUser', $userId)
@@ -100,7 +100,7 @@ class UserAccess extends BaseController
             $db = \Config\Database::connect();
 
             // Verificar que el usuario existe
-            $userExists = $db->table('User')->where('Id', $userId)->countAllResults() > 0;
+            $userExists = $db->table('user')->where('Id', $userId)->countAllResults() > 0;
             if (!$userExists) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -112,10 +112,10 @@ class UserAccess extends BaseController
             $db->transStart();
 
             // Actualizar agencias
-            $db->table('AgencyUser')->where('IdUser', $userId)->delete();
+            $db->table('agency_user')->where('IdUser', $userId)->delete();
             $agencyInsertData = [];
             foreach ($agencies as $agencyId) {
-                $agencyExists = $db->table('Agency')->where('Id', $agencyId)->countAllResults() > 0;
+                $agencyExists = $db->table('agency')->where('Id', $agencyId)->countAllResults() > 0;
                 if ($agencyExists) {
                     $agencyInsertData[] = [
                         'IdUser' => $userId,
@@ -124,14 +124,14 @@ class UserAccess extends BaseController
                 }
             }
             if (!empty($agencyInsertData)) {
-                $db->table('AgencyUser')->insertBatch($agencyInsertData);
+                $db->table('agency_user')->insertBatch($agencyInsertData);
             }
 
             // Actualizar procesos
-            $db->table('Process_User')->where('IdUser', $userId)->delete();
+            $db->table('process_user')->where('IdUser', $userId)->delete();
             $processInsertData = [];
             foreach ($processes as $processId) {
-                $processExists = $db->table('Process')->where('Id', $processId)->countAllResults() > 0;
+                $processExists = $db->table('process')->where('Id', $processId)->countAllResults() > 0;
                 if ($processExists) {
                     $processInsertData[] = [
                         'IdUser' => $userId,
@@ -140,7 +140,7 @@ class UserAccess extends BaseController
                 }
             }
             if (!empty($processInsertData)) {
-                $db->table('Process_User')->insertBatch($processInsertData);
+                $db->table('process_user')->insertBatch($processInsertData);
             }
 
             // Completar transacción
@@ -192,10 +192,10 @@ class UserAccess extends BaseController
             $db->transStart();
 
             // Eliminar todas las asignaciones
-            $agenciesRemoved = $db->table('Agency_User')->where('IdUser', $userId)->delete();
+            $agenciesRemoved = $db->table('agency_user')->where('IdUser', $userId)->delete();
             $agenciesCount = $db->affectedRows();
             
-            $processesRemoved = $db->table('Process_User')->where('IdUser', $userId)->delete();
+            $processesRemoved = $db->table('process_user')->where('IdUser', $userId)->delete();
             $processesCount = $db->affectedRows();
 
             // Completar transacción

@@ -56,12 +56,12 @@ class Documents extends BaseController
                     dfs.Name as fileStatusName,
                     df.IdDocumentContainer as documentContainer,
                     df.IdCurrentStatus as idCurrentStatus
-                FROM File f
-                INNER JOIN DocumentByFile df ON f.Id = df.IdFile
-                INNER JOIN DocumentType dt ON df.IdDocumentType = dt.Id
-                INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id 
-                INNER JOIN DocumentFile_Status dfs ON dfs.Id = df.IdCurrentStatus 
-                LEFT JOIN File_SubStatus fss ON fss.Id = dt.IdSubProcess
+                FROM file f
+                INNER JOIN document_by_file df ON f.Id = df.IdFile
+                INNER JOIN document_type dt ON df.IdDocumentType = dt.Id
+                INNER JOIN file_status fs ON dt.IdProcessType = fs.Id 
+                INNER JOIN document_file_status dfs ON dfs.Id = df.IdCurrentStatus 
+                LEFT JOIN file_sub_status fss ON fss.Id = dt.IdSubProcess
                 WHERE f.Id = ?
                 AND dt.IdProcessType = ?
                 AND f.IdCurrentState = dt.IdProcessType
@@ -114,13 +114,13 @@ class Documents extends BaseController
                 SELECT dt.Id as documentId, dt.Name as documentName, dt.Required as isRequired,
                        dt.ReqExpiration as hasExpiration, fs.Name as processTypeName,
                        fss.Name as subProcessName
-                FROM DocumentType dt
-                INNER JOIN File_Status fs ON dt.IdProcessType = fs.Id
-                LEFT JOIN File_SubStatus fss ON fss.Id = dt.IdSubProcess
+                FROM document_type dt
+                INNER JOIN file_status fs ON dt.IdProcessType = fs.Id
+                LEFT JOIN file_sub_status fss ON fss.Id = dt.IdSubProcess
                 WHERE dt.IdProcessType = ?
                 AND dt.Id NOT IN (
                     SELECT df.IdDocumentType
-                    FROM DocumentByFile df
+                    FROM document_by_file df
                     WHERE df.IdFile = ? AND df.Enabled = 1
                 )
                 ORDER BY dt.Required DESC, dt.Name ASC
@@ -169,13 +169,13 @@ class Documents extends BaseController
             foreach ($documentTypeIds as $idDocumentType) {
                 if ($idDocumentType <= 0) continue;
                 $exists = $this->db->query(
-                    "SELECT 1 FROM DocumentByFile WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
+                    "SELECT 1 FROM document_by_file WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
                     [$fileId, $idDocumentType]
                 )->getRow();
                 if ($exists) continue;
-                $docType = $this->db->query("SELECT Id, Name FROM DocumentType WHERE Id = ?", [$idDocumentType])->getRow();
+                $docType = $this->db->query("SELECT Id, Name FROM document_type WHERE Id = ?", [$idDocumentType])->getRow();
                 if (!$docType) continue;
-                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM DocumentByFile")->getRow();
+                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM document_by_file")->getRow();
                 $nextId = (int) $nextIdRow->nextId;
                 $documentData = [
                     'Id' => $nextId,
@@ -195,7 +195,7 @@ class Documents extends BaseController
                     'IdDocumentError' => null,
                     'ServerPath' => null
                 ];
-                $this->db->table('DocumentByFile')->insert($documentData);
+                $this->db->table('document_by_file')->insert($documentData);
                 $added++;
             }
             return $this->response->setJSON([
@@ -245,13 +245,13 @@ class Documents extends BaseController
             if ($file->move(WRITEPATH . '../public/' . $filePath)) {
                 // Calcular fecha de expiración si es necesario
                 $expirationDate = null;
-                $documentType = $this->db->query("SELECT * FROM DocumentType WHERE Id = ?", [$documentTypeId])->getRow();
+                $documentType = $this->db->query("SELECT * FROM document_type WHERE Id = ?", [$documentTypeId])->getRow();
                 if ($documentType && $documentType->HasExpiration && $documentType->ExpirationDays > 0) {
                     $expirationDate = date('Y-m-d', strtotime('+' . $documentType->ExpirationDays . ' days'));
                 }
 
                 // Insertar o actualizar el registro en DocumentByFile
-                $existingDoc = $this->db->query("SELECT Id FROM DocumentByFile WHERE IdFile = ? AND IdDocumentType = ?", [$fileId, $documentTypeId])->getRow();
+                $existingDoc = $this->db->query("SELECT Id FROM document_by_file WHERE IdFile = ? AND IdDocumentType = ?", [$fileId, $documentTypeId])->getRow();
                 
                 if ($existingDoc) {
                     // Actualizar documento existente

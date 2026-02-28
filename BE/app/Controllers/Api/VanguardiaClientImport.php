@@ -82,7 +82,7 @@ class VanguardiaClientImport extends ResourceController
             }
 
             // No hay en client_total_relation por ND: buscar en Client por RFC del API.
-            // Si existe cliente con ese RFC, insertar HeaderClient + Client_Total_Relation
+            // Si existe cliente con ese RFC, insertar HeaderClient + ClientTotalRelation
             // (usar el Client con RegistrationDate más reciente).
             $rfcFromApi = trim($vanguardiaData['rfc'] ?? '');
             if ($rfcFromApi !== '') {
@@ -97,7 +97,7 @@ class VanguardiaClientImport extends ResourceController
                         }
                         $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
                         if (!$relationId) {
-                            throw new \Exception('Error al insertar en tabla Client_Total_Relation');
+                            throw new \Exception('Error al insertar en tabla ClientTotalRelation');
                         }
                         $this->db->transComplete();
                         if ($this->db->transStatus() === false) {
@@ -106,7 +106,7 @@ class VanguardiaClientImport extends ResourceController
                         $created = $this->getCreatedClient($clientByRfc['Id'], $headerClientId, $relationId);
                         return $this->response->setJSON([
                             'success' => true,
-                            'message' => 'Cliente vinculado por RFC; se creó HeaderClient y Client_Total_Relation',
+                            'message' => 'Cliente vinculado por RFC; se creó HeaderClient y ClientTotalRelation',
                             'data' => $created
                         ]);
                     } catch (\Exception $e) {
@@ -149,7 +149,7 @@ class VanguardiaClientImport extends ResourceController
                     $this->db->transStart();
                     try {
                         // Obtener el HeaderClient del cliente existente
-                        $headerClient = $this->db->table('HeaderClient')
+                        $headerClient = $this->db->table('header_client')
                             ->where('IdClient', $existingByRazonSocial['idCliente'])
                             ->get()
                             ->getRowArray();
@@ -161,10 +161,10 @@ class VanguardiaClientImport extends ResourceController
                             $headerClientId = $headerClient['Id'];
                         }
                         
-                        // Crear la relación Client_Total_Relation
+                        // Crear la relación ClientTotalRelation
                         $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
                         if (!$relationId) {
-                            throw new \Exception('Error al insertar en tabla Client_Total_Relation');
+                            throw new \Exception('Error al insertar en tabla ClientTotalRelation');
                         }
                         
                         $this->db->transComplete();
@@ -176,7 +176,7 @@ class VanguardiaClientImport extends ResourceController
                         $created = $this->getCreatedClient($existingByRazonSocial['idCliente'], $headerClientId, $relationId);
                         return $this->response->setJSON([
                             'success' => true,
-                            'message' => 'Cliente existente vinculado con nuevo ndDMS; se creó Client_Total_Relation',
+                            'message' => 'Cliente existente vinculado con nuevo ndDMS; se creó ClientTotalRelation',
                             'data' => $created
                         ]);
                     } catch (\Exception $e) {
@@ -211,7 +211,7 @@ class VanguardiaClientImport extends ResourceController
                     error_log("⚠️ Cliente existe pero NO tiene relación, creando relación");
                     $this->db->transStart();
                     try {
-                        $headerClient = $this->db->table('HeaderClient')
+                        $headerClient = $this->db->table('header_client')
                             ->where('IdClient', $existingByRazonSocialModified['idCliente'])
                             ->get()
                             ->getRowArray();
@@ -228,7 +228,7 @@ class VanguardiaClientImport extends ResourceController
                         $created = $this->getCreatedClient($existingByRazonSocialModified['idCliente'], $headerClientId, $relationId);
                         return $this->response->setJSON([
                             'success' => true,
-                            'message' => 'Cliente existente vinculado con nuevo ndDMS; se creó Client_Total_Relation',
+                            'message' => 'Cliente existente vinculado con nuevo ndDMS; se creó ClientTotalRelation',
                             'data' => $created
                         ]);
                     } catch (\Exception $e) {
@@ -260,10 +260,10 @@ class VanguardiaClientImport extends ResourceController
                 throw new \Exception('Error al insertar cliente en tabla HeaderClient');
             }
 
-            // 3. Insertar en tabla Client_Total_Relation
+            // 3. Insertar en tabla ClientTotalRelation
             $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
             if (!$relationId) {
-                throw new \Exception('Error al insertar cliente en tabla Client_Total_Relation');
+                throw new \Exception('Error al insertar cliente en tabla ClientTotalRelation');
             }
 
             // 4. Crear un archivo básico para que el cliente aparezca en la vista
@@ -318,7 +318,7 @@ class VanguardiaClientImport extends ResourceController
         $sql = "
             SELECT 
                 c.Id as idCliente,
-                ctr.IdTotalDealer as ndCliente,
+                ctr.IdDMS as ndCliente,
                 TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
                 c.Name as nombre,
                 c.LastName as apellidoPaterno,
@@ -335,10 +335,10 @@ class VanguardiaClientImport extends ResourceController
                 c.UpdateDate as fechaActualizacion,
                 ctr.IdAgency as idAgency,
                 hc.Id as headerClientId
-            FROM Client c
-            INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
-            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-            WHERE ctr.IdTotalDealer = ? AND ctr.IdAgency = ?
+            FROM client c
+            INNER JOIN header_client hc ON c.Id = hc.IdClient
+            INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+            WHERE ctr.IdDMS = ? AND ctr.IdAgency = ?
         ";
 
         $query = $this->db->query($sql, [$ndDMS, $idAgencyInternal]);
@@ -363,10 +363,10 @@ class VanguardiaClientImport extends ResourceController
         
         $sql = "
             SELECT ctr.Id
-            FROM HeaderClient hc
-            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+            FROM header_client hc
+            INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
             WHERE hc.IdClient = ? 
-            AND ctr.IdTotalDealer = ? 
+            AND ctr.IdDMS = ? 
             AND ctr.IdAgency = ?
             LIMIT 1
         ";
@@ -399,7 +399,7 @@ class VanguardiaClientImport extends ResourceController
             SELECT c.Id, c.Name, c.LastName, c.MotherLastName, c.RFC, c.Email, c.TelNumber,
                    c.TelNumber2, c.RazonSocial, c.CURP, c.Adviser, c.AgencyOrigin,
                    c.RegistrationDate, c.UpdateDate
-            FROM Client c
+            FROM client c
             WHERE TRIM(c.RFC) = ?
             ORDER BY c.RegistrationDate DESC
             LIMIT 1
@@ -428,7 +428,7 @@ class VanguardiaClientImport extends ResourceController
                 c.Name as nombre,
                 c.LastName as apellidoPaterno,
                 c.MotherLastName as apellidoMaterno
-            FROM Client c
+            FROM client c
             WHERE c.RazonSocial = ?
             LIMIT 1
         ";
@@ -453,7 +453,7 @@ class VanguardiaClientImport extends ResourceController
         $sql = "
             SELECT 
                 c.Id as idCliente,
-                ctr.IdTotalDealer as ndCliente,
+                ctr.IdDMS as ndCliente,
                 TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
                 c.Name as nombre,
                 c.LastName as apellidoPaterno,
@@ -470,9 +470,9 @@ class VanguardiaClientImport extends ResourceController
                 c.UpdateDate as fechaActualizacion,
                 ctr.IdAgency as idAgency,
                 hc.Id as headerClientId
-            FROM Client c
-            INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
-            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+            FROM client c
+            INNER JOIN header_client hc ON c.Id = hc.IdClient
+            INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
             WHERE c.RazonSocial = ?
             LIMIT 1
         ";
@@ -534,7 +534,7 @@ class VanguardiaClientImport extends ResourceController
         error_log("=== Datos a insertar en Client ===");
         error_log(json_encode($clientData, JSON_PRETTY_PRINT));
 
-        $result = $this->db->table('Client')->insert($clientData);
+        $result = $this->db->table('client')->insert($clientData);
         if (!$result) {
             $error = $this->db->error();
             // Si es un error de duplicado, intentar obtener el cliente existente
@@ -557,7 +557,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextClientId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM Client");
+        $query = $this->db->query("SELECT MAX(Id) as max_id FROM client");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -575,7 +575,7 @@ class VanguardiaClientImport extends ResourceController
             'IdClient' => $clientId
         ];
 
-        $result = $this->db->table('HeaderClient')->insert($headerData);
+        $result = $this->db->table('header_client')->insert($headerData);
         if (!$result) {
             throw new \Exception('Error al insertar en tabla HeaderClient: ' . json_encode($this->db->error()));
         }
@@ -596,11 +596,11 @@ class VanguardiaClientImport extends ResourceController
         $relationData = [
             'Id' => $nextId,
             'idHeaderClient' => $headerClientId,
-            'IdTotalDealer' => $vanguardiaData['ndDMS'],
+            'IdDMS' => $vanguardiaData['ndDMS'],
             'IdAgency' => $agencyId
         ];
 
-        $result = $this->db->table('ClientTotalRelation')->insert($relationData);
+        $result = $this->db->table('client_total_relation')->insert($relationData);
         if (!$result) {
             throw new \Exception('Error al insertar en tabla Client_Total_Relation: ' . json_encode($this->db->error()));
         }
@@ -612,7 +612,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextHeaderClientId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM HeaderClient");
+        $query = $this->db->query("SELECT MAX(Id) as max_id FROM header_client");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -622,7 +622,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextClientTotalRelationId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM Client_Total_Relation");
+        $query = $this->db->query("SELECT MAX(Id) as max_id FROM client_total_relation");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -672,7 +672,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextFileId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM File");
+        $query = $this->db->query("SELECT MAX(Id) as max_id FROM file");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -690,7 +690,7 @@ class VanguardiaClientImport extends ResourceController
         $idAgencyStr = (string) $idAgency;
         
         // Primero intentar como ID interno (Id) - el frontend puede enviar el ID interno
-        $agency = $this->db->table('Agency')
+        $agency = $this->db->table('agency')
             ->where('Id', $idAgencyStr)
             ->get()
             ->getRowArray();
@@ -701,7 +701,7 @@ class VanguardiaClientImport extends ResourceController
         }
         
         // Si no se encuentra, intentar como ID externo (IdAgency)
-        $agency = $this->db->table('Agency')
+        $agency = $this->db->table('agency')
             ->where('IdAgency', $idAgencyStr)
             ->get()
             ->getRowArray();
@@ -724,7 +724,7 @@ class VanguardiaClientImport extends ResourceController
         $sql = "
             SELECT 
                 c.Id as idCliente,
-                ctr.IdTotalDealer as ndCliente,
+                ctr.IdDMS as ndCliente,
                 TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
                 c.Name as nombre,
                 c.LastName as apellidoPaterno,
@@ -741,9 +741,9 @@ class VanguardiaClientImport extends ResourceController
                 c.UpdateDate as fechaActualizacion,
                 hc.Id as headerClientId,
                 ctr.Id as relationId
-            FROM Client c
-            INNER JOIN HeaderClient hc ON c.Id = hc.IdClient
-            INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
+            FROM client c
+            INNER JOIN header_client hc ON c.Id = hc.IdClient
+            INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
             WHERE c.Id = ? AND hc.Id = ? AND ctr.Id = ?
         ";
 

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class ConfigurationProcessModel extends Model
 {
-    protected $table            = 'ConfigurationProcess';
+    protected $table            = 'configuration_process';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';

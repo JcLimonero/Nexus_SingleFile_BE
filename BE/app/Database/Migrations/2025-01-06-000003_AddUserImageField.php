@@ -9,7 +9,7 @@ class AddUserImageField extends Migration
     public function up()
     {
         // Agregar campo para almacenar la imagen del usuario
-        $this->forge->addColumn('User', [
+        $this->forge->addColumn('user', [
             'ProfileImage' => [
                 'type' => 'VARCHAR',
                 'constraint' => 500,
@@ -20,7 +20,7 @@ class AddUserImageField extends Migration
         ]);
         
         // Agregar campo para almacenar el tipo de imagen (opcional)
-        $this->forge->addColumn('User', [
+        $this->forge->addColumn('user', [
             'ImageType' => [
                 'type' => 'VARCHAR',
                 'constraint' => 50,
@@ -34,7 +34,7 @@ class AddUserImageField extends Migration
     public function down()
     {
         // Revertir cambios
-        $this->forge->dropColumn('User', 'ProfileImage');
-        $this->forge->dropColumn('User', 'ImageType');
+        $this->forge->dropColumn('user', 'ProfileImage');
+        $this->forge->dropColumn('user', 'ImageType');
     }
 }

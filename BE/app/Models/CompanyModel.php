@@ -6,11 +6,18 @@ use CodeIgniter\Model;
 
 class CompanyModel extends Model
 {
-    protected $table = 'Company';
+    protected $table = 'company';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $allowedFields = ['Id', 'name'];
+    protected $allowedFields = ['Id', 'name', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate', 'Enabled'];
+    
+    // Dates
+    protected $useTimestamps = false;
+    protected $dateFormat = 'datetime';
+    protected $createdField = 'RegistrationDate';
+    protected $updatedField = 'UpdateDate';
+    protected $deletedField = 'deleted_at';
 
     /**
      * Obtener todas las compañías ordenadas por nombre

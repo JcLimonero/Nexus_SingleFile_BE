@@ -45,13 +45,13 @@ class CreateUserRefreshTokenTable extends Migration
         $this->forge->addKey('RefreshToken', false, false, 'idx_refresh_token');
         
         // Agregar foreign key
-        $this->forge->addForeignKey('IdUser', 'User', 'Id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('IdUser', 'user', 'Id', 'CASCADE', 'CASCADE');
         
-        $this->forge->createTable('User_RefreshToken');
+        $this->forge->createTable('user_refresh_token');
     }
 
     public function down()
     {
-        $this->forge->dropTable('User_RefreshToken');
+        $this->forge->dropTable('user_refresh_token');
     }
 }

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class FileShareTokenModel extends Model
 {
-    protected $table = 'FileShareToken';
+    protected $table = 'file_share_token';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

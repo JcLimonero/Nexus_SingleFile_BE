@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class AgencyModel extends Model
 {
-    protected $table = 'Agency';
+    protected $table = 'agency';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType = 'array';
@@ -130,8 +130,8 @@ class AgencyModel extends Model
     public function getAllEnabledAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
             return $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
-                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
-                    ->join('Company', 'Agency.IdCompany = Company.Id', 'left')
+                    ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->join('company', 'Agency.IdCompany = Company.Id', 'left')
                     ->where('Agency.Enabled', 1)
                     ->orderBy($this->getOrderByField($sortBy), $sortOrder)
                     ->findAll();
@@ -153,8 +153,8 @@ class AgencyModel extends Model
     public function getAllDisabledAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
             return $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
-                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
-                    ->join('Company', 'Agency.IdCompany = Company.Id', 'left')
+                    ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->join('company', 'Agency.IdCompany = Company.Id', 'left')
                     ->where('Agency.Enabled', 0)
                     ->orderBy($this->getOrderByField($sortBy), $sortOrder)
                     ->findAll();
@@ -175,8 +175,8 @@ class AgencyModel extends Model
     public function getAllAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
             return $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
-                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
-                    ->join('Company', 'Agency.IdCompany = Company.Id', 'left')
+                    ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->join('company', 'Agency.IdCompany = Company.Id', 'left')
                     ->orderBy($this->getOrderByField($sortBy), $sortOrder)
                     ->findAll();
     }
@@ -195,8 +195,8 @@ class AgencyModel extends Model
     public function getAgencyByIdWithUser($id)
     {
             return $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
-                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
-                    ->join('Company', 'Agency.IdCompany = Company.Id', 'left')
+                    ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->join('company', 'Agency.IdCompany = Company.Id', 'left')
                     ->where('Agency.Id', $id)
                     ->first();
     }
@@ -221,8 +221,8 @@ class AgencyModel extends Model
     public function getAgenciesByNameWithUser($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
         $query = $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
-                      ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
-                      ->join('Company', 'Agency.IdCompany = Company.Id', 'left')
+                      ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                      ->join('company', 'Agency.IdCompany = Company.Id', 'left')
                       ->like('Agency.Name', $name);
         
         if ($enabledOnly) {
@@ -252,8 +252,8 @@ class AgencyModel extends Model
     public function getAgenciesByRegionWithUser($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
         $query = $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
-                      ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
-                      ->join('Company', 'Agency.IdCompany = Company.Id', 'left')
+                      ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                      ->join('company', 'Agency.IdCompany = Company.Id', 'left')
                       ->where('Agency.IdAgency', $region);
         
         if ($enabledOnly) {
@@ -344,7 +344,7 @@ class AgencyModel extends Model
     public function getAgenciesWithUserInfo($sortBy = 'Name', $sortOrder = 'ASC')
     {
         return $this->select('Agency.*, User.Name as LastUserUpdateName')
-                    ->join('User', 'Agency.IdLastUserUpdate = User.Id', 'left')
+                    ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
                     ->orderBy($sortBy, $sortOrder)
                     ->findAll();
     }

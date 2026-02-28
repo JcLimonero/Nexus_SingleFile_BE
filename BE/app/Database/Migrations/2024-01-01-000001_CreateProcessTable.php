@@ -52,11 +52,11 @@ class CreateProcessTable extends Migration
         $this->forge->addKey('Id', true);
         $this->forge->addUniqueKey('Code');
         $this->forge->addUniqueKey('Name');
-        $this->forge->createTable('Process');
+        $this->forge->createTable('process');
     }
 
     public function down()
     {
-        $this->forge->dropTable('Process');
+        $this->forge->dropTable('process');
     }
 }

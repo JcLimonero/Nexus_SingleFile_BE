@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class OperationTypeModel extends Model
 {
-    protected $table = 'OperationType';
+    protected $table = 'operation_type';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType = 'array';
@@ -75,7 +75,7 @@ class OperationTypeModel extends Model
     public function getAllOperationTypesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
         return $this->select('OperationType.*, User.Name as LastUserUpdateName')
-                    ->join('User', 'OperationType.IdLastUserUpdate = User.Id', 'left')
+                    ->join('user', 'OperationType.IdLastUserUpdate = User.Id', 'left')
                     ->orderBy("OperationType.{$sortBy}", $sortOrder)
                     ->findAll();
     }
@@ -83,7 +83,7 @@ class OperationTypeModel extends Model
     public function getOperationTypeByIdWithUser($id)
     {
         return $this->select('OperationType.*, User.Name as LastUserUpdateName')
-                    ->join('User', 'OperationType.IdLastUserUpdate = User.Id', 'left')
+                    ->join('user', 'OperationType.IdLastUserUpdate = User.Id', 'left')
                     ->where('OperationType.Id', $id)
                     ->first();
     }
@@ -91,7 +91,7 @@ class OperationTypeModel extends Model
     public function getOperationTypesByNameWithUser($search, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
         $query = $this->select('OperationType.*, User.Name as LastUserUpdateName')
-                      ->join('User', 'OperationType.IdLastUserUpdate = User.Id', 'left')
+                      ->join('user', 'OperationType.IdLastUserUpdate = User.Id', 'left')
                       ->like('OperationType.Name', $search);
 
         if ($enabledOnly) {
@@ -112,7 +112,7 @@ class OperationTypeModel extends Model
     public function getAllEnabledOperationTypesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
         return $this->select('OperationType.*, User.Name as LastUserUpdateName')
-                    ->join('User', 'OperationType.IdLastUserUpdate = User.Id', 'left')
+                    ->join('user', 'OperationType.IdLastUserUpdate = User.Id', 'left')
                     ->where('OperationType.Enabled', 1)
                     ->orderBy("OperationType.{$sortBy}", $sortOrder)
                     ->findAll();
@@ -128,7 +128,7 @@ class OperationTypeModel extends Model
     public function getAllDisabledOperationTypesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
         return $this->select('OperationType.*, User.Name as LastUserUpdateName')
-                    ->join('User', 'OperationType.IdLastUserUpdate = User.Id', 'left')
+                    ->join('user', 'OperationType.IdLastUserUpdate = User.Id', 'left')
                     ->where('OperationType.Enabled', 0)
                     ->orderBy("OperationType.{$sortBy}", $sortOrder)
                     ->findAll();
@@ -173,7 +173,7 @@ class OperationTypeModel extends Model
     public function getOperationTypesByStatusWithUser($enabled, $sortBy = 'Name', $sortOrder = 'ASC')
     {
         return $this->select('OperationType.*, User.Name as LastUserUpdateName')
-                    ->join('User', 'OperationType.IdLastUserUpdate = User.Id', 'left')
+                    ->join('user', 'OperationType.IdLastUserUpdate = User.Id', 'left')
                     ->where('OperationType.Enabled', $enabled)
                     ->orderBy("OperationType.{$sortBy}", $sortOrder)
                     ->findAll();

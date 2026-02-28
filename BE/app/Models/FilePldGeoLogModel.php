@@ -5,12 +5,12 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 /**
- * Modelo para file_pld_geolog - registro de geolocalización por acción.
+ * Model para file_pld_geolog - registro de geolocalización por acción.
  * Usado por Miniportal con Origen='Miniportal'.
  */
 class FilePldGeoLogModel extends Model
 {
-    protected $table = 'FilePldGeoLog';
+    protected $table = 'file_pld_geo_log';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

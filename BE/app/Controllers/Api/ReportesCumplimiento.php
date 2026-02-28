@@ -78,17 +78,17 @@ class ReportesCumplimiento extends BaseController
             $sql = "
                 SELECT
                     c.Id as idCliente,
-                    MIN(ctr.IdTotalDealer) as ndCliente,
+                    MIN(ctr.IdDMS) as ndCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
                     aml.totalMonto,
                     aml.idCompany,
                     aml.anio
-                FROM Client c
-                INNER JOIN HeaderClient hc ON hc.IdClient = c.Id
-                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                INNER JOIN Agency a_ag ON a_ag.Id = ctr.IdAgency
+                FROM client c
+                INNER JOIN header_client hc ON hc.IdClient = c.Id
+                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                INNER JOIN agency a_ag ON a_ag.Id = ctr.IdAgency
                 INNER JOIN {$vistaAML} aml ON aml.idCliente = c.Id AND aml.anio = ? AND aml.totalMonto >= ?
-                INNER JOIN File f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                INNER JOIN file f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
                 WHERE 1=1
             ";
             $params = [$anioActual, $umbral];
@@ -166,10 +166,10 @@ class ReportesCumplimiento extends BaseController
                     f.IdCurrentState as idEstado,
                     fs.Name as nombreEstado,
                     COUNT(*) as total
-                FROM File f
-                INNER JOIN Agency a ON f.IdAgency = a.Id
-                LEFT JOIN Company co ON a.IdCompany = co.Id
-                LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                FROM file f
+                INNER JOIN agency a ON f.IdAgency = a.Id
+                LEFT JOIN company co ON a.IdCompany = co.Id
+                LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                 WHERE YEAR(f.RegistrationDate) = ?
             ";
             $params = [$anio];
@@ -260,11 +260,11 @@ class ReportesCumplimiento extends BaseController
                     dbf.IdCurrentStatus as idEstatus,
                     dfs.Name as nombreEstatus,
                     COUNT(*) as total
-                FROM DocumentByFile dbf
-                INNER JOIN File f ON dbf.IdFile = f.Id
-                INNER JOIN Agency a ON f.IdAgency = a.Id
-                LEFT JOIN Company co ON a.IdCompany = co.Id
-                LEFT JOIN DocumentFile_Status dfs ON dbf.IdCurrentStatus = dfs.Id
+                FROM document_by_file dbf
+                INNER JOIN file f ON dbf.IdFile = f.Id
+                INNER JOIN agency a ON f.IdAgency = a.Id
+                LEFT JOIN company co ON a.IdCompany = co.Id
+                LEFT JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id
                 WHERE dbf.IdCurrentStatus IN (1, 2, 3)
                 AND f.IdCurrentState NOT IN (5)
             ";
@@ -356,12 +356,12 @@ class ReportesCumplimiento extends BaseController
                     p.Name as proceso,
                     fs.Name as fase,
                     f.RegistrationDate as registro
-                FROM File f
-                INNER JOIN Client c ON f.IdClient = c.Id
+                FROM file f
+                INNER JOIN client c ON f.IdClient = c.Id
                 LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
-                INNER JOIN Agency a ON f.IdAgency = a.Id
-                INNER JOIN Process p ON f.IdProcess = p.Id
-                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN agency a ON f.IdAgency = a.Id
+                INNER JOIN process p ON f.IdProcess = p.Id
+                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
                 WHERE f.IdCustomerType = 3
                 AND f.IdCurrentState NOT IN (5)
                 AND YEAR(f.RegistrationDate) = ?
@@ -450,12 +450,12 @@ class ReportesCumplimiento extends BaseController
                     p.Name as proceso,
                     fs.Name as fase,
                     f.RegistrationDate as registro
-                FROM File f
-                INNER JOIN Client c ON f.IdClient = c.Id
+                FROM file f
+                INNER JOIN client c ON f.IdClient = c.Id
                 LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
-                INNER JOIN Agency a ON f.IdAgency = a.Id
-                INNER JOIN Process p ON f.IdProcess = p.Id
-                INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN agency a ON f.IdAgency = a.Id
+                INNER JOIN process p ON f.IdProcess = p.Id
+                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
                 WHERE f.IdCurrentState NOT IN (5)
                 AND NOT EXISTS (
                     SELECT 1 FROM file_pld fp
@@ -506,12 +506,12 @@ class ReportesCumplimiento extends BaseController
                             p.Name as proceso,
                             fs.Name as fase,
                             f.RegistrationDate as registro
-                        FROM File f
-                        INNER JOIN Client c ON f.IdClient = c.Id
+                        FROM file f
+                        INNER JOIN client c ON f.IdClient = c.Id
                         LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
-                        INNER JOIN Agency a ON f.IdAgency = a.Id
-                        INNER JOIN Process p ON f.IdProcess = p.Id
-                        INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                        INNER JOIN agency a ON f.IdAgency = a.Id
+                        INNER JOIN process p ON f.IdProcess = p.Id
+                        INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
                         WHERE f.IdCurrentState NOT IN (5)
                     ";
                     $paramsFallback = [];
@@ -600,7 +600,7 @@ class ReportesCumplimiento extends BaseController
             $clientesAlertaAml = (int) ($qAml->getRow()->total ?? 0);
 
             // Total de expedientes activos (no cancelados) en el año
-            $sqlFiles = "SELECT COUNT(*) as total FROM File f INNER JOIN Agency a ON f.IdAgency = a.Id WHERE YEAR(f.RegistrationDate) = ? AND f.IdCurrentState != 5";
+            $sqlFiles = "SELECT COUNT(*) as total FROM file f INNER JOIN agency a ON f.IdAgency = a.Id WHERE YEAR(f.RegistrationDate) = ? AND f.IdCurrentState != 5";
             $paramsFiles = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
                 $sqlFiles .= " AND a.IdCompany = ?";
@@ -611,9 +611,9 @@ class ReportesCumplimiento extends BaseController
 
             // Documentos pendientes de validación
             $sqlDoc = "
-                SELECT COUNT(*) as total FROM DocumentByFile dbf
-                INNER JOIN File f ON dbf.IdFile = f.Id
-                INNER JOIN Agency a ON f.IdAgency = a.Id
+                SELECT COUNT(*) as total FROM document_by_file dbf
+                INNER JOIN file f ON dbf.IdFile = f.Id
+                INNER JOIN agency a ON f.IdAgency = a.Id
                 WHERE dbf.IdCurrentStatus IN (1, 2, 3) AND f.IdCurrentState NOT IN (5)
             ";
             $paramsDoc = [];
@@ -626,8 +626,8 @@ class ReportesCumplimiento extends BaseController
 
             // Expedientes persona moral sin beneficiarios (año actual)
             $sqlBenef = "
-                SELECT COUNT(*) as total FROM File f
-                INNER JOIN Agency a ON f.IdAgency = a.Id
+                SELECT COUNT(*) as total FROM file f
+                INNER JOIN agency a ON f.IdAgency = a.Id
                 WHERE f.IdCustomerType = 3 AND f.IdCurrentState NOT IN (5)
                 AND YEAR(f.RegistrationDate) = ?
                 AND NOT EXISTS (SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.IdFile = f.Id)
@@ -642,8 +642,8 @@ class ReportesCumplimiento extends BaseController
 
             // Expedientes sin aviso de privacidad aceptado (año actual)
             $sqlAviso = "
-                SELECT COUNT(*) as total FROM File f
-                INNER JOIN Agency a ON f.IdAgency = a.Id
+                SELECT COUNT(*) as total FROM file f
+                INNER JOIN agency a ON f.IdAgency = a.Id
                 WHERE f.IdCurrentState NOT IN (5) AND YEAR(f.RegistrationDate) = ?
                 AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.IdFile = f.Id AND fp.AvisoPrivacidadEntregado = 1)
             ";

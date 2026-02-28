@@ -16,7 +16,7 @@ class FileStatus extends BaseController
     
     /**
      * GET /api/file-status
-     * Obtener solo las fases específicas con filtros
+     * Obtener todos los estados de archivo con filtros
      */
     public function index()
     {
@@ -35,13 +35,10 @@ class FileStatus extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            $builder = $this->db->table('FileStatus fs');
+            $builder = $this->db->table('file_status fs');
             $builder->select('fs.*');
 
-            // Filtrar solo las fases específicas requeridas
-            $builder->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación']);
-
-            // Aplicar filtros adicionales
+            // Aplicar filtros de búsqueda
             if (!empty($search)) {
                 $builder->like('fs.Name', $search);
             }
@@ -53,7 +50,7 @@ class FileStatus extends BaseController
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Fases específicas obtenidas exitosamente',
+                'message' => 'Estados de archivo obtenidos exitosamente',
                 'data' => [
                     'file_statuses' => $results,
                     'count' => count($results)
@@ -64,7 +61,7 @@ class FileStatus extends BaseController
             log_message('error', 'Error en FileStatus::index: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener fases específicas: ' . $e->getMessage()
+                'message' => 'Error al obtener estados de archivo: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
@@ -85,9 +82,9 @@ class FileStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('FileStatus fs');
+            $builder = $this->db->table('file_status fs');
             $builder->select('fs.*');
-            // Filtrar solo las fases específicas requeridas
+            // Filtrar solo las fases específicas requeridas (fases activas del proceso)
             $builder->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación']);
             $builder->orderBy('fs.Name', 'ASC');
 
@@ -113,7 +110,7 @@ class FileStatus extends BaseController
 
     /**
      * GET /api/file-status/{id}
-     * Obtener una fase específica por ID (solo si es una de las fases permitidas)
+     * Obtener un estado de archivo específico por ID
      */
     public function show($id = null)
     {
@@ -134,24 +131,22 @@ class FileStatus extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $builder = $this->db->table('FileStatus fs');
+            $builder = $this->db->table('file_status fs');
             $builder->select('fs.*');
             $builder->where('fs.Id', $id);
-            // Verificar que sea una de las fases permitidas
-            $builder->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación']);
 
             $result = $builder->get()->getRowArray();
 
             if (!$result) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Fase no encontrada o no permitida'
+                    'message' => 'Estado de archivo no encontrado'
                 ])->setStatusCode(404);
             }
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Fase obtenida exitosamente',
+                'message' => 'Estado de archivo obtenido exitosamente',
                 'data' => $result
             ]);
 

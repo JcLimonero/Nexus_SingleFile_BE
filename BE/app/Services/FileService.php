@@ -88,7 +88,7 @@ class FileService
                 throw new \Exception('Cliente no encontrado');
             }
 
-            // Crear o verificar usuario asesor antes de crear el File
+            // Crear o verificar usuario advisor antes de crear el File
             error_log("=== CREANDO/VERIFICANDO USUARIO ASESOR ===");
             $sellerId = $this->userService->getOrCreateSeller($order['ndConsultant'] ?? null);
             error_log("IdSeller obtenido/creado: " . $sellerId);
@@ -180,7 +180,7 @@ class FileService
         error_log("=== CREANDO FILE ===");
         error_log("File data a insertar: " . json_encode($fileData));
         
-        $this->db->table('File')->insert($fileData);
+        $this->db->table('file')->insert($fileData);
         $fileId = $this->db->insertID();
         
         // Debug: log de la inserción
@@ -226,7 +226,7 @@ class FileService
                 'IdLastUserUpdate' => $userId
             ];
 
-            $this->db->table('FileDocument')->insert($documentData);
+            $this->db->table('file_document')->insert($documentData);
             $documentsCreated++;
         }
 
@@ -240,8 +240,8 @@ class FileService
     private function getRequiredDocuments($processId, $costumerTypeId, $operationTypeId, $agencyId)
     {
         $sql = "SELECT DISTINCT dt.Id as IdDocumentType
-                FROM DocumentType dt
-                INNER JOIN ProcessDocumentType pdt ON dt.Id = pdt.IdDocumentType
+                FROM document_type dt
+                INNER JOIN process_document_type pdt ON dt.Id = pdt.IdDocumentType
                 WHERE pdt.IdProcess = ? 
                 AND pdt.IdCustomerType = ? 
                 AND pdt.IdOperationType = ? 
@@ -262,9 +262,9 @@ class FileService
         error_log("ID externo: " . $externalClientId);
         
         $sql = "SELECT hc.Id 
-                FROM HeaderClient hc
-                INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                WHERE ctr.IdTotalDealer = ?";
+                FROM header_client hc
+                INNER JOIN client_total_relation ctr ON hc.Id = ctr.idHeaderClient
+                WHERE ctr.IdDMS = ?";
         
         error_log("SQL: " . $sql);
         error_log("Parámetros: " . json_encode([$externalClientId]));

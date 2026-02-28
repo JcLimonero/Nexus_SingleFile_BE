@@ -24,7 +24,7 @@ class ConfigurationService
         error_log("IdAgency: " . $agencyId);
         
         $sql = "SELECT COUNT(*) as count 
-                FROM ConfigurationProcess 
+                FROM configuration_process 
                 WHERE IdProcess = ? 
                 AND IdCustomerType = ? 
                 AND IdOperationType = ? 
@@ -58,11 +58,11 @@ class ConfigurationService
                     ot.Name as OperationTypeName,
                     cp.IdAgency,
                     a.Name as AgencyName
-                FROM ConfigurationProcess cp
-                INNER JOIN Process p ON cp.IdProcess = p.Id
+                FROM configuration_process cp
+                INNER JOIN process p ON cp.IdProcess = p.Id
                 INNER JOIN customertype ct ON cp.IdCustomerType = ct.Id
-                INNER JOIN OperationType ot ON cp.IdOperationType = ot.Id
-                INNER JOIN Agency a ON cp.IdAgency = a.Id
+                INNER JOIN operation_type ot ON cp.IdOperationType = ot.Id
+                INNER JOIN agency a ON cp.IdAgency = a.Id
                 WHERE cp.IdAgency = ? 
                 AND cp.Enabled = 1
                 AND p.Enabled = 1
@@ -80,8 +80,8 @@ class ConfigurationService
     public function getProcessesByAgency($agencyId)
     {
         $sql = "SELECT DISTINCT p.Id, p.Name
-                FROM Process p
-                INNER JOIN ConfigurationProcess cp ON p.Id = cp.IdProcess
+                FROM process p
+                INNER JOIN configuration_process cp ON p.Id = cp.IdProcess
                 WHERE cp.IdAgency = ? 
                 AND cp.Enabled = 1
                 AND p.Enabled = 1
@@ -98,7 +98,7 @@ class ConfigurationService
     {
         $sql = "SELECT DISTINCT ct.Id, ct.Name
                 FROM customertype ct
-                INNER JOIN ConfigurationProcess cp ON ct.Id = cp.IdCustomerType
+                INNER JOIN configuration_process cp ON ct.Id = cp.IdCustomerType
                 WHERE cp.IdProcess = ? 
                 AND cp.IdAgency = ? 
                 AND cp.Enabled = 1
@@ -115,8 +115,8 @@ class ConfigurationService
     public function getOperationTypesByProcessCostumerTypeAndAgency($processId, $costumerTypeId, $agencyId)
     {
         $sql = "SELECT DISTINCT ot.Id, ot.Name
-                FROM OperationType ot
-                INNER JOIN ConfigurationProcess cp ON ot.Id = cp.IdOperationType
+                FROM operation_type ot
+                INNER JOIN configuration_process cp ON ot.Id = cp.IdOperationType
                 WHERE cp.IdProcess = ? 
                 AND cp.IdCustomerType = ? 
                 AND cp.IdAgency = ? 
@@ -135,11 +135,11 @@ class ConfigurationService
     {
         $sql = "SELECT cp.*, p.Name as ProcessName, ct.Name as CostumerTypeName, 
                        ot.Name as OperationTypeName, a.Name as AgencyName
-                FROM ConfigurationProcess cp
-                INNER JOIN Process p ON cp.IdProcess = p.Id
+                FROM configuration_process cp
+                INNER JOIN process p ON cp.IdProcess = p.Id
                 INNER JOIN customertype ct ON cp.IdCustomerType = ct.Id
-                INNER JOIN OperationType ot ON cp.IdOperationType = ot.Id
-                INNER JOIN Agency a ON cp.IdAgency = a.Id
+                INNER JOIN operation_type ot ON cp.IdOperationType = ot.Id
+                INNER JOIN agency a ON cp.IdAgency = a.Id
                 WHERE cp.Enabled = 1
                 AND p.Enabled = 1
                 AND ct.Enabled = 1
@@ -166,7 +166,7 @@ class ConfigurationService
             'IdLastUserUpdate' => $userId
         ];
 
-        $this->db->table('ConfigurationProcess')->insert($data);
+        $this->db->table('configuration_process')->insert($data);
         return $this->db->insertID();
     }
 
@@ -181,7 +181,7 @@ class ConfigurationService
             'IdLastUserUpdate' => $userId
         ];
 
-        return $this->db->table('ConfigurationProcess')
+        return $this->db->table('configuration_process')
             ->where('Id', $configurationId)
             ->update($data);
     }

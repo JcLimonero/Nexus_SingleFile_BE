@@ -106,7 +106,7 @@ class User extends BaseController
             $data = $this->request->getJSON(true);
 
             // Validar campos requeridos
-            $requiredFields = ['Name', 'User', 'Mail', 'Pass', 'IdUserRol', 'DefaultAgency'];
+            $requiredFields = ['Name', 'user', 'Mail', 'Pass', 'IdUserRol', 'DefaultAgency'];
             foreach ($requiredFields as $field) {
                 if (empty($data[$field])) {
                     return $this->response->setJSON([
@@ -117,7 +117,7 @@ class User extends BaseController
             }
 
             // Verificar si el username ya existe
-            $existingUser = $this->userModel->where('User', $data['User'])->first();
+            $existingUser = $this->userModel->where('user', $data['user'])->first();
             if ($existingUser) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -136,7 +136,7 @@ class User extends BaseController
 
             // Generar el siguiente ID manualmente
             $db = \Config\Database::connect();
-            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM User");
+            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM user");
             $maxIdResult = $maxIdQuery->getRow();
             $nextId = ($maxIdResult->max_id ?? 0) + 1;
             
@@ -234,9 +234,9 @@ class User extends BaseController
 
             $data = $this->request->getJSON(true);
 
-            // Verificar si el usuario existe
-            $existingUser = $this->userModel->find($id);
-            if (!$existingUser) {
+            // Verificar si el usuario existe (asegurar que incluye Id)
+            $existingUser = $this->userModel->select('Id, Name, user, Mail, Pass, Enabled, IdUserRol, DefaultAgency, RegistrationDate, UpdateDate')->find($id);
+            if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -244,8 +244,8 @@ class User extends BaseController
             }
 
             // Verificar username único (si se está cambiando)
-            if (isset($data['User']) && $data['User'] !== $existingUser['User']) {
-                $duplicateUser = $this->userModel->where('User', $data['User'])->where('Id !=', $id)->first();
+            if (isset($data['user']) && $data['user'] !== $existingUser['user']) {
+                $duplicateUser = $this->userModel->where('user', $data['user'])->where('Id !=', $id)->first();
                 if ($duplicateUser) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -272,6 +272,9 @@ class User extends BaseController
             }
 
             $data['UpdateDate'] = date('Y-m-d H:i:s');
+
+            // Asegurar que el Id esté en los datos para el update
+            $data['Id'] = $id;
 
             // Actualizar usuario
             $updated = $this->userModel->update($id, $data);
@@ -310,9 +313,9 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Verificar si el usuario existe
-            $existingUser = $this->userModel->find($id);
-            if (!$existingUser) {
+            // Verificar si el usuario existe (incluyendo Id explícitamente)
+            $existingUser = $this->userModel->select('Id')->find($id);
+            if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -356,9 +359,9 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Verificar si el usuario existe
-            $existingUser = $this->userModel->find($id);
-            if (!$existingUser) {
+            // Verificar si el usuario existe (incluyendo Id explícitamente)
+            $existingUser = $this->userModel->select('Id, Enabled')->find($id);
+            if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -368,6 +371,7 @@ class User extends BaseController
             // Cambiar estado
             $newStatus = $existingUser['Enabled'] === '1' ? '0' : '1';
             $updated = $this->userModel->update($id, [
+                'Id' => $id,
                 'Enabled' => $newStatus,
                 'UpdateDate' => date('Y-m-d H:i:s')
             ]);
@@ -417,9 +421,9 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Verificar si el usuario existe
-            $existingUser = $this->userModel->find($id);
-            if (!$existingUser) {
+            // Verificar si el usuario existe (incluyendo Id explícitamente)
+            $existingUser = $this->userModel->select('Id, Name, user, Mail, Enabled')->find($id);
+            if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -429,8 +433,9 @@ class User extends BaseController
             // Hash de la nueva contraseña
             $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-            // Actualizar contraseña
+            // Actualizar contraseña (incluyendo Id en los datos)
             $updated = $this->userModel->update($id, [
+                'Id' => $id,
                 'Pass' => $hashedPassword,
                 'password_migrated' => 1,
                 'UpdateDate' => date('Y-m-d H:i:s')
@@ -470,9 +475,9 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Verificar si el usuario existe
-            $existingUser = $this->userModel->find($id);
-            if (!$existingUser) {
+            // Verificar si el usuario existe (incluyendo Id explícitamente)
+            $existingUser = $this->userModel->select('Id, Name, user, Mail, Enabled')->find($id);
+            if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -483,8 +488,9 @@ class User extends BaseController
             $tempPassword = bin2hex(random_bytes(8));
             $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
 
-            // Actualizar contraseña
+            // Actualizar contraseña (incluyendo Id en los datos)
             $updated = $this->userModel->update($id, [
+                'Id' => $id,
                 'Pass' => $hashedPassword,
                 'password_migrated' => 1,
                 'UpdateDate' => date('Y-m-d H:i:s')
@@ -605,7 +611,7 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $existingUser = $this->userModel->where('User', $username)->first();
+            $existingUser = $this->userModel->where('user', $username)->first();
             $available = !$existingUser;
 
             return $this->response->setJSON([

@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class UserRolModel extends Model
 {
-    protected $table            = 'UserRol';
+    protected $table            = 'user_role';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
@@ -92,7 +92,7 @@ class UserRolModel extends Model
     public function isRoleInUse($roleId)
     {
         $db = \Config\Database::connect();
-        $userCount = $db->table('User')->where('IdUserRol', $roleId)->countAllResults();
+        $userCount = $db->table('user')->where('IdUserRol', $roleId)->countAllResults();
         return $userCount > 0;
     }
 

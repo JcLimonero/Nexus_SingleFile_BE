@@ -219,14 +219,14 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('(:num)', 'FileStatus::show/$1');
     });
     
-    // Rutas de subestados de archivo (File_SubStatus)
+    // Rutas de subestados de archivo (FileSubStatus)
     $routes->group('file-sub-status', function($routes) {
         $routes->get('/', 'FileSubStatus::index');
         $routes->get('active', 'FileSubStatus::active');
         $routes->get('(:num)', 'FileSubStatus::show/$1');
     });
     
-    // Rutas de motivos (File_Reasons)
+    // Rutas de motivos (FileReasons)
     $routes->group('file-reason', function($routes) {
         $routes->get('/', 'FileReason::index');
         $routes->post('/', 'FileReason::create');
@@ -239,7 +239,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/toggle-status', 'FileReason::toggleStatus/$1');
     });
     
-    // Rutas de motivos extraordinarios (File_Extraordinary_Reasons)
+    // Rutas de motivos extraordinarios (FileExtraordinaryReasons)
     $routes->group('file-extraordinary-reason', function($routes) {
         $routes->get('/', 'FileExtraordinaryReason::index');
         $routes->post('/', 'FileExtraordinaryReason::create');
