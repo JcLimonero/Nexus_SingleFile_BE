@@ -24,7 +24,7 @@ class UserAgency extends BaseController
             $db = \Config\Database::connect();
             
             // Obtener agencias asignadas al usuario con información de la agencia
-            $builder = $db->table('Agency_User au');
+            $builder = $db->table('AgencyUser au');
             $agencies = $builder
                 ->select('au.IdAgency, a.Name as AgencyName, a.Enabled')
                 ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
@@ -93,7 +93,7 @@ class UserAgency extends BaseController
             $db->transStart();
 
             // Eliminar todas las asignaciones existentes del usuario
-            $db->table('Agency_User')->where('IdUser', $userId)->delete();
+            $db->table('AgencyUser')->where('IdUser', $userId)->delete();
 
             // Insertar las nuevas asignaciones
             $insertData = [];
@@ -109,7 +109,7 @@ class UserAgency extends BaseController
             }
 
             if (!empty($insertData)) {
-                $db->table('Agency_User')->insertBatch($insertData);
+                $db->table('AgencyUser')->insertBatch($insertData);
             }
 
             // Completar transacción
@@ -262,7 +262,7 @@ class UserAgency extends BaseController
             $db = \Config\Database::connect();
             
             // Obtener agencias asignadas a todos los usuarios especificados
-            $builder = $db->table('Agency_User au');
+            $builder = $db->table('AgencyUser au');
             $agencies = $builder
                 ->select('au.IdUser, au.IdAgency, a.Name as AgencyName, a.Enabled')
                 ->join('Agency a', 'a.Id = au.IdAgency', 'inner')

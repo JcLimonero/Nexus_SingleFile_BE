@@ -673,12 +673,12 @@ class DocumentType extends BaseController
             $db = \Config\Database::connect();
             $sql = "
                 SELECT cp.Id as IdConfigurationProcess, cp.IdProcess, p.Name as ProcesoName,
-                       cp.IdAgency, a.Name as AgenciaName, cp.IdCostumerType, ct.Name as TipoClienteName,
+                       cp.IdAgency, a.Name as AgenciaName,                        cp.IdCustomerType, ct.Name as TipoClienteName,
                        cp.IdOperationType, ot.Name as TipoOperacionName, cp.Enabled
                 FROM ConfigurationProcess cp
                 LEFT JOIN Process p ON p.Id = cp.IdProcess
                 INNER JOIN Agency a ON a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != ''
-                LEFT JOIN CostumerType ct ON ct.Id = cp.IdCostumerType
+                LEFT JOIN customertype ct ON ct.Id = cp.IdCustomerType
                 LEFT JOIN OperationType ot ON ot.Id = cp.IdOperationType
                 WHERE cp.Id NOT IN (
                     SELECT cpd.IdConfigurationProcess

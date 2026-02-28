@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class FileModel extends Model
 {
-    protected $table            = 'files';
+    protected $table            = 'File';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';

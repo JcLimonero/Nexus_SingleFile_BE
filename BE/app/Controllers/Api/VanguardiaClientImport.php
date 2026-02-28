@@ -600,7 +600,7 @@ class VanguardiaClientImport extends ResourceController
             'IdAgency' => $agencyId
         ];
 
-        $result = $this->db->table('Client_Total_Relation')->insert($relationData);
+        $result = $this->db->table('ClientTotalRelation')->insert($relationData);
         if (!$result) {
             throw new \Exception('Error al insertar en tabla Client_Total_Relation: ' . json_encode($this->db->error()));
         }

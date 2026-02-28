@@ -13,7 +13,7 @@ class ConfigurationProcessModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'IdProcess', 'IdAgency', 'IdCostumerType', 'IdOperationType', 
+        'Id', 'IdProcess', 'IdAgency', 'IdCustomerType', 'IdOperationType', 
         'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate'
     ];
 
@@ -34,7 +34,7 @@ class ConfigurationProcessModel extends Model
     protected $validationRules      = [
         'IdProcess' => 'required|integer',
         'IdAgency' => 'required|integer',
-        'IdCostumerType' => 'required|integer',
+        'IdCustomerType' => 'required|integer',
         'IdOperationType' => 'required|integer'
     ];
     
@@ -47,7 +47,7 @@ class ConfigurationProcessModel extends Model
             'required' => 'El ID de la agencia es requerido',
             'integer' => 'El ID de la agencia debe ser un número válido'
         ],
-        'IdCostumerType' => [
+        'IdCustomerType' => [
             'required' => 'El ID del tipo de cliente es requerido',
             'integer' => 'El ID del tipo de cliente debe ser un número válido'
         ],
@@ -120,7 +120,7 @@ class ConfigurationProcessModel extends Model
     {
         return $this->where('IdProcess', $idProcess)
                     ->where('IdAgency', $idAgency)
-                    ->where('IdCostumerType', $idCostumerType)
+                    ->where('IdCustomerType', $idCostumerType)
                     ->where('IdOperationType', $idOperationType)
                     ->first();
     }
@@ -141,7 +141,7 @@ class ConfigurationProcessModel extends Model
         $insertData = [
             'IdProcess' => $idProcess,
             'IdAgency' => $idAgency,
-            'IdCostumerType' => $idCostumerType,
+            'IdCustomerType' => $idCostumerType,
             'IdOperationType' => $idOperationType,
             'Enabled' => 1,
             'IdLastUserUpdate' => 1 // TODO: Obtener ID del usuario actual

@@ -104,7 +104,7 @@ class DocumentTypeModel extends Model
             cp.Id as IdConfigurationProcess,
             cp.IdProcess,
             cp.IdAgency,
-            cp.IdCostumerType,
+            cp.IdCustomerType,
             cp.IdOperationType,
             CAST(cp.Enabled AS UNSIGNED) as ConfigurationEnabled,
             p.Name as ProcesoName,
@@ -121,7 +121,7 @@ class DocumentTypeModel extends Model
             'a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != "" AND UPPER(TRIM(a.Name)) != "N/A"',
             'inner'
         );
-        $builder->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left');
+        $builder->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left');
         $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
         
         // Usar comparación estricta - asegurar que el tipo de dato coincida

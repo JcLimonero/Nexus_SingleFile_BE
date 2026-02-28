@@ -198,7 +198,7 @@ class AuthModel extends Model
             $db = \Config\Database::connect();
             
             // Verificar si ya existe un refresh token para este usuario
-            $existingToken = $db->table('User_RefreshToken')
+            $existingToken = $db->table('UserRefreshToken')
                 ->where('IdUser', $userId)
                 ->get()
                 ->getRowArray();

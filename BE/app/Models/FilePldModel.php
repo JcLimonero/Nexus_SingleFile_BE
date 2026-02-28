@@ -10,7 +10,7 @@ use CodeIgniter\Model;
  */
 class FilePldModel extends Model
 {
-    protected $table = 'file_pld';
+    protected $table = 'FilePld';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

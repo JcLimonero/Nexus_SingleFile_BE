@@ -358,11 +358,11 @@ class ReportesCumplimiento extends BaseController
                     f.RegistrationDate as registro
                 FROM File f
                 INNER JOIN Client c ON f.IdClient = c.Id
-                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 INNER JOIN Agency a ON f.IdAgency = a.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
-                WHERE f.IdCostumerType = 3
+                WHERE f.IdCustomerType = 3
                 AND f.IdCurrentState NOT IN (5)
                 AND YEAR(f.RegistrationDate) = ?
                 AND NOT EXISTS (
@@ -452,7 +452,7 @@ class ReportesCumplimiento extends BaseController
                     f.RegistrationDate as registro
                 FROM File f
                 INNER JOIN Client c ON f.IdClient = c.Id
-                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 INNER JOIN Agency a ON f.IdAgency = a.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
@@ -508,7 +508,7 @@ class ReportesCumplimiento extends BaseController
                             f.RegistrationDate as registro
                         FROM File f
                         INNER JOIN Client c ON f.IdClient = c.Id
-                        LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                        LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                         INNER JOIN Agency a ON f.IdAgency = a.Id
                         INNER JOIN Process p ON f.IdProcess = p.Id
                         INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
@@ -628,7 +628,7 @@ class ReportesCumplimiento extends BaseController
             $sqlBenef = "
                 SELECT COUNT(*) as total FROM File f
                 INNER JOIN Agency a ON f.IdAgency = a.Id
-                WHERE f.IdCostumerType = 3 AND f.IdCurrentState NOT IN (5)
+                WHERE f.IdCustomerType = 3 AND f.IdCurrentState NOT IN (5)
                 AND YEAR(f.RegistrationDate) = ?
                 AND NOT EXISTS (SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.IdFile = f.Id)
             ";

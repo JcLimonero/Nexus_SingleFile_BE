@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class DocumentoRequeridoModel extends Model
 {
-    protected $table            = 'ConfigurationProcess_DocumentType';
+    protected $table            = 'ConfigurationProcessDocumentType';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
@@ -98,7 +98,7 @@ class DocumentoRequeridoModel extends Model
             cp.IdProcess,
             cp.IdAgency,
             cp.IdOperationType,
-            cp.IdCostumerType,
+            cp.IdCustomerType,
             cp.Enabled,
             cp.RegistrationDate,
             cp.UpdateDate,
@@ -121,7 +121,7 @@ class DocumentoRequeridoModel extends Model
         $builder->join('Process p', 'p.Id = cp.IdProcess', 'left');
         $builder->join('Agency a', 'a.Id = cp.IdAgency', 'left');
         $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
-        $builder->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left');
+        $builder->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left');
         $builder->join('DocumentType dt', 'dt.Id = cpd.IdDocumentType', 'left');
         $builder->join('File_Status fs', 'fs.Id = dt.IdProcessType', 'left');
         $builder->join('File_SubStatus sp', 'sp.Id = dt.IdSubProcess', 'left');
@@ -134,7 +134,7 @@ class DocumentoRequeridoModel extends Model
             $builder->where('cp.IdAgency', $filters['IdAgency']);
         }
         if (!empty($filters['IdCostumerType'])) {
-            $builder->where('cp.IdCostumerType', $filters['IdCostumerType']);
+            $builder->where('cp.IdCustomerType', $filters['IdCostumerType']);
         }
         if (!empty($filters['IdOperationType'])) {
             $builder->where('cp.IdOperationType', $filters['IdOperationType']);
@@ -177,7 +177,7 @@ class DocumentoRequeridoModel extends Model
             $builder->where('cp.IdAgency', $filters['IdAgency']);
         }
         if (!empty($filters['IdCostumerType'])) {
-            $builder->where('cp.IdCostumerType', $filters['IdCostumerType']);
+            $builder->where('cp.IdCustomerType', $filters['IdCostumerType']);
         }
         if (!empty($filters['IdOperationType'])) {
             $builder->where('cp.IdOperationType', $filters['IdOperationType']);
@@ -251,7 +251,7 @@ class DocumentoRequeridoModel extends Model
             cp.IdProcess,
             cp.IdAgency,
             cp.IdOperationType,
-            cp.IdCostumerType,
+            cp.IdCustomerType,
             cp.Enabled,
             cp.RegistrationDate,
             cp.UpdateDate
@@ -269,12 +269,12 @@ class DocumentoRequeridoModel extends Model
      */
     public function existsDocumentoRequerido($idProcess, $idAgency, $idCostumerType, $idOperationType, $idDocumentType, $excludeId = null)
     {
-        $builder = $this->db->table('ConfigurationProcess_DocumentType cpd');
+        $builder = $this->db->table('ConfigurationProcessDocumentType cpd');
         $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
         
         $builder->where('cp.IdProcess', $idProcess)
                 ->where('cp.IdAgency', $idAgency)
-                ->where('cp.IdCostumerType', $idCostumerType)
+                ->where('cp.IdCustomerType', $idCostumerType)
                 ->where('cp.IdOperationType', $idOperationType)
                 ->where('cpd.IdDocumentType', $idDocumentType);
         

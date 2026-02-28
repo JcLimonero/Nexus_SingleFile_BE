@@ -9,7 +9,7 @@ use CodeIgniter\Model;
  */
 class FilePldBeneficiarioFinalModel extends Model
 {
-    protected $table = 'file_pld_beneficiariofinal';
+    protected $table = 'FilePldBeneficiarioFinal';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

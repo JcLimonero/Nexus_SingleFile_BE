@@ -51,7 +51,7 @@ class Files extends BaseController
                                 AND ctr.IdAgency = f.IdAgency
                             LEFT JOIN Process p ON f.IdProcess = p.Id
                             LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
-                            LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                            LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                             LEFT JOIN Agency a ON f.IdAgency = a.Id
                             LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
                             LEFT JOIN OrderByCar obc ON f.IdOrderTotal = obc.IdTotalDealer
@@ -134,7 +134,7 @@ class Files extends BaseController
                 INNER JOIN Agency a ON f.IdAgency = a.Id
                 LEFT JOIN Process p ON f.IdProcess = p.Id
                 LEFT JOIN OperationType ot ON f.IdOperation = ot.Id
-                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 LEFT JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 LEFT JOIN (
                     SELECT 
@@ -731,7 +731,7 @@ class Files extends BaseController
         $sql = "SELECT COUNT(*) as count 
                 FROM ConfigurationProcess 
                 WHERE IdProcess = ? 
-                AND IdCostumerType = ? 
+                AND IdCustomerType = ? 
                 AND IdOperationType = ? 
                 AND IdAgency = ? 
                 AND Enabled = 1";
@@ -832,7 +832,7 @@ class Files extends BaseController
             'IdClient' => $clientId,
             'IdAgency' => $internalAgencyId,
             'IdProcess' => $process['Id'],
-            'IdCostumerType' => $costumerType['Id'],
+            'IdCustomerType' => $costumerType['Id'],
             'IdOperation' => $operationType['Id'],
             'IdSeller' => $sellerId,
             'IdCurrentState' => 1, // Integración
@@ -937,7 +937,7 @@ class Files extends BaseController
                 INNER JOIN DocumentType dt ON cpd.IdDocumentType = dt.Id
                 INNER JOIN ConfigurationProcess cp ON cpd.IdConfigurationProcess = cp.Id
                 WHERE cp.IdProcess = ? 
-                AND cp.IdCostumerType = ? 
+                AND cp.IdCustomerType = ? 
                 AND cp.IdOperationType = ? 
                 AND (cp.IdAgency = ? OR cp.IdAgency = ?)
                 AND cp.Enabled = 1

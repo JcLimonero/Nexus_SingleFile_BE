@@ -1,20 +1,43 @@
 <?php
 /**
  * Script para validar la conexión a la base de datos
+ * Lee la configuración desde el archivo database-config.json
  * 
  * Uso: php scripts/test_db_connection.php
  */
 
 echo "=== Validación de Conexión a Base de Datos ===\n\n";
 
-// Configuración de conexión
-$hostname = '192.168.190.140';
-$port = 3306;
-$username = 'vgd_testing';
-$password = '00@DealerSolutions';
-$database = 'singlefile_db';
+// Obtener la ruta del archivo de configuración
+$configFile = __DIR__ . '/../app/Config/database-config.json';
 
-echo "Datos de conexión:\n";
+if (!file_exists($configFile)) {
+    echo "❌ Error: No se encontró el archivo de configuración: $configFile\n";
+    exit(1);
+}
+
+// Cargar configuración desde el archivo JSON
+$configContent = file_get_contents($configFile);
+$config = json_decode($configContent, true);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    echo "❌ Error al decodificar el archivo JSON: " . json_last_error_msg() . "\n";
+    exit(1);
+}
+
+if (!isset($config['database'])) {
+    echo "❌ Error: No se encontró la configuración de base de datos en el archivo\n";
+    exit(1);
+}
+
+$db = $config['database'];
+$hostname = $db['hostname'] ?? 'localhost';
+$port = $db['port'] ?? 3306;
+$username = $db['username'] ?? 'root';
+$password = $db['password'] ?? '';
+$database = $db['database'] ?? '';
+
+echo "Datos de conexión (desde archivo de configuración):\n";
 echo "  Servidor: $hostname\n";
 echo "  Puerto: $port\n";
 echo "  Usuario: $username\n";
@@ -36,6 +59,7 @@ try {
             echo "   ⚠️  Error de autenticación: Usuario o contraseña incorrectos\n";
         } elseif ($mysqli->connect_errno == 2002) {
             echo "   ⚠️  Error de conexión: No se puede conectar al servidor\n";
+            echo "   💡 Verifica que el servidor esté accesible desde esta ubicación\n";
         } elseif (strpos($mysqli->connect_error, 'auth_gssapi_client') !== false || 
                    strpos($mysqli->connect_error, 'caching_sha2_password') !== false) {
             echo "   ⚠️  Error de método de autenticación: MySQL requiere mysql_native_password\n";
@@ -98,6 +122,7 @@ try {
     
     echo "\n✅ Validación completada exitosamente!\n";
     echo "   La conexión a la base de datos funciona correctamente.\n";
+    echo "   Las APIs deberían poder conectarse sin problemas.\n";
     
 } catch (Exception $e) {
     echo "❌ Excepción: " . $e->getMessage() . "\n";

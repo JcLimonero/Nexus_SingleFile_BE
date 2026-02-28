@@ -26,7 +26,7 @@ class ConfigurationService
         $sql = "SELECT COUNT(*) as count 
                 FROM ConfigurationProcess 
                 WHERE IdProcess = ? 
-                AND IdCostumerType = ? 
+                AND IdCustomerType = ? 
                 AND IdOperationType = ? 
                 AND IdAgency = ? 
                 AND Enabled = 1";
@@ -52,7 +52,7 @@ class ConfigurationService
         $sql = "SELECT DISTINCT 
                     cp.IdProcess,
                     p.Name as ProcessName,
-                    cp.IdCostumerType,
+                    cp.IdCustomerType,
                     ct.Name as CostumerTypeName,
                     cp.IdOperationType,
                     ot.Name as OperationTypeName,
@@ -60,7 +60,7 @@ class ConfigurationService
                     a.Name as AgencyName
                 FROM ConfigurationProcess cp
                 INNER JOIN Process p ON cp.IdProcess = p.Id
-                INNER JOIN CostumerType ct ON cp.IdCostumerType = ct.Id
+                INNER JOIN customertype ct ON cp.IdCustomerType = ct.Id
                 INNER JOIN OperationType ot ON cp.IdOperationType = ot.Id
                 INNER JOIN Agency a ON cp.IdAgency = a.Id
                 WHERE cp.IdAgency = ? 
@@ -97,8 +97,8 @@ class ConfigurationService
     public function getCostumerTypesByProcessAndAgency($processId, $agencyId)
     {
         $sql = "SELECT DISTINCT ct.Id, ct.Name
-                FROM CostumerType ct
-                INNER JOIN ConfigurationProcess cp ON ct.Id = cp.IdCostumerType
+                FROM customertype ct
+                INNER JOIN ConfigurationProcess cp ON ct.Id = cp.IdCustomerType
                 WHERE cp.IdProcess = ? 
                 AND cp.IdAgency = ? 
                 AND cp.Enabled = 1
@@ -118,7 +118,7 @@ class ConfigurationService
                 FROM OperationType ot
                 INNER JOIN ConfigurationProcess cp ON ot.Id = cp.IdOperationType
                 WHERE cp.IdProcess = ? 
-                AND cp.IdCostumerType = ? 
+                AND cp.IdCustomerType = ? 
                 AND cp.IdAgency = ? 
                 AND cp.Enabled = 1
                 AND ot.Enabled = 1
@@ -137,7 +137,7 @@ class ConfigurationService
                        ot.Name as OperationTypeName, a.Name as AgencyName
                 FROM ConfigurationProcess cp
                 INNER JOIN Process p ON cp.IdProcess = p.Id
-                INNER JOIN CostumerType ct ON cp.IdCostumerType = ct.Id
+                INNER JOIN customertype ct ON cp.IdCustomerType = ct.Id
                 INNER JOIN OperationType ot ON cp.IdOperationType = ot.Id
                 INNER JOIN Agency a ON cp.IdAgency = a.Id
                 WHERE cp.Enabled = 1
@@ -157,7 +157,7 @@ class ConfigurationService
     {
         $data = [
             'IdProcess' => $processId,
-            'IdCostumerType' => $costumerTypeId,
+            'IdCustomerType' => $costumerTypeId,
             'IdOperationType' => $operationTypeId,
             'IdAgency' => $agencyId,
             'Enabled' => 1,

@@ -829,7 +829,7 @@ class Validacion extends BaseController
             $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM Client_Total_Relation")->getRowArray();
             $nextId = (int) ($nextIdRow['nextId'] ?? 1);
 
-            $this->db->table('Client_Total_Relation')->insert([
+            $this->db->table('ClientTotalRelation')->insert([
                 'Id' => $nextId,
                 'idHeaderClient' => $idHeaderClient,
                 'IdAgency' => $idAgency,
@@ -910,7 +910,7 @@ class Validacion extends BaseController
                         TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
                     ) as cliente,
                     ct.Name as tipoCliente,
-                    f.IdCostumerType as idCostumerType,
+                    f.IdCustomerType as idCostumerType,
                     p.Name as proceso,
                     ot.Name as operacion,
                     a.Name as agencia,
@@ -948,7 +948,7 @@ class Validacion extends BaseController
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
-                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN Agency a ON f.IdAgency = a.Id
                 LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder
@@ -2111,7 +2111,7 @@ class Validacion extends BaseController
                     c.TelNumber as telefono,
                     c.TelNumber2 as telefono2,
                     c.RazonSocial as razonSocial,
-                    f.IdCostumerType as idCostumerType,
+                    f.IdCustomerType as idCostumerType,
                     ct.Name as tipoCliente,
                     p.Name as proceso,
                     ot.Name as operacion,
@@ -2126,7 +2126,7 @@ class Validacion extends BaseController
                 INNER JOIN Client c ON hc.IdClient = c.Id
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
-                LEFT JOIN CostumerType ct ON f.IdCostumerType = ct.Id
+                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN Agency a ON f.IdAgency = a.Id
                 LEFT JOIN OrderByCar obc1 ON obc1.Id = f.IdOrder

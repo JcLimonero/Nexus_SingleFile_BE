@@ -90,13 +90,13 @@ class DocumentModel extends Model
             dt.Name as DocumentTypeName,
             dt.IdProcessType,
             dt.IdSubProcess,
-            dfs.Description as CurrentStatusDescription,
+            dfs.Name as CurrentStatusDescription,
             dfe.Description as DocumentErrorDescription,
             u.Name as LastUserUpdateName,
             f.Id as FileId,
             f.Description as FileDescription,
             f.IdCurrentState as FileCurrentState,
-            fs.Description as FileStatusDescription,
+            fs.Name as FileStatusDescription,
             fss.Name as ProcessTypeName,
             sp.Name as SubProcessName
         ');
@@ -236,13 +236,13 @@ class DocumentModel extends Model
             d.IdCurrentStatus,
             d.IdDocumentError,
             dt.Name as DocumentTypeName,
-            dfs.Description as CurrentStatusDescription,
+            dfs.Name as CurrentStatusDescription,
             dfe.Description as DocumentErrorDescription,
             u.Name as LastUserUpdateName,
             f.Id as FileId,
             f.Description as FileDescription,
             f.IdCurrentState as FileCurrentState,
-            fs.Description as FileStatusDescription
+            fs.Name as FileStatusDescription
         ');
 
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
@@ -372,7 +372,7 @@ class DocumentModel extends Model
 
             // Estadísticas por estado
             $byStatusBuilder = $this->db->table('DocumentByFile d')
-                ->select('dfs.Description as Status, COUNT(*) as Count')
+                ->select('dfs.Name as Status, COUNT(*) as Count')
                 ->join('DocumentFile_Status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
                 
             if (!empty($filters['start_date'])) {
@@ -388,7 +388,7 @@ class DocumentModel extends Model
                 $byStatusBuilder->where('d.IdLastUserUpdate', $filters['user_id']);
             }
             
-            $byStatus = $byStatusBuilder->groupBy('d.IdCurrentStatus, dfs.Description')
+            $byStatus = $byStatusBuilder->groupBy('d.IdCurrentStatus, dfs.Name')
                 ->orderBy('Count', 'DESC')
                 ->get()
                 ->getResultArray();

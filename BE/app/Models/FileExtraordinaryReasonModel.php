@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class FileExtraordinaryReasonModel extends Model
 {
-    protected $table            = 'File_Extraordinary_Reasons';
+    protected $table            = 'FileExtraordinaryReasons';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
@@ -128,7 +128,7 @@ class FileExtraordinaryReasonModel extends Model
         $total = $builder->countAllResults();
         
         // Contar por tipo de razón
-        $typeReasonStats = $this->db->table('File_Extraordinary_Reasons')
+        $typeReasonStats = $this->db->table('FileExtraordinaryReasons')
             ->select('IdTypeReason, COUNT(*) as count')
             ->groupBy('IdTypeReason')
             ->get()

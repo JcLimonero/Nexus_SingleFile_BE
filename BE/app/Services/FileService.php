@@ -164,7 +164,7 @@ class FileService
             'IdClient' => $clientId,
             'IdAgency' => $internalAgencyId,
             'IdProcess' => $process['Id'],
-            'IdCostumerType' => $costumerType['Id'],
+            'IdCustomerType' => $costumerType['Id'],
             'IdOperation' => $operationType['Id'],
             'IdSeller' => $sellerId,
             'IdCurrentState' => 1, // Integración
@@ -243,7 +243,7 @@ class FileService
                 FROM DocumentType dt
                 INNER JOIN ProcessDocumentType pdt ON dt.Id = pdt.IdDocumentType
                 WHERE pdt.IdProcess = ? 
-                AND pdt.IdCostumerType = ? 
+                AND pdt.IdCustomerType = ? 
                 AND pdt.IdOperationType = ? 
                 AND pdt.IdAgency = ?
                 AND pdt.Enabled = 1

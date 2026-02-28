@@ -24,7 +24,7 @@ class UserProcess extends BaseController
             $db = \Config\Database::connect();
             
             // Obtener procesos asignados al usuario con información del proceso
-            $builder = $db->table('Process_User pu');
+            $builder = $db->table('ProcessUser pu');
             $processes = $builder
                 ->select('pu.IdProcess, p.Name as ProcessName, p.Enabled')
                 ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
@@ -93,7 +93,7 @@ class UserProcess extends BaseController
             $db->transStart();
 
             // Eliminar todas las asignaciones existentes del usuario
-            $db->table('Process_User')->where('IdUser', $userId)->delete();
+            $db->table('ProcessUser')->where('IdUser', $userId)->delete();
 
             // Insertar las nuevas asignaciones
             $insertData = [];
@@ -109,7 +109,7 @@ class UserProcess extends BaseController
             }
 
             if (!empty($insertData)) {
-                $db->table('Process_User')->insertBatch($insertData);
+                $db->table('ProcessUser')->insertBatch($insertData);
             }
 
             // Completar transacción

@@ -44,7 +44,7 @@ class ConfigurationProcess extends BaseController
                 p.Name as processName,
                 cp.IdAgency,
                 a.Name as agencyName,
-                cp.IdCostumerType,
+                cp.IdCustomerType,
                 ct.Name as costumerTypeName,
                 cp.IdOperationType,
                 ot.Name as operationTypeName,
@@ -54,7 +54,7 @@ class ConfigurationProcess extends BaseController
             ')
             ->join('Process p', 'p.Id = cp.IdProcess', 'left')
             ->join('Agency a', 'a.Id = cp.IdAgency', 'left')
-            ->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left')
+            ->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left')
             ->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left')
             ->where('cp.Enabled', 1)
             ->orderBy('p.Name', 'ASC')
@@ -91,10 +91,10 @@ class ConfigurationProcess extends BaseController
             // Extraer tipos de cliente únicos
             $costumerTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdCostumerType'], $costumerTypeIds)) {
-                    $costumerTypeIds[] = $config['IdCostumerType'];
+                if (!in_array($config['IdCustomerType'], $costumerTypeIds)) {
+                    $costumerTypeIds[] = $config['IdCustomerType'];
                     $organizedData['costumerTypes'][] = [
-                        'Id' => $config['IdCostumerType'],
+                        'Id' => $config['IdCustomerType'],
                         'Name' => $config['costumerTypeName']
                     ];
                 }
@@ -161,7 +161,7 @@ class ConfigurationProcess extends BaseController
                 p.Name as processName,
                 cp.IdAgency,
                 a.Name as agencyName,
-                cp.IdCostumerType,
+                cp.IdCustomerType,
                 ct.Name as costumerTypeName,
                 cp.IdOperationType,
                 ot.Name as operationTypeName,
@@ -171,7 +171,7 @@ class ConfigurationProcess extends BaseController
             ')
             ->join('Process p', 'p.Id = cp.IdProcess', 'left')
             ->join('Agency a', 'a.Id = cp.IdAgency', 'left')
-            ->join('CostumerType ct', 'ct.Id = cp.IdCostumerType', 'left')
+            ->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left')
             ->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left')
             ->where('cp.Enabled', 1)
             ->where('cp.IdAgency', $agencyId)
@@ -204,10 +204,10 @@ class ConfigurationProcess extends BaseController
             // Extraer tipos de cliente únicos
             $costumerTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdCostumerType'], $costumerTypeIds)) {
-                    $costumerTypeIds[] = $config['IdCostumerType'];
+                if (!in_array($config['IdCustomerType'], $costumerTypeIds)) {
+                    $costumerTypeIds[] = $config['IdCustomerType'];
                     $organizedData['costumerTypes'][] = [
-                        'Id' => $config['IdCostumerType'],
+                        'Id' => $config['IdCustomerType'],
                         'Name' => $config['costumerTypeName']
                     ];
                 }

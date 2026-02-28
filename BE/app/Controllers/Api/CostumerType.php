@@ -41,7 +41,7 @@ class CostumerType extends BaseController
 
             // Construir la consulta
             $db = \Config\Database::connect();
-            $builder = $db->table('CostumerType ct');
+            $builder = $db->table('CustomerType ct');
             
             $builder->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')
                 ->join('User u', 'u.Id = ct.IdLastUserUpdate', 'left');
@@ -170,7 +170,7 @@ class CostumerType extends BaseController
             }
             
             $db = \Config\Database::connect();
-            $builder = $db->table('CostumerType ct');
+            $builder = $db->table('CustomerType ct');
             
             $costumerType = $builder
                 ->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')

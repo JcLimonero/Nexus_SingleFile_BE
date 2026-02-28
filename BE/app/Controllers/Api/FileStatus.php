@@ -35,7 +35,7 @@ class FileStatus extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            $builder = $this->db->table('File_Status fs');
+            $builder = $this->db->table('FileStatus fs');
             $builder->select('fs.*');
 
             // Filtrar solo las fases específicas requeridas
@@ -85,7 +85,7 @@ class FileStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('File_Status fs');
+            $builder = $this->db->table('FileStatus fs');
             $builder->select('fs.*');
             // Filtrar solo las fases específicas requeridas
             $builder->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación']);
@@ -134,7 +134,7 @@ class FileStatus extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $builder = $this->db->table('File_Status fs');
+            $builder = $this->db->table('FileStatus fs');
             $builder->select('fs.*');
             $builder->where('fs.Id', $id);
             // Verificar que sea una de las fases permitidas

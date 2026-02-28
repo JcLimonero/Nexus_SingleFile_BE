@@ -429,7 +429,7 @@ class Analytics extends BaseController
                 $fileMetrics = $query->get()->getRowArray();
                 
                 // Usuarios que tienen acceso a la agencia seleccionada (query separada porque es otra tabla)
-                $totalUsersQuery = $db->table('Agency_User');
+                $totalUsersQuery = $db->table('AgencyUser');
                 if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
                     $totalUsersQuery->where('IdAgency', $agencyId);
                 }
@@ -647,7 +647,7 @@ class Analytics extends BaseController
 
             if ($fileStatusExists) {
                 // Obtener todos los estados disponibles
-                $statuses = $db->table('File_Status')->get()->getResultArray();
+                $statuses = $db->table('FileStatus')->get()->getResultArray();
                 $data['file_statuses'] = $statuses;
             }
 
@@ -968,11 +968,11 @@ class Analytics extends BaseController
             $userStructure = $db->getFieldData('User');
             
             // Obtener algunos registros de ejemplo
-            $agencyUserSample = $db->table('Agency_User')->limit(5)->get()->getResultArray();
+            $agencyUserSample = $db->table('AgencyUser')->limit(5)->get()->getResultArray();
             $userSample = $db->table('User')->limit(5)->get()->getResultArray();
             
             // Contar usuarios por agencia
-            $usersByAgency = $db->table('Agency_User')
+            $usersByAgency = $db->table('AgencyUser')
                 ->select('IdAgency, COUNT(*) as user_count')
                 ->groupBy('IdAgency')
                 ->get()
@@ -984,7 +984,7 @@ class Analytics extends BaseController
                 'agency_user_sample' => $agencyUserSample,
                 'user_sample' => $userSample,
                 'users_by_agency' => $usersByAgency,
-                'total_agency_user_relations' => $db->table('Agency_User')->countAllResults(),
+                'total_agency_user_relations' => $db->table('AgencyUser')->countAllResults(),
                 'total_users' => $db->table('User')->countAllResults()
             ];
             

@@ -24,7 +24,7 @@ class UserAccess extends BaseController
             $db = \Config\Database::connect();
 
             // Obtener agencias asignadas
-            $agencies = $db->table('Agency_User au')
+            $agencies = $db->table('AgencyUser au')
                 ->select('au.IdAgency, a.Name as AgencyName, a.Enabled')
                 ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
                 ->where('au.IdUser', $userId)
@@ -33,7 +33,7 @@ class UserAccess extends BaseController
                 ->getResultArray();
 
             // Obtener procesos asignados
-            $processes = $db->table('Process_User pu')
+            $processes = $db->table('ProcessUser pu')
                 ->select('pu.IdProcess, p.Name as ProcessName, p.Enabled')
                 ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
                 ->where('pu.IdUser', $userId)
@@ -112,7 +112,7 @@ class UserAccess extends BaseController
             $db->transStart();
 
             // Actualizar agencias
-            $db->table('Agency_User')->where('IdUser', $userId)->delete();
+            $db->table('AgencyUser')->where('IdUser', $userId)->delete();
             $agencyInsertData = [];
             foreach ($agencies as $agencyId) {
                 $agencyExists = $db->table('Agency')->where('Id', $agencyId)->countAllResults() > 0;
@@ -124,7 +124,7 @@ class UserAccess extends BaseController
                 }
             }
             if (!empty($agencyInsertData)) {
-                $db->table('Agency_User')->insertBatch($agencyInsertData);
+                $db->table('AgencyUser')->insertBatch($agencyInsertData);
             }
 
             // Actualizar procesos
