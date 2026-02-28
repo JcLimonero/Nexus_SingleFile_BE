@@ -29,6 +29,15 @@ class CustomerType extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
+            // Validar campos permitidos para ordenamiento
+            $allowedSortFields = ['Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate'];
+            if (!in_array($sortBy, $allowedSortFields)) {
+                $sortBy = 'Name';
+            }
+
+            // Validar orden
+            $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
+
             // Si no se especifica límite o es 0, obtener todos los registros
             if ($limit === null || $limit == 0 || $limit == 'all') {
                 $limit = null;
@@ -41,10 +50,10 @@ class CustomerType extends BaseController
 
             // Construir la consulta
             $db = \Config\Database::connect();
-            $builder = $db->table('CustomerType ct');
+            $builder = $db->table('customer_type ct');
             
             $builder->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')
-                ->join('User u', 'u.Id = ct.IdLastUserUpdate', 'left');
+                ->join('user u', 'u.Id = ct.IdLastUserUpdate', 'left');
 
             // Aplicar filtros
             if ($enabled !== null && $enabled !== '') {
@@ -72,7 +81,7 @@ class CustomerType extends BaseController
                 'success' => true,
                 'message' => 'Tipos de cliente obtenidos exitosamente',
                 'data' => [
-                    'customer_types' => $customerTypes,
+                    'costumer_types' => $customerTypes,
                     'total' => $total,
                     'limit' => $limit ?? 'all',
                     'offset' => $offset,
@@ -120,7 +129,7 @@ class CustomerType extends BaseController
 
             // Generar el siguiente ID manualmente
             $db = \Config\Database::connect();
-            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM CustomerType");
+            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM customer_type");
             $maxIdResult = $maxIdQuery->getRow();
             $nextId = ($maxIdResult->max_id ?? 0) + 1;
             
@@ -170,11 +179,11 @@ class CustomerType extends BaseController
             }
             
             $db = \Config\Database::connect();
-            $builder = $db->table('CustomerType ct');
+            $builder = $db->table('customer_type ct');
             
             $customerType = $builder
                 ->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')
-                ->join('User u', 'u.Id = ct.IdLastUserUpdate', 'left')
+                ->join('user u', 'u.Id = ct.IdLastUserUpdate', 'left')
                 ->where('ct.Id', $id)
                 ->get()
                 ->getRowArray();
@@ -389,7 +398,7 @@ class CustomerType extends BaseController
                 'success' => true,
                 'message' => 'Búsqueda realizada exitosamente',
                 'data' => [
-                    'customer_types' => $customerTypes,
+                    'costumer_types' => $customerTypes,
                     'count' => count($customerTypes),
                     'query' => $query
                 ]

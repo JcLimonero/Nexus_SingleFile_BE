@@ -13,7 +13,7 @@ class DocumentoRequeridoModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'IdDocumentType', 'IdConfigurationProcess'
+        'Id', 'IdDocumentType', 'Idconfiguration_process'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -32,7 +32,7 @@ class DocumentoRequeridoModel extends Model
     // Validation
     protected $validationRules      = [
         'IdDocumentType' => 'required|integer',
-        'IdConfigurationProcess' => 'required|integer'
+        'Idconfiguration_process' => 'required|integer'
     ];
     
     protected $validationMessages   = [
@@ -40,7 +40,7 @@ class DocumentoRequeridoModel extends Model
             'required' => 'El ID del tipo de documento es requerido',
             'integer' => 'El ID del tipo de documento debe ser un número válido'
         ],
-        'IdConfigurationProcess' => [
+        'Idconfiguration_process' => [
             'required' => 'El ID de la configuración del proceso es requerido',
             'integer' => 'El ID de la configuración del proceso debe ser un número válido'
         ]
@@ -88,13 +88,13 @@ class DocumentoRequeridoModel extends Model
      */
     public function getDocumentosRequeridos($filters = [], $limit = null, $offset = null, $sortBy = 'Id', $sortOrder = 'ASC')
     {
-        $builder = $this->builder('ConfigurationProcessDocumentType cpd');
+        $builder = $this->builder('configuration_processDocumentType cpd');
         
         // Seleccionar campos con joins
         $builder->select('
             cpd.Id,
             cpd.IdDocumentType,
-            cpd.IdConfigurationProcess,
+            cpd.Idconfiguration_process,
             cp.IdProcess,
             cp.IdAgency,
             cp.IdOperationType,
@@ -117,10 +117,10 @@ class DocumentoRequeridoModel extends Model
         ');
         
         // Joins con tablas relacionadas
-        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
-        $builder->join('Process p', 'p.Id = cp.IdProcess', 'left');
-        $builder->join('Agency a', 'a.Id = cp.IdAgency', 'left');
-        $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
+        $builder->join('configuration_process cp', 'cp.Id = cpd.Idconfiguration_process', 'left');
+        $builder->join('process p', 'p.Id = cp.IdProcess', 'left');
+        $builder->join('agency a', 'a.Id = cp.IdAgency', 'left');
+        $builder->join('operation_type ot', 'ot.Id = cp.IdOperationType', 'left');
         $builder->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left');
         $builder->join('DocumentType dt', 'dt.Id = cpd.IdDocumentType', 'left');
         $builder->join('FileStatus fs', 'fs.Id = dt.IdProcessType', 'left');
@@ -166,8 +166,8 @@ class DocumentoRequeridoModel extends Model
      */
     public function countDocumentosRequeridos($filters = [])
     {
-        $builder = $this->builder('ConfigurationProcessDocumentType cpd');
-        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
+        $builder = $this->builder('configuration_processDocumentType cpd');
+        $builder->join('configuration_process cp', 'cp.Id = cpd.Idconfiguration_process', 'left');
         
         // Aplicar filtros
         if (!empty($filters['IdProcess'])) {
@@ -230,10 +230,10 @@ class DocumentoRequeridoModel extends Model
     /**
      * Obtener o crear configuración de proceso
      */
-    public function getOrCreateConfigurationProcess($idProcess, $idAgency, $idCustomerType, $idOperationType)
+    public function getOrCreateconfiguration_process($idProcess, $idAgency, $idCustomerType, $idOperationType)
     {
-        // Usar el model ConfigurationProcessModel
-        $configProcessModel = new \App\Models\ConfigurationProcessModel();
+        // Usar el model configuration_processModel
+        $configProcessModel = new \App\Models\configuration_processModel();
         return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType);
     }
 
@@ -242,12 +242,12 @@ class DocumentoRequeridoModel extends Model
      */
     public function findWithRelations($id)
     {
-        $builder = $this->builder('ConfigurationProcessDocumentType cpd');
+        $builder = $this->builder('configuration_processDocumentType cpd');
         
         $builder->select('
             cpd.Id,
             cpd.IdDocumentType,
-            cpd.IdConfigurationProcess,
+            cpd.Idconfiguration_process,
             cp.IdProcess,
             cp.IdAgency,
             cp.IdOperationType,
@@ -257,7 +257,7 @@ class DocumentoRequeridoModel extends Model
             cp.UpdateDate
         ');
         
-        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
+        $builder->join('configuration_process cp', 'cp.Id = cpd.Idconfiguration_process', 'left');
         $builder->where('cpd.Id', $id);
         
         $result = $builder->get()->getRowArray();
@@ -270,7 +270,7 @@ class DocumentoRequeridoModel extends Model
     public function existsDocumentoRequerido($idProcess, $idAgency, $idCustomerType, $idOperationType, $idDocumentType, $excludeId = null)
     {
         $builder = $this->db->table('configuration_process_document_type cpd');
-        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'left');
+        $builder->join('configuration_process cp', 'cp.Id = cpd.Idconfiguration_process', 'left');
         
         $builder->where('cp.IdProcess', $idProcess)
                 ->where('cp.IdAgency', $idAgency)
@@ -299,7 +299,7 @@ class DocumentoRequeridoModel extends Model
     public function createDocumentoRequerido($data)
     {
         // Obtener o crear configuración de proceso
-        $idConfigProcess = $this->getOrCreateConfigurationProcess(
+        $idConfigProcess = $this->getOrCreateconfiguration_process(
             $data['IdProcess'],
             $data['IdAgency'],
             $data['IdCustomerType'],
@@ -309,7 +309,7 @@ class DocumentoRequeridoModel extends Model
         // Insertar en la tabla de relación
         $insertData = [
             'IdDocumentType' => $data['IdDocumentType'],
-            'IdConfigurationProcess' => $idConfigProcess
+            'Idconfiguration_process' => $idConfigProcess
         ];
         
         return $this->insert($insertData);
@@ -324,28 +324,28 @@ class DocumentoRequeridoModel extends Model
         if (isset($data['IdProcess']) || isset($data['IdAgency']) || 
             isset($data['IdCustomerType']) || isset($data['IdOperationType'])) {
             
-            $idConfigProcess = $this->getOrCreateConfigurationProcess(
+            $idConfigProcess = $this->getOrCreateconfiguration_process(
                 $data['IdProcess'] ?? $data['IdProcess'],
                 $data['IdAgency'] ?? $data['IdAgency'],
                 $data['IdCustomerType'] ?? $data['IdCustomerType'],
                 $data['IdOperationType'] ?? $data['IdOperationType']
             );
             
-            $data['IdConfigurationProcess'] = $idConfigProcess;
+            $data['Idconfiguration_process'] = $idConfigProcess;
         }
         
-        // Actualizar solo los campos permitidos de ConfigurationProcessDocumentType
-        // Nota: Enabled está en ConfigurationProcess, no en ConfigurationProcessDocumentType
-        // El controlador se encargará de actualizar ConfigurationProcess si se envía Enabled
+        // Actualizar solo los campos permitidos de configuration_processDocumentType
+        // Nota: Enabled está en configuration_process, no en configuration_processDocumentType
+        // El controlador se encargará de actualizar configuration_process si se envía Enabled
         $updateData = [];
         if (isset($data['IdDocumentType'])) $updateData['IdDocumentType'] = $data['IdDocumentType'];
-        if (isset($data['IdConfigurationProcess'])) $updateData['IdConfigurationProcess'] = $data['IdConfigurationProcess'];
+        if (isset($data['Idconfiguration_process'])) $updateData['Idconfiguration_process'] = $data['Idconfiguration_process'];
         
         // Si solo se está actualizando Enabled, no hay nada que actualizar en esta tabla
-        // pero aún así retornamos true para que el controlador pueda actualizar ConfigurationProcess
+        // pero aún así retornamos true para que el controlador pueda actualizar configuration_process
         if (isset($data['Enabled']) && empty($updateData)) {
             // Saltar validación ya que no estamos actualizando nada en esta tabla
-            return true; // Permitir que el controlador actualice ConfigurationProcess
+            return true; // Permitir que el controlador actualice configuration_process
         }
         
         // Si hay datos para actualizar, usar update con skipValidation para actualizaciones parciales

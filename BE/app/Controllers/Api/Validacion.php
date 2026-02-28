@@ -31,7 +31,7 @@ class Validacion extends BaseController
             if (empty($username) || $username === 'sistema') {
                 $authModel = new \App\Models\AuthModel();
                 $userRow = $authModel->getUserById($userId);
-                $username = $userRow['user'] ?? $userRow['Name'] ?? (string) $userId;
+                $username = $userRow['User'] ?? $userRow['Name'] ?? (string) $userId;
             }
 
             $logData = [
@@ -948,7 +948,7 @@ class Validacion extends BaseController
                 INNER JOIN client c ON hc.IdClient = c.Id
                 INNER JOIN process p ON f.IdProcess = p.Id
                 INNER JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                 INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
@@ -993,9 +993,10 @@ class Validacion extends BaseController
                 $sql .= " AND f.IdCurrentState != 5";
             }
             
-            $sql .= " ORDER BY tieneDocumentosPendientes DESC, ndCliente ASC, ndPedido ASC LIMIT ? OFFSET ?";
-            $params[] = $limit;
-            $params[] = $offset;
+            // LIMIT y OFFSET deben ser valores directos, no parámetros preparados
+            $limit = (int) $limit;
+            $offset = (int) $offset;
+            $sql .= " ORDER BY tieneDocumentosPendientes DESC, ndCliente ASC, ndPedido ASC LIMIT {$limit} OFFSET {$offset}";
 
             // Ejecutar query principal
             $query = $this->db->query($sql, $params);
@@ -1358,9 +1359,9 @@ class Validacion extends BaseController
                 ->select('Id, Name')
                 ->get();
             $todosEstados = $todosEstadosQuery->getResultArray();
-            error_log("Todos los estados disponibles en FileStatus: " . json_encode($todosEstados));
-            
-            // Verificar que el estado existe en la tabla FileStatus por ID
+            error_log("Todos los estados disponibles en file_status: " . json_encode($todosEstados));
+
+            // Verificar que el estado existe en la tabla file_status por ID
             $estadoQuery = $this->db->table('file_status')
                 ->select('Id, Name')
                 ->where('Id', $nuevoIdCurrentState)
@@ -1461,8 +1462,8 @@ class Validacion extends BaseController
 
             $query = $this->db->table('expedient f')
                 ->select('fs.Name as estado, COUNT(*) as cantidad')
-                ->join('Process p', 'f.IdProcess = p.Id', 'inner')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+                ->join('process p', 'f.IdProcess = p.Id', 'inner')
+                ->join('file_status fs', 'f.IdCurrentState = fs.Id', 'inner')
                 ->where('f.IdAgency', $idAgency)
                 ->where('f.IdProcess', $idProcess)
                 ->where('p.Enabled', 1)
@@ -1526,11 +1527,11 @@ class Validacion extends BaseController
                     dt.AvailableToClient as DisponibleCliente
                 ')
                 ->join('expedient f', 'dbf.IdFile = f.Id', 'inner')
-                ->join('Process p', 'f.IdProcess = p.Id', 'inner')
-                ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-                ->join('FileStatus fs', 'dt.IdProcessType = fs.Id', 'inner')
-                ->join('DocumentFileStatus dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
-                ->join('User u', 'dbf.IdLastUserUpdate = u.Id', 'left')
+                ->join('process p', 'f.IdProcess = p.Id', 'inner')
+                ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
+                ->join('file_status fs', 'dt.IdProcessType = fs.Id', 'inner')
+                ->join('document_file_status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
+                ->join('user u', 'dbf.IdLastUserUpdate = u.Id', 'left')
                 ->where('dbf.IdFile', $idFile)
                 ->where('dbf.Enabled', 1)
                 ->orderBy('p.Name', 'ASC')
@@ -1584,7 +1585,7 @@ class Validacion extends BaseController
             }
 
             $idFile = (int) $data['idFile'];
-            $documentTypeId = 21; // DocumentType de Liquidación
+            $documentTypeId = 21; // document_type de Liquidación
 
             // Verificar que el expediente exista
             $file = $this->db->table('expedient')
@@ -2126,7 +2127,7 @@ class Validacion extends BaseController
                 INNER JOIN client c ON hc.IdClient = c.Id
                 INNER JOIN process p ON f.IdProcess = p.Id
                 INNER JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                 INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN order obc1 ON obc1.Id = f.IdOrder

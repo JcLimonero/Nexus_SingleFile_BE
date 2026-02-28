@@ -3,16 +3,16 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
-use App\Models\ConfigurationProcessModel;
+use App\Models\configuration_processModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class ConfigurationProcess extends BaseController
+class configuration_process extends BaseController
 {
     protected $configurationProcessModel;
     
     public function __construct()
     {
-        $this->configurationProcessModel = new ConfigurationProcessModel();
+        $this->configurationProcessModel = new configuration_processModel();
     }
     
     /**
@@ -36,7 +36,7 @@ class ConfigurationProcess extends BaseController
             
             // Construir la consulta SQL
             $db = \Config\Database::connect();
-            $builder = $db->table('ConfigurationProcess cp');
+            $builder = $db->table('configuration_process cp');
             
             $builder->select('
                 cp.Id as configurationId,
@@ -52,10 +52,10 @@ class ConfigurationProcess extends BaseController
                 cp.RegistrationDate,
                 cp.UpdateDate
             ')
-            ->join('Process p', 'p.Id = cp.IdProcess', 'left')
-            ->join('Agency a', 'a.Id = cp.IdAgency', 'left')
-            ->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left')
-            ->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left')
+            ->join('process p', 'p.Id = cp.IdProcess', 'left')
+            ->join('agency a', 'a.Id = cp.IdAgency', 'left')
+            ->join('customer_type ct', 'ct.Id = cp.IdCustomerType', 'left')
+            ->join('operation_type ot', 'ot.Id = cp.IdOperationType', 'left')
             ->where('cp.Enabled', 1)
             ->orderBy('p.Name', 'ASC')
             ->orderBy('ct.Name', 'ASC')
@@ -153,7 +153,7 @@ class ConfigurationProcess extends BaseController
 
             // Construir la consulta SQL
             $db = \Config\Database::connect();
-            $builder = $db->table('ConfigurationProcess cp');
+            $builder = $db->table('configuration_process cp');
             
             $builder->select('
                 cp.Id as configurationId,
@@ -169,10 +169,10 @@ class ConfigurationProcess extends BaseController
                 cp.RegistrationDate,
                 cp.UpdateDate
             ')
-            ->join('Process p', 'p.Id = cp.IdProcess', 'left')
-            ->join('Agency a', 'a.Id = cp.IdAgency', 'left')
-            ->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left')
-            ->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left')
+            ->join('process p', 'p.Id = cp.IdProcess', 'left')
+            ->join('agency a', 'a.Id = cp.IdAgency', 'left')
+            ->join('customer_type ct', 'ct.Id = cp.IdCustomerType', 'left')
+            ->join('operation_type ot', 'ot.Id = cp.IdOperationType', 'left')
             ->where('cp.Enabled', 1)
             ->where('cp.IdAgency', $agencyId)
             ->orderBy('p.Name', 'ASC')

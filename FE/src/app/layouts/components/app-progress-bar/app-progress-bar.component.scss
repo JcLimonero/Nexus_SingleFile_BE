@@ -13,4 +13,13 @@
     visibility: visible;
     transition: opacity 500ms ease, visibility 0ms ease 0ms;
   }
+
+  // Cambiar el color del progress bar
+  ::ng-deep .mdc-linear-progress__buffer {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+  }
+
+  ::ng-deep .mdc-linear-progress__bar-inner {
+    background-color: #274880 !important; // Color navy/royal de la paleta de la aplicación
+  }
 }

@@ -27,8 +27,19 @@ class DocumentType extends BaseController
             $enabled = $this->request->getGet('enabled');
             $search = $this->request->getGet('search');
             $phase = $this->request->getGet('phase');
+            $required = $this->request->getGet('required');
+            $reqExpiration = $this->request->getGet('req_expiration');
             $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
+
+            // Validar campos permitidos para ordenamiento
+            $allowedSortFields = ['Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate', 'ReqExpiration', 'IdProcessType', 'Required', 'IdSubProcess', 'AvailableToClient'];
+            if (!in_array($sortBy, $allowedSortFields)) {
+                $sortBy = 'Name';
+            }
+
+            // Validar orden
+            $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
 
             // Si no se especifica límite o es 0, obtener todos los registros
             if ($limit === null || $limit == 0 || $limit == 'all') {
@@ -45,6 +56,8 @@ class DocumentType extends BaseController
                 'enabled' => $enabled,
                 'search' => $search,
                 'phase' => $phase,
+                'required' => $required,
+                'req_expiration' => $reqExpiration,
                 'sort_by' => $sortBy,
                 'sort_order' => $sortOrder,
                 'limit' => $limit,
@@ -56,22 +69,29 @@ class DocumentType extends BaseController
 
             // Obtener configuraciones para cada tipo de documento
             foreach ($documentTypes as &$docType) {
-                $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($docType['Id']);
-                $configCount = count($configurations);
-                
-                // Asegurar que ConfigurationEnabled y IdConfigurationProcessDocumentType sean enteros
-                foreach ($configurations as &$config) {
-                    $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
-                    $config['IdConfigurationProcessDocumentType'] = (int)($config['IdConfigurationProcessDocumentType'] ?? 0);
-                }
-                unset($config); // Liberar referencia
-                
-                $docType['configurations'] = $configurations;
-                $docType['configurationsCount'] = $configCount;
-                
-                // Log para debug si hay diferencia
-                if ($configCount > 0) {
-                    log_message('debug', "DocumentType::index - Tipo {$docType['Id']} ({$docType['Name']}): {$configCount} configuraciones");
+                try {
+                    $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($docType['Id']);
+                    $configCount = count($configurations);
+                    
+                    // Asegurar que ConfigurationEnabled y Idconfiguration_processDocumentType sean enteros
+                    foreach ($configurations as &$config) {
+                        $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
+                        $config['Idconfiguration_processDocumentType'] = (int)($config['Idconfiguration_processDocumentType'] ?? 0);
+                    }
+                    unset($config); // Liberar referencia
+                    
+                    $docType['configurations'] = $configurations;
+                    $docType['configurationsCount'] = $configCount;
+                    
+                    // Log para debug si hay diferencia
+                    if ($configCount > 0) {
+                        log_message('debug', "DocumentType::index - Tipo {$docType['Id']} ({$docType['Name']}): {$configCount} configuraciones");
+                    }
+                } catch (\Exception $e) {
+                    // Si hay un error al obtener configuraciones, continuar con array vacío
+                    log_message('error', "DocumentType::index - Error al obtener configuraciones para tipo {$docType['Id']}: " . $e->getMessage());
+                    $docType['configurations'] = [];
+                    $docType['configurationsCount'] = 0;
                 }
             }
             unset($docType); // Liberar referencia
@@ -104,9 +124,15 @@ class DocumentType extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en DocumentType::index: ' . $e->getMessage());
+            log_message('error', 'Error en DocumentType::index - Trace: ' . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener tipos de documento: ' . $e->getMessage()
+                'message' => 'Error al obtener tipos de documento: ' . $e->getMessage(),
+                'error' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => explode("\n", $e->getTraceAsString())
+                ]
             ])->setStatusCode(500);
         }
     }
@@ -210,10 +236,10 @@ class DocumentType extends BaseController
 
             // Obtener configuraciones donde se usa este tipo de documento
             $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($id);
-            // Asegurar que ConfigurationEnabled y IdConfigurationProcessDocumentType sean enteros
+            // Asegurar que ConfigurationEnabled y Idconfiguration_processDocumentType sean enteros
             foreach ($configurations as &$config) {
                 $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
-                $config['IdConfigurationProcessDocumentType'] = (int)($config['IdConfigurationProcessDocumentType'] ?? 0);
+                $config['Idconfiguration_processDocumentType'] = (int)($config['Idconfiguration_processDocumentType'] ?? 0);
             }
             unset($config); // Liberar referencia
             $documentType['configurations'] = $configurations;
@@ -554,10 +580,10 @@ class DocumentType extends BaseController
                 }
             }
             $configurations = $filteredConfigurations;
-            // Asegurar que ConfigurationEnabled y IdConfigurationProcessDocumentType sean enteros
+            // Asegurar que ConfigurationEnabled y Idconfiguration_processDocumentType sean enteros
             foreach ($configurations as &$config) {
                 $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
-                $config['IdConfigurationProcessDocumentType'] = (int)($config['IdConfigurationProcessDocumentType'] ?? 0);
+                $config['Idconfiguration_processDocumentType'] = (int)($config['Idconfiguration_processDocumentType'] ?? 0);
             }
             unset($config); // Liberar referencia
 
@@ -650,7 +676,7 @@ class DocumentType extends BaseController
 
     /**
      * GET /api/document-type/{id}/configurations-to-add
-     * Obtener configuraciones (ConfigurationProcess) donde este tipo de documento aún NO está asociado.
+     * Obtener configuraciones (configuration_process) donde este tipo de documento aún NO está asociado.
      * Sirve para agregar el documento a configuraciones de forma masiva.
      */
     public function getConfigurationsToAdd($documentTypeId = null)
@@ -672,16 +698,16 @@ class DocumentType extends BaseController
             }
             $db = \Config\Database::connect();
             $sql = "
-                SELECT cp.Id as IdConfigurationProcess, cp.IdProcess, p.Name as ProcesoName,
+                SELECT cp.Id as Idconfiguration_process, cp.IdProcess, p.Name as ProcesoName,
                        cp.IdAgency, a.Name as AgenciaName,                        cp.IdCustomerType, ct.Name as TipoClienteName,
                        cp.IdOperationType, ot.Name as TipoOperacionName, cp.Enabled
                 FROM configuration_process cp
                 LEFT JOIN process p ON p.Id = cp.IdProcess
                 INNER JOIN agency a ON a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != ''
-                LEFT JOIN customertype ct ON ct.Id = cp.IdCustomerType
+                LEFT JOIN customer_type ct ON ct.Id = cp.IdCustomerType
                 LEFT JOIN operation_type ot ON ot.Id = cp.IdOperationType
                 WHERE cp.Id NOT IN (
-                    SELECT cpd.IdConfigurationProcess
+                    SELECT cpd.Idconfiguration_process
                     FROM configuration_processDocumentType cpd
                     WHERE cpd.IdDocumentType = ?
                 )
@@ -738,11 +764,11 @@ class DocumentType extends BaseController
             $added = 0;
             foreach ($configurationIds as $idConfig) {
                 if ($idConfig <= 0) continue;
-                $existe = $documentoRequeridoModel->where('IdDocumentType', $documentTypeId)->where('IdConfigurationProcess', $idConfig)->first();
+                $existe = $documentoRequeridoModel->where('IdDocumentType', $documentTypeId)->where('Idconfiguration_process', $idConfig)->first();
                 if ($existe) continue;
                 $documentoRequeridoModel->insert([
                     'IdDocumentType' => $documentTypeId,
-                    'IdConfigurationProcess' => $idConfig
+                    'Idconfiguration_process' => $idConfig
                 ]);
                 $added++;
             }

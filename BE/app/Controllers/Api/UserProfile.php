@@ -50,7 +50,7 @@ class UserProfile extends BaseController
             $profileData = [
                 'Id' => $user['Id'],
                 'Name' => $user['Name'],
-                'user' => $user['user'],
+                'user' => $user['User'],
                 'Mail' => $user['Mail'],
                 'DefaultAgency' => $user['DefaultAgency'],
                 'IdUserRol' => $user['IdUserRol'],

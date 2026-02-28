@@ -41,7 +41,7 @@ class Agency extends BaseController
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
             
             // Validar parámetros de ordenamiento
-            $allowedSortFields = ['Name', 'CompanyName', 'IdAgencyDMS', 'RegistrationDate', 'UpdateDate'];
+            $allowedSortFields = ['Name', 'companyName', 'IdAgencyDMS', 'RegistrationDate', 'UpdateDate'];
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'Name';
             }
@@ -123,8 +123,8 @@ class Agency extends BaseController
                 $userId = $currentUser['user_id'];
                 $db = \Config\Database::connect();
                 
-                $builder = $db->table('AgencyUser au')
-                    ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                $builder = $db->table('agency_user au')
+                    ->join('agency a', 'a.Id = au.IdAgency', 'inner')
                     ->where('au.IdUser', $userId);
                 
                 if ($enabled === 'true') {

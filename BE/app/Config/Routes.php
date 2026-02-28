@@ -156,8 +156,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
 
     // Rutas de configuración de procesos
     $routes->group('configuration-process', function($routes) {
-        $routes->get('enabled', 'ConfigurationProcess::getEnabledConfigurations');
-        $routes->get('enabled-by-agency/(:num)', 'ConfigurationProcess::getEnabledConfigurationsByAgency/$1');
+        $routes->get('enabled', 'configuration_process::getEnabledConfigurations');
+        $routes->get('enabled-by-agency/(:num)', 'configuration_process::getEnabledConfigurationsByAgency/$1');
     });
 
     // Rutas de logs de actividad de usuarios

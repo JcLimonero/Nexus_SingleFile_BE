@@ -116,7 +116,7 @@ class Process extends BaseController
                 $db = \Config\Database::connect();
                 
                 $builder = $db->table('process_user pu')
-                    ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
+                    ->join('process p', 'p.Id = pu.IdProcess', 'inner')
                     ->where('pu.IdUser', $userId);
                 
                 if ($enabled === 'true') {

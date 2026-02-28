@@ -31,7 +31,7 @@ class UserRolModel extends Model
 
     // Validation
     protected $validationRules      = [
-        'Name' => 'required|max_length[600]|is_unique[UserRol.Name,Id,{Id}]'
+        'Name' => 'required|max_length[600]|is_unique[user_role.Name,Id,{Id}]'
     ];
     protected $validationMessages   = [
         'Name' => [

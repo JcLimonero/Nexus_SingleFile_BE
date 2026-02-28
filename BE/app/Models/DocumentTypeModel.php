@@ -99,9 +99,9 @@ class DocumentTypeModel extends Model
         $builder = $this->db->table('configuration_process_document_type cpd');
         
         $builder->select('
-            cpd.Id as IdConfigurationProcessDocumentType,
+            cpd.Id as Idconfiguration_processDocumentType,
             cpd.IdDocumentType,
-            cp.Id as IdConfigurationProcess,
+            cp.Id as Idconfiguration_process,
             cp.IdProcess,
             cp.IdAgency,
             cp.IdCustomerType,
@@ -113,16 +113,16 @@ class DocumentTypeModel extends Model
             ot.Name as TipoOperacionName
         ');
         
-        $builder->join('ConfigurationProcess cp', 'cp.Id = cpd.IdConfigurationProcess', 'inner');
-        $builder->join('Process p', 'p.Id = cp.IdProcess', 'left');
+        $builder->join('configuration_process cp', 'cp.Id = cpd.Idconfiguration_process', 'inner');
+        $builder->join('process p', 'p.Id = cp.IdProcess', 'left');
         // INNER JOIN: excluir configuraciones donde la agencia es N/A (nombre nulo, vacío o literal "N/A")
         $builder->join(
-            'Agency a',
+            'agency a',
             'a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != "" AND UPPER(TRIM(a.Name)) != "N/A"',
             'inner'
         );
-        $builder->join('customertype ct', 'ct.Id = cp.IdCustomerType', 'left');
-        $builder->join('OperationType ot', 'ot.Id = cp.IdOperationType', 'left');
+        $builder->join('customer_type ct', 'ct.Id = cp.IdCustomerType', 'left');
+        $builder->join('operation_type ot', 'ot.Id = cp.IdOperationType', 'left');
         
         // Usar comparación estricta - asegurar que el tipo de dato coincida
         $builder->where('cpd.IdDocumentType', $documentTypeId);
@@ -134,7 +134,13 @@ class DocumentTypeModel extends Model
         $builder->orderBy('a.Name', 'ASC');
         $builder->orderBy('p.Name', 'ASC');
         
-        $result = $builder->get()->getResultArray();
+        try {
+            $result = $builder->get()->getResultArray();
+        } catch (\Exception $e) {
+            log_message('error', "DocumentTypeModel::getConfigurationsByDocumentType - Error en consulta SQL para documento ID {$documentTypeId}: " . $e->getMessage());
+            log_message('error', "DocumentTypeModel::getConfigurationsByDocumentType - Query: " . $builder->getCompiledSelect(false));
+            return [];
+        }
         
         // Validación adicional: filtrar resultados para asegurar que todos pertenezcan al documento correcto
         $filteredResult = [];
@@ -181,7 +187,7 @@ class DocumentTypeModel extends Model
         ');
 
         // JOINs para obtener las descripciones
-        $builder->join('User u', 'u.Id = dt.IdLastUserUpdate', 'left');
+        $builder->join('user u', 'u.Id = dt.IdLastUserUpdate', 'left');
         $builder->join('`file_status` fs', 'fs.Id = dt.IdProcessType', 'left'); // Tipo de proceso
         $builder->join('`file_sub_status` sp', 'sp.Id = dt.IdSubProcess', 'left'); // Subestado de archivo
 
@@ -217,12 +223,25 @@ class DocumentTypeModel extends Model
         // Ordenamiento
         $sortBy = $filters['sort_by'] ?? 'Name';
         $sortOrder = $filters['sort_order'] ?? 'ASC';
+        
+        // Validar campos permitidos para ordenamiento
+        $allowedSortFields = ['Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate', 'ReqExpiration', 'IdProcessType', 'Required', 'IdSubProcess', 'AvailableToClient'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'Name';
+        }
+        
+        // Validar orden
+        $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
+        
         $builder->orderBy("dt.$sortBy", $sortOrder);
 
         // Paginación
-        if (!empty($filters['limit'])) {
+        if (isset($filters['limit']) && $filters['limit'] !== null && $filters['limit'] !== 'all') {
             $offset = $filters['offset'] ?? 0;
-            $builder->limit($filters['limit'], $offset);
+            $limit = (int)$filters['limit'];
+            if ($limit > 0) {
+                $builder->limit($limit, $offset);
+            }
         }
 
         return $builder->get()->getResultArray();
@@ -294,7 +313,7 @@ class DocumentTypeModel extends Model
             sp.Name as SubProcessName
         ');
 
-        $builder->join('User u', 'u.Id = dt.IdLastUserUpdate', 'left');
+        $builder->join('user u', 'u.Id = dt.IdLastUserUpdate', 'left');
         $builder->join('`file_status` fs', 'fs.Id = dt.IdProcessType', 'left'); // Tipo de proceso
         $builder->join('`file_sub_status` sp', 'sp.Id = dt.IdSubProcess', 'left'); // Subestado de archivo
         

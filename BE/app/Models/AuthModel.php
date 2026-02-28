@@ -11,7 +11,7 @@ class AuthModel extends Model
     protected $table = 'user';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = false;
-    protected $allowedFields = ['Name', 'user', 'Pass', 'Mail', 'Enabled', 'IdUserRol'];
+    protected $allowedFields = ['Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol'];
     protected bool $updateOnlyChanged = false;
     
     // Configuración de JWT
@@ -30,19 +30,19 @@ class AuthModel extends Model
             $loginMethod = 'email'; // 'email' o 'username'
             
             // Primero intentar buscar por Mail (método nuevo)
-            $user = $this->select('User.Id, User.*, UserRol.Name as RoleName')
-                        ->join('user_role', 'User.IdUserRol = UserRol.Id', 'left')
-                        ->where('User.Mail', $identifier)
-                        ->where('User.Enabled', 1)
+            $user = $this->select('user.Id, user.Name, user.User, user.Pass, user.Mail, user.Enabled, user.IdUserRol, user.UserPass, user.profile_image, user.image_type, ur.Name as RoleName')
+                        ->join('user_role ur', 'user.IdUserRol = ur.Id', 'left')
+                        ->where('user.Mail', $identifier)
+                        ->where('user.Enabled', 1)
                         ->get()
                         ->getRowArray();
             
             // Si no se encuentra por Mail, intentar por User (método antiguo)
             if (!$user) {
-                $user = $this->select('User.Id, User.*, UserRol.Name as RoleName')
-                            ->join('user_role', 'User.IdUserRol = UserRol.Id', 'left')
-                            ->where('User.User', $identifier)
-                            ->where('User.Enabled', 1)
+                $user = $this->select('user.Id, user.Name, user.User, user.Pass, user.Mail, user.Enabled, user.IdUserRol, user.UserPass, user.profile_image, user.image_type, ur.Name as RoleName')
+                            ->join('user_role ur', 'user.IdUserRol = ur.Id', 'left')
+                            ->where('user.User', $identifier)
+                            ->where('user.Enabled', 1)
                             ->get()
                             ->getRowArray();
                 
@@ -64,7 +64,7 @@ class AuthModel extends Model
                             'requires_email' => true,
                             'message' => 'Para continuar, necesitas completar tu correo electrónico. Por favor, proporciona tu email para migrar al nuevo sistema de autenticación.',
                             'user_id' => $user['Id'],
-                            'username' => $user['user'],
+                            'username' => $user['User'] ?? '',
                             'name' => $user['Name']
                         ];
                     }
@@ -79,7 +79,7 @@ class AuthModel extends Model
             }
             
             // Verificar contraseña
-            if ($this->verifyPassword($password, $user['Pass'], $user['UserPass'])) {
+            if ($this->verifyPassword($password, $user['Pass'] ?? '', $user['UserPass'] ?? null)) {
                 // Generar token JWT
                 $accessToken = $this->generateAccessToken($user);
                 $refreshToken = $this->generateRefreshToken($user);
@@ -95,12 +95,12 @@ class AuthModel extends Model
                         'id' => $user['Id'],
                         'name' => $user['Name'],
                         'email' => $user['Mail'],
-                        'username' => $user['user'],
+                        'username' => $user['User'] ?? '',
                         'role_id' => $user['IdUserRol'],
                         'role_name' => $user['RoleName'] ?? 'Sin rol asignado',
                         'enabled' => $user['Enabled'],
-                        'profile_image' => $user['ProfileImage'] ?? null,
-                        'image_type' => $user['ImageType'] ?? null
+                        'profile_image' => $user['profile_image'] ?? null,
+                        'image_type' => $user['image_type'] ?? null
                     ],
                     'access_token' => $accessToken,
                     'refresh_token' => $refreshToken,
@@ -267,7 +267,7 @@ class AuthModel extends Model
             }
             
             // Obtener información del usuario (incluyendo Id explícitamente)
-            $user = $this->select('Id, Name, user, Mail, Enabled, IdUserRol')->find($decoded->user_id);
+            $user = $this->select('Id, Name, User, Mail, Enabled, IdUserRol')->find($decoded->user_id);
             if (!$user || !isset($user['Id']) || $user['Enabled'] != 1) {
                 return [
                     'success' => false,
@@ -355,7 +355,7 @@ class AuthModel extends Model
      */
     public function getUserById($userId)
     {
-        return $this->select('Id, Name, user, Mail, Enabled, IdUserRol')->find($userId);
+        return $this->select('Id, Name, User, Mail, Enabled, IdUserRol')->find($userId);
     }
     
     /**
@@ -383,7 +383,7 @@ class AuthModel extends Model
             }
             
             // Verificar que el usuario existe y obtener sus datos (incluyendo Id explícitamente)
-            $user = $this->select('Id, Name, user, Pass, Mail, Enabled, IdUserRol, UserPass')->find($userId);
+            $user = $this->select('Id, Name, User, Pass, Mail, Enabled, IdUserRol, UserPass')->find($userId);
             if (!$user || !isset($user['Id'])) {
                 return [
                     'success' => false,

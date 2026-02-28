@@ -26,7 +26,7 @@ class UserAccess extends BaseController
             // Obtener agencias asignadas
             $agencies = $db->table('agency_user au')
                 ->select('au.IdAgency, a.Name as AgencyName, a.Enabled')
-                ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
                 ->where('au.IdUser', $userId)
                 ->orderBy('a.Name', 'ASC')
                 ->get()
@@ -35,7 +35,7 @@ class UserAccess extends BaseController
             // Obtener procesos asignados
             $processes = $db->table('process_user pu')
                 ->select('pu.IdProcess, p.Name as ProcessName, p.Enabled')
-                ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
+                ->join('process p', 'p.Id = pu.IdProcess', 'inner')
                 ->where('pu.IdUser', $userId)
                 ->orderBy('p.Name', 'ASC')
                 ->get()

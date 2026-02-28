@@ -35,7 +35,7 @@ class FileSubStatus extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            $builder = $this->db->table('FileSubStatus fss');
+            $builder = $this->db->table('file_sub_status fss');
             $builder->select('fss.*');
 
             // Aplicar filtros
@@ -83,7 +83,7 @@ class FileSubStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('FileSubStatus fss');
+            $builder = $this->db->table('file_sub_status fss');
             $builder->select('fss.*');
             // No filtrar por Enabled ya que la tabla no tiene esa columna
             $builder->orderBy('fss.Name', 'ASC');
@@ -131,7 +131,7 @@ class FileSubStatus extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $builder = $this->db->table('FileSubStatus fss');
+            $builder = $this->db->table('file_sub_status fss');
             $builder->select('fss.*');
             $builder->where('fss.Id', $id);
 

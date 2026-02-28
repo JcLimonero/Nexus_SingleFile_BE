@@ -51,7 +51,7 @@ class Files extends BaseController
                                 AND ctr.IdAgency = f.IdAgency
                             LEFT JOIN process p ON f.IdProcess = p.Id
                             LEFT JOIN operation_type ot ON f.IdOperation = ot.Id
-                            LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                            LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                             LEFT JOIN agency a ON f.IdAgency = a.Id
                             LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                             LEFT JOIN order obc ON f.IdOrderTotal = obc.IdDMS
@@ -134,7 +134,7 @@ class Files extends BaseController
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN process p ON f.IdProcess = p.Id
                 LEFT JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                 LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                 LEFT JOIN (
                     SELECT 
@@ -157,8 +157,8 @@ class Files extends BaseController
             $params = [$agencyId];
 
             // Agregar filtro de estatus si se proporciona
-            // IMPORTANTE: Filtramos directamente por f.IdCurrentState porque el LEFT JOIN con File_Status
-            // puede devolver NULL si no hay registro en File_Status, causando que fs.Id = ? falle siempre
+            // IMPORTANTE: Filtramos directamente por f.IdCurrentState porque el LEFT JOIN con file_status
+            // puede devolver NULL si no hay registro en file_status, causando que fs.Id = ? falle siempre
             // Esto es crítico para que los archivos se muestren correctamente
             if ($statusId !== null && $statusId !== '' && is_numeric($statusId)) {
                 $sql .= " AND f.IdCurrentState = ?";
@@ -931,11 +931,11 @@ class Files extends BaseController
         error_log("Parámetros: fileId=$fileId, processId=$processId, customerTypeId=$customerTypeId, operationTypeId=$operationTypeId, internalAgencyId=$internalAgencyId, externalAgencyId=$externalAgencyId, userId=$userId");
         
         // Buscar documentos requeridos usando AMBOS IDs de agencia
-        // ConfigurationProcess puede usar el ID interno o externo, así que buscamos por ambos
+        // configuration_process puede usar el ID interno o externo, así que buscamos por ambos
         $sql = "SELECT DISTINCT cpd.IdDocumentType, dt.Name as DocumentName, dt.IdProcessType
                 FROM configuration_processDocumentType cpd
                 INNER JOIN document_type dt ON cpd.IdDocumentType = dt.Id
-                INNER JOIN configuration_process cp ON cpd.IdConfigurationProcess = cp.Id
+                INNER JOIN configuration_process cp ON cpd.Idconfiguration_process = cp.Id
                 WHERE cp.IdProcess = ? 
                 AND cp.IdCustomerType = ? 
                 AND cp.IdOperationType = ? 
@@ -1096,7 +1096,7 @@ class Files extends BaseController
 
         // Buscar si ya existe un usuario con este ndConsultant
         $existingUser = $this->db->table('user')
-            ->where('user', $ndConsultant)
+            ->where('User', $ndConsultant)
             ->orWhere('Mail', $ndConsultant . '@default.com')
             ->get()
             ->getRowArray();
@@ -1108,7 +1108,7 @@ class Files extends BaseController
 
         // Verificar si ya existe un usuario con el mismo nombre
         $duplicateUser = $this->db->table('user')
-            ->where('user', $ndConsultant)
+            ->where('User', $ndConsultant)
             ->get()
             ->getRowArray();
             
@@ -1775,7 +1775,7 @@ class Files extends BaseController
             }
 
             // Construir la consulta para obtener estatus de múltiples pedidos
-            // Comparar: Agency.IdAgencyDMS = pedido.idAgency AND File.IdOrderTotal = pedido.order_dms
+            // Comparar: agency.IdAgencyDMS = pedido.idAgency AND File.IdOrderTotal = pedido.order_dms
             $placeholders = [];
             $params = [];
             

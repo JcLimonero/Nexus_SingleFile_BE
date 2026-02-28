@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class ConfigurationProcessModel extends Model
+class configuration_processModel extends Model
 {
     protected $table            = 'configuration_process';
     protected $primaryKey       = 'Id';

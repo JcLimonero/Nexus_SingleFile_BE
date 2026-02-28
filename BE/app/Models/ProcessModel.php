@@ -117,9 +117,9 @@ class ProcessModel extends Model
      */
     public function getAllProcessesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('Process.*, User.Name as LastUserUpdateName')
-                    ->join('user', 'Process.IdLastUserUpdate = User.Id', 'left')
-                    ->orderBy("Process.{$sortBy}", $sortOrder)
+        return $this->select('process.*, u.Name as LastUserUpdateName')
+                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
+                    ->orderBy("process.{$sortBy}", $sortOrder)
                     ->findAll();
     }
 
@@ -136,9 +136,9 @@ class ProcessModel extends Model
      */
     public function getProcessByIdWithUser($id)
     {
-        return $this->select('Process.*, User.Name as LastUserUpdateName')
-                    ->join('user', 'Process.IdLastUserUpdate = User.Id', 'left')
-                    ->where('Process.Id', $id)
+        return $this->select('process.*, u.Name as LastUserUpdateName')
+                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
+                    ->where('process.Id', $id)
                     ->first();
     }
 
@@ -161,15 +161,15 @@ class ProcessModel extends Model
      */
     public function getProcessesByNameWithUser($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->select('Process.*, User.Name as LastUserUpdateName')
-                      ->join('user', 'Process.IdLastUserUpdate = User.Id', 'left')
-                      ->like('Process.Name', $name);
+        $query = $this->select('process.*, u.Name as LastUserUpdateName')
+                      ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
+                      ->like('process.Name', $name);
         
         if ($enabledOnly) {
-            $query->where('Process.Enabled', 1);
+            $query->where('process.Enabled', 1);
         }
         
-        return $query->orderBy("Process.{$sortBy}", $sortOrder)->findAll();
+        return $query->orderBy("process.{$sortBy}", $sortOrder)->findAll();
     }
 
 
@@ -189,10 +189,10 @@ class ProcessModel extends Model
      */
     public function getAllEnabledProcessesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('Process.*, User.Name as LastUserUpdateName')
-                    ->join('user', 'Process.IdLastUserUpdate = User.Id', 'left')
-                    ->where('Process.Enabled', 1)
-                    ->orderBy("Process.{$sortBy}", $sortOrder)
+        return $this->select('process.*, u.Name as LastUserUpdateName')
+                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
+                    ->where('process.Enabled', 1)
+                    ->orderBy("process.{$sortBy}", $sortOrder)
                     ->findAll();
     }
 
@@ -211,10 +211,10 @@ class ProcessModel extends Model
      */
     public function getAllDisabledProcessesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('Process.*, User.Name as LastUserUpdateName')
-                    ->join('user', 'Process.IdLastUserUpdate = User.Id', 'left')
-                    ->where('Process.Enabled', 0)
-                    ->orderBy("Process.{$sortBy}", $sortOrder)
+        return $this->select('process.*, u.Name as LastUserUpdateName')
+                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
+                    ->where('process.Enabled', 0)
+                    ->orderBy("process.{$sortBy}", $sortOrder)
                     ->findAll();
     }
 
@@ -273,10 +273,10 @@ class ProcessModel extends Model
      */
     public function getProcessesByStatusWithUser($enabled, $sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('Process.*, User.Name as LastUserUpdateName')
-                    ->join('user', 'Process.IdLastUserUpdate = User.Id', 'left')
-                    ->where('Process.Enabled', $enabled)
-                    ->orderBy("Process.{$sortBy}", $sortOrder)
+        return $this->select('process.*, u.Name as LastUserUpdateName')
+                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
+                    ->where('process.Enabled', $enabled)
+                    ->orderBy("process.{$sortBy}", $sortOrder)
                     ->findAll();
     }
 

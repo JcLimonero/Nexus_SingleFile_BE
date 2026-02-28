@@ -358,7 +358,7 @@ class ReportesCumplimiento extends BaseController
                     f.RegistrationDate as registro
                 FROM expedient f
                 INNER JOIN client c ON f.IdClient = c.Id
-                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 INNER JOIN process p ON f.IdProcess = p.Id
                 INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
@@ -452,7 +452,7 @@ class ReportesCumplimiento extends BaseController
                     f.RegistrationDate as registro
                 FROM expedient f
                 INNER JOIN client c ON f.IdClient = c.Id
-                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                 INNER JOIN agency a ON f.IdAgency = a.Id
                 INNER JOIN process p ON f.IdProcess = p.Id
                 INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
@@ -508,7 +508,7 @@ class ReportesCumplimiento extends BaseController
                             f.RegistrationDate as registro
                         FROM expedient f
                         INNER JOIN client c ON f.IdClient = c.Id
-                        LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                        LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                         INNER JOIN agency a ON f.IdAgency = a.Id
                         INNER JOIN process p ON f.IdProcess = p.Id
                         INNER JOIN file_status fs ON f.IdCurrentState = fs.Id

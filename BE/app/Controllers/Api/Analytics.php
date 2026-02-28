@@ -100,21 +100,22 @@ class Analytics extends BaseController
             $tableName = $this->documentModel->table;
             log_message('debug', 'Table name: ' . $tableName);
             
-            $builder = $this->documentModel->builder();
+            $db = \Config\Database::connect();
+            $builder = $db->table('file_document d');
             
             // Aplicar filtros
             if (!empty($filters['start_date'])) {
-                $builder->where('RegistrationDate >=', $filters['start_date']);
+                $builder->where('d.RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('RegistrationDate <=', $filters['end_date']);
+                $builder->where('d.RegistrationDate <=', $filters['end_date']);
             }
             if (!empty($filters['agency_id'])) {
-                $builder->join('expedient f', 'f.Id = FileDocument.IdFile')
+                $builder->join('expedient f', 'f.Id = d.IdFile')
                         ->where('f.IdAgency', $filters['agency_id']);
             }
             if (!empty($filters['document_type_id'])) {
-                $builder->where('IdDocumentType', $filters['document_type_id']);
+                $builder->where('d.IdDocumentType', $filters['document_type_id']);
             }
 
             // Estadísticas básicas
@@ -123,25 +124,25 @@ class Analytics extends BaseController
             log_message('debug', 'Total documents: ' . $totalDocuments);
 
             // Documentos por tipo
-            $documentsByType = $this->documentModel->builder()
+            $documentsByType = $db->table('file_document d')
                 ->select('dt.Name as type, COUNT(*) as count')
-                ->join('DocumentType dt', 'dt.Id = FileDocument.IdDocumentType')
+                ->join('document_type dt', 'dt.Id = d.IdDocumentType')
                 ->groupBy('dt.Name')
                 ->get()
                 ->getResultArray();
 
             // Documentos por estado
-            $documentsByStatus = $this->documentModel->builder()
-                ->select('IdCurrentStatus as status, COUNT(*) as count')
-                ->groupBy('IdCurrentStatus')
+            $documentsByStatus = $db->table('file_document d')
+                ->select('d.IdCurrentStatus as status, COUNT(*) as count')
+                ->groupBy('d.IdCurrentStatus')
                 ->get()
                 ->getResultArray();
 
             // Documentos por agencia
-            $documentsByAgency = $this->documentModel->builder()
+            $documentsByAgency = $db->table('file_document d')
                 ->select('a.Name as agency, COUNT(*) as count')
-                ->join('expedient f', 'f.Id = FileDocument.IdFile')
-                ->join('Agency a', 'a.Id = f.IdAgency')
+                ->join('expedient f', 'f.Id = d.IdFile')
+                ->join('agency a', 'a.Id = f.IdAgency')
                 ->groupBy('a.Name')
                 ->orderBy('count', 'DESC')
                 ->limit(10)
@@ -149,9 +150,9 @@ class Analytics extends BaseController
                 ->getResultArray();
 
             // Tendencia mensual
-            $monthlyTrend = $this->documentModel->builder()
-                ->select("DATE_FORMAT(RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
-                ->where('RegistrationDate >=', date('Y-m-01', strtotime('-12 months')))
+            $monthlyTrend = $db->table('file_document d')
+                ->select("DATE_FORMAT(d.RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
+                ->where('d.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')))
                 ->groupBy('month')
                 ->orderBy('month', 'ASC')
                 ->get()
@@ -195,21 +196,21 @@ class Analytics extends BaseController
             // Construir consulta base para total de procesos
             $totalBuilder = $db->table('process');
             
-            // Si hay filtro de agencia, hacer JOIN con ConfigurationProcess usando alias único
+            // Si hay filtro de agencia, hacer JOIN con configuration_process usando alias único
             if ($hasAgencyFilter) {
                 $totalBuilder->distinct()
-                    ->select('Process.*')
-                    ->join('ConfigurationProcess cp1', 'cp1.IdProcess = Process.Id', 'inner')
+                    ->select('process.*')
+                    ->join('configuration_process cp1', 'cp1.IdProcess = process.Id', 'inner')
                     ->where('cp1.IdAgency', $agencyId)
                     ->where('cp1.Enabled', 1);
             }
             
             // Aplicar filtros de fecha
             if (!empty($filters['start_date'])) {
-                $totalBuilder->where('Process.RegistrationDate >=', $filters['start_date']);
+                $totalBuilder->where('process.RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $totalBuilder->where('Process.RegistrationDate <=', $filters['end_date']);
+                $totalBuilder->where('process.RegistrationDate <=', $filters['end_date']);
             }
 
             // Estadísticas básicas
@@ -219,23 +220,23 @@ class Analytics extends BaseController
             $statusBuilder = $db->table('process');
             if ($hasAgencyFilter) {
                 $statusBuilder->distinct()
-                    ->select('Process.Enabled as status, COUNT(DISTINCT Process.Id) as count')
-                    ->join('ConfigurationProcess cp2', 'cp2.IdProcess = Process.Id', 'inner')
+                    ->select('process.Enabled as status, COUNT(DISTINCT process.Id) as count')
+                    ->join('configuration_process cp2', 'cp2.IdProcess = process.Id', 'inner')
                     ->where('cp2.IdAgency', $agencyId)
                     ->where('cp2.Enabled', 1);
             } else {
-                $statusBuilder->select('Process.Enabled as status, COUNT(*) as count');
+                $statusBuilder->select('process.Enabled as status, COUNT(*) as count');
             }
             
             // Aplicar filtros de fecha si existen
             if (!empty($filters['start_date'])) {
-                $statusBuilder->where('Process.RegistrationDate >=', $filters['start_date']);
+                $statusBuilder->where('process.RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $statusBuilder->where('Process.RegistrationDate <=', $filters['end_date']);
+                $statusBuilder->where('process.RegistrationDate <=', $filters['end_date']);
             }
             
-            $statusBuilder->groupBy('Process.Enabled');
+            $statusBuilder->groupBy('process.Enabled');
             $processesByStatus = $statusBuilder->get()->getResultArray();
 
             // Procesos por agencia (simplificado - la tabla Process no tiene relación directa con agencias)
@@ -248,22 +249,22 @@ class Analytics extends BaseController
             $trendBuilder = $db->table('process');
             if ($hasAgencyFilter) {
                 $trendBuilder->distinct()
-                    ->select("DATE_FORMAT(Process.RegistrationDate, '%Y-%m') as month, COUNT(DISTINCT Process.Id) as count")
-                    ->join('ConfigurationProcess cp3', 'cp3.IdProcess = Process.Id', 'inner')
+                    ->select("DATE_FORMAT(process.RegistrationDate, '%Y-%m') as month, COUNT(DISTINCT process.Id) as count")
+                    ->join('configuration_process cp3', 'cp3.IdProcess = process.Id', 'inner')
                     ->where('cp3.IdAgency', $agencyId)
                     ->where('cp3.Enabled', 1)
-                    ->where('Process.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')));
+                    ->where('process.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')));
             } else {
-                $trendBuilder->select("DATE_FORMAT(Process.RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
-                    ->where('Process.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')));
+                $trendBuilder->select("DATE_FORMAT(process.RegistrationDate, '%Y-%m') as month, COUNT(*) as count")
+                    ->where('process.RegistrationDate >=', date('Y-m-01', strtotime('-12 months')));
             }
             
             // Aplicar filtros de fecha si existen
             if (!empty($filters['start_date'])) {
-                $trendBuilder->where('Process.RegistrationDate >=', $filters['start_date']);
+                $trendBuilder->where('process.RegistrationDate >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $trendBuilder->where('Process.RegistrationDate <=', $filters['end_date']);
+                $trendBuilder->where('process.RegistrationDate <=', $filters['end_date']);
             }
             
             $trendBuilder->groupBy('month')
@@ -638,7 +639,7 @@ class Analytics extends BaseController
         try {
             $db = \Config\Database::connect();
 
-            // Verificar si existe la tabla File_Status
+            // Verificar si existe la tabla file_status
             $fileStatusExists = $db->tableExists('file_status');
 
             $data = [
@@ -1179,7 +1180,7 @@ class Analytics extends BaseController
             // Consulta para obtener distribución por proceso
             $query = $db->table('expedient f')
                 ->select('p.Name as processName, COUNT(f.Id) as totalCases')
-                ->join('Process p', 'f.IdProcess = p.Id', 'left')
+                ->join('process p', 'f.IdProcess = p.Id', 'left')
                 ->groupBy('p.Id, p.Name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1240,7 +1241,7 @@ class Analytics extends BaseController
             // Consulta para obtener distribución por estatus
             $query = $db->table('expedient f')
                 ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->join('file_status fs', 'f.IdCurrentState = fs.Id', 'left')
                 ->groupBy('fs.Id, fs.Name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1312,7 +1313,7 @@ class Analytics extends BaseController
             // OPTIMIZACIÓN: Usar rangos de fechas en lugar de funciones de fecha
             $query = $db->table('expedient f')
                 ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->join('file_status fs', 'f.IdCurrentState = fs.Id', 'left')
                 ->where('f.RegistrationDate >=', $monthStart)
                 ->where('f.RegistrationDate <=', $monthEnd)
                 ->groupBy('fs.Id, fs.Name')
@@ -1479,7 +1480,7 @@ class Analytics extends BaseController
 
             $query = $db->table('expedient f')
                 ->select('fs.Name as statusName, COUNT(f.Id) as totalCases')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'left')
+                ->join('file_status fs', 'f.IdCurrentState = fs.Id', 'left')
                 ->groupBy('fs.Id, fs.Name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1564,14 +1565,14 @@ class Analytics extends BaseController
             $monthStart = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-01 00:00:00';
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
-            // OPTIMIZACIÓN: Usar IdCurrentState directamente en lugar de JOIN con File_Status
+            // OPTIMIZACIÓN: Usar IdCurrentState directamente en lugar de JOIN con file_status
             $query = $db->table('expedient f')
                 ->select('u.Name as advisorName, 
                          SUM(CASE WHEN f.IdCurrentState IN (4, 6) THEN 1 ELSE 0 END) as approved,
                          SUM(CASE WHEN f.IdCurrentState IN (1, 2, 3) THEN 1 ELSE 0 END) as pending,
                          SUM(CASE WHEN f.IdCurrentState = 5 THEN 1 ELSE 0 END) as rejected,
                          COUNT(f.Id) as total')
-                ->join('User u', 'f.idSeller = u.Id', 'left')
+                ->join('user u', 'f.idSeller = u.Id', 'left')
                 ->where('f.RegistrationDate >=', $monthStart)
                 ->where('f.RegistrationDate <=', $monthEnd)
                 ->groupBy('u.Id, u.Name')
@@ -1760,7 +1761,7 @@ class Analytics extends BaseController
 
         // OPTIMIZACIÓN: Reducir JOINs innecesarios - solo necesitamos Process para verificar Enabled
         $query = $db->table('expedient f')
-            ->join('Process p', 'f.IdProcess = p.Id', 'inner')
+            ->join('process p', 'f.IdProcess = p.Id', 'inner')
             ->select('
                 CASE 
                     WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5 THEN "0-5"
@@ -1921,7 +1922,7 @@ class Analytics extends BaseController
             // OPTIMIZACIÓN: Reducir JOINs innecesarios y usar rangos de fechas
             // Solo necesitamos JOIN con Process para verificar Enabled, el resto se puede simplificar
             $query = $db->table('expedient f')
-                ->join('Process p', 'f.IdProcess = p.Id', 'inner')
+                ->join('process p', 'f.IdProcess = p.Id', 'inner')
                 ->select('
                     CASE 
                         WHEN DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) <= 5 THEN "0-5"
@@ -2049,7 +2050,7 @@ class Analytics extends BaseController
             $monthStart = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-01 00:00:00';
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
-            // OPTIMIZACIÓN: Usar IdCurrentState directamente en lugar de JOIN con File_Status
+            // OPTIMIZACIÓN: Usar IdCurrentState directamente en lugar de JOIN con file_status
             $query = $db->table('expedient f')
                 ->select('COUNT(f.Id) as total')
                 ->where('f.RegistrationDate IS NOT NULL')
@@ -2120,7 +2121,7 @@ class Analytics extends BaseController
 
             // Consulta para obtener expedientes liberados de toda la historia
             $query = $db->table('expedient f')
-                ->join('File_Status fs', 'f.IdCurrentState = fs.Id', 'inner')
+                ->join('file_status fs', 'f.IdCurrentState = fs.Id', 'inner')
                 ->select('COUNT(f.Id) as total')
                 ->where('f.RegistrationDate IS NOT NULL')
                 ->where('fs.Name', 'Liberado');
@@ -2222,7 +2223,7 @@ class Analytics extends BaseController
                     DATEDIFF(COALESCE(f.CloseDate, CURDATE()), f.RegistrationDate) as diasAtencion,
                     fs.Name as estado
                 FROM expedient f
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.IdClient
+                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
                 INNER JOIN client_header hc ON hc.IdClient = f.IdClient
                 INNER JOIN client c ON hc.IdClient = c.Id
                 INNER JOIN process p ON f.IdProcess = p.Id

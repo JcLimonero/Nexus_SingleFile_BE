@@ -347,14 +347,14 @@ class DocumentoRequerido extends BaseController
                 }
             }
 
-            // Si solo se actualiza Enabled, preparar datos mínimos y actualizar directamente ConfigurationProcess
+            // Si solo se actualiza Enabled, preparar datos mínimos y actualizar directamente configuration_process
             if ($isOnlyEnabledUpdate) {
                 $enabledValue = $data['Enabled'] === '1' || $data['Enabled'] === 1 ? 1 : 0;
                 log_message('info', "DocumentoRequerido::update - Actualizando solo Enabled a: {$enabledValue}");
                 
-                // Actualizar directamente el ConfigurationProcess relacionado
-                $configProcessModel = new \App\Models\ConfigurationProcessModel();
-                $configProcessId = $existingDocumento['IdConfigurationProcess'] ?? null;
+                // Actualizar directamente el configuration_process relacionado
+                $configProcessModel = new \App\Models\configuration_processModel();
+                $configProcessId = $existingDocumento['Idconfiguration_process'] ?? null;
                 
                 if ($configProcessId) {
                     $updateResult = $configProcessModel->update($configProcessId, [
@@ -364,7 +364,7 @@ class DocumentoRequerido extends BaseController
                     ]);
                     
                     if ($updateResult) {
-                        log_message('info', "DocumentoRequerido::update - ConfigurationProcess actualizado exitosamente");
+                        log_message('info', "DocumentoRequerido::update - configuration_process actualizado exitosamente");
                         // Obtener el documento actualizado con relaciones
                         $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
                             'Id' => $id
@@ -376,14 +376,14 @@ class DocumentoRequerido extends BaseController
                             'data' => $documentoActualizado[0] ?? $existingDocumento
                         ]);
                     } else {
-                        log_message('error', "DocumentoRequerido::update - Error al actualizar ConfigurationProcess");
+                        log_message('error', "DocumentoRequerido::update - Error al actualizar configuration_process");
                         return $this->response->setJSON([
                             'success' => false,
                             'message' => 'Error al actualizar el estado'
                         ])->setStatusCode(500);
                     }
                 } else {
-                    log_message('error', "DocumentoRequerido::update - No se encontró IdConfigurationProcess");
+                    log_message('error', "DocumentoRequerido::update - No se encontró Idconfiguration_process");
                     return $this->response->setJSON([
                         'success' => false,
                         'message' => 'No se encontró la configuración de proceso asociada'
@@ -398,10 +398,10 @@ class DocumentoRequerido extends BaseController
             $result = $this->documentoRequeridoModel->updateDocumentoRequerido($id, $updateData);
             
             if ($result) {
-                // Si se actualizó el estado Enabled, actualizar también el ConfigurationProcess
+                // Si se actualizó el estado Enabled, actualizar también el configuration_process
                 if (isset($updateData['Enabled'])) {
-                    $configProcessModel = new \App\Models\ConfigurationProcessModel();
-                    $configProcessId = $existingDocumento['IdConfigurationProcess'] ?? null;
+                    $configProcessModel = new \App\Models\configuration_processModel();
+                    $configProcessId = $existingDocumento['Idconfiguration_process'] ?? null;
                     
                     if ($configProcessId) {
                         $configProcessModel->update($configProcessId, [

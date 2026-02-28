@@ -27,7 +27,7 @@ class UserAgency extends BaseController
             $builder = $db->table('agency_user au');
             $agencies = $builder
                 ->select('au.IdAgency, a.Name as AgencyName, a.Enabled')
-                ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
                 ->where('au.IdUser', $userId)
                 ->orderBy('a.Name', 'ASC')
                 ->get()
@@ -265,7 +265,7 @@ class UserAgency extends BaseController
             $builder = $db->table('agency_user au');
             $agencies = $builder
                 ->select('au.IdUser, au.IdAgency, a.Name as AgencyName, a.Enabled')
-                ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
                 ->whereIn('au.IdUser', $userIdArray)
                 ->orderBy('au.IdUser', 'ASC')
                 ->orderBy('a.Name', 'ASC')
@@ -327,7 +327,7 @@ class UserAgency extends BaseController
             
             // Contar agencias activas asignadas
             $activeAssigned = $db->table('agency_user au')
-                ->join('Agency a', 'a.Id = au.IdAgency', 'inner')
+                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
                 ->where('au.IdUser', $userId)
                 ->where('a.Enabled', 1)
                 ->countAllResults();

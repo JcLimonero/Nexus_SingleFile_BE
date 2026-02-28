@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -48,6 +48,7 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   loading = false;
   searchTerm = '';
   statusFilter = '';
+  pageRangeText = '0-0';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -55,7 +56,8 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   constructor(
     private costumerTypeService: CostumerTypeService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -66,6 +68,7 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     // Usar setTimeout para asegurar que los ViewChild estén completamente inicializados
     setTimeout(() => {
       this.setupDataSource();
+      this.updatePageRange();
     });
   }
 
@@ -73,6 +76,11 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     // Asegurar que paginator y sort estén configurados
     if (this.paginator) {
       this.dataSource.paginator = this.paginator;
+      
+      // Suscribirse a los eventos del paginator para actualizar el rango
+      this.paginator.page.subscribe(() => {
+        this.updatePageRange();
+      });
     }
     if (this.sort) {
       this.dataSource.sort = this.sort;
@@ -89,17 +97,28 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     this.loading = true;
     this.costumerTypeService.getAllCostumerTypes().subscribe({
       next: (response: CostumerTypeResponse) => {
-        if (response.success) {
-          this.tiposCliente = response.data.costumer_types;
+        if (response.success && response.data && response.data.costumer_types) {
+          this.tiposCliente = response.data.costumer_types || [];
           
           // Crear un nuevo DataSource con los datos
           this.dataSource = new MatTableDataSource<CostumerType>(this.tiposCliente);
           
-          // Configurar paginator, sort y filtros
-          this.setupDataSource();
-          
-          this.applyFilter();
+          // Usar setTimeout para posponer la configuración hasta el siguiente ciclo de detección de cambios
+          setTimeout(() => {
+            // Configurar paginator, sort y filtros
+            this.setupDataSource();
+            
+            this.applyFilter();
+            
+            // Actualizar el rango de páginas
+            this.updatePageRange();
+            
+            // Forzar detección de cambios después de configurar todo
+            this.cdr.detectChanges();
+          });
         } else {
+          this.tiposCliente = [];
+          this.dataSource = new MatTableDataSource<CostumerType>([]);
           this.snackBar.open(response.message || 'Error al cargar tipos de cliente', 'Error', {
             duration: 3000
           });
@@ -107,6 +126,8 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
         this.loading = false;
       },
       error: (error) => {
+        this.tiposCliente = [];
+        this.dataSource = new MatTableDataSource<CostumerType>([]);
         this.snackBar.open('Error al cargar tipos de cliente', 'Error', {
           duration: 3000
         });
@@ -142,6 +163,11 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    
+    // Actualizar el rango de páginas después de aplicar filtros
+    setTimeout(() => {
+      this.updatePageRange();
+    });
   }
 
   refreshData(): void {
@@ -251,14 +277,25 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getPageRange(): string {
-    if (!this.paginator || this.dataSource.filteredData.length === 0) {
-      return '0-0';
+  updatePageRange(): void {
+    if (!this.paginator || !this.dataSource || !this.dataSource.data || this.dataSource.data.length === 0) {
+      this.pageRangeText = '0-0';
+      return;
+    }
+    
+    const dataLength = this.dataSource.filteredData.length || this.dataSource.data.length;
+    if (dataLength === 0) {
+      this.pageRangeText = '0-0';
+      return;
     }
     
     const startIndex = this.paginator.pageIndex * this.paginator.pageSize + 1;
-    const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, this.dataSource.filteredData.length);
+    const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, dataLength);
     
-    return `${startIndex}-${endIndex}`;
+    this.pageRangeText = `${startIndex}-${endIndex}`;
+  }
+
+  getPageRange(): string {
+    return this.pageRangeText;
   }
 }

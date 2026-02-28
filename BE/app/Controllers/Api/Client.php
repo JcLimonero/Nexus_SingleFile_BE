@@ -213,7 +213,7 @@ class Client extends BaseController
                 LEFT JOIN company co ON a.IdCompany = co.Id
                 LEFT JOIN process p ON f.IdProcess = p.Id
                 LEFT JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customertype ct ON f.IdCustomerType = ct.Id
+                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
                 LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                 WHERE hc.Id = ?
                 GROUP BY f.Id, f.IdOrderTotal, f.RegistrationDate, fs.Name, p.Name, ot.Name, ct.Name, a.Name, a.Id, co.Name, c.Id

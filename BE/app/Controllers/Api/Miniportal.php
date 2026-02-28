@@ -184,7 +184,7 @@ class Miniportal extends BaseController
 
         $doc = $this->db->table('file_document dbf')
             ->select('dbf.Id, dbf.IdFile')
-            ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
+            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.Id', $idFileDocument)
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.Enabled', 1)
@@ -351,8 +351,8 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $exists = $this->db->table('FileDocument dbf')
-            ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
+        $exists = $this->db->table('file_document dbf')
+            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.IdDocumentContainer', $fileContainer)
             ->where('dbf.Enabled', 1)
@@ -439,7 +439,7 @@ class Miniportal extends BaseController
 
         $doc = $this->db->table('file_document dbf')
             ->select('dbf.Id, dbf.IdFile, dbf.IdCurrentStatus')
-            ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
+            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.Id', $idFileDocument)
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.Enabled', 1)
@@ -552,7 +552,7 @@ class Miniportal extends BaseController
 
     private function getDocumentosByFileFallback(int $idFile): array
     {
-        $builder = $this->db->table('FileDocument dbf');
+        $builder = $this->db->table('file_document dbf');
         $results = $builder
             ->select('
                 dbf.Id as idFileDocument,
@@ -569,10 +569,10 @@ class Miniportal extends BaseController
                 0 as aprobadoCliente
             ')
             ->join('expedient f', 'dbf.IdFile = f.Id', 'inner')
-            ->join('Process p', 'f.IdProcess = p.Id', 'inner')
-            ->join('DocumentType dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->join('File_Status fs', 'dt.IdProcessType = fs.Id', 'inner')
-            ->join('DocumentFile_Status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
+            ->join('process p', 'f.IdProcess = p.Id', 'inner')
+            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
+            ->join('file_status fs', 'dt.IdProcessType = fs.Id', 'inner')
+            ->join('document_file_status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
             ->where('dbf.IdFile', $idFile)
             ->where('dbf.Enabled', 1)
             ->where('dt.AvailableToClient', 1)

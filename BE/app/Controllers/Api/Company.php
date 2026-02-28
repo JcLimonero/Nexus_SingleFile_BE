@@ -41,7 +41,7 @@ class Company extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Company::index - ' . $e->getMessage());
+            log_message('error', 'company::index - ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor',

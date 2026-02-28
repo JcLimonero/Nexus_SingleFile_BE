@@ -272,10 +272,12 @@
 
     <!-- Paginación -->
     <mat-paginator 
-      *ngIf="dataSource.filteredData.length > 0"
-      [pageSizeOptions]="[10, 25, 50, 100]"
-      [pageSize]="10"
-      [length]="dataSource.filteredData.length"
+      *ngIf="totalItems > 0"
+      [pageSizeOptions]="pageSizeOptions"
+      [pageSize]="pageSize"
+      [length]="totalItems"
+      [pageIndex]="currentPage"
+      (page)="onPageChange($event)"
       showFirstLastButtons
       class="border-t"
       aria-label="Seleccionar página de tipos de documento">
@@ -284,6 +286,6 @@
 
   <!-- Contador de resultados -->
   <div class="mt-4 text-sm text-gray-600 text-center" *ngIf="!loading">
-    Mostrando {{ getPageRange() }} de {{ dataSource.filteredData.length }} tipos de documento visibles ({{ tiposDocumento.length }} total)
+    Mostrando {{ getPageRange() }} de {{ totalItems }} tipos de documento totales
   </div>
 </div>

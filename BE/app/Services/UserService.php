@@ -30,7 +30,7 @@ class UserService
 
         // Buscar si ya existe un usuario con este ndConsultant
         $existingUser = $this->db->table('user')
-            ->where('user', $ndConsultant)
+            ->where('User', $ndConsultant)
             ->orWhere('Mail', $ndConsultant . '@default.com')
             ->get()
             ->getRowArray();
@@ -42,7 +42,7 @@ class UserService
 
         // Verificar si ya existe un usuario con el mismo nombre
         $duplicateUser = $this->db->table('user')
-            ->where('user', $ndConsultant)
+            ->where('User', $ndConsultant)
             ->get()
             ->getRowArray();
             
@@ -80,7 +80,7 @@ class UserService
     public function findUserByUsername($username)
     {
         return $this->db->table('user')
-            ->where('user', $username)
+            ->where('User', $username)
             ->get()
             ->getRowArray();
     }

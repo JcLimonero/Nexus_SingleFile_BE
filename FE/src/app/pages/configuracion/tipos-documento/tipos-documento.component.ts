@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -43,7 +43,7 @@ import { AddToConfigurationsDialogComponent } from './add-to-configurations-dial
     MatCardModule
   ]
 })
-export class TiposDocumentoComponent implements OnInit, AfterViewInit {
+export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy {
   tiposDocumento: DocumentType[] = [];
   dataSource = new MatTableDataSource<DocumentType>([]);
   displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'configuraciones', 'acciones'];
@@ -54,6 +54,12 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   requiredFilter = '';
   expirationFilter = '';
   availablePhases: any[] = [];
+  
+  // Paginación del lado del servidor
+  totalItems = 0;
+  pageSize = 10; // Tamaño de página por defecto
+  currentPage = 0;
+  pageSizeOptions = [10, 25, 50, 100, 200];
   
   // Mapeo de nombres de columnas para mostrar
   columnNames: { [key: string]: string } = {
@@ -83,37 +89,76 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-
-    // Configurar filtro personalizado
-    this.dataSource.filterPredicate = (data: DocumentType, filter: string) => {
-      const searchTerm = filter.toLowerCase();
-      return data.Name.toLowerCase().includes(searchTerm);
-    };
-    
-    // Asegurar que el paginador esté configurado después de la vista
+    // Usar setTimeout para asegurar que los ViewChild estén completamente inicializados
     setTimeout(() => {
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
+        this.paginator.pageSize = this.pageSize;
+        this.paginator.pageSizeOptions = this.pageSizeOptions;
+        this.paginator.length = this.totalItems;
       }
+      if (this.sort) {
+        this.dataSource.sort = this.sort;
+      }
+      
+      // Configurar filtro personalizado (solo para búsqueda local si es necesario)
+      this.dataSource.filterPredicate = (data: DocumentType, filter: string) => {
+        const searchTerm = filter.toLowerCase();
+        return data.Name.toLowerCase().includes(searchTerm);
+      };
     });
+  }
+  
+  /**
+   * Manejar cambio de página
+   */
+  onPageChange(event: any): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadTiposDocumento();
+  }
+  
+  ngOnDestroy(): void {
+    // Limpiar recursos si es necesario
   }
 
   loadTiposDocumento(): void {
     this.loading = true;
     
-    this.documentTypeService.getAllDocumentTypes().subscribe({
+    // Usar paginación del lado del servidor
+    const params: any = {
+      page: this.currentPage + 1, // El backend usa página basada en 1
+      limit: this.pageSize
+    };
+    
+    // Aplicar filtros
+    if (this.statusFilter) {
+      params.enabled = this.statusFilter;
+    }
+    if (this.searchTerm) {
+      params.search = this.searchTerm;
+    }
+    if (this.phaseFilter) {
+      params.phase = this.phaseFilter;
+    }
+    if (this.requiredFilter) {
+      params.required = this.requiredFilter;
+    }
+    if (this.expirationFilter) {
+      params.req_expiration = this.expirationFilter;
+    }
+    
+    this.documentTypeService.getDocumentTypes(params).subscribe({
       next: (response) => {
         if (response?.success) {
           this.tiposDocumento = response.data.document_types || [];
+          this.totalItems = response.data.total || 0;
           
           // Verificar que el conteo coincida con la cantidad real de configuraciones
           this.tiposDocumento.forEach(tipo => {
             const count = tipo.configurationsCount || 0;
             const actualLength = tipo.configurations?.length || 0;
             if (count !== actualLength) {
-              
               // Corregir el conteo si hay discrepancia
               tipo.configurationsCount = actualLength;
             }
@@ -121,24 +166,18 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
           
           this.dataSource.data = this.tiposDocumento;
           
-          // Extraer fases únicas
-          const uniquePhases = [...new Set(
-            this.tiposDocumento
-              .map(tipo => tipo.ProcessTypeName)
-              .filter(phase => phase && phase !== 'N/A')
-          )];
+          // Extraer fases únicas solo si no están cargadas o si cambió el filtro
+          if (this.availablePhases.length === 0 || this.phaseFilter) {
+            // Cargar todas las fases disponibles (necesitamos una consulta sin filtros para esto)
+            this.loadAvailablePhases();
+          }
           
-          this.availablePhases = uniquePhases.map(phase => ({
-            name: phase,
-            value: phase
-          }));
-          
-          this.applyFilter();
-          
-          // Asegurar que el paginador esté configurado
+          // Actualizar el paginador después de cargar los datos
           setTimeout(() => {
             if (this.paginator) {
-              this.dataSource.paginator = this.paginator;
+              this.paginator.length = this.totalItems;
+              this.paginator.pageIndex = this.currentPage;
+              this.paginator.pageSize = this.pageSize;
             }
           });
         } else {
@@ -153,62 +192,55 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
       }
     });
   }
+  
+  loadAvailablePhases(): void {
+    // Cargar solo los tipos de documento necesarios para obtener las fases únicas
+    this.documentTypeService.getDocumentTypes({ limit: 1000 }).subscribe({
+      next: (response) => {
+        if (response?.success) {
+          const uniquePhases = [...new Set(
+            (response.data.document_types || [])
+              .map(tipo => tipo.ProcessTypeName)
+              .filter(phase => phase && phase !== 'N/A')
+          )];
+          
+          this.availablePhases = uniquePhases.map(phase => ({
+            name: phase,
+            value: phase
+          }));
+        }
+      }
+    });
+  }
 
   applyFilter(): void {
-    const filterValue = this.searchTerm.trim().toLowerCase();
-
-    // Aplicar todos los filtros
-    this.dataSource.data = this.tiposDocumento.filter(tipoDocumento => {
-      // Filtro por búsqueda de texto
-      const matchesSearch = filterValue === '' || 
-        tipoDocumento.Name.toLowerCase().includes(filterValue);
-      
-      // Filtro por estado
-      const matchesStatus = this.statusFilter === '' || 
-        (this.statusFilter === '1' && tipoDocumento.Enabled === '1') ||
-        (this.statusFilter === '0' && tipoDocumento.Enabled === '0');
-      
-      // Filtro por fase
-      const matchesPhase = this.phaseFilter === '' || 
-        tipoDocumento.ProcessTypeName === this.phaseFilter;
-      
-      // Filtro por requerido
-      const matchesRequired = this.requiredFilter === '' || 
-        (this.requiredFilter === '1' && tipoDocumento.Required === '1') ||
-        (this.requiredFilter === '0' && tipoDocumento.Required === '0');
-      
-      // Filtro por requiere expiración
-      const matchesExpiration = this.expirationFilter === '' || 
-        (this.expirationFilter === '1' && tipoDocumento.ReqExpiration === '1') ||
-        (this.expirationFilter === '0' && tipoDocumento.ReqExpiration === '0');
-      
-      // Debug para el primer elemento
-      if (this.tiposDocumento.indexOf(tipoDocumento) === 0) {
-
-      }
-      
-      return matchesSearch && matchesStatus && matchesPhase && matchesRequired && matchesExpiration;
-    });
-    
-    // Reset paginator to first page
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
+    // Cuando se aplica un filtro, volver a la primera página
+    this.currentPage = 0;
+    if (this.paginator) {
+      this.paginator.pageIndex = 0;
     }
+    this.loadTiposDocumento();
   }
+  
 
   refreshData(): void {
     this.loadTiposDocumento();
   }
 
   clearFilters(): void {
-
     this.searchTerm = '';
     this.statusFilter = '';
     this.phaseFilter = '';
     this.requiredFilter = '';
     this.expirationFilter = '';
-
-    this.applyFilter();
+    
+    // Volver a la primera página
+    this.currentPage = 0;
+    if (this.paginator) {
+      this.paginator.pageIndex = 0;
+    }
+    
+    this.loadTiposDocumento();
     
     this.snackBar.open('Filtros limpiados', 'Info', {
       duration: 2000
@@ -216,15 +248,12 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
   }
 
   getPageRange(): string {
-    if (!this.dataSource.paginator) {
+    if (this.totalItems === 0) {
       return '0-0';
     }
     
-    const startIndex = this.dataSource.paginator.pageIndex * this.dataSource.paginator.pageSize + 1;
-    const endIndex = Math.min(
-      (this.dataSource.paginator.pageIndex + 1) * this.dataSource.paginator.pageSize,
-      this.dataSource.filteredData.length
-    );
+    const startIndex = this.currentPage * this.pageSize + 1;
+    const endIndex = Math.min(startIndex + this.pageSize - 1, this.totalItems);
     
     return `${startIndex}-${endIndex}`;
   }

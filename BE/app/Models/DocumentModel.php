@@ -105,13 +105,13 @@ class DocumentModel extends Model
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
         $builder->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
         $builder->join('DocumentFile_Error dfe', 'dfe.Id = d.IdDocumentError', 'left');
-        $builder->join('User u', 'u.Id = d.IdLastUserUpdate', 'left');
+        $builder->join('user u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
         $builder->join('FileStatus fs', 'fs.Id = f.IdCurrentState', 'left');
         // JOIN para obtener el tipo de proceso desde FileSubStatus
         $builder->join('FileSubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
         // JOIN para obtener el subproceso
-        $builder->join('Process sp', 'sp.Id = dt.IdSubProcess', 'left');
+        $builder->join('process sp', 'sp.Id = dt.IdSubProcess', 'left');
 
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -172,7 +172,7 @@ class DocumentModel extends Model
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
         $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
         $builder->join('FileSubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
-        $builder->join('Process sp', 'sp.Id = dt.IdSubProcess', 'left');
+        $builder->join('process sp', 'sp.Id = dt.IdSubProcess', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
         if (!empty($filters['enabled'])) {
@@ -248,7 +248,7 @@ class DocumentModel extends Model
         $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
         $builder->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
         $builder->join('DocumentFile_Error dfe', 'dfe.Id = d.IdDocumentError', 'left');
-        $builder->join('User u', 'u.Id = d.IdLastUserUpdate', 'left');
+        $builder->join('user u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
         $builder->join('FileStatus fs', 'fs.Id = f.IdCurrentState', 'left');
         

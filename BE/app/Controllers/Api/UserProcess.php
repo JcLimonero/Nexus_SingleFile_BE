@@ -27,7 +27,7 @@ class UserProcess extends BaseController
             $builder = $db->table('process_user pu');
             $processes = $builder
                 ->select('pu.IdProcess, p.Name as ProcessName, p.Enabled')
-                ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
+                ->join('process p', 'p.Id = pu.IdProcess', 'inner')
                 ->where('pu.IdUser', $userId)
                 ->orderBy('p.Name', 'ASC')
                 ->get()
@@ -254,7 +254,7 @@ class UserProcess extends BaseController
             
             // Contar procesos activos asignados
             $activeAssigned = $db->table('process_user pu')
-                ->join('Process p', 'p.Id = pu.IdProcess', 'inner')
+                ->join('process p', 'p.Id = pu.IdProcess', 'inner')
                 ->where('pu.IdUser', $userId)
                 ->where('p.Enabled', 1)
                 ->countAllResults();

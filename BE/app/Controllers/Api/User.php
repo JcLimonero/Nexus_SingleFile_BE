@@ -41,15 +41,15 @@ class User extends BaseController
 
             // Construir la consulta - versión simplificada para debugging
             $db = \Config\Database::connect();
-            $builder = $db->table('User u');
+            $builder = $db->table('user u');
             
             $builder->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName, a.Name as AgencyName')
-                ->join('User ur', 'ur.Id = u.IdLastUserUpdate', 'left')
-                ->join('Agency a', 'a.Id = u.DefaultAgency', 'left');
+                ->join('user ur', 'ur.Id = u.IdLastUserUpdate', 'left')
+                ->join('agency a', 'a.Id = u.DefaultAgency', 'left');
 
             // Aplicar filtros
             if ($enabled !== null && $enabled !== '') {
-                $builder->where('u.Enabled', $enabled);
+$builder->where('u.Enabled', $enabled);
             }
 
             if ($search) {
@@ -106,7 +106,7 @@ class User extends BaseController
             $data = $this->request->getJSON(true);
 
             // Validar campos requeridos
-            $requiredFields = ['Name', 'user', 'Mail', 'Pass', 'IdUserRol', 'DefaultAgency'];
+            $requiredFields = ['Name', 'User', 'Mail', 'Pass', 'IdUserRol', 'DefaultAgency'];
             foreach ($requiredFields as $field) {
                 if (empty($data[$field])) {
                     return $this->response->setJSON([
@@ -117,7 +117,7 @@ class User extends BaseController
             }
 
             // Verificar si el username ya existe
-            $existingUser = $this->userModel->where('user', $data['user'])->first();
+            $existingUser = $this->userModel->where('User', $data['User'])->first();
             if ($existingUser) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -187,12 +187,12 @@ class User extends BaseController
             }
 
             $db = \Config\Database::connect();
-            $builder = $db->table('User u');
+            $builder = $db->table('user u');
             
             $user = $builder
                 ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName, a.Name as AgencyName')
-                ->join('User ur', 'ur.Id = u.IdLastUserUpdate', 'left')
-                ->join('Agency a', 'a.Id = u.DefaultAgency', 'left')
+                ->join('user ur', 'ur.Id = u.IdLastUserUpdate', 'left')
+                ->join('agency a', 'a.Id = u.DefaultAgency', 'left')
                 ->where('u.Id', $id)
                 ->get()
                 ->getRowArray();
@@ -235,7 +235,7 @@ class User extends BaseController
             $data = $this->request->getJSON(true);
 
             // Verificar si el usuario existe (asegurar que incluye Id)
-            $existingUser = $this->userModel->select('Id, Name, user, Mail, Pass, Enabled, IdUserRol, DefaultAgency, RegistrationDate, UpdateDate')->find($id);
+            $existingUser = $this->userModel->select('Id, Name, User, Mail, Pass, Enabled, IdUserRol, DefaultAgency, RegistrationDate, UpdateDate')->find($id);
             if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -244,8 +244,8 @@ class User extends BaseController
             }
 
             // Verificar username único (si se está cambiando)
-            if (isset($data['user']) && $data['user'] !== $existingUser['user']) {
-                $duplicateUser = $this->userModel->where('user', $data['user'])->where('Id !=', $id)->first();
+            if (isset($data['User']) && $data['User'] !== $existingUser['User']) {
+                $duplicateUser = $this->userModel->where('User', $data['User'])->where('Id !=', $id)->first();
                 if ($duplicateUser) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -422,7 +422,7 @@ class User extends BaseController
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('Id, Name, user, Mail, Enabled')->find($id);
+            $existingUser = $this->userModel->select('Id, Name, User, Mail, Enabled')->find($id);
             if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -476,7 +476,7 @@ class User extends BaseController
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('Id, Name, user, Mail, Enabled')->find($id);
+            $existingUser = $this->userModel->select('Id, Name, User, Mail, Enabled')->find($id);
             if (!$existingUser || !isset($existingUser['Id'])) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -534,11 +534,11 @@ class User extends BaseController
             }
 
             $db = \Config\Database::connect();
-            $builder = $db->table('User u');
+            $builder = $db->table('user u');
             
             $users = $builder
                 ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, a.Name as AgencyName')
-                ->join('Agency a', 'a.Id = u.DefaultAgency', 'left')
+                ->join('agency a', 'a.Id = u.DefaultAgency', 'left')
                 ->groupStart()
                     ->like('u.Name', $query)
                     ->orLike('u.User', $query)
@@ -611,7 +611,7 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $existingUser = $this->userModel->where('user', $username)->first();
+            $existingUser = $this->userModel->where('User', $username)->first();
             $available = !$existingUser;
 
             return $this->response->setJSON([

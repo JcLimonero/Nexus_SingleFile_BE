@@ -40,7 +40,7 @@ class user_role extends BaseController
 
             // Construir la consulta
             $db = \Config\Database::connect();
-            $builder = $db->table('user_rol ur');
+            $builder = $db->table('user_role ur');
             
             $builder->select('ur.Id, ur.Name, ur.Enabled, ur.RegistrationDate, ur.UpdateDate');
 
