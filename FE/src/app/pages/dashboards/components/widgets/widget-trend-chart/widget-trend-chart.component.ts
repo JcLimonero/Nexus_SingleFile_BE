@@ -120,7 +120,7 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
     },
     legend: {
       show: true,
-      position: 'top',
+      position: 'right',
       horizontalAlign: 'right',
       fontSize: '12px',
       fontFamily: 'Inter, sans-serif',
@@ -135,10 +135,11 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
         strokeWidth: 0
       },
       itemMargin: {
-        horizontal: 12,
-        vertical: 0
+        horizontal: 8,
+        vertical: 4
       },
-      offsetY: -4
+      offsetX: 0,
+      offsetY: 0
     },
     tooltip: {
       enabled: true,

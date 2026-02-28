@@ -97,7 +97,7 @@ export class WidgetWeeklyChartComponent implements OnInit, OnDestroy, OnChanges 
       }
     },
     xaxis: {
-      categories: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      categories: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
       labels: {
         style: {
           colors: '#868C92',
