@@ -20,14 +20,14 @@ class AgencyService
         error_log("=== CONVIRTIENDO ID AGENCIA ===");
         error_log("ID recibido: " . $agencyId);
         
-        // Primero intentar como ID externo (IdAgency)
+        // Primero intentar como ID externo (IdAgencyDMS)
         $agency = $this->db->table('agency')
-            ->where('IdAgency', $agencyId)
+            ->where('IdAgencyDMS', $agencyId)
             ->get()
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por IdAgency: $agencyId, Id interno: " . $agency['Id']);
+            error_log("Agencia encontrada por IdAgencyDMS: $agencyId, Id interno: " . $agency['Id']);
             return $agency['Id'];
         }
         
@@ -38,7 +38,7 @@ class AgencyService
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por Id interno: $agencyId, IdAgency: " . $agency['IdAgency']);
+            error_log("Agencia encontrada por Id interno: $agencyId, IdAgencyDMS: " . ($agency['IdAgencyDMS'] ?? 'N/A'));
             return $agency['Id'];
         }
         
@@ -47,15 +47,15 @@ class AgencyService
     }
 
     /**
-     * Buscar agencia por ID externo
+     * Buscar agencia por ID externo (IdAgencyDMS)
      */
     public function getAgencyByExternalId($externalAgencyId)
     {
         error_log("=== BUSCANDO AGENCIA POR ID EXTERNO ===");
-        error_log("IdAgency externo: " . $externalAgencyId);
+        error_log("IdAgencyDMS externo: " . $externalAgencyId);
         
         $agency = $this->db->table('agency')
-            ->where('IdAgency', $externalAgencyId)
+            ->where('IdAgencyDMS', $externalAgencyId)
             ->get()
             ->getRowArray();
             
@@ -64,7 +64,7 @@ class AgencyService
             return $agency;
         }
         
-        error_log("Agencia no encontrada para IdAgency: $externalAgencyId");
+        error_log("Agencia no encontrada para IdAgencyDMS: $externalAgencyId");
         return null;
     }
 

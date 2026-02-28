@@ -696,18 +696,18 @@ class VanguardiaClientImport extends ResourceController
             ->getRowArray();
             
         if ($agency) {
-            error_log("✅ Agencia encontrada por Id interno: {$idAgencyStr}, IdAgency externo: " . ($agency['IdAgency'] ?? 'N/A'));
+            error_log("✅ Agencia encontrada por Id interno: {$idAgencyStr}, IdAgencyDMS externo: " . ($agency['IdAgencyDMS'] ?? 'N/A'));
             return (int) $agency['Id']; // Retornar el ID interno
         }
         
-        // Si no se encuentra, intentar como ID externo (IdAgency)
+        // Si no se encuentra, intentar como ID externo (IdAgencyDMS)
         $agency = $this->db->table('agency')
-            ->where('IdAgency', $idAgencyStr)
+            ->where('IdAgencyDMS', $idAgencyStr)
             ->get()
             ->getRowArray();
             
         if ($agency) {
-            error_log("✅ Agencia encontrada por IdAgency externo: {$idAgencyStr}, Id interno: " . $agency['Id']);
+            error_log("✅ Agencia encontrada por IdAgencyDMS externo: {$idAgencyStr}, Id interno: " . $agency['Id']);
             return (int) $agency['Id'];
         }
         

@@ -151,7 +151,7 @@ class Files extends BaseController
                     ) obc2 ON obc1.IdDMS = obc2.IdDMS 
                         AND obc1.RegistrationDate = obc2.MaxDate
                 ) obc ON f.IdOrderTotal = obc.IdDMS
-                WHERE a.IdAgency = ?
+                WHERE a.IdAgencyDMS = ?
             ";
 
             $params = [$agencyId];
@@ -208,7 +208,7 @@ class Files extends BaseController
                         f.IdOrderTotal as numeroPedido,
                         f.IdCurrentState,
                         f.IdAgency as FileIdAgency,
-                        a.IdAgency as AgencyIdAgency,
+                        a.IdAgencyDMS as AgencyIdAgencyDMS,
                         f.IdClient as IdClient,
                         fs.Name as estado
                     FROM file f
@@ -224,7 +224,7 @@ class Files extends BaseController
                     error_log("=== DIAGNÓSTICO PEDIDO 35348 ===");
                     error_log("File ID: " . ($pedidoResult['fileId'] ?? 'NULL'));
                     error_log("IdCurrentState: " . ($pedidoResult['IdCurrentState'] ?? 'NULL') . " (esperado: {$statusId})");
-                    error_log("Agency esperada: {$agencyId}, Agency del pedido: " . ($pedidoResult['AgencyIdAgency'] ?? 'NULL'));
+                    error_log("Agency esperada: {$agencyId}, Agency del pedido: " . ($pedidoResult['AgencyIdAgencyDMS'] ?? 'NULL'));
                     error_log("Estado: " . ($pedidoResult['estado'] ?? 'NULL'));
                     error_log("IdClient (File.IdClient = Client.Id): " . ($idClient ?? 'NULL'));
                     
@@ -264,7 +264,7 @@ class Files extends BaseController
                         f.IdCurrentState,
                         f.IdAgency as FileIdAgency,
                         a.Id as AgencyId,
-                        a.IdAgency as AgencyIdAgency,
+                        a.IdAgencyDMS as AgencyIdAgencyDMS,
                         f.IdClient,
                         fs.Id as FileStatusId,
                         fs.Name as FileStatusName
@@ -281,7 +281,7 @@ class Files extends BaseController
                     error_log("IdCurrentState: " . ($diagnosticResult->IdCurrentState ?? 'NULL'));
                     error_log("IdAgency (interno en File): " . ($diagnosticResult->FileIdAgency ?? 'NULL'));
                     error_log("Agency Id (interno): " . ($diagnosticResult->AgencyId ?? 'NULL'));
-                    error_log("Agency IdAgency (externo): " . ($diagnosticResult->AgencyIdAgency ?? 'NULL'));
+                    error_log("Agency IdAgencyDMS (externo): " . ($diagnosticResult->AgencyIdAgencyDMS ?? 'NULL'));
                     error_log("IdClient: " . ($diagnosticResult->IdClient ?? 'NULL'));
                     error_log("FileStatusId: " . ($diagnosticResult->FileStatusId ?? 'NULL'));
                     error_log("FileStatusName: " . ($diagnosticResult->FileStatusName ?? 'NULL'));
@@ -421,7 +421,7 @@ class Files extends BaseController
                 LEFT JOIN agency a ON f.IdAgency = a.Id
                 LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
                 LEFT JOIN order_by_car obc ON f.IdOrderTotal = obc.IdDMS
-                WHERE a.IdAgency = ?
+                WHERE a.IdAgencyDMS = ?
             ";
 
             $params = [$agencyId];
@@ -754,17 +754,17 @@ class Files extends BaseController
      */
     private function getAgencyById($agencyId)
     {
-        $sql = "SELECT Id, Name, IdAgency FROM agency WHERE Id = ?";
+        $sql = "SELECT Id, Name, IdAgencyDMS FROM agency WHERE Id = ?";
         $query = $this->db->query($sql, [$agencyId]);
         return $query->getRow();
     }
 
     /**
-     * Buscar agencia por IdAgency externo
+     * Buscar agencia por IdAgencyDMS externo
      */
     private function getAgencyByExternalId($externalAgencyId)
     {
-        $sql = "SELECT Id, Name FROM agency WHERE IdAgency = ?";
+        $sql = "SELECT Id, Name FROM agency WHERE IdAgencyDMS = ?";
         $query = $this->db->query($sql, [$externalAgencyId]);
         return $query->getRow();
     }
@@ -1058,18 +1058,18 @@ class Files extends BaseController
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por Id interno: $agencyId, IdAgency: " . ($agency['IdAgency'] ?? 'N/A'));
+            error_log("Agencia encontrada por Id interno: $agencyId, IdAgencyDMS: " . ($agency['IdAgencyDMS'] ?? 'N/A'));
             return $agency['Id']; // Retornar el ID interno directamente
         }
         
-        // Si no se encuentra, intentar como ID externo (IdAgency)
+        // Si no se encuentra, intentar como ID externo (IdAgencyDMS)
         $agency = $this->db->table('agency')
-            ->where('IdAgency', $agencyId)
+            ->where('IdAgencyDMS', $agencyId)
             ->get()
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por IdAgency externo: $agencyId, Id interno: " . $agency['Id']);
+            error_log("Agencia encontrada por IdAgencyDMS externo: $agencyId, Id interno: " . $agency['Id']);
             return $agency['Id'];
         }
         
@@ -1775,7 +1775,7 @@ class Files extends BaseController
             }
 
             // Construir la consulta para obtener estatus de múltiples pedidos
-            // Comparar: Agency.IdAgency = pedido.idAgency AND File.IdOrderTotal = pedido.order_dms
+            // Comparar: Agency.IdAgencyDMS = pedido.idAgency AND File.IdOrderTotal = pedido.order_dms
             $placeholders = [];
             $params = [];
             
@@ -1784,7 +1784,7 @@ class Files extends BaseController
                 $orderDms = $order['order_dms'] ?? $order['orderDMS'] ?? $order['OrderDMS'] ?? $order['numeroPedido'] ?? null;
                 
                 if ($idAgency && $orderDms) {
-                    $placeholders[] = "(a.IdAgency = ? AND f.IdOrderTotal = ?)";
+                    $placeholders[] = "(a.IdAgencyDMS = ? AND f.IdOrderTotal = ?)";
                     $params[] = $idAgency;
                     $params[] = trim((string)$orderDms);
                 }
@@ -1800,7 +1800,7 @@ class Files extends BaseController
 
             $sql = "
                 SELECT 
-                    a.IdAgency as idAgency,
+                    a.IdAgencyDMS as idAgency,
                     f.IdOrderTotal as order_dms,
                     fs.Name as estatus,
                     fs.Id as estatusId,

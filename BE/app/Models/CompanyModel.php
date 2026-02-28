@@ -10,7 +10,7 @@ class CompanyModel extends Model
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $allowedFields = ['Id', 'name', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate', 'Enabled'];
+    protected $allowedFields = ['Id', 'name', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate', 'Enabled', 'AgencyConnection'];
     
     // Dates
     protected $useTimestamps = false;

@@ -14,7 +14,7 @@ class AgencyModel extends Model
     protected $protectFields = true;
     protected $allowedFields = [
         'Id', 'Name', 'IdCompany', 'RegistrationDate', 'UpdateDate', 
-        'IdLastUserUpdate', 'Enabled', 'IdAgency', 'AgencyConnection'
+        'IdLastUserUpdate', 'Enabled', 'IdAgencyDMS'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -34,7 +34,7 @@ class AgencyModel extends Model
     protected $validationRules = [
         'Name' => 'required|min_length[3]|max_length[600]',
         'IdCompany' => 'permit_empty|integer',
-        'IdAgency' => 'permit_empty|max_length[50]',
+        'IdAgencyDMS' => 'permit_empty|max_length[50]',
         'Enabled' => 'permit_empty|in_list[0,1]'
     ];
     
@@ -45,8 +45,8 @@ class AgencyModel extends Model
             'max_length' => 'El nombre no puede exceder 600 caracteres'
         ],
 
-        'IdAgency' => [
-            'max_length' => 'El IdAgency no puede exceder 50 caracteres'
+        'IdAgencyDMS' => [
+            'max_length' => 'El IdAgencyDMS no puede exceder 50 caracteres'
         ],
         'Enabled' => [
             'in_list' => 'El estado debe ser 0 o 1'
@@ -233,11 +233,11 @@ class AgencyModel extends Model
     }
 
     /**
-     * Obtener agencias por región (IdAgency)
+     * Obtener agencias por región (IdAgencyDMS)
      */
     public function getAgenciesByRegion($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->where('IdAgency', $region);
+        $query = $this->where('IdAgencyDMS', $region);
         
         if ($enabledOnly) {
             $query->where('Enabled', 1);
@@ -254,7 +254,7 @@ class AgencyModel extends Model
         $query = $this->select('Agency.*, User.Name as LastUserUpdateName, Company.name as CompanyName')
                       ->join('user', 'Agency.IdLastUserUpdate = User.Id', 'left')
                       ->join('company', 'Agency.IdCompany = Company.Id', 'left')
-                      ->where('Agency.IdAgency', $region);
+                      ->where('Agency.IdAgencyDMS', $region);
         
         if ($enabledOnly) {
             $query->where('Agency.Enabled', 1);

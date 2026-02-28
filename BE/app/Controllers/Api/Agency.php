@@ -41,7 +41,7 @@ class Agency extends BaseController
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
             
             // Validar parámetros de ordenamiento
-            $allowedSortFields = ['Name', 'CompanyName', 'IdAgency', 'RegistrationDate', 'UpdateDate'];
+            $allowedSortFields = ['Name', 'CompanyName', 'IdAgencyDMS', 'RegistrationDate', 'UpdateDate'];
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'Name';
             }
