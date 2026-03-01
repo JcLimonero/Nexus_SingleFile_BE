@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/document-type.interface';
+import { FASES_OCULTAS } from '../../../core/constants/catalogs';
 import { DocumentTypeService } from '../../../core/services/document-type.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
 import { DocumentTypeConfigurationsDialogComponent } from './document-type-configurations-dialog/document-type-configurations-dialog.component';
@@ -75,7 +76,6 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
     'acciones': 'Acciones'
   };
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
@@ -85,27 +85,33 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   ) { }
 
   ngOnInit(): void {
+    this.loadAvailablePhases();
     this.loadTiposDocumento();
   }
 
-  ngAfterViewInit(): void {
-    // Usar setTimeout para asegurar que los ViewChild estén completamente inicializados
-    setTimeout(() => {
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
-        this.paginator.pageSize = this.pageSize;
-        this.paginator.pageSizeOptions = this.pageSizeOptions;
-        this.paginator.length = this.totalItems;
+  loadAvailablePhases(): void {
+    this.documentTypeService.getFileStatuses().subscribe({
+      next: (response) => {
+        if (response?.success && response?.data?.file_statuses) {
+          const names = [...new Set(
+            response.data.file_statuses
+              .map((fs: any) => fs.name ?? fs.Name ?? '')
+              .filter((n: string) => n && n !== 'N/A' && !FASES_OCULTAS.includes(n))
+          )];
+          this.availablePhases = names
+            .sort((a, b) => a.localeCompare(b))
+            .map(name => ({ name, value: name }));
+        }
       }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    // Paginación en servidor: NO asignar dataSource.paginator
+    setTimeout(() => {
       if (this.sort) {
         this.dataSource.sort = this.sort;
       }
-      
-      // Configurar filtro personalizado (solo para búsqueda local si es necesario)
-      this.dataSource.filterPredicate = (data: DocumentType, filter: string) => {
-        const searchTerm = filter.toLowerCase();
-        return data.name.toLowerCase().includes(searchTerm);
-      };
     });
   }
   
@@ -164,21 +170,6 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
           });
           
           this.dataSource.data = this.tiposDocumento;
-          
-          // Extraer fases únicas solo si no están cargadas o si cambió el filtro
-          if (this.availablePhases.length === 0 || this.phaseFilter) {
-            // Cargar todas las fases disponibles (necesitamos una consulta sin filtros para esto)
-            this.loadAvailablePhases();
-          }
-          
-          // Actualizar el paginador después de cargar los datos
-          setTimeout(() => {
-            if (this.paginator) {
-              this.paginator.length = this.totalItems;
-              this.paginator.pageIndex = this.currentPage;
-              this.paginator.pageSize = this.pageSize;
-            }
-          });
         } else {
           this.snackBar.open('Error al cargar tipos de documento', 'Error', { duration: 3000 });
         }
@@ -192,32 +183,8 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
   
-  loadAvailablePhases(): void {
-    // Cargar solo los tipos de documento necesarios para obtener las fases únicas
-    this.documentTypeService.getDocumentTypes({ limit: 1000 }).subscribe({
-      next: (response) => {
-        if (response?.success) {
-          const uniquePhases = [...new Set(
-            (response.data.document_types || [])
-              .map(tipo => tipo.process_type_name)
-              .filter(phase => phase && phase !== 'N/A')
-          )];
-          
-          this.availablePhases = uniquePhases.map(phase => ({
-            name: phase,
-            value: phase
-          }));
-        }
-      }
-    });
-  }
-
   applyFilter(): void {
-    // Cuando se aplica un filtro, volver a la primera página
     this.currentPage = 0;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
-    }
     this.loadTiposDocumento();
   }
   
@@ -232,13 +199,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
     this.phaseFilter = '';
     this.requiredFilter = '';
     this.expirationFilter = '';
-    
-    // Volver a la primera página
     this.currentPage = 0;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
-    }
-    
     this.loadTiposDocumento();
     
     this.snackBar.open('Filtros limpiados', 'Info', {

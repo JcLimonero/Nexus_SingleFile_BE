@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
@@ -62,7 +62,6 @@ import { DocumentosConfiguracionDialogComponent } from './documentos-configuraci
   ]
 })
 export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('configuracionesPaginator') configuracionesPaginator!: MatPaginator;
   @ViewChild('configuracionesSort') configuracionesSort!: MatSort;
@@ -70,6 +69,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
   displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'etapa', 'subEtapa', 'requerido', 'requiereExpiracion'];
   dataSource = new MatTableDataSource<DocumentoRequerido>([]);
+  pageSizeDocumentos = 10;
+  pageIndexDocumentos = 0;
+  totalDocumentos = 0;
+  pageSizeOptionsDocumentos = [10, 25, 50, 100, 200, 500];
   
   // Tab 1: Configuraciones agrupadas
   displayedColumnsConfiguraciones: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'totalDocumentos', 'enabled', 'acciones'];
@@ -113,10 +116,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Configurar paginador y sort para el Tab 2
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
+    // Tab 2 usa paginación en servidor: NO asignar dataSource.paginator
     if (this.sort) {
       this.dataSource.sort = this.sort;
     }
@@ -133,9 +133,6 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
       // Reconectar sort del Tab 2 si no estaba disponible inicialmente
       if (!this.dataSource.sort && this.sort) {
         this.dataSource.sort = this.sort;
-      }
-      if (!this.dataSource.paginator && this.paginator) {
-        this.dataSource.paginator = this.paginator;
       }
     }, 100);
     
@@ -305,46 +302,51 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   loadData(): void {
     if (!this.isConfigurationSelected()) {
       this.dataSource.data = [];
+      this.totalDocumentos = 0;
       return;
     }
 
     this.loading = true;
-    
-    // Construir filtros solo con los valores seleccionados
-    const filters: DocumentoRequeridoFilters = {};
-    
-    // Solo agregar filtros que estén seleccionados
+
+    const filters: DocumentoRequeridoFilters = {
+      limit: this.pageSizeDocumentos,
+      offset: this.pageIndexDocumentos * this.pageSizeDocumentos
+    };
     if (this.selectedProcess) filters.id_process = this.selectedProcess;
     if (this.selectedAgency) filters.id_agency = this.selectedAgency;
     if (this.selectedCustomerType) filters.id_customer_type = this.selectedCustomerType;
     if (this.selectedOperationType) filters.id_operation_type = this.selectedOperationType;
 
-            this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
-          next: (response) => {
-            if (response.success && response.data) {
-              const documentos = response.data.documentos || [];
-
-              
-              
-              this.dataSource.data = documentos;
-              
-            } else {
-              this.snackBar.open(response.message || 'Error al cargar documentos', 'Error', { duration: 3000 });
-              this.dataSource.data = [];
-            }
-            this.loading = false;
-          },
-      error: (error) => {
-
+    this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const documentos = response.data.documentos || [];
+          this.dataSource.data = documentos;
+          this.totalDocumentos = response.data.total ?? 0;
+        } else {
+          this.snackBar.open(response.message || 'Error al cargar documentos', 'Error', { duration: 3000 });
+          this.dataSource.data = [];
+          this.totalDocumentos = 0;
+        }
+        this.loading = false;
+      },
+      error: () => {
         this.snackBar.open('Error al cargar documentos requeridos', 'Error', { duration: 3000 });
         this.dataSource.data = [];
+        this.totalDocumentos = 0;
         this.loading = false;
       }
     });
   }
 
+  onPageChangeDocumentos(event: PageEvent): void {
+    this.pageSizeDocumentos = event.pageSize;
+    this.pageIndexDocumentos = event.pageIndex;
+    this.loadData();
+  }
+
   onConfigurationChange(): void {
-    // Cargar datos cuando cambia cualquier selección
+    this.pageIndexDocumentos = 0;
     this.loadData();
     
     // Limpiar el item seleccionado cuando cambian los filtros
@@ -371,8 +373,9 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     this.selectedAgency = '';
     this.selectedCustomerType = '';
     this.selectedOperationType = '';
-    this.selectedItem = null; // También limpiar el item seleccionado
-    this.loadData(); // Recargar todos los datos después de limpiar filtros
+    this.selectedItem = null;
+    this.pageIndexDocumentos = 0;
+    this.loadData();
     this.snackBar.open('Filtros limpiados', 'Info', { duration: 2000 });
   }
 
@@ -702,6 +705,13 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     }
     const start = this.configuracionesPaginator.pageIndex * this.configuracionesPaginator.pageSize + 1;
     const end = Math.min(start + this.configuracionesPaginator.pageSize - 1, this.dataSourceConfiguraciones.data.length);
+    return `${start}-${end}`;
+  }
+
+  getPageRangeDocumentos(): string {
+    if (this.totalDocumentos === 0) return '0-0';
+    const start = this.pageIndexDocumentos * this.pageSizeDocumentos + 1;
+    const end = Math.min(start + this.pageSizeDocumentos - 1, this.totalDocumentos);
     return `${start}-${end}`;
   }
 

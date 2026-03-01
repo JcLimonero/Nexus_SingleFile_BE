@@ -192,6 +192,16 @@
               </td>
             </tr>
           </table>
+          <mat-paginator
+            *ngIf="!loadingExpedientes && totalExpedientesAlerta > 0"
+            [length]="totalExpedientesAlerta"
+            [pageSize]="pageSizeExpedientesAlerta"
+            [pageSizeOptions]="pageSizeOptionsExpedientesAlerta"
+            [pageIndex]="pageIndexExpedientesAlerta"
+            (page)="onPageChangeExpedientesAlerta($event)"
+            showFirstLastButtons
+            aria-label="Paginación expedientes alerta PLD">
+          </mat-paginator>
         </mat-card-content>
       </mat-card>
     </mat-tab>

@@ -108,9 +108,6 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     { value: 1, label: 'Integración' },
     { value: 2, label: 'Liquidación' },
     { value: 3, label: 'Liberación' },
-    { value: 4, label: 'Liberado' },
-    { value: 5, label: 'Cancelado' },
-    { value: 6, label: 'Liberado por Excepción' },
   ];
 
   displayedColumns: string[] = [];

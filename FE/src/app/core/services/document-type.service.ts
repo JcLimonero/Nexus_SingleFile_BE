@@ -130,10 +130,19 @@ export class DocumentTypeService {
   }
 
   /**
-   * Obtener estados de archivo activos (File_Status)
+   * Obtener estados de archivo activos (File_Status) - Integración, Liquidación, Liberación
    */
   getActiveFileStatuses(): Observable<any> {
     return this.http.get(`${this.apiBaseService.buildApiUrl('file-status/active')}`);
+  }
+
+  /**
+   * Obtener todas las fases desde file_status (para filtros)
+   */
+  getFileStatuses(): Observable<{ success: boolean; data?: { file_statuses: { id: number; name: string }[] } }> {
+    return this.http.get<{ success: boolean; data?: { file_statuses: { id: number; name: string }[] } }>(
+      `${this.apiBaseService.buildApiUrl('file-status')}`
+    );
   }
 
   /**

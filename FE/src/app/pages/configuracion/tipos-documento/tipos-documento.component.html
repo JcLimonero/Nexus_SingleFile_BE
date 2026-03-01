@@ -265,7 +265,7 @@
     </table>
 
     <!-- Empty State -->
-    <div *ngIf="dataSource.filteredData.length === 0" class="text-center py-8">
+    <div *ngIf="!loading && dataSource.data.length === 0" class="text-center py-8">
       <mat-icon class="text-gray-400 text-4xl mb-2">inbox</mat-icon>
       <p class="text-gray-500">No se encontraron tipos de documento</p>
     </div>

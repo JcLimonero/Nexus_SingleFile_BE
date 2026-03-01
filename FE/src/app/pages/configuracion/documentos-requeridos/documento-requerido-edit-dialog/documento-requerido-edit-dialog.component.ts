@@ -25,6 +25,7 @@ import { Proceso } from '../../../../core/interfaces/proceso.interface';
 import { CostumerType } from '../../../../core/interfaces/costumer-type.interface';
 import { TipoOperacion } from '../../../../core/interfaces/tipo-operacion.interface';
 import { DocumentType } from '../../../../core/interfaces/document-type.interface';
+import { FASES_OCULTAS } from '../../../../core/constants/catalogs';
 
 @Component({
   selector: 'app-documento-requerido-edit-dialog',
@@ -756,13 +757,13 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     return this.searchTerm.trim() !== '' || this.selectedPhase !== '' || this.selectedSubPhase !== '' || this.showOnlySelected;
   }
 
-  // Método para extraer fases y subfases disponibles
+  // Método para extraer fases y subfases disponibles (oculta Liberado, Cancelado, Liberado por Excepción)
   private extractAvailablePhases(): void {
     const phases = new Set<string>();
     const subPhases = new Set<string>();
 
     this.tiposDocumento.forEach(tipo => {
-      if (tipo.process_type_name) {
+      if (tipo.process_type_name && !FASES_OCULTAS.includes(tipo.process_type_name)) {
         phases.add(tipo.process_type_name);
       }
       if (tipo.sub_process_name) {

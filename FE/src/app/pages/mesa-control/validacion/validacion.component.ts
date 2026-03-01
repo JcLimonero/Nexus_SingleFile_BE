@@ -26,7 +26,7 @@ import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult
 import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
 import { RechazarDocumentoDialogComponent, RechazarDocumentoData, RechazarDocumentoResult } from './rechazar-documento-dialog/rechazar-documento-dialog.component';
 import { EliminarDocumentoDialogComponent, EliminarDocumentoData, EliminarDocumentoResult } from './eliminar-documento-dialog/eliminar-documento-dialog.component';
-import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
+import { FASES_FILTER_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, Subscription, takeUntil, catchError, of, timeout } from 'rxjs';
@@ -98,7 +98,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Datos de filtros disponibles
   agencias: any[] = [];
   procesos: any[] = [];
-  fases: CatalogItem[] = FASES_CATALOG;
+  fases: CatalogItem[] = FASES_FILTER_CATALOG;
 
   // Tabla de clientes
   get clientesDisplayedColumns(): string[] {

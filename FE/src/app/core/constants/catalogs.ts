@@ -9,6 +9,9 @@ export interface CatalogItem {
   value?: string;
 }
 
+/** Nombres de fases a ocultar en catálogos/filtros (estados finales) */
+export const FASES_OCULTAS = ['Liberado', 'Cancelado', 'Liberado por Excepción'];
+
 /**
  * Catálogo de fases del sistema
  * Mapea los IdCurrentState con sus nombres correspondientes
@@ -21,6 +24,13 @@ export const FASES_CATALOG: CatalogItem[] = [
   { id: 5, name: 'Cancelado', value: '5' },
   { id: 6, name: 'Liberado por Excepción', value: '6' }
 ];
+
+/**
+ * Catálogo de fases para filtros (oculta Liberado, Cancelado, Liberado por Excepción)
+ */
+export const FASES_FILTER_CATALOG: CatalogItem[] = FASES_CATALOG.filter(
+  f => !FASES_OCULTAS.includes(f.name)
+);
 
 /**
  * Obtener el nombre de una fase por su ID
@@ -47,10 +57,10 @@ export function getFaseIdByValue(value: string): number {
 }
 
 /**
- * Obtener todas las fases para usar en filtros
+ * Obtener todas las fases para usar en filtros (excluye Liberado, Cancelado, Liberado por Excepción)
  */
 export function getFasesForFilter(): CatalogItem[] {
-  return FASES_CATALOG.map(fase => ({
+  return FASES_FILTER_CATALOG.map(fase => ({
     id: fase.id,
     name: fase.name,
     value: fase.value

@@ -35,15 +35,15 @@ class DocumentoRequerido extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?: 'Id';
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
 
-            // Construir filtros
+            // Construir filtros (aceptar snake_case y PascalCase para compatibilidad FE/BE)
             $filters = [
-                'IdProcess' => $this->request->getGet('IdProcess'),
-                'IdAgency' => $this->request->getGet('IdAgency'),
-                'IdCustomerType' => $this->request->getGet('IdCustomerType'),
-                'IdOperationType' => $this->request->getGet('IdOperationType'),
-                'IdDocumentType' => $this->request->getGet('IdDocumentType'),
-                'Required' => $this->request->getGet('Required') !== null ? (int)$this->request->getGet('Required') : null,
-                'Enabled' => $this->request->getGet('Enabled') !== null ? (int)$this->request->getGet('Enabled') : null
+                'IdProcess' => $this->request->getGet('id_process') ?? $this->request->getGet('IdProcess'),
+                'IdAgency' => $this->request->getGet('id_agency') ?? $this->request->getGet('IdAgency'),
+                'IdCustomerType' => $this->request->getGet('id_customer_type') ?? $this->request->getGet('IdCustomerType'),
+                'IdOperationType' => $this->request->getGet('id_operation_type') ?? $this->request->getGet('IdOperationType'),
+                'IdDocumentType' => $this->request->getGet('id_document_type') ?? $this->request->getGet('IdDocumentType'),
+                'Required' => $this->request->getGet('required') !== null ? (int)$this->request->getGet('required') : ($this->request->getGet('Required') !== null ? (int)$this->request->getGet('Required') : null),
+                'Enabled' => $this->request->getGet('enabled') !== null ? (int)$this->request->getGet('enabled') : ($this->request->getGet('Enabled') !== null ? (int)$this->request->getGet('Enabled') : null)
             ];
             
             // Solo aplicar filtro de Enabled si se especifica explícitamente

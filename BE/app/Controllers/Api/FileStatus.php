@@ -32,7 +32,7 @@ class FileStatus extends BaseController
 
             // Obtener parámetros de consulta
             $search = $this->request->getGet('search');
-            $sortBy = $this->request->getGet('sort_by') ?? 'Name';
+            $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
             $builder = $this->db->table('file_status fs');
@@ -40,10 +40,14 @@ class FileStatus extends BaseController
 
             // Aplicar filtros de búsqueda
             if (!empty($search)) {
-                $builder->like('fs.Name', $search);
+                $builder->like('fs.name', $search);
             }
 
-            // Ordenamiento
+            // Ordenamiento (validar columnas permitidas)
+            $allowedSort = ['id', 'name', 'registration_date', 'update_date', 'enabled'];
+            if (!in_array($sortBy, $allowedSort)) {
+                $sortBy = 'name';
+            }
             $builder->orderBy("fs.$sortBy", $sortOrder);
 
             $results = $builder->get()->getResultArray();
@@ -85,8 +89,8 @@ class FileStatus extends BaseController
             $builder = $this->db->table('file_status fs');
             $builder->select('fs.*');
             // Filtrar solo las fases específicas requeridas (fases activas del proceso)
-            $builder->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación']);
-            $builder->orderBy('fs.Name', 'ASC');
+            $builder->whereIn('fs.name', ['Integración', 'Liquidación', 'Liberación']);
+            $builder->orderBy('fs.name', 'ASC');
 
             $results = $builder->get()->getResultArray();
 
@@ -133,7 +137,7 @@ class FileStatus extends BaseController
 
             $builder = $this->db->table('file_status fs');
             $builder->select('fs.*');
-            $builder->where('fs.Id', $id);
+            $builder->where('fs.id', $id);
 
             $result = $builder->get()->getRowArray();
 

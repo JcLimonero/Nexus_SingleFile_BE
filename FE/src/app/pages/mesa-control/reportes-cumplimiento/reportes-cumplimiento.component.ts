@@ -52,6 +52,10 @@ export class ReportesCumplimientoComponent implements OnInit {
   loadingResumen = false;
 
   expedientesAlerta: ExpedienteAlertaPld[] = [];
+  pageSizeExpedientesAlerta = 10;
+  pageIndexExpedientesAlerta = 0;
+  totalExpedientesAlerta = 0;
+  pageSizeOptionsExpedientesAlerta = [10, 25, 50, 100];
   resumenGrupos: ResumenRazonSocialAgencia[] = [];
   /** Resumen agrupado por razón social (calculado al recibir datos, no en getter para evitar loop) */
   resumenPorRazonSocial: { razonSocial: string; agencias: ResumenRazonSocialAgencia[]; totalRazonSocial: number }[] = [];
@@ -221,20 +225,34 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.reportesService.getExpedientesAlertaPld({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
       idCompany: this.filterCompania ?? undefined,
-      limit: 100,
-      offset: 0
+      limit: this.pageSizeExpedientesAlerta,
+      offset: this.pageIndexExpedientesAlerta * this.pageSizeExpedientesAlerta
     }).subscribe({
       next: (res) => {
         if (res.success && res.data?.expedientes) {
           this.expedientesAlerta = res.data.expedientes;
           this.dataSourceExpedientes.data = res.data.expedientes;
+          this.totalExpedientesAlerta = res.data.total ?? 0;
+        } else {
+          this.expedientesAlerta = [];
+          this.dataSourceExpedientes.data = [];
+          this.totalExpedientesAlerta = 0;
         }
         this.loadingExpedientes = false;
       },
       error: () => {
+        this.expedientesAlerta = [];
+        this.dataSourceExpedientes.data = [];
+        this.totalExpedientesAlerta = 0;
         this.loadingExpedientes = false;
       }
     });
+  }
+
+  onPageChangeExpedientesAlerta(event: PageEvent): void {
+    this.pageSizeExpedientesAlerta = event.pageSize;
+    this.pageIndexExpedientesAlerta = event.pageIndex;
+    this.loadExpedientesAlerta();
   }
 
   loadExpedientesSinAviso(): void {
@@ -418,6 +436,7 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadDocumentosPendientes();
     this.pageIndexSinBeneficiario = 0;
     this.pageIndexSinAviso = 0;
+    this.pageIndexExpedientesAlerta = 0;
     this.loadExpedientesSinBeneficiario();
     this.loadExpedientesSinAviso();
   }

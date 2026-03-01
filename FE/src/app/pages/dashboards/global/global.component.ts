@@ -20,7 +20,7 @@ import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { Cliente, FiltrosValidacion, ValidacionService } from '../../mesa-control/validacion/validacion.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
-import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
+import { FASES_FILTER_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { AuthService } from '../../../core/services/auth.service';
 import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/global-documentos-dialog.component';
 
@@ -52,7 +52,7 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
 export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   agencias: any[] = [];
   procesos: any[] = [];
-  fases: CatalogItem[] = FASES_CATALOG;
+  fases: CatalogItem[] = FASES_FILTER_CATALOG;
 
   selectedAgency: number | null = null;
   selectedProcess: number | null = null;

@@ -39,8 +39,7 @@ export class CambiarEstatusDialogComponent implements OnInit {
   fasesDisponibles = [
     { nombre: 'Integración', id: 1 },
     { nombre: 'Liquidación', id: 2 },
-    { nombre: 'Liberación', id: 3 },
-    { nombre: 'Liberado', id: 4 }
+    { nombre: 'Liberación', id: 3 }
   ];
   
   faseSeleccionada: number | null = null;
