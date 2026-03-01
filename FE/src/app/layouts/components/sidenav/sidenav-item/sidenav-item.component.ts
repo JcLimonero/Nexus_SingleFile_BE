@@ -28,6 +28,7 @@ import { NavigationService } from '../../../../core/navigation/navigation.servic
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -44,6 +45,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     RouterLinkActive,
     RouterLink,
     MatIconModule,
+    MatTooltipModule,
     NgClass,
     NgFor
   ]
@@ -51,6 +53,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class SidenavItemComponent implements OnInit, OnChanges {
   @Input({ required: true }) item!: NavigationItem;
   @Input({ required: true }) level!: number;
+  @Input() collapsed = false;
   isOpen: boolean = false;
   isActive: boolean = false;
 

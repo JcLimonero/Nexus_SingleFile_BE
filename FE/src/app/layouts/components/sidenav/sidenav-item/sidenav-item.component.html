@@ -3,6 +3,8 @@
   [fragment]="item.fragment"
   [routerLinkActiveOptions]="item.routerLinkActiveOptions || { exact: false }"
   [routerLink]="item.route"
+  [matTooltip]="collapsed ? item.label : ''"
+  matTooltipPosition="right"
   (click)="onLinkClick()"
   class="vex-sidenav-item"
   matRipple
@@ -24,6 +26,8 @@
 <div
   (click)="item.route()"
   *ngIf="isLink(item) && isFunction(item.route)"
+  [matTooltip]="collapsed ? item.label : ''"
+  matTooltipPosition="right"
   class="vex-sidenav-item"
   matRipple
   matRippleColor="var(--vex-sidenav-item-ripple-color)"
@@ -44,6 +48,8 @@
 <ng-container *ngIf="isDropdown(item)">
   <div
     (click)="toggleOpen()"
+    [matTooltip]="collapsed ? item.label : ''"
+    matTooltipPosition="right"
     [class.vex-sidenav-item--active]="isOpen || isActive"
     [class.vex-sidenav-item--open]="isOpen"
     class="vex-sidenav-item"
@@ -68,7 +74,8 @@
     <vex-sidenav-item
       *ngFor="let subItem of item.children"
       [item]="subItem"
-      [level]="level + 1"></vex-sidenav-item>
+      [level]="level + 1"
+      [collapsed]="collapsed"></vex-sidenav-item>
   </div>
 </ng-container>
 
@@ -77,5 +84,6 @@
   <vex-sidenav-item
     *ngFor="let subItem of item.children"
     [item]="subItem"
-    [level]="0"></vex-sidenav-item>
+    [level]="0"
+    [collapsed]="collapsed"></vex-sidenav-item>
 </ng-container>

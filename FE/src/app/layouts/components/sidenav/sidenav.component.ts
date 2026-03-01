@@ -10,7 +10,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { SearchModalComponent } from './search-modal/search-modal.component';
 import { SidenavItemComponent } from './sidenav-item/sidenav-item.component';
-import { AppScrollbarComponent } from '../app-scrollbar/app-scrollbar.component';
 import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +30,6 @@ import { BrandingService } from '../../../core/services/branding.service';
     MatIconModule,
     MatRippleModule,
     MatMenuModule,
-    AppScrollbarComponent,
     NgFor,
     SidenavItemComponent,
     SidenavUserMenuComponent,

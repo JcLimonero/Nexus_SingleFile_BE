@@ -45,12 +45,13 @@
 
   <div class="vex-sidenav-toolbar__divider vex-sidenav-toolbar__divider--header"></div>
 
-  <app-scrollbar class="flex-1 flex flex-col">
-    <div class="flex-1 vex-sidenav-nav">
+  <div class="vex-sidenav-scroll">
+    <div class="vex-sidenav-nav">
       <vex-sidenav-item
         *ngFor="let item of items$ | async; trackBy: trackByRoute"
         [item]="item"
-        [level]="0"></vex-sidenav-item>
+        [level]="0"
+        [collapsed]="collapsed"></vex-sidenav-item>
     </div>
-  </app-scrollbar>
+  </div>
 </div>

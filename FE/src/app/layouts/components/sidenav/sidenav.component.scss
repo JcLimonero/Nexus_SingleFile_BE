@@ -1,4 +1,4 @@
-/** Sidebar estilo imagen: fondo blanco, minimalista, colapsable */
+/** Sidebar compatible con Safari: scroll nativo, flexbox estándar */
 .vex-sidenav {
   --vex-sidenav-sidebar-bg: #FFFFFF;
   --vex-sidenav-sidebar-border: #E5E2E1;
@@ -7,9 +7,12 @@
   --vex-sidenav-sidebar-hover: #F5F5F5;
   --vex-sidenav-sidebar-active: #F0F0F0;
 
+  display: flex;
+  flex-direction: column;
   background: var(--vex-sidenav-sidebar-bg);
   color: var(--vex-sidenav-sidebar-text);
   height: 100%;
+  min-height: 0;
   @apply transition-all duration-400 ease-out-swift;
   width: var(--vex-sidenav-width);
   border-right: 1px solid var(--vex-sidenav-sidebar-border);
@@ -37,14 +40,14 @@
         display: none;
       }
 
-      // Items centrados, solo icono
+      // Items compactos: icono centrado, menos padding para aprovechar espacio
       .vex-sidenav-item {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 4px 4px;
-        min-height: 44px;
-        gap: 1px;
+        padding: 6px 4px;
+        min-height: 36px;
+        gap: 0;
       }
 
       // Ocultar lo que no cabe en icon-bar
@@ -120,6 +123,7 @@
         }
 
         .vex-sidenav-item__label {
+          display: block !important;
           font-size: 14px;
           font-weight: 400;
           text-align: left;
@@ -143,36 +147,29 @@
         justify-content: center;
       }
 
-      .simplebar-track.simplebar-vertical {
-        visibility: hidden !important;
-      }
-
-      .simplebar-content-wrapper {
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-      }
-
-      .simplebar-content {
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100% !important;
-        padding: 8px 0 !important;
-
-        > div {
-          display: flex !important;
-          flex-direction: column !important;
-          justify-content: space-evenly !important;
-          height: 100% !important;
-        }
+      .vex-sidenav-nav {
+        gap: 2px;
       }
     }
   }
 
+  /** Contenedor de scroll nativo - compatible con Safari/iOS */
+  .vex-sidenav-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 0;
+  }
+
+  .vex-sidenav-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
   ::ng-deep {
-    .simplebar-track.simplebar-horizontal {
-      visibility: hidden !important;
-    }
 
     /** Items con tema claro (como la imagen) */
     .vex-sidenav-item {
@@ -354,14 +351,14 @@
   font-weight: 500;
 }
 
-/** Colapsado: centrar logo y search */
+/** Colapsado: centrar logo y search, reducir espacio */
 .vex-sidenav.collapsed .vex-sidenav-header {
-  padding: 12px 8px;
+  padding: 10px 8px 8px;
 }
 
 .vex-sidenav.collapsed .vex-sidenav-header__top {
   flex-direction: column;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .vex-sidenav.collapsed .vex-sidenav-logo {
