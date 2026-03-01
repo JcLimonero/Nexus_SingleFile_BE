@@ -166,10 +166,6 @@
         </div>
       </div>
 
-      <!-- Contador de resultados de búsqueda -->
-      <div class="text-xs text-gray-500 mt-1 px-1" *ngIf="searchTerm">
-        Mostrando {{ clientesDataSource.data.length }} de {{ totalRecords }} registros
-      </div>
       </mat-card-content>
     </mat-card>
   </div>
@@ -421,7 +417,7 @@
           <div *ngIf="selectedCliente && !loadingDocumentos">
             <!-- Información de documentos: cliente, pedido, VIN, modelo y año (OrderByCar) -->
             <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span>Mostrando {{ documentosDataSource.length }} documentos para el cliente <strong>{{ selectedCliente.cliente }}</strong></span>
+              <span><strong>Cliente:</strong> {{ selectedCliente.cliente }}</span>
               <span class="text-gray-500">|</span>
               <span><strong>Pedido:</strong> {{ selectedCliente.ndPedido }}</span>
               <span class="text-gray-700"><strong>VIN:</strong> {{ selectedCliente.vin || '—' }}</span>

@@ -65,15 +65,14 @@
     </mat-card>
   </div>
 
-  <!-- Tabla -->
-  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto">
-    <div class="relative">
-      <!-- Loading spinner -->
-      <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-        <mat-spinner diameter="40"></mat-spinner>
-      </div>
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="flex justify-center items-center py-8">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
 
-      <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto" *ngIf="!loading">
+    <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna ID -->
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -170,8 +169,4 @@
     </mat-paginator>
   </div>
 
-  <!-- Contador de resultados -->
-  <div class="mt-4 text-sm text-gray-600 text-center" *ngIf="!loading && dataSource && dataSource.data">
-    Mostrando {{ pageRangeText }} de {{ dataSource.filteredData.length }} motivos visibles ({{ totalReasons }} total)
-  </div>
 </div>

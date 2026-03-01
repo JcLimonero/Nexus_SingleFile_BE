@@ -61,11 +61,6 @@
 
         <!-- Tabla de Configuraciones Agrupadas -->
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <!-- Información de registros -->
-          <div *ngIf="!loadingConfiguraciones && dataSourceConfiguraciones.data.length > 0" class="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
-            Mostrando {{ getPageRangeConfiguraciones() }} de {{ dataSourceConfiguraciones.data.length }} configuraciones
-          </div>
-          
           <div class="relative overflow-x-auto">
             <!-- Loading Spinner -->
             <div *ngIf="loadingConfiguraciones" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
@@ -312,11 +307,6 @@
 
         <!-- Tabla -->
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <!-- Información de registros -->
-          <div *ngIf="!loading && totalDocumentos > 0" class="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
-            Mostrando {{ getPageRangeDocumentos() }} de {{ totalDocumentos }} registros
-          </div>
-          
           <div class="relative overflow-x-auto">
             <!-- Loading Spinner -->
             <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">

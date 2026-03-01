@@ -86,7 +86,7 @@ export class ReportesCumplimientoComponent implements OnInit {
   filterAnio: number | null = new Date().getFullYear();
   aniosDisponibles: number[] = [new Date().getFullYear() + 1, new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2];
 
-  displayedColumnsExpedientes = ['ndCliente', 'cliente', 'totalMonto', 'anio'];
+  displayedColumnsExpedientes = ['ndCliente', 'cliente', 'totalMonto'];
   dataSourceExpedientes = new MatTableDataSource<ExpedienteAlertaPld>([]);
 
   constructor(
@@ -169,8 +169,6 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadCompanies();
     this.loadDashboard();
     this.loadExpedientesAlerta();
-    this.loadResumenPorAgencia();
-    this.loadDocumentosPendientes();
     this.loadExpedientesSinBeneficiario();
     this.loadExpedientesSinAviso();
   }
@@ -432,8 +430,6 @@ export class ReportesCumplimientoComponent implements OnInit {
     }
     this.loadDashboard();
     this.loadExpedientesAlerta();
-    this.loadResumenPorAgencia();
-    this.loadDocumentosPendientes();
     this.pageIndexSinBeneficiario = 0;
     this.pageIndexSinAviso = 0;
     this.pageIndexExpedientesAlerta = 0;

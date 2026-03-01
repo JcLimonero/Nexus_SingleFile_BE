@@ -10,7 +10,9 @@ export interface ReporteCumplimientoDashboard {
   expedientesSinBeneficiario?: number;
   expedientesSinAviso?: number;
   umbralAml: number;
-  anio: number;
+  periodoMeses?: number;
+  umbralUMA?: number;
+  anio?: number;
 }
 
 export interface ExpedienteSinBeneficiario {
@@ -30,7 +32,6 @@ export interface ExpedienteAlertaPld {
   cliente: string;
   totalMonto: number;
   idCompany: number;
-  anio: number;
 }
 
 export interface ResumenRazonSocialAgencia {

@@ -154,7 +154,6 @@
                   class="export-menu-item">
                   <mat-icon class="menu-item-icon">table_chart</mat-icon>
                   <span class="menu-item-text">Exportar Página Actual</span>
-                  <span class="menu-item-count">({{ dataSource.data.length }} registros)</span>
                 </button>
                 <button 
                   (click)="exportAllLogs()"
@@ -162,7 +161,6 @@
                   class="export-menu-item">
                   <mat-icon class="text-sm">cloud_download</mat-icon>
                   <span class="menu-item-text">Exportar Todos los Logs</span>
-                  <span class="menu-item-count">({{ totalLogs }} total)</span>
                 </button>
                 <div class="export-menu-divider"></div>
                 <button 
@@ -183,8 +181,13 @@
     </mat-card>
   </div>
 
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="flex justify-center items-center py-8">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
   <!-- Tabla -->
-  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto">
+  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto" *ngIf="!loading">
     <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna Timestamp -->
       <ng-container matColumnDef="timestamp">
@@ -260,11 +263,6 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="!min-h-0 !h-8"></tr>
     </table>
-
-    <!-- Loading spinner -->
-    <div *ngIf="loading" class="flex justify-center items-center py-8">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
 
     <!-- Mensaje cuando no hay datos -->
     <div *ngIf="!loading && dataSource.data.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-500">

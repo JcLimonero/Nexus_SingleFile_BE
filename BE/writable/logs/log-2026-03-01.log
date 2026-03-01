@@ -3483,3 +3483,63 @@ Stack trace:
 #10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
 #11 {main}
 ERROR - 2026-03-01 22:37:59 --> ReportesCumplimiento::expedientesSinAviso - Unknown column 'fp.id_file' in 'where clause'
+ERROR - 2026-03-01 23:27:38 --> mysqli_sql_exception: Table 'nexfile.view_client_company_amount_6m' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(DI...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(DI...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(DI...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(596): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(DI...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->dashboard()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 23:27:38 --> ReportesCumplimiento::dashboard - Table 'nexfile.view_client_company_amount_6m' doesn't exist
+ERROR - 2026-03-01 23:27:39 --> mysqli_sql_exception: Table 'nexfile.view_client_company_amount_6m' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(107): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 23:27:39 --> ReportesCumplimiento::expedientesAlertaPld - Table 'nexfile.view_client_company_amount_6m' doesn't exist
+ERROR - 2026-03-01 23:28:36 --> mysqli_sql_exception: Table 'nexfile.view_client_company_amount_6m' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(DI...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(DI...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(DI...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(596): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(DI...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->dashboard()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 23:28:36 --> ReportesCumplimiento::dashboard - Table 'nexfile.view_client_company_amount_6m' doesn't exist
+ERROR - 2026-03-01 23:28:37 --> mysqli_sql_exception: Table 'nexfile.view_client_company_amount_6m' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(107): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 23:28:37 --> ReportesCumplimiento::expedientesAlertaPld - Table 'nexfile.view_client_company_amount_6m' doesn't exist

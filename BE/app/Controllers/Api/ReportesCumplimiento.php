@@ -66,9 +66,8 @@ class ReportesCumplimiento extends BaseController
 
         try {
             $amlConfig = config(AML::class);
-            $umbral = (float) $amlConfig->umbralAnualPorCompania;
+            $umbral = $amlConfig->getUmbralMonto();
             $vistaAML = $amlConfig->vistaMontos;
-            $anioActual = (int) date('Y');
             $idAgencyIds = $this->parseIdAgencyIds();
             $idCompany = $this->request->getGet('idCompany');
             $limit = (int) ($this->request->getGet('limit') ?: 200);
@@ -81,17 +80,16 @@ class ReportesCumplimiento extends BaseController
                     MIN(ctr.id_dms) as ndCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     aml.totalMonto,
-                    aml.idCompany,
-                    aml.anio
+                    aml.idCompany
                 FROM client c
                 INNER JOIN client_header hc ON hc.id_client = c.id
                 INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
                 INNER JOIN agency a_ag ON a_ag.id = ctr.id_agency
-                INNER JOIN {$vistaAML} aml ON aml.idCliente = c.id AND aml.anio = ? AND aml.totalMonto >= ?
+                INNER JOIN {$vistaAML} aml ON aml.idCliente = c.id AND aml.totalMonto >= ?
                 INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
                 WHERE 1=1
             ";
-            $params = [$anioActual, $umbral];
+            $params = [$umbral];
 
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
@@ -124,7 +122,7 @@ class ReportesCumplimiento extends BaseController
                     'limit' => $limit,
                     'offset' => $offset,
                     'umbral' => $umbral,
-                    'anio' => $anioActual
+                    'periodoMeses' => $amlConfig->periodoMeses
                 ]
             ]);
         } catch (\Exception $e) {
@@ -584,14 +582,13 @@ class ReportesCumplimiento extends BaseController
 
         try {
             $amlConfig = config(AML::class);
-            $umbral = (float) $amlConfig->umbralAnualPorCompania;
+            $umbral = $amlConfig->getUmbralMonto();
             $vistaAML = $amlConfig->vistaMontos;
-            $anioActual = (int) date('Y');
             $idCompany = $this->request->getGet('idCompany');
 
-            // Conteo de clientes con alerta AML
-            $sqlAml = "SELECT COUNT(DISTINCT idCliente) as total FROM {$vistaAML} WHERE anio = ? AND totalMonto >= ?";
-            $paramsAml = [$anioActual, $umbral];
+            // Conteo de clientes con alerta AML (últimos 6 meses, umbral 3210 UMA)
+            $sqlAml = "SELECT COUNT(DISTINCT idCliente) as total FROM {$vistaAML} WHERE totalMonto >= ?";
+            $paramsAml = [$umbral];
             if ($idCompany !== null && $idCompany !== '') {
                 $sqlAml .= " AND idCompany = ?";
                 $paramsAml[] = (int) $idCompany;
@@ -664,7 +661,9 @@ class ReportesCumplimiento extends BaseController
                     'expedientesSinBeneficiario' => $expedientesSinBeneficiario,
                     'expedientesSinAviso' => $expedientesSinAviso,
                     'umbralAml' => $umbral,
-                    'anio' => $anioActual
+                    'periodoMeses' => $amlConfig->periodoMeses,
+                    'umbralUMA' => $amlConfig->umbralUMA,
+                    'anio' => (int) date('Y')
                 ]
             ]);
         } catch (\Exception $e) {

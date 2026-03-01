@@ -65,8 +65,13 @@
     </mat-card>
   </div>
 
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="flex justify-center items-center py-8">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
   <!-- Tabla -->
-  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto">
+  <div class="bg-white rounded-lg shadow-sm border overflow-x-auto" *ngIf="!loading">
     <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna ID -->
       <ng-container matColumnDef="id">
@@ -140,10 +145,5 @@
       showFirstLastButtons
       class="border-t">
     </mat-paginator>
-  </div>
-
-  <!-- Contador de resultados -->
-  <div class="mt-4 text-sm text-gray-600 text-center">
-    Mostrando {{ getPageRange() }} de {{ dataSource.filteredData.length }} tipos de operación visibles ({{ tiposOperacion.length }} total)
   </div>
 </div>

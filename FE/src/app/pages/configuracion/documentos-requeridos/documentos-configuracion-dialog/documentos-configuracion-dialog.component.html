@@ -17,10 +17,6 @@
 
   <!-- Tabla de Documentos -->
   <div class="bg-white rounded-lg shadow-sm border overflow-hidden mb-4">
-    <div *ngIf="dataSource.length > 0" class="px-4 py-2 bg-gray-50 border-b text-sm text-gray-600">
-      Mostrando {{ dataSource.length }} documento(s)
-    </div>
-
     <div *ngIf="dataSource.length === 0" class="text-center py-8">
       <mat-icon class="text-gray-400 text-6xl mb-4">description</mat-icon>
       <p class="text-gray-500 text-lg">No hay documentos configurados</p>

@@ -1,6 +1,6 @@
 <div class="reportes-cumplimiento min-h-screen bg-gray-50 p-4">
    <!-- Dashboard resumen -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
     <mat-card *ngIf="loadingDashboard" class="col-span-full flex justify-center items-center p-8">
       <mat-spinner diameter="40"></mat-spinner>
     </mat-card>
@@ -11,7 +11,7 @@
           <div>
             <p class="text-sm text-gray-500">Clientes en alerta PLD</p>
             <p class="text-2xl font-bold">{{ dashboard.clientesAlertaAml }}</p>
-            <p class="text-xs text-gray-400">Superan umbral {{ formatCurrency(dashboard.umbralAml) }}/año</p>
+            <p class="text-xs text-gray-400">Superan umbral {{ formatCurrency(dashboard.umbralAml) }} (3210 UMA / 6 meses)</p>
           </div>
         </div>
       </mat-card-content>
@@ -23,17 +23,6 @@
           <div>
             <p class="text-sm text-gray-500">Expedientes activos {{ dashboard.anio }}</p>
             <p class="text-2xl font-bold">{{ dashboard.expedientesActivos }}</p>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card *ngIf="dashboard && !loadingDashboard">
-      <mat-card-content>
-        <div class="flex items-center gap-3">
-          <mat-icon class="text-orange-600" style="font-size: 36px; width: 36px; height: 36px;">description</mat-icon>
-          <div>
-            <p class="text-sm text-gray-500">Documentos pendientes</p>
-            <p class="text-2xl font-bold">{{ dashboard.documentosPendientes }}</p>
           </div>
         </div>
       </mat-card-content>
@@ -117,53 +106,10 @@
 
   <!-- Tabs de reportes -->
   <mat-tab-group animationDuration="0ms">
-    <mat-tab label="Resumen por razón social">
-      <div class="resumen-razon-social mt-4">
-        <div class="resumen-header mb-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-1">Resumen por razón social</h2>
-          <p class="text-sm text-gray-500">Expedientes agrupados por razón social y agencia en {{ filterAnio }}</p>
-        </div>
-        <div *ngIf="loadingResumen" class="flex justify-center p-12">
-          <mat-spinner diameter="48"></mat-spinner>
-        </div>
-        <mat-accordion *ngIf="!loadingResumen && resumenPorRazonSocial.length" class="resumen-grupos" multi="true">
-          <mat-expansion-panel *ngFor="let grupo of resumenPorRazonSocial" class="resumen-panel">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <mat-icon class="resumen-panel-icon">business</mat-icon>
-                <span class="resumen-panel-titulo">{{ grupo.razonSocial }}</span>
-              </mat-panel-title>
-              <mat-panel-description>
-                {{ grupo.totalRazonSocial }} expedientes · {{ grupo.agencias.length }} agencia{{ grupo.agencias.length !== 1 ? 's' : '' }}
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <div class="resumen-panel-content">
-              <div *ngFor="let ag of grupo.agencias" class="agencia-row">
-                <div class="agencia-header">
-                  <mat-icon class="agencia-icon">store</mat-icon>
-                  <span class="agencia-nombre">{{ ag.nombreAgencia }}</span>
-                  <span class="agencia-total">{{ ag.total }}</span>
-                </div>
-                <div class="estados-grid">
-                  <div *ngFor="let e of ag.porEstado" class="estado-chip">
-                    <span class="estado-nombre">{{ e.nombreEstado }}</span>
-                    <span class="estado-valor">{{ e.total }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-        <div *ngIf="!loadingResumen && !resumenGrupos.length" class="resumen-empty">
-          <mat-icon>folder_off</mat-icon>
-          <p>Sin datos para el año seleccionado</p>
-        </div>
-      </div>
-    </mat-tab>
     <mat-tab label="Expedientes en alerta PLD">
       <mat-card class="mt-4">
         <mat-card-content>
-          <p class="text-sm text-gray-500 mb-4">Clientes cuyas operaciones superan el umbral anual por razón social.</p>
+          <p class="text-sm text-gray-500 mb-4">Clientes cuyas operaciones superan 3210 UMA en los últimos 6 meses por razón social.</p>
           <div *ngIf="loadingExpedientes" class="flex justify-center p-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
@@ -179,10 +125,6 @@
             <ng-container matColumnDef="totalMonto">
               <th mat-header-cell *matHeaderCellDef>Monto total (MXN)</th>
               <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalMonto) }}</td>
-            </ng-container>
-            <ng-container matColumnDef="anio">
-              <th mat-header-cell *matHeaderCellDef>Año</th>
-              <td mat-cell *matCellDef="let row">{{ row.anio }}</td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumnsExpedientes"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumnsExpedientes;"></tr>
@@ -204,49 +146,6 @@
           </mat-paginator>
         </mat-card-content>
       </mat-card>
-    </mat-tab>
-    <mat-tab label="Documentos pendientes">
-      <div class="resumen-razon-social mt-4">
-        <div class="resumen-header mb-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-1">Documentos pendientes</h2>
-          <p class="text-sm text-gray-500">Documentos con estatus pendiente de validación (1, 2, 3) agrupados por razón social y agencia. Expedientes no cancelados.</p>
-        </div>
-        <div *ngIf="loadingDocumentos" class="flex justify-center p-12">
-          <mat-spinner diameter="48"></mat-spinner>
-        </div>
-        <mat-accordion *ngIf="!loadingDocumentos && documentosPorRazonSocial.length" class="resumen-grupos" multi="true">
-          <mat-expansion-panel *ngFor="let grupo of documentosPorRazonSocial" class="resumen-panel">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <mat-icon class="resumen-panel-icon">business</mat-icon>
-                <span class="resumen-panel-titulo">{{ grupo.razonSocial }}</span>
-              </mat-panel-title>
-              <mat-panel-description>
-                {{ grupo.totalRazonSocial }} documentos pendientes · {{ grupo.agencias.length }} agencia{{ grupo.agencias.length !== 1 ? 's' : '' }}
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <div class="resumen-panel-content">
-              <div *ngFor="let ag of grupo.agencias" class="agencia-row">
-                <div class="agencia-header">
-                  <mat-icon class="agencia-icon">store</mat-icon>
-                  <span class="agencia-nombre">{{ ag.nombreAgencia }}</span>
-                  <span class="agencia-total">{{ ag.total }}</span>
-                </div>
-                <div class="estados-grid">
-                  <div *ngFor="let e of ag.porEstatus" class="estado-chip">
-                    <span class="estado-nombre">{{ e.nombreEstatus || 'Sin estatus' }}</span>
-                    <span class="estado-valor">{{ e.total }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-        <div *ngIf="!loadingDocumentos && !documentosPorRazonSocial.length" class="resumen-empty">
-          <mat-icon>check_circle</mat-icon>
-          <p>No hay documentos pendientes de validación</p>
-        </div>
-      </div>
     </mat-tab>
     <mat-tab label="Expedientes sin beneficiario">
       <mat-card class="mt-4">

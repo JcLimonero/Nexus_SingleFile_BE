@@ -151,9 +151,4 @@
       class="border-t">
     </mat-paginator>
   </div>
-
-  <!-- Contador de resultados -->
-  <div class="mt-4 text-sm text-gray-600 text-center" *ngIf="!loading && dataSource && dataSource.data">
-    Mostrando {{ pageRangeText }} de {{ (dataSource.filteredData.length || dataSource.data.length) }} tipos de cliente visibles ({{ tiposCliente.length || 0 }} total)
-  </div>
 </div>

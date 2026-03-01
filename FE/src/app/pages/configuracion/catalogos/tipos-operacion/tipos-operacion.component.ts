@@ -48,6 +48,7 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
   loading = false;
   searchTerm = '';
   statusFilter = '';
+  pageRangeText = '0-0';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -65,6 +66,9 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    if (this.paginator) {
+      this.paginator.page.subscribe(() => this.updatePageRange());
+    }
 
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: TipoOperacion, filter: string) => {
@@ -81,10 +85,12 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
           this.tiposOperacion = response.data.operation_types ?? response.data.operationTypes ?? [];
           this.dataSource.data = this.tiposOperacion;
           this.applyFilter();
+          this.updatePageRange();
         } else {
           this.snackBar.open(response.message || 'Error al cargar tipos de operación', 'Error', {
             duration: 3000
           });
+          this.pageRangeText = '0-0';
         }
         this.loading = false;
       },
@@ -92,6 +98,7 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
         this.snackBar.open('Error al cargar tipos de operación', 'Error', {
           duration: 3000
         });
+        this.pageRangeText = '0-0';
         this.loading = false;
       }
     });
@@ -117,6 +124,17 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.updatePageRange();
+  }
+
+  private updatePageRange(): void {
+    if (!this.paginator || this.dataSource.filteredData.length === 0) {
+      this.pageRangeText = '0-0';
+      return;
+    }
+    const startIndex = this.paginator.pageIndex * this.paginator.pageSize + 1;
+    const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, this.dataSource.filteredData.length);
+    this.pageRangeText = `${startIndex}-${endIndex}`;
   }
 
   refreshData(): void {
@@ -196,14 +214,4 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     }
   }
 
-  getPageRange(): string {
-    if (!this.paginator || this.dataSource.filteredData.length === 0) {
-      return '0-0';
-    }
-    
-    const startIndex = this.paginator.pageIndex * this.paginator.pageSize + 1;
-    const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, this.dataSource.filteredData.length);
-    
-    return `${startIndex}-${endIndex}`;
-  }
 }

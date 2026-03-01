@@ -49,9 +49,8 @@ class Client extends BaseController
             $offset = max(0, $offset);
 
             $amlConfig = config(AML::class);
-            $umbral = (float) $amlConfig->umbralAnualPorCompania;
+            $umbral = $amlConfig->getUmbralMonto();
             $vistaAML = $amlConfig->vistaMontos;
-            $anioActual = (int) date('Y');
 
             $sql = "
                 SELECT
@@ -61,7 +60,7 @@ class Client extends BaseController
                     MIN(hc.id) as idClientHeader,
                     (EXISTS (
                         SELECT 1 FROM {$vistaAML} aml
-                        WHERE aml.idCliente = c.id AND aml.anio = ? AND aml.totalMonto >= ?
+                        WHERE aml.idCliente = c.id AND aml.totalMonto >= ?
                     )) as excedeUmbralAML
                 FROM client c
                 INNER JOIN client_header hc ON hc.id_client = c.id
@@ -69,7 +68,7 @@ class Client extends BaseController
                 INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
                 WHERE 1=1
             ";
-            $params = [$anioActual, $umbral];
+            $params = [$umbral];
 
             if ($idAgency !== null && $idAgency !== '') {
                 $sql .= " AND ctr.id_agency = ?";
@@ -79,9 +78,8 @@ class Client extends BaseController
             if ($onlyAmlUmbral) {
                 $sql .= " AND EXISTS (
                     SELECT 1 FROM {$vistaAML} aml2
-                    WHERE aml2.idCliente = c.id AND aml2.anio = ? AND aml2.totalMonto >= ?
+                    WHERE aml2.idCliente = c.id AND aml2.totalMonto >= ?
                 )";
-                $params[] = $anioActual;
                 $params[] = $umbral;
             }
 
