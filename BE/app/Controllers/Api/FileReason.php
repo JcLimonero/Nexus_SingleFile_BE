@@ -87,16 +87,15 @@ class FileReason extends BaseController
         try {
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (empty($data['Name'])) {
+            $name = $data['name'] ?? $data['Name'] ?? null;
+            if (empty($name)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El nombre del motivo es requerido'
                 ])->setStatusCode(400);
             }
 
-            // Verificar si ya existe un motivo con el mismo nombre
-            $existingReason = $this->fileReasonModel->getFileReasonByName($data['Name']);
+            $existingReason = $this->fileReasonModel->getFileReasonByName($name);
             if ($existingReason) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -104,26 +103,25 @@ class FileReason extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Generar ID único
-            $data['Id'] = $this->generateUniqueId();
+            $insertData = [
+                'name' => trim($name),
+                'id_type_reason' => $data['id_type_reason'] ?? $data['IdTypeReason'] ?? 0,
+                'enabled' => $data['enabled'] ?? $data['Enabled'] ?? 1,
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $data['id_last_user_update'] ?? $data['IdLastUserUpdate'] ?? 0
+            ];
             
-            // Establecer valores por defecto
-            $data['Enabled'] = $data['Enabled'] ?? 1;
-            $data['RegistrationDate'] = date('Y-m-d H:i:s');
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
-            $data['IdLastUserUpdate'] = $data['IdLastUserUpdate'] ?? 0;
-            
-            // Insertar el nuevo motivo
-            $result = $this->fileReasonModel->insert($data);
+            $result = $this->fileReasonModel->insert($insertData);
             
             if ($result) {
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Motivo creado exitosamente',
                     'data' => [
-                        'id' => $data['Id'],
-                        'name' => $data['Name'],
-                        'id_type_reason' => $data['IdTypeReason'] ?? 0
+                        'id' => $result,
+                        'name' => $name,
+                        'id_type_reason' => $insertData['id_type_reason']
                     ]
                 ])->setStatusCode(201);
             } else {
@@ -196,15 +194,14 @@ class FileReason extends BaseController
 
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (empty($data['Name'])) {
+            $name = $data['name'] ?? $data['Name'] ?? null;
+            if (empty($name)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El nombre del motivo es requerido'
                 ])->setStatusCode(400);
             }
 
-            // Verificar si existe el motivo
             $existingReason = $this->fileReasonModel->find($id);
             if (!$existingReason) {
                 return $this->response->setJSON([
@@ -213,9 +210,8 @@ class FileReason extends BaseController
                 ])->setStatusCode(404);
             }
 
-            // Verificar si ya existe otro motivo con el mismo nombre
-            $duplicateReason = $this->fileReasonModel->where('Name', $data['Name'])
-                                                    ->where('Id !=', $id)
+            $duplicateReason = $this->fileReasonModel->where('name', $name)
+                                                    ->where('id !=', $id)
                                                     ->first();
             if ($duplicateReason) {
                 return $this->response->setJSON([
@@ -224,11 +220,15 @@ class FileReason extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Actualizar fecha de modificación
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
+            $updatePayload = [
+                'name' => trim($name),
+                'id_type_reason' => $data['id_type_reason'] ?? $data['IdTypeReason'] ?? $existingReason['id_type_reason'] ?? $existingReason['IdTypeReason'] ?? 0,
+                'enabled' => $data['enabled'] ?? $data['Enabled'] ?? $existingReason['enabled'] ?? $existingReason['Enabled'] ?? 1,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $data['id_last_user_update'] ?? $data['IdLastUserUpdate'] ?? 0
+            ];
             
-            // Actualizar el motivo de rechazo
-            $result = $this->fileReasonModel->update($id, $data);
+            $result = $this->fileReasonModel->update($id, $updatePayload);
             
             if ($result) {
                 // Obtener el motivo actualizado para devolver todos los campos
@@ -287,7 +287,7 @@ class FileReason extends BaseController
                     'message' => 'Motivo eliminado exitosamente',
                     'data' => [
                         'id' => $id,
-                        'name' => $existingReason['Name']
+                        'name' => $existingReason['name'] ?? $existingReason['Name']
                     ]
                 ]);
             } else {
@@ -420,18 +420,18 @@ class FileReason extends BaseController
                 ])->setStatusCode(404);
             }
 
-            // Cambiar estado
             $result = $this->fileReasonModel->toggleStatus($id);
             
             if ($result) {
-                $newStatus = $existingReason['Enabled'] == 1 ? 0 : 1;
+                $enabled = $existingReason['enabled'] ?? $existingReason['Enabled'] ?? 1;
+                $newStatus = $enabled == 1 ? 0 : 1;
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Estado del motivo de rechazo cambiado exitosamente',
                     'data' => [
                         'id' => $id,
                         'enabled' => $newStatus,
-                        'previous_status' => $existingReason['Enabled']
+                        'previous_status' => $enabled
                     ]
                 ]);
             } else {
@@ -450,12 +450,4 @@ class FileReason extends BaseController
         }
     }
 
-    /**
-     * Generar ID único para el motivo de rechazo
-     */
-    private function generateUniqueId()
-    {
-        $maxId = $this->fileReasonModel->selectMax('Id')->first();
-        return ($maxId['Id'] ?? 0) + 1;
-    }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, of } from 'rxjs';
@@ -44,7 +44,11 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
   error: string | null = null;
   totalCases = 0;
 
-  constructor(private analyticsService: AnalyticsService, private dialog: MatDialog) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -83,6 +87,7 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
             this.totalCases = 0;
           }
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
 
@@ -90,6 +95,7 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
           this.attentionData = [];
           this.totalCases = 0;
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }

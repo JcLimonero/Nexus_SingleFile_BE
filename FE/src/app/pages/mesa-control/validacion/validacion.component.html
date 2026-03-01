@@ -87,8 +87,8 @@
               <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
                 No hay agencias disponibles (debugging)
               </mat-option>
-              <mat-option *ngFor="let agencia of agencias; trackBy: trackByAgenciaId" [value]="agencia.Id">
-                {{ agencia.Name }}
+              <mat-option *ngFor="let agencia of agencias; trackBy: trackByAgenciaId" [value]="agencia.id ?? agencia.Id">
+                {{ agencia.name ?? agencia.Name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -104,8 +104,8 @@
                 No hay procesos disponibles
               </mat-option>
               <mat-option [value]="0">Todos los procesos</mat-option>
-              <mat-option *ngFor="let proceso of procesos; trackBy: trackByProcesoId" [value]="proceso.Id">
-                {{ proceso.Name }}
+              <mat-option *ngFor="let proceso of procesos; trackBy: trackByProcesoId" [value]="proceso.id ?? proceso.Id">
+                {{ proceso.name ?? proceso.Name }}
               </mat-option>
             </mat-select>
           </mat-form-field>

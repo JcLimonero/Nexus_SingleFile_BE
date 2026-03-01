@@ -29,13 +29,13 @@ export class DocumentoRequeridoService {
     let httpParams = new HttpParams();
     
     if (filters) {
-      if (filters.IdProcess) httpParams = httpParams.set('IdProcess', filters.IdProcess);
-      if (filters.IdAgency) httpParams = httpParams.set('IdAgency', filters.IdAgency);
-      if (filters.IdCostumerType) httpParams = httpParams.set('IdCostumerType', filters.IdCostumerType);
-      if (filters.IdOperationType) httpParams = httpParams.set('IdOperationType', filters.IdOperationType);
-      if (filters.IdDocumentType) httpParams = httpParams.set('IdDocumentType', filters.IdDocumentType);
-      if (filters.Required !== undefined) httpParams = httpParams.set('Required', filters.Required.toString());
-      if (filters.Enabled !== undefined) httpParams = httpParams.set('Enabled', filters.Enabled.toString());
+      if (filters.id_process) httpParams = httpParams.set('id_process', filters.id_process);
+      if (filters.id_agency) httpParams = httpParams.set('id_agency', filters.id_agency);
+      if (filters.id_customer_type) httpParams = httpParams.set('id_customer_type', filters.id_customer_type);
+      if (filters.id_operation_type) httpParams = httpParams.set('id_operation_type', filters.id_operation_type);
+      if (filters.id_document_type) httpParams = httpParams.set('id_document_type', filters.id_document_type);
+      if (filters.required !== undefined) httpParams = httpParams.set('required', filters.required.toString());
+      if (filters.enabled !== undefined) httpParams = httpParams.set('enabled', filters.enabled.toString());
       if (filters.limit) httpParams = httpParams.set('limit', filters.limit.toString());
       if (filters.offset) httpParams = httpParams.set('offset', filters.offset.toString());
       if (filters.sort_by) httpParams = httpParams.set('sort_by', filters.sort_by);
@@ -96,11 +96,11 @@ export class DocumentoRequeridoService {
     idOperationType: string
   ): Observable<DocumentoRequeridoResponse> {
     const filters: DocumentoRequeridoFilters = {
-      IdProcess: idProcess,
-      IdAgency: idAgency,
-      IdCostumerType: idCostumerType,
-      IdOperationType: idOperationType,
-      Enabled: true
+      id_process: idProcess,
+      id_agency: idAgency,
+      id_customer_type: idCostumerType,
+      id_operation_type: idOperationType,
+      enabled: true
     };
     
     return this.getDocumentosRequeridos(filters);
@@ -109,7 +109,7 @@ export class DocumentoRequeridoService {
   /**
    * Reordenar documentos requeridos
    */
-  reorderDocumentosRequeridos(documentos: { Id: string; Orden: number }[]): Observable<DocumentoRequeridoResponse> {
+  reorderDocumentosRequeridos(documentos: { id: string; orden: number }[]): Observable<DocumentoRequeridoResponse> {
     const url = this.apiBaseService.buildApiUrl(`${this.API_URL}/reorder`);
     return this.http.put<DocumentoRequeridoResponse>(url, { documentos });
   }
@@ -118,8 +118,8 @@ export class DocumentoRequeridoService {
    * Duplicar configuración de documentos requeridos
    */
   duplicateConfiguracion(
-    sourceConfig: { IdProcess: string; IdAgency: string; IdCostumerType: string; IdOperationType: string },
-    targetConfig: { IdProcess: string; IdAgency: string; IdCostumerType: string; IdOperationType: string }
+    sourceConfig: { id_process: string; id_agency: string; id_customer_type: string; id_operation_type: string },
+    targetConfig: { id_process: string; id_agency: string; id_customer_type: string; id_operation_type: string }
   ): Observable<DocumentoRequeridoResponse> {
     const url = this.apiBaseService.buildApiUrl(`${this.API_URL}/duplicate`);
     return this.http.post<DocumentoRequeridoResponse>(url, {
@@ -135,10 +135,10 @@ export class DocumentoRequeridoService {
     let httpParams = new HttpParams();
     
     if (filters) {
-      if (filters.IdProcess) httpParams = httpParams.set('IdProcess', filters.IdProcess);
-      if (filters.IdAgency) httpParams = httpParams.set('IdAgency', filters.IdAgency);
-      if (filters.IdCostumerType) httpParams = httpParams.set('IdCostumerType', filters.IdCostumerType);
-      if (filters.IdOperationType) httpParams = httpParams.set('IdOperationType', filters.IdOperationType);
+      if (filters.id_process) httpParams = httpParams.set('id_process', filters.id_process);
+      if (filters.id_agency) httpParams = httpParams.set('id_agency', filters.id_agency);
+      if (filters.id_customer_type) httpParams = httpParams.set('id_customer_type', filters.id_customer_type);
+      if (filters.id_operation_type) httpParams = httpParams.set('id_operation_type', filters.id_operation_type);
     }
 
     const url = this.apiBaseService.buildApiUrl(`${this.API_URL}/export`);

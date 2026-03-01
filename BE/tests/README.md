@@ -1,118 +1,277 @@
-# Running Application Tests
+# Pruebas de API con Playwright
 
-This is the quick-start to CodeIgniter testing. Its intent is to describe what
-it takes to set up your application and get it ready to run unit tests.
-It is not intended to be a full description of the test features that you can
-use to test your application. Those details can be found in the documentation.
+Este directorio contiene las pruebas automatizadas de la API usando Playwright.
 
-## Resources
+## Estructura
 
-* [CodeIgniter 4 User Guide on Testing](https://codeigniter.com/user_guide/testing/index.html)
-* [PHPUnit docs](https://phpunit.de/documentation.html)
-* [Any tutorials on Unit testing in CI4?](https://forum.codeigniter.com/showthread.php?tid=81830)
-
-## Requirements
-
-It is recommended to use the latest version of PHPUnit. At the time of this
-writing, we are running version 9.x. Support for this has been built into the
-**composer.json** file that ships with CodeIgniter and can easily be installed
-via [Composer](https://getcomposer.org/) if you don't already have it installed globally.
-
-```console
-> composer install
+```
+tests/
+├── api/                          # Pruebas de API
+│   ├── auth/                     # Pruebas de autenticación
+│   ├── crud/                     # Pruebas CRUD básicas
+│   ├── analytics/                # Pruebas de analytics
+│   ├── reports/                  # Pruebas de reportes
+│   ├── files/                    # Pruebas de archivos
+│   ├── documents/                # Pruebas de documentos
+│   ├── process/                  # Pruebas de procesos
+│   └── helpers/                  # Helpers y utilidades
+│       ├── auth.ts               # Helper de autenticación
+│       ├── api-client.ts        # Cliente API genérico
+│       └── fixtures.ts           # Fixtures de Playwright
+├── playwright.config.ts          # Configuración de Playwright
+└── package.json                  # Dependencias
 ```
 
-If running under macOS or Linux, you can create a symbolic link to make running tests a touch nicer.
+## Instalación
 
-```console
-> ln -s ./vendor/bin/phpunit ./phpunit
+1. Instalar dependencias:
+
+```bash
+cd BE/tests
+npm install
 ```
 
-You also need to install [XDebug](https://xdebug.org/docs/install) in order
-for code coverage to be calculated successfully. After installing `XDebug`, you must add `xdebug.mode=coverage` in the **php.ini** file to enable code coverage.
+2. Instalar navegadores de Playwright:
 
-## Setting Up
-
-A number of the tests use a running database.
-In order to set up the database edit the details for the `tests` group in
-**app/Config/Database.php** or **.env**.
-Make sure that you provide a database engine that is currently running on your machine.
-More details on a test database setup are in the
-[Testing Your Database](https://codeigniter.com/user_guide/testing/database.html) section of the documentation.
-
-## Running the tests
-
-The entire test suite can be run by simply typing one command-line command from the main directory.
-
-```console
-> ./phpunit
+```bash
+npm run install:browsers
 ```
 
-If you are using Windows, use the following command.
+## Configuración
 
-```console
-> vendor\bin\phpunit
+### Variables de Entorno
+
+Crear un archivo `.env` en el directorio `tests/` (opcional):
+
+```env
+API_BASE_URL=http://localhost:8080
+TEST_EMAIL=admin@nexusqtec.com
+TEST_PASSWORD=admin123
 ```
 
-You can limit tests to those within a single test directory by specifying the
-directory name after phpunit.
+O establecerlas al ejecutar:
 
-```console
-> ./phpunit app/Models
+```bash
+API_BASE_URL=http://localhost:8080 npm test
 ```
 
-## Generating Code Coverage
+### Credenciales de Prueba
 
-To generate coverage information, including HTML reports you can view in your browser,
-you can use the following command:
+Las credenciales por defecto se pueden configurar en:
+- Variables de entorno: `TEST_EMAIL` y `TEST_PASSWORD`
+- O modificar directamente en `api/helpers/fixtures.ts`
 
-```console
-> ./phpunit --colors --coverage-text=tests/coverage.txt --coverage-html=tests/coverage/ -d memory_limit=1024m
+## Ejecución
+
+### Ejecutar todas las pruebas
+
+```bash
+npm test
 ```
 
-This runs all of the tests again collecting information about how many lines,
-functions, and files are tested. It also reports the percentage of the code that is covered by tests.
-It is collected in two formats: a simple text file that provides an overview as well
-as a comprehensive collection of HTML files that show the status of every line of code in the project.
+### Ejecutar pruebas específicas
 
-The text file can be found at **tests/coverage.txt**.
-The HTML files can be viewed by opening **tests/coverage/index.html** in your favorite browser.
+```bash
+# Solo autenticación
+npm run test:auth
 
-## PHPUnit XML Configuration
+# Solo CRUD
+npm run test:crud
 
-The repository has a ``phpunit.xml.dist`` file in the project root that's used for
-PHPUnit configuration. This is used to provide a default configuration if you
-do not have your own configuration file in the project root.
+# Solo analytics
+npm run test:analytics
 
-The normal practice would be to copy ``phpunit.xml.dist`` to ``phpunit.xml``
-(which is git ignored), and to tailor it as you see fit.
-For instance, you might wish to exclude database tests, or automatically generate
-HTML code coverage reports.
+# Solo reportes
+npm run test:reports
 
-## Test Cases
+# Solo archivos
+npm run test:files
+```
 
-Every test needs a *test case*, or class that your tests extend. CodeIgniter 4
-provides one class that you may use directly:
-* `CodeIgniter\Test\CIUnitTestCase`
+### Modos de ejecución
 
-Most of the time you will want to write your own test cases that extend `CIUnitTestCase`
-to hold functions and services common to your test suites.
+```bash
+# Modo UI interactivo
+npm run test:ui
 
-## Creating Tests
+# Modo headed (con navegador visible)
+npm run test:headed
 
-All tests go in the **tests/** directory. Each test file is a class that extends a
-**Test Case** (see above) and contains methods for the individual tests. These method
-names must start with the word "test" and should have descriptive names for precisely what
-they are testing:
-`testUserCanModifyFile()` `testOutputColorMatchesInput()` `testIsLoggedInFailsWithInvalidUser()`
+# Modo debug
+npm run test:debug
+```
 
-Writing tests is an art, and there are many resources available to help learn how.
-Review the links above and always pay attention to your code coverage.
+### Ver reporte HTML
 
-### Database Tests
+```bash
+npm run report
+```
 
-Tests can include migrating, seeding, and testing against a mock or live database.
-Be sure to modify the test case (or create your own) to point to your seed and migrations
-and include any additional steps to be run before tests in the `setUp()` method.
-See [Testing Your Database](https://codeigniter.com/user_guide/testing/database.html)
-for details.
+## Estructura de las Pruebas
+
+### Ejemplo de prueba básica
+
+```typescript
+import { test, expect } from '../helpers/fixtures';
+
+test('GET /api/agency - Listar agencias', async ({ apiClient, authTokens }) => {
+  apiClient.setAuthToken(authTokens.accessToken);
+
+  const response = await apiClient.get('agency');
+  const body = await apiClient.expectSuccess(response);
+
+  expect(Array.isArray(body.data)).toBe(true);
+});
+```
+
+### Helpers disponibles
+
+#### ApiClient
+
+Cliente genérico para realizar peticiones HTTP:
+
+```typescript
+// GET
+const response = await apiClient.get('endpoint', { params: { key: 'value' } });
+
+// POST
+const response = await apiClient.post('endpoint', { data: 'value' });
+
+// PUT
+const response = await apiClient.put('endpoint/:id', { data: 'value' });
+
+// PATCH
+const response = await apiClient.patch('endpoint/:id', { data: 'value' });
+
+// DELETE
+const response = await apiClient.delete('endpoint/:id');
+
+// Verificar éxito
+const body = await apiClient.expectSuccess(response);
+
+// Verificar error
+const body = await apiClient.expectError(response, 404);
+```
+
+#### AuthHelper
+
+Helper para operaciones de autenticación:
+
+```typescript
+const tokens = await authHelper.login(email, password);
+const isValid = await authHelper.verifyToken(token);
+const newToken = await authHelper.refreshToken(refreshToken);
+await authHelper.logout(accessToken);
+```
+
+#### Fixtures
+
+Las fixtures proporcionan acceso automático a `apiClient`, `authHelper` y `authTokens`:
+
+```typescript
+test('Mi prueba', async ({ apiClient, authTokens }) => {
+  // apiClient ya está configurado
+  // authTokens ya contiene tokens válidos
+  apiClient.setAuthToken(authTokens.accessToken);
+  // ...
+});
+```
+
+## Cobertura de Endpoints
+
+### Autenticación ✅
+- POST /api/auth/login
+- POST /api/auth/verify
+- POST /api/auth/refresh
+- POST /api/auth/logout
+
+### CRUD Básicos ✅
+- Agency (GET, POST, PUT, DELETE, PATCH)
+- User (GET, POST, PUT, DELETE, PATCH)
+- Document Type (GET, POST, PUT, DELETE, PATCH)
+- Process (GET, POST, PUT, DELETE, PATCH)
+
+### Analytics ✅
+- Dashboard
+- Widgets de estadísticas
+- Distribuciones
+- Datos históricos
+
+### Reportes ✅
+- Dashboard de cumplimiento
+- Expedientes con alerta PLD
+- Resumen por agencia
+- Documentos pendientes
+
+### Archivos ✅
+- Por cliente
+- Por agencia/cliente
+- Verificar pedidos existentes
+- Reparar relaciones
+
+### Documentos ✅
+- Documentos requeridos
+- Documentos faltantes
+- Obtener nombre de archivo
+
+## Agregar Nuevas Pruebas
+
+1. Crear archivo en el directorio apropiado (ej: `api/new-feature/new-feature.spec.ts`)
+2. Importar fixtures: `import { test, expect } from '../helpers/fixtures';`
+3. Usar `apiClient` y `authTokens` de las fixtures
+4. Seguir el patrón de las pruebas existentes
+
+Ejemplo:
+
+```typescript
+import { test, expect } from '../helpers/fixtures';
+
+test.describe('API New Feature', () => {
+  test('GET /api/new-feature - Listar', async ({ apiClient, authTokens }) => {
+    apiClient.setAuthToken(authTokens.accessToken);
+    const response = await apiClient.get('new-feature');
+    const body = await apiClient.expectSuccess(response);
+    expect(Array.isArray(body.data)).toBe(true);
+  });
+});
+```
+
+## CI/CD
+
+Para ejecutar en CI/CD, usar:
+
+```bash
+npm test -- --reporter=json --output=test-results/results.json
+```
+
+## Troubleshooting
+
+### Error: Servidor no disponible
+
+Asegúrate de que el servidor esté corriendo:
+
+```bash
+cd BE
+php spark serve --port=8080
+```
+
+### Error: Credenciales inválidas
+
+Verifica las credenciales en las variables de entorno o en `fixtures.ts`.
+
+### Error: Timeout
+
+Aumenta el timeout en `playwright.config.ts`:
+
+```typescript
+use: {
+  actionTimeout: 30000, // 30 segundos
+}
+```
+
+## Notas
+
+- Las pruebas crean datos de prueba que pueden persistir en la base de datos
+- Algunas pruebas pueden fallar si no hay datos suficientes en la BD
+- Ajusta los IDs y datos de prueba según tu entorno
+- Las pruebas de DELETE pueden requerir limpieza manual si fallan

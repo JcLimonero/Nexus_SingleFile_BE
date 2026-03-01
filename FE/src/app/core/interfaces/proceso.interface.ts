@@ -1,20 +1,20 @@
 export interface Proceso {
-  Id: string;
-  Name: string;
-  Enabled: string; // "1" para activo, "0" para inactivo
-  RegistrationDate?: string | null;
-  UpdateDate?: string | null;
-  IdLastUserUpdate?: string;
-  LastUserUpdateName?: string; // Nombre del último usuario que actualizó (viene del JOIN en el backend)
+  id: string;
+  name: string;
+  enabled: string; // "1" para activo, "0" para inactivo
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  last_user_update_name?: string;
 }
 
 export interface ProcesoCreateRequest {
-  Name: string;
-  Enabled: string;
+  name: string;
+  enabled: string;
 }
 
 export interface ProcesoUpdateRequest extends Partial<ProcesoCreateRequest> {
-  Id: string;
+  id: string;
 }
 
 export interface ProcesoResponse {

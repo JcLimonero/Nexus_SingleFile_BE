@@ -55,31 +55,31 @@ class Client extends BaseController
 
             $sql = "
                 SELECT
-                    c.Id as idCliente,
-                    MIN(ctr.IdDMS) as ndCliente,
-                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
-                    MIN(hc.Id) as idClientHeader,
+                    c.id as idCliente,
+                    MIN(ctr.id_dms) as ndCliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                    MIN(hc.id) as idClientHeader,
                     (EXISTS (
                         SELECT 1 FROM {$vistaAML} aml
-                        WHERE aml.idCliente = c.Id AND aml.anio = ? AND aml.totalMonto >= ?
+                        WHERE aml.idCliente = c.id AND aml.anio = ? AND aml.totalMonto >= ?
                     )) as excedeUmbralAML
                 FROM client c
-                INNER JOIN client_header hc ON hc.IdClient = c.Id
-                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-                INNER JOIN expedient f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                INNER JOIN client_header hc ON hc.id_client = c.id
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
                 WHERE 1=1
             ";
             $params = [$anioActual, $umbral];
 
             if ($idAgency !== null && $idAgency !== '') {
-                $sql .= " AND ctr.IdAgency = ?";
+                $sql .= " AND ctr.id_agency = ?";
                 $params[] = (int) $idAgency;
             }
 
             if ($onlyAmlUmbral) {
                 $sql .= " AND EXISTS (
                     SELECT 1 FROM {$vistaAML} aml2
-                    WHERE aml2.idCliente = c.Id AND aml2.anio = ? AND aml2.totalMonto >= ?
+                    WHERE aml2.idCliente = c.id AND aml2.anio = ? AND aml2.totalMonto >= ?
                 )";
                 $params[] = $anioActual;
                 $params[] = $umbral;
@@ -88,12 +88,12 @@ class Client extends BaseController
             if ($search !== '') {
                 $pattern = "%{$search}%";
                 $sql .= " AND (
-                    ctr.IdDMS LIKE ?
-                    OR c.RazonSocial LIKE ?
-                    OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
-                    OR c.Name LIKE ?
-                    OR c.LastName LIKE ?
-                    OR c.MotherLastName LIKE ?
+                    ctr.id_dms LIKE ?
+                    OR c.razon_social LIKE ?
+                    OR TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) LIKE ?
+                    OR c.name LIKE ?
+                    OR c.last_name LIKE ?
+                    OR c.mother_last_name LIKE ?
                 )";
                 $params[] = $pattern;
                 $params[] = $pattern;
@@ -103,7 +103,7 @@ class Client extends BaseController
                 $params[] = $pattern;
             }
 
-            $sql .= " GROUP BY c.Id";
+            $sql .= " GROUP BY c.id";
 
             $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
             $countQuery = $this->db->query($countSql, $params);
@@ -177,47 +177,47 @@ class Client extends BaseController
 
             $sql = "
                 SELECT
-                    f.Id as idFile,
-                    f.IdOrderTotal as ndPedido,
-                    f.RegistrationDate as registro,
-                    fs.Name as estatus,
-                    p.Name as proceso,
-                    ot.Name as operacion,
-                    ct.Name as tipoCliente,
-                    a.Name as agencia,
-                    a.Id as idAgency,
-                    co.Name as compania,
-                    c.Id as idCliente,
-                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
-                    MAX(ctr.IdDMS) as ndCliente,
+                    f.id as idFile,
+                    f.id_order_total as ndPedido,
+                    f.registration_date as registro,
+                    fs.name as estatus,
+                    p.name as proceso,
+                    ot.name as operacion,
+                    ct.name as tipoCliente,
+                    a.name as agencia,
+                    a.id as idAgency,
+                    co.name as compania,
+                    c.id as idCliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                    MAX(ctr.id_dms) as ndCliente,
                     MAX(COALESCE(obc1.Amount, obc2.Amount)) as monto
                 FROM client_header hc
-                INNER JOIN client c ON c.Id = hc.IdClient
-                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-                INNER JOIN expedient f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
-                LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
+                INNER JOIN client c ON c.id = hc.id_client
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
+                LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
-                    SELECT obc2a.IdDMS, obc2a.idagency, obc2a.Amount
-                    FROM order obc2a
+                    SELECT obc2a.id_dms, obc2a.id_agency, obc2a.Amount
+                    FROM order_by_car obc2a
                     INNER JOIN (
-                        SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                        FROM order
-                        GROUP BY IdDMS, idagency
-                    ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
-                        AND obc2a.idagency = obc2b.idagency
-                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
-                ) obc2 ON f.IdOrder IS NULL
-                    AND obc2.IdDMS = f.IdOrderTotal
-                    AND obc2.idagency = f.IdAgency
-                INNER JOIN agency a ON a.Id = f.IdAgency
-                LEFT JOIN company co ON a.IdCompany = co.Id
-                LEFT JOIN process p ON f.IdProcess = p.Id
-                LEFT JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
-                LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
-                WHERE hc.Id = ?
-                GROUP BY f.Id, f.IdOrderTotal, f.RegistrationDate, fs.Name, p.Name, ot.Name, ct.Name, a.Name, a.Id, co.Name, c.Id
-                ORDER BY co.Name ASC, a.Name ASC, f.RegistrationDate DESC
+                        SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
+                        FROM order_by_car
+                        GROUP BY id_dms, id_agency
+                    ) obc2b ON obc2a.id_dms = obc2b.id_dms
+                        AND obc2a.id_agency = obc2b.id_agency
+                        AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.id_order IS NULL
+                    AND obc2.id_dms = f.id_order_total
+                    AND obc2.id_agency = f.id_agency
+                INNER JOIN agency a ON a.id = f.id_agency
+                LEFT JOIN company co ON a.id_company = co.id
+                LEFT JOIN process p ON f.id_process = p.id
+                LEFT JOIN operation_type ot ON f.id_operation = ot.id
+                LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
+                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                WHERE hc.id = ?
+                GROUP BY f.id, f.id_order_total, f.registration_date, fs.name, p.name, ot.name, ct.name, a.name, a.id, co.name, c.id
+                ORDER BY co.name ASC, a.name ASC, f.registration_date DESC
             ";
 
             $query = $this->db->query($sql, [$idClientHeader]);
@@ -265,28 +265,28 @@ class Client extends BaseController
             // Query simplificado - Solo información del cliente
             $sql = "
                 SELECT 
-                    c.Id as idCliente,
-                    ctr.IdDMS as ndCliente,
-                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))) as cliente,
-                    c.Name as nombre,
-                    c.LastName as apellidoPaterno,
-                    c.MotherLastName as apellidoMaterno,
+                    c.id as idCliente,
+                    ctr.id_dms as ndCliente,
+                    COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))) as cliente,
+                    c.name as nombre,
+                    c.last_name as apellidoPaterno,
+                    c.mother_last_name as apellidoMaterno,
                     c.RFC as rfc,
-                    c.Email as email,
-                    c.TelNumber as telefono,
-                    c.TelNumber2 as telefono2,
-                    c.RazonSocial as razonSocial,
+                    c.email as email,
+                    c.tel_number as telefono,
+                    c.tel_number2 as telefono2,
+                    c.razon_social as razonSocial,
                     c.CURP as curp,
-                    c.Adviser as asesor,
-                    c.AgencyOrigin as agenciaOrigen,
-                    c.RegistrationDate as fechaRegistro,
-                    c.UpdateDate as fechaActualizacion
+                    c.adviser as asesor,
+                    c.agency_origin as agenciaOrigen,
+                    c.registration_date as fechaRegistro,
+                    c.update_date as fechaActualizacion
                 FROM client c
-                INNER JOIN client_header hc ON c.Id = hc.IdClient
-                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-                INNER JOIN expedient f ON f.IdClient = c.Id
-                WHERE f.IdAgency = ?
-                AND ((c.Name IS NOT NULL AND c.Name != '') OR (c.LastName IS NOT NULL AND c.LastName != '') OR (c.MotherLastName IS NOT NULL AND c.MotherLastName != ''))
+                INNER JOIN client_header hc ON c.id = hc.id_client
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                INNER JOIN expedient f ON f.id_client = c.id
+                WHERE f.id_agency = ?
+                AND ((c.name IS NOT NULL AND c.name != '') OR (c.last_name IS NOT NULL AND c.last_name != '') OR (c.mother_last_name IS NOT NULL AND c.mother_last_name != ''))
             ";
             
             $params = [$idAgency];
@@ -298,9 +298,9 @@ class Client extends BaseController
                 // Si es un número, buscar también por ID de cliente directamente
                 if (is_numeric($searchTerm)) {
                     $sql .= " AND (
-                        ctr.IdDMS LIKE ? 
-                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
-                        OR c.Id = ?
+                        ctr.id_dms LIKE ? 
+                        OR TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) LIKE ?
+                        OR c.id = ?
                     )";
                     
                     $searchPattern = "%{$searchTerm}%";
@@ -309,8 +309,8 @@ class Client extends BaseController
                     $params[] = (int)$searchTerm;
                 } else {
                     $sql .= " AND (
-                        ctr.IdDMS LIKE ? 
-                        OR TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) LIKE ?
+                        ctr.id_dms LIKE ? 
+                        OR TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) LIKE ?
                     )";
                     
                     $searchPattern = "%{$searchTerm}%";
@@ -319,7 +319,7 @@ class Client extends BaseController
                 }
             }
             
-            $sql .= " GROUP BY c.Id, ctr.IdDMS, c.Name, c.LastName, c.MotherLastName, c.RFC, c.Email, c.TelNumber, c.TelNumber2, c.RazonSocial, c.CURP, c.Adviser, c.AgencyOrigin, c.RegistrationDate, c.UpdateDate";
+            $sql .= " GROUP BY c.id, ctr.id_dms, c.name, c.last_name, c.mother_last_name, c.RFC, c.email, c.tel_number, c.tel_number2, c.razon_social, c.CURP, c.adviser, c.agency_origin, c.registration_date, c.update_date";
             $sql .= " ORDER BY ndCliente ASC LIMIT ?";
             $params[] = $limit;
 
@@ -338,12 +338,12 @@ class Client extends BaseController
             if (empty($results) && $searchTerm) {
                 $debugSql = "
                     SELECT 
-                        c.Id as idCliente,
-                        c.Name as nombre,
-                        c.LastName as apellidoPaterno,
-                        c.MotherLastName as apellidoMaterno
+                        c.id as idCliente,
+                        c.name as nombre,
+                        c.last_name as apellidoPaterno,
+                        c.mother_last_name as apellidoMaterno
                     FROM client c
-                    WHERE c.Id = ?
+                    WHERE c.id = ?
                 ";
                 
                 $debugQuery = $this->db->query($debugSql, [$searchTerm]);

@@ -56,14 +56,12 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     this.loadCatalogs();
     
     // Escuchar cambios en la fase para habilitar/deshabilitar sub fase
-    this.documentTypeForm.get('IdProcessType')?.valueChanges.subscribe(selectedPhase => {
+    this.documentTypeForm.get('id_process_type')?.valueChanges.subscribe(selectedPhase => {
 
       this.isSubPhaseEnabled = selectedPhase === 'Liberación';
 
       if (!this.isSubPhaseEnabled) {
-        // Si la fase no es "Liberación", resetear sub fase a "Sin sub fase"
-
-        this.documentTypeForm.patchValue({ IdSubProcess: '0' });
+        this.documentTypeForm.patchValue({ id_sub_process: '0' });
         
       } else {
 
@@ -73,13 +71,13 @@ export class DocumentTypeEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.documentTypeForm = this.fb.group({
-      Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
-      Enabled: ['1', Validators.required],
-      ReqExpiration: ['0'],
-      IdProcessType: ['Liberación'], // Valor por defecto: Liberación
-      Required: ['1'],
-      IdSubProcess: ['0'], // Por defecto "Sin sub fase"
-      AvailableToClient: ['1'] // Por defecto disponible al cliente
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
+      enabled: ['1', Validators.required],
+      req_expiration: ['0'],
+      id_process_type: ['Liberación'],
+      required: ['1'],
+      id_sub_process: ['0'],
+      available_to_client: ['1']
     });
     
     // Inicializar el estado de la sub fase
@@ -140,17 +138,16 @@ export class DocumentTypeEditDialogComponent implements OnInit {
 
   private populateForm(): void {
     if (this.data.documentType && this.data.mode === 'edit') {
-      const selectedPhase = this.data.documentType.IdProcessType || '0';
-      
-      
+      const dt = this.data.documentType;
+      const selectedPhase = dt.id_process_type ?? (dt as any).IdProcessType ?? '0';
       this.documentTypeForm.patchValue({
-        Name: this.data.documentType.Name,
-        Enabled: this.data.documentType.Enabled,
-        ReqExpiration: this.data.documentType.ReqExpiration || '0',
-        IdProcessType: selectedPhase,
-        Required: this.data.documentType.Required || '1',
-        IdSubProcess: selectedPhase === 'Liberación' ? (this.data.documentType.IdSubProcess || '0') : '0',
-        AvailableToClient: this.data.documentType.AvailableToClient !== undefined ? this.data.documentType.AvailableToClient : '1'
+        name: dt.name ?? (dt as any).Name,
+        enabled: dt.enabled ?? (dt as any).Enabled,
+        req_expiration: dt.req_expiration ?? (dt as any).ReqExpiration ?? '0',
+        id_process_type: selectedPhase,
+        required: dt.required ?? (dt as any).Required ?? '1',
+        id_sub_process: selectedPhase === 'Liberación' ? (dt.id_sub_process ?? (dt as any).IdSubProcess ?? '0') : '0',
+        available_to_client: dt.available_to_client ?? (dt as any).AvailableToClient ?? '1'
       });
       
       
@@ -173,14 +170,15 @@ export class DocumentTypeEditDialogComponent implements OnInit {
   }
 
   private createDocumentType(): void {
+    const v = this.documentTypeForm.value;
     const documentTypeData: DocumentTypeCreateRequest = {
-      Name: this.documentTypeForm.value.Name,
-      Enabled: this.documentTypeForm.value.Enabled,
-      ReqExpiration: this.documentTypeForm.value.ReqExpiration,
-      IdProcessType: this.documentTypeForm.value.IdProcessType,
-      Required: this.documentTypeForm.value.Required,
-      IdSubProcess: this.documentTypeForm.value.IdSubProcess,
-      AvailableToClient: this.documentTypeForm.value.AvailableToClient
+      name: v.name,
+      enabled: v.enabled,
+      req_expiration: v.req_expiration,
+      id_process_type: v.id_process_type,
+      required: v.required,
+      id_sub_process: v.id_sub_process,
+      available_to_client: v.available_to_client
     };
 
     this.documentTypeService.createDocumentType(documentTypeData).subscribe({
@@ -207,17 +205,18 @@ export class DocumentTypeEditDialogComponent implements OnInit {
   }
 
   private updateDocumentType(): void {
+    const v = this.documentTypeForm.value;
     const documentTypeData: DocumentTypeUpdateRequest = {
-      Name: this.documentTypeForm.value.Name,
-      Enabled: this.documentTypeForm.value.Enabled,
-      ReqExpiration: this.documentTypeForm.value.ReqExpiration,
-      IdProcessType: this.documentTypeForm.value.IdProcessType,
-      Required: this.documentTypeForm.value.Required,
-      IdSubProcess: this.documentTypeForm.value.IdSubProcess,
-      AvailableToClient: this.documentTypeForm.value.AvailableToClient
+      name: v.name,
+      enabled: v.enabled,
+      req_expiration: v.req_expiration,
+      id_process_type: v.id_process_type,
+      required: v.required,
+      id_sub_process: v.id_sub_process,
+      available_to_client: v.available_to_client
     };
-
-    this.documentTypeService.updateDocumentType(this.data.documentType!.Id!, documentTypeData).subscribe({
+    const id = this.data.documentType!.id ?? (this.data.documentType as any).Id;
+    this.documentTypeService.updateDocumentType(id!, documentTypeData).subscribe({
       next: (response) => {
         if (response.success) {
           this.snackBar.open('Tipo de documento actualizado exitosamente', 'Éxito', {

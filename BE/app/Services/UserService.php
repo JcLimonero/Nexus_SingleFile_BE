@@ -116,7 +116,7 @@ class UserService
     public function validateUserExists($userId)
     {
         $user = $this->db->table('user')
-            ->where('Id', $userId)
+            ->where('id', $userId)
             ->get()
             ->getRowArray();
             
@@ -129,7 +129,7 @@ class UserService
     public function getUserById($userId)
     {
         return $this->db->table('user')
-            ->where('Id', $userId)
+            ->where('id', $userId)
             ->get()
             ->getRowArray();
     }

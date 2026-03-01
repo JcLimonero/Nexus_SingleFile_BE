@@ -11,8 +11,8 @@
           <mat-label>Agencia Predeterminada</mat-label>
           <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
             <mat-option value="">Todas las agencias</mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-              {{ agency.Name }}
+            <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+              {{ agency.name }}
             </mat-option>
           </mat-select>
           <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -23,8 +23,8 @@
           <mat-label>Agencias Asignadas</mat-label>
           <mat-select [(ngModel)]="assignedAgencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
             <mat-option value="">Todas las agencias asignadas</mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-              {{ agency.Name }}
+            <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+              {{ agency.name }}
             </mat-option>
           </mat-select>
           <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -35,8 +35,8 @@
           <mat-label>Rol</mat-label>
           <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
             <mat-option value="">Todos los roles</mat-option>
-            <mat-option *ngFor="let role of rolesForFilter" [value]="role.Id">
-              {{ role.Name }}
+            <mat-option *ngFor="let role of rolesForFilter" [value]="role.id">
+              {{ role.name }}
             </mat-option>
           </mat-select>
           <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -123,64 +123,64 @@
   <div class="bg-white rounded-lg shadow-sm border overflow-x-auto">
     <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna ID -->
-      <ng-container matColumnDef="Id">
+      <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           ID
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs font-mono text-gray-600 py-0">
-          {{ user.Id }}
+          {{ user.id }}
         </td>
       </ng-container>
 
       <!-- Columna Nombre -->
-      <ng-container matColumnDef="Name">
+      <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Nombre
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
-          {{ user.Name }}
+          {{ user.name }}
         </td>
       </ng-container>
 
       <!-- Columna Usuario -->
-      <ng-container matColumnDef="User">
+      <ng-container matColumnDef="user">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Usuario DMS
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0 font-mono">
-          {{ user.User }}
+          {{ user.user }}
         </td>
       </ng-container>
 
       <!-- Columna Email -->
-      <ng-container matColumnDef="Mail">
+      <ng-container matColumnDef="mail">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Email
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
-          {{ user.Mail }}
+          {{ user.mail }}
         </td>
       </ng-container>
 
       <!-- Columna Rol -->
-      <ng-container matColumnDef="IdUserRol">
+      <ng-container matColumnDef="id_user_rol">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Rol
         </th>
         <td mat-cell *matCellDef="let user" class="text-left py-0">
           <span class="text-xs">
-            {{ isHiddenRole(user.IdUserRol) ? '—' : getRoleName(user.IdUserRol) }}
+            {{ isHiddenRole(user.id_user_rol) ? '—' : getRoleName(user.id_user_rol) }}
           </span>
         </td>
       </ng-container>
 
       <!-- Columna Agencia -->
-      <ng-container matColumnDef="DefaultAgency">
+      <ng-container matColumnDef="default_agency">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Agencia Predeterminada
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
-          {{ user.AgencyName || getAgencyName(user.DefaultAgency) }}
+          {{ user.agency_name || getAgencyName(user.default_agency) }}
         </td>
       </ng-container>
 
@@ -191,20 +191,20 @@
         </th>
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
           <div class="flex justify-center items-center">
-            <span *ngIf="!user.AssignedAgencyNames || user.AssignedAgencyNames.length === 0" class="text-gray-400 text-xs italic">
+            <span *ngIf="!user.assigned_agency_names || user.assigned_agency_names.length === 0" class="text-gray-400 text-xs italic">
               Sin agencias
             </span>
-            <div *ngIf="user.AssignedAgencyNames && user.AssignedAgencyNames.length > 0" 
+            <div *ngIf="user.assigned_agency_names && user.assigned_agency_names.length > 0" 
                  class="relative group">
               <div class="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium border border-blue-200 hover:bg-blue-200 transition-colors">
                 <mat-icon class="!text-xs !w-3 !h-3 text-blue-600">business</mat-icon>
-                <span>{{ user.AssignedAgencyNames.length }} agencia{{ user.AssignedAgencyNames.length !== 1 ? 's' : '' }}</span>
+                <span>{{ user.assigned_agency_names.length }} agencia{{ user.assigned_agency_names.length !== 1 ? 's' : '' }}</span>
               </div>
               <!-- Tooltip con lista de agencias -->
               <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 <div class="text-center">
                   <div class="font-medium border-b border-gray-700 pb-1 mb-1">Agencias asignadas:</div>
-                  <div class="text-gray-200">{{ user.AssignedAgencyNames.join(', ') }}</div>
+                  <div class="text-gray-200">{{ user.assigned_agency_names.join(', ') }}</div>
                 </div>
                 <!-- Flecha del tooltip -->
                 <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
@@ -222,12 +222,12 @@
         <td mat-cell *matCellDef="let user" class="text-xs py-0">
           <div class="flex justify-center items-center">
             <div class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border"
-                 [ngClass]="getUserStatus(user.Enabled).class">
+                 [ngClass]="getUserStatus(user.enabled).class">
               <mat-icon class="!text-xs !w-3 !h-3" 
-                       [ngClass]="getUserStatus(user.Enabled).icon === 'check_circle' ? 'text-green-600' : 'text-red-600'">
-                {{ getUserStatus(user.Enabled).icon }}
+                       [ngClass]="getUserStatus(user.enabled).icon === 'check_circle' ? 'text-green-600' : 'text-red-600'">
+                {{ getUserStatus(user.enabled).icon }}
               </mat-icon>
-              <span>{{ getUserStatus(user.Enabled).text }}</span>
+              <span>{{ getUserStatus(user.enabled).text }}</span>
             </div>
           </div>
         </td>

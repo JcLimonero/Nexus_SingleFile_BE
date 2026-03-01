@@ -16,17 +16,17 @@
       <mat-label>Nombre del Tipo de Operación</mat-label>
       <input 
         matInput 
-        formControlName="Name" 
+        formControlName="name" 
         placeholder="Ej: CONTADO, FINANCIAMIENTO"
         maxlength="600">
       <mat-hint>Nombre completo del tipo de operación (máximo 600 caracteres)</mat-hint>
-      <mat-error *ngIf="tipoOperacionForm.get('Name')?.hasError('required')">
+      <mat-error *ngIf="tipoOperacionForm.get('name')?.hasError('required')">
         El nombre es requerido
       </mat-error>
-      <mat-error *ngIf="tipoOperacionForm.get('Name')?.hasError('minlength')">
+      <mat-error *ngIf="tipoOperacionForm.get('name')?.hasError('minlength')">
         El nombre debe tener al menos 3 caracteres
       </mat-error>
-      <mat-error *ngIf="tipoOperacionForm.get('Name')?.hasError('maxlength')">
+      <mat-error *ngIf="tipoOperacionForm.get('name')?.hasError('maxlength')">
         El nombre no puede exceder 600 caracteres
       </mat-error>
     </mat-form-field>
@@ -34,7 +34,7 @@
     <!-- Estado -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estado</mat-label>
-      <mat-select formControlName="Enabled">
+      <mat-select formControlName="enabled">
         <mat-option value="1">Activo</mat-option>
         <mat-option value="0">Inactivo</mat-option>
       </mat-select>
@@ -47,19 +47,19 @@
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div>
           <span class="text-gray-500">ID:</span>
-          <span class="ml-2 font-mono">{{ data.tipoOperacion.Id }}</span>
+          <span class="ml-2 font-mono">{{ data.tipoOperacion.id }}</span>
         </div>
         <div>
           <span class="text-gray-500">Último Usuario:</span>
-          <span class="ml-2">{{ data.tipoOperacion.LastUserUpdateName || 'N/A' }}</span>
+          <span class="ml-2">{{ data.tipoOperacion.last_user_update_name || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Fecha Registro:</span>
-          <span class="ml-2">{{ data.tipoOperacion.RegistrationDate || 'N/A' }}</span>
+          <span class="ml-2">{{ data.tipoOperacion.registration_date || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Última Actualización:</span>
-          <span class="ml-2">{{ data.tipoOperacion.UpdateDate || 'N/A' }}</span>
+          <span class="ml-2">{{ data.tipoOperacion.update_date || 'N/A' }}</span>
         </div>
       </div>
     </div>

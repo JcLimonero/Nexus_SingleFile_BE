@@ -7,14 +7,14 @@ use CodeIgniter\Model;
 class ProcessModel extends Model
 {
     protected $table = 'process';
-    protected $primaryKey = 'Id';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = false;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'Id', 'Name', 'RegistrationDate', 'UpdateDate', 
-        'IdLastUserUpdate', 'Enabled'
+        'id', 'name', 'registration_date', 'update_date', 
+        'id_last_user_update', 'enabled'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -26,23 +26,23 @@ class ProcessModel extends Model
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat = 'datetime';
-    protected $createdField = 'RegistrationDate';
-    protected $updatedField = 'UpdateDate';
+    protected $createdField = 'registration_date';
+    protected $updatedField = 'update_date';
     protected $deletedField = 'deleted_at';
 
     // Validation
     protected $validationRules = [
-        'Name' => 'required|min_length[3]|max_length[600]',
-        'Enabled' => 'permit_empty|in_list[0,1]'
+        'name' => 'required|min_length[3]|max_length[600]',
+        'enabled' => 'permit_empty|in_list[0,1]'
     ];
     
     protected $validationMessages = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre del proceso es requerido',
             'min_length' => 'El nombre debe tener al menos 3 caracteres',
             'max_length' => 'El nombre no puede exceder 600 caracteres'
         ],
-        'Enabled' => [
+        'enabled' => [
             'in_list' => 'El estado debe ser 0 o 1'
         ]
     ];
@@ -66,8 +66,12 @@ class ProcessModel extends Model
      */
     protected function generateId(array $data)
     {
-        if (empty($data['data']['Id'])) {
-            $data['data']['Id'] = $this->getNextId();
+        if (empty($data['data']['id']) && empty($data['data']['Id'])) {
+            $data['data']['id'] = $this->getNextId();
+        } elseif (!empty($data['data']['Id']) && empty($data['data']['id'])) {
+            // Compatibilidad: si viene Id, convertir a id
+            $data['data']['id'] = $data['data']['Id'];
+            unset($data['data']['Id']);
         }
         return $data;
     }
@@ -77,8 +81,14 @@ class ProcessModel extends Model
      */
     protected function setTimestamps(array $data)
     {
-        $data['data']['RegistrationDate'] = date('Y-m-d H:i:s');
-        $data['data']['UpdateDate'] = date('Y-m-d H:i:s');
+        $currentTime = date('Y-m-d H:i:s');
+        // Compatibilidad con ambos formatos
+        if (!isset($data['data']['registration_date']) && !isset($data['data']['RegistrationDate'])) {
+            $data['data']['registration_date'] = $currentTime;
+        }
+        if (!isset($data['data']['update_date']) && !isset($data['data']['UpdateDate'])) {
+            $data['data']['update_date'] = $currentTime;
+        }
         return $data;
     }
 
@@ -87,7 +97,11 @@ class ProcessModel extends Model
      */
     protected function setUpdateTimestamp(array $data)
     {
-        $data['data']['UpdateDate'] = date('Y-m-d H:i:s');
+        $currentTime = date('Y-m-d H:i:s');
+        // Compatibilidad con ambos formatos
+        if (!isset($data['data']['update_date']) && !isset($data['data']['UpdateDate'])) {
+            $data['data']['update_date'] = $currentTime;
+        }
         return $data;
     }
 
@@ -96,9 +110,10 @@ class ProcessModel extends Model
      */
     private function getNextId()
     {
-        $lastProcess = $this->orderBy('Id', 'DESC')->first();
+        $lastProcess = $this->orderBy('id', 'DESC')->first();
         if ($lastProcess) {
-            return (int)$lastProcess['Id'] + 1;
+            $lastId = $lastProcess['id'] ?? $lastProcess['Id'] ?? 0;
+            return (int)$lastId + 1;
         }
         return 1;
     }
@@ -108,7 +123,15 @@ class ProcessModel extends Model
      */
     public function getAllProcesses($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->orderBy($sortBy, $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->orderBy($sortField, $sortOrder)
                     ->findAll();
     }
 
@@ -117,9 +140,17 @@ class ProcessModel extends Model
      */
     public function getAllProcessesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('process.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
-                    ->orderBy("process.{$sortBy}", $sortOrder)
+        // Mapear campos de ordenamiento a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('process.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
+                    ->orderBy("process.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -136,9 +167,9 @@ class ProcessModel extends Model
      */
     public function getProcessByIdWithUser($id)
     {
-        return $this->select('process.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
-                    ->where('process.Id', $id)
+        return $this->select('process.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
+                    ->where('process.id', $id)
                     ->first();
     }
 
@@ -147,13 +178,21 @@ class ProcessModel extends Model
      */
     public function getProcessesByName($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->like('Name', $name);
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        $query = $this->like('name', $name);
         
         if ($enabledOnly) {
-            $query->where('Enabled', 1);
+            $query->where('enabled', 1);
         }
         
-        return $query->orderBy($sortBy, $sortOrder)->findAll();
+        return $query->orderBy($sortField, $sortOrder)->findAll();
     }
 
     /**
@@ -161,15 +200,23 @@ class ProcessModel extends Model
      */
     public function getProcessesByNameWithUser($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->select('process.*, u.Name as LastUserUpdateName')
-                      ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
-                      ->like('process.Name', $name);
+        // Mapear campos de ordenamiento a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        $query = $this->select('process.*, u.name as LastUserUpdateName')
+                      ->join('user u', 'process.id_last_user_update = u.id', 'left')
+                      ->like('process.name', $name);
         
         if ($enabledOnly) {
-            $query->where('process.Enabled', 1);
+            $query->where('process.enabled', 1);
         }
         
-        return $query->orderBy("process.{$sortBy}", $sortOrder)->findAll();
+        return $query->orderBy("process.{$sortField}", $sortOrder)->findAll();
     }
 
 
@@ -189,10 +236,18 @@ class ProcessModel extends Model
      */
     public function getAllEnabledProcessesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('process.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
-                    ->where('process.Enabled', 1)
-                    ->orderBy("process.{$sortBy}", $sortOrder)
+        // Mapear campos de ordenamiento a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('process.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
+                    ->where('process.enabled', 1)
+                    ->orderBy("process.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -201,8 +256,16 @@ class ProcessModel extends Model
      */
     public function getAllDisabledProcesses($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', 0)
-                    ->orderBy($sortBy, $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->where('enabled', 0)
+                    ->orderBy($sortField, $sortOrder)
                     ->findAll();
     }
 
@@ -211,10 +274,18 @@ class ProcessModel extends Model
      */
     public function getAllDisabledProcessesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('process.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
-                    ->where('process.Enabled', 0)
-                    ->orderBy("process.{$sortBy}", $sortOrder)
+        // Mapear campos de ordenamiento a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('process.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
+                    ->where('process.enabled', 0)
+                    ->orderBy("process.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -223,7 +294,7 @@ class ProcessModel extends Model
      */
     public function countEnabledProcesses()
     {
-        return $this->where('Enabled', 1)->countAllResults();
+        return $this->where('enabled', 1)->countAllResults();
     }
 
     /**
@@ -231,7 +302,7 @@ class ProcessModel extends Model
      */
     public function countDisabledProcesses()
     {
-        return $this->where('Enabled', 0)->countAllResults();
+        return $this->where('enabled', 0)->countAllResults();
     }
 
     /**
@@ -247,10 +318,10 @@ class ProcessModel extends Model
      */
     public function isNameDuplicate($name, $excludeId = null)
     {
-        $query = $this->where('Name', trim($name));
+        $query = $this->where('name', trim($name));
         
         if ($excludeId) {
-            $query->where('Id !=', $excludeId);
+            $query->where('id !=', $excludeId);
         }
         
         return $query->countAllResults() > 0;
@@ -263,7 +334,7 @@ class ProcessModel extends Model
      */
     public function getProcessesByStatus($enabled, $sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', $enabled)
+        return $this->where('enabled', $enabled)
                     ->orderBy($sortBy, $sortOrder)
                     ->findAll();
     }
@@ -273,10 +344,18 @@ class ProcessModel extends Model
      */
     public function getProcessesByStatusWithUser($enabled, $sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('process.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'process.IdLastUserUpdate = u.Id', 'left')
-                    ->where('process.Enabled', $enabled)
-                    ->orderBy("process.{$sortBy}", $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('process.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
+                    ->where('process.enabled', $enabled)
+                    ->orderBy("process.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -287,15 +366,15 @@ class ProcessModel extends Model
     {
         $builder = $this->builder();
         
-        // Aplicar filtros básicos
+        // Aplicar filtros básicos (snake_case)
         if (!empty($filters['start_date'])) {
-            $builder->where('RegistrationDate >=', $filters['start_date']);
+            $builder->where('registration_date >=', $filters['start_date']);
         }
         if (!empty($filters['end_date'])) {
-            $builder->where('RegistrationDate <=', $filters['end_date']);
+            $builder->where('registration_date <=', $filters['end_date']);
         }
         if (!empty($filters['user_id'])) {
-            $builder->where('IdLastUserUpdate', $filters['user_id']);
+            $builder->where('id_last_user_update', $filters['user_id']);
         }
 
         $total = $builder->countAllResults(false);
@@ -303,29 +382,29 @@ class ProcessModel extends Model
         // Resetear el builder para las siguientes consultas
         $builder = $this->builder();
         if (!empty($filters['start_date'])) {
-            $builder->where('RegistrationDate >=', $filters['start_date']);
+            $builder->where('registration_date >=', $filters['start_date']);
         }
         if (!empty($filters['end_date'])) {
-            $builder->where('RegistrationDate <=', $filters['end_date']);
+            $builder->where('registration_date <=', $filters['end_date']);
         }
         if (!empty($filters['user_id'])) {
-            $builder->where('IdLastUserUpdate', $filters['user_id']);
+            $builder->where('id_last_user_update', $filters['user_id']);
         }
         
-        $enabled = $builder->where('Enabled', 1)->countAllResults(false);
+        $enabled = $builder->where('enabled', 1)->countAllResults(false);
         
         $builder = $this->builder();
         if (!empty($filters['start_date'])) {
-            $builder->where('RegistrationDate >=', $filters['start_date']);
+            $builder->where('registration_date >=', $filters['start_date']);
         }
         if (!empty($filters['end_date'])) {
-            $builder->where('RegistrationDate <=', $filters['end_date']);
+            $builder->where('registration_date <=', $filters['end_date']);
         }
         if (!empty($filters['user_id'])) {
-            $builder->where('IdLastUserUpdate', $filters['user_id']);
+            $builder->where('id_last_user_update', $filters['user_id']);
         }
         
-        $disabled = $builder->where('Enabled', 0)->countAllResults(false);
+        $disabled = $builder->where('enabled', 0)->countAllResults(false);
 
         return [
             'total' => $total,

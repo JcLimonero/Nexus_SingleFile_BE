@@ -9,9 +9,9 @@ use Firebase\JWT\Key;
 class AuthModel extends Model
 {
     protected $table = 'user';
-    protected $primaryKey = 'Id';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = false;
-    protected $allowedFields = ['Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol'];
+    protected $allowedFields = ['name', 'user', 'pass', 'mail', 'enabled', 'id_user_rol'];
     protected bool $updateOnlyChanged = false;
     
     // Configuración de JWT
@@ -30,25 +30,26 @@ class AuthModel extends Model
             $loginMethod = 'email'; // 'email' o 'username'
             
             // Primero intentar buscar por Mail (método nuevo)
-            $user = $this->select('user.Id, user.Name, user.User, user.Pass, user.Mail, user.Enabled, user.IdUserRol, user.UserPass, user.profile_image, user.image_type, ur.Name as RoleName')
-                        ->join('user_role ur', 'user.IdUserRol = ur.Id', 'left')
-                        ->where('user.Mail', $identifier)
-                        ->where('user.Enabled', 1)
+            $user = $this->select('user.id, user.name, user.user, user.pass, user.mail, user.enabled, user.id_user_rol, user.user_pass, user.profile_image, user.image_type, ur.name as RoleName')
+                        ->join('user_role ur', 'user.id_user_rol = ur.id', 'left')
+                        ->where('user.mail', $identifier)
+                        ->where('user.enabled', 1)
                         ->get()
                         ->getRowArray();
             
             // Si no se encuentra por Mail, intentar por User (método antiguo)
             if (!$user) {
-                $user = $this->select('user.Id, user.Name, user.User, user.Pass, user.Mail, user.Enabled, user.IdUserRol, user.UserPass, user.profile_image, user.image_type, ur.Name as RoleName')
-                            ->join('user_role ur', 'user.IdUserRol = ur.Id', 'left')
-                            ->where('user.User', $identifier)
-                            ->where('user.Enabled', 1)
+                $user = $this->select('user.id, user.name, user.user, user.pass, user.mail, user.enabled, user.id_user_rol, user.user_pass, user.profile_image, user.image_type, ur.name as RoleName')
+                            ->join('user_role ur', 'user.id_user_rol = ur.id', 'left')
+                            ->where('user.user', $identifier)
+                            ->where('user.enabled', 1)
                             ->get()
                             ->getRowArray();
                 
                 if ($user) {
                     // Si el usuario tiene email, no permitir login con username
-                    if (!empty($user['Mail']) && trim($user['Mail']) !== '') {
+                    $userMail = $user['mail'] ?? $user['Mail'] ?? '';
+                    if (!empty($userMail) && trim($userMail) !== '') {
                         return [
                             'success' => false,
                             'message' => 'Este usuario ya tiene correo electrónico registrado. Por favor, inicia sesión usando tu correo electrónico en lugar del nombre de usuario.'
@@ -58,14 +59,14 @@ class AuthModel extends Model
                     $loginMethod = 'username';
                     
                     // Si el usuario se loguea con username pero no tiene Mail, requerir completar email
-                    if (empty($user['Mail']) || trim($user['Mail']) === '') {
+                    if (empty($userMail) || trim($userMail) === '') {
                         return [
                             'success' => false,
                             'requires_email' => true,
                             'message' => 'Para continuar, necesitas completar tu correo electrónico. Por favor, proporciona tu email para migrar al nuevo sistema de autenticación.',
-                            'user_id' => $user['Id'],
-                            'username' => $user['User'] ?? '',
-                            'name' => $user['Name']
+                            'user_id' => $user['id'] ?? $user['Id'] ?? null,
+                            'username' => $user['user'] ?? $user['User'] ?? '',
+                            'name' => $user['name'] ?? $user['Name'] ?? ''
                         ];
                     }
                 }
@@ -79,26 +80,29 @@ class AuthModel extends Model
             }
             
             // Verificar contraseña
-            if ($this->verifyPassword($password, $user['Pass'] ?? '', $user['UserPass'] ?? null)) {
+            $userPass = $user['pass'] ?? $user['Pass'] ?? '';
+            $userUserPass = $user['user_pass'] ?? $user['UserPass'] ?? null;
+            if ($this->verifyPassword($password, $userPass, $userUserPass)) {
                 // Generar token JWT
                 $accessToken = $this->generateAccessToken($user);
                 $refreshToken = $this->generateRefreshToken($user);
                 
                 // Guardar refresh token en la base de datos
-                $this->saveRefreshToken($user['Id'], $refreshToken);
+                $userId = $user['id'] ?? $user['Id'] ?? null;
+                $this->saveRefreshToken($userId, $refreshToken);
                 
                 return [
                     'success' => true,
                     'message' => 'Login exitoso',
                     'login_method' => $loginMethod,
                     'user' => [
-                        'id' => $user['Id'],
-                        'name' => $user['Name'],
-                        'email' => $user['Mail'],
-                        'username' => $user['User'] ?? '',
-                        'role_id' => $user['IdUserRol'],
+                        'id' => $user['id'] ?? $user['Id'] ?? null,
+                        'name' => $user['name'] ?? $user['Name'] ?? '',
+                        'email' => $user['mail'] ?? $user['Mail'] ?? '',
+                        'username' => $user['user'] ?? $user['User'] ?? '',
+                        'role_id' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
                         'role_name' => $user['RoleName'] ?? 'Sin rol asignado',
-                        'enabled' => $user['Enabled'],
+                        'enabled' => $user['enabled'] ?? $user['Enabled'] ?? 0,
                         'profile_image' => $user['profile_image'] ?? null,
                         'image_type' => $user['image_type'] ?? null
                     ],
@@ -163,9 +167,9 @@ class AuthModel extends Model
             'aud' => 'singlefile-client', // Audiencia
             'iat' => time(), // Tiempo de emisión
             'exp' => time() + $this->jwtExpiration, // Expiración
-            'user_id' => $user['Id'],
-            'email' => $user['Mail'],
-            'role_id' => $user['IdUserRol'],
+            'user_id' => $user['id'] ?? $user['Id'] ?? null,
+            'email' => $user['mail'] ?? $user['Mail'] ?? '',
+            'role_id' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
             'type' => 'access'
         ];
         
@@ -182,9 +186,9 @@ class AuthModel extends Model
             'aud' => 'singlefile-client', // Audiencia
             'iat' => time(), // Tiempo de emisión
             'exp' => time() + $this->refreshTokenExpiration, // Expiración más larga
-            'user_id' => $user['Id'],
-            'email' => $user['Mail'],
-            'role_id' => $user['IdUserRol'],
+            'user_id' => $user['id'] ?? $user['Id'] ?? null,
+            'email' => $user['mail'] ?? $user['Mail'] ?? '',
+            'role_id' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
             'type' => 'refresh'
         ];
         
@@ -201,27 +205,27 @@ class AuthModel extends Model
             
             // Verificar si ya existe un refresh token para este usuario
             $existingToken = $db->table('user_refresh_token')
-                ->where('IdUser', $userId)
+                ->where('id_user', $userId)
                 ->get()
                 ->getRowArray();
             
             if ($existingToken) {
                 // Actualizar token existente
                 $db->table('user_refresh_token')
-                    ->where('IdUser', $userId)
+                    ->where('id_user', $userId)
                     ->update([
-                        'RefreshToken' => $refreshToken,
-                        'ExpirationDate' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
-                        'UpdateDate' => date('Y-m-d H:i:s')
+                        'refresh_token' => $refreshToken,
+                        'expiration_date' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
+                        'update_date' => date('Y-m-d H:i:s')
                     ]);
             } else {
                 // Insertar nuevo token
                 $db->table('user_refresh_token')->insert([
-                    'IdUser' => $userId,
-                    'RefreshToken' => $refreshToken,
-                    'ExpirationDate' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
-                    'CreatedDate' => date('Y-m-d H:i:s'),
-                    'UpdateDate' => date('Y-m-d H:i:s')
+                    'id_user' => $userId,
+                    'refresh_token' => $refreshToken,
+                    'expiration_date' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
+                    'created_date' => date('Y-m-d H:i:s'),
+                    'update_date' => date('Y-m-d H:i:s')
                 ]);
             }
             
@@ -253,9 +257,9 @@ class AuthModel extends Model
             // Verificar que el token esté en la base de datos
             $db = \Config\Database::connect();
             $storedToken = $db->table('user_refresh_token')
-                ->where('IdUser', $decoded->user_id)
-                ->where('RefreshToken', $refreshToken)
-                ->where('ExpirationDate >', date('Y-m-d H:i:s'))
+                ->where('id_user', $decoded->user_id)
+                ->where('refresh_token', $refreshToken)
+                ->where('expiration_date >', date('Y-m-d H:i:s'))
                 ->get()
                 ->getRowArray();
             
@@ -266,9 +270,10 @@ class AuthModel extends Model
                 ];
             }
             
-            // Obtener información del usuario (incluyendo Id explícitamente)
-            $user = $this->select('Id, Name, User, Mail, Enabled, IdUserRol')->find($decoded->user_id);
-            if (!$user || !isset($user['Id']) || $user['Enabled'] != 1) {
+            // Obtener información del usuario (incluyendo id explícitamente)
+            $user = $this->select('id, name, user, mail, enabled, id_user_rol')->find($decoded->user_id);
+            $userId = $user['id'] ?? $user['Id'] ?? null;
+            if (!$user || $userId === null || ($user['enabled'] ?? $user['Enabled'] ?? 0) != 1) {
                 return [
                     'success' => false,
                     'message' => 'Usuario no encontrado o deshabilitado'
@@ -301,7 +306,7 @@ class AuthModel extends Model
         try {
             $db = \Config\Database::connect();
             $db->table('user_refresh_token')
-                ->where('IdUser', $userId)
+                ->where('id_user', $userId)
                 ->delete();
             
             return true;
@@ -338,10 +343,10 @@ class AuthModel extends Model
             $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
             
             $this->update($userId, [
-                'Id' => $userId,
-                'Pass' => $hashedPassword,
+                'id' => $userId,
+                'pass' => $hashedPassword,
                 'password_migrated' => 1,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'update_date' => date('Y-m-d H:i:s')
             ]);
             
             return true;
@@ -355,7 +360,7 @@ class AuthModel extends Model
      */
     public function getUserById($userId)
     {
-        return $this->select('Id, Name, User, Mail, Enabled, IdUserRol')->find($userId);
+        return $this->select('id, name, user, mail, enabled, id_user_rol')->find($userId);
     }
     
     /**
@@ -363,8 +368,9 @@ class AuthModel extends Model
      */
     public function isUserEnabled($userId)
     {
-        $user = $this->select('Id, Enabled')->find($userId);
-        return $user && isset($user['Id']) && $user['Enabled'] == 1;
+        $user = $this->select('id, enabled')->find($userId);
+        $userIdValue = $user['id'] ?? $user['Id'] ?? null;
+        return $user && $userIdValue !== null && ($user['enabled'] ?? $user['Enabled'] ?? 0) == 1;
     }
     
     /**
@@ -382,9 +388,10 @@ class AuthModel extends Model
                 ];
             }
             
-            // Verificar que el usuario existe y obtener sus datos (incluyendo Id explícitamente)
-            $user = $this->select('Id, Name, User, Pass, Mail, Enabled, IdUserRol, UserPass')->find($userId);
-            if (!$user || !isset($user['Id'])) {
+            // Verificar que el usuario existe y obtener sus datos (incluyendo id explícitamente)
+            $user = $this->select('id, name, user, pass, mail, enabled, id_user_rol, user_pass')->find($userId);
+            $userIdValue = $user['id'] ?? $user['Id'] ?? null;
+            if (!$user || $userIdValue === null) {
                 return [
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -392,7 +399,9 @@ class AuthModel extends Model
             }
             
             // Verificar contraseña antes de permitir actualizar email
-            if (!$this->verifyPassword($password, $user['Pass'], $user['UserPass'] ?? null)) {
+            $userPass = $user['pass'] ?? $user['Pass'] ?? '';
+            $userUserPass = $user['user_pass'] ?? $user['UserPass'] ?? null;
+            if (!$this->verifyPassword($password, $userPass, $userUserPass)) {
                 return [
                     'success' => false,
                     'message' => 'Contraseña incorrecta. No se puede actualizar el email sin verificar la contraseña.'
@@ -400,8 +409,8 @@ class AuthModel extends Model
             }
             
             // Verificar que el email no esté en uso por otro usuario
-            $existingUser = $this->where('Mail', $email)
-                                ->where('Id !=', $userId)
+            $existingUser = $this->where('mail', $email)
+                                ->where('id !=', $userId)
                                 ->get()
                                 ->getRowArray();
             
@@ -412,11 +421,11 @@ class AuthModel extends Model
                 ];
             }
             
-            // Actualizar el email (incluyendo Id en los datos)
+            // Actualizar el email (incluyendo id en los datos)
             $this->update($userId, [
-                'Id' => $userId,
-                'Mail' => $email,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'id' => $userId,
+                'mail' => $email,
+                'update_date' => date('Y-m-d H:i:s')
             ]);
             
             return [

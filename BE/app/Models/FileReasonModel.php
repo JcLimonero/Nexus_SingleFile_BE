@@ -7,13 +7,13 @@ use CodeIgniter\Model;
 class FileReasonModel extends Model
 {
     protected $table            = 'file_reasons';
-    protected $primaryKey       = 'Id';
-    protected $useAutoIncrement = false;
+    protected $primaryKey       = 'id';
+    protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'Name', 'IdTypeReason', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate'
+        'id', 'name', 'id_type_reason', 'enabled', 'registration_date', 'update_date', 'id_last_user_update'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -25,15 +25,15 @@ class FileReasonModel extends Model
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'RegistrationDate';
-    protected $updatedField  = 'UpdateDate';
+    protected $createdField  = 'registration_date';
+    protected $updatedField  = 'update_date';
 
-    // Validation
+    // Validation (snake_case)
     protected $validationRules      = [
-        'Name' => 'required|max_length[500]'
+        'name' => 'required|max_length[500]'
     ];
     protected $validationMessages   = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre del motivo es requerido',
             'max_length' => 'El nombre del motivo no puede exceder 500 caracteres'
         ]
@@ -55,50 +55,51 @@ class FileReasonModel extends Model
     /**
      * Obtener motivos activos
      */
+    private function mapSortField($sortBy)
+    {
+        $map = ['Name' => 'name', 'Id' => 'id', 'IdTypeReason' => 'id_type_reason', 'Enabled' => 'enabled', 'RegistrationDate' => 'registration_date', 'UpdateDate' => 'update_date'];
+        return $map[$sortBy] ?? 'name';
+    }
+
     public function getActiveFileReasons()
     {
-        $results = $this->where('Enabled', 1)->orderBy('Name', 'ASC')->findAll();
+        $results = $this->where('enabled', 1)->orderBy('name', 'ASC')->findAll();
         
-        // Agregar descripción del tipo de razón
         foreach ($results as &$result) {
-            $result['TypeReasonLabel'] = $result['IdTypeReason'] == 4 ? 'Aprobación' : 'Rechazo';
+            $idType = $result['id_type_reason'] ?? $result['IdTypeReason'] ?? 0;
+            $result['type_reason_label'] = $idType == 4 ? 'Aprobación' : 'Rechazo';
         }
         
         return $results;
     }
-
-
 
     /**
      * Obtener motivo por nombre
      */
     public function getFileReasonByName($name)
     {
-        return $this->where('Name', $name)->first();
+        return $this->where('name', $name)->first();
     }
 
     /**
-     * Obtener motivos con filtros
+     * Obtener motivos con filtros (snake_case)
      */
     public function getFileReasonsWithFilters($filters = [])
     {
         $builder = $this->builder();
         
-        // Aplicar filtros
         if (!empty($filters['search'])) {
-            $builder->like('Name', $filters['search']);
+            $builder->like('name', $filters['search']);
         }
 
         if (isset($filters['id_type_reason']) && $filters['id_type_reason'] !== '') {
-            $builder->where('IdTypeReason', $filters['id_type_reason']);
+            $builder->where('id_type_reason', $filters['id_type_reason']);
         }
 
-        // Ordenamiento
-        $sortBy = $filters['sort_by'] ?? 'Name';
+        $sortBy = $this->mapSortField($filters['sort_by'] ?? 'Name');
         $sortOrder = $filters['sort_order'] ?? 'ASC';
         $builder->orderBy($sortBy, $sortOrder);
 
-        // Paginación
         if (isset($filters['limit']) && $filters['limit'] !== null) {
             $builder->limit($filters['limit']);
         }
@@ -109,9 +110,9 @@ class FileReasonModel extends Model
 
         $results = $builder->get()->getResultArray();
         
-        // Agregar descripción del tipo de razón
         foreach ($results as &$result) {
-            $result['TypeReasonLabel'] = $result['IdTypeReason'] == 4 ? 'Aprobación' : 'Rechazo';
+            $idType = $result['id_type_reason'] ?? $result['IdTypeReason'] ?? 0;
+            $result['type_reason_label'] = $idType == 4 ? 'Aprobación' : 'Rechazo';
         }
         
         return $results;
@@ -124,13 +125,12 @@ class FileReasonModel extends Model
     {
         $builder = $this->builder();
         
-        // Aplicar filtros
         if (!empty($filters['search'])) {
-            $builder->like('Name', $filters['search']);
+            $builder->like('name', $filters['search']);
         }
 
         if (isset($filters['id_type_reason']) && $filters['id_type_reason'] !== '') {
-            $builder->where('IdTypeReason', $filters['id_type_reason']);
+            $builder->where('id_type_reason', $filters['id_type_reason']);
         }
 
         return $builder->countAllResults();
@@ -145,14 +145,11 @@ class FileReasonModel extends Model
         
         $total = $builder->countAllResults();
         
-        // Contar por tipo de razón
         $typeReasonStats = $this->db->table('file_reasons')
-            ->select('IdTypeReason, COUNT(*) as count')
-            ->groupBy('IdTypeReason')
+            ->select('id_type_reason, COUNT(*) as count')
+            ->groupBy('id_type_reason')
             ->get()
             ->getResultArray();
-
-
 
         return [
             'total_reasons' => $total,
@@ -165,14 +162,14 @@ class FileReasonModel extends Model
      */
     public function searchFileReasons($searchTerm, $limit = 10)
     {
-        $results = $this->like('Name', $searchTerm)
-                    ->orderBy('Name', 'ASC')
+        $results = $this->like('name', $searchTerm)
+                    ->orderBy('name', 'ASC')
                     ->limit($limit)
                     ->findAll();
         
-        // Agregar descripción del tipo de razón
         foreach ($results as &$result) {
-            $result['TypeReasonLabel'] = $result['IdTypeReason'] == 4 ? 'Aprobación' : 'Rechazo';
+            $idType = $result['id_type_reason'] ?? $result['IdTypeReason'] ?? 0;
+            $result['type_reason_label'] = $idType == 4 ? 'Aprobación' : 'Rechazo';
         }
         
         return $results;
@@ -188,7 +185,8 @@ class FileReasonModel extends Model
             return false;
         }
 
-        $newStatus = $fileReason['Enabled'] == 1 ? 0 : 1;
-        return $this->update($id, ['Enabled' => $newStatus]);
+        $enabled = $fileReason['enabled'] ?? $fileReason['Enabled'] ?? 1;
+        $newStatus = $enabled == 1 ? 0 : 1;
+        return $this->update($id, ['enabled' => $newStatus]);
     }
 }

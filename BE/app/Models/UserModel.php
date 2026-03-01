@@ -7,15 +7,15 @@ use CodeIgniter\Model;
 class UserModel extends Model
 {
     protected $table            = 'user';
-    protected $primaryKey       = 'Id';
+    protected $primaryKey       = 'id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol',
-        'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate',
-        'IdUserTotal', 'DefaultAgency', 'password_migrated',
+        'id', 'name', 'user', 'pass', 'mail', 'enabled', 'id_user_rol',
+        'registration_date', 'update_date', 'id_last_user_update',
+        'id_user_total', 'default_agency', 'password_migrated',
         'profile_image', 'image_type', 'image_size'
     ];
 
@@ -28,8 +28,8 @@ class UserModel extends Model
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'RegistrationDate';
-    protected $updatedField  = 'UpdateDate';
+    protected $createdField  = 'registration_date';
+    protected $updatedField  = 'update_date';
     protected $deletedField  = 'deleted_at';
 
     // Validation
@@ -87,11 +87,11 @@ class UserModel extends Model
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
         
         return $this->update($userId, [
-            'Id' => $userId,
-            'Pass' => $hashedPassword,
+            'id' => $userId,
+            'pass' => $hashedPassword,
             'password_migrated' => 1,
-            'UpdateDate' => date('Y-m-d H:i:s'),
-            'IdLastUserUpdate' => session()->get('user_id') ?? 0
+            'update_date' => date('Y-m-d H:i:s'),
+            'id_last_user_update' => session()->get('user_id') ?? 0
         ]);
     }
 
@@ -111,10 +111,10 @@ class UserModel extends Model
         $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
         
         return $this->update($userId, [
-            'Id' => $userId,
-            'Pass' => $hashedPassword,
+            'id' => $userId,
+            'pass' => $hashedPassword,
             'password_migrated' => 1,
-            'UpdateDate' => date('Y-m-d H:i:s')
+            'update_date' => date('Y-m-d H:i:s')
         ]);
     }
 
@@ -137,8 +137,8 @@ class UserModel extends Model
             'profile_image' => $imageData,
             'image_type' => $imageType,
             'image_size' => $imageSize,
-            'UpdateDate' => date('Y-m-d H:i:s'),
-            'IdLastUserUpdate' => session()->get('user_id') ?? 0
+            'update_date' => date('Y-m-d H:i:s'),
+            'id_last_user_update' => session()->get('user_id') ?? 0
         ]);
     }
 
@@ -148,12 +148,12 @@ class UserModel extends Model
     public function removeProfileImage($userId)
     {
         return $this->update($userId, [
-            'Id' => $userId,
+            'id' => $userId,
             'profile_image' => null,
             'image_type' => null,
             'image_size' => null,
-            'UpdateDate' => date('Y-m-d H:i:s'),
-            'IdLastUserUpdate' => session()->get('user_id') ?? 0
+            'update_date' => date('Y-m-d H:i:s'),
+            'id_last_user_update' => session()->get('user_id') ?? 0
         ]);
     }
 

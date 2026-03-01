@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -54,7 +54,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   filters: FileReasonFilters = {
     search: '',
     id_type_reason: undefined,
-    sort_by: 'Name',
+    sort_by: 'name',
     sort_order: 'ASC'
   };
 
@@ -62,11 +62,13 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   totalReasons = 0;
   pageSize = 10;
   pageSizeOptions = [10, 25, 50, 100];
+  pageRangeText = '0-0';
 
   constructor(
     private fileReasonService: FileReasonService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -74,8 +76,41 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    setTimeout(() => {
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+      
+      // Suscribirse a eventos del paginator para actualizar el rango
+      if (this.paginator) {
+        this.paginator.page.subscribe(() => {
+          this.updatePageRange();
+        });
+      }
+      
+      // Actualizar el rango inicial
+      this.updatePageRange();
+    });
+  }
+  
+  /**
+   * Actualizar el texto del rango de páginas
+   */
+  updatePageRange(): void {
+    if (!this.paginator || !this.dataSource || !this.dataSource.data || this.dataSource.data.length === 0) {
+      this.pageRangeText = '0-0';
+      return;
+    }
+    
+    const dataLength = this.dataSource.filteredData.length || this.dataSource.data.length;
+    if (dataLength === 0) {
+      this.pageRangeText = '0-0';
+      return;
+    }
+    
+    const startIndex = this.paginator.pageIndex * this.paginator.pageSize + 1;
+    const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, dataLength);
+    
+    this.pageRangeText = `${startIndex}-${endIndex}`;
   }
 
   /**
@@ -95,6 +130,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
         this.dataSource.data = response.data.file_reasons;
         this.totalReasons = response.data.total;
         this.loading = false;
+        this.updatePageRange();
       },
       error: (error) => {
 
@@ -112,6 +148,11 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
       this.paginator.firstPage();
     }
     this.loadData();
+    
+    // Actualizar el rango después de aplicar filtros
+    setTimeout(() => {
+      this.updatePageRange();
+    });
   }
 
   /**
@@ -121,7 +162,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
     this.filters = {
       search: '',
       id_type_reason: undefined,
-      sort_by: 'Name',
+      sort_by: 'name',
       sort_order: 'ASC'
     };
     this.applyFilters();
@@ -189,8 +230,8 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
    * Eliminar motivo
    */
   deleteFileReason(fileReason: FileReason): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el motivo "${fileReason.Name}"?`)) {
-      this.fileReasonService.deleteFileReason(fileReason.Id).subscribe({
+    if (confirm(`¿Estás seguro de que quieres eliminar el motivo "${fileReason.name}"?`)) {
+      this.fileReasonService.deleteFileReason(fileReason.id).subscribe({
         next: (response) => {
           this.snackBar.open('Motivo eliminado exitosamente', 'Éxito', { duration: 2000 });
           this.loadData();
@@ -207,7 +248,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
    * Cambiar estado del motivo
    */
   toggleStatus(fileReason: FileReason): void {
-    this.fileReasonService.toggleStatus(fileReason.Id).subscribe({
+    this.fileReasonService.toggleStatus(fileReason.id).subscribe({
               next: (response) => {
           this.snackBar.open('Estado del motivo cambiado exitosamente', 'Éxito', { duration: 2000 });
           this.loadData();
@@ -222,9 +263,9 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   /**
    * Obtener color del tipo de razón
    */
-  getTypeReasonColor(idTypeReason: number): string {
-    if (idTypeReason === 4) return 'emerald'; // Aprobación - verde
-    if (idTypeReason === 5) return 'amber';   // Rechazo - naranja/ámbar
+  getTypeReasonColor(id_type_reason: number): string {
+    if (id_type_reason === 4) return 'emerald'; // Aprobación - verde
+    if (id_type_reason === 5) return 'amber';   // Rechazo - naranja/ámbar
     return 'gray'; // Tipo desconocido
   }
 
@@ -248,11 +289,6 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
    * Obtener rango de página actual para mostrar en el contador
    */
   getPageRange(): string {
-    if (!this.dataSource.paginator) return '0-0';
-    
-    const start = this.dataSource.paginator.pageIndex * this.dataSource.paginator.pageSize + 1;
-    const end = Math.min(start + this.dataSource.paginator.pageSize - 1, this.dataSource.filteredData.length);
-    
-    return `${start}-${end}`;
+    return this.pageRangeText;
   }
 }

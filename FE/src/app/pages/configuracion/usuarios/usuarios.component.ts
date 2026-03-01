@@ -51,7 +51,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   roles: UserRole[] = [];
   agencies: Agency[] = [];
   dataSource = new MatTableDataSource<User>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'User', 'Mail', 'IdUserRol', 'DefaultAgency', 'AssignedAgencies', 'Status', 'acciones'];
+  displayedColumns: string[] = ['id', 'name', 'user', 'mail', 'id_user_rol', 'default_agency', 'AssignedAgencies', 'Status', 'acciones'];
   loading = false;
   loadingCatalogs = false;
   searchTerm = '';
@@ -84,7 +84,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     if (this.isLoggedInAdmin) {
       return this.roles;
     }
-    return this.roles.filter(r => !this.restrictedRoleIds.has(String(r.Id)));
+    return this.roles.filter(r => !this.restrictedRoleIds.has(String(r.id)));
   }
 
   /** Ocultar rol en tabla (mostrar "—") cuando es 7 u 8 y el logueado NO es admin. */
@@ -105,9 +105,9 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: User, filter: string) => {
       const searchTerm = filter.toLowerCase();
-      return data.Name.toLowerCase().includes(searchTerm) ||
-             data.User.toLowerCase().includes(searchTerm) ||
-             data.Mail.toLowerCase().includes(searchTerm);
+      return data.name.toLowerCase().includes(searchTerm) ||
+             data.user.toLowerCase().includes(searchTerm) ||
+             data.mail.toLowerCase().includes(searchTerm);
     };
   }
 
@@ -146,7 +146,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     }
 
     // Obtener IDs de todos los usuarios
-    const userIds = this.users.map(user => user.Id).join(',');
+    const userIds = this.users.map(user => user.id).join(',');
     
     // Hacer una sola llamada para obtener todas las agencias de todos los usuarios
     this.userService.getUsersAgenciesBatch(userIds).subscribe({
@@ -154,20 +154,21 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         if (response.success && response.data) {
           // Procesar la respuesta y asignar agencias a cada usuario
           this.users.forEach(user => {
-            const userAgencies = response.data[user.Id];
+            const uid = user.id ?? (user as any).Id;
+            const userAgencies = response.data[uid];
             if (userAgencies) {
-              user.AssignedAgencies = userAgencies.agencies || [];
-              user.AssignedAgencyNames = userAgencies.agencies_details?.map((agency: any) => agency.AgencyName) || [];
+              user.assigned_agencies = userAgencies.agencies || [];
+              user.assigned_agency_names = userAgencies.agencies_details?.map((agency: any) => agency.AgencyName ?? agency.agency_name) || [];
             } else {
-              user.AssignedAgencies = [];
-              user.AssignedAgencyNames = [];
+              user.assigned_agencies = [];
+              user.assigned_agency_names = [];
             }
           });
         } else {
           // Si no hay respuesta exitosa, inicializar arrays vacíos
           this.users.forEach(user => {
-            user.AssignedAgencies = [];
-            user.AssignedAgencyNames = [];
+            user.assigned_agencies = [];
+            user.assigned_agency_names = [];
           });
         }
         
@@ -180,8 +181,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
 
         // En caso de error, inicializar arrays vacíos para todos los usuarios
         this.users.forEach(user => {
-          user.AssignedAgencies = [];
-          user.AssignedAgencyNames = [];
+          user.assigned_agencies = [];
+          user.assigned_agency_names = [];
         });
         
         // Actualizar la tabla
@@ -223,11 +224,11 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         this.agencies = agencias
           .filter(ag => this.defaultAgencyService.esAgenciaHabilitada(ag))
           .map(ag => ({
-            Id: ag.Id.toString(),
-            Name: ag.Name,
-            Enabled: typeof ag.Enabled === 'boolean' ? (ag.Enabled ? '1' : '0') : 
-                     typeof ag.Enabled === 'string' ? ag.Enabled : 
-                     ag.Enabled.toString()
+            id: String((ag as any).id ?? (ag as any).Id),
+            name: (ag as any).name ?? (ag as any).Name,
+            enabled: typeof (ag as any).enabled === 'boolean' ? ((ag as any).enabled ? '1' : '0') : 
+                     typeof (ag as any).enabled === 'string' ? (ag as any).enabled : 
+                     String((ag as any).Enabled ?? (ag as any).enabled ?? '0')
           })) as Agency[];
         this.checkCatalogsLoaded();
       },
@@ -265,34 +266,34 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     
     // Filtro de rol
     if (this.roleFilter !== '') {
-      filteredData = filteredData.filter(user => user.IdUserRol === this.roleFilter);
+      filteredData = filteredData.filter(user => user.id_user_rol === this.roleFilter);
     }
     
     // Filtro de agencia predeterminada
     if (this.agencyFilter !== '') {
-      filteredData = filteredData.filter(user => user.DefaultAgency === this.agencyFilter);
+      filteredData = filteredData.filter(user => user.default_agency === this.agencyFilter);
     }
     
     // Filtro de agencias asignadas
     if (this.assignedAgencyFilter !== '') {
       filteredData = filteredData.filter(user => 
-        user.AssignedAgencies && 
-        Array.isArray(user.AssignedAgencies) && 
-        user.AssignedAgencies.includes(this.assignedAgencyFilter)
+        user.assigned_agencies && 
+        Array.isArray(user.assigned_agencies) && 
+        user.assigned_agencies.includes(this.assignedAgencyFilter)
       );
     }
     
     // Filtro de estado
     if (this.statusFilter !== '') {
-      filteredData = filteredData.filter(user => user.Enabled === this.statusFilter);
+      filteredData = filteredData.filter(user => user.enabled === this.statusFilter);
     }
     
     // Filtro de búsqueda de texto
     if (filterValue !== '') {
       filteredData = filteredData.filter(user => 
-        user.Name.toLowerCase().includes(filterValue.toLowerCase()) ||
-        user.User.toLowerCase().includes(filterValue.toLowerCase()) ||
-        user.Mail.toLowerCase().includes(filterValue.toLowerCase())
+        user.name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        user.user.toLowerCase().includes(filterValue.toLowerCase()) ||
+        user.mail.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
     
@@ -362,10 +363,10 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   openAccessDialog(user: User): void {
     const dialogData = {
       user: {
-        Id: user.Id!,
-        Name: user.Name,
-        User: user.User,
-        Email: user.Mail
+        id: user.id,
+        name: user.name,
+        user: user.user,
+        mail: user.mail
       },
       mode: 'edit'
     };
@@ -385,13 +386,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   deleteUser(user: User): void {
-    const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${user.Name || user.User}"?`);
+    const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${user.name || user.user}"?`);
     
     if (confirmDelete) {
-      this.userService.deleteUser(user.Id).subscribe({
+      this.userService.deleteUser(user.id).subscribe({
         next: (response) => {
           if (response && response.success) {
-            this.users = this.users.filter(u => u.Id !== user.Id);
+            this.users = this.users.filter(u => u.id !== user.id);
             this.applyFilter();
             this.snackBar.open('Usuario eliminado exitosamente', 'Éxito', {
               duration: 2000
@@ -423,13 +424,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   getRoleName(roleId: string): string {
-    const role = this.roles.find(r => r.Id === roleId);
-    return role ? role.Name : 'Desconocido';
+    const role = this.roles.find(r => r.id === roleId);
+    return role ? role.name : 'Desconocido';
   }
 
   getAgencyName(agencyId: string): string {
-    const agency = this.agencies.find(a => a.Id === agencyId);
-    return agency ? agency.Name : (agencyId === '0' ? 'Sin agencia' : `Agencia ${agencyId}`);
+    const agency = this.agencies.find(a => a.id === agencyId);
+    return agency ? agency.name : (agencyId === '0' ? 'Sin agencia' : `Agencia ${agencyId}`);
   }
 
   getUserStatus(enabled: string): { text: string; class: string; icon: string } {

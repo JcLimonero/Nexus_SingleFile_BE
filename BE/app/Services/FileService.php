@@ -161,20 +161,20 @@ class FileService
         $idOrderTotal = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
         
         $fileData = [
-            'IdClient' => $clientId,
-            'IdAgency' => $internalAgencyId,
-            'IdProcess' => $process['Id'],
-            'IdCustomerType' => $customerType['Id'],
-            'IdOperation' => $operationType['Id'],
-            'IdSeller' => $sellerId,
-            'IdCurrentState' => 1, // Integración
-            'IdOrderTotal' => $idOrderTotal,
-            // IdOrder debe ser el ID de Order (foreign key), no IdOrderTotal
+            'id_client' => $clientId,
+            'id_agency' => $internalAgencyId,
+            'id_process' => $process['id'] ?? $process['Id'] ?? null,
+            'id_customer_type' => $customerType['id'] ?? $customerType['Id'] ?? null,
+            'id_operation' => $operationType['id'] ?? $operationType['Id'] ?? null,
+            'id_seller' => $sellerId,
+            'id_current_state' => 1, // Integración
+            'id_order_total' => $idOrderTotal,
+            // id_order debe ser el ID de Order (foreign key), no id_order_total
             // Si no se proporciona orderByCarId, no se asigna (NULL por defecto)
-            'IdInventory' => $order['inventory'] ?? $order['inventario'] ?? null,
-            'RegistrationDate' => $currentDate,
-            'UpdateDate' => $currentDate,
-            'IdLastUserUpdate' => $userId
+            'id_inventory' => $order['inventory'] ?? $order['inventario'] ?? null,
+            'registration_date' => $currentDate,
+            'update_date' => $currentDate,
+            'id_last_user_update' => $userId
         ];
 
         error_log("=== CREANDO FILE ===");
@@ -218,12 +218,12 @@ class FileService
 
         foreach ($requiredDocuments as $document) {
             $documentData = [
-                'IdFile' => $fileId,
-                'IdDocumentType' => $document['IdDocumentType'],
-                'IdCurrentState' => 1, // Pendiente
-                'RegistrationDate' => $currentDate,
-                'UpdateDate' => $currentDate,
-                'IdLastUserUpdate' => $userId
+                'id_file' => $fileId,
+                'id_document_type' => $document['id_document_type'] ?? $document['IdDocumentType'] ?? null,
+                'id_current_state' => 1, // Pendiente
+                'registration_date' => $currentDate,
+                'update_date' => $currentDate,
+                'id_last_user_update' => $userId
             ];
 
             $this->db->table('file_document')->insert($documentData);
@@ -239,15 +239,16 @@ class FileService
      */
     private function getRequiredDocuments($processId, $customerTypeId, $operationTypeId, $agencyId)
     {
-        $sql = "SELECT DISTINCT dt.Id as IdDocumentType
+        $sql = "SELECT DISTINCT dt.id as id_document_type
                 FROM document_type dt
-                INNER JOIN process_document_type pdt ON dt.Id = pdt.IdDocumentType
-                WHERE pdt.IdProcess = ? 
-                AND pdt.IdCustomerType = ? 
-                AND pdt.IdOperationType = ? 
-                AND pdt.IdAgency = ?
-                AND pdt.Enabled = 1
-                AND dt.Enabled = 1";
+                INNER JOIN configuration_process_document_type cpd ON dt.id = cpd.id_document_type
+                INNER JOIN configuration_process cp ON cpd.id_configuration_process = cp.id
+                WHERE cp.id_process = ? 
+                AND cp.id_customer_type = ? 
+                AND cp.id_operation_type = ? 
+                AND cp.id_agency = ?
+                AND cp.enabled = 1
+                AND dt.enabled = 1";
 
         $query = $this->db->query($sql, [$processId, $customerTypeId, $operationTypeId, $agencyId]);
         return $query->getResultArray();
@@ -261,10 +262,10 @@ class FileService
         error_log("=== BUSCANDO CLIENTE POR ID EXTERNO ===");
         error_log("ID externo: " . $externalClientId);
         
-        $sql = "SELECT hc.Id 
+        $sql = "SELECT hc.id 
                 FROM client_header hc
-                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-                WHERE ctr.IdDMS = ?";
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                WHERE ctr.id_dms = ?";
         
         error_log("SQL: " . $sql);
         error_log("Parámetros: " . json_encode([$externalClientId]));

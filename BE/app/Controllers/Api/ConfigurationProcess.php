@@ -39,31 +39,31 @@ class configuration_process extends BaseController
             $builder = $db->table('configuration_process cp');
             
             $builder->select('
-                cp.Id as configurationId,
-                cp.IdProcess,
-                p.Name as processName,
-                cp.IdAgency,
-                a.Name as agencyName,
-                cp.IdCustomerType,
-                ct.Name as customerTypeName,
-                cp.IdOperationType,
-                ot.Name as operationTypeName,
-                cp.Enabled,
-                cp.RegistrationDate,
-                cp.UpdateDate
+                cp.id as configuration_id,
+                cp.id_process,
+                p.name as process_name,
+                cp.id_agency,
+                a.name as agency_name,
+                cp.id_customer_type,
+                ct.name as customer_type_name,
+                cp.id_operation_type,
+                ot.name as operation_type_name,
+                cp.enabled,
+                cp.registration_date,
+                cp.update_date
             ')
-            ->join('process p', 'p.Id = cp.IdProcess', 'left')
-            ->join('agency a', 'a.Id = cp.IdAgency', 'left')
-            ->join('customer_type ct', 'ct.Id = cp.IdCustomerType', 'left')
-            ->join('operation_type ot', 'ot.Id = cp.IdOperationType', 'left')
-            ->where('cp.Enabled', 1)
-            ->orderBy('p.Name', 'ASC')
-            ->orderBy('ct.Name', 'ASC')
-            ->orderBy('ot.Name', 'ASC');
+            ->join('process p', 'p.id = cp.id_process', 'left')
+            ->join('agency a', 'a.id = cp.id_agency', 'left')
+            ->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left')
+            ->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left')
+            ->where('cp.enabled', 1)
+            ->orderBy('p.name', 'ASC')
+            ->orderBy('ct.name', 'ASC')
+            ->orderBy('ot.name', 'ASC');
 
             // Aplicar filtro por agencia si se proporciona
             if ($agencyId) {
-                $builder->where('cp.IdAgency', $agencyId);
+                $builder->where('cp.id_agency', $agencyId);
             }
 
             $configurations = $builder->get()->getResultArray();
@@ -79,11 +79,11 @@ class configuration_process extends BaseController
             // Extraer procesos únicos
             $processIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdProcess'], $processIds)) {
-                    $processIds[] = $config['IdProcess'];
+                if (!in_array($config['id_process'], $processIds)) {
+                    $processIds[] = $config['id_process'];
                     $organizedData['processes'][] = [
-                        'Id' => $config['IdProcess'],
-                        'Name' => $config['processName']
+                        'id' => $config['id_process'],
+                        'name' => $config['process_name']
                     ];
                 }
             }
@@ -91,11 +91,11 @@ class configuration_process extends BaseController
             // Extraer tipos de cliente únicos
             $customerTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdCustomerType'], $customerTypeIds)) {
-                    $customerTypeIds[] = $config['IdCustomerType'];
+                if (!in_array($config['id_customer_type'], $customerTypeIds)) {
+                    $customerTypeIds[] = $config['id_customer_type'];
                     $organizedData['customerTypes'][] = [
-                        'Id' => $config['IdCustomerType'],
-                        'Name' => $config['customerTypeName']
+                        'id' => $config['id_customer_type'],
+                        'name' => $config['customer_type_name']
                     ];
                 }
             }
@@ -103,11 +103,11 @@ class configuration_process extends BaseController
             // Extraer tipos de operación únicos
             $operationTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdOperationType'], $operationTypeIds)) {
-                    $operationTypeIds[] = $config['IdOperationType'];
+                if (!in_array($config['id_operation_type'], $operationTypeIds)) {
+                    $operationTypeIds[] = $config['id_operation_type'];
                     $organizedData['operationTypes'][] = [
-                        'Id' => $config['IdOperationType'],
-                        'Name' => $config['operationTypeName']
+                        'id' => $config['id_operation_type'],
+                        'name' => $config['operation_type_name']
                     ];
                 }
             }
@@ -156,28 +156,28 @@ class configuration_process extends BaseController
             $builder = $db->table('configuration_process cp');
             
             $builder->select('
-                cp.Id as configurationId,
-                cp.IdProcess,
-                p.Name as processName,
-                cp.IdAgency,
-                a.Name as agencyName,
-                cp.IdCustomerType,
-                ct.Name as customerTypeName,
-                cp.IdOperationType,
-                ot.Name as operationTypeName,
-                cp.Enabled,
-                cp.RegistrationDate,
-                cp.UpdateDate
+                cp.id as configuration_id,
+                cp.id_process,
+                p.name as process_name,
+                cp.id_agency,
+                a.name as agency_name,
+                cp.id_customer_type,
+                ct.name as customer_type_name,
+                cp.id_operation_type,
+                ot.name as operation_type_name,
+                cp.enabled,
+                cp.registration_date,
+                cp.update_date
             ')
-            ->join('process p', 'p.Id = cp.IdProcess', 'left')
-            ->join('agency a', 'a.Id = cp.IdAgency', 'left')
-            ->join('customer_type ct', 'ct.Id = cp.IdCustomerType', 'left')
-            ->join('operation_type ot', 'ot.Id = cp.IdOperationType', 'left')
-            ->where('cp.Enabled', 1)
-            ->where('cp.IdAgency', $agencyId)
-            ->orderBy('p.Name', 'ASC')
-            ->orderBy('ct.Name', 'ASC')
-            ->orderBy('ot.Name', 'ASC');
+            ->join('process p', 'p.id = cp.id_process', 'left')
+            ->join('agency a', 'a.id = cp.id_agency', 'left')
+            ->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left')
+            ->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left')
+            ->where('cp.enabled', 1)
+            ->where('cp.id_agency', $agencyId)
+            ->orderBy('p.name', 'ASC')
+            ->orderBy('ct.name', 'ASC')
+            ->orderBy('ot.name', 'ASC');
 
             $configurations = $builder->get()->getResultArray();
 
@@ -192,11 +192,11 @@ class configuration_process extends BaseController
             // Extraer procesos únicos
             $processIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdProcess'], $processIds)) {
-                    $processIds[] = $config['IdProcess'];
+                if (!in_array($config['id_process'], $processIds)) {
+                    $processIds[] = $config['id_process'];
                     $organizedData['processes'][] = [
-                        'Id' => $config['IdProcess'],
-                        'Name' => $config['processName']
+                        'id' => $config['id_process'],
+                        'name' => $config['process_name']
                     ];
                 }
             }
@@ -204,11 +204,11 @@ class configuration_process extends BaseController
             // Extraer tipos de cliente únicos
             $customerTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdCustomerType'], $customerTypeIds)) {
-                    $customerTypeIds[] = $config['IdCustomerType'];
+                if (!in_array($config['id_customer_type'], $customerTypeIds)) {
+                    $customerTypeIds[] = $config['id_customer_type'];
                     $organizedData['customerTypes'][] = [
-                        'Id' => $config['IdCustomerType'],
-                        'Name' => $config['customerTypeName']
+                        'id' => $config['id_customer_type'],
+                        'name' => $config['customer_type_name']
                     ];
                 }
             }
@@ -216,11 +216,11 @@ class configuration_process extends BaseController
             // Extraer tipos de operación únicos
             $operationTypeIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['IdOperationType'], $operationTypeIds)) {
-                    $operationTypeIds[] = $config['IdOperationType'];
+                if (!in_array($config['id_operation_type'], $operationTypeIds)) {
+                    $operationTypeIds[] = $config['id_operation_type'];
                     $organizedData['operationTypes'][] = [
-                        'Id' => $config['IdOperationType'],
-                        'Name' => $config['operationTypeName']
+                        'id' => $config['id_operation_type'],
+                        'name' => $config['operation_type_name']
                     ];
                 }
             }

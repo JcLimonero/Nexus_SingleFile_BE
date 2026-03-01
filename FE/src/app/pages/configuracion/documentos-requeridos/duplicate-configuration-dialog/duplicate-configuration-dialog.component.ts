@@ -18,10 +18,10 @@ import { DocumentoRequeridoService } from '../../../../core/services/documento-r
 
 export interface DuplicateConfigurationData {
   configuracion: {
-    IdProcess: string;
-    IdAgency: number;
-    IdCostumerType: string;
-    IdOperationType: string;
+    id_process: string;
+    id_agency: number;
+    id_customer_type: string;
+    id_operation_type: string;
   };
   currentAgencyName: string;
   processName: string;
@@ -77,7 +77,7 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       
       // Filtrar agencias disponibles (excluyendo la actual)
       this.availableAgencies = this.agencies.filter(agency => 
-        agency.Id !== this.data.configuracion.IdAgency
+        agency.id !== this.data.configuracion.id_agency
       );
 
       // Verificar qué agencias ya tienen esta configuración
@@ -97,10 +97,10 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       const promises = this.availableAgencies.map(async (agency) => {
         // Verificar si existe configuración para esta agencia
         const hasConfig = await this.documentoRequeridoService.getDocumentosRequeridos({
-          IdProcess: this.data.configuracion.IdProcess,
-          IdAgency: agency.Id.toString(),
-          IdCostumerType: this.data.configuracion.IdCostumerType,
-          IdOperationType: this.data.configuracion.IdOperationType
+          id_process: this.data.configuracion.id_process,
+          id_agency: agency.id.toString(),
+          id_customer_type: this.data.configuracion.id_customer_type,
+          id_operation_type: this.data.configuracion.id_operation_type
         }).toPromise();
         
         return { agency, hasConfig: hasConfig?.success && hasConfig.data?.documentos?.length > 0 };
@@ -134,12 +134,12 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
   }
 
   getAgencyName(agencyId: number): string {
-    const agency = this.agencies.find(a => a.Id === agencyId);
-    return agency ? agency.Name : `Agencia ${agencyId}`;
+    const agency = this.agencies.find(a => a.id === agencyId);
+    return agency ? agency.name : `Agencia ${agencyId}`;
   }
 
   selectAllAgencies(): void {
-    this.selectedAgencies = this.availableAgencies.map(agency => agency.Id);
+    this.selectedAgencies = this.availableAgencies.map(agency => Number(agency.id));
   }
 
   deselectAllAgencies(): void {
@@ -152,9 +152,11 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
     }
     
     return this.availableAgencies.filter(agency =>
-      agency.Name.toLowerCase().includes(this.searchTerm.toLowerCase())
+      agency.name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
   }
+
+  toNumber = (v: string | number): number => Number(v);
 
   canDuplicate(): boolean {
     return this.selectedAgencies.length > 0 && !this.loading;
@@ -170,17 +172,17 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       // Duplicar la configuración para cada agencia seleccionada
       const promises = this.selectedAgencies.map(async (agencyId) => {
         const sourceConfig = {
-          IdProcess: this.data.configuracion.IdProcess,
-          IdAgency: this.data.configuracion.IdAgency.toString(),
-          IdCostumerType: this.data.configuracion.IdCostumerType,
-          IdOperationType: this.data.configuracion.IdOperationType
+          id_process: this.data.configuracion.id_process,
+          id_agency: this.data.configuracion.id_agency.toString(),
+          id_customer_type: this.data.configuracion.id_customer_type,
+          id_operation_type: this.data.configuracion.id_operation_type
         };
 
         const targetConfig = {
-          IdProcess: this.data.configuracion.IdProcess,
-          IdAgency: agencyId.toString(),
-          IdCostumerType: this.data.configuracion.IdCostumerType,
-          IdOperationType: this.data.configuracion.IdOperationType
+          id_process: this.data.configuracion.id_process,
+          id_agency: agencyId.toString(),
+          id_customer_type: this.data.configuracion.id_customer_type,
+          id_operation_type: this.data.configuracion.id_operation_type
         };
 
         return this.documentoRequeridoService.duplicateConfiguracion(sourceConfig, targetConfig).toPromise();

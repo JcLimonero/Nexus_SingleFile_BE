@@ -96,11 +96,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       documento?: DocumentoRequerido; 
       mode: 'create' | 'edit';
       configuracion?: {
-        IdProcess: string;
-        IdAgency: string;
-        IdCostumerType: string;
-        IdOperationType: string;
-        Enabled?: string;
+        id_process: string;
+        id_agency: string;
+        id_customer_type: string;
+        id_operation_type: string;
+        enabled?: string;
       };
     },
     private snackBar: MatSnackBar
@@ -118,35 +118,35 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.documentoForm = this.fb.group({
-      IdProcess: ['', Validators.required],
-      IdAgency: ['', Validators.required],
-      IdCostumerType: ['', Validators.required],
-      IdOperationType: ['', Validators.required],
+      id_process: ['', Validators.required],
+      id_agency: ['', Validators.required],
+      id_customer_type: ['', Validators.required],
+      id_operation_type: ['', Validators.required],
       enabled: [true] // Estado de la configuración (habilitada por defecto)
     });
 
     // Si estamos en modo edición, poblar el formulario
     if (this.data.mode === 'edit' && this.data.documento) {
       this.documentoForm.patchValue({
-        IdProcess: this.data.documento.IdProcess,
-        IdAgency: this.data.documento.IdAgency,
-        IdCostumerType: this.data.documento.IdCostumerType,
-        IdOperationType: this.data.documento.IdOperationType,
-        enabled: this.data.documento.Enabled === '1' // Convertir string a boolean
+        id_process: this.data.documento.id_process,
+        id_agency: this.data.documento.id_agency,
+        id_customer_type: this.data.documento.id_customer_type,
+        id_operation_type: this.data.documento.id_operation_type,
+        enabled: this.data.documento.enabled === '1' // Convertir string a boolean
       });
     }
 
     // Si tenemos configuración predefinida, aplicarla
     if (this.data.configuracion) {
       // Determinar el estado: si no está definido o es '1' o es string vacío, se considera habilitado
-      const enabledValue = this.data.configuracion.Enabled;
+      const enabledValue = this.data.configuracion.enabled;
       const isEnabled = enabledValue === undefined || enabledValue === '' || enabledValue === '1' || String(enabledValue) === '1';
       
       this.documentoForm.patchValue({
-        IdProcess: this.data.configuracion.IdProcess,
-        IdAgency: this.data.configuracion.IdAgency,
-        IdCostumerType: this.data.configuracion.IdCostumerType,
-        IdOperationType: this.data.configuracion.IdOperationType,
+        id_process: this.data.configuracion.id_process,
+        id_agency: this.data.configuracion.id_agency,
+        id_customer_type: this.data.configuracion.id_customer_type,
+        id_operation_type: this.data.configuracion.id_operation_type,
         enabled: isEnabled
       });
     }
@@ -154,16 +154,16 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     // Solo en modo create, agregar listeners para validar en tiempo real
     if (this.data.mode === 'create') {
       // Escuchar cambios en los campos de configuración
-      this.documentoForm.get('IdAgency')?.valueChanges.subscribe(() => {
+      this.documentoForm.get('id_agency')?.valueChanges.subscribe(() => {
         this.validarConfiguracionExistente();
       });
-      this.documentoForm.get('IdProcess')?.valueChanges.subscribe(() => {
+      this.documentoForm.get('id_process')?.valueChanges.subscribe(() => {
         this.validarConfiguracionExistente();
       });
-      this.documentoForm.get('IdCostumerType')?.valueChanges.subscribe(() => {
+      this.documentoForm.get('id_customer_type')?.valueChanges.subscribe(() => {
         this.validarConfiguracionExistente();
       });
-      this.documentoForm.get('IdOperationType')?.valueChanges.subscribe(() => {
+      this.documentoForm.get('id_operation_type')?.valueChanges.subscribe(() => {
         this.validarConfiguracionExistente();
       });
     }
@@ -174,10 +174,10 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     // Cargar documentos existentes para esta configuración
     if (this.data.configuracion) {
       const filters = {
-        IdProcess: this.data.configuracion.IdProcess,
-        IdAgency: this.data.configuracion.IdAgency,
-        IdCostumerType: this.data.configuracion.IdCostumerType,
-        IdOperationType: this.data.configuracion.IdOperationType
+        id_process: this.data.configuracion.id_process,
+        id_agency: this.data.configuracion.id_agency,
+        id_customer_type: this.data.configuracion.id_customer_type,
+        id_operation_type: this.data.configuracion.id_operation_type
       };
 
       this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
@@ -185,7 +185,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
           if (response?.success && response.data?.documentos) {
             // Extraer los IDs de los tipos de documento ya configurados
-            const existingDocumentTypeIds = response.data.documentos.map((doc: any) => doc.IdDocumentType);
+            const existingDocumentTypeIds = response.data.documentos.map((doc: any) => doc.id_document_type);
 
             
             
@@ -339,12 +339,12 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
    */
   validarConfiguracionExistente(): void {
     // Solo validar si todos los campos están completos
-    const IdAgency = this.documentoForm.get('IdAgency')?.value;
-    const IdProcess = this.documentoForm.get('IdProcess')?.value;
-    const IdCostumerType = this.documentoForm.get('IdCostumerType')?.value;
-    const IdOperationType = this.documentoForm.get('IdOperationType')?.value;
+    const id_agency = this.documentoForm.get('id_agency')?.value;
+    const id_process = this.documentoForm.get('id_process')?.value;
+    const id_customer_type = this.documentoForm.get('id_customer_type')?.value;
+    const id_operation_type = this.documentoForm.get('id_operation_type')?.value;
 
-    if (!IdAgency || !IdProcess || !IdCostumerType || !IdOperationType) {
+    if (!id_agency || !id_process || !id_customer_type || !id_operation_type) {
       // Si falta algún campo, resetear el estado
       this.configuracionExiste = false;
       this.mensajeValidacion = '';
@@ -355,10 +355,10 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     this.mensajeValidacion = 'Verificando...';
 
     const filters = {
-      IdProcess: IdProcess,
-      IdAgency: IdAgency,
-      IdCostumerType: IdCostumerType,
-      IdOperationType: IdOperationType
+      id_process,
+      id_agency,
+      id_customer_type,
+      id_operation_type
     };
 
     this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
@@ -367,10 +367,10 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
           // Ya existe una configuración
           this.configuracionExiste = true;
-          const procesoName = this.procesos.find(p => p.Id === IdProcess)?.Name || 'N/A';
-          const agenciaName = this.agencias.find(a => a.Id === IdAgency)?.Name || 'N/A';
-          const clienteName = this.tiposCliente.find(c => c.Id === IdCostumerType)?.Name || 'N/A';
-          const operacionName = this.tiposOperacion.find(o => o.Id === IdOperationType)?.Name || 'N/A';
+          const procesoName = this.procesos.find(p => String(p.id) === String(id_process))?.name || 'N/A';
+          const agenciaName = this.agencias.find(a => String(a.id) === String(id_agency))?.name || 'N/A';
+          const clienteName = this.tiposCliente.find(c => String(c.id) === String(id_customer_type))?.name || 'N/A';
+          const operacionName = this.tiposOperacion.find(o => String(o.id) === String(id_operation_type))?.name || 'N/A';
           this.mensajeValidacion = `Ya existe una configuración para: ${agenciaName} - ${procesoName} - ${clienteName} - ${operacionName}`;
         } else {
           // No existe, se puede crear
@@ -418,11 +418,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     
     this.selectedDocumentTypes.forEach((documentTypeId: string, index: number) => {
       const documentoData: DocumentoRequeridoCreateRequest = {
-        IdProcess: this.documentoForm.value.IdProcess,
-        IdAgency: this.documentoForm.value.IdAgency,
-        IdCostumerType: this.documentoForm.value.IdCostumerType,
-        IdOperationType: this.documentoForm.value.IdOperationType,
-        IdDocumentType: documentTypeId
+        id_process: this.documentoForm.value.id_process,
+        id_agency: this.documentoForm.value.id_agency,
+        id_customer_type: this.documentoForm.value.id_customer_type,
+        id_operation_type: this.documentoForm.value.id_operation_type,
+        id_document_type: documentTypeId
       };
 
       this.documentoRequeridoService.createDocumentoRequerido(documentoData).subscribe({
@@ -489,32 +489,32 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (!this.data.documento && this.data.configuracion) {
       // Obtener el ID de la configuración buscando un documento de esa configuración
       const filters = {
-        IdProcess: this.documentoForm.value.IdProcess,
-        IdAgency: this.documentoForm.value.IdAgency,
-        IdCostumerType: this.documentoForm.value.IdCostumerType,
-        IdOperationType: this.documentoForm.value.IdOperationType
+        id_process: this.documentoForm.value.id_process,
+        id_agency: this.documentoForm.value.id_agency,
+        id_customer_type: this.documentoForm.value.id_customer_type,
+        id_operation_type: this.documentoForm.value.id_operation_type
       };
 
       this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
         next: (response) => {
           if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
-            // Obtener el IdConfigurationProcess del primer documento
+            // Obtener el id_configuration_process del primer documento
             const firstDoc = response.data.documentos[0];
-            const configProcessId = firstDoc.IdConfigurationProcess;
+            const configProcessId = firstDoc.id_configuration_process;
 
             // Actualizar el estado de la configuración usando el primer documento como referencia
             const documentoData: DocumentoRequeridoUpdateRequest = {
-              Id: firstDoc.Id,
-              IdProcess: this.documentoForm.value.IdProcess,
-              IdAgency: this.documentoForm.value.IdAgency,
-              IdCostumerType: this.documentoForm.value.IdCostumerType,
-              IdOperationType: this.documentoForm.value.IdOperationType,
-              IdDocumentType: firstDoc.IdDocumentType,
-              Enabled: this.documentoForm.value.enabled ? '1' : '0'
+              id: firstDoc.id,
+              id_process: this.documentoForm.value.id_process,
+              id_agency: this.documentoForm.value.id_agency,
+              id_customer_type: this.documentoForm.value.id_customer_type,
+              id_operation_type: this.documentoForm.value.id_operation_type,
+              id_document_type: firstDoc.id_document_type,
+              enabled: this.documentoForm.value.enabled ? '1' : '0'
             };
 
             // Actualizar documentos y luego actualizar el ConfigurationProcess
-            this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.Id, documentoData).subscribe({
+            this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.id, documentoData).subscribe({
               next: (updateResponse) => {
                 if (updateResponse.success) {
                   // Ahora actualizar todos los documentos de esta configuración con el nuevo estado
@@ -567,20 +567,20 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
     // Para edición, solo actualizamos el primer tipo seleccionado (compatibilidad)
     const documentoData: DocumentoRequeridoUpdateRequest = {
-      Id: this.data.documento.Id,
-      IdProcess: this.documentoForm.value.IdProcess,
-      IdAgency: this.documentoForm.value.IdAgency,
-      IdCostumerType: this.documentoForm.value.IdCostumerType,
-      IdOperationType: this.documentoForm.value.IdOperationType,
-      IdDocumentType: this.selectedDocumentTypes[0], // Tomar el primer tipo seleccionado
-      Enabled: this.documentoForm.value.enabled ? '1' : '0' // Convertir boolean a string
+      id: this.data.documento.id,
+      id_process: this.documentoForm.value.id_process,
+      id_agency: this.documentoForm.value.id_agency,
+      id_customer_type: this.documentoForm.value.id_customer_type,
+      id_operation_type: this.documentoForm.value.id_operation_type,
+      id_document_type: this.selectedDocumentTypes[0], // Tomar el primer tipo seleccionado
+      enabled: this.documentoForm.value.enabled ? '1' : '0' // Convertir boolean a string
     };
 
-    this.documentoRequeridoService.updateDocumentoRequerido(this.data.documento.Id, documentoData).subscribe({
+    this.documentoRequeridoService.updateDocumentoRequerido(this.data.documento.id, documentoData).subscribe({
       next: (response) => {
         if (response.success) {
           // Actualizar también el ConfigurationProcess
-          const configProcessId = this.data.documento?.IdConfigurationProcess;
+          const configProcessId = this.data.documento?.id_configuration_process;
           if (configProcessId) {
             this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
           } else {
@@ -686,27 +686,27 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   // Métodos para obtener textos de solo lectura
   getProcessText(): string {
-    const processId = this.documentoForm.get('IdProcess')?.value;
-    const process = this.procesos.find(p => p.Id === processId);
-    return process ? process.Name : 'No seleccionado';
+    const processId = this.documentoForm.get('id_process')?.value;
+    const process = this.procesos.find(p => String(p.id) === String(processId));
+    return process ? process.name : 'No seleccionado';
   }
 
   getAgencyText(): string {
-    const agencyId = this.documentoForm.get('IdAgency')?.value;
-    const agency = this.agencias.find(a => a.Id === agencyId);
-    return agency ? agency.Name : 'No seleccionado';
+    const agencyId = this.documentoForm.get('id_agency')?.value;
+    const agency = this.agencias.find(a => String(a.id) === String(agencyId));
+    return agency ? agency.name : 'No seleccionado';
   }
 
   getCustomerTypeText(): string {
-    const customerTypeId = this.documentoForm.get('IdCostumerType')?.value;
-    const customerType = this.tiposCliente.find(t => t.Id === customerTypeId);
-    return customerType ? customerType.Name : 'No seleccionado';
+    const customerTypeId = this.documentoForm.get('id_customer_type')?.value;
+    const customerType = this.tiposCliente.find(t => String(t.id) === String(customerTypeId));
+    return customerType ? customerType.name : 'No seleccionado';
   }
 
   getOperationTypeText(): string {
-    const operationTypeId = this.documentoForm.get('IdOperationType')?.value;
-    const operationType = this.tiposOperacion.find(t => t.Id === operationTypeId);
-    return operationType ? operationType.Name : 'No seleccionado';
+    const operationTypeId = this.documentoForm.get('id_operation_type')?.value;
+    const operationType = this.tiposOperacion.find(t => String(t.id) === String(operationTypeId));
+    return operationType ? operationType.name : 'No seleccionado';
   }
 
   // Método temporal para debuggear el estado del formulario
@@ -762,11 +762,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     const subPhases = new Set<string>();
 
     this.tiposDocumento.forEach(tipo => {
-      if (tipo.ProcessTypeName) {
-        phases.add(tipo.ProcessTypeName);
+      if (tipo.process_type_name) {
+        phases.add(tipo.process_type_name);
       }
-      if (tipo.SubProcessName) {
-        subPhases.add(tipo.SubProcessName);
+      if (tipo.sub_process_name) {
+        subPhases.add(tipo.sub_process_name);
       }
     });
 
@@ -779,16 +779,16 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (!this.selectedPhase) {
       this.availableSubPhases = Array.from(new Set(
         this.tiposDocumento
-          .filter(tipo => tipo.SubProcessName)
-          .map(tipo => tipo.SubProcessName!)
+          .filter(tipo => tipo.sub_process_name)
+          .map(tipo => tipo.sub_process_name!)
       )).sort();
       return;
     }
 
     const subPhases = new Set<string>();
     this.tiposDocumento.forEach(tipo => {
-      if (tipo.ProcessTypeName === this.selectedPhase && tipo.SubProcessName) {
-        subPhases.add(tipo.SubProcessName);
+      if (tipo.process_type_name === this.selectedPhase && tipo.sub_process_name) {
+        subPhases.add(tipo.sub_process_name);
       }
     });
 
@@ -804,7 +804,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (this.searchTerm && this.searchTerm.trim() !== '') {
       const searchLower = this.searchTerm.toLowerCase().trim();
       filtered = filtered.filter(tipo => 
-        tipo.Name.toLowerCase().includes(searchLower)
+        tipo.name.toLowerCase().includes(searchLower)
       );
 
     }
@@ -812,7 +812,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     // Filtro por fase
     if (this.selectedPhase) {
       filtered = filtered.filter(tipo => 
-        tipo.ProcessTypeName === this.selectedPhase
+        tipo.process_type_name === this.selectedPhase
       );
 
     }
@@ -820,7 +820,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     // Filtro por subfase
     if (this.selectedSubPhase) {
       filtered = filtered.filter(tipo => 
-        tipo.SubProcessName === this.selectedSubPhase
+        tipo.sub_process_name === this.selectedSubPhase
       );
 
     }
@@ -829,7 +829,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (this.showOnlySelected) {
       const beforeFilter = filtered.length;
       filtered = filtered.filter(tipo => 
-        this.selectedDocumentTypes.includes(tipo.Id)
+        this.selectedDocumentTypes.includes(tipo.id)
       );
       
 

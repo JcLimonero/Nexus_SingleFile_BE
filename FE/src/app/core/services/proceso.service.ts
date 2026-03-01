@@ -33,7 +33,7 @@ export class ProcesoService {
   }
 
   updateProceso(proceso: ProcesoUpdateRequest): Observable<ProcesoResponse> {
-    return this.http.put<ProcesoResponse>(this.apiBaseService.buildApiUrl(`${this.API_URL}/${proceso.Id}`), proceso);
+    return this.http.put<ProcesoResponse>(this.apiBaseService.buildApiUrl(`${this.API_URL}/${proceso.id}`), proceso);
   }
 
   deleteProceso(id: string, force: boolean = false): Observable<ProcesoResponse> {

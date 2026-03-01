@@ -79,7 +79,7 @@ export class UserAccessDialogComponent implements OnInit {
     Promise.all([
       this.userAccessService.getActiveAgencies().toPromise(),
       this.userAccessService.getActiveProcesses().toPromise(),
-      this.userAccessService.getUserAccess(this.data.user.Id).toPromise()
+      this.userAccessService.getUserAccess(this.data.user.id).toPromise()
     ]).then(([agenciesResponse, processesResponse, userAccessResponse]) => {
       // Procesar agencias disponibles
       if (agenciesResponse?.success) {
@@ -142,7 +142,7 @@ export class UserAccessDialogComponent implements OnInit {
    * Asignar todas las agencias disponibles
    */
   assignAllAgencies(): void {
-    this.selectedAgencies = this.allAgencies.map(agency => agency.Id);
+    this.selectedAgencies = this.allAgencies.map(agency => agency.id);
     this.accessForm.patchValue({ agencies: this.selectedAgencies });
     
     this.snackBar.open(`Todas las agencias (${this.allAgencies.length}) han sido asignadas`, 'Éxito', {
@@ -166,7 +166,7 @@ export class UserAccessDialogComponent implements OnInit {
    * Asignar todos los procesos disponibles
    */
   assignAllProcesses(): void {
-    this.selectedProcesses = this.allProcesses.map(process => process.Id);
+    this.selectedProcesses = this.allProcesses.map(process => process.id);
     this.accessForm.patchValue({ processes: this.selectedProcesses });
     
     this.snackBar.open(`Todos los procesos (${this.allProcesses.length}) han sido asignados`, 'Éxito', {
@@ -187,13 +187,13 @@ export class UserAccessDialogComponent implements OnInit {
   }
 
   getAgencyName(agencyId: string): string {
-    const agency = this.allAgencies.find(a => a.Id === agencyId);
-    return agency?.Name || `Agencia ${agencyId}`;
+    const agency = this.allAgencies.find(a => a.id === agencyId);
+    return agency?.name || `Agencia ${agencyId}`;
   }
 
   getProcessName(processId: string): string {
-    const process = this.allProcesses.find(p => p.Id === processId);
-    return process?.Name || `Proceso ${processId}`;
+    const process = this.allProcesses.find(p => p.id === processId);
+    return process?.name || `Proceso ${processId}`;
   }
 
   onSubmit(): void {
@@ -205,12 +205,12 @@ export class UserAccessDialogComponent implements OnInit {
     this.loading = true;
 
     const accessData: UserAccess = {
-      userId: this.data.user.Id,
+      userId: this.data.user.id,
       agencies: this.selectedAgencies,
       processes: this.selectedProcesses
     };
 
-    this.userAccessService.updateUserAccess(this.data.user.Id, accessData).subscribe({
+    this.userAccessService.updateUserAccess(this.data.user.id, accessData).subscribe({
       next: (response) => {
         if (response.success) {
           this.snackBar.open('Accesos actualizados exitosamente', 'Éxito', {
@@ -238,7 +238,7 @@ export class UserAccessDialogComponent implements OnInit {
   }
 
   get dialogTitle(): string {
-    return `${this.data.mode === 'view' ? 'Ver' : 'Gestionar'} Accesos - ${this.data.user.Name}`;
+    return `${this.data.mode === 'view' ? 'Ver' : 'Gestionar'} Accesos - ${this.data.user.name}`;
   }
 
   get submitButtonText(): string {

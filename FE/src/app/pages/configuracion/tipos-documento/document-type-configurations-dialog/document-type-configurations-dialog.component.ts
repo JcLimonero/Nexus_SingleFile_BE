@@ -50,7 +50,7 @@ export interface DocumentTypeConfigurationsDialogData {
       <div mat-dialog-content class="mb-6">
         <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <p class="text-sm text-blue-800">
-            <strong>Tipo de Documento:</strong> {{ data.documentType.Name }}
+            <strong>Tipo de Documento:</strong> {{ data.documentType.name }}
           </p>
           <p class="text-sm text-blue-700 mt-1">
             <strong>Total de configuraciones:</strong> {{ filteredConfigurations.length }} / {{ allConfigurations.length }}
@@ -67,8 +67,8 @@ export interface DocumentTypeConfigurationsDialogData {
             <mat-label>Agencia</mat-label>
             <mat-select [(ngModel)]="selectedAgency" (selectionChange)="applyFilters()">
               <mat-option value="">Todas</mat-option>
-              <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
-                {{ agencia.Name }}
+              <mat-option *ngFor="let agencia of agencias" [value]="agencia.id">
+                {{ agencia.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -77,8 +77,8 @@ export interface DocumentTypeConfigurationsDialogData {
             <mat-label>Proceso</mat-label>
             <mat-select [(ngModel)]="selectedProcess" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
-                {{ proceso.Name }}
+              <mat-option *ngFor="let proceso of procesos" [value]="proceso.id">
+                {{ proceso.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -87,8 +87,8 @@ export interface DocumentTypeConfigurationsDialogData {
             <mat-label>Tipo Cliente</mat-label>
             <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let tipoCliente of tiposCliente" [value]="tipoCliente.Id">
-                {{ tipoCliente.Name }}
+              <mat-option *ngFor="let tipoCliente of tiposCliente" [value]="tipoCliente.id">
+                {{ tipoCliente.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -97,8 +97,8 @@ export interface DocumentTypeConfigurationsDialogData {
             <mat-label>Tipo Operación</mat-label>
             <mat-select [(ngModel)]="selectedOperationType" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let tipoOperacion of tiposOperacion" [value]="tipoOperacion.Id">
-                {{ tipoOperacion.Name }}
+              <mat-option *ngFor="let tipoOperacion of tiposOperacion" [value]="tipoOperacion.id">
+                {{ tipoOperacion.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -117,7 +117,7 @@ export interface DocumentTypeConfigurationsDialogData {
                 Agencia
               </th>
               <td mat-cell *matCellDef="let config" class="text-xs py-2 px-3">
-                {{ config.AgenciaName || 'N/A' }}
+                {{ config.agencia_name || 'N/A' }}
               </td>
             </ng-container>
 
@@ -127,7 +127,7 @@ export interface DocumentTypeConfigurationsDialogData {
                 Proceso
               </th>
               <td mat-cell *matCellDef="let config" class="text-xs py-2 px-3">
-                {{ config.ProcesoName || 'N/A' }}
+                {{ config.proceso_name || 'N/A' }}
               </td>
             </ng-container>
 
@@ -137,7 +137,7 @@ export interface DocumentTypeConfigurationsDialogData {
                 Tipo Cliente
               </th>
               <td mat-cell *matCellDef="let config" class="text-xs py-2 px-3">
-                {{ config.TipoClienteName || 'N/A' }}
+                {{ config.tipo_cliente_name || 'N/A' }}
               </td>
             </ng-container>
 
@@ -147,7 +147,7 @@ export interface DocumentTypeConfigurationsDialogData {
                 Tipo Operación
               </th>
               <td mat-cell *matCellDef="let config" class="text-xs py-2 px-3">
-                {{ config.TipoOperacionName || 'N/A' }}
+                {{ config.tipo_operacion_name || 'N/A' }}
               </td>
             </ng-container>
 
@@ -346,10 +346,10 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
 
   applyFilters(): void {
     this.filteredConfigurations = this.allConfigurations.filter(config => {
-      const matchesProcess = !this.selectedProcess || String(config.IdProcess) === String(this.selectedProcess);
-      const matchesAgency = !this.selectedAgency || String(config.IdAgency) === String(this.selectedAgency);
-      const matchesCostumerType = !this.selectedCostumerType || String(config.IdCostumerType) === String(this.selectedCostumerType);
-      const matchesOperationType = !this.selectedOperationType || String(config.IdOperationType) === String(this.selectedOperationType);
+      const matchesProcess = !this.selectedProcess || String(config.id_process) === String(this.selectedProcess);
+      const matchesAgency = !this.selectedAgency || String(config.id_agency) === String(this.selectedAgency);
+      const matchesCostumerType = !this.selectedCostumerType || String(config.id_customer_type) === String(this.selectedCostumerType);
+      const matchesOperationType = !this.selectedOperationType || String(config.id_operation_type) === String(this.selectedOperationType);
 
       return matchesProcess && matchesAgency && matchesCostumerType && matchesOperationType;
     });
@@ -364,7 +364,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
   }
 
   loadConfigurationsFromServer(): void {
-    const id = String(this.data.documentType.Id!);
+    const id = String(this.data.documentType.id!);
     this.documentTypeService.getConfigurations(id).subscribe({
       next: (response: any) => {
         const list = response?.data?.configurations ?? [];
@@ -391,21 +391,21 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
   }
 
   deleteConfiguration(config: DocumentTypeConfiguration): void {
-    if (!confirm(`¿Estás seguro de que quieres eliminar este tipo de documento de la configuración?\n\nAgencia: ${config.AgenciaName}\nProceso: ${config.ProcesoName}\nTipo Cliente: ${config.TipoClienteName}\nTipo Operación: ${config.TipoOperacionName}`)) {
+    if (!confirm(`¿Estás seguro de que quieres eliminar este tipo de documento de la configuración?\n\nAgencia: ${config.agencia_name}\nProceso: ${config.proceso_name}\nTipo Cliente: ${config.tipo_cliente_name}\nTipo Operación: ${config.tipo_operacion_name}`)) {
       return;
     }
 
-    const configurationId = config.IdConfigurationProcessDocumentType;
+    const configurationId = config.id_configuration_process_document_type;
     if (!configurationId) {
       this.snackBar.open('Error: No se pudo identificar la configuración', 'Error', { duration: 3000 });
       return;
     }
 
-    this.documentTypeService.deleteConfiguration(this.data.documentType.Id!, configurationId).subscribe({
+    this.documentTypeService.deleteConfiguration(this.data.documentType.id!, configurationId).subscribe({
       next: (response: any) => {
         if (response?.success) {
           // Eliminar de las listas locales
-          this.allConfigurations = this.allConfigurations.filter(c => c.IdConfigurationProcessDocumentType !== configurationId);
+          this.allConfigurations = this.allConfigurations.filter(c => c.id_configuration_process_document_type !== configurationId);
           this.applyFilters(); // Reaplicar filtros para actualizar la vista
           
           this.snackBar.open('Tipo de documento eliminado de la configuración exitosamente', 'Éxito', { duration: 3000 });

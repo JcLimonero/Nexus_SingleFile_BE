@@ -29,13 +29,13 @@ class DocumentType extends BaseController
             $phase = $this->request->getGet('phase');
             $required = $this->request->getGet('required');
             $reqExpiration = $this->request->getGet('req_expiration');
-            $sortBy = $this->request->getGet('sort_by') ?? 'Name';
+            $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            // Validar campos permitidos para ordenamiento
-            $allowedSortFields = ['Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate', 'ReqExpiration', 'IdProcessType', 'Required', 'IdSubProcess', 'AvailableToClient'];
+            // Validar campos permitidos para ordenamiento (snake_case)
+            $allowedSortFields = ['id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update', 'req_expiration', 'id_process_type', 'required', 'id_sub_process', 'available_to_client'];
             if (!in_array($sortBy, $allowedSortFields)) {
-                $sortBy = 'Name';
+                $sortBy = 'name';
             }
 
             // Validar orden
@@ -70,13 +70,19 @@ class DocumentType extends BaseController
             // Obtener configuraciones para cada tipo de documento
             foreach ($documentTypes as &$docType) {
                 try {
-                    $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($docType['Id']);
+                    // Compatibilidad con ambos formatos (id o Id)
+                    $docTypeId = $docType['id'] ?? $docType['Id'] ?? null;
+                    if ($docTypeId === null) {
+                        continue;
+                    }
+                    
+                    $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($docTypeId);
                     $configCount = count($configurations);
                     
-                    // Asegurar que ConfigurationEnabled y Idconfiguration_processDocumentType sean enteros
+                    // Asegurar que configuration_enabled e id_configuration_process_document_type sean enteros (snake_case)
                     foreach ($configurations as &$config) {
-                        $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
-                        $config['Idconfiguration_processDocumentType'] = (int)($config['Idconfiguration_processDocumentType'] ?? 0);
+                        $config['configuration_enabled'] = (int)($config['configuration_enabled'] ?? $config['ConfigurationEnabled'] ?? 0);
+                        $config['id_configuration_process_document_type'] = (int)($config['id_configuration_process_document_type'] ?? $config['Idconfiguration_processDocumentType'] ?? 0);
                     }
                     unset($config); // Liberar referencia
                     
@@ -85,24 +91,18 @@ class DocumentType extends BaseController
                     
                     // Log para debug si hay diferencia
                     if ($configCount > 0) {
-                        log_message('debug', "DocumentType::index - Tipo {$docType['Id']} ({$docType['Name']}): {$configCount} configuraciones");
+                        $docTypeName = $docType['name'] ?? $docType['Name'] ?? 'N/A';
+                        log_message('debug', "DocumentType::index - Tipo {$docTypeId} ({$docTypeName}): {$configCount} configuraciones");
                     }
                 } catch (\Exception $e) {
                     // Si hay un error al obtener configuraciones, continuar con array vacío
-                    log_message('error', "DocumentType::index - Error al obtener configuraciones para tipo {$docType['Id']}: " . $e->getMessage());
+                    $docTypeId = $docType['id'] ?? $docType['Id'] ?? 'N/A';
+                    log_message('error', "DocumentType::index - Error al obtener configuraciones para tipo {$docTypeId}: " . $e->getMessage());
                     $docType['configurations'] = [];
                     $docType['configurationsCount'] = 0;
                 }
             }
             unset($docType); // Liberar referencia
-
-            // Debug: verificar los datos antes de devolver
-            log_message('info', 'DocumentType::index - Datos obtenidos del modelo: ' . json_encode(array_slice($documentTypes, 0, 3)));
-            
-            // Verificar el campo Enabled en los primeros registros
-            foreach (array_slice($documentTypes, 0, 3) as $index => $docType) {
-                log_message('info', "DocumentType::index - Registro $index - ID: {$docType['Id']}, Name: {$docType['Name']}, Enabled: {$docType['Enabled']}, Tipo: " . gettype($docType['Enabled']));
-            }
 
             // Contar total de registros
             $total = $this->documentTypeModel->countDocumentTypesWithFilters($filters);
@@ -155,7 +155,8 @@ class DocumentType extends BaseController
             }
 
             // Verificar si ya existe un tipo de documento con el mismo nombre
-            $existing = $this->documentTypeModel->getDocumentTypeByName($data['Name']);
+            $name = trim($data['Name'] ?? $data['name'] ?? '');
+            $existing = $this->documentTypeModel->getDocumentTypeByName($name);
             if ($existing) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -167,19 +168,19 @@ class DocumentType extends BaseController
             $maxId = $this->getMaxId();
             $newId = $maxId + 1;
 
-            // Preparar datos para insertar
+            // Preparar datos para insertar (mapear PascalCase del request a snake_case)
             $insertData = [
-                'Id' => $newId,
-                'Name' => trim($data['Name']),
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : 1,
-                'ReqExpiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : 0,
-                'IdProcessType' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : 0,
-                'Required' => isset($data['Required']) ? (int)$data['Required'] : 1,
-                'IdSubProcess' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : 0,
-                'AvailableToClient' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : 1,
-                'RegistrationDate' => date('Y-m-d H:i:s'),
-                'UpdateDate' => null,
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'id' => $newId,
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
+                'req_expiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : (isset($data['req_expiration']) ? (int)$data['req_expiration'] : 0),
+                'id_process_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_process_type']) ? (int)$data['id_process_type'] : 0),
+                'required' => isset($data['Required']) ? (int)$data['Required'] : (isset($data['required']) ? (int)$data['required'] : 1),
+                'id_sub_process' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : (isset($data['id_sub_process']) ? (int)$data['id_sub_process'] : 0),
+                'available_to_client' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : (isset($data['available_to_client']) ? (int)$data['available_to_client'] : 1),
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => null,
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
 
             // Insertar el nuevo tipo de documento
@@ -236,10 +237,10 @@ class DocumentType extends BaseController
 
             // Obtener configuraciones donde se usa este tipo de documento
             $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($id);
-            // Asegurar que ConfigurationEnabled y Idconfiguration_processDocumentType sean enteros
+            // Asegurar que configuration_enabled e id_configuration_process_document_type sean enteros (snake_case)
             foreach ($configurations as &$config) {
-                $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
-                $config['Idconfiguration_processDocumentType'] = (int)($config['Idconfiguration_processDocumentType'] ?? 0);
+                $config['configuration_enabled'] = (int)($config['configuration_enabled'] ?? $config['ConfigurationEnabled'] ?? 0);
+                $config['id_configuration_process_document_type'] = (int)($config['id_configuration_process_document_type'] ?? $config['Idconfiguration_processDocumentType'] ?? 0);
             }
             unset($config); // Liberar referencia
             $documentType['configurations'] = $configurations;
@@ -295,25 +296,27 @@ class DocumentType extends BaseController
             }
 
             // Verificar si ya existe otro tipo de documento con el mismo nombre
-            $existing = $this->documentTypeModel->getDocumentTypeByName($data['Name']);
-            if ($existing && $existing['Id'] != $id) {
+            $name = trim($data['Name'] ?? $data['name'] ?? '');
+            $existing = $this->documentTypeModel->getDocumentTypeByName($name);
+            $existingId = $existing['id'] ?? $existing['Id'] ?? null;
+            if ($existing && $existingId != $id) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Ya existe un tipo de documento con este nombre'
                 ])->setStatusCode(400);
             }
 
-            // Preparar datos para actualizar
+            // Preparar datos para actualizar (snake_case)
             $updateData = [
-                'Name' => trim($data['Name']),
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $documentType['Enabled'],
-                'ReqExpiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : $documentType['ReqExpiration'],
-                'IdProcessType' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : $documentType['IdProcessType'],
-                'Required' => isset($data['Required']) ? (int)$data['Required'] : $documentType['Required'],
-                'IdSubProcess' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : $documentType['IdSubProcess'],
-                'AvailableToClient' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : ($documentType['AvailableToClient'] ?? 1),
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : ($documentType['enabled'] ?? $documentType['Enabled'] ?? 1)),
+                'req_expiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : (isset($data['req_expiration']) ? (int)$data['req_expiration'] : ($documentType['req_expiration'] ?? $documentType['ReqExpiration'] ?? 0)),
+                'id_process_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_process_type']) ? (int)$data['id_process_type'] : ($documentType['id_process_type'] ?? $documentType['IdProcessType'] ?? 0)),
+                'required' => isset($data['Required']) ? (int)$data['Required'] : (isset($data['required']) ? (int)$data['required'] : ($documentType['required'] ?? $documentType['Required'] ?? 1)),
+                'id_sub_process' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : (isset($data['id_sub_process']) ? (int)$data['id_sub_process'] : ($documentType['id_sub_process'] ?? $documentType['IdSubProcess'] ?? 0)),
+                'available_to_client' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : (isset($data['available_to_client']) ? (int)$data['available_to_client'] : ($documentType['available_to_client'] ?? $documentType['AvailableToClient'] ?? 1)),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
 
             // Actualizar el tipo de documento
@@ -413,11 +416,11 @@ class DocumentType extends BaseController
                 ])->setStatusCode(404);
             }
 
-            $newStatus = $documentType['Enabled'] == 1 ? 0 : 1;
+            $newStatus = ($documentType['enabled'] ?? $documentType['Enabled'] ?? 0) == 1 ? 0 : 1;
             $updateData = [
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
 
             $result = $this->documentTypeModel->update($id, $updateData);
@@ -493,8 +496,8 @@ class DocumentType extends BaseController
             }
 
             $documentTypes = $this->documentTypeModel
-                ->like('Name', $query)
-                ->where('Enabled', 1)
+                ->like('name', $query)
+                ->where('enabled', 1)
                 ->limit($limit)
                 ->findAll();
 
@@ -565,14 +568,15 @@ class DocumentType extends BaseController
             }
 
             // Log para debug
-            log_message('info', "DocumentType::getConfigurations - Buscando configuraciones para documento ID: {$documentTypeId}, Nombre: {$documentType['Name']}");
+            $docTypeName = $documentType['name'] ?? $documentType['Name'] ?? 'N/A';
+            log_message('info', "DocumentType::getConfigurations - Buscando configuraciones para documento ID: {$documentTypeId}, Nombre: {$docTypeName}");
 
             $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($documentTypeId);
             
             // Verificar que todas las configuraciones realmente pertenezcan al documento
             $filteredConfigurations = [];
             foreach ($configurations as $config) {
-                $configDocTypeId = (int)($config['IdDocumentType'] ?? 0);
+                $configDocTypeId = (int)($config['id_document_type'] ?? $config['IdDocumentType'] ?? 0);
                 if ($configDocTypeId === $documentTypeId) {
                     $filteredConfigurations[] = $config;
                 } else {
@@ -580,10 +584,10 @@ class DocumentType extends BaseController
                 }
             }
             $configurations = $filteredConfigurations;
-            // Asegurar que ConfigurationEnabled y Idconfiguration_processDocumentType sean enteros
+            // Asegurar que configuration_enabled e id_configuration_process_document_type sean enteros (snake_case)
             foreach ($configurations as &$config) {
-                $config['ConfigurationEnabled'] = (int)$config['ConfigurationEnabled'];
-                $config['Idconfiguration_processDocumentType'] = (int)($config['Idconfiguration_processDocumentType'] ?? 0);
+                $config['configuration_enabled'] = (int)($config['configuration_enabled'] ?? $config['ConfigurationEnabled'] ?? 0);
+                $config['id_configuration_process_document_type'] = (int)($config['id_configuration_process_document_type'] ?? $config['Idconfiguration_processDocumentType'] ?? 0);
             }
             unset($config); // Liberar referencia
 
@@ -592,8 +596,8 @@ class DocumentType extends BaseController
                 'message' => 'Configuraciones obtenidas exitosamente',
                 'data' => [
                     'document_type' => [
-                        'Id' => $documentType['Id'],
-                        'Name' => $documentType['Name']
+                        'id' => $documentType['id'] ?? $documentType['Id'] ?? null,
+                        'name' => $documentType['name'] ?? $documentType['Name'] ?? null
                     ],
                     'configurations' => $configurations,
                     'count' => count($configurations)
@@ -643,7 +647,7 @@ class DocumentType extends BaseController
                 ])->setStatusCode(404);
             }
 
-            if ($relation['IdDocumentType'] != $documentTypeId) {
+            if (($relation['id_document_type'] ?? $relation['IdDocumentType'] ?? 0) != $documentTypeId) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'La configuración no pertenece al tipo de documento especificado'
@@ -698,20 +702,20 @@ class DocumentType extends BaseController
             }
             $db = \Config\Database::connect();
             $sql = "
-                SELECT cp.Id as Idconfiguration_process, cp.IdProcess, p.Name as ProcesoName,
-                       cp.IdAgency, a.Name as AgenciaName,                        cp.IdCustomerType, ct.Name as TipoClienteName,
-                       cp.IdOperationType, ot.Name as TipoOperacionName, cp.Enabled
+                SELECT cp.id as id_configuration_process, cp.id_process, p.name as proceso_name,
+                       cp.id_agency, a.name as agencia_name, cp.id_customer_type, ct.name as tipo_cliente_name,
+                       cp.id_operation_type, ot.name as tipo_operacion_name, cp.enabled
                 FROM configuration_process cp
-                LEFT JOIN process p ON p.Id = cp.IdProcess
-                INNER JOIN agency a ON a.Id = cp.IdAgency AND a.Name IS NOT NULL AND TRIM(a.Name) != ''
-                LEFT JOIN customer_type ct ON ct.Id = cp.IdCustomerType
-                LEFT JOIN operation_type ot ON ot.Id = cp.IdOperationType
-                WHERE cp.Id NOT IN (
-                    SELECT cpd.Idconfiguration_process
-                    FROM configuration_processDocumentType cpd
-                    WHERE cpd.IdDocumentType = ?
+                LEFT JOIN process p ON p.id = cp.id_process
+                INNER JOIN agency a ON a.id = cp.id_agency AND a.name IS NOT NULL AND TRIM(a.name) != ''
+                LEFT JOIN customer_type ct ON ct.id = cp.id_customer_type
+                LEFT JOIN operation_type ot ON ot.id = cp.id_operation_type
+                WHERE cp.id NOT IN (
+                    SELECT cpd.id_configuration_process
+                    FROM configuration_process_document_type cpd
+                    WHERE cpd.id_document_type = ?
                 )
-                ORDER BY p.Name, a.Name, ct.Name, ot.Name
+                ORDER BY p.name, a.name, ct.name, ot.name
             ";
             $query = $db->query($sql, [$documentTypeId]);
             $list = $query->getResultArray();
@@ -764,11 +768,11 @@ class DocumentType extends BaseController
             $added = 0;
             foreach ($configurationIds as $idConfig) {
                 if ($idConfig <= 0) continue;
-                $existe = $documentoRequeridoModel->where('IdDocumentType', $documentTypeId)->where('Idconfiguration_process', $idConfig)->first();
+                $existe = $documentoRequeridoModel->where('id_document_type', $documentTypeId)->where('id_configuration_process', $idConfig)->first();
                 if ($existe) continue;
                 $documentoRequeridoModel->insert([
-                    'IdDocumentType' => $documentTypeId,
-                    'Idconfiguration_process' => $idConfig
+                    'id_document_type' => $documentTypeId,
+                    'id_configuration_process' => $idConfig
                 ]);
                 $added++;
             }
@@ -794,8 +798,8 @@ class DocumentType extends BaseController
     {
         try {
             $total = $this->documentTypeModel->countAll();
-            $enabled = $this->documentTypeModel->where('Enabled', 1)->countAllResults();
-            $disabled = $this->documentTypeModel->where('Enabled', 0)->countAllResults();
+            $enabled = $this->documentTypeModel->where('enabled', 1)->countAllResults();
+            $disabled = $this->documentTypeModel->where('enabled', 0)->countAllResults();
 
             return $this->response->setJSON([
                 'success' => true,
@@ -823,7 +827,7 @@ class DocumentType extends BaseController
     private function getMaxId()
     {
         $db = \Config\Database::connect();
-        $query = $db->query('SELECT MAX(Id) as max_id FROM document_type');
+        $query = $db->query('SELECT MAX(id) as max_id FROM document_type');
         $result = $query->getRow();
         return $result ? (int)$result->max_id : 0;
     }

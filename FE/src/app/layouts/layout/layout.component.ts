@@ -10,7 +10,6 @@ import { ToolbarComponent } from '../components/toolbar/toolbar.component';
 import { FooterComponent } from '../components/footer/footer.component';
 import { QuickpanelComponent } from '../components/quickpanel/quickpanel.component';
 import { MatDrawerMode, MatSidenavModule } from '@angular/material/sidenav';
-import { SearchComponent } from '../components/toolbar/search/search.component';
 import { AppProgressBarComponent } from '../components/app-progress-bar/app-progress-bar.component';
 import { BaseLayoutComponent } from '../base-layout/base-layout.component';
 import { AppLayoutConfig } from '../../core/layout/layout-config.interface';
@@ -29,7 +28,6 @@ import { AppLayoutConfig } from '../../core/layout/layout-config.interface';
     QuickpanelComponent,
     MatSidenavModule,
     RouterOutlet,
-    SearchComponent,
     AppProgressBarComponent
   ],
   standalone: true

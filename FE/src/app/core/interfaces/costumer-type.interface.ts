@@ -1,20 +1,20 @@
 export interface CostumerType {
-  Id: string;
-  Name: string;
-  Enabled: string; // "1" para activo, "0" para inactivo
-  RegistrationDate?: string | null;
-  UpdateDate?: string | null;
-  IdLastUserUpdate?: string;
-  LastUserUpdateName?: string;
+  id: string;
+  name: string;
+  enabled: string; // "1" para activo, "0" para inactivo
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  last_user_update_name?: string;
 }
 
 export interface CostumerTypeCreateRequest {
-  Name: string;
-  Enabled: string;
+  name: string;
+  enabled: string;
 }
 
 export interface CostumerTypeUpdateRequest extends Partial<CostumerTypeCreateRequest> {
-  Id: string;
+  id: string;
 }
 
 export interface CostumerTypeResponse {

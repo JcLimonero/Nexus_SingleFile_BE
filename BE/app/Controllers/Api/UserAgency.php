@@ -26,15 +26,15 @@ class UserAgency extends BaseController
             // Obtener agencias asignadas al usuario con información de la agencia
             $builder = $db->table('agency_user au');
             $agencies = $builder
-                ->select('au.IdAgency, a.Name as AgencyName, a.Enabled')
-                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
-                ->where('au.IdUser', $userId)
-                ->orderBy('a.Name', 'ASC')
+                ->select('au.id_agency, a.name as agency_name, a.enabled')
+                ->join('agency a', 'a.id = au.id_agency', 'inner')
+                ->where('au.id_user', $userId)
+                ->orderBy('a.name', 'ASC')
                 ->get()
                 ->getResultArray();
 
             // Extraer solo los IDs para la respuesta
-            $agencyIds = array_column($agencies, 'IdAgency');
+            $agencyIds = array_column($agencies, 'id_agency');
 
             return $this->response->setJSON([
                 'success' => true,
@@ -80,8 +80,8 @@ class UserAgency extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Verificar que el usuario existe
-            $userExists = $db->table('user')->where('Id', $userId)->countAllResults() > 0;
+            // Verificar que el usuario existe (snake_case)
+            $userExists = $db->table('user')->where('id', $userId)->countAllResults() > 0;
             if (!$userExists) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -92,18 +92,17 @@ class UserAgency extends BaseController
             // Iniciar transacción
             $db->transStart();
 
-            // Eliminar todas las asignaciones existentes del usuario
-            $db->table('agency_user')->where('IdUser', $userId)->delete();
+            // Eliminar todas las asignaciones existentes del usuario (snake_case)
+            $db->table('agency_user')->where('id_user', $userId)->delete();
 
             // Insertar las nuevas asignaciones
             $insertData = [];
             foreach ($data['agencies'] as $agencyId) {
-                // Verificar que la agencia existe
-                $agencyExists = $db->table('agency')->where('Id', $agencyId)->countAllResults() > 0;
+                $agencyExists = $db->table('agency')->where('id', $agencyId)->countAllResults() > 0;
                 if ($agencyExists) {
                     $insertData[] = [
-                        'IdUser' => $userId,
-                        'IdAgency' => $agencyId
+                        'id_user' => $userId,
+                        'id_agency' => $agencyId
                     ];
                 }
             }
@@ -156,10 +155,10 @@ class UserAgency extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Verificar que la asignación existe
+            // Verificar que la asignación existe (snake_case)
             $exists = $db->table('agency_user')
-                ->where('IdUser', $userId)
-                ->where('IdAgency', $agencyId)
+                ->where('id_user', $userId)
+                ->where('id_agency', $agencyId)
                 ->countAllResults() > 0;
 
             if (!$exists) {
@@ -171,8 +170,8 @@ class UserAgency extends BaseController
 
             // Eliminar la asignación
             $deleted = $db->table('agency_user')
-                ->where('IdUser', $userId)
-                ->where('IdAgency', $agencyId)
+                ->where('id_user', $userId)
+                ->where('id_agency', $agencyId)
                 ->delete();
 
             if ($deleted) {
@@ -213,7 +212,7 @@ class UserAgency extends BaseController
             $db = \Config\Database::connect();
 
             // Eliminar todas las asignaciones del usuario
-            $deleted = $db->table('agency_user')->where('IdUser', $userId)->delete();
+            $deleted = $db->table('agency_user')->where('id_user', $userId)->delete();
 
             return $this->response->setJSON([
                 'success' => true,
@@ -264,11 +263,11 @@ class UserAgency extends BaseController
             // Obtener agencias asignadas a todos los usuarios especificados
             $builder = $db->table('agency_user au');
             $agencies = $builder
-                ->select('au.IdUser, au.IdAgency, a.Name as AgencyName, a.Enabled')
-                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
-                ->whereIn('au.IdUser', $userIdArray)
-                ->orderBy('au.IdUser', 'ASC')
-                ->orderBy('a.Name', 'ASC')
+                ->select('au.id_user, au.id_agency, a.name as agency_name, a.enabled')
+                ->join('agency a', 'a.id = au.id_agency', 'inner')
+                ->whereIn('au.id_user', $userIdArray)
+                ->orderBy('au.id_user', 'ASC')
+                ->orderBy('a.name', 'ASC')
                 ->get()
                 ->getResultArray();
 
@@ -276,10 +275,10 @@ class UserAgency extends BaseController
             $result = [];
             foreach ($userIdArray as $userId) {
                 $userAgencies = array_filter($agencies, function($agency) use ($userId) {
-                    return $agency['IdUser'] == $userId;
+                    return $agency['id_user'] == $userId;
                 });
                 
-                $agencyIds = array_column($userAgencies, 'IdAgency');
+                $agencyIds = array_column($userAgencies, 'id_agency');
                 $agenciesDetails = array_values($userAgencies);
                 
                 $result[$userId] = [
@@ -322,19 +321,19 @@ class UserAgency extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Contar agencias asignadas
-            $totalAssigned = $db->table('agency_user')->where('IdUser', $userId)->countAllResults();
+            // Contar agencias asignadas (snake_case)
+            $totalAssigned = $db->table('agency_user')->where('id_user', $userId)->countAllResults();
             
             // Contar agencias activas asignadas
             $activeAssigned = $db->table('agency_user au')
-                ->join('agency a', 'a.Id = au.IdAgency', 'inner')
-                ->where('au.IdUser', $userId)
-                ->where('a.Enabled', 1)
+                ->join('agency a', 'a.id = au.id_agency', 'inner')
+                ->where('au.id_user', $userId)
+                ->where('a.enabled', 1)
                 ->countAllResults();
 
             // Contar total de agencias disponibles
             $totalAvailable = $db->table('agency')->countAllResults();
-            $activeAvailable = $db->table('agency')->where('Enabled', 1)->countAllResults();
+            $activeAvailable = $db->table('agency')->where('enabled', 1)->countAllResults();
 
             return $this->response->setJSON([
                 'success' => true,

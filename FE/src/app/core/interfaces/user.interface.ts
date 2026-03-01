@@ -1,33 +1,33 @@
 export interface User {
-  Id: string;
-  Name: string;
-  User: string; // username
-  Mail: string;
-  Enabled: string; // "1" para activo, "0" para inactivo
-  IdUserRol: string;
-  DefaultAgency: string;
-  AgencyName?: string; // Nombre de la agencia
-  ProfileImage?: string | null;
-  RegistrationDate?: string | null;
-  UpdateDate?: string | null;
-  IdLastUserUpdate?: string;
-  LastUserUpdateName?: string; // Nombre del último usuario que actualizó
-  AssignedAgencies?: string[]; // Array de IDs de agencias asignadas
-  AssignedAgencyNames?: string[]; // Array de nombres de agencias asignadas
+  id: string;
+  name: string;
+  user: string; // username
+  mail: string;
+  enabled: string; // "1" para activo, "0" para inactivo
+  id_user_rol: string;
+  default_agency: string;
+  agency_name?: string;
+  profile_image?: string | null;
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  last_user_update_name?: string;
+  assigned_agencies?: string[];
+  assigned_agency_names?: string[];
 }
 
 export interface UserCreateRequest {
-  Name: string;
-  User: string;
-  Mail: string;
-  Pass: string;
-  IdUserRol: string;
-  DefaultAgency: string;
-  Enabled: string;
+  name: string;
+  user: string;
+  mail: string;
+  pass: string;
+  id_user_rol: string;
+  default_agency: string;
+  enabled: string;
 }
 
 export interface UserUpdateRequest extends Partial<UserCreateRequest> {
-  Id: string;
+  id: string;
 }
 
 export interface UserResponse {
@@ -51,9 +51,9 @@ export interface UserEditDialogData {
 }
 
 export interface UserRole {
-  Id: string;
-  Name: string;
-  Description?: string;
+  id: string;
+  name: string;
+  description?: string;
 }
 
 export interface UserRoleResponse {
@@ -66,9 +66,14 @@ export interface UserRoleResponse {
 }
 
 export interface Agency {
-  Id: string;
-  Name: string;
-  Enabled: string;
+  id: string;
+  name: string;
+  enabled: string;
+  id_agency_dms?: string;
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  last_user_update_name?: string;
 }
 
 export interface AgencyResponse {

@@ -4,18 +4,17 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiBaseService } from './api-base.service';
 
+/** Interfaz en snake_case (igual que BD) */
 export interface Agency {
-  Id: number;
-  Name: string;
-  IdAgency?: string;
-  Enabled: number;
-  RegistrationDate?: string;
-  UpdateDate?: string;
-  IdLastUserUpdate?: number;
-  // Campo adicional siempre incluido
-  LastUserUpdateName?: string;
-  // Campo para conexión de agencia (no se muestra en combos pero está disponible)
-  AgencyConnection?: string;
+  id: number | string;
+  name: string;
+  id_agency_dms?: string;
+  enabled: number | string;
+  registration_date?: string;
+  update_date?: string;
+  id_last_user_update?: number;
+  last_user_update_name?: string;
+  agency_connection?: string;
 }
 
 export interface AgencyFilters {
@@ -123,7 +122,7 @@ export class AgencyService {
     page: number = 1,
     perPage: number = 20,
     filters: AgencyFilters = {},
-    sortBy: string = 'Name',
+    sortBy: string = 'name',
     sortOrder: 'ASC' | 'DESC' = 'ASC'
   ): Observable<PaginatedAgencyResponse> {
     const offset = (page - 1) * perPage;
@@ -174,14 +173,16 @@ export class AgencyService {
    * Crear nueva agencia
    */
   createAgency(agency: Partial<Agency>): Observable<AgencyResponse> {
-    return this.http.post<AgencyResponse>(this.apiBaseService.buildApiUrl(this.API_URL), agency);
+    const payload = this.prepareAgencyData(agency);
+    return this.http.post<AgencyResponse>(this.apiBaseService.buildApiUrl(this.API_URL), payload);
   }
 
   /**
    * Actualizar agencia existente
    */
   updateAgency(id: number, agency: Partial<Agency>): Observable<AgencyResponse> {
-    return this.http.put<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, agency);
+    const payload = this.prepareAgencyData(agency);
+    return this.http.put<AgencyResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, payload);
   }
 
   /**
@@ -220,7 +221,7 @@ export class AgencyService {
    * Obtener agencias habilitadas (para dropdowns, etc.)
    */
   getEnabledAgencies(): Observable<AgencyListResponse> {
-    return this.getAgencies({ enabled: true, sort_by: 'Name', sort_order: 'ASC' });
+    return this.getAgencies({ enabled: true, sort_by: 'name', sort_order: 'ASC' });
   }
 
   /**
@@ -228,20 +229,23 @@ export class AgencyService {
    */
   validateAgencyData(agency: Partial<Agency>): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
+    const name = agency.name ?? (agency as any).Name;
 
-    if (!agency.Name || agency.Name.trim().length < 3) {
+    if (!name || String(name).trim().length < 3) {
       errors.push('El nombre debe tener al menos 3 caracteres');
     }
 
-    if (agency.Name && agency.Name.length > 600) {
+    if (name && String(name).length > 600) {
       errors.push('El nombre no puede exceder 600 caracteres');
     }
 
-    if (agency.IdAgency && agency.IdAgency.length > 50) {
-      errors.push('El IdAgency no puede exceder 50 caracteres');
+    const idAgency = agency.id_agency_dms ?? (agency as any).IdAgency;
+    if (idAgency && String(idAgency).length > 50) {
+      errors.push('El id_agency_dms no puede exceder 50 caracteres');
     }
 
-    if (agency.Enabled !== undefined && ![0, 1].includes(agency.Enabled)) {
+    const en = agency.enabled ?? (agency as any).Enabled;
+    if (en !== undefined && ![0, 1].includes(Number(en))) {
       errors.push('El estado debe ser 0 o 1');
     }
 
@@ -252,50 +256,37 @@ export class AgencyService {
   }
 
   /**
-   * Preparar datos de agencia para envío
+   * Preparar datos de agencia para envío (snake_case)
    */
-  prepareAgencyData(agency: Partial<Agency>, isUpdate: boolean = false): Partial<Agency> {
-    const preparedData: Partial<Agency> = {};
+  prepareAgencyData(agency: Partial<Agency>, isUpdate: boolean = false): Record<string, any> {
+    const data: Record<string, any> = {};
+    const name = (agency as Record<string, unknown>)['name'] ?? (agency as any).Name;
+    const idAgency = (agency as Record<string, unknown>)['id_agency_dms'] ?? (agency as any).IdAgency;
+    const en = (agency as Record<string, unknown>)['enabled'] ?? (agency as any).Enabled;
 
-    if (agency.Name) {
-      preparedData.Name = agency.Name.trim();
-    }
+    if (name) data['name'] = String(name).trim();
+    if (idAgency !== undefined) data['id_agency_dms'] = idAgency || undefined;
+    if (en !== undefined) data['enabled'] = en;
 
-    if (agency.IdAgency !== undefined) {
-      preparedData.IdAgency = agency.IdAgency || undefined;
-    }
-
-    if (agency.IdAgency !== undefined) {
-      preparedData.IdAgency = agency.IdAgency || undefined;
-    }
-
-    if (agency.Enabled !== undefined) {
-      preparedData.Enabled = agency.Enabled;
-    }
-
-    return preparedData;
+    return data;
   }
 
   /**
-   * Mapear respuesta de agencia a interfaz local
+   * Normalizar respuesta de API a interfaz Agency (acepta snake_case o PascalCase)
    */
   mapAgencyResponse(response: any): Agency {
     return {
-      Id: response.Id,
-      Name: response.Name,
-      IdAgency: response.IdAgency || undefined,
-      Enabled: response.Enabled,
-      RegistrationDate: response.RegistrationDate || undefined,
-      UpdateDate: response.UpdateDate || undefined,
-      IdLastUserUpdate: response.IdLastUserUpdate || undefined,
-      LastUserUpdateName: response.LastUserUpdateName || undefined,
-      AgencyConnection: response.AgencyConnection || undefined
+      id: response.id ?? response.Id,
+      name: response['name'] ?? response['Name'] ?? '',
+      id_agency_dms: response['id_agency_dms'] ?? response['IdAgency'],
+      enabled: String(response['enabled'] ?? response['Enabled'] ?? '0'),
+      registration_date: response['registration_date'] ?? response['RegistrationDate'],
+      update_date: response['update_date'] ?? response['UpdateDate'],
+      id_last_user_update: response['id_last_user_update'] ?? response['IdLastUserUpdate'],
+      last_user_update_name: response['last_user_update_name'] ?? response['LastUserUpdateName']
     };
   }
 
-  /**
-   * Mapear múltiples respuestas de agencias
-   */
   mapAgenciesResponse(response: any[]): Agency[] {
     return response.map(agency => this.mapAgencyResponse(agency));
   }

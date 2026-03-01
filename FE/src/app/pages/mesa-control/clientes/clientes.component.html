@@ -9,7 +9,7 @@
               <mat-label>Agencia</mat-label>
               <mat-select [(ngModel)]="filterAgency" (selectionChange)="onFilterChange()">
                 <mat-option [value]="null">Todas</mat-option>
-                <mat-option *ngFor="let a of agencies" [value]="a.Id">{{ a.Name }}</mat-option>
+                <mat-option *ngFor="let a of agencies" [value]="a.id">{{ a.name }}</mat-option>
               </mat-select>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-[500px]">

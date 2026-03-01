@@ -96,14 +96,14 @@
           *ngFor="let agency of filteredAgencies" 
           class="flex items-center p-2 hover:bg-gray-50 transition-colors">
           <mat-checkbox
-            [checked]="isAgencySelected(agency.Id)"
-            (change)="onAgencySelectionChange(agency.Id, $event.checked)"
+            [checked]="isAgencySelected(toNumber(agency.id))"
+            (change)="onAgencySelectionChange(toNumber(agency.id), $event.checked)"
             [disabled]="loading"
             color="primary"
             class="mr-2 scale-90">
           </mat-checkbox>
           <div class="flex-1 min-w-0">
-            <div class="font-medium text-gray-900 text-sm truncate">{{ agency.Name }}</div>
+            <div class="font-medium text-gray-900 text-sm truncate">{{ agency.name }}</div>
           </div>
         </div>
       </div>

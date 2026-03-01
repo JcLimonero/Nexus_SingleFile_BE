@@ -330,8 +330,8 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (agencias) => {
           const mapped = agencias.map(a => ({
-            Id: a.Id,
-            Name: a.Name,
+            Id: (a as any).id ?? (a as any).Id,
+            Name: (a as any).name ?? (a as any).Name,
             IdCompany: (a as any).IdCompany ?? (a as any).id_company ?? (a as any).idCompany,
             CompanyName: (a as any).CompanyName ?? (a as any).companyName
           }));

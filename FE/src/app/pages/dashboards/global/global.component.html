@@ -17,8 +17,8 @@
               <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
                 No hay agencias disponibles
               </mat-option>
-              <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
-                {{ agencia.Name }}
+              <mat-option *ngFor="let agencia of agencias" [value]="agencia.id ?? agencia.Id">
+                {{ agencia.name ?? agencia.Name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -36,8 +36,8 @@
               <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
                 No hay procesos disponibles
               </mat-option>
-              <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
-                {{ proceso.Name }}
+              <mat-option *ngFor="let proceso of procesos" [value]="proceso.id ?? proceso.Id">
+                {{ proceso.name ?? proceso.Name }}
               </mat-option>
             </mat-select>
           </mat-form-field>

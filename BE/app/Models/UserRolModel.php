@@ -7,13 +7,13 @@ use CodeIgniter\Model;
 class UserRolModel extends Model
 {
     protected $table            = 'user_role';
-    protected $primaryKey       = 'Id';
+    protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Name', 'Enabled', 'RegistrationDate', 'UpdateDate'
+        'name', 'enabled', 'registration_date', 'update_date'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -25,16 +25,16 @@ class UserRolModel extends Model
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'RegistrationDate';
-    protected $updatedField  = 'UpdateDate';
+    protected $createdField  = 'registration_date';
+    protected $updatedField  = 'update_date';
     protected $deletedField  = 'deleted_at';
 
     // Validation
     protected $validationRules      = [
-        'Name' => 'required|max_length[600]|is_unique[user_role.Name,Id,{Id}]'
+        'name' => 'required|max_length[600]|is_unique[user_role.name,id,{id}]'
     ];
     protected $validationMessages   = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre del rol es requerido',
             'max_length' => 'El nombre del rol no puede exceder 600 caracteres',
             'is_unique' => 'Ya existe un rol con este nombre'
@@ -62,10 +62,10 @@ class UserRolModel extends Model
         $currentTime = date('Y-m-d H:i:s');
         
         if ($data['method'] === 'insert') {
-            $data['data']['RegistrationDate'] = $currentTime;
+            $data['data']['registration_date'] = $currentTime;
         }
         
-        $data['data']['UpdateDate'] = $currentTime;
+        $data['data']['update_date'] = $currentTime;
         
         return $data;
     }
@@ -75,7 +75,7 @@ class UserRolModel extends Model
      */
     public function getActiveRoles()
     {
-        return $this->where('Enabled', 1)->orderBy('Name', 'ASC')->findAll();
+        return $this->where('enabled', 1)->orderBy('name', 'ASC')->findAll();
     }
 
     /**
@@ -83,7 +83,7 @@ class UserRolModel extends Model
      */
     public function getRoleByName($name)
     {
-        return $this->where('Name', $name)->first();
+        return $this->where('name', $name)->first();
     }
 
     /**
@@ -92,7 +92,7 @@ class UserRolModel extends Model
     public function isRoleInUse($roleId)
     {
         $db = \Config\Database::connect();
-        $userCount = $db->table('user')->where('IdUserRol', $roleId)->countAllResults();
+        $userCount = $db->table('user')->where('id_user_rol', $roleId)->countAllResults();
         return $userCount > 0;
     }
 
@@ -106,7 +106,7 @@ class UserRolModel extends Model
             return false;
         }
 
-        $newStatus = $role['Enabled'] == 1 ? 0 : 1;
-        return $this->update($id, ['Enabled' => $newStatus]);
+        $newStatus = ($role['enabled'] ?? 0) == 1 ? 0 : 1;
+        return $this->update($id, ['enabled' => $newStatus]);
     }
 }

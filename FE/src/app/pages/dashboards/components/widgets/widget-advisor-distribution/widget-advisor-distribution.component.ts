@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -92,7 +92,10 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
   totalCases = 0;
   chartHeight = 350;
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(
+    private analyticsService: AnalyticsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -131,6 +134,7 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
             this.updateChart();
           }
           this.loading = false;
+          this.cdr.markForCheck();
         },
         error: (error: any) => {
 
@@ -138,6 +142,7 @@ export class WidgetAdvisorDistributionComponent implements OnInit, OnDestroy, On
           this.advisorData = [];
           this.updateChart();
           this.loading = false;
+          this.cdr.markForCheck();
         }
       });
   }

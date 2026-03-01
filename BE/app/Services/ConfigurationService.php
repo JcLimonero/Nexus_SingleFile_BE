@@ -25,11 +25,11 @@ class ConfigurationService
         
         $sql = "SELECT COUNT(*) as count 
                 FROM configuration_process 
-                WHERE IdProcess = ? 
-                AND IdCustomerType = ? 
-                AND IdOperationType = ? 
-                AND IdAgency = ? 
-                AND Enabled = 1";
+                WHERE id_process = ? 
+                AND id_customer_type = ? 
+                AND id_operation_type = ? 
+                AND id_agency = ? 
+                AND enabled = 1";
 
         error_log("Query SQL: " . $sql);
         error_log("Parámetros: " . json_encode([$processId, $customerTypeId, $operationTypeId, $agencyId]));
@@ -50,25 +50,25 @@ class ConfigurationService
     public function getEnabledConfigurationsByAgency($agencyId)
     {
         $sql = "SELECT DISTINCT 
-                    cp.IdProcess,
-                    p.Name as ProcessName,
-                    cp.IdCustomerType,
-                    ct.Name as CustomerTypeName,
-                    cp.IdOperationType,
-                    ot.Name as OperationTypeName,
-                    cp.IdAgency,
-                    a.Name as AgencyName
+                    cp.id_process,
+                    p.name as ProcessName,
+                    cp.id_customer_type,
+                    ct.name as CustomerTypeName,
+                    cp.id_operation_type,
+                    ot.name as OperationTypeName,
+                    cp.id_agency,
+                    a.name as AgencyName
                 FROM configuration_process cp
-                INNER JOIN process p ON cp.IdProcess = p.Id
-                INNER JOIN customertype ct ON cp.IdCustomerType = ct.Id
-                INNER JOIN operation_type ot ON cp.IdOperationType = ot.Id
-                INNER JOIN agency a ON cp.IdAgency = a.Id
-                WHERE cp.IdAgency = ? 
-                AND cp.Enabled = 1
-                AND p.Enabled = 1
-                AND ct.Enabled = 1
-                AND ot.Enabled = 1
-                ORDER BY p.Name, ct.Name, ot.Name";
+                INNER JOIN process p ON cp.id_process = p.id
+                INNER JOIN customer_type ct ON cp.id_customer_type = ct.id
+                INNER JOIN operation_type ot ON cp.id_operation_type = ot.id
+                INNER JOIN agency a ON cp.id_agency = a.id
+                WHERE cp.id_agency = ? 
+                AND cp.enabled = 1
+                AND p.enabled = 1
+                AND ct.enabled = 1
+                AND ot.enabled = 1
+                ORDER BY p.name, ct.name, ot.name";
 
         $query = $this->db->query($sql, [$agencyId]);
         return $query->getResultArray();
@@ -79,13 +79,13 @@ class ConfigurationService
      */
     public function getProcessesByAgency($agencyId)
     {
-        $sql = "SELECT DISTINCT p.Id, p.Name
+        $sql = "SELECT DISTINCT p.id, p.name
                 FROM process p
-                INNER JOIN configuration_process cp ON p.Id = cp.IdProcess
-                WHERE cp.IdAgency = ? 
-                AND cp.Enabled = 1
-                AND p.Enabled = 1
-                ORDER BY p.Name";
+                INNER JOIN configuration_process cp ON p.id = cp.id_process
+                WHERE cp.id_agency = ? 
+                AND cp.enabled = 1
+                AND p.enabled = 1
+                ORDER BY p.name";
 
         $query = $this->db->query($sql, [$agencyId]);
         return $query->getResultArray();
@@ -96,14 +96,14 @@ class ConfigurationService
      */
     public function getCustomerTypesByProcessAndAgency($processId, $agencyId)
     {
-        $sql = "SELECT DISTINCT ct.Id, ct.Name
-                FROM customertype ct
-                INNER JOIN configuration_process cp ON ct.Id = cp.IdCustomerType
-                WHERE cp.IdProcess = ? 
-                AND cp.IdAgency = ? 
-                AND cp.Enabled = 1
-                AND ct.Enabled = 1
-                ORDER BY ct.Name";
+        $sql = "SELECT DISTINCT ct.id, ct.name
+                FROM customer_type ct
+                INNER JOIN configuration_process cp ON ct.id = cp.id_customer_type
+                WHERE cp.id_process = ? 
+                AND cp.id_agency = ? 
+                AND cp.enabled = 1
+                AND ct.enabled = 1
+                ORDER BY ct.name";
 
         $query = $this->db->query($sql, [$processId, $agencyId]);
         return $query->getResultArray();
@@ -114,15 +114,15 @@ class ConfigurationService
      */
     public function getOperationTypesByProcessCustomerTypeAndAgency($processId, $customerTypeId, $agencyId)
     {
-        $sql = "SELECT DISTINCT ot.Id, ot.Name
+        $sql = "SELECT DISTINCT ot.id, ot.name
                 FROM operation_type ot
-                INNER JOIN configuration_process cp ON ot.Id = cp.IdOperationType
-                WHERE cp.IdProcess = ? 
-                AND cp.IdCustomerType = ? 
-                AND cp.IdAgency = ? 
-                AND cp.Enabled = 1
-                AND ot.Enabled = 1
-                ORDER BY ot.Name";
+                INNER JOIN configuration_process cp ON ot.id = cp.id_operation_type
+                WHERE cp.id_process = ? 
+                AND cp.id_customer_type = ? 
+                AND cp.id_agency = ? 
+                AND cp.enabled = 1
+                AND ot.enabled = 1
+                ORDER BY ot.name";
 
         $query = $this->db->query($sql, [$processId, $customerTypeId, $agencyId]);
         return $query->getResultArray();
@@ -133,18 +133,18 @@ class ConfigurationService
      */
     public function getAllEnabledConfigurations()
     {
-        $sql = "SELECT cp.*, p.Name as ProcessName, ct.Name as CustomerTypeName, 
-                       ot.Name as OperationTypeName, a.Name as AgencyName
+        $sql = "SELECT cp.*, p.name as ProcessName, ct.name as CustomerTypeName, 
+                       ot.name as OperationTypeName, a.name as AgencyName
                 FROM configuration_process cp
-                INNER JOIN process p ON cp.IdProcess = p.Id
-                INNER JOIN customertype ct ON cp.IdCustomerType = ct.Id
-                INNER JOIN operation_type ot ON cp.IdOperationType = ot.Id
-                INNER JOIN agency a ON cp.IdAgency = a.Id
-                WHERE cp.Enabled = 1
-                AND p.Enabled = 1
-                AND ct.Enabled = 1
-                AND ot.Enabled = 1
-                ORDER BY a.Name, p.Name, ct.Name, ot.Name";
+                INNER JOIN process p ON cp.id_process = p.id
+                INNER JOIN customer_type ct ON cp.id_customer_type = ct.id
+                INNER JOIN operation_type ot ON cp.id_operation_type = ot.id
+                INNER JOIN agency a ON cp.id_agency = a.id
+                WHERE cp.enabled = 1
+                AND p.enabled = 1
+                AND ct.enabled = 1
+                AND ot.enabled = 1
+                ORDER BY a.name, p.name, ct.name, ot.name";
 
         $query = $this->db->query($sql);
         return $query->getResultArray();
@@ -156,14 +156,14 @@ class ConfigurationService
     public function createConfiguration($processId, $customerTypeId, $operationTypeId, $agencyId, $userId)
     {
         $data = [
-            'IdProcess' => $processId,
-            'IdCustomerType' => $customerTypeId,
-            'IdOperationType' => $operationTypeId,
-            'IdAgency' => $agencyId,
-            'Enabled' => 1,
-            'RegistrationDate' => date('Y-m-d H:i:s'),
-            'UpdateDate' => date('Y-m-d H:i:s'),
-            'IdLastUserUpdate' => $userId
+            'id_process' => $processId,
+            'id_customer_type' => $customerTypeId,
+            'id_operation_type' => $operationTypeId,
+            'id_agency' => $agencyId,
+            'enabled' => 1,
+            'registration_date' => date('Y-m-d H:i:s'),
+            'update_date' => date('Y-m-d H:i:s'),
+            'id_last_user_update' => $userId
         ];
 
         $this->db->table('configuration_process')->insert($data);
@@ -176,13 +176,13 @@ class ConfigurationService
     public function toggleConfiguration($configurationId, $enabled, $userId)
     {
         $data = [
-            'Enabled' => $enabled ? 1 : 0,
-            'UpdateDate' => date('Y-m-d H:i:s'),
-            'IdLastUserUpdate' => $userId
+            'enabled' => $enabled ? 1 : 0,
+            'update_date' => date('Y-m-d H:i:s'),
+            'id_last_user_update' => $userId
         ];
 
         return $this->db->table('configuration_process')
-            ->where('Id', $configurationId)
+            ->where('id', $configurationId)
             ->update($data);
     }
 }

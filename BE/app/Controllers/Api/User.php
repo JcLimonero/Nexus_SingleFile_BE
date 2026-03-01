@@ -26,7 +26,7 @@ class User extends BaseController
             $limit = $this->request->getGet('limit') ?? null;
             $enabled = $this->request->getGet('enabled');
             $search = $this->request->getGet('search');
-            $sortBy = $this->request->getGet('sort_by') ?? 'Name';
+            $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
             // Si no se especifica límite o es 0, obtener todos los registros
@@ -43,28 +43,62 @@ class User extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('user u');
             
-            $builder->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName, a.Name as AgencyName')
-                ->join('user ur', 'ur.Id = u.IdLastUserUpdate', 'left')
-                ->join('agency a', 'a.Id = u.DefaultAgency', 'left');
+            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+                ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
+                ->join('agency a', 'a.id = u.default_agency', 'left');
 
             // Aplicar filtros
             if ($enabled !== null && $enabled !== '') {
-$builder->where('u.Enabled', $enabled);
+                $builder->where('u.enabled', $enabled);
             }
 
             if ($search) {
                 $builder->groupStart()
-                    ->like('u.Name', $search)
-                    ->orLike('u.User', $search)
-                    ->orLike('u.Mail', $search)
-                ->groupEnd();
+                    ->like('u.name', $search)
+                    ->orLike('u.user', $search)
+                    ->orLike('u.mail', $search)
+                    ->groupEnd();
             }
 
-            // Aplicar ordenamiento
-            $builder->orderBy("u.$sortBy", $sortOrder);
-
-            // Obtener total de registros
+            // Aplicar ordenamiento (mapear PascalCase a snake_case)
+            $sortFieldMap = [
+                'Name' => 'name',
+                'User' => 'user',
+                'Mail' => 'mail',
+                'RegistrationDate' => 'registration_date',
+                'UpdateDate' => 'update_date'
+            ];
+            $sortField = $sortFieldMap[$sortBy] ?? $sortBy;
+            
+            // Validar que el campo sea seguro (solo permitir campos válidos)
+            $allowedFields = ['id', 'name', 'user', 'mail', 'enabled', 'id_user_rol', 'default_agency', 'registration_date', 'update_date'];
+            if (!in_array($sortField, $allowedFields)) {
+                $sortField = 'name';
+            }
+            
+            // Obtener total de registros antes de aplicar límite
             $total = $builder->countAllResults(false);
+            
+            // Reconstruir el builder para obtener los datos
+            $builder = $db->table('user u');
+            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+                ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
+                ->join('agency a', 'a.id = u.default_agency', 'left');
+            
+            // Aplicar filtros nuevamente
+            if ($enabled !== null && $enabled !== '') {
+                $builder->where('u.enabled', $enabled);
+            }
+            if ($search) {
+                $builder->groupStart()
+                    ->like('u.name', $search)
+                    ->orLike('u.user', $search)
+                    ->orLike('u.mail', $search)
+                    ->groupEnd();
+            }
+            
+            // Aplicar ordenamiento
+            $builder->orderBy("u.$sortField", $sortOrder);
 
             // Obtener datos paginados o todos los registros
             if ($limit !== null) {
@@ -105,19 +139,34 @@ $builder->where('u.Enabled', $enabled);
         try {
             $data = $this->request->getJSON(true);
 
-            // Validar campos requeridos
-            $requiredFields = ['Name', 'User', 'Mail', 'Pass', 'IdUserRol', 'DefaultAgency'];
-            foreach ($requiredFields as $field) {
-                if (empty($data[$field])) {
+            // Validar campos requeridos (compatibilidad con PascalCase y snake_case)
+            $requiredFields = [
+                'name' => ['name', 'Name'],
+                'user' => ['user', 'User'],
+                'mail' => ['mail', 'Mail'],
+                'pass' => ['pass', 'Pass'],
+                'id_user_rol' => ['id_user_rol', 'IdUserRol'],
+                'default_agency' => ['default_agency', 'DefaultAgency']
+            ];
+            
+            foreach ($requiredFields as $fieldKey => $fieldVariants) {
+                $hasValue = false;
+                foreach ($fieldVariants as $variant) {
+                    if (!empty($data[$variant])) {
+                        $hasValue = true;
+                        break;
+                    }
+                }
+                if (!$hasValue) {
                     return $this->response->setJSON([
                         'success' => false,
-                        'message' => "El campo $field es requerido"
+                        'message' => "El campo {$fieldVariants[1]} es requerido"
                     ])->setStatusCode(400);
                 }
             }
 
             // Verificar si el username ya existe
-            $existingUser = $this->userModel->where('User', $data['User'])->first();
+            $existingUser = $this->userModel->where('user', $data['user'] ?? $data['User'] ?? null)->first();
             if ($existingUser) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -126,7 +175,7 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Verificar si el email ya existe
-            $existingEmail = $this->userModel->where('Mail', $data['Mail'])->first();
+            $existingEmail = $this->userModel->where('mail', $data['mail'] ?? $data['Mail'] ?? null)->first();
             if ($existingEmail) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -134,19 +183,34 @@ $builder->where('u.Enabled', $enabled);
                 ])->setStatusCode(400);
             }
 
-            // Generar el siguiente ID manualmente
+            // Generar el siguiente ID manualmente (snake_case)
             $db = \Config\Database::connect();
-            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM user");
+            $maxIdQuery = $db->query("SELECT MAX(id) as max_id FROM user");
             $maxIdResult = $maxIdQuery->getRow();
             $nextId = ($maxIdResult->max_id ?? 0) + 1;
             
+            // Preparar datos para inserción (mapear PascalCase a snake_case)
+            $userData = [
+                'id' => $nextId,
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'user' => trim($data['User'] ?? $data['user'] ?? ''),
+                'mail' => trim($data['Mail'] ?? $data['mail'] ?? ''),
+                'id_user_rol' => isset($data['IdUserRol']) ? (int)$data['IdUserRol'] : (isset($data['id_user_rol']) ? (int)$data['id_user_rol'] : 0),
+                'default_agency' => isset($data['DefaultAgency']) ? (int)$data['DefaultAgency'] : (isset($data['default_agency']) ? (int)$data['default_agency'] : 0),
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
+            ];
+            
             // Hash de la contraseña
-            $data['Id'] = $nextId;
-            $data['Pass'] = password_hash($data['Pass'], PASSWORD_DEFAULT);
-            $data['password_migrated'] = 1;
-            $data['Enabled'] = $data['Enabled'] ?? '1';
-            $data['RegistrationDate'] = date('Y-m-d H:i:s');
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
+            $passValue = $data['Pass'] ?? $data['pass'] ?? '';
+            if (!empty($passValue)) {
+                $userData['pass'] = password_hash($passValue, PASSWORD_DEFAULT);
+                $userData['password_migrated'] = 1;
+            }
+            
+            $data = $userData;
 
             // Insertar usuario
             $userId = $this->userModel->insert($data);
@@ -190,10 +254,10 @@ $builder->where('u.Enabled', $enabled);
             $builder = $db->table('user u');
             
             $user = $builder
-                ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, u.RegistrationDate, u.UpdateDate, u.IdLastUserUpdate, ur.Name as LastUserUpdateName, a.Name as AgencyName')
-                ->join('user ur', 'ur.Id = u.IdLastUserUpdate', 'left')
-                ->join('agency a', 'a.Id = u.DefaultAgency', 'left')
-                ->where('u.Id', $id)
+                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+                ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
+                ->join('agency a', 'a.id = u.default_agency', 'left')
+                ->where('u.id', $id)
                 ->get()
                 ->getRowArray();
 
@@ -234,9 +298,10 @@ $builder->where('u.Enabled', $enabled);
 
             $data = $this->request->getJSON(true);
 
-            // Verificar si el usuario existe (asegurar que incluye Id)
-            $existingUser = $this->userModel->select('Id, Name, User, Mail, Pass, Enabled, IdUserRol, DefaultAgency, RegistrationDate, UpdateDate')->find($id);
-            if (!$existingUser || !isset($existingUser['Id'])) {
+            // Verificar si el usuario existe (asegurar que incluye id)
+            $existingUser = $this->userModel->select('id, name, user, mail, pass, enabled, id_user_rol, default_agency, registration_date, update_date')->find($id);
+            $existingUserId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || !isset($existingUserId)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -244,8 +309,10 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Verificar username único (si se está cambiando)
-            if (isset($data['User']) && $data['User'] !== $existingUser['User']) {
-                $duplicateUser = $this->userModel->where('User', $data['User'])->where('Id !=', $id)->first();
+            $userValue = $data['user'] ?? $data['User'] ?? null;
+            $existingUserValue = $existingUser['user'] ?? $existingUser['User'] ?? null;
+            if (isset($userValue) && $userValue !== $existingUserValue) {
+                $duplicateUser = $this->userModel->where('user', $userValue)->where('id !=', $id)->first();
                 if ($duplicateUser) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -255,8 +322,10 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Verificar email único (si se está cambiando)
-            if (isset($data['Mail']) && $data['Mail'] !== $existingUser['Mail']) {
-                $duplicateEmail = $this->userModel->where('Mail', $data['Mail'])->where('Id !=', $id)->first();
+            $mailValue = $data['mail'] ?? $data['Mail'] ?? null;
+            $existingMailValue = $existingUser['mail'] ?? $existingUser['Mail'] ?? null;
+            if (isset($mailValue) && $mailValue !== $existingMailValue) {
+                $duplicateEmail = $this->userModel->where('mail', $mailValue)->where('id !=', $id)->first();
                 if ($duplicateEmail) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -265,19 +334,40 @@ $builder->where('u.Enabled', $enabled);
                 }
             }
 
-            // Hash de la contraseña si se proporciona
-            if (isset($data['Pass']) && !empty($data['Pass'])) {
-                $data['Pass'] = password_hash($data['Pass'], PASSWORD_DEFAULT);
-                $data['password_migrated'] = 1;
+            // Preparar datos para actualización (mapear PascalCase a snake_case)
+            $updateData = [];
+            
+            if (isset($data['Name']) || isset($data['name'])) {
+                $updateData['name'] = trim($data['Name'] ?? $data['name'] ?? '');
             }
-
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
-
-            // Asegurar que el Id esté en los datos para el update
-            $data['Id'] = $id;
+            if (isset($data['User']) || isset($data['user'])) {
+                $updateData['user'] = trim($data['User'] ?? $data['user'] ?? '');
+            }
+            if (isset($data['Mail']) || isset($data['mail'])) {
+                $updateData['mail'] = trim($data['Mail'] ?? $data['mail'] ?? '');
+            }
+            if (isset($data['Pass']) || isset($data['pass'])) {
+                $passValue = $data['Pass'] ?? $data['pass'] ?? null;
+                if (!empty($passValue)) {
+                    $updateData['pass'] = password_hash($passValue, PASSWORD_DEFAULT);
+                    $updateData['password_migrated'] = 1;
+                }
+            }
+            if (isset($data['Enabled']) || isset($data['enabled'])) {
+                $updateData['enabled'] = isset($data['Enabled']) ? (int)$data['Enabled'] : (int)$data['enabled'];
+            }
+            if (isset($data['IdUserRol']) || isset($data['id_user_rol'])) {
+                $updateData['id_user_rol'] = isset($data['IdUserRol']) ? (int)$data['IdUserRol'] : (int)$data['id_user_rol'];
+            }
+            if (isset($data['DefaultAgency']) || isset($data['default_agency'])) {
+                $updateData['default_agency'] = isset($data['DefaultAgency']) ? (int)$data['DefaultAgency'] : (int)$data['default_agency'];
+            }
+            
+            $updateData['update_date'] = date('Y-m-d H:i:s');
+            $updateData['id_last_user_update'] = $this->getCurrentUserId() ?? 0;
 
             // Actualizar usuario
-            $updated = $this->userModel->update($id, $data);
+            $updated = $this->userModel->update($id, $updateData);
 
             if ($updated) {
                 return $this->response->setJSON([
@@ -314,8 +404,9 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('Id')->find($id);
-            if (!$existingUser || !isset($existingUser['Id'])) {
+            $existingUser = $this->userModel->select('id')->find($id);
+            $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || $userId === null) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -359,9 +450,10 @@ $builder->where('u.Enabled', $enabled);
                 ])->setStatusCode(400);
             }
 
-            // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('Id, Enabled')->find($id);
-            if (!$existingUser || !isset($existingUser['Id'])) {
+            // Verificar si el usuario existe (incluyendo id explícitamente)
+            $existingUser = $this->userModel->select('id, enabled')->find($id);
+            $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || $userId === null) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -369,11 +461,11 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Cambiar estado
-            $newStatus = $existingUser['Enabled'] === '1' ? '0' : '1';
+            $newStatus = ($existingUser['enabled'] ?? $existingUser['Enabled'] ?? '0') === '1' ? '0' : '1';
             $updated = $this->userModel->update($id, [
-                'Id' => $id,
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'id' => $id,
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s')
             ]);
 
             if ($updated) {
@@ -422,8 +514,9 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('Id, Name, User, Mail, Enabled')->find($id);
-            if (!$existingUser || !isset($existingUser['Id'])) {
+            $existingUser = $this->userModel->select('id, name, user, mail, enabled')->find($id);
+            $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || $userId === null) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -435,10 +528,10 @@ $builder->where('u.Enabled', $enabled);
 
             // Actualizar contraseña (incluyendo Id en los datos)
             $updated = $this->userModel->update($id, [
-                'Id' => $id,
-                'Pass' => $hashedPassword,
+                'id' => $id,
+                'pass' => $hashedPassword,
                 'password_migrated' => 1,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'update_date' => date('Y-m-d H:i:s')
             ]);
 
             if ($updated) {
@@ -476,8 +569,9 @@ $builder->where('u.Enabled', $enabled);
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('Id, Name, User, Mail, Enabled')->find($id);
-            if (!$existingUser || !isset($existingUser['Id'])) {
+            $existingUser = $this->userModel->select('id, name, user, mail, enabled')->find($id);
+            $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || $userId === null) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Usuario no encontrado'
@@ -490,10 +584,10 @@ $builder->where('u.Enabled', $enabled);
 
             // Actualizar contraseña (incluyendo Id en los datos)
             $updated = $this->userModel->update($id, [
-                'Id' => $id,
-                'Pass' => $hashedPassword,
+                'id' => $id,
+                'pass' => $hashedPassword,
                 'password_migrated' => 1,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'update_date' => date('Y-m-d H:i:s')
             ]);
 
             if ($updated) {
@@ -537,14 +631,14 @@ $builder->where('u.Enabled', $enabled);
             $builder = $db->table('user u');
             
             $users = $builder
-                ->select('u.Id, u.Name, u.User, u.Mail, u.Enabled, u.IdUserRol, u.DefaultAgency, a.Name as AgencyName')
-                ->join('agency a', 'a.Id = u.DefaultAgency', 'left')
+                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, a.name as AgencyName')
+                ->join('agency a', 'a.id = u.default_agency', 'left')
                 ->groupStart()
-                    ->like('u.Name', $query)
-                    ->orLike('u.User', $query)
-                    ->orLike('u.Mail', $query)
-                ->groupEnd()
-                ->orderBy('u.Name', 'ASC')
+                    ->like('u.name', $query)
+                    ->orLike('u.user', $query)
+                    ->orLike('u.mail', $query)
+                    ->groupEnd()
+                ->orderBy('u.name', 'ASC')
                 ->get()
                 ->getResultArray();
 
@@ -574,8 +668,8 @@ $builder->where('u.Enabled', $enabled);
     {
         try {
             $totalUsers = $this->userModel->countAllResults();
-            $activeUsers = $this->userModel->where('Enabled', '1')->countAllResults();
-            $inactiveUsers = $this->userModel->where('Enabled', '0')->countAllResults();
+            $activeUsers = $this->userModel->where('enabled', '1')->countAllResults();
+            $inactiveUsers = $this->userModel->where('enabled', '0')->countAllResults();
 
             return $this->response->setJSON([
                 'success' => true,
@@ -611,7 +705,7 @@ $builder->where('u.Enabled', $enabled);
                 ])->setStatusCode(400);
             }
 
-            $existingUser = $this->userModel->where('User', $username)->first();
+            $existingUser = $this->userModel->where('user', $username)->first();
             $available = !$existingUser;
 
             return $this->response->setJSON([
@@ -647,7 +741,7 @@ $builder->where('u.Enabled', $enabled);
                 ])->setStatusCode(400);
             }
 
-            $existingUser = $this->userModel->where('Mail', $email)->first();
+            $existingUser = $this->userModel->where('mail', $email)->first();
             $available = !$existingUser;
 
             return $this->response->setJSON([
@@ -666,5 +760,14 @@ $builder->where('u.Enabled', $enabled);
                 'message' => 'Error en la verificación: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
+    }
+
+    /**
+     * Método auxiliar para obtener el ID del usuario actual
+     * Ahora utiliza la funcionalidad del BaseController
+     */
+    protected function getCurrentUserId()
+    {
+        return parent::getCurrentUserId();
     }
 }

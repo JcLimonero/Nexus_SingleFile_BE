@@ -1,27 +1,28 @@
 export interface TipoOperacion {
-  Id: string;
-  Name: string;
-  Enabled: string; // "1" para activo, "0" para inactivo
-  RegistrationDate?: string | null;
-  UpdateDate?: string | null;
-  IdLastUserUpdate?: string;
-  LastUserUpdateName?: string; // Nombre del último usuario que actualizó (viene del JOIN en el backend)
+  id: string;
+  name: string;
+  enabled: string; // "1" para activo, "0" para inactivo
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  last_user_update_name?: string;
 }
 
 export interface TipoOperacionCreateRequest {
-  Name: string;
-  Enabled: string;
+  name: string;
+  enabled: string;
 }
 
 export interface TipoOperacionUpdateRequest extends Partial<TipoOperacionCreateRequest> {
-  Id: string;
+  id: string;
 }
 
 export interface TipoOperacionResponse {
   success: boolean;
   message: string;
   data: {
-    operationTypes: TipoOperacion[];
+    operation_types?: TipoOperacion[];
+    operationTypes?: TipoOperacion[]; // BE aún devuelve camelCase
     total: number;
     limit?: number;
     offset?: number;

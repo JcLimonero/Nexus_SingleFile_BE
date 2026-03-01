@@ -20,26 +20,26 @@ class AgencyService
         error_log("=== CONVIRTIENDO ID AGENCIA ===");
         error_log("ID recibido: " . $agencyId);
         
-        // Primero intentar como ID externo (IdAgencyDMS)
+        // Primero intentar como ID externo (id_agency_dms)
         $agency = $this->db->table('agency')
-            ->where('IdAgencyDMS', $agencyId)
+            ->where('id_agency_dms', $agencyId)
             ->get()
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por IdAgencyDMS: $agencyId, Id interno: " . $agency['Id']);
-            return $agency['Id'];
+            error_log("Agencia encontrada por id_agency_dms: $agencyId, Id interno: " . ($agency['id'] ?? $agency['Id'] ?? 'N/A'));
+            return $agency['id'] ?? $agency['Id'] ?? null;
         }
         
         // Si no se encuentra, intentar como ID interno
         $agency = $this->db->table('agency')
-            ->where('Id', $agencyId)
+            ->where('id', $agencyId)
             ->get()
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por Id interno: $agencyId, IdAgencyDMS: " . ($agency['IdAgencyDMS'] ?? 'N/A'));
-            return $agency['Id'];
+            error_log("Agencia encontrada por Id interno: $agencyId, id_agency_dms: " . ($agency['id_agency_dms'] ?? $agency['IdAgencyDMS'] ?? 'N/A'));
+            return $agency['id'] ?? $agency['Id'] ?? null;
         }
         
         error_log("Agencia no encontrada para ID: $agencyId");
@@ -55,7 +55,7 @@ class AgencyService
         error_log("IdAgencyDMS externo: " . $externalAgencyId);
         
         $agency = $this->db->table('agency')
-            ->where('IdAgencyDMS', $externalAgencyId)
+            ->where('id_agency_dms', $externalAgencyId)
             ->get()
             ->getRowArray();
             
@@ -74,7 +74,7 @@ class AgencyService
     public function validateAgencyExists($agencyId)
     {
         $agency = $this->db->table('agency')
-            ->where('Id', $agencyId)
+            ->where('id', $agencyId)
             ->get()
             ->getRowArray();
             
@@ -87,8 +87,8 @@ class AgencyService
     public function getEnabledAgencies()
     {
         return $this->db->table('agency')
-            ->where('Enabled', 1)
-            ->orderBy('Name', 'ASC')
+            ->where('enabled', 1)
+            ->orderBy('name', 'ASC')
             ->get()
             ->getResultArray();
     }
@@ -99,7 +99,7 @@ class AgencyService
     public function getAgencyById($agencyId)
     {
         return $this->db->table('agency')
-            ->where('Id', $agencyId)
+            ->where('id', $agencyId)
             ->get()
             ->getRowArray();
     }

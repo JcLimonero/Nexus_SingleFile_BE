@@ -1,34 +1,35 @@
 export interface DocumentTypeConfiguration {
-  IdConfigurationProcessDocumentType: number;
-  IdConfigurationProcess: number;
-  IdProcess: number;
-  IdAgency: number;
-  IdCostumerType: number;
-  IdOperationType: number;
-  ConfigurationEnabled: number;
-  ProcesoName: string;
-  AgenciaName: string;
-  TipoClienteName: string;
-  TipoOperacionName: string;
+  id_configuration_process_document_type: number;
+  id_configuration_process: number;
+  id_process: number;
+  id_agency: number;
+  id_customer_type: number;
+  id_operation_type: number;
+  configuration_enabled: number;
+  proceso_name: string;
+  agencia_name: string;
+  tipo_cliente_name: string;
+  tipo_operacion_name: string;
 }
 
 export interface DocumentType {
-  Id: string;
-  Name: string;
-  Enabled: string; // API devuelve "1" o "0" como strings
-  RegistrationDate: string | null;
-  UpdateDate: string | null;
-  IdLastUserUpdate: string | null;
-  ReqExpiration: string; // API devuelve "1" o "0" como strings
-  IdProcessType: string; // API devuelve IDs como strings
-  Required: string; // API devuelve "1" o "0" como strings
-  IdSubProcess: string; // API devuelve IDs como strings
-  AvailableToClient: string; // API devuelve "1" o "0" como strings
-  LastUserUpdateName?: string;
-  ProcessTypeName?: string; // Descripción del File_Status (JOIN con File_Status)
-  SubProcessName?: string; // Nombre del subestado de archivo (JOIN con File_SubStatus)
-  configurations?: DocumentTypeConfiguration[]; // Configuraciones donde se usa este tipo de documento
-  configurationsCount?: number; // Número de configuraciones
+  id: string;
+  name: string;
+  enabled: string; // API devuelve "1" o "0" como strings
+  registration_date: string | null;
+  update_date: string | null;
+  id_last_user_update: string | null;
+  req_expiration: string;
+  id_process_type: string;
+  required: string;
+  id_sub_process: string;
+  available_to_client: string;
+  last_user_update_name?: string;
+  process_type_name?: string;
+  sub_process_name?: string;
+  configurations?: DocumentTypeConfiguration[];
+  configurations_count?: number;
+  configurationsCount?: number; // BE aún devuelve camelCase
 }
 
 export interface DocumentTypeResponse {
@@ -47,23 +48,23 @@ export interface DocumentTypeResponse {
 }
 
 export interface DocumentTypeCreateRequest {
-  Name: string;
-  Enabled?: string; // "1" o "0"
-  ReqExpiration?: string; // "1" o "0"
-  IdProcessType?: string; // ID como string
-  Required?: string; // "1" o "0"
-  IdSubProcess?: string; // ID como string
-  AvailableToClient?: string; // "1" o "0"
+  name: string;
+  enabled?: string;
+  req_expiration?: string;
+  id_process_type?: string;
+  required?: string;
+  id_sub_process?: string;
+  available_to_client?: string;
 }
 
 export interface DocumentTypeUpdateRequest {
-  Name: string;
-  Enabled?: string; // "1" o "0"
-  ReqExpiration?: string; // "1" o "0"
-  IdProcessType?: string; // ID como string
-  Required?: string; // "1" o "0"
-  IdSubProcess?: string; // ID como string
-  AvailableToClient?: string; // "1" o "0"
+  name: string;
+  enabled?: string;
+  req_expiration?: string;
+  id_process_type?: string;
+  required?: string;
+  id_sub_process?: string;
+  available_to_client?: string;
 }
 
 export interface DocumentTypeStatsResponse {
@@ -101,17 +102,16 @@ export interface DocumentTypeEditDialogData {
   mode: 'create' | 'edit';
 }
 
-// Interfaces para catálogos relacionados
 export interface FileStatus {
-  Id: string;
-  Name: string;
-  Enabled: string; // "1" o "0"
+  id: string;
+  name: string;
+  enabled: string;
 }
 
 export interface SubProcess {
-  Id: string;
-  Name: string;
-  Enabled: string; // "1" o "0"
+  id: string;
+  name: string;
+  enabled: string;
 }
 
 export interface FileStatusResponse {

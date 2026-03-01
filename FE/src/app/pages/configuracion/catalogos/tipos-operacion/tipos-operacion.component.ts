@@ -44,7 +44,7 @@ import { TipoOperacionEditDialogComponent } from './tipo-operacion-edit-dialog/t
 export class TiposOperacionComponent implements OnInit, AfterViewInit {
   tiposOperacion: TipoOperacion[] = [];
   dataSource = new MatTableDataSource<TipoOperacion>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['id', 'name', 'enabled', 'acciones'];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -69,7 +69,7 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: TipoOperacion, filter: string) => {
       const searchTerm = filter.toLowerCase();
-      return data.Name.toLowerCase().includes(searchTerm);
+      return data.name.toLowerCase().includes(searchTerm);
     };
   }
 
@@ -78,7 +78,7 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     this.tipoOperacionService.getTiposOperacion().subscribe({
       next: (response: TipoOperacionResponse) => {
         if (response.success) {
-          this.tiposOperacion = response.data.operationTypes;
+          this.tiposOperacion = response.data.operation_types ?? response.data.operationTypes ?? [];
           this.dataSource.data = this.tiposOperacion;
           this.applyFilter();
         } else {
@@ -104,9 +104,9 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     if (this.statusFilter !== '') {
       const status = this.statusFilter === 'true' ? '1' : '0';
       this.dataSource.data = this.tiposOperacion.filter(tipoOperacion => 
-        tipoOperacion.Enabled === status &&
+        tipoOperacion.enabled === status &&
         (filterValue === '' || 
-         tipoOperacion.Name.toLowerCase().includes(filterValue.toLowerCase()))
+         tipoOperacion.name.toLowerCase().includes(filterValue.toLowerCase()))
       );
     } else {
       this.dataSource.data = this.tiposOperacion;
@@ -172,11 +172,11 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
   }
 
   deleteTipoOperacion(tipoOperacion: TipoOperacion): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de operación "${tipoOperacion.Name}"?`)) {
-      this.tipoOperacionService.deleteTipoOperacion(tipoOperacion.Id!).subscribe({
+    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de operación "${tipoOperacion.name}"?`)) {
+      this.tipoOperacionService.deleteTipoOperacion(tipoOperacion.id!).subscribe({
         next: (response) => {
           if (response.success) {
-            this.tiposOperacion = this.tiposOperacion.filter(t => t.Id !== tipoOperacion.Id);
+            this.tiposOperacion = this.tiposOperacion.filter(t => t.id !== tipoOperacion.id);
             this.applyFilter();
             this.snackBar.open('Tipo de operación eliminado exitosamente', 'Éxito', {
               duration: 2000

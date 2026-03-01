@@ -46,7 +46,7 @@ export class UserEditDialogComponent implements OnInit {
   get rolesForSelect(): UserRole[] {
     if (this.data?.mode === 'create') {
       if (this.isLoggedInAdmin) return this.roles;
-      return this.roles.filter(r => String(r.Id) !== '7' && String(r.Id) !== '8');
+      return this.roles.filter(r => String(r.id) !== '7' && String(r.id) !== '8');
     }
     return this.roles;
   }
@@ -77,27 +77,27 @@ export class UserEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.userForm = this.fb.group({
-      Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-      User: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
-      Mail: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
-      Pass: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
-      ConfirmPassword: ['', [Validators.required]],
-      IdUserRol: ['', Validators.required],
-      DefaultAgency: ['', Validators.required],
-      Enabled: ['1'] // Por defecto activo
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      user: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
+      mail: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      pass: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
+      confirmPassword: ['', [Validators.required]],
+      id_user_rol: ['', Validators.required],
+      default_agency: ['', Validators.required],
+      enabled: ['1']
     }, { validators: this.passwordMatchValidator() });
 
     // En modo edición, la contraseña no es requerida
     if (this.data.mode === 'edit') {
-      this.userForm.get('Pass')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
-      this.userForm.get('ConfirmPassword')?.setValidators([]);
+      this.userForm.get('pass')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
+      this.userForm.get('confirmPassword')?.setValidators([]);
     }
   }
 
   private passwordMatchValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const password = control.get('Pass');
-      const confirmPassword = control.get('ConfirmPassword');
+      const password = control.get('pass');
+      const confirmPassword = control.get('confirmPassword');
       
       if (password && confirmPassword && password.value !== confirmPassword.value) {
         return { passwordMismatch: true };
@@ -108,19 +108,18 @@ export class UserEditDialogComponent implements OnInit {
   }
 
   private populateForm(): void {
-    if (this.data.user && this.data.user.Id) {
+    if (this.data.user && this.data.user.id) {
       this.userForm.patchValue({
-        Name: this.data.user.Name,
-        User: this.data.user.User,
-        Mail: this.data.user.Mail,
-        IdUserRol: this.data.user.IdUserRol,
-        DefaultAgency: this.data.user.DefaultAgency,
-        Enabled: this.data.user.Enabled || '1'
+        name: this.data.user.name,
+        user: this.data.user.user,
+        mail: this.data.user.mail,
+        id_user_rol: this.data.user.id_user_rol,
+        default_agency: this.data.user.default_agency,
+        enabled: this.data.user.enabled || '1'
       });
       
-      // Limpiar campos de contraseña en edición
-      this.userForm.get('Pass')?.setValue('');
-      this.userForm.get('ConfirmPassword')?.setValue('');
+      this.userForm.get('pass')?.setValue('');
+      this.userForm.get('confirmPassword')?.setValue('');
     }
   }
 
@@ -137,14 +136,15 @@ export class UserEditDialogComponent implements OnInit {
   }
 
   private createUser(): void {
+    const v = this.userForm.value;
     const userData: UserCreateRequest = {
-      Name: this.userForm.value.Name,
-      User: this.userForm.value.User,
-      Mail: this.userForm.value.Mail,
-      Pass: this.userForm.value.Pass,
-      IdUserRol: this.userForm.value.IdUserRol,
-      DefaultAgency: this.userForm.value.DefaultAgency,
-      Enabled: '1'
+      name: v.name,
+      user: v.user,
+      mail: v.mail,
+      pass: v.pass,
+      id_user_rol: v.id_user_rol,
+      default_agency: v.default_agency,
+      enabled: '1'
     };
 
     this.userService.createUser(userData).subscribe({
@@ -171,22 +171,20 @@ export class UserEditDialogComponent implements OnInit {
   }
 
   private updateUser(): void {
+    const v = this.userForm.value;
     const userData: UserUpdateRequest = {
-      Id: this.data.user.Id,
-      Name: this.userForm.value.Name,
-      User: this.userForm.value.User,
-      Mail: this.userForm.value.Mail,
-      IdUserRol: this.userForm.value.IdUserRol,
-      DefaultAgency: this.userForm.value.DefaultAgency,
-      Enabled: this.userForm.value.Enabled
+      id: this.data.user.id,
+      name: v.name,
+      user: v.user,
+      mail: v.mail,
+      id_user_rol: v.id_user_rol,
+      default_agency: v.default_agency,
+      enabled: v.enabled
     };
-
-    // Solo incluir contraseña si se proporcionó una nueva
-    if (this.userForm.value.Pass) {
-      userData.Pass = this.userForm.value.Pass;
+    if (v.pass) {
+      userData.pass = v.pass;
     }
-
-    this.userService.updateUser(this.data.user.Id, userData).subscribe({
+    this.userService.updateUser(this.data.user.id, userData).subscribe({
       next: (response) => {
         if (response.success) {
           this.snackBar.open('Usuario actualizado exitosamente', 'Éxito', {
@@ -226,11 +224,10 @@ export class UserEditDialogComponent implements OnInit {
    */
   onStatusChange(checked: boolean): void {
     const enabledValue = checked ? '1' : '0';
-    const previousValue = this.userForm.get('Enabled')?.value;
+    const previousValue = this.userForm.get('enabled')?.value;
     
-    // Solo mostrar mensaje si realmente cambió el valor
     if (previousValue !== enabledValue) {
-      this.userForm.patchValue({ Enabled: enabledValue });
+      this.userForm.patchValue({ enabled: enabledValue });
       
       // Mostrar mensaje informativo
       const statusMessage = checked ? 
@@ -248,12 +245,11 @@ export class UserEditDialogComponent implements OnInit {
    * Cambiar estado del usuario con confirmación
    */
   toggleUserStatus(): void {
-    const currentStatus = this.userForm.get('Enabled')?.value === '1';
+    const currentStatus = this.userForm.get('enabled')?.value === '1';
     const newStatus = !currentStatus;
     const actionText = newStatus ? 'habilitar' : 'deshabilitar';
     
-    // Confirmar la acción
-    if (confirm(`¿Estás seguro de que quieres ${actionText} al usuario "${this.userForm.get('Name')?.value}"?`)) {
+    if (confirm(`¿Estás seguro de que quieres ${actionText} al usuario "${this.userForm.get('name')?.value}"?`)) {
       this.onStatusChange(newStatus);
     }
   }
@@ -278,20 +274,20 @@ export class UserEditDialogComponent implements OnInit {
       next: (agencias) => {
         // Convertir al formato esperado (Agency[]) - Id debe ser string, Enabled debe ser string
         this.agencies = agencias.map(ag => {
+          const agAny = ag as any;
           let enabledStr: string;
-          if (typeof ag.Enabled === 'boolean') {
-            enabledStr = ag.Enabled ? '1' : '0';
-          } else if (typeof ag.Enabled === 'string') {
-            enabledStr = (ag.Enabled === 'true' || ag.Enabled === '1') ? '1' : '0';
+          const en = agAny.enabled ?? agAny.Enabled;
+          if (typeof en === 'boolean') {
+            enabledStr = en ? '1' : '0';
+          } else if (typeof en === 'string') {
+            enabledStr = (en === 'true' || en === '1') ? '1' : '0';
           } else {
-            // Cuando es number, solo comparar con números
-            enabledStr = (ag.Enabled === 1) ? '1' : '0';
+            enabledStr = (en === 1) ? '1' : '0';
           }
-          
           return {
-            Id: ag.Id.toString(),
-            Name: ag.Name,
-            Enabled: enabledStr
+            id: String(agAny.id ?? agAny.Id),
+            name: agAny.name ?? agAny.Name,
+            enabled: enabledStr
           } as Agency;
         });
         

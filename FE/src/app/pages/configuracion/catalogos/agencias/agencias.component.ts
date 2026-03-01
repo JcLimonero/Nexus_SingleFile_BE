@@ -55,7 +55,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   searchTerm = '';
   statusFilter = '';
   
-  displayedColumns: string[] = ['Id', 'IdAgency', 'Name', 'Enabled'];
+  displayedColumns: string[] = ['id', 'id_agency_dms', 'name', 'enabled'];
   
   loading = false;
 
@@ -105,10 +105,10 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: Agency, filter: string) => {
       const searchTerm = filter.toLowerCase();
-      const matches = data.Name.toLowerCase().includes(searchTerm) ||
-             (data.IdAgency ? data.IdAgency.toLowerCase().includes(searchTerm) : false);
-      
-      return matches;
+      const name = data.name ?? (data as any).Name ?? '';
+      const idAgency = data.id_agency_dms ?? (data as any).IdAgency ?? '';
+      return name.toLowerCase().includes(searchTerm) ||
+             (idAgency ? String(idAgency).toLowerCase().includes(searchTerm) : false);
     };
   }
 
@@ -176,11 +176,14 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     if (this.statusFilter !== '') {
       const status = this.statusFilter === 'true' ? 1 : 0;
       
+      const en = (a: Agency) => a.enabled ?? (a as any).Enabled;
+      const nm = (a: Agency) => a.name ?? (a as any).Name ?? '';
+      const idAg = (a: Agency) => a.id_agency_dms ?? (a as any).IdAgency ?? '';
       this.dataSource.data = this.agencias.filter(agencia => 
-        agencia.Enabled === status &&
+        en(agencia) === status &&
         (filterValue === '' || 
-         agencia.Name.toLowerCase().includes(filterValue.toLowerCase()) ||
-         (agencia.IdAgency && agencia.IdAgency.toLowerCase().includes(filterValue.toLowerCase())))
+         nm(agencia).toLowerCase().includes(filterValue.toLowerCase()) ||
+         (idAg(agencia) && String(idAg(agencia)).toLowerCase().includes(filterValue.toLowerCase())))
       );
       
     } else {
@@ -305,14 +308,16 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   }
 
   deleteAgencia(agencia: Agency): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE la agencia "${agencia.Name}"?\n\nEsta acción no se puede deshacer.`)) {
+    const id = agencia.id ?? (agencia as any).Id;
+    const name = agencia.name ?? (agencia as any).Name;
+    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE la agencia "${name}"?\n\nEsta acción no se puede deshacer.`)) {
 
-      this.agencyService.deleteAgency(Number(agencia.Id), true).subscribe({
+      this.agencyService.deleteAgency(Number(id), true).subscribe({
         next: (response: any) => {
 
           if (response.success) {
 
-            this.agencias = this.agencias.filter(a => a.Id !== agencia.Id);
+            this.agencias = this.agencias.filter(a => (a.id ?? (a as any).Id) !== id);
             this.applyFilter();
             this.snackBar.open('Agencia eliminada exitosamente', 'Éxito', {
               duration: 2000

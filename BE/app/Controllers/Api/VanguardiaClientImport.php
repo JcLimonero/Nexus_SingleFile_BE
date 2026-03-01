@@ -150,7 +150,7 @@ class VanguardiaClientImport extends ResourceController
                     try {
                         // Obtener el ClientHeader del cliente existente
                         $headerClient = $this->db->table('client_header')
-                            ->where('IdClient', $existingByRazonSocial['idCliente'])
+                            ->where('id_client', $existingByRazonSocial['idCliente'])
                             ->get()
                             ->getRowArray();
                         
@@ -158,7 +158,7 @@ class VanguardiaClientImport extends ResourceController
                             // Si no tiene ClientHeader, crearlo
                             $headerClientId = $this->insertClientHeader($existingByRazonSocial['idCliente']);
                         } else {
-                            $headerClientId = $headerClient['Id'];
+                            $headerClientId = $headerClient['id'] ?? $headerClient['Id'];
                         }
                         
                         // Crear la relación ClientTotalRelation
@@ -212,14 +212,14 @@ class VanguardiaClientImport extends ResourceController
                     $this->db->transStart();
                     try {
                         $headerClient = $this->db->table('client_header')
-                            ->where('IdClient', $existingByRazonSocialModified['idCliente'])
+                            ->where('id_client', $existingByRazonSocialModified['idCliente'])
                             ->get()
                             ->getRowArray();
                         
                         if (!$headerClient) {
                             $headerClientId = $this->insertClientHeader($existingByRazonSocialModified['idCliente']);
                         } else {
-                            $headerClientId = $headerClient['Id'];
+                            $headerClientId = $headerClient['id'] ?? $headerClient['Id'];
                         }
                         
                         $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
@@ -317,28 +317,28 @@ class VanguardiaClientImport extends ResourceController
         // Buscar cliente por ndDMS y agencia (sin requerir que tenga File)
         $sql = "
             SELECT 
-                c.Id as idCliente,
-                ctr.IdDMS as ndCliente,
-                TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
-                c.Name as nombre,
-                c.LastName as apellidoPaterno,
-                c.MotherLastName as apellidoMaterno,
+                c.id as idCliente,
+                ctr.id_dms as ndCliente,
+                TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
+                c.name as nombre,
+                c.last_name as apellidoPaterno,
+                c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc,
-                c.Email as email,
-                c.TelNumber as telefono,
-                c.TelNumber2 as telefono2,
-                c.RazonSocial as razonSocial,
+                c.email as email,
+                c.tel_number as telefono,
+                c.tel_number2 as telefono2,
+                c.razon_social as razonSocial,
                 c.CURP as curp,
-                c.Adviser as asesor,
-                c.AgencyOrigin as agenciaOrigen,
-                c.RegistrationDate as fechaRegistro,
-                c.UpdateDate as fechaActualizacion,
-                ctr.IdAgency as idAgency,
-                hc.Id as headerClientId
+                c.adviser as asesor,
+                c.agency_origin as agenciaOrigen,
+                c.registration_date as fechaRegistro,
+                c.update_date as fechaActualizacion,
+                ctr.id_agency as idAgency,
+                hc.id as headerClientId
             FROM client c
-            INNER JOIN client_header hc ON c.Id = hc.IdClient
-            INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-            WHERE ctr.IdDMS = ? AND ctr.IdAgency = ?
+            INNER JOIN client_header hc ON c.id = hc.id_client
+            INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+            WHERE ctr.id_dms = ? AND ctr.id_agency = ?
         ";
 
         $query = $this->db->query($sql, [$ndDMS, $idAgencyInternal]);
@@ -362,12 +362,12 @@ class VanguardiaClientImport extends ResourceController
         error_log("clientId: {$clientId}, ndDMS: {$ndDMS}, idAgency: {$idAgency}");
         
         $sql = "
-            SELECT ctr.Id
+            SELECT ctr.id
             FROM client_header hc
-            INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-            WHERE hc.IdClient = ? 
-            AND ctr.IdDMS = ? 
-            AND ctr.IdAgency = ?
+            INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+            WHERE hc.id_client = ? 
+            AND ctr.id_dms = ? 
+            AND ctr.id_agency = ?
             LIMIT 1
         ";
         
@@ -396,18 +396,18 @@ class VanguardiaClientImport extends ResourceController
         }
         error_log("🔍 Buscando cliente por RFC: {$rfcTrimmed}");
         $sql = "
-            SELECT c.Id, c.Name, c.LastName, c.MotherLastName, c.RFC, c.Email, c.TelNumber,
-                   c.TelNumber2, c.RazonSocial, c.CURP, c.Adviser, c.AgencyOrigin,
-                   c.RegistrationDate, c.UpdateDate
+            SELECT c.id, c.name, c.last_name, c.mother_last_name, c.RFC, c.email, c.tel_number,
+                   c.tel_number2, c.razon_social, c.CURP, c.adviser, c.agency_origin,
+                   c.registration_date, c.update_date
             FROM client c
             WHERE TRIM(c.RFC) = ?
-            ORDER BY c.RegistrationDate DESC
+            ORDER BY c.registration_date DESC
             LIMIT 1
         ";
         $query = $this->db->query($sql, [$rfcTrimmed]);
         $result = $query->getRowArray();
         if ($result) {
-            error_log("✅ Cliente encontrado por RFC (RegistrationDate más reciente): Id=" . $result['Id']);
+            error_log("✅ Cliente encontrado por RFC (registration_date más reciente): id=" . ($result['id'] ?? $result['Id'] ?? 'N/A'));
         } else {
             error_log("ℹ️ No hay cliente en Client con RFC: {$rfcTrimmed}");
         }
@@ -452,28 +452,28 @@ class VanguardiaClientImport extends ResourceController
         
         $sql = "
             SELECT 
-                c.Id as idCliente,
-                ctr.IdDMS as ndCliente,
-                TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
-                c.Name as nombre,
-                c.LastName as apellidoPaterno,
-                c.MotherLastName as apellidoMaterno,
+                c.id as idCliente,
+                ctr.id_dms as ndCliente,
+                TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
+                c.name as nombre,
+                c.last_name as apellidoPaterno,
+                c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc,
-                c.Email as email,
-                c.TelNumber as telefono,
-                c.TelNumber2 as telefono2,
-                c.RazonSocial as razonSocial,
+                c.email as email,
+                c.tel_number as telefono,
+                c.tel_number2 as telefono2,
+                c.razon_social as razonSocial,
                 c.CURP as curp,
-                c.Adviser as asesor,
-                c.AgencyOrigin as agenciaOrigen,
-                c.RegistrationDate as fechaRegistro,
-                c.UpdateDate as fechaActualizacion,
-                ctr.IdAgency as idAgency,
-                hc.Id as headerClientId
+                c.adviser as asesor,
+                c.agency_origin as agenciaOrigen,
+                c.registration_date as fechaRegistro,
+                c.update_date as fechaActualizacion,
+                ctr.id_agency as idAgency,
+                hc.id as headerClientId
             FROM client c
-            INNER JOIN client_header hc ON c.Id = hc.IdClient
-            INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-            WHERE c.RazonSocial = ?
+            INNER JOIN client_header hc ON c.id = hc.id_client
+            INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+            WHERE c.razon_social = ?
             LIMIT 1
         ";
 
@@ -514,21 +514,21 @@ class VanguardiaClientImport extends ResourceController
         $nextId = $this->getNextClientId();
         
         $clientData = [
-            'Id' => $nextId,
-            'Name' => $vanguardiaData['name'] ?? '',
-            'LastName' => $vanguardiaData['paternal_surname'] ?? '',
-            'MotherLastName' => $vanguardiaData['maternal_surname'] ?? '',
+            'id' => $nextId,
+            'name' => $vanguardiaData['name'] ?? '',
+            'last_name' => $vanguardiaData['paternal_surname'] ?? '',
+            'mother_last_name' => $vanguardiaData['maternal_surname'] ?? '',
             'RFC' => $vanguardiaData['rfc'] ?? '',
             'CURP' => $vanguardiaData['curp'] ?? '',
-            'TelNumber' => $vanguardiaData['phone'] ?? '',
-            'TelNumber2' => $vanguardiaData['mobile_phone'] ?? '',
-            'Email' => $vanguardiaData['mail'] ?? '',
-            'RazonSocial' => $razonSocial,
-            'Adviser' => '', // Se puede asignar después
-            'AgencyOrigin' => $vanguardiaData['idAgency'] ?? '',
-            'RegistrationDate' => date('Y-m-d H:i:s'),
-            'UpdateDate' => date('Y-m-d H:i:s'),
-            'IdLastUserUpdate' => 1 // Usuario sistema
+            'tel_number' => $vanguardiaData['phone'] ?? '',
+            'tel_number2' => $vanguardiaData['mobile_phone'] ?? '',
+            'email' => $vanguardiaData['mail'] ?? '',
+            'razon_social' => $razonSocial,
+            'adviser' => '', // Se puede asignar después
+            'agency_origin' => $vanguardiaData['idAgency'] ?? '',
+            'registration_date' => date('Y-m-d H:i:s'),
+            'update_date' => date('Y-m-d H:i:s'),
+            'id_last_user_update' => 1 // Usuario sistema
         ];
 
         error_log("=== Datos a insertar en Client ===");
@@ -557,7 +557,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextClientId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM client");
+        $query = $this->db->query("SELECT MAX(id) as max_id FROM client");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -571,8 +571,8 @@ class VanguardiaClientImport extends ResourceController
         $nextId = $this->getNextClientHeaderId();
         
         $headerData = [
-            'Id' => $nextId,
-            'IdClient' => $clientId
+            'id' => $nextId,
+            'id_client' => $clientId
         ];
 
         $result = $this->db->table('client_header')->insert($headerData);
@@ -594,10 +594,10 @@ class VanguardiaClientImport extends ResourceController
         $agencyId = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
         
         $relationData = [
-            'Id' => $nextId,
-            'idClientHeader' => $headerClientId,
-            'IdDMS' => $vanguardiaData['ndDMS'],
-            'IdAgency' => $agencyId
+            'id' => $nextId,
+            'id_client_header' => $headerClientId,
+            'id_dms' => $vanguardiaData['ndDMS'],
+            'id_agency' => $agencyId
         ];
 
         $result = $this->db->table('client_dms_relation')->insert($relationData);
@@ -612,7 +612,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextClientHeaderId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM client_header");
+        $query = $this->db->query("SELECT MAX(id) as max_id FROM client_header");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -622,7 +622,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextClientTotalRelationId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM client_dms_relation");
+        $query = $this->db->query("SELECT MAX(id) as max_id FROM client_dms_relation");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -640,10 +640,10 @@ class VanguardiaClientImport extends ResourceController
         
         // Usar SQL directo para evitar problemas con la estructura de la tabla
         $sql = "
-            INSERT INTO File (
-                Id, IdClient, IdCustomerType, IdOperation, IdProcess, 
-                RegistrationDate, UpdateDate, LastUserUpdate, IdAgency, 
-                IdSeller, IdLastUserUpdate, IdCurrentState, AttentionDate
+            INSERT INTO expedient (
+                id, id_client, id_customer_type, id_operation, id_process, 
+                registration_date, update_date, last_user_update, id_agency, 
+                id_seller, id_last_user_update, id_current_state, attention_date
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
         
@@ -672,7 +672,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getNextFileId()
     {
-        $query = $this->db->query("SELECT MAX(Id) as max_id FROM file");
+        $query = $this->db->query("SELECT MAX(id) as max_id FROM expedient");
         $result = $query->getRow();
         return ($result->max_id ?? 0) + 1;
     }
@@ -691,24 +691,24 @@ class VanguardiaClientImport extends ResourceController
         
         // Primero intentar como ID interno (Id) - el frontend puede enviar el ID interno
         $agency = $this->db->table('agency')
-            ->where('Id', $idAgencyStr)
+            ->where('id', $idAgencyStr)
             ->get()
             ->getRowArray();
             
         if ($agency) {
             error_log("✅ Agencia encontrada por Id interno: {$idAgencyStr}, IdAgencyDMS externo: " . ($agency['IdAgencyDMS'] ?? 'N/A'));
-            return (int) $agency['Id']; // Retornar el ID interno
+            return (int) ($agency['id'] ?? $agency['Id']); // Retornar el ID interno
         }
         
-        // Si no se encuentra, intentar como ID externo (IdAgencyDMS)
+        // Si no se encuentra, intentar como ID externo (id_agency_dms)
         $agency = $this->db->table('agency')
-            ->where('IdAgencyDMS', $idAgencyStr)
+            ->where('id_agency_dms', $idAgencyStr)
             ->get()
             ->getRowArray();
             
         if ($agency) {
             error_log("✅ Agencia encontrada por IdAgencyDMS externo: {$idAgencyStr}, Id interno: " . $agency['Id']);
-            return (int) $agency['Id'];
+            return (int) ($agency['id'] ?? $agency['Id']);
         }
         
         error_log("⚠️ Agencia NO encontrada para ID: {$idAgencyStr}, usando valor original como fallback");
@@ -723,28 +723,28 @@ class VanguardiaClientImport extends ResourceController
     {
         $sql = "
             SELECT 
-                c.Id as idCliente,
-                ctr.IdDMS as ndCliente,
-                TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))) as cliente,
-                c.Name as nombre,
-                c.LastName as apellidoPaterno,
-                c.MotherLastName as apellidoMaterno,
+                c.id as idCliente,
+                ctr.id_dms as ndCliente,
+                TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
+                c.name as nombre,
+                c.last_name as apellidoPaterno,
+                c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc,
-                c.Email as email,
-                c.TelNumber as telefono,
-                c.TelNumber2 as telefono2,
-                c.RazonSocial as razonSocial,
+                c.email as email,
+                c.tel_number as telefono,
+                c.tel_number2 as telefono2,
+                c.razon_social as razonSocial,
                 c.CURP as curp,
-                c.Adviser as asesor,
-                c.AgencyOrigin as agenciaOrigen,
-                c.RegistrationDate as fechaRegistro,
-                c.UpdateDate as fechaActualizacion,
-                hc.Id as headerClientId,
-                ctr.Id as relationId
+                c.adviser as asesor,
+                c.agency_origin as agenciaOrigen,
+                c.registration_date as fechaRegistro,
+                c.update_date as fechaActualizacion,
+                hc.id as headerClientId,
+                ctr.id as relationId
             FROM client c
-            INNER JOIN client_header hc ON c.Id = hc.IdClient
-            INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-            WHERE c.Id = ? AND hc.Id = ? AND ctr.Id = ?
+            INNER JOIN client_header hc ON c.id = hc.id_client
+            INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+            WHERE c.id = ? AND hc.id = ? AND ctr.id = ?
         ";
 
         $query = $this->db->query($sql, [$clientId, $headerClientId, $relationId]);

@@ -38,8 +38,8 @@
                   <mat-label>Agencia</mat-label>
                   <mat-select [(ngModel)]="selectedAgencyForConfiguraciones" (ngModelChange)="onAgencyFilterChange()" [disabled]="loadingCatalogs">
                     <mat-option value="">Todas las agencias</mat-option>
-                    <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-                      {{ agency.Name }}
+                    <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+                      {{ agency.name }}
                     </mat-option>
                   </mat-select>
                   <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -79,7 +79,7 @@
                   ID
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center py-0">
-                  <span class="text-xs font-mono text-gray-600">{{ element.IdConfigurationProcess || 'N/A' }}</span>
+                  <span class="text-xs font-mono text-gray-600">{{ element.id_configuration_process || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -89,7 +89,7 @@
                   Agencia
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.AgenciaName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.agencia_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -99,7 +99,7 @@
                   Proceso
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.ProcesoName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.proceso_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -109,7 +109,7 @@
                   Tipo Cliente
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.TipoClienteName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.tipo_cliente_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -119,7 +119,7 @@
                   Tipo Operación
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.TipoOperacionName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.tipo_operacion_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -145,8 +145,8 @@
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center py-0" style="max-width: 50px; width: 50px;">
                   <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap"
-                        [ngClass]="element.Enabled === '1' || element.Enabled === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                    {{ element.Enabled === '1' || element.Enabled === 1 ? 'Activo' : 'Inactivo' }}
+                        [ngClass]="element.enabled === '1' || element.enabled === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    {{ element.enabled === '1' || element.enabled === 1 ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
               </ng-container>
@@ -227,8 +227,8 @@
                   <mat-label>Agencia</mat-label>
                   <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                     <mat-option value="">Seleccionar todas las agencias</mat-option>
-                    <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-                      {{ agency.Name }}
+                    <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+                      {{ agency.name }}
                     </mat-option>
                   </mat-select>
                   <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -238,8 +238,8 @@
                   <mat-label>Proceso</mat-label>
                   <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                     <mat-option value="">Seleccionar todos los procesos</mat-option>
-                    <mat-option *ngFor="let process of processes" [value]="process.Id">
-                      {{ process.Name }}
+                    <mat-option *ngFor="let process of processes" [value]="process.id">
+                      {{ process.name }}
                     </mat-option>
                   </mat-select>
                   <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -249,8 +249,8 @@
                   <mat-label>Tipo de Cliente</mat-label>
                   <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                     <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
-                    <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.Id">
-                      {{ customerType.Name }}
+                    <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.id">
+                      {{ customerType.name }}
                     </mat-option>
                   </mat-select>
                   <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -260,8 +260,8 @@
                   <mat-label>Tipo Operación</mat-label>
                   <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                     <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
-                    <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.Id">
-                      {{ operationType.Name }}
+                    <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.id">
+                      {{ operationType.name }}
                     </mat-option>
                   </mat-select>
                   <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -330,7 +330,7 @@
                   ID
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center text-xs font-mono text-gray-600 py-0">
-                  {{ element.Id }}
+                  {{ element.id }}
                 </td>
               </ng-container>
 
@@ -340,7 +340,7 @@
                   Agencia
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.AgenciaName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.agencia_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -350,7 +350,7 @@
                   Proceso
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.ProcesoName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.proceso_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -360,7 +360,7 @@
                   Tipo Cliente
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.TipoClienteName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.tipo_cliente_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -370,7 +370,7 @@
                   Tipo Operación
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700">{{ element.TipoOperacionName || 'N/A' }}</span>
+                  <span class="text-xs text-gray-700">{{ element.tipo_operacion_name || 'N/A' }}</span>
                 </td>
               </ng-container>
 
@@ -380,7 +380,7 @@
                   Tipo de Documento
                 </th>
                 <td mat-cell *matCellDef="let element" class="px-1.5 py-0 text-sm text-gray-900">
-                  {{ element.TipoDocumentoName }}
+                  {{ element.tipo_documento_name }}
                 </td>
               </ng-container>
 
@@ -390,10 +390,10 @@
                   Etapa
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700" *ngIf="element.ProcessTypeName">
-                    {{ element.ProcessTypeName }}
+                  <span class="text-xs text-gray-700" *ngIf="element.process_type_name">
+                    {{ element.process_type_name }}
                   </span>
-                  <span class="text-xs text-gray-400 italic" *ngIf="!element.ProcessTypeName">
+                  <span class="text-xs text-gray-400 italic" *ngIf="!element.process_type_name">
                     N/A
                   </span>
                 </td>
@@ -405,10 +405,10 @@
                   Sub-Etapa
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
-                  <span class="text-xs text-gray-700" *ngIf="element.SubProcessName">
-                    {{ element.SubProcessName }}
+                  <span class="text-xs text-gray-700" *ngIf="element.sub_process_name">
+                    {{ element.sub_process_name }}
                   </span>
-                  <span class="text-xs text-gray-400 italic" *ngIf="!element.SubProcessName">
+                  <span class="text-xs text-gray-400 italic" *ngIf="!element.sub_process_name">
                     N/A
                   </span>
                 </td>
@@ -421,8 +421,8 @@
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center py-0">
                   <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                        [ngClass]="element.Required === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
-                    {{ element.Required === '1' ? 'Sí' : 'No' }}
+                        [ngClass]="element.required === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+                    {{ element.required === '1' ? 'Sí' : 'No' }}
                   </span>
                 </td>
               </ng-container>
@@ -434,8 +434,8 @@
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center py-0">
                   <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                        [ngClass]="element.ReqExpiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
-                    {{ element.ReqExpiration === '1' ? 'Sí' : 'No' }}
+                        [ngClass]="element.req_expiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
+                    {{ element.req_expiration === '1' ? 'Sí' : 'No' }}
                   </span>
                 </td>
               </ng-container>
@@ -444,7 +444,7 @@
               <tr mat-row 
                   *matRowDef="let row; columns: displayedColumns;"
                   (click)="onRowClick(row)"
-                  [class.bg-blue-50]="selectedItem?.Id === row.Id"
+                  [class.bg-blue-50]="selectedItem?.id === row.id"
                   class="cursor-pointer hover:bg-gray-50 transition-colors !min-h-0 !h-8">
               </tr>
             </table>

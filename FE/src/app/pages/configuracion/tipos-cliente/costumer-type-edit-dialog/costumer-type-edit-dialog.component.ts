@@ -52,16 +52,17 @@ export class CostumerTypeEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.costumerTypeForm = this.fb.group({
-      Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
-      Enabled: ['1', Validators.required]
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
+      enabled: ['1', Validators.required]
     });
   }
 
   private populateForm(): void {
     if (this.data.costumerType && this.data.mode === 'edit') {
+      const ct = this.data.costumerType;
       this.costumerTypeForm.patchValue({
-        Name: this.data.costumerType.Name,
-        Enabled: this.data.costumerType.Enabled
+        name: ct.name ?? (ct as any).Name,
+        enabled: ct.enabled ?? (ct as any).Enabled
       });
     }
   }
@@ -79,9 +80,10 @@ export class CostumerTypeEditDialogComponent implements OnInit {
   }
 
   private createCostumerType(): void {
+    const v = this.costumerTypeForm.value;
     const costumerTypeData: CostumerTypeCreateRequest = {
-      Name: this.costumerTypeForm.value.Name,
-      Enabled: this.costumerTypeForm.value.Enabled
+      name: v.name,
+      enabled: v.enabled
     };
 
     this.costumerTypeService.createCostumerType(costumerTypeData).subscribe({
@@ -108,13 +110,15 @@ export class CostumerTypeEditDialogComponent implements OnInit {
   }
 
   private updateCostumerType(): void {
+    const ct = this.data.costumerType;
+    const v = this.costumerTypeForm.value;
     const costumerTypeData: CostumerTypeUpdateRequest = {
-      Id: this.data.costumerType.Id!,
-      Name: this.costumerTypeForm.value.Name,
-      Enabled: this.costumerTypeForm.value.Enabled
+      id: ct.id ?? (ct as any).Id!,
+      name: v.name,
+      enabled: v.enabled
     };
-
-    this.costumerTypeService.updateCostumerType(this.data.costumerType.Id!, costumerTypeData).subscribe({
+    const id = ct.id ?? (ct as any).Id;
+    this.costumerTypeService.updateCostumerType(id!, costumerTypeData).subscribe({
       next: (response) => {
         if (response.success) {
           this.snackBar.open('Tipo de cliente actualizado exitosamente', 'Éxito', {

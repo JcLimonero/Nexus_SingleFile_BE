@@ -1,43 +1,41 @@
 export interface DocumentoRequerido {
-  Id: string;
-  IdDocumentType: string;
-  IdConfigurationProcess: string;
-  IdProcess: string;
-  IdAgency: string;
-  IdOperationType: string;
-  IdCostumerType: string;
-  Enabled: string;
-  RegistrationDate?: string;
-  UpdateDate?: string;
-  IdLastUserUpdate?: string;
-  
-  // Campos de relación para mostrar nombres
-  ProcesoName?: string;
-  AgenciaName?: string;
-  TipoClienteName?: string;
-  TipoOperacionName?: string;
-  TipoDocumentoName?: string;
-  
-  // Campos del tipo de documento
-  Required?: string;
-  ReqExpiration?: string;
-  IdProcessType?: string;
-  IdSubProcess?: string;
-  ProcessTypeName?: string;
-  SubProcessName?: string;
+  id: string;
+  id_document_type: string;
+  id_configuration_process: string;
+  id_process: string;
+  id_agency: string;
+  id_operation_type: string;
+  id_customer_type: string;
+  enabled: string;
+  registration_date?: string;
+  update_date?: string;
+  id_last_user_update?: string;
+
+  proceso_name?: string;
+  agencia_name?: string;
+  tipo_cliente_name?: string;
+  tipo_operacion_name?: string;
+  tipo_documento_name?: string;
+
+  required?: string;
+  req_expiration?: string;
+  id_process_type?: string;
+  id_sub_process?: string;
+  process_type_name?: string;
+  sub_process_name?: string;
 }
 
 export interface DocumentoRequeridoCreateRequest {
-  IdProcess: string;
-  IdAgency: string;
-  IdCostumerType: string;
-  IdOperationType: string;
-  IdDocumentType: string;
+  id_process: string;
+  id_agency: string;
+  id_customer_type: string;
+  id_operation_type: string;
+  id_document_type: string;
 }
 
 export interface DocumentoRequeridoUpdateRequest extends Partial<DocumentoRequeridoCreateRequest> {
-  Id: string;
-  Enabled?: string;
+  id: string;
+  enabled?: string;
 }
 
 export interface DocumentoRequeridoResponse {
@@ -53,13 +51,13 @@ export interface DocumentoRequeridoResponse {
 }
 
 export interface DocumentoRequeridoFilters {
-  IdProcess?: string;
-  IdAgency?: string;
-  IdCostumerType?: string;
-  IdOperationType?: string;
-  IdDocumentType?: string;
-  Required?: boolean;
-  Enabled?: boolean;
+  id_process?: string;
+  id_agency?: string;
+  id_customer_type?: string;
+  id_operation_type?: string;
+  id_document_type?: string;
+  required?: boolean;
+  enabled?: boolean;
   limit?: number;
   offset?: number;
   sort_by?: string;

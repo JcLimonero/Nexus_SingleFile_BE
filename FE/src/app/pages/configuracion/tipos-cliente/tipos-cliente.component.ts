@@ -44,7 +44,7 @@ import { CostumerTypeEditDialogComponent } from './costumer-type-edit-dialog/cos
 export class TiposClienteComponent implements OnInit, AfterViewInit {
   tiposCliente: CostumerType[] = [];
   dataSource = new MatTableDataSource<CostumerType>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['id', 'name', 'enabled', 'acciones'];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -89,7 +89,7 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: CostumerType, filter: string) => {
       const searchTerm = filter.toLowerCase();
-      return data.Name.toLowerCase().includes(searchTerm);
+      return data.name.toLowerCase().includes(searchTerm);
     };
   }
 
@@ -142,9 +142,9 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     // Aplicar filtro de estado si existe
     if (this.statusFilter !== '') {
       const filteredData = this.tiposCliente.filter(tipoCliente => 
-        tipoCliente.Enabled === this.statusFilter &&
+        tipoCliente.enabled === this.statusFilter &&
         (filterValue === '' || 
-         tipoCliente.Name.toLowerCase().includes(filterValue.toLowerCase()))
+         tipoCliente.name.toLowerCase().includes(filterValue.toLowerCase()))
       );
       
       
@@ -225,11 +225,11 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   }
 
   deleteCostumerType(costumerType: CostumerType): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de cliente "${costumerType.Name}"?`)) {
-      this.costumerTypeService.deleteCostumerType(costumerType.Id!).subscribe({
+    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de cliente "${costumerType.name}"?`)) {
+      this.costumerTypeService.deleteCostumerType(costumerType.id!).subscribe({
         next: (response) => {
           if (response.success) {
-            this.tiposCliente = this.tiposCliente.filter(t => t.Id !== costumerType.Id);
+            this.tiposCliente = this.tiposCliente.filter(t => t.id !== costumerType.id);
             this.applyFilter();
             this.snackBar.open('Tipo de cliente eliminado exitosamente', 'Éxito', {
               duration: 2000
@@ -250,13 +250,12 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   }
 
   toggleStatus(costumerType: CostumerType): void {
-    this.costumerTypeService.toggleStatus(costumerType.Id!).subscribe({
+    this.costumerTypeService.toggleStatus(costumerType.id!).subscribe({
       next: (response) => {
         if (response.success) {
-          // Actualizar el estado en la lista local
-          const index = this.tiposCliente.findIndex(t => t.Id === costumerType.Id);
+          const index = this.tiposCliente.findIndex(t => t.id === costumerType.id);
           if (index !== -1) {
-            this.tiposCliente[index].Enabled = this.tiposCliente[index].Enabled === '1' ? '0' : '1';
+            this.tiposCliente[index].enabled = this.tiposCliente[index].enabled === '1' ? '0' : '1';
             this.applyFilter();
           }
           

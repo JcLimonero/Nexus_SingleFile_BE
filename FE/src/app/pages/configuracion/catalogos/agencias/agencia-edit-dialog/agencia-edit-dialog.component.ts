@@ -57,18 +57,19 @@ export class AgenciaEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.agenciaForm = this.fb.group({
-      Name: ['', [Validators.required, Validators.minLength(3)]],
-      IdAgency: ['', [Validators.required, Validators.minLength(1)]],
-      Enabled: ['1', Validators.required]
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      id_agency_dms: ['', [Validators.required, Validators.minLength(1)]],
+      enabled: ['1', Validators.required]
     });
   }
 
   private populateForm(): void {
     if (this.data.agencia) {
+      const a = this.data.agencia;
       this.agenciaForm.patchValue({
-        Name: this.data.agencia.Name,
-        IdAgency: this.data.agencia.IdAgency,
-        Enabled: this.data.agencia.Enabled
+        name: a.name ?? (a as any).Name,
+        id_agency_dms: a.id_agency_dms ?? (a as any).IdAgency,
+        enabled: a.enabled ?? (a as any).Enabled ?? '1'
       });
     }
   }
@@ -90,12 +91,13 @@ export class AgenciaEditDialogComponent implements OnInit {
   }
 
   private updateAgencia(): void {
-    const updateData = {
-      Id: this.data.agencia.Id,
+    const id = this.data.agencia.id ?? (this.data.agencia as any).Id;
+    const updateData = this.agencyService.prepareAgencyData({
+      ...this.data.agencia,
       ...this.agenciaForm.value
-    };
+    }, true);
 
-    this.agencyService.updateAgency(Number(updateData.Id), updateData).subscribe({
+    this.agencyService.updateAgency(Number(id), updateData).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
@@ -119,7 +121,7 @@ export class AgenciaEditDialogComponent implements OnInit {
   }
 
   private createAgencia(): void {
-    const createData = this.agenciaForm.value;
+    const createData = this.agencyService.prepareAgencyData(this.agenciaForm.value);
 
     this.agencyService.createAgency(createData).subscribe({
       next: (response) => {

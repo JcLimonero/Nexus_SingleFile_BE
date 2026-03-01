@@ -20,7 +20,7 @@ export const DEFAULT_LAYOUT_CONFIG: AppLayoutConfig = {
     title: 'NexFile One',
     showCollapsePin: true,
     user: { visible: true },
-    search: { visible: true }
+    search: { visible: false }
   },
   navbar: { position: 'in-toolbar' },
   footer: { visible: true, fixed: true }

@@ -16,14 +16,14 @@
       <mat-label>Nombre de la Agencia</mat-label>
       <input 
         matInput 
-        formControlName="Name" 
+        formControlName="name" 
         placeholder="Ej: HONDA GALERIAS"
         maxlength="100">
       <mat-hint>Nombre completo de la agencia</mat-hint>
-      <mat-error *ngIf="agenciaForm.get('Name')?.hasError('required')">
+      <mat-error *ngIf="agenciaForm.get('name')?.hasError('required')">
         El nombre es requerido
       </mat-error>
-      <mat-error *ngIf="agenciaForm.get('Name')?.hasError('minlength')">
+      <mat-error *ngIf="agenciaForm.get('name')?.hasError('minlength')">
         El nombre debe tener al menos 3 caracteres
       </mat-error>
     </mat-form-field>
@@ -33,14 +33,14 @@
       <mat-label>Nd de Agencia</mat-label>
       <input 
         matInput 
-        formControlName="IdAgency" 
+        formControlName="id_agency_dms" 
         placeholder="Ej: 10017"
         maxlength="20">
       <mat-hint>Código único de identificación</mat-hint>
-      <mat-error *ngIf="agenciaForm.get('IdAgency')?.hasError('required')">
+      <mat-error *ngIf="agenciaForm.get('id_agency_dms')?.hasError('required')">
         El código es requerido
       </mat-error>
-      <mat-error *ngIf="agenciaForm.get('IdAgency')?.hasError('minlength')">
+      <mat-error *ngIf="agenciaForm.get('id_agency_dms')?.hasError('minlength')">
         El código debe tener al menos 1 carácter
       </mat-error>
     </mat-form-field>
@@ -48,7 +48,7 @@
     <!-- Estado -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estado</mat-label>
-      <mat-select formControlName="Enabled">
+      <mat-select formControlName="enabled">
         <mat-option value="1">Activo</mat-option>
         <mat-option value="0">Inactivo</mat-option>
       </mat-select>
@@ -61,19 +61,19 @@
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div>
           <span class="text-gray-500">ID:</span>
-          <span class="ml-2 font-mono">{{ data.agencia.Id }}</span>
+          <span class="ml-2 font-mono">{{ data.agencia.id }}</span>
         </div>
         <div>
           <span class="text-gray-500">Último Usuario:</span>
-          <span class="ml-2">{{ data.agencia.LastUserUpdateName || 'N/A' }}</span>
+          <span class="ml-2">{{ data.agencia.last_user_update_name || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Fecha Registro:</span>
-          <span class="ml-2">{{ data.agencia.RegistrationDate || 'N/A' }}</span>
+          <span class="ml-2">{{ data.agencia.registration_date || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Última Actualización:</span>
-          <span class="ml-2">{{ data.agencia.UpdateDate || 'N/A' }}</span>
+          <span class="ml-2">{{ data.agencia.update_date || 'N/A' }}</span>
         </div>
       </div>
     </div>

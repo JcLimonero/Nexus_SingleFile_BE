@@ -22,7 +22,15 @@ class DocumentoRequerido extends BaseController
     {
         try {
             // Obtener parámetros de la petición
-            $limit = $this->request->getGet('limit') ? (int)$this->request->getGet('limit') : null;
+            $limitParam = $this->request->getGet('limit');
+            if ($limitParam === 'all' || $limitParam === null || $limitParam === '') {
+                $limit = null;
+            } else {
+                $limit = (int)$limitParam;
+                if ($limit <= 0) {
+                    $limit = null;
+                }
+            }
             $offset = $this->request->getGet('offset') ? (int)$this->request->getGet('offset') : 0;
             $sortBy = $this->request->getGet('sort_by') ?: 'Id';
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
@@ -60,7 +68,7 @@ class DocumentoRequerido extends BaseController
                 'data' => [
                     'documentos' => $documentos,
                     'total' => $total,
-                    'limit' => $limit,
+                    'limit' => $limit ?? 'all',
                     'offset' => $offset,
                     'count' => count($documentos)
                 ]
@@ -68,9 +76,27 @@ class DocumentoRequerido extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en DocumentoRequerido::index: ' . $e->getMessage());
+            log_message('error', 'File: ' . $e->getFile() . ' Line: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            
+            // Log adicional para debugging
+            if ($e->getCode() !== 0) {
+                log_message('error', 'Error code: ' . $e->getCode());
+            }
+            
+            // Intentar obtener más información del error si es un error de base de datos
+            if (method_exists($e, 'getSqlMessage')) {
+                log_message('error', 'SQL Error: ' . $e->getSqlMessage());
+            }
+            
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener documentos requeridos: ' . $e->getMessage()
+                'message' => 'Error al obtener documentos requeridos: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'code' => $e->getCode()
+                ]
             ])->setStatusCode(500);
         }
     }
@@ -358,9 +384,9 @@ class DocumentoRequerido extends BaseController
                 
                 if ($configProcessId) {
                     $updateResult = $configProcessModel->update($configProcessId, [
-                        'Enabled' => $enabledValue,
-                        'UpdateDate' => date('Y-m-d H:i:s'),
-                        'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                        'enabled' => $enabledValue,
+                        'update_date' => date('Y-m-d H:i:s'),
+                        'id_last_user_update' => $this->getCurrentUserId() ?? 0
                     ]);
                     
                     if ($updateResult) {
@@ -405,9 +431,9 @@ class DocumentoRequerido extends BaseController
                     
                     if ($configProcessId) {
                         $configProcessModel->update($configProcessId, [
-                            'Enabled' => $updateData['Enabled'] === '1' || $updateData['Enabled'] === 1 ? 1 : 0,
-                            'UpdateDate' => date('Y-m-d H:i:s'),
-                            'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                            'enabled' => $updateData['Enabled'] === '1' || $updateData['Enabled'] === 1 ? 1 : 0,
+                            'update_date' => date('Y-m-d H:i:s'),
+                            'id_last_user_update' => $this->getCurrentUserId() ?? 0
                         ]);
                     }
                 }

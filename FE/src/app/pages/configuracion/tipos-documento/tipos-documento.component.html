@@ -103,93 +103,93 @@
   <div class="bg-white rounded-lg shadow-sm border overflow-x-auto" *ngIf="!loading">
     <table mat-table [dataSource]="dataSource" matSort class="w-full" style="line-height: 1;">
       <!-- Columna ID -->
-      <ng-container matColumnDef="Id">
+      <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-16 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           ID
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-xs font-mono text-gray-600 py-0">
-          {{ tipoDocumento.Id }}
+          {{ tipoDocumento.id }}
         </td>
       </ng-container>
 
       <!-- Columna Nombre -->
-      <ng-container matColumnDef="Name">
+      <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Nombre
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-xs py-0">
-          {{ tipoDocumento.Name }}
+          {{ tipoDocumento.name }}
         </td>
       </ng-container>
 
       <!-- Columna Fase -->
-      <ng-container matColumnDef="ProcessTypeName">
+      <ng-container matColumnDef="process_type_name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Fase
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-xs py-0">
-          {{ tipoDocumento.ProcessTypeName || 'N/A' }}
+          {{ tipoDocumento.process_type_name || 'N/A' }}
         </td>
       </ng-container>
 
       <!-- Columna Sub Fase -->
-      <ng-container matColumnDef="SubProcessName">
+      <ng-container matColumnDef="sub_process_name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Sub Fase
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-xs py-0">
-          {{ tipoDocumento.SubProcessName || 'N/A' }}
+          {{ tipoDocumento.sub_process_name || 'N/A' }}
         </td>
       </ng-container>
 
       <!-- Columna Requerido -->
-      <ng-container matColumnDef="Required">
+      <ng-container matColumnDef="required">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Requerido
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-center">
           <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
-                [ngClass]="tipoDocumento.Required === '1' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'">
-            {{ tipoDocumento.Required === '1' ? 'Sí' : 'No' }}
+                [ngClass]="tipoDocumento.required === '1' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'">
+            {{ tipoDocumento.required === '1' ? 'Sí' : 'No' }}
           </span>
         </td>
       </ng-container>
 
       <!-- Columna Requiere Expiración -->
-      <ng-container matColumnDef="ReqExpiration">
+      <ng-container matColumnDef="req_expiration">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Requiere expiración
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-center">
           <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
-                [ngClass]="tipoDocumento.ReqExpiration === '1' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'">
-            {{ tipoDocumento.ReqExpiration === '1' ? 'Sí' : 'No' }}
+                [ngClass]="tipoDocumento.req_expiration === '1' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'">
+            {{ tipoDocumento.req_expiration === '1' ? 'Sí' : 'No' }}
           </span>
         </td>
       </ng-container>
 
       <!-- Columna Disponible al Cliente -->
-      <ng-container matColumnDef="AvailableToClient">
+      <ng-container matColumnDef="available_to_client">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Disponible al cliente
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-center">
           <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
-                [ngClass]="tipoDocumento.AvailableToClient === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
-            {{ tipoDocumento.AvailableToClient === '1' ? 'Sí' : 'No' }}
+                [ngClass]="tipoDocumento.available_to_client === '1' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'">
+            {{ tipoDocumento.available_to_client === '1' ? 'Sí' : 'No' }}
           </span>
         </td>
       </ng-container>
 
       <!-- Columna Estado -->
-      <ng-container matColumnDef="Enabled">
+      <ng-container matColumnDef="enabled">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-24 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Estado
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-center">
           <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
-                [ngClass]="tipoDocumento.Enabled === '1' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-            {{ tipoDocumento.Enabled === '1' ? 'Activo' : 'Inactivo' }}
+                [ngClass]="tipoDocumento.enabled === '1' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+            {{ tipoDocumento.enabled === '1' ? 'Activo' : 'Inactivo' }}
           </span>
         </td>
       </ng-container>
@@ -201,23 +201,23 @@
         </th>
         <td mat-cell *matCellDef="let tipoDocumento" class="text-center py-0">
           <button
-            *ngIf="tipoDocumento.configurationsCount && tipoDocumento.configurationsCount > 0"
+            *ngIf="(tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) && (tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) > 0"
             (click)="openConfigurationsDialog(tipoDocumento)"
             mat-icon-button
             color="primary"
-            [matTooltip]="'Ver ' + tipoDocumento.configurationsCount + ' configuración(es)'"
+            [matTooltip]="'Ver ' + (tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) + ' configuración(es)'"
             class="!w-6 !h-6 !min-h-6 !p-0">
             <mat-icon class="!text-sm">info</mat-icon>
           </button>
           <span 
-            *ngIf="!tipoDocumento.configurationsCount || tipoDocumento.configurationsCount === 0"
+            *ngIf="!(tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) || (tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) === 0"
             class="text-xs text-gray-400 italic">
             Sin configuraciones
           </span>
           <span 
-            *ngIf="tipoDocumento.configurationsCount && tipoDocumento.configurationsCount > 0"
+            *ngIf="(tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) && (tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount) > 0"
             class="ml-1 text-xs font-medium text-blue-600">
-            ({{ tipoDocumento.configurationsCount }})
+            ({{ tipoDocumento.configurations_count ?? tipoDocumento.configurationsCount }})
           </span>
         </td>
       </ng-container>

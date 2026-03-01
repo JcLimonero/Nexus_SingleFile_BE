@@ -4,11 +4,12 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
+/** Interfaz en snake_case (igual que BD) */
 export interface Agencia {
-  Id: number;
-  Name: string;
-  Enabled: boolean | number | string; // Puede ser boolean, number o string
-  [key: string]: any; // Para campos adicionales
+  id: number;
+  name: string;
+  enabled: boolean | number | string;
+  [key: string]: any;
 }
 
 @Injectable({
@@ -221,7 +222,7 @@ export class DefaultAgencyService {
     return this.http.get<any>(`${this.apiUrl}/api/user/profile`).pipe(
       map(response => {
         if (response && response.success && response.data) {
-          const defaultAgency = response.data.DefaultAgency;
+          const defaultAgency = response.data.default_agency ?? response.data.DefaultAgency;
           // Guardar en localStorage para próximas veces
           if (defaultAgency !== null && defaultAgency !== undefined) {
             this.guardarAgenciaEnStorage(defaultAgency);
@@ -274,7 +275,7 @@ export class DefaultAgencyService {
       if (storedAgency !== null) {
         // Si hay agencias cargadas, verificar que la agencia guardada existe en la lista
         if (this.agenciasSubject.value.length > 0) {
-          const agenciaEncontrada = this.agenciasSubject.value.find(ag => ag.Id === storedAgency);
+          const agenciaEncontrada = this.agenciasSubject.value.find(ag => (ag.id ?? (ag as any).Id) === storedAgency);
           if (agenciaEncontrada) {
             // La agencia guardada existe y es válida, usarla SIN llamar al API
             this.selectedAgencySubject.next(storedAgency);
@@ -318,7 +319,7 @@ export class DefaultAgencyService {
 
           if (defaultAgencyId && this.agenciasSubject.value.length > 0) {
             // Buscar la agencia predeterminada del usuario en la lista
-            const agenciaPredeterminada = this.agenciasSubject.value.find(ag => ag.Id === defaultAgencyId);
+            const agenciaPredeterminada = this.agenciasSubject.value.find(ag => (ag.id ?? (ag as any).Id) === defaultAgencyId);
             if (agenciaPredeterminada) {
               agenciaSeleccionada = defaultAgencyId;
             } else {
@@ -353,7 +354,7 @@ export class DefaultAgencyService {
           
           // Verificar que la agencia guardada existe en la lista de agencias disponibles
           if (agenciaSeleccionada !== null && this.agenciasSubject.value.length > 0) {
-            const agenciaEncontrada = this.agenciasSubject.value.find(ag => ag.Id === agenciaSeleccionada);
+            const agenciaEncontrada = this.agenciasSubject.value.find(ag => (ag.id ?? (ag as any).Id) === agenciaSeleccionada);
             if (!agenciaEncontrada) {
               // La agencia guardada no existe en la lista, limpiar y no seleccionar nada
               this.eliminarAgenciaDeStorage();
@@ -365,7 +366,7 @@ export class DefaultAgencyService {
           // Dejar que el usuario seleccione manualmente
           // Solo si autoSelect está habilitado Y no hay agencia guardada válida, usar la primera
           if (agenciaSeleccionada === null && autoSelect && this.agenciasSubject.value.length > 0) {
-            agenciaSeleccionada = this.agenciasSubject.value[0].Id;
+            agenciaSeleccionada = this.agenciasSubject.value[0].id ?? (this.agenciasSubject.value[0] as any).Id;
           }
           
           if (agenciaSeleccionada !== null) {
@@ -442,7 +443,7 @@ export class DefaultAgencyService {
    */
   actualizarAgenciaPredeterminada(agenciaId: number): Observable<boolean> {
     return this.http.put<any>(`${this.apiUrl}/api/user/profile/default-agency`, {
-      defaultAgency: agenciaId
+      default_agency: agenciaId
     }).pipe(
       map(response => {
         if (response && response.success) {
@@ -481,7 +482,7 @@ export class DefaultAgencyService {
    * Verificar si una agencia está habilitada
    */
   esAgenciaHabilitada(agencia: Agencia): boolean {
-    return agencia && this.esHabilitado(agencia.Enabled);
+    return agencia && this.esHabilitado(agencia.enabled ?? (agencia as any).Enabled);
   }
 
   /**

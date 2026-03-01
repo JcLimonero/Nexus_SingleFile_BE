@@ -160,10 +160,8 @@ export class ToolbarComponent implements OnInit {
         return 'Agencias';
       } else if (url.includes('/usuarios')) {
         return 'Usuarios';
-      } else if (url.includes('/motivos-extraordinarios')) {
-        return 'Motivos Extraordinarios';
       } else if (url.includes('/motivos-rechazo')) {
-        return 'Motivos de Aprobación y Rechazo';
+        return 'Motivos de Rechazo';
       } else if (url.includes('/documentos-requeridos')) {
         return 'Documentos Requeridos';
       } else if (url.includes('/tipos-documento')) {

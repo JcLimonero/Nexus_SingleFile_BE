@@ -57,9 +57,8 @@ export class MotivoEditDialogComponent implements OnInit {
     if (data.motivo) {
       this.motivo = { 
         ...data.motivo,
-        // Asegurar que los valores numéricos sean del tipo correcto
-        IdTypeReason: Number(data.motivo.IdTypeReason),
-        Enabled: Number(data.motivo.Enabled)
+        id_type_reason: Number(data.motivo.id_type_reason),
+        enabled: Number(data.motivo.enabled)
       };
       
       // Debug: verificar valores convertidos
@@ -71,9 +70,9 @@ export class MotivoEditDialogComponent implements OnInit {
     // Si es creación, establecer valores por defecto
     if (!this.isEdit) {
       this.motivo = {
-        Name: '',
-        IdTypeReason: 5, // Por defecto Rechazo
-        Enabled: 1
+        name: '',
+        id_type_reason: 5, // Por defecto Rechazo
+        enabled: 1
       };
     }
     
@@ -85,7 +84,7 @@ export class MotivoEditDialogComponent implements OnInit {
    * Guardar o actualizar el motivo
    */
   saveMotivo(): void {
-    if (!this.motivo.Name || !this.motivo.Name.trim()) {
+    if (!this.motivo.name || !this.motivo.name.trim()) {
       this.snackBar.open('El nombre del motivo es requerido', 'Error', { duration: 3000 });
       return;
     }
@@ -94,7 +93,7 @@ export class MotivoEditDialogComponent implements OnInit {
 
     if (this.isEdit) {
       // Actualizar motivo existente
-      this.fileReasonService.updateFileReason(this.motivo.Id!, this.motivo).subscribe({
+      this.fileReasonService.updateFileReason(this.motivo.id!, this.motivo).subscribe({
         next: (response) => {
 
           this.snackBar.open('Motivo actualizado exitosamente', 'Éxito', { duration: 2000 });

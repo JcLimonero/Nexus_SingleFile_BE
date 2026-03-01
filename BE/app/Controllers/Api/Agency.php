@@ -79,19 +79,20 @@ class Agency extends BaseController
                 $userId = $currentUser['user_id'];
                 $db = \Config\Database::connect();
                 
-                // Obtener IDs de agencias asignadas al usuario
+                // Obtener IDs de agencias asignadas al usuario (snake_case)
                 $userAgencies = $db->table('agency_user')
-                    ->select('IdAgency')
-                    ->where('IdUser', $userId)
+                    ->select('id_agency')
+                    ->where('id_user', $userId)
                     ->get()
                     ->getResultArray();
                 
-                $allowedAgencyIds = array_column($userAgencies, 'IdAgency');
+                $allowedAgencyIds = array_column($userAgencies, 'id_agency');
                 
-                // Filtrar las agencias obtenidas
+                // Filtrar las agencias obtenidas (compatibilidad con ambos formatos)
                 if (!empty($allowedAgencyIds)) {
                     $agencies = array_filter($agencies, function($agency) use ($allowedAgencyIds) {
-                        return in_array($agency['Id'], $allowedAgencyIds);
+                        $agencyId = $agency['id'] ?? $agency['Id'] ?? null;
+                        return $agencyId !== null && in_array($agencyId, $allowedAgencyIds);
                     });
                     // CRÍTICO: Reindexar el array después de array_filter para evitar que JSON lo serialice como objeto
                     $agencies = array_values($agencies);
@@ -124,13 +125,13 @@ class Agency extends BaseController
                 $db = \Config\Database::connect();
                 
                 $builder = $db->table('agency_user au')
-                    ->join('agency a', 'a.Id = au.IdAgency', 'inner')
-                    ->where('au.IdUser', $userId);
+                    ->join('agency a', 'a.id = au.id_agency', 'inner')
+                    ->where('au.id_user', $userId);
                 
                 if ($enabled === 'true') {
-                    $builder->where('a.Enabled', 1);
+                    $builder->where('a.enabled', 1);
                 } elseif ($enabled === 'false') {
-                    $builder->where('a.Enabled', 0);
+                    $builder->where('a.enabled', 0);
                 }
                 
                 $total = $builder->countAllResults();
@@ -197,16 +198,16 @@ class Agency extends BaseController
                     ]);
             }
             
-            // Preparar datos para inserción
+            // Preparar datos para inserción (snake_case)
             $agencyData = [
-                'Name' => trim($data['Name']),
-                'IdCompany' => !empty($data['IdCompany']) ? (int)$data['IdCompany'] : null,
-                'IdAgency' => $data['IdAgency'] ?? null,
-                'Enabled' => $data['Enabled'] ?? 1,
-                'AgencyConnection' => $data['AgencyConnection'] ?? null,
-                'RegistrationDate' => date('Y-m-d H:i:s'),
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'id_company' => !empty($data['IdCompany'] ?? $data['id_company'] ?? null) ? (int)($data['IdCompany'] ?? $data['id_company']) : null,
+                'id_agency_dms' => $data['IdAgency'] ?? $data['id_agency_dms'] ?? null,
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
+                'agency_connection' => $data['AgencyConnection'] ?? $data['agency_connection'] ?? null,
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             // Insertar agencia
@@ -340,16 +341,25 @@ class Agency extends BaseController
                     ]);
             }
             
-            // Preparar datos para actualización
-            $updateData = [
-                'Name' => trim($data['Name']),
-                'IdCompany' => isset($data['IdCompany']) ? ($data['IdCompany'] ? (int)$data['IdCompany'] : null) : ($existingAgency['IdCompany'] ?? null),
-                'IdAgency' => $data['IdAgency'] ?? $existingAgency['IdAgency'],
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $existingAgency['Enabled'],
-                'AgencyConnection' => isset($data['AgencyConnection']) ? $data['AgencyConnection'] : ($existingAgency['AgencyConnection'] ?? null),
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
-            ];
+            // Preparar datos para actualización (snake_case)
+            $updateData = [];
+            if (isset($data['Name']) || isset($data['name'])) {
+                $updateData['name'] = trim($data['Name'] ?? $data['name'] ?? '');
+            }
+            if (isset($data['IdCompany']) || isset($data['id_company'])) {
+                $updateData['id_company'] = isset($data['IdCompany']) ? ($data['IdCompany'] ? (int)$data['IdCompany'] : null) : (isset($data['id_company']) ? ($data['id_company'] ? (int)$data['id_company'] : null) : ($existingAgency['id_company'] ?? $existingAgency['IdCompany'] ?? null));
+            }
+            if (isset($data['IdAgency']) || isset($data['id_agency_dms'])) {
+                $updateData['id_agency_dms'] = $data['IdAgency'] ?? $data['id_agency_dms'] ?? ($existingAgency['id_agency_dms'] ?? $existingAgency['IdAgency'] ?? null);
+            }
+            if (isset($data['Enabled']) || isset($data['enabled'])) {
+                $updateData['enabled'] = isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : ($existingAgency['enabled'] ?? $existingAgency['Enabled'] ?? 1));
+            }
+            if (isset($data['AgencyConnection']) || isset($data['agency_connection'])) {
+                $updateData['agency_connection'] = $data['AgencyConnection'] ?? $data['agency_connection'] ?? ($existingAgency['agency_connection'] ?? $existingAgency['AgencyConnection'] ?? null);
+            }
+            $updateData['update_date'] = date('Y-m-d H:i:s');
+            $updateData['id_last_user_update'] = $this->getCurrentUserId() ?? 0;
             
             // Actualizar agencia
             if ($this->agencyModel->update($id, $updateData)) {
@@ -414,7 +424,8 @@ class Agency extends BaseController
                     ]);
             }
             
-            log_message('debug', "DELETE /api/agency/{$id} - Agencia encontrada: " . $existingAgency['Name']);
+            $agencyName = $existingAgency['name'] ?? $existingAgency['Name'] ?? 'N/A';
+            log_message('debug', "DELETE /api/agency/{$id} - Agencia encontrada: " . $agencyName);
             
             // Obtener parámetros de la petición
             $forceDelete = $this->request->getGet('force') === 'true';
@@ -504,14 +515,15 @@ class Agency extends BaseController
                     ]);
             }
             
-            // Cambiar estado
-            $newStatus = $existingAgency['Enabled'] ? 0 : 1;
+            // Cambiar estado (compatibilidad con ambos formatos)
+            $currentStatus = $existingAgency['enabled'] ?? $existingAgency['Enabled'] ?? 0;
+            $newStatus = $currentStatus ? 0 : 1;
             $statusText = $newStatus ? 'habilitada' : 'deshabilitada';
             
             $updateData = [
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             if ($this->agencyModel->update($id, $updateData)) {

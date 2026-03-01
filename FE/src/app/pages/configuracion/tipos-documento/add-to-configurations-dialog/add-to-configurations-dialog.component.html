@@ -7,7 +7,7 @@
   <div mat-dialog-content class="mb-6">
     <div class="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
       <p class="text-sm text-green-800">
-        <strong>Tipo de documento:</strong> {{ data.documentType.Name }}
+        <strong>Tipo de documento:</strong> {{ data.documentType.name }}
       </p>
       <p class="text-sm text-green-700 mt-1">
         Seleccione las configuraciones (Proceso-Agencia-Tipo Cliente-Tipo Operación) a las que desea agregar este tipo de documento.
@@ -45,28 +45,28 @@
             <mat-label>Agencia</mat-label>
             <mat-select [(ngModel)]="selectedAgency" (selectionChange)="applyFilters()">
               <mat-option value="">Todas</mat-option>
-              <mat-option *ngFor="let a of agencias" [value]="a.Id">{{ a.Name }}</mat-option>
+              <mat-option *ngFor="let a of agencias" [value]="a.id">{{ a.name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Proceso</mat-label>
             <mat-select [(ngModel)]="selectedProcess" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let p of procesos" [value]="p.Id">{{ p.Name }}</mat-option>
+              <mat-option *ngFor="let p of procesos" [value]="p.id">{{ p.name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Tipo Cliente</mat-label>
             <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let t of tiposCliente" [value]="t.Id">{{ t.Name }}</mat-option>
+              <mat-option *ngFor="let t of tiposCliente" [value]="t.id">{{ t.name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Tipo Operación</mat-label>
             <mat-select [(ngModel)]="selectedOperationType" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let o of tiposOperacion" [value]="o.Id">{{ o.Name }}</mat-option>
+              <mat-option *ngFor="let o of tiposOperacion" [value]="o.id">{{ o.name }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -83,24 +83,24 @@
                 </mat-checkbox>
               </th>
               <td mat-cell *matCellDef="let c" class="w-12 px-2 py-2">
-                <mat-checkbox [checked]="isSelected(c)" (change)="toggleSelection(c)" [attr.aria-label]="'Seleccionar ' + (c.AgenciaName || '')"></mat-checkbox>
+                <mat-checkbox [checked]="isSelected(c)" (change)="toggleSelection(c)" [attr.aria-label]="'Seleccionar ' + (c.agencia_name || '')"></mat-checkbox>
               </td>
             </ng-container>
-            <ng-container matColumnDef="AgenciaName">
+            <ng-container matColumnDef="agencia_name">
               <th mat-header-cell *matHeaderCellDef class="text-left py-2 px-3 bg-gray-50 text-xs font-medium text-gray-700">Agencia</th>
-              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.AgenciaName || 'N/A' }}</td>
+              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.agencia_name || 'N/A' }}</td>
             </ng-container>
-            <ng-container matColumnDef="ProcesoName">
+            <ng-container matColumnDef="proceso_name">
               <th mat-header-cell *matHeaderCellDef class="text-left py-2 px-3 bg-gray-50 text-xs font-medium text-gray-700">Proceso</th>
-              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.ProcesoName || 'N/A' }}</td>
+              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.proceso_name || 'N/A' }}</td>
             </ng-container>
-            <ng-container matColumnDef="TipoClienteName">
+            <ng-container matColumnDef="tipo_cliente_name">
               <th mat-header-cell *matHeaderCellDef class="text-left py-2 px-3 bg-gray-50 text-xs font-medium text-gray-700">Tipo Cliente</th>
-              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.TipoClienteName || 'N/A' }}</td>
+              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.tipo_cliente_name || 'N/A' }}</td>
             </ng-container>
-            <ng-container matColumnDef="TipoOperacionName">
+            <ng-container matColumnDef="tipo_operacion_name">
               <th mat-header-cell *matHeaderCellDef class="text-left py-2 px-3 bg-gray-50 text-xs font-medium text-gray-700">Tipo Operación</th>
-              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.TipoOperacionName || 'N/A' }}</td>
+              <td mat-cell *matCellDef="let c" class="text-xs py-2 px-3">{{ c.tipo_operacion_name || 'N/A' }}</td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>

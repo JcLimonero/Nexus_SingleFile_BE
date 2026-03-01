@@ -26,15 +26,15 @@ class UserProcess extends BaseController
             // Obtener procesos asignados al usuario con información del proceso
             $builder = $db->table('process_user pu');
             $processes = $builder
-                ->select('pu.IdProcess, p.Name as ProcessName, p.Enabled')
-                ->join('process p', 'p.Id = pu.IdProcess', 'inner')
-                ->where('pu.IdUser', $userId)
-                ->orderBy('p.Name', 'ASC')
+                ->select('pu.id_process, p.name as process_name, p.enabled')
+                ->join('process p', 'p.id = pu.id_process', 'inner')
+                ->where('pu.id_user', $userId)
+                ->orderBy('p.name', 'ASC')
                 ->get()
                 ->getResultArray();
 
             // Extraer solo los IDs para la respuesta
-            $processIds = array_column($processes, 'IdProcess');
+            $processIds = array_column($processes, 'id_process');
 
             return $this->response->setJSON([
                 'success' => true,
@@ -80,8 +80,8 @@ class UserProcess extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Verificar que el usuario existe
-            $userExists = $db->table('user')->where('Id', $userId)->countAllResults() > 0;
+            // Verificar que el usuario existe (snake_case)
+            $userExists = $db->table('user')->where('id', $userId)->countAllResults() > 0;
             if (!$userExists) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -92,18 +92,17 @@ class UserProcess extends BaseController
             // Iniciar transacción
             $db->transStart();
 
-            // Eliminar todas las asignaciones existentes del usuario
-            $db->table('process_user')->where('IdUser', $userId)->delete();
+            // Eliminar todas las asignaciones existentes del usuario (snake_case)
+            $db->table('process_user')->where('id_user', $userId)->delete();
 
             // Insertar las nuevas asignaciones
             $insertData = [];
             foreach ($data['processes'] as $processId) {
-                // Verificar que el proceso existe
-                $processExists = $db->table('process')->where('Id', $processId)->countAllResults() > 0;
+                $processExists = $db->table('process')->where('id', $processId)->countAllResults() > 0;
                 if ($processExists) {
                     $insertData[] = [
-                        'IdUser' => $userId,
-                        'IdProcess' => $processId
+                        'id_user' => $userId,
+                        'id_process' => $processId
                     ];
                 }
             }
@@ -156,10 +155,10 @@ class UserProcess extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Verificar que la asignación existe
+            // Verificar que la asignación existe (snake_case)
             $exists = $db->table('process_user')
-                ->where('IdUser', $userId)
-                ->where('IdProcess', $processId)
+                ->where('id_user', $userId)
+                ->where('id_process', $processId)
                 ->countAllResults() > 0;
 
             if (!$exists) {
@@ -171,8 +170,8 @@ class UserProcess extends BaseController
 
             // Eliminar la asignación
             $deleted = $db->table('process_user')
-                ->where('IdUser', $userId)
-                ->where('IdProcess', $processId)
+                ->where('id_user', $userId)
+                ->where('id_process', $processId)
                 ->delete();
 
             if ($deleted) {
@@ -213,7 +212,7 @@ class UserProcess extends BaseController
             $db = \Config\Database::connect();
 
             // Eliminar todas las asignaciones del usuario
-            $deleted = $db->table('process_user')->where('IdUser', $userId)->delete();
+            $deleted = $db->table('process_user')->where('id_user', $userId)->delete();
 
             return $this->response->setJSON([
                 'success' => true,
@@ -249,19 +248,19 @@ class UserProcess extends BaseController
 
             $db = \Config\Database::connect();
 
-            // Contar procesos asignados
-            $totalAssigned = $db->table('process_user')->where('IdUser', $userId)->countAllResults();
+            // Contar procesos asignados (snake_case)
+            $totalAssigned = $db->table('process_user')->where('id_user', $userId)->countAllResults();
             
             // Contar procesos activos asignados
             $activeAssigned = $db->table('process_user pu')
-                ->join('process p', 'p.Id = pu.IdProcess', 'inner')
-                ->where('pu.IdUser', $userId)
-                ->where('p.Enabled', 1)
+                ->join('process p', 'p.id = pu.id_process', 'inner')
+                ->where('pu.id_user', $userId)
+                ->where('p.enabled', 1)
                 ->countAllResults();
 
             // Contar total de procesos disponibles
             $totalAvailable = $db->table('process')->countAllResults();
-            $activeAvailable = $db->table('process')->where('Enabled', 1)->countAllResults();
+            $activeAvailable = $db->table('process')->where('enabled', 1)->countAllResults();
 
             return $this->response->setJSON([
                 'success' => true,

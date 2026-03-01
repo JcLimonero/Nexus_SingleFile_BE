@@ -71,21 +71,21 @@ class Validacion extends BaseController
             // Obtener información básica del pedido
             $fileInfo = $this->db->query("
                 SELECT 
-                    f.Id as idFile,
-                    f.IdAgency,
-                    f.IdProcess,
-                    f.IdClient,
-                    f.IdCurrentState,
-                    f.IdOrderTotal as ndPedido,
-                    a.Name as agencia,
-                    p.Name as proceso,
-                    p.Enabled as proceso_habilitado,
-                    fs.Name as estado_actual
+                    f.id as idFile,
+                    f.id_agency,
+                    f.id_process,
+                    f.id_client,
+                    f.id_current_state,
+                    f.id_order_total as ndPedido,
+                    a.name as agencia,
+                    p.name as proceso,
+                    p.enabled as proceso_habilitado,
+                    fs.name as estado_actual
                 FROM expedient f
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                WHERE f.Id = ?
+                INNER JOIN agency a ON f.id_agency = a.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                WHERE f.id = ?
             ", [$idFile])->getRowArray();
 
             if (!$fileInfo) {
@@ -97,72 +97,73 @@ class Validacion extends BaseController
             }
 
             // Verificar relación ClientTotalRelation
-            // File.IdClient apunta a Client.Id, NO a ClientHeader.Id
-            $idClient = (int) $fileInfo['IdClient'];
-            $idAgencyFile = (int) $fileInfo['IdAgency'];
+            // File.id_client apunta a Client.id, NO a ClientHeader.id
+            $idClient = (int) ($fileInfo['id_client'] ?? $fileInfo['IdClient'] ?? 0);
+            $idAgencyFile = (int) ($fileInfo['id_agency'] ?? $fileInfo['IdAgency'] ?? 0);
             
-            // Obtener el ClientHeader.Id desde Client.Id
+            // Obtener el ClientHeader.id desde Client.id
             $headerClientInfo = $this->db->query("
-                SELECT Id FROM client_header WHERE IdClient = ?
+                SELECT id FROM client_header WHERE id_client = ?
                 LIMIT 1
             ", [$idClient])->getRowArray();
             
-            $idClientHeader = $headerClientInfo ? (int) $headerClientInfo['Id'] : null;
+            $idClientHeader = $headerClientInfo ? (int) ($headerClientInfo['id'] ?? $headerClientInfo['Id'] ?? 0) : null;
             
             error_log("=== DIAGNÓSTICO FILE {$idFile} ===");
-            error_log("File.IdClient (Client.Id): {$idClient}");
-            error_log("ClientHeader.Id encontrado: " . ($idClientHeader ?? 'NULL'));
-            error_log("File.IdAgency: {$idAgencyFile}");
-            error_log("IdDMS recibido como parámetro: " . ($idDMS ?? 'NULL'));
+            error_log("File.id_client (Client.id): {$idClient}");
+            error_log("ClientHeader.id encontrado: " . ($idClientHeader ?? 'NULL'));
+            error_log("File.id_agency: {$idAgencyFile}");
+            error_log("id_dms recibido como parámetro: " . ($idDMS ?? 'NULL'));
             
-            // Si se pasa IdDMS como parámetro, buscar directamente por ese valor
+            // Si se pasa id_dms como parámetro, buscar directamente por ese valor
             if ($idDMS) {
                 $idDMSTrimmed = trim((string) $idDMS);
-                error_log("🔍 Buscando relación por IdDMS={$idDMSTrimmed} e IdAgency={$idAgencyFile}");
+                error_log("🔍 Buscando relación por id_dms={$idDMSTrimmed} e id_agency={$idAgencyFile}");
                 
                 $relacion = $this->db->query("
                     SELECT 
-                        ctr.Id,
-                        ctr.IdAgency,
-                        ctr.IdDMS,
-                        ctr.idClientHeader,
-                        a.Name as nombre_agencia
+                        ctr.id,
+                        ctr.id_agency,
+                        ctr.id_dms,
+                        ctr.id_client_header,
+                        a.name as nombre_agencia
                     FROM client_dms_relation ctr
-                    INNER JOIN agency a ON ctr.IdAgency = a.Id
-                    WHERE TRIM(ctr.IdDMS) = ?
-                    AND ctr.IdAgency = ?
+                    INNER JOIN agency a ON ctr.id_agency = a.id
+                    WHERE TRIM(ctr.id_dms) = ?
+                    AND ctr.id_agency = ?
                 ", [$idDMSTrimmed, $idAgencyFile])->getRowArray();
                 
                 if ($relacion) {
-                    error_log("✅ Relación encontrada por IdDMS={$idDMSTrimmed} e IdAgency={$idAgencyFile}");
-                    error_log("   idClientHeader de la relación: {$relacion['idClientHeader']}");
-                    error_log("   idClientHeader del file: {$idClientHeader}");
+                    $relacionIdClientHeader = $relacion['id_client_header'] ?? $relacion['idClientHeader'] ?? null;
+                    error_log("✅ Relación encontrada por id_dms={$idDMSTrimmed} e id_agency={$idAgencyFile}");
+                    error_log("   id_client_header de la relación: {$relacionIdClientHeader}");
+                    error_log("   id_client_header del file: {$idClientHeader}");
                     
-                    if ($relacion['idClientHeader'] == $idClientHeader) {
+                    if ($relacionIdClientHeader == $idClientHeader) {
                         error_log("✅ La relación pertenece al mismo ClientHeader del file");
                     } else {
-                        error_log("⚠️ La relación pertenece a un ClientHeader diferente (Id={$relacion['idClientHeader']})");
+                        error_log("⚠️ La relación pertenece a un ClientHeader diferente (id={$relacionIdClientHeader})");
                     }
                 } else {
-                    error_log("❌ No se encontró relación con IdDMS={$idDMSTrimmed} e IdAgency={$idAgencyFile}");
+                    error_log("❌ No se encontró relación con id_dms={$idDMSTrimmed} e id_agency={$idAgencyFile}");
                 }
             } else {
-                // Si no se pasa IdDMS, buscar por ClientHeader.Id e IdAgency
+                // Si no se pasa id_dms, buscar por ClientHeader.id e id_agency
                 if ($idClientHeader) {
-                    error_log("🔍 Buscando relación por ClientHeader.Id={$idClientHeader} e IdAgency={$idAgencyFile}");
+                    error_log("🔍 Buscando relación por ClientHeader.id={$idClientHeader} e id_agency={$idAgencyFile}");
                     
                     $relacion = $this->db->query("
                         SELECT 
-                            ctr.Id,
-                            ctr.IdAgency,
-                            ctr.IdDMS,
-                            ctr.idClientHeader,
-                            a.Name as nombre_agencia
+                            ctr.id,
+                            ctr.id_agency,
+                            ctr.id_dms,
+                            ctr.id_client_header,
+                            a.name as nombre_agencia
                         FROM client_header hc
-                        INNER JOIN client_dms_relation ctr ON ctr.idClientHeader = hc.Id
-                        INNER JOIN agency a ON ctr.IdAgency = a.Id
-                        WHERE hc.Id = ?
-                        AND ctr.IdAgency = ?
+                        INNER JOIN client_dms_relation ctr ON ctr.id_client_header = hc.id
+                        INNER JOIN agency a ON ctr.id_agency = a.id
+                        WHERE hc.id = ?
+                        AND ctr.id_agency = ?
                     ", [$idClientHeader, $idAgencyFile])->getRowArray();
                     
                     if ($relacion) {
@@ -183,50 +184,51 @@ class Validacion extends BaseController
                     $ndCliente = trim((string) $idDMS);
                     error_log("✅ Usando IdDMS del parámetro: {$ndCliente}");
                 } else {
-                    // Prioridad 2: Obtener el IdDMS de cualquier relación de este ClientHeader
+                    // Prioridad 2: Obtener el id_dms de cualquier relación de este ClientHeader
                     $ndClienteDelFile = $this->db->query("
-                        SELECT ctr.IdDMS 
+                        SELECT ctr.id_dms 
                         FROM client_dms_relation ctr 
-                        WHERE ctr.idClientHeader = ? 
+                        WHERE ctr.id_client_header = ? 
                         LIMIT 1
                     ", [$idClientHeader])->getRowArray();
                     
-                    if ($ndClienteDelFile && !empty($ndClienteDelFile['IdDMS'])) {
-                        $ndCliente = trim($ndClienteDelFile['IdDMS']);
-                        error_log("⚠️ Usando IdDMS de relación existente del ClientHeader: {$ndCliente}");
+                    if ($ndClienteDelFile && !empty($ndClienteDelFile['id_dms'] ?? $ndClienteDelFile['IdDMS'] ?? null)) {
+                        $ndCliente = trim($ndClienteDelFile['id_dms'] ?? $ndClienteDelFile['IdDMS'] ?? '');
+                        error_log("⚠️ Usando id_dms de relación existente del ClientHeader: {$ndCliente}");
                     }
                 }
                 
                 if ($ndCliente) {
-                    error_log("Buscando relación alternativa por IdDMS={$ndCliente} e IdAgency={$idAgencyFile}");
+                    error_log("Buscando relación alternativa por id_dms={$ndCliente} e id_agency={$idAgencyFile}");
                     
-                    // Buscar por IdDMS e IdAgency
+                    // Buscar por id_dms e id_agency
                     $relacion = $this->db->query("
                         SELECT 
-                            ctr.Id,
-                            ctr.IdAgency,
-                            ctr.IdDMS,
-                            ctr.idClientHeader,
-                            a.Name as nombre_agencia
+                            ctr.id,
+                            ctr.id_agency,
+                            ctr.id_dms,
+                            ctr.id_client_header,
+                            a.name as nombre_agencia
                         FROM client_dms_relation ctr
-                        INNER JOIN agency a ON ctr.IdAgency = a.Id
-                        WHERE TRIM(ctr.IdDMS) = ?
-                        AND ctr.IdAgency = ?
+                        INNER JOIN agency a ON ctr.id_agency = a.id
+                        WHERE TRIM(ctr.id_dms) = ?
+                        AND ctr.id_agency = ?
                     ", [$ndCliente, $idAgencyFile])->getRowArray();
                     
                     if ($relacion) {
-                        error_log("✅ Relación encontrada por IdDMS: " . json_encode($relacion));
-                        // Verificar si el idClientHeader de la relación coincide con el del file
-                        if ($relacion['idClientHeader'] != $idClientHeader) {
-                            error_log("⚠️ ADVERTENCIA: El idClientHeader de la relación ({$relacion['idClientHeader']}) NO coincide con el del file ({$idClientHeader})");
-                            // Aún así, consideramos que existe la relación si el IdDMS y IdAgency coinciden
+                        error_log("✅ Relación encontrada por id_dms: " . json_encode($relacion));
+                        // Verificar si el id_client_header de la relación coincide con el del file
+                        $relacionIdClientHeader = $relacion['id_client_header'] ?? $relacion['idClientHeader'] ?? null;
+                        if ($relacionIdClientHeader != $idClientHeader) {
+                            error_log("⚠️ ADVERTENCIA: El id_client_header de la relación ({$relacionIdClientHeader}) NO coincide con el del file ({$idClientHeader})");
+                            // Aún así, consideramos que existe la relación si el id_dms y id_agency coinciden
                         }
                     } else {
-                        error_log("❌ No se encontró relación con IdDMS={$ndCliente} e IdAgency={$idAgencyFile}");
+                        error_log("❌ No se encontró relación con id_dms={$ndCliente} e id_agency={$idAgencyFile}");
                     }
                 }
             } else {
-                error_log("✅ Relación encontrada por ClientHeader.Id: " . json_encode($relacion));
+                error_log("✅ Relación encontrada por ClientHeader.id: " . json_encode($relacion));
             }
             
             // Si aún no se encuentra, mostrar información de diagnóstico
@@ -235,27 +237,27 @@ class Validacion extends BaseController
                 
                 // Verificar si existe ClientHeader con ese ID
                 $headerClientExists = $this->db->query("
-                    SELECT Id, IdClient FROM client_header WHERE Id = ?
+                    SELECT id, id_client FROM client_header WHERE id = ?
                 ", [$idClientHeader])->getRowArray();
                 error_log("ClientHeader existe: " . ($headerClientExists ? json_encode($headerClientExists) : 'NO'));
                 
                 // Verificar todas las relaciones de ese ClientHeader
                 $todasRelacionesClientHeader = $this->db->query("
-                    SELECT ctr.Id, ctr.IdAgency, ctr.IdDMS, ctr.idClientHeader, a.Name as nombre_agencia
+                    SELECT ctr.id, ctr.id_agency, ctr.id_dms, ctr.id_client_header, a.name as nombre_agencia
                     FROM client_dms_relation ctr
-                    INNER JOIN agency a ON ctr.IdAgency = a.Id
-                    WHERE ctr.idClientHeader = ?
+                    INNER JOIN agency a ON ctr.id_agency = a.id
+                    WHERE ctr.id_client_header = ?
                 ", [$idClientHeader])->getResultArray();
                 error_log("Todas las relaciones de ClientHeader {$idClientHeader}: " . json_encode($todasRelacionesClientHeader));
                 
-                // Buscar todas las relaciones con IdAgency = 3 para ver si hay alguna con el mismo cliente
-                $relacionesAgencia3 = $this->db->query("
-                    SELECT ctr.Id, ctr.IdAgency, ctr.IdDMS, ctr.idClientHeader, a.Name as nombre_agencia
+                // Buscar todas las relaciones con id_agency para ver si hay alguna con el mismo cliente
+                $relacionesAgencia = $this->db->query("
+                    SELECT ctr.id, ctr.id_agency, ctr.id_dms, ctr.id_client_header, a.name as nombre_agencia
                     FROM client_dms_relation ctr
-                    INNER JOIN agency a ON ctr.IdAgency = a.Id
-                    WHERE ctr.IdAgency = ?
+                    INNER JOIN agency a ON ctr.id_agency = a.id
+                    WHERE ctr.id_agency = ?
                 ", [$idAgencyFile])->getResultArray();
-                error_log("Total de relaciones con IdAgency={$idAgencyFile}: " . count($relacionesAgencia3));
+                error_log("Total de relaciones con id_agency={$idAgencyFile}: " . count($relacionesAgencia));
             }
 
             // Verificar todas las relaciones del cliente (usando ClientHeader.Id del file)
@@ -263,38 +265,38 @@ class Validacion extends BaseController
             if ($idClientHeader) {
                 $todasRelaciones = $this->db->query("
                     SELECT 
-                        ctr.Id,
-                        ctr.IdAgency,
-                        ctr.IdDMS,
-                        ctr.idClientHeader,
-                        a.Name as nombre_agencia
+                        ctr.id,
+                        ctr.id_agency,
+                        ctr.id_dms,
+                        ctr.id_client_header,
+                        a.name as nombre_agencia
                     FROM client_header hc
-                    INNER JOIN client_dms_relation ctr ON ctr.idClientHeader = hc.Id
-                    INNER JOIN agency a ON ctr.IdAgency = a.Id
-                    WHERE hc.Id = ?
+                    INNER JOIN client_dms_relation ctr ON ctr.id_client_header = hc.id
+                    INNER JOIN agency a ON ctr.id_agency = a.id
+                    WHERE hc.id = ?
                 ", [$idClientHeader])->getResultArray();
             } else {
                 error_log("⚠️ No se puede buscar relaciones porque no se encontró ClientHeader para Client.Id={$idClient}");
             }
             
-            // También buscar directamente por IdDMS si se proporciona como parámetro
+            // También buscar directamente por id_dms si se proporciona como parámetro
             $relacionPorNdCliente = null;
             if ($idDMS) {
                 $idDMSTrimmed = trim((string) $idDMS);
                 $relacionPorNdCliente = $this->db->query("
                     SELECT 
-                        ctr.Id,
-                        ctr.IdAgency,
-                        ctr.IdDMS,
-                        ctr.idClientHeader,
-                        a.Name as nombre_agencia
+                        ctr.id,
+                        ctr.id_agency,
+                        ctr.id_dms,
+                        ctr.id_client_header,
+                        a.name as nombre_agencia
                     FROM client_dms_relation ctr
-                    INNER JOIN agency a ON ctr.IdAgency = a.Id
-                    WHERE TRIM(ctr.IdDMS) = ?
-                    AND ctr.IdAgency = ?
+                    INNER JOIN agency a ON ctr.id_agency = a.id
+                    WHERE TRIM(ctr.id_dms) = ?
+                    AND ctr.id_agency = ?
                 ", [$idDMSTrimmed, $idAgencyFile])->getResultArray();
                 
-                error_log("Relaciones encontradas por IdDMS='{$idDMSTrimmed}' e IdAgency={$idAgencyFile}: " . json_encode($relacionPorNdCliente));
+                error_log("Relaciones encontradas por id_dms='{$idDMSTrimmed}' e id_agency={$idAgencyFile}: " . json_encode($relacionPorNdCliente));
             }
             
             // Verificar si alguna de estas relaciones tiene el mismo idClientHeader que el file
@@ -327,8 +329,8 @@ class Validacion extends BaseController
                     $relacionDelFile = $this->db->query("
                         SELECT 1 
                         FROM client_dms_relation ctr 
-                        WHERE ctr.idClientHeader = ? 
-                        AND ctr.IdAgency = ?
+                        WHERE ctr.id_client_header = ? 
+                        AND ctr.id_agency = ?
                     ", [$idClientHeader, $idAgencyFile])->getRowArray();
                     $tieneRelacion = $relacionDelFile !== null;
                 }
@@ -337,8 +339,8 @@ class Validacion extends BaseController
             // Convertir parámetros a enteros para comparación correcta
             $idAgencyInt = $idAgency ? (int) $idAgency : null;
             $idProcessInt = $idProcess ? (int) $idProcess : null;
-            $fileIdAgency = (int) $fileInfo['IdAgency'];
-            $fileIdProcess = (int) $fileInfo['IdProcess'];
+            $fileIdAgency = (int) ($fileInfo['id_agency'] ?? $fileInfo['IdAgency'] ?? 0);
+            $fileIdProcess = (int) ($fileInfo['id_process'] ?? $fileInfo['IdProcess'] ?? 0);
             
             // Evaluar condiciones
             // Agencia: solo se evalúa si se pasa el parámetro
@@ -358,7 +360,7 @@ class Validacion extends BaseController
                 'proceso' => $condicionProceso,
                 'proceso_id' => $fileIdProcess, // Agregar el IdProcess del file para referencia
                 'proceso_habilitado' => $fileInfo['proceso_habilitado'] == 1,
-                'no_cancelado' => $fileInfo['IdCurrentState'] != 5,
+                'no_cancelado' => ($fileInfo['id_current_state'] ?? $fileInfo['IdCurrentState'] ?? 0) != 5,
                 'tiene_relacion_cliente_agencia' => $tieneRelacion
             ];
             
@@ -436,9 +438,9 @@ class Validacion extends BaseController
 
             $rows = $this->db->query("
                 SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS, ec.api_result, ec.created_at,
-                       a.Name as nombreAgencia
+                       a.name as nombreAgencia
                 FROM files_to_correct ec
-                INNER JOIN agency a ON a.Id = ec.idAgency
+                INNER JOIN agency a ON a.id = ec.idAgency
                     WHERE  (ec.api_result IS NULL OR NOT JSON_CONTAINS(ec.api_result, 'true', '$.success')) 
                 ORDER BY ec.idAgency ASC, ec.id ASC
             ")->getResultArray();
@@ -591,7 +593,7 @@ class Validacion extends BaseController
             }
 
             $idClient = (int) $idClientVal;
-            $this->db->table('expedient')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+            $this->db->table('expedient')->where('id', $idExpediente)->update(['id_client' => $idClient]);
             if ($this->db->affectedRows() === 0) {
                 $msg = 'No se actualizó ningún expediente';
                 $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg);
@@ -735,9 +737,9 @@ class Validacion extends BaseController
             $idFile = (int) $idFile;
 
             $file = $this->db->query("
-                SELECT f.Id, f.IdClient, f.IdAgency
+                SELECT f.id, f.id_client, f.id_agency
                 FROM expedient f
-                WHERE f.Id = ?
+                WHERE f.id = ?
             ", [$idFile])->getRowArray();
             if (!$file) {
                 return $this->response->setJSON([
@@ -747,13 +749,13 @@ class Validacion extends BaseController
                 ])->setStatusCode(404);
             }
 
-            // File.IdClient apunta a Client.Id, NO a ClientHeader.Id
-            $idClient = (int) $file['IdClient'];
-            $idAgency = (int) $file['IdAgency'];
+            // File.id_client apunta a Client.id, NO a ClientHeader.id
+            $idClient = (int) ($file['id_client'] ?? $file['IdClient'] ?? 0);
+            $idAgency = (int) ($file['id_agency'] ?? $file['IdAgency'] ?? 0);
             
-            // Obtener el ClientHeader.Id desde Client.Id
+            // Obtener el ClientHeader.id desde Client.id
             $headerClientInfo = $this->db->query("
-                SELECT Id FROM client_header WHERE IdClient = ?
+                SELECT id FROM client_header WHERE id_client = ?
                 LIMIT 1
             ", [$idClient])->getRowArray();
             
@@ -765,11 +767,11 @@ class Validacion extends BaseController
                 ])->setStatusCode(404);
             }
             
-            $idClientHeader = (int) $headerClientInfo['Id'];
+            $idClientHeader = (int) ($headerClientInfo['id'] ?? $headerClientInfo['Id'] ?? 0);
 
             $existe = $this->db->query("
                 SELECT 1 FROM client_dms_relation ctr
-                WHERE ctr.idClientHeader = ? AND ctr.IdAgency = ?
+                WHERE ctr.id_client_header = ? AND ctr.id_agency = ?
             ", [$idClientHeader, $idAgency])->getRowArray();
             if ($existe) {
                 return $this->response->setJSON([
@@ -779,54 +781,54 @@ class Validacion extends BaseController
                 ]);
             }
 
-            // Buscar IdDMS de cualquier relación de este ClientHeader
+            // Buscar id_dms de cualquier relación de este ClientHeader
             $otro = $this->db->query("
-                SELECT ctr.IdDMS FROM client_dms_relation ctr
-                WHERE ctr.idClientHeader = ?
+                SELECT ctr.id_dms FROM client_dms_relation ctr
+                WHERE ctr.id_client_header = ?
                 LIMIT 1
             ", [$idClientHeader])->getRowArray();
-            $idDMS = $otro ? trim((string) ($otro['IdDMS'] ?? '')) : '';
+            $idDMS = $otro ? trim((string) ($otro['id_dms'] ?? $otro['IdDMS'] ?? '')) : '';
             
-            // Si no se encontró IdDMS, buscar si existe una relación con la agencia del file
+            // Si no se encontró id_dms, buscar si existe una relación con la agencia del file
             // Esto es útil cuando el cliente tiene relación con otra agencia pero necesita relación con esta
             if (empty($idDMS)) {
-                // Primero intentar buscar por el mismo cliente (mismo ClientHeader.IdClient) pero con otra relación
+                // Primero intentar buscar por el mismo cliente (mismo ClientHeader.id_client) pero con otra relación
                 $headerClientInfo = $this->db->query("
-                    SELECT IdClient FROM client_header WHERE Id = ?
+                    SELECT id_client FROM client_header WHERE id = ?
                 ", [$idClientHeader])->getRowArray();
                 
                 if ($headerClientInfo) {
                     // Buscar si hay otro ClientHeader del mismo cliente que tenga relación con esta agencia
                     $otroClientHeader = $this->db->query("
-                        SELECT hc2.Id, ctr.IdDMS
+                        SELECT hc2.id, ctr.id_dms
                         FROM client_header hc2
-                        INNER JOIN client_dms_relation ctr ON ctr.idClientHeader = hc2.Id
-                        WHERE hc2.IdClient = ?
-                        AND ctr.IdAgency = ?
+                        INNER JOIN client_dms_relation ctr ON ctr.id_client_header = hc2.id
+                        WHERE hc2.id_client = ?
+                        AND ctr.id_agency = ?
                         LIMIT 1
-                    ", [$headerClientInfo['IdClient'], $idAgency])->getRowArray();
+                    ", [$headerClientInfo['id_client'] ?? $headerClientInfo['IdClient'] ?? 0, $idAgency])->getRowArray();
                     
-                    if ($otroClientHeader && !empty($otroClientHeader['IdDMS'])) {
-                        $idDMS = trim((string) $otroClientHeader['IdDMS']);
-                        error_log("✅ Encontrado IdDMS '{$idDMS}' de otro ClientHeader del mismo cliente con relación a agencia {$idAgency}");
+                    if ($otroClientHeader && !empty($otroClientHeader['id_dms'] ?? $otroClientHeader['IdDMS'] ?? null)) {
+                        $idDMS = trim((string) ($otroClientHeader['id_dms'] ?? $otroClientHeader['IdDMS'] ?? ''));
+                        error_log("✅ Encontrado id_dms '{$idDMS}' de otro ClientHeader del mismo cliente con relación a agencia {$idAgency}");
                     } else {
-                        // Si no hay otro ClientHeader, buscar cualquier relación con esta agencia para usar su IdDMS
+                        // Si no hay otro ClientHeader, buscar cualquier relación con esta agencia para usar su id_dms
                         $relacionAgencia = $this->db->query("
-                            SELECT ctr.IdDMS 
+                            SELECT ctr.id_dms 
                             FROM client_dms_relation ctr
-                            WHERE ctr.IdAgency = ?
+                            WHERE ctr.id_agency = ?
                             LIMIT 1
                         ", [$idAgency])->getRowArray();
                         
-                        if ($relacionAgencia && !empty($relacionAgencia['IdDMS'])) {
-                            $idDMS = trim((string) $relacionAgencia['IdDMS']);
+                        if ($relacionAgencia && !empty($relacionAgencia['id_dms'] ?? $relacionAgencia['IdDMS'] ?? null)) {
+                            $idDMS = trim((string) ($relacionAgencia['id_dms'] ?? $relacionAgencia['IdDMS'] ?? ''));
                             error_log("⚠️ Usando IdDMS '{$idDMS}' de otra relación con la misma agencia {$idAgency}");
                         }
                     }
                 }
             }
 
-            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM client_dms_relation")->getRowArray();
+            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM client_dms_relation")->getRowArray();
             $nextId = (int) ($nextIdRow['nextId'] ?? 1);
 
             $this->db->table('client_dms_relation')->insert([
@@ -891,106 +893,106 @@ class Validacion extends BaseController
             // El cliente debe estar relacionado con la agencia del pedido a través de ClientTotalRelation
             $sql = "
                 SELECT 
-                    f.Id as idFile,
+                    f.id as idFile,
                     COALESCE(
-                        (SELECT ctr1.IdDMS 
+                        (SELECT ctr1.id_dms 
                          FROM client_dms_relation ctr1 
-                         WHERE ctr1.idClientHeader = hc.Id 
-                         AND ctr1.IdAgency = f.IdAgency 
+                         WHERE ctr1.id_client_header = hc.id 
+                         AND ctr1.id_agency = f.id_agency 
                          LIMIT 1),
-                        (SELECT ctr2.IdDMS 
+                        (SELECT ctr2.id_dms 
                          FROM client_dms_relation ctr2 
-                         WHERE ctr2.idClientHeader = hc.Id 
+                         WHERE ctr2.id_client_header = hc.id 
                          LIMIT 1),
                         ''
                     ) as ndCliente,
-                    f.IdOrderTotal as ndPedido,
+                    f.id_order_total as ndPedido,
                     COALESCE(
-                        NULLIF(TRIM(c.RazonSocial), ''),
-                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                        NULLIF(TRIM(c.razon_social), ''),
+                        TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
-                    ct.Name as tipoCliente,
-                    f.IdCustomerType as idCustomerType,
-                    p.Name as proceso,
-                    ot.Name as operacion,
-                    a.Name as agencia,
-                    f.IdAgency as idAgency,
-                    f.RegistrationDate as registro,
-                    fs.Name as fase,
-                    f.IdCurrentState,
+                    ct.name as tipoCliente,
+                    f.id_customer_type as idCustomerType,
+                    p.name as proceso,
+                    ot.name as operacion,
+                    a.name as agencia,
+                    f.id_agency as idAgency,
+                    f.registration_date as registro,
+                    fs.name as fase,
+                    f.id_current_state,
                     CASE 
-                        WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate
-                        ELSE f.AgendDate
+                        WHEN f.id_current_state IN (4, 6) THEN f.update_date
+                        ELSE f.agend_date
                     END as fechaLiberacion,
                     CASE 
                         WHEN EXISTS (
                             SELECT 1 
                             FROM file_document dbf 
-                            INNER JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id 
-                            WHERE dbf.IdFile = f.Id 
-                            AND dfs.Id = 2
+                            INNER JOIN document_file_status dfs ON dbf.id_current_status = dfs.id 
+                            WHERE dbf.id_file = f.id 
+                            AND dfs.id = 2
                         ) THEN 1 
                         ELSE 0 
                     END as tieneDocumentosPendientes,
                     (
                         SELECT COUNT(*) 
                         FROM file_document dbfPend
-                        WHERE dbfPend.IdFile = f.Id
-                        AND dbfPend.Enabled = 1
-                        AND dbfPend.IdCurrentStatus <> 4
+                        WHERE dbfPend.id_file = f.id
+                        AND dbfPend.enabled = 1
+                        AND dbfPend.id_current_status <> 4
                     ) as documentosNoAprobados,
-                    COALESCE(obc1.VIN, obc2.VIN) as vin,
-                    COALESCE(obc1.Model, obc2.Model) as modelo,
-                    COALESCE(obc1.Year, obc2.Year) as year,
-                    COALESCE(obc1.CarType, obc2.CarType) as version
+                    COALESCE(obc1.vin, obc2.vin) as vin,
+                    COALESCE(obc1.model, obc2.model) as modelo,
+                    COALESCE(obc1.year, obc2.year) as year,
+                    COALESCE(obc1.car_type, obc2.car_type) as version
                 FROM expedient f
-                INNER JOIN client_header hc ON hc.IdClient = f.IdClient
-                INNER JOIN client c ON hc.IdClient = c.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
+                INNER JOIN client_header hc ON hc.id_client = f.id_client
+                INNER JOIN client c ON hc.id_client = c.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN operation_type ot ON f.id_operation = ot.id
+                LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
+                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN agency a ON f.id_agency = a.id
+                LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
-                    SELECT obc2a.IdDMS,
-                        obc2a.idagency,
-                        obc2a.VIN,
-                        obc2a.Model,
-                        obc2a.Year,
-                        obc2a.CarType
-                    FROM order obc2a
+                    SELECT obc2a.id_dms,
+                        obc2a.id_agency,
+                        obc2a.vin,
+                        obc2a.model,
+                        obc2a.year,
+                        obc2a.car_type
+                    FROM order_by_car obc2a
                     INNER JOIN (
-                        SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                        FROM order
-                        GROUP BY IdDMS, idagency
-                    ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
-                        AND obc2a.idagency = obc2b.idagency
-                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
-                ) obc2 ON f.IdOrder IS NULL
-                    AND obc2.IdDMS = f.IdOrderTotal
-                    AND obc2.idagency = f.IdAgency
-                WHERE f.IdAgency = ?
-                AND p.Enabled = 1
+                        SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
+                        FROM order_by_car
+                        GROUP BY id_dms, id_agency
+                    ) obc2b ON obc2a.id_dms = obc2b.id_dms
+                        AND obc2a.id_agency = obc2b.id_agency
+                        AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.id_order IS NULL
+                    AND obc2.id_dms = f.id_order_total
+                    AND obc2.id_agency = f.id_agency
+                WHERE f.id_agency = ?
+                AND p.enabled = 1
                 AND EXISTS (
                     SELECT 1 
                     FROM client_dms_relation ctr_check 
-                    WHERE ctr_check.idClientHeader = hc.Id 
-                    AND ctr_check.IdAgency = f.IdAgency
+                    WHERE ctr_check.id_client_header = hc.id 
+                    AND ctr_check.id_agency = f.id_agency
                 )
             ";
 
             $params = [$idAgency];
             if ($filtrarPorProceso) {
-                $sql .= " AND f.IdProcess = ?";
+                $sql .= " AND f.id_process = ?";
                 $params[] = $idProcess;
             }
             
             // Aplicar filtro de pedidos cancelados 
             if ($showCancelled) {
-                $sql .= " AND f.IdCurrentState = 5";
+                $sql .= " AND f.id_current_state = 5";
             } else {
-                $sql .= " AND f.IdCurrentState != 5";
+                $sql .= " AND f.id_current_state != 5";
             }
             
             // LIMIT y OFFSET deben ser valores directos, no parámetros preparados
@@ -1006,29 +1008,29 @@ class Validacion extends BaseController
             $countSql = "
                 SELECT COUNT(*) as total
                 FROM expedient f
-                INNER JOIN client_header hc ON hc.IdClient = f.IdClient
-                INNER JOIN client c ON hc.IdClient = c.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN operation_type ot ON f.IdOperation = ot.Id
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                WHERE f.IdAgency = ?
-                AND p.Enabled = 1
+                INNER JOIN client_header hc ON hc.id_client = f.id_client
+                INNER JOIN client c ON hc.id_client = c.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN operation_type ot ON f.id_operation = ot.id
+                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                WHERE f.id_agency = ?
+                AND p.enabled = 1
                 AND EXISTS (
                     SELECT 1 
                     FROM client_dms_relation ctr_check 
-                    WHERE ctr_check.idClientHeader = hc.Id 
-                    AND ctr_check.IdAgency = f.IdAgency
+                    WHERE ctr_check.id_client_header = hc.id 
+                    AND ctr_check.id_agency = f.id_agency
                 )
             ";
             $countParams = [$idAgency];
             if ($filtrarPorProceso) {
-                $countSql .= " AND f.IdProcess = ?";
+                $countSql .= " AND f.id_process = ?";
                 $countParams[] = $idProcess;
             }
             if ($showCancelled) {
-                $countSql .= " AND f.IdCurrentState = 5";
+                $countSql .= " AND f.id_current_state = 5";
             } else {
-                $countSql .= " AND f.IdCurrentState != 5";
+                $countSql .= " AND f.id_current_state != 5";
             }
 
             $countQuery = $this->db->query($countSql, $countParams);
@@ -1102,7 +1104,7 @@ class Validacion extends BaseController
             ];
             
             $result = $this->db->table('expedient')
-                ->where('Id', $clienteId)
+                ->where('id', $clienteId)
                 ->update($updateData);
             
             if ($result) {
@@ -1173,14 +1175,14 @@ class Validacion extends BaseController
             
             // Actualizar el registro en la tabla File
             $updateData = [
-                'IdCurrentState' => 6, // Estado excepción
-                'Description' => $comentario,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+                'id_current_state' => 6, // Estado excepción
+                'description' => $comentario,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
             $result = $this->db->table('expedient')
-                ->where('Id', $clienteId)
+                ->where('id', $clienteId)
                 ->update($updateData);
             
             if ($result) {
@@ -1252,12 +1254,12 @@ class Validacion extends BaseController
             
             // 1. Eliminar documentos relacionados (FileDocument)
             $this->db->table('file_document')
-                ->where('IdFile', $clienteId)
+                ->where('id_file', $clienteId)
                 ->delete();
             
             // 2. Eliminar el registro principal de File
             $result = $this->db->table('expedient')
-                ->where('Id', $clienteId)
+                ->where('id', $clienteId)
                 ->delete();
             
             // Verificar si la transacción fue exitosa
@@ -1363,8 +1365,8 @@ class Validacion extends BaseController
 
             // Verificar que el estado existe en la tabla file_status por ID
             $estadoQuery = $this->db->table('file_status')
-                ->select('Id, Name')
-                ->where('Id', $nuevoIdCurrentState)
+                ->select('id, name')
+                ->where('id', $nuevoIdCurrentState)
                 ->get();
             $estado = $estadoQuery->getRowArray();
 
@@ -1386,17 +1388,17 @@ class Validacion extends BaseController
             }
             
             // Obtener el nombre del estado solo para logging/mensajes
-            $nombreEstado = $estado['Name'] ?? 'ID: ' . $nuevoIdCurrentState;
+            $nombreEstado = $estado['name'] ?? 'ID: ' . $nuevoIdCurrentState;
             
             // Actualizar el registro en la tabla File
             $updateData = [
-                'IdCurrentState' => $nuevoIdCurrentState,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+                'id_current_state' => $nuevoIdCurrentState,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
             $result = $this->db->table('expedient')
-                ->where('Id', $clienteId)
+                ->where('id', $clienteId)
                 ->update($updateData);
             
             if ($result) {
@@ -1409,7 +1411,7 @@ class Validacion extends BaseController
                         'estado_anterior_id' => null, // TODO: Obtener estado anterior
                         'estado_nuevo_id' => $nuevoIdCurrentState,
                         'estado_nuevo_nombre' => $nombreEstado,
-                        'fecha_cambio' => $updateData['UpdateDate']
+                        'fecha_cambio' => $updateData['update_date']
                     ],
                     $clienteId
                 );
@@ -1421,7 +1423,7 @@ class Validacion extends BaseController
                         'clienteId' => $clienteId,
                         'nuevoIdCurrentState' => $nuevoIdCurrentState,
                         'nombreEstado' => $nombreEstado,
-                        'fechaCambio' => $updateData['UpdateDate']
+                        'fechaCambio' => $updateData['update_date']
                     ]
                 ]);
             } else {
@@ -1461,14 +1463,14 @@ class Validacion extends BaseController
             }
 
             $query = $this->db->table('expedient f')
-                ->select('fs.Name as estado, COUNT(*) as cantidad')
-                ->join('process p', 'f.IdProcess = p.Id', 'inner')
-                ->join('file_status fs', 'f.IdCurrentState = fs.Id', 'inner')
-                ->where('f.IdAgency', $idAgency)
-                ->where('f.IdProcess', $idProcess)
-                ->where('p.Enabled', 1)
-                ->groupBy('f.IdCurrentState, fs.Name')
-                ->orderBy('f.IdCurrentState');
+                ->select('fs.name as estado, COUNT(*) as cantidad')
+                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('file_status fs', 'f.id_current_state = fs.id', 'inner')
+                ->where('f.id_agency', $idAgency)
+                ->where('f.id_process', $idProcess)
+                ->where('p.enabled', 1)
+                ->groupBy('f.id_current_state, fs.name')
+                ->orderBy('f.id_current_state');
 
             $results = $query->get()->getResultArray();
 
@@ -1510,33 +1512,33 @@ class Validacion extends BaseController
 
             $query = $this->db->table('file_document dbf')
                 ->select('
-                    dbf.Id as idFileDocument,
-                    p.Name as proceso,
-                    fs.Name as fase,
-                    dbf.Name as documento,
-                    dt.Name as tipoDocumento,
-                    dbf.Comment as comentario,
-                    dbf.RegistrationDate as fecha,
-                    u.Name as asignado,
-                    dt.Required as requerido,
-                    dfs.Id as idEstatus,
-                    dfs.Name as EstatusName,
-                    dt.ReqExpiration as ReqExpiration,
-                    dbf.ExpirationDate as fechaExpiracion,
-                    dbf.IdDocumentContainer as documentContainer,
-                    dt.AvailableToClient as DisponibleCliente
+                    dbf.id as idFileDocument,
+                    p.name as proceso,
+                    fs.name as fase,
+                    dbf.name as documento,
+                    dt.name as tipoDocumento,
+                    dbf.comment as comentario,
+                    dbf.registration_date as fecha,
+                    u.name as asignado,
+                    dt.required as requerido,
+                    dfs.id as idEstatus,
+                    dfs.name as EstatusName,
+                    dt.req_expiration as ReqExpiration,
+                    dbf.expiration_date as fechaExpiracion,
+                    dbf.id_document_container as documentContainer,
+                    dt.available_to_client as DisponibleCliente
                 ')
-                ->join('expedient f', 'dbf.IdFile = f.Id', 'inner')
-                ->join('process p', 'f.IdProcess = p.Id', 'inner')
-                ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-                ->join('file_status fs', 'dt.IdProcessType = fs.Id', 'inner')
-                ->join('document_file_status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
-                ->join('user u', 'dbf.IdLastUserUpdate = u.Id', 'left')
-                ->where('dbf.IdFile', $idFile)
-                ->where('dbf.Enabled', 1)
-                ->orderBy('p.Name', 'ASC')
-                ->orderBy('fs.Name', 'ASC')
-                ->orderBy('dt.Name', 'ASC');
+                ->join('expedient f', 'dbf.id_file = f.id', 'inner')
+                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
+                ->join('file_status fs', 'dt.id_process_type = fs.id', 'inner')
+                ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
+                ->join('user u', 'dbf.id_last_user_update = u.id', 'left')
+                ->where('dbf.id_file', $idFile)
+                ->where('dbf.enabled', 1)
+                ->orderBy('p.name', 'ASC')
+                ->orderBy('fs.name', 'ASC')
+                ->orderBy('dt.name', 'ASC');
 
             // Log del query generado para debugging
             error_log("=== DEBUG getDocumentos ===");
@@ -1589,8 +1591,8 @@ class Validacion extends BaseController
 
             // Verificar que el expediente exista
             $file = $this->db->table('expedient')
-                ->select('Id, IdOrderTotal')
-                ->where('Id', $idFile)
+                ->select('id, id_order_total')
+                ->where('id', $idFile)
                 ->get()
                 ->getRowArray();
 
@@ -1604,8 +1606,8 @@ class Validacion extends BaseController
 
             // Obtener el nombre base del tipo de documento
             $documentType = $this->db->table('document_type')
-                ->select('Name')
-                ->where('Id', $documentTypeId)
+                ->select('name')
+                ->where('id', $documentTypeId)
                 ->get()
                 ->getRowArray();
 
@@ -1747,7 +1749,7 @@ class Validacion extends BaseController
             
             // Verificar que el documento existe y tiene estatus "3"
             $documento = $this->db->table('file_document')
-                ->where('Id', $idFileDocument)
+                ->where('id', $idFileDocument)
                 ->where('IdCurrentStatus', 3)
                 ->get()
                 ->getRowArray();
@@ -1768,7 +1770,7 @@ class Validacion extends BaseController
             ];
             
             $result = $this->db->table('file_document')
-                ->where('Id', $idFileDocument)
+                ->where('id', $idFileDocument)
                 ->update($updateData);
             
             if ($result) {
@@ -1859,7 +1861,7 @@ class Validacion extends BaseController
             
             // Verificar que el documento existe
             $documento = $this->db->table('file_document')
-                ->where('Id', $idFileDocument)
+                ->where('id', $idFileDocument)
                 ->get()
                 ->getRowArray();
             
@@ -1918,7 +1920,7 @@ class Validacion extends BaseController
             }
             
             $result = $this->db->table('file_document')
-                ->where('Id', $idFileDocument)
+                ->where('id', $idFileDocument)
                 ->update($updateData);
             
             if ($result) {
@@ -1995,7 +1997,7 @@ class Validacion extends BaseController
             
             // Verificar que el documento existe y tiene estatus "2"
             $documento = $this->db->table('file_document')
-                ->where('Id', $idFileDocument)
+                ->where('id', $idFileDocument)
                 ->where('IdCurrentStatus', 2)
                 ->get()
                 ->getRowArray();
@@ -2016,7 +2018,7 @@ class Validacion extends BaseController
             ];
             
             $result = $this->db->table('file_document')
-                ->where('Id', $idFileDocument)
+                ->where('id', $idFileDocument)
                 ->update($updateData);
             
             if ($result) {
@@ -2091,57 +2093,57 @@ class Validacion extends BaseController
             // Obtener datos del cliente (incluye campos de Client para template identificación)
             $cliente = $this->db->query("
                 SELECT 
-                    f.Id as idFile,
+                    f.id as idFile,
                     COALESCE(
-                        (SELECT ctr1.IdDMS FROM client_dms_relation ctr1 
-                         WHERE ctr1.idClientHeader = hc.Id AND ctr1.IdAgency = f.IdAgency LIMIT 1),
-                        (SELECT ctr2.IdDMS FROM client_dms_relation ctr2 
-                         WHERE ctr2.idClientHeader = hc.Id LIMIT 1),
+                        (SELECT ctr1.id_dms FROM client_dms_relation ctr1 
+                         WHERE ctr1.id_client_header = hc.id AND ctr1.id_agency = f.id_agency LIMIT 1),
+                        (SELECT ctr2.id_dms FROM client_dms_relation ctr2 
+                         WHERE ctr2.id_client_header = hc.id LIMIT 1),
                         ''
                     ) as ndCliente,
-                    f.IdOrderTotal as ndPedido,
-                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''), 
-                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    f.id_order_total as ndPedido,
+                    COALESCE(NULLIF(TRIM(c.razon_social), ''), 
+                        TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
-                    c.Name as nombre,
-                    c.LastName as apellidoPaterno,
-                    c.MotherLastName as apellidoMaterno,
+                    c.name as nombre,
+                    c.last_name as apellidoPaterno,
+                    c.mother_last_name as apellidoMaterno,
                     c.RFC as rfc,
                     c.CURP as curp,
-                    c.Email as email,
-                    c.TelNumber as telefono,
-                    c.TelNumber2 as telefono2,
-                    c.RazonSocial as razonSocial,
-                    f.IdCustomerType as idCustomerType,
-                    ct.Name as tipoCliente,
-                    p.Name as proceso,
-                    ot.Name as operacion,
-                    a.Name as agencia,
-                    fs.Name as fase,
-                    COALESCE(obc1.VIN, obc2.VIN) as vin,
-                    COALESCE(obc1.Model, obc2.Model) as modelo,
-                    COALESCE(obc1.Year, obc2.Year) as year,
-                    COALESCE(obc1.CarType, obc2.CarType) as version
+                    c.email as email,
+                    c.tel_number as telefono,
+                    c.tel_number2 as telefono2,
+                    c.razon_social as razonSocial,
+                    f.id_customer_type as idCustomerType,
+                    ct.name as tipoCliente,
+                    p.name as proceso,
+                    ot.name as operacion,
+                    a.name as agencia,
+                    fs.name as fase,
+                    COALESCE(obc1.vin, obc2.vin) as vin,
+                    COALESCE(obc1.model, obc2.model) as modelo,
+                    COALESCE(obc1.year, obc2.year) as year,
+                    COALESCE(obc1.car_type, obc2.car_type) as version
                 FROM expedient f
-                INNER JOIN client_header hc ON hc.IdClient = f.IdClient
-                INNER JOIN client c ON hc.IdClient = c.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN operation_type ot ON f.IdOperation = ot.Id
-                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
+                INNER JOIN client_header hc ON hc.id_client = f.id_client
+                INNER JOIN client c ON hc.id_client = c.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN operation_type ot ON f.id_operation = ot.id
+                LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
+                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN agency a ON f.id_agency = a.id
+                LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
-                    SELECT obc2a.IdDMS, obc2a.idagency, obc2a.VIN, obc2a.Model, obc2a.Year, obc2a.CarType
-                    FROM order obc2a
+                    SELECT obc2a.id_dms, obc2a.id_agency, obc2a.vin, obc2a.model, obc2a.year, obc2a.car_type
+                    FROM order_by_car obc2a
                     INNER JOIN (
-                        SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                        FROM order GROUP BY IdDMS, idagency
-                    ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
-                        AND obc2a.idagency = obc2b.idagency
-                        AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
-                ) obc2 ON f.IdOrder IS NULL AND obc2.IdDMS = f.IdOrderTotal AND obc2.idagency = f.IdAgency
-                WHERE f.Id = ?
+                        SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
+                        FROM order_by_car GROUP BY id_dms, id_agency
+                    ) obc2b ON obc2a.id_dms = obc2b.id_dms
+                        AND obc2a.id_agency = obc2b.id_agency
+                        AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                ) obc2 ON f.id_order IS NULL AND obc2.id_dms = f.id_order_total AND obc2.id_agency = f.id_agency
+                WHERE f.id = ?
             ", [$idFile])->getRowArray();
 
             if (!$cliente) {
@@ -2385,15 +2387,15 @@ class Validacion extends BaseController
             }
             $row = $this->db->query("
                 SELECT
-                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
-                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                        TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
                     c.RFC as rfc,
                     c.CURP as curp
                 FROM expedient f
-                INNER JOIN client_header hc ON hc.IdClient = f.IdClient
-                INNER JOIN client c ON hc.IdClient = c.Id
-                WHERE f.Id = ?
+                INNER JOIN client_header hc ON hc.id_client = f.id_client
+                INNER JOIN client c ON hc.id_client = c.id
+                WHERE f.id = ?
             ", [$idFile])->getRowArray();
             if (!$row) {
                 return $this->response->setJSON(['success' => false, 'message' => 'Expediente no encontrado'])->setStatusCode(404);

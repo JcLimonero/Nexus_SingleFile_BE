@@ -17,7 +17,7 @@
       <mat-label>Nombre del Motivo</mat-label>
       <input 
         matInput 
-        [(ngModel)]="motivo.Name" 
+        [(ngModel)]="motivo.name" 
         name="name"
         placeholder="Ingrese el nombre del motivo"
         maxlength="500"
@@ -29,7 +29,7 @@
     <!-- Campo Tipo de Razón -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Tipo de Razón</mat-label>
-      <mat-select [(ngModel)]="motivo.IdTypeReason" name="idTypeReason" required>
+        <mat-select [(ngModel)]="motivo.id_type_reason" name="id_type_reason" required>
         <mat-option *ngFor="let option of tipoRazonOptions" [value]="option.value">
           {{ option.label }}
         </mat-option>
@@ -40,7 +40,7 @@
     <!-- Campo Estado -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estado</mat-label>
-      <mat-select [(ngModel)]="motivo.Enabled" name="enabled">
+        <mat-select [(ngModel)]="motivo.enabled" name="enabled">
         <mat-option [value]="1">Habilitado</mat-option>
         <mat-option [value]="0">Deshabilitado</mat-option>
       </mat-select>
@@ -61,7 +61,7 @@
         type="submit"
         mat-raised-button 
         color="primary"
-        [disabled]="loading || !motivo.Name?.trim()">
+        [disabled]="loading || !motivo.name?.trim()">
         <mat-icon *ngIf="loading" class="animate-spin">refresh</mat-icon>
         <mat-icon *ngIf="!loading">{{ isEdit ? 'save' : 'add' }}</mat-icon>
         {{ getSaveButtonText() }}

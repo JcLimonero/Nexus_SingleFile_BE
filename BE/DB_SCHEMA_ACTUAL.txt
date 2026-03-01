@@ -1,0 +1,416 @@
+=== ESTRUCTURA DE LA BASE DE DATOS NEXFILE ===
+
+
+--- Tabla: activity_log ---
+  id | int | NO | PRI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  UserId | int | NO | MUL | NULL | 
+  UserEmail | varchar(255) | YES |  | NULL | 
+  Action | varchar(100) | NO | MUL | NULL | 
+  EntityType | varchar(50) | NO | MUL | NULL | 
+  EntityId | int | NO | MUL | NULL | 
+  EntityData | json | YES |  | NULL | 
+  Description | text | YES |  | NULL | 
+  IpAddress | varchar(45) | YES |  | NULL | 
+  UserAgent | text | YES |  | NULL | 
+  CreatedAt | timestamp | YES | MUL | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+
+--- Tabla: agency ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 0 | 
+  id_agency_dms | varchar(50) | YES |  | NULL | 
+  id_company | bigint | YES |  | NULL | 
+
+--- Tabla: agency_user ---
+  id_user | bigint | NO | MUL | NULL | 
+  id_agency | bigint | NO | MUL | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+
+--- Tabla: client ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES |  | NULL | 
+  last_name | varchar(50) | YES |  | NULL | 
+  mother_last_name | varchar(50) | YES |  | NULL | 
+  RFC | varchar(50) | YES | MUL | NULL | 
+  CURP | varchar(50) | YES |  | NULL | 
+  tel_number | varchar(50) | YES |  | NULL | 
+  tel_number2 | varchar(50) | YES |  | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  adviser | varchar(50) | YES |  | NULL | 
+  email | varchar(50) | YES |  | NULL | 
+  razon_social | varchar(500) | YES | UNI | NULL | 
+  agency_origin | varchar(50) | YES |  | NULL | 
+
+--- Tabla: client_dms_relation ---
+  id | int | NO | PRI | NULL | 
+  id_dms | varchar(50) | YES | MUL | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  id_agency | bigint | YES | MUL | NULL | 
+  id_client_header | bigint | NO | MUL | NULL | 
+
+--- Tabla: client_header ---
+  id | bigint | NO | PRI | NULL | 
+  id_client | bigint | YES | MUL | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+
+--- Tabla: company ---
+  id | int | NO | PRI | NULL | auto_increment
+  name | varchar(100) | YES | UNI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  agency_connection | varchar(500) | YES |  | NULL | 
+
+--- Tabla: configuration_process ---
+  id | bigint | NO | PRI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  enabled | tinyint | YES |  | 0 | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  id_customer_type | bigint | YES | MUL | 0 | 
+  id_operation_type | bigint | YES | MUL | 0 | 
+  id_agency | bigint | YES | MUL | 0 | 
+  id_process | bigint | YES | MUL | 0 | 
+
+--- Tabla: configuration_process_document_type ---
+  id | int | NO | PRI | NULL | auto_increment
+  id_document_type | bigint | NO | MUL | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  id_configuration_process | bigint | NO | MUL | NULL | 
+
+--- Tabla: customer_type ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 0 | 
+
+--- Tabla: document_file_error ---
+  id | int | NO | PRI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  description | varchar(500) | YES |  | NULL | 
+
+--- Tabla: document_file_status ---
+  id | int | NO | PRI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  name | varchar(500) | YES |  | NULL | 
+
+--- Tabla: document_type ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  enabled | tinyint | YES |  | 0 | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  req_expiration | tinyint | YES |  | 0 | 
+  id_process_type | bigint | YES | MUL | 0 | 
+  required | tinyint | YES |  | 1 | 
+  id_sub_process | bigint | YES |  | 0 | 
+  document_auto_upload | tinyint | YES |  | 1 | 
+  available_to_client | tinyint | YES |  | 0 | 
+
+--- Tabla: expedient ---
+  id | bigint | NO | PRI | NULL | 
+  id_client | bigint | YES | MUL | NULL | 
+  id_order | bigint | YES | MUL | NULL | 
+  id_customer_type | bigint | YES | MUL | NULL | 
+  id_operation | bigint | YES | MUL | 0 | 
+  id_process | bigint | YES | MUL | NULL | 
+  registration_date | timestamp | YES | MUL | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  last_user_update | bigint | YES |  | 0 | 
+  id_agency | bigint | YES | MUL | NULL | 
+  id_seller | bigint | YES | MUL | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  description | varchar(500) | YES |  | NULL | 
+  id_current_state | int | YES | MUL | 0 | 
+  id_order_total | varchar(50) | YES | MUL | NULL | 
+  attention_date | date | YES |  | NULL | 
+  close_date | date | YES | MUL | NULL | 
+  agend_hour | time | YES |  | NULL | 
+  agend_date | date | YES |  | NULL | 
+  id_inventory | varchar(50) | YES | MUL | NULL | 
+
+--- Tabla: file_document ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES |  | NULL | 
+  comment | varchar(200) | YES |  | NULL | 
+  expiration_date | timestamp | YES | MUL | NULL | 
+  path_document | varchar(500) | YES |  | NULL | 
+  enabled | tinyint | YES | MUL | 0 | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  last_user_update | bigint | YES |  | 0 | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  id_file | bigint | YES | MUL | 0 | 
+  id_validation | varchar(50) | YES |  | NULL | 
+  id_document_type | bigint | YES | MUL | NULL | 
+  id_current_status | int | YES | MUL | NULL | 
+  id_document_error | int | YES | MUL | NULL | 
+  server_path | varchar(50) | YES |  | NULL | 
+  id_document_container | varchar(200) | YES |  | NULL | 
+
+--- Tabla: file_exception_reason ---
+  id | int | NO | PRI | NULL | 
+  name | varchar(500) | YES |  | NULL | 
+  id_type_reason | int | YES | MUL | NULL | 
+  enabled | tinyint | YES |  | 1 | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+
+--- Tabla: file_pld ---
+  Id | bigint | NO | PRI | NULL | auto_increment
+  IdFile | bigint | YES | UNI | NULL | 
+  AvisoPrivacidadEntregado | tinyint(1) | YES | MUL | 0 | 
+  AvisoPrivacidadFecha | datetime | YES |  | NULL | 
+  AvisoPrivacidadMetodo | varchar(100) | YES |  | NULL | 
+  AvisoPrivacidadFirma | varchar(500) | YES |  | NULL | 
+  RequiereBeneficiarioFinal | tinyint(1) | YES |  | 0 | 
+  BeneficiarioFinalCapturado | tinyint(1) | YES | MUL | 0 | 
+  BeneficiarioFinalNombre | varchar(255) | YES |  | NULL | 
+  BeneficiarioFinalRFC | varchar(13) | YES |  | NULL | 
+  BeneficiarioFinalCURP | varchar(18) | YES |  | NULL | 
+  BeneficiarioFinalPorcentaje | decimal(5,2) | YES |  | NULL | 
+  BeneficiarioFinalFechaCaptura | datetime | YES |  | NULL | 
+  ProveedorRecursosCapturado | tinyint(1) | YES |  | 0 | 
+  ProveedorRecursosDescripcion | varchar(500) | YES |  | NULL | 
+  ProveedorRecursosFechaCaptura | datetime | YES |  | NULL | 
+  TipoIdentificacion | varchar(10) | YES |  | NULL | 
+  GeolocalizacionCapturada | tinyint(1) | YES |  | 0 | 
+  GeolocalizacionLatitud | decimal(10,8) | YES |  | NULL | 
+  GeolocalizacionLongitud | decimal(11,8) | YES |  | NULL | 
+  GeolocalizacionFecha | datetime | YES |  | NULL | 
+  GeolocalizacionOrigen | varchar(50) | YES |  | NULL | 
+  ExpedientePLDCompleto | tinyint(1) | YES | MUL | 0 | 
+  ExpedientePLDCompletoFecha | datetime | YES |  | NULL | 
+  RegistrationDate | datetime | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+  UpdateDate | datetime | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP
+  IdLastUserUpdate | bigint | YES | MUL | NULL | 
+  Enabled | tinyint(1) | YES |  | 1 | 
+
+--- Tabla: file_pld_beneficial_owner ---
+  Id | bigint | NO | PRI | NULL | auto_increment
+  IdFile | bigint | NO | MUL | NULL | 
+  Nombre | varchar(255) | NO |  | NULL | 
+  RFC | varchar(13) | YES |  | NULL | 
+  CURP | varchar(18) | YES |  | NULL | 
+  PorcentajeParticipacion | decimal(5,2) | YES |  | NULL | 
+  RegistrationDate | datetime | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+  UpdateDate | timestamp | YES |  | NULL | 
+  IdLastUserUpdate | bigint | YES | MUL | 0 | 
+  Enabled | tinyint(1) | YES |  | 1 | 
+
+--- Tabla: file_pld_geo_log ---
+  Id | bigint | NO | PRI | NULL | auto_increment
+  IdFile | bigint | NO | MUL | NULL | 
+  Latitud | decimal(10,8) | NO |  | NULL | 
+  Longitud | decimal(11,8) | NO |  | NULL | 
+  Accion | varchar(100) | YES |  | NULL | 
+  Origen | varchar(50) | YES |  | NULL | 
+  RegistrationDate | datetime | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+  UpdateDate | timestamp | YES |  | NULL | 
+  IdLastUserUpdate | bigint | YES | MUL | 0 | 
+  Enabled | tinyint(1) | YES |  | 1 | 
+
+--- Tabla: file_reasons ---
+  id | int | NO | PRI | NULL | 
+  name | varchar(500) | YES |  | NULL | 
+  id_type_reason | int | YES |  | NULL | 
+  enabled | tinyint | YES | MUL | 1 | 
+  registration_date | timestamp | YES | MUL | NULL | 
+  update_date | timestamp | YES | MUL | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+
+--- Tabla: file_share_token ---
+  id | bigint | NO | PRI | NULL | 
+  id_file | bigint | NO | UNI | NULL | 
+  Token | char(36) | NO | UNI | NULL | 
+  expiration_date | timestamp | YES |  | NULL | 
+  enabled | tinyint | YES | MUL | 1 | 
+  registration_date | timestamp | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+  update_date | timestamp | YES |  | NULL | on update CURRENT_TIMESTAMP
+  id_last_user_update | bigint | YES | MUL | 0 | 
+
+--- Tabla: file_status ---
+  id | int | NO | PRI | NULL | 
+  name | varchar(500) | YES |  | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+
+--- Tabla: file_sub_status ---
+  id | bigint | NO | PRI | NULL | 
+  id_file_status | int | YES | MUL | NULL | 
+  name | varchar(500) | YES |  | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+
+--- Tabla: files_to_correct ---
+  id | int unsigned | NO | PRI | NULL | auto_increment
+  idExpediente | int unsigned | NO | UNI | NULL | 
+  idAgency | int unsigned | NO | MUL | NULL | 
+  ndDMS | varchar(50) | NO | MUL | NULL | 
+  api_result | json | YES |  | NULL | 
+  created_at | datetime | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+  updated_at | datetime | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP
+  RegistrationDate | timestamp | YES |  | NULL | 
+  UpdateDate | timestamp | YES |  | NULL | 
+  IdLastUserUpdate | bigint | YES | MUL | 0 | 
+  Enabled | tinyint(1) | YES |  | 1 | 
+
+--- Tabla: migrations ---
+  id | bigint unsigned | NO | PRI | NULL | auto_increment
+  version | varchar(255) | NO |  | NULL | 
+  class | varchar(255) | NO |  | NULL | 
+  group | varchar(255) | NO |  | NULL | 
+  namespace | varchar(255) | NO |  | NULL | 
+  time | int | NO |  | NULL | 
+  batch | int unsigned | NO |  | NULL | 
+
+--- Tabla: operation_type ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 0 | 
+
+--- Tabla: order ---
+  Id | bigint | NO | PRI | NULL | 
+  Number | varchar(50) | YES |  | NULL | 
+  CarType | varchar(200) | YES |  | NULL | 
+  Year | int | YES |  | 0 | 
+  VIN | varchar(50) | YES |  | NULL | 
+  RegistrationDate | timestamp | YES |  | NULL | 
+  UpdateDate | timestamp | YES |  | NULL | 
+  IdLastUserUpdate | bigint | YES | MUL | 0 | 
+  Enabled | tinyint(1) | YES |  | 1 | 
+  Model | varchar(200) | YES |  | NULL | 
+  Advisor | varchar(200) | YES |  | NULL | 
+  IdDMS | varchar(50) | YES | MUL | NULL | 
+  idAgency | varchar(100) | YES |  | NULL | 
+  amount | double | YES |  | NULL | 
+
+--- Tabla: process ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  enabled | tinyint | YES |  | 0 | 
+  registration_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  update_date | timestamp | YES |  | NULL | 
+
+--- Tabla: process_user ---
+  id_user | bigint | NO | MUL | NULL | 
+  id_process | bigint | NO | MUL | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+
+--- Tabla: user ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  enabled | tinyint | YES |  | 0 | 
+  id_user_rol | bigint | YES | MUL | 0 | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  user | varchar(50) | YES | MUL | NULL | 
+  pass | varchar(255) | YES |  | NULL | 
+  mail | varchar(500) | YES |  | NULL | 
+  id_user_total | bigint | YES |  | 0 | 
+  default_agency | bigint | YES |  | 0 | 
+  user_pass | varchar(255) | YES |  | NULL | 
+  password_migrated | tinyint(1) | NO |  | 0 | 
+  profile_image | longtext | YES |  | NULL | 
+  image_type | varchar(50) | YES |  | NULL | 
+  image_size | int | YES |  | NULL | 
+
+--- Tabla: user_activity_logs ---
+  id | int unsigned | NO | PRI | NULL | auto_increment
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+  user_id | varchar(255) | NO | MUL | NULL | 
+  username | varchar(255) | NO |  | NULL | 
+  action | varchar(255) | NO | MUL | NULL | 
+  description | text | YES |  | NULL | 
+  change_details | text | YES |  | NULL | 
+  ip_address | varchar(45) | YES | MUL | NULL | 
+  user_agent | text | YES |  | NULL | 
+  url | varchar(500) | YES |  | NULL | 
+  method | varchar(10) | YES |  | NULL | 
+  request_data | text | YES |  | NULL | 
+  response_status | int | YES |  | NULL | 
+  execution_time | float | YES |  | NULL | 
+  created_at | datetime | NO | MUL | NULL | 
+  updated_at | datetime | NO |  | NULL | 
+
+--- Tabla: user_refresh_token ---
+  id | int unsigned | NO | PRI | NULL | 
+  id_user | bigint | NO | MUL | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  refresh_token | text | NO | MUL | NULL | 
+  expiration_date | timestamp | YES |  | NULL | 
+  created_date | timestamp | YES |  | CURRENT_TIMESTAMP | DEFAULT_GENERATED
+  update_date | timestamp | YES |  | NULL | on update CURRENT_TIMESTAMP
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 1 | 
+
+--- Tabla: user_role ---
+  id | bigint | NO | PRI | NULL | 
+  name | varchar(600) | YES | UNI | NULL | 
+  registration_date | timestamp | YES |  | NULL | 
+  update_date | timestamp | YES |  | NULL | 
+  id_last_user_update | bigint | YES | MUL | 0 | 
+  enabled | tinyint | YES |  | 0 | 
+
+--- Tabla: view_all_relations ---
+
+--- Tabla: view_client ---
+
+--- Tabla: view_client_company_amount ---
+
+--- Tabla: view_client_relations ---
+
+--- Tabla: view_document_name ---
+
+--- Tabla: view_files ---
+
+--- Tabla: view_files_by_client ---

@@ -20,16 +20,16 @@ import { CostumerTypeService } from '../../../../core/services/costumer-type.ser
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
 
 export interface ConfigToAdd {
-  IdConfigurationProcess: number;
-  IdProcess?: number;
-  ProcesoName?: string;
-  IdAgency?: number;
-  AgenciaName?: string;
-  IdCostumerType?: number;
-  TipoClienteName?: string;
-  IdOperationType?: number;
-  TipoOperacionName?: string;
-  Enabled?: number | string;
+  id_configuration_process: number;
+  id_process?: number;
+  proceso_name?: string;
+  id_agency?: number;
+  agencia_name?: string;
+  id_customer_type?: number;
+  tipo_cliente_name?: string;
+  id_operation_type?: number;
+  tipo_operacion_name?: string;
+  enabled?: number | string;
 }
 
 export interface AddToConfigurationsDialogData {
@@ -64,7 +64,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
   adding = false;
   configurations: ConfigToAdd[] = [];
   dataSource = new MatTableDataSource<ConfigToAdd>([]);
-  displayedColumns: string[] = ['select', 'AgenciaName', 'ProcesoName', 'TipoClienteName', 'TipoOperacionName'];
+  displayedColumns: string[] = ['select', 'agencia_name', 'proceso_name', 'tipo_cliente_name', 'tipo_operacion_name'];
   selectedIds = new Set<number>();
 
   selectedProcess = '';
@@ -111,11 +111,23 @@ export class AddToConfigurationsDialogComponent implements OnInit {
 
   private loadConfigurationsToAdd(): void {
     this.loading = true;
-    const id = String(this.data.documentType.Id!);
+    const id = String(this.data.documentType.id!);
     this.documentTypeService.getConfigurationsToAdd(id).subscribe({
       next: (res: any) => {
         this.loading = false;
-        this.configurations = (res?.data?.configurations ?? []) as ConfigToAdd[];
+        const raw = (res?.data?.configurations ?? []) as Array<Record<string, unknown>>;
+        this.configurations = raw.map(c => ({
+          id_configuration_process: (c['id_configuration_process'] ?? c['IdConfigurationProcess']) as number,
+          id_process: (c['id_process'] ?? c['IdProcess']) as number | undefined,
+          proceso_name: (c['proceso_name'] ?? c['ProcesoName']) as string | undefined,
+          id_agency: (c['id_agency'] ?? c['IdAgency']) as number | undefined,
+          agencia_name: (c['agencia_name'] ?? c['AgenciaName']) as string | undefined,
+          id_customer_type: (c['id_customer_type'] ?? c['IdCostumerType']) as number | undefined,
+          tipo_cliente_name: (c['tipo_cliente_name'] ?? c['TipoClienteName']) as string | undefined,
+          id_operation_type: (c['id_operation_type'] ?? c['IdOperationType']) as number | undefined,
+          tipo_operacion_name: (c['tipo_operacion_name'] ?? c['TipoOperacionName']) as string | undefined,
+          enabled: (c['enabled'] ?? c['Enabled']) as number | string | undefined
+        }));
         this.applyFilters();
         setTimeout(() => { if (this.paginator) this.dataSource.paginator = this.paginator; });
       },
@@ -130,10 +142,10 @@ export class AddToConfigurationsDialogComponent implements OnInit {
 
   applyFilters(): void {
     this.filtered = this.configurations.filter(c => {
-      const okProcess = !this.selectedProcess || String(c.IdProcess) === String(this.selectedProcess);
-      const okAgency = !this.selectedAgency || String(c.IdAgency) === String(this.selectedAgency);
-      const okCostumer = !this.selectedCostumerType || String(c.IdCostumerType) === String(this.selectedCostumerType);
-      const okOp = !this.selectedOperationType || String(c.IdOperationType) === String(this.selectedOperationType);
+      const okProcess = !this.selectedProcess || String(c.id_process) === String(this.selectedProcess);
+      const okAgency = !this.selectedAgency || String(c.id_agency) === String(this.selectedAgency);
+      const okCostumer = !this.selectedCostumerType || String(c.id_customer_type) === String(this.selectedCostumerType);
+      const okOp = !this.selectedOperationType || String(c.id_operation_type) === String(this.selectedOperationType);
       return okProcess && okAgency && okCostumer && okOp;
     });
     this.dataSource.data = this.filtered;
@@ -152,24 +164,24 @@ export class AddToConfigurationsDialogComponent implements OnInit {
   }
 
   isSelected(c: ConfigToAdd): boolean {
-    return this.selectedIds.has(c.IdConfigurationProcess);
+    return this.selectedIds.has(c.id_configuration_process);
   }
 
   toggleSelection(c: ConfigToAdd): void {
-    if (this.selectedIds.has(c.IdConfigurationProcess)) this.selectedIds.delete(c.IdConfigurationProcess);
-    else this.selectedIds.add(c.IdConfigurationProcess);
+    if (this.selectedIds.has(c.id_configuration_process)) this.selectedIds.delete(c.id_configuration_process);
+    else this.selectedIds.add(c.id_configuration_process);
     this.selectedIds = new Set(this.selectedIds);
   }
 
   isAllOnPageSelected(): boolean {
     const page = this.getCurrentPageData();
-    return page.length > 0 && page.every(x => this.selectedIds.has(x.IdConfigurationProcess));
+    return page.length > 0 && page.every(x => this.selectedIds.has(x.id_configuration_process));
   }
 
   toggleAllOnPage(): void {
     const page = this.getCurrentPageData();
-    if (this.isAllOnPageSelected()) page.forEach(c => this.selectedIds.delete(c.IdConfigurationProcess));
-    else page.forEach(c => this.selectedIds.add(c.IdConfigurationProcess));
+    if (this.isAllOnPageSelected()) page.forEach(c => this.selectedIds.delete(c.id_configuration_process));
+    else page.forEach(c => this.selectedIds.add(c.id_configuration_process));
     this.selectedIds = new Set(this.selectedIds);
   }
 
@@ -180,7 +192,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
   addToConfigurations(): void {
     if (this.selectedIds.size === 0) return;
     this.adding = true;
-    const id = String(this.data.documentType.Id!);
+    const id = String(this.data.documentType.id!);
     const ids = Array.from(this.selectedIds);
     this.documentTypeService.addToConfigurations(id, ids).subscribe({
       next: (res: any) => {

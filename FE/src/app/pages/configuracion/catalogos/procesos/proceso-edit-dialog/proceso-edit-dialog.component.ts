@@ -57,16 +57,16 @@ export class ProcesoEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.procesoForm = this.fb.group({
-      Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
-      Enabled: ['1', Validators.required]
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
+      enabled: ['1', Validators.required]
     });
   }
 
   private populateForm(): void {
     if (this.data.proceso) {
       this.procesoForm.patchValue({
-        Name: this.data.proceso.Name,
-        Enabled: this.data.proceso.Enabled
+        name: this.data.proceso.name,
+        enabled: this.data.proceso.enabled
       });
     }
   }
@@ -86,9 +86,11 @@ export class ProcesoEditDialogComponent implements OnInit {
   }
 
   private updateProceso(): void {
+    const v = this.procesoForm.value;
     const updateData: ProcesoUpdateRequest = {
-      Id: this.data.proceso.Id,
-      ...this.procesoForm.value
+      id: this.data.proceso.id,
+      name: v.name,
+      enabled: v.enabled
     };
 
     this.procesoService.updateProceso(updateData).subscribe({
@@ -115,7 +117,8 @@ export class ProcesoEditDialogComponent implements OnInit {
   }
 
   private createProceso(): void {
-    this.procesoService.createProceso(this.procesoForm.value).subscribe({
+    const v = this.procesoForm.value;
+    this.procesoService.createProceso({ name: v.name, enabled: v.enabled }).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {

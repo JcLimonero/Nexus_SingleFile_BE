@@ -13,9 +13,9 @@ class DocumentModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'Name', 'Comment', 'ExpirationDate', 'PathDocument', 'Enabled', 
-        'RegistrationDate', 'UpdateDate', 'LastUserUpdate', 'IdLastUserUpdate',
-        'IdFile', 'IdValidation', 'IdDocumentType', 'IdCurrentStatus', 'IdDocumentError'
+        'id', 'name', 'comment', 'expiration_date', 'path_document', 'enabled', 
+        'registration_date', 'update_date', 'last_user_update', 'id_last_user_update',
+        'id_file', 'id_validation', 'id_document_type', 'id_current_status', 'id_document_error'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -73,84 +73,98 @@ class DocumentModel extends Model
         $builder = $this->db->table('file_document d');
         
         $builder->select('
-            d.Id,
-            d.Name,
-            d.Comment,
-            d.ExpirationDate,
-            d.PathDocument,
-            d.Enabled,
-            d.RegistrationDate,
-            d.UpdateDate,
-            d.IdLastUserUpdate,
-            d.IdFile,
-            d.IdValidation,
-            d.IdDocumentType,
-            d.IdCurrentStatus,
-            d.IdDocumentError,
-            dt.Name as DocumentTypeName,
-            dt.IdProcessType,
-            dt.IdSubProcess,
-            dfs.Name as CurrentStatusDescription,
-            dfe.Description as DocumentErrorDescription,
-            u.Name as LastUserUpdateName,
-            f.Id as FileId,
-            f.Description as FileDescription,
-            f.IdCurrentState as FileCurrentState,
-            fs.Name as FileStatusDescription,
-            fss.Name as ProcessTypeName,
-            sp.Name as SubProcessName
+            d.id,
+            d.name,
+            d.comment,
+            d.expiration_date,
+            d.path_document,
+            d.enabled,
+            d.registration_date,
+            d.update_date,
+            d.id_last_user_update,
+            d.id_file,
+            d.id_validation,
+            d.id_document_type,
+            d.id_current_status,
+            d.id_document_error,
+            dt.name as document_type_name,
+            dt.id_process_type,
+            dt.id_sub_process,
+            dfs.name as current_status_description,
+            dfe.description as document_error_description,
+            u.name as last_user_update_name,
+            f.id as file_id,
+            f.description as file_description,
+            f.id_current_state as file_current_state,
+            fs.name as file_status_description,
+            fss.name as process_type_name,
+            sp.name as sub_process_name
         ');
 
         // JOINs para obtener las descripciones
-        $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
-        $builder->join('DocumentFile_Error dfe', 'dfe.Id = d.IdDocumentError', 'left');
-        $builder->join('user u', 'u.Id = d.IdLastUserUpdate', 'left');
-        $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
-        $builder->join('FileStatus fs', 'fs.Id = f.IdCurrentState', 'left');
-        // JOIN para obtener el tipo de proceso desde FileSubStatus
-        $builder->join('FileSubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
+        $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
+        $builder->join('document_file_status dfs', 'dfs.id = d.id_current_status', 'left');
+        $builder->join('document_file_error dfe', 'dfe.id = d.id_document_error', 'left');
+        $builder->join('user u', 'u.id = d.id_last_user_update', 'left');
+        $builder->join('expedient f', 'f.id = d.id_file', 'left');
+        $builder->join('file_status fs', 'fs.id = f.id_current_state', 'left');
+        // JOIN para obtener el tipo de proceso desde file_sub_status
+        $builder->join('file_sub_status fss', 'fss.id = dt.id_process_type', 'left');
         // JOIN para obtener el subproceso
-        $builder->join('process sp', 'sp.Id = dt.IdSubProcess', 'left');
+        $builder->join('process sp', 'sp.id = dt.id_sub_process', 'left');
 
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
-            $builder->where('d.Enabled', $filters['enabled']);
+            $builder->where('d.enabled', $filters['enabled']);
         }
 
         if (!empty($filters['document_type'])) {
-            $builder->where('d.IdDocumentType', $filters['document_type']);
+            $builder->where('d.id_document_type', $filters['document_type']);
         }
 
         if (!empty($filters['current_status'])) {
-            $builder->where('d.IdCurrentStatus', $filters['current_status']);
+            $builder->where('d.id_current_status', $filters['current_status']);
         }
 
         if (!empty($filters['file_id'])) {
-            $builder->where('d.IdFile', $filters['file_id']);
+            $builder->where('d.id_file', $filters['file_id']);
         }
 
         if (!empty($filters['process_type'])) {
-            $builder->where('dt.IdProcessType', $filters['process_type']);
+            $builder->where('dt.id_process_type', $filters['process_type']);
         }
 
         if (!empty($filters['sub_process'])) {
-            $builder->where('dt.IdSubProcess', $filters['sub_process']);
+            $builder->where('dt.id_sub_process', $filters['sub_process']);
         }
 
         if (!empty($filters['search'])) {
             $builder->groupStart();
-            $builder->like('d.Name', $filters['search']);
-            $builder->orLike('d.Comment', $filters['search']);
-            $builder->orLike('dt.Name', $filters['search']);
-            $builder->orLike('fss.Name', $filters['search']);
-            $builder->orLike('sp.Name', $filters['search']);
+            $builder->like('d.name', $filters['search']);
+            $builder->orLike('d.comment', $filters['search']);
+            $builder->orLike('dt.name', $filters['search']);
+            $builder->orLike('fss.name', $filters['search']);
+            $builder->orLike('sp.name', $filters['search']);
             $builder->groupEnd();
         }
 
-        // Ordenamiento
-        $sortBy = $filters['sort_by'] ?? 'RegistrationDate';
+        // Ordenamiento (mapear PascalCase a snake_case)
+        $sortBy = $filters['sort_by'] ?? 'registration_date';
         $sortOrder = $filters['sort_order'] ?? 'DESC';
+        
+        // Mapear campos de ordenamiento
+        $sortFieldMap = [
+            'Id' => 'id',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date',
+            'Name' => 'name',
+            'Enabled' => 'enabled'
+        ];
+        
+        if (isset($sortFieldMap[$sortBy])) {
+            $sortBy = $sortFieldMap[$sortBy];
+        }
+        
         $builder->orderBy("d.$sortBy", $sortOrder);
 
         // Paginación
@@ -169,34 +183,34 @@ class DocumentModel extends Model
     {
         $builder = $this->db->table('file_document d');
         
-        $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
-        $builder->join('FileSubStatus fss', 'fss.Id = dt.IdProcessType', 'left');
-        $builder->join('process sp', 'sp.Id = dt.IdSubProcess', 'left');
+        $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
+        $builder->join('expedient f', 'f.id = d.id_file', 'left');
+        $builder->join('file_sub_status fss', 'fss.id = dt.id_process_type', 'left');
+        $builder->join('process sp', 'sp.id = dt.id_sub_process', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
         if (!empty($filters['enabled'])) {
-            $builder->where('d.Enabled', $filters['enabled']);
+            $builder->where('d.enabled', $filters['enabled']);
         }
 
         if (!empty($filters['document_type'])) {
-            $builder->where('d.IdDocumentType', $filters['document_type']);
+            $builder->where('d.id_document_type', $filters['document_type']);
         }
 
         if (!empty($filters['current_status'])) {
-            $builder->where('d.IdCurrentStatus', $filters['current_status']);
+            $builder->where('d.id_current_status', $filters['current_status']);
         }
 
         if (!empty($filters['file_id'])) {
-            $builder->where('d.IdFile', $filters['file_id']);
+            $builder->where('d.id_file', $filters['file_id']);
         }
 
         if (!empty($filters['process_type'])) {
-            $builder->where('dt.IdProcessType', $filters['process_type']);
+            $builder->where('dt.id_process_type', $filters['process_type']);
         }
 
         if (!empty($filters['sub_process'])) {
-            $builder->where('dt.IdSubProcess', $filters['sub_process']);
+            $builder->where('dt.id_sub_process', $filters['sub_process']);
         }
 
         if (!empty($filters['search'])) {
@@ -245,12 +259,12 @@ class DocumentModel extends Model
             fs.Name as FileStatusDescription
         ');
 
-        $builder->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
-        $builder->join('DocumentFile_Error dfe', 'dfe.Id = d.IdDocumentError', 'left');
+        $builder->join('document_type dt', 'dt.Id = d.IdDocumentType', 'left');
+        $builder->join('document_file_status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+        $builder->join('document_file_error dfe', 'dfe.Id = d.IdDocumentError', 'left');
         $builder->join('user u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
-        $builder->join('FileStatus fs', 'fs.Id = f.IdCurrentState', 'left');
+        $builder->join('file_status fs', 'fs.Id = f.IdCurrentState', 'left');
         
         $builder->where('d.Id', $id);
 
@@ -295,100 +309,96 @@ class DocumentModel extends Model
         try {
             $builder = $this->builder();
             
-            // Aplicar filtros básicos
+            // Aplicar filtros básicos (snake_case)
             if (!empty($filters['start_date'])) {
-                $builder->where('RegistrationDate >=', $filters['start_date']);
+                $builder->where('registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('RegistrationDate <=', $filters['end_date']);
+                $builder->where('registration_date <=', $filters['end_date']);
             }
             if (!empty($filters['document_type_id'])) {
-                $builder->where('IdDocumentType', $filters['document_type_id']);
+                $builder->where('id_document_type', $filters['document_type_id']);
             }
             if (!empty($filters['user_id'])) {
-                $builder->where('IdLastUserUpdate', $filters['user_id']);
+                $builder->where('id_last_user_update', $filters['user_id']);
             }
-
-            // Por ahora, ignoramos el filtro de agencia hasta que confirmemos la estructura de la tabla
-            // TODO: Implementar filtro por agencia una vez que confirmemos la estructura de la tabla File
 
             $total = $builder->countAllResults(false);
             
-            // Resetear el builder para las siguientes consultas
             $builder = $this->builder();
             if (!empty($filters['start_date'])) {
-                $builder->where('RegistrationDate >=', $filters['start_date']);
+                $builder->where('registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('RegistrationDate <=', $filters['end_date']);
+                $builder->where('registration_date <=', $filters['end_date']);
             }
             if (!empty($filters['document_type_id'])) {
-                $builder->where('IdDocumentType', $filters['document_type_id']);
+                $builder->where('id_document_type', $filters['document_type_id']);
             }
             if (!empty($filters['user_id'])) {
-                $builder->where('IdLastUserUpdate', $filters['user_id']);
+                $builder->where('id_last_user_update', $filters['user_id']);
             }
             
-            $enabled = $builder->where('Enabled', 1)->countAllResults(false);
+            $enabled = $builder->where('enabled', 1)->countAllResults(false);
             
             $builder = $this->builder();
             if (!empty($filters['start_date'])) {
-                $builder->where('RegistrationDate >=', $filters['start_date']);
+                $builder->where('registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $builder->where('RegistrationDate <=', $filters['end_date']);
+                $builder->where('registration_date <=', $filters['end_date']);
             }
             if (!empty($filters['document_type_id'])) {
-                $builder->where('IdDocumentType', $filters['document_type_id']);
+                $builder->where('id_document_type', $filters['document_type_id']);
             }
             if (!empty($filters['user_id'])) {
-                $builder->where('IdLastUserUpdate', $filters['user_id']);
+                $builder->where('id_last_user_update', $filters['user_id']);
             }
             
-            $disabled = $builder->where('Enabled', 0)->countAllResults(false);
+            $disabled = $builder->where('enabled', 0)->countAllResults(false);
             
             // Estadísticas por tipo de documento
             $byTypeBuilder = $this->db->table('file_document d')
-                ->select('dt.Name as DocumentType, COUNT(*) as Count')
-                ->join('DocumentType dt', 'dt.Id = d.IdDocumentType', 'left');
+                ->select('dt.name as DocumentType, COUNT(*) as Count')
+                ->join('document_type dt', '`dt`.`id` = `d`.`id_document_type`', 'left', false);
                 
             if (!empty($filters['start_date'])) {
-                $byTypeBuilder->where('d.RegistrationDate >=', $filters['start_date']);
+                $byTypeBuilder->where('d.registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $byTypeBuilder->where('d.RegistrationDate <=', $filters['end_date']);
+                $byTypeBuilder->where('d.registration_date <=', $filters['end_date']);
             }
             if (!empty($filters['document_type_id'])) {
-                $byTypeBuilder->where('d.IdDocumentType', $filters['document_type_id']);
+                $byTypeBuilder->where('d.id_document_type', $filters['document_type_id']);
             }
             if (!empty($filters['user_id'])) {
-                $byTypeBuilder->where('d.IdLastUserUpdate', $filters['user_id']);
+                $byTypeBuilder->where('d.id_last_user_update', $filters['user_id']);
             }
             
-            $byType = $byTypeBuilder->groupBy('d.IdDocumentType, dt.Name')
+            $byType = $byTypeBuilder->groupBy('d.id_document_type, dt.name')
                 ->orderBy('Count', 'DESC')
                 ->get()
                 ->getResultArray();
 
-            // Estadísticas por estado
+            // Estadísticas por estado (snake_case)
             $byStatusBuilder = $this->db->table('file_document d')
-                ->select('dfs.Name as Status, COUNT(*) as Count')
-                ->join('DocumentFileStatus dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+                ->select('dfs.name as Status, COUNT(*) as Count')
+                ->join('document_file_status dfs', '`dfs`.`id` = `d`.`id_current_status`', 'left', false);
                 
             if (!empty($filters['start_date'])) {
-                $byStatusBuilder->where('d.RegistrationDate >=', $filters['start_date']);
+                $byStatusBuilder->where('d.registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $byStatusBuilder->where('d.RegistrationDate <=', $filters['end_date']);
+                $byStatusBuilder->where('d.registration_date <=', $filters['end_date']);
             }
             if (!empty($filters['document_type_id'])) {
-                $byStatusBuilder->where('d.IdDocumentType', $filters['document_type_id']);
+                $byStatusBuilder->where('d.id_document_type', $filters['document_type_id']);
             }
             if (!empty($filters['user_id'])) {
-                $byStatusBuilder->where('d.IdLastUserUpdate', $filters['user_id']);
+                $byStatusBuilder->where('d.id_last_user_update', $filters['user_id']);
             }
             
-            $byStatus = $byStatusBuilder->groupBy('d.IdCurrentStatus, dfs.Name')
+            $byStatus = $byStatusBuilder->groupBy('d.id_current_status, dfs.name')
                 ->orderBy('Count', 'DESC')
                 ->get()
                 ->getResultArray();

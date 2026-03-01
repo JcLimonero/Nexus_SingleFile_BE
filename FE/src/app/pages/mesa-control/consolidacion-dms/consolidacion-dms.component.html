@@ -35,10 +35,10 @@
               </div>
               <div *ngFor="let agencia of agenciasFiltradas" class="px-3 py-1">
                 <mat-checkbox
-                  [checked]="isAgencySelected(agencia.Id)"
-                  (change)="toggleAgency(agencia.Id, $event.checked)"
+                  [checked]="isAgencySelected(agencia.id)"
+                  (change)="toggleAgency(agencia.id, $event.checked)"
                   (click)="$event.stopPropagation()">
-                  {{ agencia.Name }}
+                  {{ agencia.name }}
                 </mat-checkbox>
               </div>
             </div>

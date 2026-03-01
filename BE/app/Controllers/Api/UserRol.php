@@ -6,7 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\UserRolModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class user_role extends BaseController
+class UserRol extends BaseController
 {
     protected $userRolModel;
 
@@ -25,7 +25,7 @@ class user_role extends BaseController
             $limit = $this->request->getGet('limit') ?? null;
             $enabled = $this->request->getGet('enabled');
             $search = $this->request->getGet('search');
-            $sortBy = $this->request->getGet('sort_by') ?? 'Name';
+            $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
             // Si no se especifica límite o es 0, obtener todos los registros
@@ -42,15 +42,15 @@ class user_role extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('user_role ur');
             
-            $builder->select('ur.Id, ur.Name, ur.Enabled, ur.RegistrationDate, ur.UpdateDate');
+            $builder->select('ur.id, ur.name, ur.enabled, ur.registration_date, ur.update_date');
 
             // Aplicar filtros
             if ($enabled !== null && $enabled !== '') {
-                $builder->where('ur.Enabled', $enabled);
+                $builder->where('ur.enabled', $enabled);
             }
 
             if ($search) {
-                $builder->like('ur.Name', $search);
+                $builder->like('ur.name', $search);
             }
 
             // Aplicar ordenamiento
@@ -107,7 +107,7 @@ class user_role extends BaseController
             }
 
             // Verificar si el nombre ya existe
-            $existingRole = $this->userRolModel->where('Name', $data['Name'])->first();
+            $existingRole = $this->userRolModel->where('name', $data['Name'] ?? $data['name'] ?? '')->first();
             if ($existingRole) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -115,12 +115,13 @@ class user_role extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $data['Enabled'] = $data['Enabled'] ?? 1;
-            $data['RegistrationDate'] = date('Y-m-d H:i:s');
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
-
-            // Insertar rol
-            $roleId = $this->userRolModel->insert($data);
+            $insertData = [
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'enabled' => $data['Enabled'] ?? $data['enabled'] ?? 1,
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s')
+            ];
+            $roleId = $this->userRolModel->insert($insertData);
 
             if ($roleId) {
                 return $this->response->setJSON([
@@ -206,8 +207,10 @@ class user_role extends BaseController
             }
 
             // Verificar nombre único (si se está cambiando)
-            if (isset($data['Name']) && $data['Name'] !== $existingRole['Name']) {
-                $duplicateRole = $this->userRolModel->where('Name', $data['Name'])->where('Id !=', $id)->first();
+            $newName = $data['Name'] ?? $data['name'] ?? null;
+            $existingName = $existingRole['name'] ?? $existingRole['Name'] ?? null;
+            if ($newName !== null && $newName !== $existingName) {
+                $duplicateRole = $this->userRolModel->where('name', $newName)->where('id !=', $id)->first();
                 if ($duplicateRole) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -216,10 +219,16 @@ class user_role extends BaseController
                 }
             }
 
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
+            $updateData = [];
+            if (isset($data['Name']) || isset($data['name'])) {
+                $updateData['name'] = trim($data['Name'] ?? $data['name'] ?? '');
+            }
+            if (isset($data['Enabled']) || isset($data['enabled'])) {
+                $updateData['enabled'] = (int)($data['Enabled'] ?? $data['enabled'] ?? 1);
+            }
+            $updateData['update_date'] = date('Y-m-d H:i:s');
 
-            // Actualizar rol
-            $updated = $this->userRolModel->update($id, $data);
+            $updated = $this->userRolModel->update($id, $updateData);
 
             if ($updated) {
                 return $this->response->setJSON([
@@ -319,10 +328,11 @@ class user_role extends BaseController
             }
 
             // Cambiar estado
-            $newStatus = $existingRole['Enabled'] == 1 ? 0 : 1;
+            $currentEnabled = $existingRole['enabled'] ?? $existingRole['Enabled'] ?? 0;
+            $newStatus = $currentEnabled == 1 ? 0 : 1;
             $updated = $this->userRolModel->update($id, [
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s')
             ]);
 
             if ($updated) {
@@ -363,8 +373,8 @@ class user_role extends BaseController
             }
 
             $roles = $this->userRolModel
-                ->like('Name', $query)
-                ->orderBy('Name', 'ASC')
+                ->like('name', $query)
+                ->orderBy('name', 'ASC')
                 ->findAll();
 
             return $this->response->setJSON([
@@ -393,17 +403,17 @@ class user_role extends BaseController
     {
         try {
             $totalRoles = $this->userRolModel->countAllResults();
-            $activeRoles = $this->userRolModel->where('Enabled', 1)->countAllResults();
-            $inactiveRoles = $this->userRolModel->where('Enabled', 0)->countAllResults();
+            $activeRoles = $this->userRolModel->where('enabled', 1)->countAllResults();
+            $inactiveRoles = $this->userRolModel->where('enabled', 0)->countAllResults();
 
             // Contar usuarios por rol
             $db = \Config\Database::connect();
             $rolesWithUserCount = $db->query("
-                SELECT ur.Id, ur.Name, ur.Enabled, COUNT(u.Id) as UserCount
+                SELECT ur.id, ur.name, ur.enabled, COUNT(u.id) as UserCount
                 FROM user_role ur
-                LEFT JOIN user u ON u.IdUserRol = ur.Id
-                GROUP BY ur.Id, ur.Name, ur.Enabled
-                ORDER BY UserCount DESC, ur.Name ASC
+                LEFT JOIN user u ON u.id_user_rol = ur.id
+                GROUP BY ur.id, ur.name, ur.enabled
+                ORDER BY UserCount DESC, ur.name ASC
             ")->getResultArray();
 
             return $this->response->setJSON([

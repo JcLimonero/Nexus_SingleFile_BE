@@ -84,26 +84,26 @@ class ReportesCumplimiento extends BaseController
                     aml.idCompany,
                     aml.anio
                 FROM client c
-                INNER JOIN client_header hc ON hc.IdClient = c.Id
-                INNER JOIN client_dms_relation ctr ON hc.Id = ctr.idClientHeader
-                INNER JOIN agency a_ag ON a_ag.Id = ctr.IdAgency
-                INNER JOIN {$vistaAML} aml ON aml.idCliente = c.Id AND aml.anio = ? AND aml.totalMonto >= ?
-                INNER JOIN expedient f ON f.IdClient = c.Id AND f.IdAgency = ctr.IdAgency
+                INNER JOIN client_header hc ON hc.id_client = c.id
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                INNER JOIN agency a_ag ON a_ag.id = ctr.id_agency
+                INNER JOIN {$vistaAML} aml ON aml.idCliente = c.id AND aml.anio = ? AND aml.totalMonto >= ?
+                INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
                 WHERE 1=1
             ";
             $params = [$anioActual, $umbral];
 
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
-                $sql .= " AND ctr.IdAgency IN ($placeholders)";
+                $sql .= " AND ctr.id_agency IN ($placeholders)";
                 $params = array_merge($params, $idAgencyIds);
             }
             if ($idCompany !== null && $idCompany !== '') {
-                $sql .= " AND a_ag.IdCompany = ?";
+                $sql .= " AND a_ag.id_company = ?";
                 $params[] = (int) $idCompany;
             }
 
-            $sql .= " GROUP BY c.Id, aml.totalMonto, aml.idCompany, aml.anio ORDER BY aml.totalMonto DESC";
+            $sql .= " GROUP BY c.id, aml.totalMonto, aml.idCompany, aml.anio ORDER BY aml.totalMonto DESC";
 
             $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
             $countQuery = $this->db->query($countSql, $params);
@@ -162,33 +162,33 @@ class ReportesCumplimiento extends BaseController
                     co.Id as idCompany,
                     COALESCE(NULLIF(TRIM(co.Name), ''), 'Sin razón social') as razonSocial,
                     a.Id as idAgency,
-                    a.Name as nombreAgencia,
-                    f.IdCurrentState as idEstado,
-                    fs.Name as nombreEstado,
+                    a.name as nombreAgencia,
+                    f.id_current_state as idEstado,
+                    fs.name as nombreEstado,
                     COUNT(*) as total
                 FROM expedient f
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                LEFT JOIN company co ON a.IdCompany = co.Id
-                LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
-                WHERE YEAR(f.RegistrationDate) = ?
+                INNER JOIN agency a ON f.id_agency = a.id
+                LEFT JOIN company co ON a.id_company = co.id
+                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                WHERE YEAR(f.registration_date) = ?
             ";
             $params = [$anio];
 
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
-                $sql .= " AND f.IdAgency IN ($placeholders)";
+                $sql .= " AND f.id_agency IN ($placeholders)";
                 $params = array_merge($params, $idAgencyIds);
             }
             if ($idCompany !== null && $idCompany !== '') {
-                $sql .= " AND a.IdCompany = ?";
+                $sql .= " AND a.id_company = ?";
                 $params[] = (int) $idCompany;
             }
             if ($mes !== null && $mes !== '') {
-                $sql .= " AND MONTH(f.RegistrationDate) = ?";
+                $sql .= " AND MONTH(f.registration_date) = ?";
                 $params[] = (int) $mes;
             }
 
-            $sql .= " GROUP BY co.Id, co.Name, a.Id, a.Name, f.IdCurrentState, fs.Name ORDER BY razonSocial, a.Name, f.IdCurrentState";
+            $sql .= " GROUP BY co.id, co.name, a.id, a.name, f.id_current_state, fs.name ORDER BY razonSocial, a.name, f.id_current_state";
 
             $query = $this->db->query($sql, $params);
             $rows = $query->getResultArray();
@@ -257,30 +257,30 @@ class ReportesCumplimiento extends BaseController
                     COALESCE(NULLIF(TRIM(co.Name), ''), 'Sin razón social') as razonSocial,
                     a.Id as idAgency,
                     a.Name as nombreAgencia,
-                    dbf.IdCurrentStatus as idEstatus,
-                    dfs.Name as nombreEstatus,
+                    dbf.id_current_status as idEstatus,
+                    dfs.name as nombreEstatus,
                     COUNT(*) as total
                 FROM file_document dbf
-                INNER JOIN expedient f ON dbf.IdFile = f.Id
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                LEFT JOIN company co ON a.IdCompany = co.Id
-                LEFT JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id
-                WHERE dbf.IdCurrentStatus IN (1, 2, 3)
-                AND f.IdCurrentState NOT IN (5)
+                INNER JOIN expedient f ON dbf.id_file = f.id
+                INNER JOIN agency a ON f.id_agency = a.id
+                LEFT JOIN company co ON a.id_company = co.id
+                LEFT JOIN document_file_status dfs ON dbf.id_current_status = dfs.id
+                WHERE dbf.id_current_status IN (1, 2, 3)
+                AND f.id_current_state NOT IN (5)
             ";
             $params = [];
 
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
-                $sql .= " AND f.IdAgency IN ($placeholders)";
+                $sql .= " AND f.id_agency IN ($placeholders)";
                 $params = array_merge($params, $idAgencyIds);
             }
             if ($idCompany !== null && $idCompany !== '') {
-                $sql .= " AND a.IdCompany = ?";
+                $sql .= " AND a.id_company = ?";
                 $params[] = (int) $idCompany;
             }
 
-            $sql .= " GROUP BY co.Id, co.Name, a.Id, a.Name, dbf.IdCurrentStatus, dfs.Name ORDER BY razonSocial, a.Name, dbf.IdCurrentStatus";
+            $sql .= " GROUP BY co.id, co.name, a.id, a.name, dbf.id_current_status, dfs.name ORDER BY razonSocial, a.name, dbf.id_current_status";
 
             $query = $this->db->query($sql, $params);
             $rows = $query->getResultArray();
@@ -352,36 +352,36 @@ class ReportesCumplimiento extends BaseController
                         TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
                     ) as cliente,
                     ct.Name as tipoCliente,
-                    a.Name as agencia,
-                    p.Name as proceso,
-                    fs.Name as fase,
-                    f.RegistrationDate as registro
+                    a.name as agencia,
+                    p.name as proceso,
+                    fs.name as fase,
+                    f.registration_date as registro
                 FROM expedient f
-                INNER JOIN client c ON f.IdClient = c.Id
-                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                WHERE f.IdCustomerType = 3
-                AND f.IdCurrentState NOT IN (5)
-                AND YEAR(f.RegistrationDate) = ?
+                INNER JOIN client c ON f.id_client = c.id
+                LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
+                INNER JOIN agency a ON f.id_agency = a.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                WHERE f.id_customer_type = 3
+                AND f.id_current_state NOT IN (5)
+                AND YEAR(f.registration_date) = ?
                 AND NOT EXISTS (
-                    SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.IdFile = f.Id
+                    SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.id_file = f.id
                 )
             ";
             $params = [$anio];
 
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
-                $sql .= " AND f.IdAgency IN ($placeholders)";
+                $sql .= " AND f.id_agency IN ($placeholders)";
                 $params = array_merge($params, $idAgencyIds);
             }
             if ($idCompany !== null && $idCompany !== '') {
-                $sql .= " AND a.IdCompany = ?";
+                $sql .= " AND a.id_company = ?";
                 $params[] = (int) $idCompany;
             }
 
-            $sql .= " ORDER BY f.RegistrationDate DESC";
+            $sql .= " ORDER BY f.registration_date DESC";
 
             $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
             $countQuery = $this->db->query($countSql, $params);
@@ -440,46 +440,46 @@ class ReportesCumplimiento extends BaseController
 
             $sql = "
                 SELECT
-                    f.Id as idFile,
-                    f.IdOrderTotal as ndPedido,
-                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
-                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    f.id as idFile,
+                    f.id_order_total as ndPedido,
+                    COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                        TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
-                    ct.Name as tipoCliente,
-                    a.Name as agencia,
-                    p.Name as proceso,
-                    fs.Name as fase,
-                    f.RegistrationDate as registro
+                    ct.name as tipoCliente,
+                    a.name as agencia,
+                    p.name as proceso,
+                    fs.name as fase,
+                    f.registration_date as registro
                 FROM expedient f
-                INNER JOIN client c ON f.IdClient = c.Id
-                LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                WHERE f.IdCurrentState NOT IN (5)
+                INNER JOIN client c ON f.id_client = c.id
+                LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
+                INNER JOIN agency a ON f.id_agency = a.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                WHERE f.id_current_state NOT IN (5)
                 AND NOT EXISTS (
                     SELECT 1 FROM file_pld fp
-                    WHERE fp.IdFile = f.Id AND fp.AvisoPrivacidadEntregado = 1
+                    WHERE fp.id_file = f.id AND fp.AvisoPrivacidadEntregado = 1
                 )
             ";
             $params = [];
 
             if ($anio > 0) {
-                $sql .= " AND YEAR(f.RegistrationDate) = ?";
+                $sql .= " AND YEAR(f.registration_date) = ?";
                 $params[] = $anio;
             }
 
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
-                $sql .= " AND f.IdAgency IN ($placeholders)";
+                $sql .= " AND f.id_agency IN ($placeholders)";
                 $params = array_merge($params, $idAgencyIds);
             }
             if ($idCompany !== null && $idCompany !== '') {
-                $sql .= " AND a.IdCompany = ?";
+                $sql .= " AND a.id_company = ?";
                 $params[] = (int) $idCompany;
             }
 
-            $sql .= " ORDER BY f.RegistrationDate DESC";
+            $sql .= " ORDER BY f.registration_date DESC";
 
             try {
                 $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
@@ -496,35 +496,35 @@ class ReportesCumplimiento extends BaseController
                 if (strpos($sub->getMessage(), "doesn't exist") !== false || strpos($sub->getMessage(), 'exist') !== false) {
                     $sqlFallback = "
                         SELECT
-                            f.Id as idFile,
-                            f.IdOrderTotal as ndPedido,
-                            COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
-                                TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                            f.id as idFile,
+                            f.id_order_total as ndPedido,
+                            COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                                TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                             ) as cliente,
-                            ct.Name as tipoCliente,
-                            a.Name as agencia,
-                            p.Name as proceso,
-                            fs.Name as fase,
-                            f.RegistrationDate as registro
+                            ct.name as tipoCliente,
+                            a.name as agencia,
+                            p.name as proceso,
+                            fs.name as fase,
+                            f.registration_date as registro
                         FROM expedient f
-                        INNER JOIN client c ON f.IdClient = c.Id
-                        LEFT JOIN customer_type ct ON f.IdCustomerType = ct.Id
-                        INNER JOIN agency a ON f.IdAgency = a.Id
-                        INNER JOIN process p ON f.IdProcess = p.Id
-                        INNER JOIN file_status fs ON f.IdCurrentState = fs.Id
-                        WHERE f.IdCurrentState NOT IN (5)
+                        INNER JOIN client c ON f.id_client = c.id
+                        LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
+                        INNER JOIN agency a ON f.id_agency = a.id
+                        INNER JOIN process p ON f.id_process = p.id
+                        INNER JOIN file_status fs ON f.id_current_state = fs.id
+                        WHERE f.id_current_state NOT IN (5)
                     ";
                     $paramsFallback = [];
                     if ($anio > 0) {
-                        $sqlFallback .= " AND YEAR(f.RegistrationDate) = ?";
+                        $sqlFallback .= " AND YEAR(f.registration_date) = ?";
                         $paramsFallback[] = $anio;
                     }
                     if (!empty($idAgencyIds)) {
                         $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
-                        $sqlFallback .= " AND f.IdAgency IN ($placeholders)";
+                        $sqlFallback .= " AND f.id_agency IN ($placeholders)";
                         $paramsFallback = array_merge($paramsFallback, $idAgencyIds);
                     }
-                    $sqlFallback .= " ORDER BY f.RegistrationDate DESC";
+                    $sqlFallback .= " ORDER BY f.registration_date DESC";
 
                     $countSqlFallback = "SELECT COUNT(*) as total FROM ($sqlFallback) AS sub";
                     $countQueryFallback = $this->db->query($countSqlFallback, $paramsFallback);
@@ -600,10 +600,10 @@ class ReportesCumplimiento extends BaseController
             $clientesAlertaAml = (int) ($qAml->getRow()->total ?? 0);
 
             // Total de expedientes activos (no cancelados) en el año
-            $sqlFiles = "SELECT COUNT(*) as total FROM expedient f INNER JOIN agency a ON f.IdAgency = a.Id WHERE YEAR(f.RegistrationDate) = ? AND f.IdCurrentState != 5";
+            $sqlFiles = "SELECT COUNT(*) as total FROM expedient f INNER JOIN agency a ON f.id_agency = a.id WHERE YEAR(f.registration_date) = ? AND f.id_current_state != 5";
             $paramsFiles = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
-                $sqlFiles .= " AND a.IdCompany = ?";
+                $sqlFiles .= " AND a.id_company = ?";
                 $paramsFiles[] = (int) $idCompany;
             }
             $qFiles = $this->db->query($sqlFiles, $paramsFiles);
@@ -612,13 +612,13 @@ class ReportesCumplimiento extends BaseController
             // Documentos pendientes de validación
             $sqlDoc = "
                 SELECT COUNT(*) as total FROM file_document dbf
-                INNER JOIN expedient f ON dbf.IdFile = f.Id
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                WHERE dbf.IdCurrentStatus IN (1, 2, 3) AND f.IdCurrentState NOT IN (5)
+                INNER JOIN expedient f ON dbf.id_file = f.id
+                INNER JOIN agency a ON f.id_agency = a.id
+                WHERE dbf.id_current_status IN (1, 2, 3) AND f.id_current_state NOT IN (5)
             ";
             $paramsDoc = [];
             if ($idCompany !== null && $idCompany !== '') {
-                $sqlDoc .= " AND a.IdCompany = ?";
+                $sqlDoc .= " AND a.id_company = ?";
                 $paramsDoc[] = (int) $idCompany;
             }
             $qDoc = $this->db->query($sqlDoc, $paramsDoc);
@@ -627,14 +627,14 @@ class ReportesCumplimiento extends BaseController
             // Expedientes persona moral sin beneficiarios (año actual)
             $sqlBenef = "
                 SELECT COUNT(*) as total FROM expedient f
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                WHERE f.IdCustomerType = 3 AND f.IdCurrentState NOT IN (5)
-                AND YEAR(f.RegistrationDate) = ?
-                AND NOT EXISTS (SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.IdFile = f.Id)
+                INNER JOIN agency a ON f.id_agency = a.id
+                WHERE f.id_customer_type = 3 AND f.id_current_state NOT IN (5)
+                AND YEAR(f.registration_date) = ?
+                AND NOT EXISTS (SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.id_file = f.id)
             ";
             $paramsBenef = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
-                $sqlBenef .= " AND a.IdCompany = ?";
+                $sqlBenef .= " AND a.id_company = ?";
                 $paramsBenef[] = (int) $idCompany;
             }
             $qBenef = $this->db->query($sqlBenef, $paramsBenef);
@@ -643,13 +643,13 @@ class ReportesCumplimiento extends BaseController
             // Expedientes sin aviso de privacidad aceptado (año actual)
             $sqlAviso = "
                 SELECT COUNT(*) as total FROM expedient f
-                INNER JOIN agency a ON f.IdAgency = a.Id
-                WHERE f.IdCurrentState NOT IN (5) AND YEAR(f.RegistrationDate) = ?
-                AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.IdFile = f.Id AND fp.AvisoPrivacidadEntregado = 1)
+                INNER JOIN agency a ON f.id_agency = a.id
+                WHERE f.id_current_state NOT IN (5) AND YEAR(f.registration_date) = ?
+                AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.id_file = f.id AND fp.AvisoPrivacidadEntregado = 1)
             ";
             $paramsAviso = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
-                $sqlAviso .= " AND a.IdCompany = ?";
+                $sqlAviso .= " AND a.id_company = ?";
                 $paramsAviso[] = (int) $idCompany;
             }
             $qAviso = $this->db->query($sqlAviso, $paramsAviso);

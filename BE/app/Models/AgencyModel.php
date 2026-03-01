@@ -7,14 +7,14 @@ use CodeIgniter\Model;
 class AgencyModel extends Model
 {
     protected $table = 'agency';
-    protected $primaryKey = 'Id';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = false;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'Id', 'Name', 'IdCompany', 'RegistrationDate', 'UpdateDate', 
-        'IdLastUserUpdate', 'Enabled', 'IdAgencyDMS'
+        'id', 'name', 'id_company', 'registration_date', 'update_date', 
+        'id_last_user_update', 'enabled', 'id_agency_dms', 'agency_connection'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -26,29 +26,29 @@ class AgencyModel extends Model
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat = 'datetime';
-    protected $createdField = 'RegistrationDate';
-    protected $updatedField = 'UpdateDate';
+    protected $createdField = 'registration_date';
+    protected $updatedField = 'update_date';
     protected $deletedField = 'deleted_at';
 
     // Validation
     protected $validationRules = [
-        'Name' => 'required|min_length[3]|max_length[600]',
-        'IdCompany' => 'permit_empty|integer',
-        'IdAgencyDMS' => 'permit_empty|max_length[50]',
-        'Enabled' => 'permit_empty|in_list[0,1]'
+        'name' => 'required|min_length[3]|max_length[600]',
+        'id_company' => 'permit_empty|integer',
+        'id_agency_dms' => 'permit_empty|max_length[50]',
+        'enabled' => 'permit_empty|in_list[0,1]'
     ];
     
     protected $validationMessages = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre de la agencia es requerido',
             'min_length' => 'El nombre debe tener al menos 3 caracteres',
             'max_length' => 'El nombre no puede exceder 600 caracteres'
         ],
 
-        'IdAgencyDMS' => [
-            'max_length' => 'El IdAgencyDMS no puede exceder 50 caracteres'
+        'id_agency_dms' => [
+            'max_length' => 'El id_agency_dms no puede exceder 50 caracteres'
         ],
-        'Enabled' => [
+        'enabled' => [
             'in_list' => 'El estado debe ser 0 o 1'
         ]
     ];
@@ -72,8 +72,12 @@ class AgencyModel extends Model
      */
     protected function generateId(array $data)
     {
-        if (empty($data['data']['Id'])) {
-            $data['data']['Id'] = $this->getNextId();
+        if (empty($data['data']['id']) && empty($data['data']['Id'])) {
+            $data['data']['id'] = $this->getNextId();
+        } elseif (!empty($data['data']['Id']) && empty($data['data']['id'])) {
+            // Compatibilidad: si viene Id, convertir a id
+            $data['data']['id'] = $data['data']['Id'];
+            unset($data['data']['Id']);
         }
         return $data;
     }
@@ -83,8 +87,14 @@ class AgencyModel extends Model
      */
     protected function setTimestamps(array $data)
     {
-        $data['data']['RegistrationDate'] = date('Y-m-d H:i:s');
-        $data['data']['UpdateDate'] = date('Y-m-d H:i:s');
+        $currentTime = date('Y-m-d H:i:s');
+        // Compatibilidad con ambos formatos
+        if (!isset($data['data']['registration_date']) && !isset($data['data']['RegistrationDate'])) {
+            $data['data']['registration_date'] = $currentTime;
+        }
+        if (!isset($data['data']['update_date']) && !isset($data['data']['UpdateDate'])) {
+            $data['data']['update_date'] = $currentTime;
+        }
         return $data;
     }
 
@@ -93,16 +103,12 @@ class AgencyModel extends Model
      */
     protected function setUpdateTimestamp(array $data)
     {
-        $data['data']['UpdateDate'] = date('Y-m-d H:i:s');
+        $currentTime = date('Y-m-d H:i:s');
+        // Compatibilidad con ambos formatos
+        if (!isset($data['data']['update_date']) && !isset($data['data']['UpdateDate'])) {
+            $data['data']['update_date'] = $currentTime;
+        }
         return $data;
-    }
-
-    /**
-     * Mapear campo de ordenamiento (CompanyName -> company.name)
-     */
-    private function getOrderByField($sortBy)
-    {
-        return $sortBy === 'companyName' ? 'company.name' : "agency.{$sortBy}";
     }
 
     /**
@@ -110,7 +116,7 @@ class AgencyModel extends Model
      */
     private function getNextId()
     {
-        $result = $this->select('MAX(Id) as max_id')->first();
+        $result = $this->select('MAX(id) as max_id')->first();
         return ($result['max_id'] ?? 0) + 1;
     }
 
@@ -119,8 +125,16 @@ class AgencyModel extends Model
      */
     public function getAllEnabledAgencies($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', 1)
-                    ->orderBy($sortBy, $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->where('enabled', 1)
+                    ->orderBy($sortField, $sortOrder)
                     ->findAll();
     }
 
@@ -129,11 +143,19 @@ class AgencyModel extends Model
      */
     public function getAllEnabledAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-            return $this->select('agency.*, u.Name as LastUserUpdateName, company.name as CompanyName')
-                    ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                    ->join('company', 'agency.IdCompany = company.Id', 'left')
-                    ->where('agency.Enabled', 1)
-                    ->orderBy($this->getOrderByField($sortBy), $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+                    ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                    ->join('company', 'agency.id_company = company.id', 'left')
+                    ->where('agency.enabled', 1)
+                    ->orderBy($sortField === 'companyName' ? 'company.name' : "agency.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -142,8 +164,16 @@ class AgencyModel extends Model
      */
     public function getAllDisabledAgencies($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', 0)
-                    ->orderBy($sortBy, $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->where('enabled', 0)
+                    ->orderBy($sortField, $sortOrder)
                     ->findAll();
     }
 
@@ -152,11 +182,19 @@ class AgencyModel extends Model
      */
     public function getAllDisabledAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-            return $this->select('agency.*, u.Name as LastUserUpdateName, company.name as CompanyName')
-                    ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                    ->join('company', 'agency.IdCompany = company.Id', 'left')
-                    ->where('agency.Enabled', 0)
-                    ->orderBy($this->getOrderByField($sortBy), $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+                    ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                    ->join('company', 'agency.id_company = company.id', 'left')
+                    ->where('agency.enabled', 0)
+                    ->orderBy($sortField === 'companyName' ? 'company.name' : "agency.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -165,7 +203,15 @@ class AgencyModel extends Model
      */
     public function getAllAgencies($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->orderBy($sortBy, $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->orderBy($sortField, $sortOrder)
                     ->findAll();
     }
 
@@ -174,10 +220,18 @@ class AgencyModel extends Model
      */
     public function getAllAgenciesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-            return $this->select('agency.*, u.Name as LastUserUpdateName, company.name as CompanyName')
-                    ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                    ->join('company', 'agency.IdCompany = company.Id', 'left')
-                    ->orderBy($this->getOrderByField($sortBy), $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+                    ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                    ->join('company', 'agency.id_company = company.id', 'left')
+                    ->orderBy($sortField === 'companyName' ? 'company.name' : "agency.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -194,10 +248,10 @@ class AgencyModel extends Model
      */
     public function getAgencyByIdWithUser($id)
     {
-            return $this->select('agency.*, u.Name as LastUserUpdateName, company.name as CompanyName')
-                    ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                    ->join('company', 'agency.IdCompany = company.Id', 'left')
-                    ->where('agency.Id', $id)
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+                    ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                    ->join('company', 'agency.id_company = company.id', 'left')
+                    ->where('agency.id', $id)
                     ->first();
     }
 
@@ -206,13 +260,21 @@ class AgencyModel extends Model
      */
     public function getAgenciesByName($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->like('Name', $name);
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        $query = $this->like('name', $name);
         
         if ($enabledOnly) {
-            $query->where('Enabled', 1);
+            $query->where('enabled', 1);
         }
         
-        return $query->orderBy($sortBy, $sortOrder)->findAll();
+        return $query->orderBy($sortField, $sortOrder)->findAll();
     }
 
     /**
@@ -220,17 +282,24 @@ class AgencyModel extends Model
      */
     public function getAgenciesByNameWithUser($name, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->select('agency.*, u.Name as LastUserUpdateName, company.name as CompanyName')
-                      ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                      ->join('company', 'agency.IdCompany = company.Id', 'left')
-                      ->join('company', 'agency.IdCompany = company.Id', 'left')
-                      ->like('agency.Name', $name);
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        $query = $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+                      ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                      ->join('company', 'agency.id_company = company.id', 'left')
+                      ->like('agency.name', $name);
         
         if ($enabledOnly) {
-            $query->where('agency.Enabled', 1);
+            $query->where('agency.enabled', 1);
         }
         
-        return $query->orderBy($this->getOrderByField($sortBy), $sortOrder)->findAll();
+        return $query->orderBy($sortField === 'companyName' ? 'company.name' : "agency.{$sortField}", $sortOrder)->findAll();
     }
 
     /**
@@ -238,13 +307,21 @@ class AgencyModel extends Model
      */
     public function getAgenciesByRegion($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->where('IdAgencyDMS', $region);
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        $query = $this->where('id_agency_dms', $region);
         
         if ($enabledOnly) {
-            $query->where('Enabled', 1);
+            $query->where('enabled', 1);
         }
         
-        return $query->orderBy($sortBy, $sortOrder)->findAll();
+        return $query->orderBy($sortField, $sortOrder)->findAll();
     }
 
     /**
@@ -252,17 +329,24 @@ class AgencyModel extends Model
      */
     public function getAgenciesByRegionWithUser($region, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->select('agency.*, u.Name as LastUserUpdateName, company.name as CompanyName')
-                      ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                      ->join('company', 'agency.IdCompany = company.Id', 'left')
-                      ->join('company', 'agency.IdCompany = company.Id', 'left')
-                      ->where('agency.IdAgencyDMS', $region);
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        $query = $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+                      ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                      ->join('company', 'agency.id_company = company.id', 'left')
+                      ->where('agency.id_agency_dms', $region);
         
         if ($enabledOnly) {
-            $query->where('agency.Enabled', 1);
+            $query->where('agency.enabled', 1);
         }
         
-        return $query->orderBy($this->getOrderByField($sortBy), $sortOrder)->findAll();
+        return $query->orderBy($sortField === 'companyName' ? 'company.name' : "agency.{$sortField}", $sortOrder)->findAll();
     }
 
     /**
@@ -270,7 +354,7 @@ class AgencyModel extends Model
      */
     public function countEnabledAgencies()
     {
-        return $this->where('Enabled', 1)->countAllResults();
+        return $this->where('enabled', 1)->countAllResults();
     }
 
     /**
@@ -278,7 +362,7 @@ class AgencyModel extends Model
      */
     public function countDisabledAgencies()
     {
-        return $this->where('Enabled', 0)->countAllResults();
+        return $this->where('enabled', 0)->countAllResults();
     }
 
     /**
@@ -294,10 +378,10 @@ class AgencyModel extends Model
      */
     public function isNameDuplicate($name, $excludeId = null)
     {
-        $query = $this->where('Name', $name);
+        $query = $this->where('name', $name);
         
         if ($excludeId) {
-            $query->where('Id !=', $excludeId);
+            $query->where('id !=', $excludeId);
         }
         
         return $query->countAllResults() > 0;
@@ -312,25 +396,33 @@ class AgencyModel extends Model
         
         // Aplicar filtros
         if (!empty($filters['name'])) {
-            $query->like('Name', $filters['name']);
+            $query->like('name', $filters['name']);
         }
         
         // Filtro por región deshabilitado - columna SubFix removida
         
         if (isset($filters['enabled'])) {
-            $query->where('Enabled', $filters['enabled']);
+            $query->where('enabled', $filters['enabled']);
         }
         
         if (!empty($filters['date_from'])) {
-            $query->where('RegistrationDate >=', $filters['date_from']);
+            $query->where('registration_date >=', $filters['date_from']);
         }
         
         if (!empty($filters['date_to'])) {
-            $query->where('RegistrationDate <=', $filters['date_to']);
+            $query->where('registration_date <=', $filters['date_to']);
         }
         
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
         // Aplicar ordenamiento
-        $query->orderBy($sortBy, $sortOrder);
+        $query->orderBy($sortField, $sortOrder);
         
         // Aplicar paginación
         if ($limit) {
@@ -345,9 +437,17 @@ class AgencyModel extends Model
      */
     public function getAgenciesWithUserInfo($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('agency.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'agency.IdLastUserUpdate = u.Id', 'left')
-                    ->orderBy($sortBy, $sortOrder)
+        // Mapear campos a snake_case
+        $sortFieldMap = [
+            'Name' => 'name',
+            'RegistrationDate' => 'registration_date',
+            'UpdateDate' => 'update_date'
+        ];
+        $sortField = $sortFieldMap[$sortBy] ?? 'name';
+        
+        return $this->select('agency.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'agency.id_last_user_update = u.id', 'left')
+                    ->orderBy("agency.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -365,7 +465,7 @@ class AgencyModel extends Model
      */
     public function getRecentAgencies($limit = 10)
     {
-        return $this->orderBy('RegistrationDate', 'DESC')
+        return $this->orderBy('registration_date', 'DESC')
                     ->limit($limit)
                     ->findAll();
     }
@@ -375,7 +475,7 @@ class AgencyModel extends Model
      */
     public function getRecentlyUpdatedAgencies($limit = 10)
     {
-        return $this->orderBy('UpdateDate', 'DESC')
+        return $this->orderBy('update_date', 'DESC')
                     ->limit($limit)
                     ->findAll();
     }
@@ -386,8 +486,8 @@ class AgencyModel extends Model
     public function toggleAgencyStatus($id, $status)
     {
         return $this->update($id, [
-            'Enabled' => $status,
-            'UpdateDate' => date('Y-m-d H:i:s')
+            'enabled' => $status,
+            'update_date' => date('Y-m-d H:i:s')
         ]);
     }
 
@@ -400,7 +500,7 @@ class AgencyModel extends Model
             return [];
         }
         
-        return $this->whereIn('Id', $ids)->findAll();
+        return $this->whereIn('id', $ids)->findAll();
     }
 
     /**
@@ -408,8 +508,8 @@ class AgencyModel extends Model
      */
     public function isAgencyActive($id)
     {
-        $agency = $this->where('Id', $id)
-                       ->where('Enabled', 1)
+        $agency = $this->where('id', $id)
+                       ->where('enabled', 1)
                        ->first();
         
         return $agency !== null;
@@ -444,21 +544,21 @@ class AgencyModel extends Model
         $query = $this->builder();
         
         if (!empty($filters['name'])) {
-            $query->like('Name', $filters['name']);
+            $query->like('name', $filters['name']);
         }
         
         // Filtro por región deshabilitado - columna SubFix removida
         
         if (isset($filters['enabled'])) {
-            $query->where('Enabled', $filters['enabled']);
+            $query->where('enabled', $filters['enabled']);
         }
         
         if (!empty($filters['date_from'])) {
-            $query->where('RegistrationDate >=', $filters['date_from']);
+            $query->where('registration_date >=', $filters['date_from']);
         }
         
         if (!empty($filters['date_to'])) {
-            $query->where('RegistrationDate <=', $filters['date_to']);
+            $query->where('registration_date <=', $filters['date_to']);
         }
         
         return $query->countAllResults();

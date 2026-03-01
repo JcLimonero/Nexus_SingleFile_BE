@@ -30,43 +30,43 @@ class Documents extends BaseController
             // Query corregido - Solo documentos requeridos para el proceso específico
             $sql = "
                 SELECT DISTINCT
-                    dt.Id as documentId,
-                    dt.Name as documentName,
-                    dt.Name as documentDescription,
-                    dt.Required as isRequired,
-                    df.Id as fileDocumentId,
-                    df.Name as fileName,
-                    df.PathDocument as filePath,
-                    df.ServerPath as backblazeUrl,
-                    df.IdDocumentContainer as backblazeFileId,
-                    df.RegistrationDate as uploadDate,
+                    dt.id as documentId,
+                    dt.name as documentName,
+                    dt.name as documentDescription,
+                    dt.required as isRequired,
+                    df.id as fileDocumentId,
+                    df.name as fileName,
+                    df.path_document as filePath,
+                    df.server_path as backblazeUrl,
+                    df.id_document_container as backblazeFileId,
+                    df.registration_date as uploadDate,
                     dt.ReqExpiration as hasExpiration,
                     df.ExpirationDate as expirationDate,
-                    dt.IdSubProcess as subProcessId,
-                    fss.Name as subProcessName,
+                    dt.id_sub_process as subProcessId,
+                    fss.name as subProcessName,
                     CASE 
-                        WHEN ISNULL(dt.ReqExpiration) THEN FALSE
-                        WHEN dt.ReqExpiration = 0 THEN FALSE
-                        WHEN dt.ReqExpiration = 1 AND df.ExpirationDate < CURDATE() THEN TRUE
+                        WHEN ISNULL(dt.req_expiration) THEN FALSE
+                        WHEN dt.req_expiration = 0 THEN FALSE
+                        WHEN dt.req_expiration = 1 AND df.expiration_date < CURDATE() THEN TRUE
                         ELSE FALSE
                     END as hasExpired,    
-                    dt.IdProcessType as documentProcessId,
-                    fs.Name as documentProcessName,
-                    dfs.Id as fileStatusId,
-                    dfs.Name as fileStatusName,
-                    df.IdDocumentContainer as documentContainer,
-                    df.IdCurrentStatus as idCurrentStatus
+                    dt.id_process_type as documentProcessId,
+                    fs.name as documentProcessName,
+                    dfs.id as fileStatusId,
+                    dfs.name as fileStatusName,
+                    df.id_document_container as documentContainer,
+                    df.id_current_status as idCurrentStatus
                 FROM expedient f
-                INNER JOIN file_document df ON f.Id = df.IdFile
-                INNER JOIN document_type dt ON df.IdDocumentType = dt.Id
-                INNER JOIN file_status fs ON dt.IdProcessType = fs.Id 
-                INNER JOIN document_file_status dfs ON dfs.Id = df.IdCurrentStatus 
-                LEFT JOIN file_sub_status fss ON fss.Id = dt.IdSubProcess
-                WHERE f.Id = ?
-                AND dt.IdProcessType = ?
-                AND f.IdCurrentState = dt.IdProcessType
-                AND df.Enabled = 1
-                ORDER BY dt.Required DESC, dt.Name ASC
+                INNER JOIN file_document df ON f.id = df.id_file
+                INNER JOIN document_type dt ON df.id_document_type = dt.id
+                INNER JOIN file_status fs ON dt.id_process_type = fs.id 
+                INNER JOIN document_file_status dfs ON dfs.id = df.id_current_status 
+                LEFT JOIN file_sub_status fss ON fss.id = dt.id_sub_process
+                WHERE f.id = ?
+                AND dt.id_process_type = ?
+                AND f.id_current_state = dt.id_process_type
+                AND df.enabled = 1
+                ORDER BY dt.required DESC, dt.name ASC
             ";
 
             $params = [$fileId, $idProcessType];
@@ -111,19 +111,19 @@ class Documents extends BaseController
             $idProcessType = '3'; // Liberación (File_Status.Id)
 
             $sql = "
-                SELECT dt.Id as documentId, dt.Name as documentName, dt.Required as isRequired,
-                       dt.ReqExpiration as hasExpiration, fs.Name as processTypeName,
-                       fss.Name as subProcessName
+                SELECT dt.id as documentId, dt.name as documentName, dt.required as isRequired,
+                       dt.req_expiration as hasExpiration, fs.name as processTypeName,
+                       fss.name as subProcessName
                 FROM document_type dt
-                INNER JOIN file_status fs ON dt.IdProcessType = fs.Id
-                LEFT JOIN file_sub_status fss ON fss.Id = dt.IdSubProcess
-                WHERE dt.IdProcessType = ?
-                AND dt.Id NOT IN (
-                    SELECT df.IdDocumentType
+                INNER JOIN file_status fs ON dt.id_process_type = fs.id
+                LEFT JOIN file_sub_status fss ON fss.id = dt.id_sub_process
+                WHERE dt.id_process_type = ?
+                AND dt.id NOT IN (
+                    SELECT df.id_document_type
                     FROM file_document df
-                    WHERE df.IdFile = ? AND df.Enabled = 1
+                    WHERE df.id_file = ? AND df.enabled = 1
                 )
-                ORDER BY dt.Required DESC, dt.Name ASC
+                ORDER BY dt.required DESC, dt.name ASC
             ";
             $query = $this->db->query($sql, [$idProcessType, $fileId]);
             $results = $query->getResultArray();

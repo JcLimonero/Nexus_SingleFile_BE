@@ -48,15 +48,15 @@ class UserProfile extends BaseController
             
             // Devolver solo los campos necesarios del perfil
             $profileData = [
-                'Id' => $user['Id'],
-                'Name' => $user['Name'],
-                'user' => $user['User'],
-                'Mail' => $user['Mail'],
-                'DefaultAgency' => $user['DefaultAgency'],
-                'IdUserRol' => $user['IdUserRol'],
-                'Enabled' => $user['Enabled'],
-                'RegistrationDate' => $user['RegistrationDate'],
-                'UpdateDate' => $user['UpdateDate']
+                'id' => $user['id'] ?? $user['Id'] ?? null,
+                'name' => $user['name'] ?? $user['Name'] ?? '',
+                'user' => $user['user'] ?? $user['User'] ?? '',
+                'mail' => $user['mail'] ?? $user['Mail'] ?? '',
+                'default_agency' => $user['default_agency'] ?? $user['DefaultAgency'] ?? null,
+                'id_user_rol' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
+                'enabled' => $user['enabled'] ?? $user['Enabled'] ?? 0,
+                'registration_date' => $user['registration_date'] ?? $user['RegistrationDate'] ?? null,
+                'update_date' => $user['update_date'] ?? $user['UpdateDate'] ?? null
             ];
             
             return $this->response
@@ -348,7 +348,8 @@ class UserProfile extends BaseController
             
             $data = $this->request->getJSON(true);
             
-            if (!isset($data['defaultAgency']) || $data['defaultAgency'] === null) {
+            $defaultAgencyId = isset($data['default_agency']) ? $data['default_agency'] : ($data['defaultAgency'] ?? null);
+            if ($defaultAgencyId === null || $defaultAgencyId === '') {
                 return $this->response
                     ->setStatusCode(400)
                     ->setJSON([
@@ -356,12 +357,11 @@ class UserProfile extends BaseController
                         'message' => 'ID de agencia requerido'
                     ]);
             }
-            
-            $defaultAgencyId = (int)$data['defaultAgency'];
+            $defaultAgencyId = (int)$defaultAgencyId;
             
             // Verificar que la agencia existe
             $db = \Config\Database::connect();
-            $agencyExists = $db->table('agency')->where('Id', $defaultAgencyId)->countAllResults() > 0;
+            $agencyExists = $db->table('agency')->where('id', $defaultAgencyId)->countAllResults() > 0;
             
             if (!$agencyExists) {
                 return $this->response
@@ -372,10 +372,10 @@ class UserProfile extends BaseController
                     ]);
             }
             
-            // Actualizar la agencia predeterminada del usuario
+            // Actualizar la agencia predeterminada del usuario (snake_case)
             $updateData = [
-                'DefaultAgency' => $defaultAgencyId,
-                'UpdateDate' => date('Y-m-d H:i:s')
+                'default_agency' => $defaultAgencyId,
+                'update_date' => date('Y-m-d H:i:s')
             ];
             
             if ($this->userModel->update($userId, $updateData)) {
@@ -385,7 +385,7 @@ class UserProfile extends BaseController
                         'success' => true,
                         'message' => 'Agencia predeterminada actualizada exitosamente',
                         'data' => [
-                            'defaultAgency' => $defaultAgencyId
+                            'default_agency' => $defaultAgencyId
                         ]
                     ]);
             } else {

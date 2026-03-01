@@ -106,18 +106,19 @@ class OperationType extends BaseController
             // Obtener datos del request
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (empty($data['Name'])) {
+            // Validar datos requeridos (aceptar Name o name del frontend)
+            $name = $data['name'] ?? $data['Name'] ?? null;
+            if (empty($name)) {
                 return $this->response
                     ->setStatusCode(400)
                     ->setJSON([
                         'success' => false,
-                        'message' => 'El campo Name es requerido'
+                        'message' => 'El campo name es requerido'
                     ]);
             }
             
             // Validar que el nombre no esté duplicado
-            if ($this->operationTypeModel->isNameDuplicate($data['Name'])) {
+            if ($this->operationTypeModel->isNameDuplicate($name)) {
                 return $this->response
                     ->setStatusCode(400)
                     ->setJSON([
@@ -126,13 +127,13 @@ class OperationType extends BaseController
                     ]);
             }
             
-            // Preparar datos para inserción
+            // Preparar datos para inserción (snake_case)
             $operationTypeData = [
-                'Name' => trim($data['Name']),
-                'Enabled' => $data['Enabled'] ?? 1,
-                'RegistrationDate' => date('Y-m-d H:i:s'),
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'name' => trim($name),
+                'enabled' => $data['enabled'] ?? $data['Enabled'] ?? 1,
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             // Insertar tipo de operación
@@ -244,19 +245,20 @@ class OperationType extends BaseController
             
             // Obtener datos del request
             $data = $this->request->getJSON(true);
+            $name = $data['name'] ?? $data['Name'] ?? null;
             
             // Validar datos requeridos
-            if (empty($data['Name'])) {
+            if (empty($name)) {
                 return $this->response
                     ->setStatusCode(400)
                     ->setJSON([
                         'success' => false,
-                        'message' => 'El campo Name es requerido'
+                        'message' => 'El campo name es requerido'
                     ]);
             }
             
             // Validar que el nombre no esté duplicado (excluyendo el tipo de operación actual)
-            if ($this->operationTypeModel->isNameDuplicate($data['Name'], $id)) {
+            if ($this->operationTypeModel->isNameDuplicate($name, $id)) {
                 return $this->response
                     ->setStatusCode(400)
                     ->setJSON([
@@ -265,12 +267,13 @@ class OperationType extends BaseController
                     ]);
             }
             
-            // Preparar datos para actualización
+            // Preparar datos para actualización (snake_case)
+            $existingEnabled = $existingOperationType['enabled'] ?? $existingOperationType['Enabled'] ?? 1;
             $updateData = [
-                'Name' => trim($data['Name']),
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $existingOperationType['Enabled'],
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'name' => trim($name),
+                'enabled' => isset($data['enabled']) ? (int)$data['enabled'] : (isset($data['Enabled']) ? (int)$data['Enabled'] : $existingEnabled),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             // Actualizar tipo de operación
@@ -334,9 +337,9 @@ class OperationType extends BaseController
             
             // Soft delete - cambiar estado a deshabilitado
             $updateData = [
-                'Enabled' => 0,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'enabled' => 0,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             if ($this->operationTypeModel->update($id, $updateData)) {
@@ -394,13 +397,14 @@ class OperationType extends BaseController
             }
             
             // Cambiar estado
-            $newStatus = $operationType['Enabled'] == 1 ? 0 : 1;
+            $enabled = $operationType['enabled'] ?? $operationType['Enabled'] ?? 1;
+            $newStatus = $enabled == 1 ? 0 : 1;
             $statusText = $newStatus == 1 ? 'habilitado' : 'deshabilitado';
             
             $updateData = [
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             if ($this->operationTypeModel->update($id, $updateData)) {

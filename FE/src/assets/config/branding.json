@@ -5,7 +5,7 @@
   "layoutStyle": "zeus",
   "logoLogin": "assets/img/icons/logos/total/login.png", 
   "logoApp": "assets/img/icons/logos/total/logo_total.png",       
-  "logoFooter": "assets/img/icons/logos/nexus/logo.png",
+  "logoFooter": "assets/img/icons/logos/nexus/logo_footer.svg",
   "logoLoading": "assets/img/icons/logos/total/logo_total.png",
   "favicon": "assets/img/icons/logos/total/favicon.ico",
   "footerText": "Developed by Nexus Q Tech",

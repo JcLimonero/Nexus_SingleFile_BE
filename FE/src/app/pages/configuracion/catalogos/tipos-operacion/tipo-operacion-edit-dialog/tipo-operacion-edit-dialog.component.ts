@@ -52,16 +52,17 @@ export class TipoOperacionEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.tipoOperacionForm = this.fb.group({
-      Name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
-      Enabled: ['1', Validators.required]
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
+      enabled: ['1', Validators.required]
     });
   }
 
   private populateForm(): void {
     if (this.data.tipoOperacion) {
+      const to = this.data.tipoOperacion;
       this.tipoOperacionForm.patchValue({
-        Name: this.data.tipoOperacion.Name,
-        Enabled: this.data.tipoOperacion.Enabled
+        name: to.name ?? (to as any).Name,
+        enabled: to.enabled ?? (to as any).Enabled
       });
     }
   }
@@ -79,9 +80,10 @@ export class TipoOperacionEditDialogComponent implements OnInit {
   }
 
   private createTipoOperacion(): void {
+    const v = this.tipoOperacionForm.value;
     const tipoOperacionData: TipoOperacionCreateRequest = {
-      Name: this.tipoOperacionForm.value.Name,
-      Enabled: this.tipoOperacionForm.value.Enabled
+      name: v.name,
+      enabled: v.enabled
     };
 
     this.tipoOperacionService.createTipoOperacion(tipoOperacionData).subscribe({
@@ -108,13 +110,15 @@ export class TipoOperacionEditDialogComponent implements OnInit {
   }
 
   private updateTipoOperacion(): void {
+    const to = this.data.tipoOperacion;
+    const v = this.tipoOperacionForm.value;
     const tipoOperacionData: TipoOperacionUpdateRequest = {
-      Id: this.data.tipoOperacion.Id!,
-      Name: this.tipoOperacionForm.value.Name,
-      Enabled: this.tipoOperacionForm.value.Enabled
+      id: to.id ?? (to as any).Id!,
+      name: v.name,
+      enabled: v.enabled
     };
-
-    this.tipoOperacionService.updateTipoOperacion(this.data.tipoOperacion.Id!, tipoOperacionData).subscribe({
+    const id = to.id ?? (to as any).Id;
+    this.tipoOperacionService.updateTipoOperacion(id!, tipoOperacionData).subscribe({
       next: (response) => {
         if (response.success) {
           this.snackBar.open('Tipo de operación actualizado exitosamente', 'Éxito', {

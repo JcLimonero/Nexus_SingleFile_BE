@@ -56,7 +56,7 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
   searchTerm = '';
   statusFilter = '';
   
-  displayedColumns: string[] = ['Id', 'Name', 'Enabled', 'acciones'];
+  displayedColumns: string[] = ['id', 'name', 'enabled', 'acciones'];
   
   loading = false;
 
@@ -81,7 +81,7 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
     // Configurar filtro personalizado
     this.dataSource.filterPredicate = (data: Proceso, filter: string) => {
       const searchTerm = filter.toLowerCase();
-      return data.Name.toLowerCase().includes(searchTerm);
+      return data.name.toLowerCase().includes(searchTerm);
     };
   }
 
@@ -136,9 +136,9 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
       
       // Crear nuevo DataSource con los datos filtrados
       const filteredProcesos = this.procesos.filter(proceso => 
-        proceso.Enabled === status &&
+        proceso.enabled === status &&
         (filterValue === '' || 
-         proceso.Name.toLowerCase().includes(filterValue.toLowerCase()))
+         proceso.name.toLowerCase().includes(filterValue.toLowerCase()))
       );
       
       this.dataSource = new MatTableDataSource<Proceso>(filteredProcesos);
@@ -261,14 +261,14 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
   }
 
   deleteProceso(proceso: Proceso): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE el proceso "${proceso.Name}"?\n\nEsta acción no se puede deshacer.`)) {
+    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE el proceso "${proceso.name}"?\n\nEsta acción no se puede deshacer.`)) {
 
-      this.procesoService.deleteProceso(proceso.Id!, true).subscribe({
+      this.procesoService.deleteProceso(proceso.id!, true).subscribe({
         next: (response) => {
 
           if (response.success) {
 
-            this.procesos = this.procesos.filter(p => p.Id !== proceso.Id);
+            this.procesos = this.procesos.filter(p => p.id !== proceso.id);
             this.applyFilter();
             this.snackBar.open('Proceso eliminado exitosamente', 'Éxito', {
               duration: 2000

@@ -8,10 +8,10 @@
       <!-- Indicador de estado (solo en modo edición) -->
       <div *ngIf="data.mode === 'edit'" class="flex items-center space-x-2">
         <div class="w-3 h-3 rounded-full" 
-             [ngClass]="(userForm.get('Enabled')?.value ?? '1') === '1' ? 'bg-green-500' : 'bg-red-500'"></div>
+             [ngClass]="(userForm.get('enabled')?.value ?? '1') === '1' ? 'bg-green-500' : 'bg-red-500'"></div>
         <span class="text-sm font-medium" 
-              [ngClass]="(userForm.get('Enabled')?.value ?? '1') === '1' ? 'text-green-700' : 'text-red-700'">
-          {{ (userForm.get('Enabled')?.value ?? '1') === '1' ? 'ACTIVO' : 'INACTIVO' }}
+              [ngClass]="(userForm.get('enabled')?.value ?? '1') === '1' ? 'text-green-700' : 'text-red-700'">
+          {{ (userForm.get('enabled')?.value ?? '1') === '1' ? 'ACTIVO' : 'INACTIVO' }}
         </span>
       </div>
     </div>
@@ -32,13 +32,13 @@
           placeholder="Ej: Juan Carlos Limonero"
           maxlength="100">
         <mat-hint>Nombre completo del usuario (máximo 100 caracteres)</mat-hint>
-        <mat-error *ngIf="userForm.get('Name')?.hasError('required')">
+        <mat-error *ngIf="userForm.get('name')?.hasError('required')">
           El nombre es requerido
         </mat-error>
-        <mat-error *ngIf="userForm.get('Name')?.hasError('minlength')">
+        <mat-error *ngIf="userForm.get('name')?.hasError('minlength')">
           El nombre debe tener al menos 3 caracteres
         </mat-error>
-        <mat-error *ngIf="userForm.get('Name')?.hasError('maxlength')">
+        <mat-error *ngIf="userForm.get('name')?.hasError('maxlength')">
           El nombre no puede exceder 100 caracteres
         </mat-error>
       </mat-form-field>
@@ -48,17 +48,17 @@
         <mat-label>Nombre de Usuario</mat-label>
         <input 
           matInput 
-          formControlName="User" 
+          formControlName="user" 
           placeholder="Ej: jclimonero"
           maxlength="50">
         <mat-hint>Nombre de usuario para acceso al sistema (máximo 50 caracteres)</mat-hint>
-        <mat-error *ngIf="userForm.get('User')?.hasError('required')">
+        <mat-error *ngIf="userForm.get('user')?.hasError('required')">
           El nombre de usuario es requerido
         </mat-error>
-        <mat-error *ngIf="userForm.get('User')?.hasError('minlength')">
+        <mat-error *ngIf="userForm.get('user')?.hasError('minlength')">
           El nombre de usuario debe tener al menos 3 caracteres
         </mat-error>
-        <mat-error *ngIf="userForm.get('User')?.hasError('pattern')">
+        <mat-error *ngIf="userForm.get('user')?.hasError('pattern')">
           Solo se permiten letras, números y guiones bajos
         </mat-error>
       </mat-form-field>
@@ -68,15 +68,15 @@
         <mat-label>Correo Electrónico</mat-label>
         <input 
           matInput 
-          formControlName="Mail" 
+          formControlName="mail" 
           type="email"
           placeholder="Ej: juan@empresa.com"
           maxlength="100">
         <mat-hint>Correo electrónico del usuario</mat-hint>
-        <mat-error *ngIf="userForm.get('Mail')?.hasError('required')">
+        <mat-error *ngIf="userForm.get('mail')?.hasError('required')">
           El correo electrónico es requerido
         </mat-error>
-        <mat-error *ngIf="userForm.get('Mail')?.hasError('email')">
+        <mat-error *ngIf="userForm.get('mail')?.hasError('email')">
           Ingrese un correo electrónico válido
         </mat-error>
       </mat-form-field>
@@ -84,13 +84,13 @@
       <!-- Rol -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Rol de Usuario</mat-label>
-        <mat-select formControlName="IdUserRol">
-          <mat-option *ngFor="let role of rolesForSelect" [value]="role.Id">
-            {{ role.Name }}
+        <mat-select formControlName="id_user_rol">
+          <mat-option *ngFor="let role of rolesForSelect" [value]="role.id">
+            {{ role.name }}
           </mat-option>
         </mat-select>
         <mat-hint>Rol que determina los permisos del usuario</mat-hint>
-        <mat-error *ngIf="userForm.get('IdUserRol')?.hasError('required')">
+        <mat-error *ngIf="userForm.get('id_user_rol')?.hasError('required')">
           El rol es requerido
         </mat-error>
       </mat-form-field>
@@ -99,7 +99,7 @@
       <div class="w-full flex items-start gap-2">
         <mat-form-field appearance="outline" class="flex-1">
           <mat-label>Agencia Predeterminada</mat-label>
-          <mat-select formControlName="DefaultAgency" [disabled]="loadingAgencies">
+          <mat-select formControlName="default_agency" [disabled]="loadingAgencies">
             <mat-option *ngIf="loadingAgencies" value="" disabled>
               <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
               Cargando agencias...
@@ -107,12 +107,12 @@
             <mat-option *ngIf="!loadingAgencies && agencies.length === 0" value="" disabled>
               No hay agencias disponibles
             </mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
-              {{ agency.Name }}
+            <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+              {{ agency.name }}
             </mat-option>
           </mat-select>
           <mat-hint>Agencia predeterminada del usuario</mat-hint>
-          <mat-error *ngIf="userForm.get('DefaultAgency')?.hasError('required')">
+          <mat-error *ngIf="userForm.get('default_agency')?.hasError('required')">
             La agencia es requerida
           </mat-error>
         </mat-form-field>
@@ -136,41 +136,41 @@
           <button 
             type="button"
             mat-stroked-button
-            [color]="userForm.get('Enabled')?.value === '1' ? 'warn' : 'primary'"
+            [color]="userForm.get('enabled')?.value === '1' ? 'warn' : 'primary'"
             (click)="toggleUserStatus()"
             class="flex items-center space-x-2">
-            <mat-icon>{{ userForm.get('Enabled')?.value === '1' ? 'block' : 'check_circle' }}</mat-icon>
-            <span>{{ userForm.get('Enabled')?.value === '1' ? 'Deshabilitar Usuario' : 'Habilitar Usuario' }}</span>
+            <mat-icon>{{ userForm.get('enabled')?.value === '1' ? 'block' : 'check_circle' }}</mat-icon>
+            <span>{{ userForm.get('enabled')?.value === '1' ? 'Deshabilitar Usuario' : 'Habilitar Usuario' }}</span>
           </button>
         </div>
 
         <!-- Checkbox y estado visual -->
         <div class="flex items-center space-x-4">
           <mat-checkbox 
-            formControlName="Enabled" 
-            [checked]="userForm.get('Enabled')?.value === '1'"
+            formControlName="enabled" 
+            [checked]="userForm.get('enabled')?.value === '1'"
             (change)="onStatusChange($event.checked)"
             class="flex items-center">
             <span class="ml-2 text-sm text-gray-700">Usuario Activo</span>
           </mat-checkbox>
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 rounded-full" 
-                 [ngClass]="userForm.get('Enabled')?.value === '1' ? 'bg-green-500' : 'bg-red-500'"></div>
+                 [ngClass]="userForm.get('enabled')?.value === '1' ? 'bg-green-500' : 'bg-red-500'"></div>
             <span class="text-sm text-gray-600">
-              {{ userForm.get('Enabled')?.value === '1' ? 'Activo' : 'Inactivo' }}
+              {{ userForm.get('enabled')?.value === '1' ? 'Activo' : 'Inactivo' }}
             </span>
           </div>
         </div>
         
         <!-- Mensaje informativo -->
         <p class="text-xs text-gray-500 mt-1">
-          {{ userForm.get('Enabled')?.value === '1' ? 
+          {{ userForm.get('enabled')?.value === '1' ? 
              'El usuario puede acceder al sistema' : 
              'El usuario no puede acceder al sistema' }}
         </p>
 
         <!-- Alerta cuando el usuario está deshabilitado -->
-        <div *ngIf="userForm.get('Enabled')?.value === '0'" 
+        <div *ngIf="userForm.get('enabled')?.value === '0'" 
              class="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
           <div class="flex items-center space-x-2">
             <mat-icon class="text-red-500 text-sm">warning</mat-icon>
@@ -192,7 +192,7 @@
         <mat-label>{{ data.mode === 'edit' ? 'Nueva Contraseña (opcional)' : 'Contraseña' }}</mat-label>
         <input 
           matInput 
-          formControlName="Pass" 
+          formControlName="pass" 
           [type]="showPassword ? 'text' : 'password'"
           placeholder="Ingrese la contraseña"
           maxlength="100">
@@ -206,10 +206,10 @@
           <mat-icon>{{showPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-hint>{{ data.mode === 'edit' ? 'Deje en blanco para mantener la contraseña actual' : 'Mínimo 6 caracteres' }}</mat-hint>
-        <mat-error *ngIf="userForm.get('Pass')?.hasError('required') && data.mode === 'create'">
+        <mat-error *ngIf="userForm.get('pass')?.hasError('required') && data.mode === 'create'">
           La contraseña es requerida
         </mat-error>
-        <mat-error *ngIf="userForm.get('Pass')?.hasError('minlength')">
+        <mat-error *ngIf="userForm.get('pass')?.hasError('minlength')">
           La contraseña debe tener al menos 6 caracteres
         </mat-error>
       </mat-form-field>
@@ -219,7 +219,7 @@
         <mat-label>{{ data.mode === 'edit' ? 'Confirmar Nueva Contraseña' : 'Confirmar Contraseña' }}</mat-label>
         <input 
           matInput 
-          formControlName="ConfirmPassword" 
+          formControlName="confirmPassword" 
           [type]="showConfirmPassword ? 'text' : 'password'"
           placeholder="Confirme la contraseña"
           maxlength="100">
@@ -233,7 +233,7 @@
           <mat-icon>{{showConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-hint>Confirme la contraseña ingresada</mat-hint>
-        <mat-error *ngIf="userForm.get('ConfirmPassword')?.hasError('required') && data.mode === 'create'">
+        <mat-error *ngIf="userForm.get('confirmPassword')?.hasError('required') && data.mode === 'create'">
           La confirmación de contraseña es requerida
         </mat-error>
       </mat-form-field>
@@ -245,27 +245,27 @@
     </div>
 
     <!-- Información adicional (solo lectura en modo edición) -->
-    <div *ngIf="data.mode === 'edit' && data.user.Id" class="bg-gray-50 p-4 rounded-lg mt-6">
+    <div *ngIf="data.mode === 'edit' && data.user.id" class="bg-gray-50 p-4 rounded-lg mt-6">
       <h3 class="text-sm font-medium text-gray-700 mb-3">Información del Sistema</h3>
       <div class="grid grid-cols-2 gap-6 text-sm">
         <div class="space-y-2">
           <div>
             <span class="text-gray-500 font-medium">ID:</span>
-            <span class="ml-2 font-mono">{{ data.user.Id }}</span>
+            <span class="ml-2 font-mono">{{ data.user.id }}</span>
           </div>
           <div>
             <span class="text-gray-500 font-medium">Fecha Registro:</span>
-            <span class="ml-2">{{ data.user.RegistrationDate || 'N/A' }}</span>
+            <span class="ml-2">{{ data.user.registration_date || 'N/A' }}</span>
           </div>
         </div>
         <div class="space-y-2">
           <div>
             <span class="text-gray-500 font-medium">Último Usuario:</span>
-            <span class="ml-2">{{ data.user.LastUserUpdateName || 'N/A' }}</span>
+            <span class="ml-2">{{ data.user.last_user_update_name || 'N/A' }}</span>
           </div>
           <div>
             <span class="text-gray-500 font-medium">Última Actualización:</span>
-            <span class="ml-2">{{ data.user.UpdateDate || 'N/A' }}</span>
+            <span class="ml-2">{{ data.user.update_date || 'N/A' }}</span>
           </div>
         </div>
       </div>

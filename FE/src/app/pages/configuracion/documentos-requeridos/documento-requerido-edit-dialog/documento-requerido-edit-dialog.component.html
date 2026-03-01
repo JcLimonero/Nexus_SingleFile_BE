@@ -68,13 +68,13 @@
         <!-- Agencia (Primero) -->
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Agencia *</mat-label>
-          <mat-select formControlName="IdAgency" [disabled]="loadingCatalogs">
+          <mat-select formControlName="id_agency" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar agencia</mat-option>
-            <mat-option *ngFor="let agency of agencias" [value]="agency.Id">
-              {{ agency.Name }}
+            <mat-option *ngFor="let agency of agencias" [value]="agency.id">
+              {{ agency.name }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="documentoForm.get('IdAgency')?.hasError('required') && documentoForm.get('IdAgency')?.touched">
+          <mat-error *ngIf="documentoForm.get('id_agency')?.hasError('required') && documentoForm.get('id_agency')?.touched">
             La agencia es requerida
           </mat-error>
         </mat-form-field>
@@ -82,13 +82,13 @@
         <!-- Proceso -->
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Proceso *</mat-label>
-          <mat-select formControlName="IdProcess" [disabled]="loadingCatalogs">
+          <mat-select formControlName="id_process" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar proceso</mat-option>
-            <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
-              {{ proceso.Name }}
+            <mat-option *ngFor="let proceso of procesos" [value]="proceso.id">
+              {{ proceso.name }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="documentoForm.get('IdProcess')?.hasError('required') && documentoForm.get('IdProcess')?.touched">
+          <mat-error *ngIf="documentoForm.get('id_process')?.hasError('required') && documentoForm.get('id_process')?.touched">
             El proceso es requerido
           </mat-error>
         </mat-form-field>
@@ -96,13 +96,13 @@
         <!-- Tipo de Cliente -->
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Tipo de Cliente *</mat-label>
-          <mat-select formControlName="IdCostumerType" [disabled]="loadingCatalogs">
+          <mat-select formControlName="id_customer_type" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar tipo de cliente</mat-option>
-            <mat-option *ngFor="let tipoCliente of tiposCliente" [value]="tipoCliente.Id">
-              {{ tipoCliente.Name }}
+            <mat-option *ngFor="let tipoCliente of tiposCliente" [value]="tipoCliente.id">
+              {{ tipoCliente.name }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="documentoForm.get('IdCostumerType')?.hasError('required') && documentoForm.get('IdCostumerType')?.touched">
+          <mat-error *ngIf="documentoForm.get('id_customer_type')?.hasError('required') && documentoForm.get('id_customer_type')?.touched">
             El tipo de cliente es requerido
           </mat-error>
         </mat-form-field>
@@ -110,13 +110,13 @@
         <!-- Tipo de Operación -->
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Tipo de Operación *</mat-label>
-          <mat-select formControlName="IdOperationType" [disabled]="loadingCatalogs">
+          <mat-select formControlName="id_operation_type" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar tipo de operación</mat-option>
-            <mat-option *ngFor="let tipoOperacion of tiposOperacion" [value]="tipoOperacion.Id">
-              {{ tipoOperacion.Name }}
+            <mat-option *ngFor="let tipoOperacion of tiposOperacion" [value]="tipoOperacion.id">
+              {{ tipoOperacion.name }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="documentoForm.get('IdOperationType')?.hasError('required') && documentoForm.get('IdOperationType')?.touched">
+          <mat-error *ngIf="documentoForm.get('id_operation_type')?.hasError('required') && documentoForm.get('id_operation_type')?.touched">
             El tipo de operación es requerido
           </mat-error>
         </mat-form-field>
@@ -137,7 +137,7 @@
           <mat-icon class="text-base">warning</mat-icon>
           <span>{{ mensajeValidacion }}</span>
         </div>
-        <div *ngIf="!validandoConfiguracion && !configuracionExiste && mensajeValidacion === '' && documentoForm.get('IdAgency')?.value && documentoForm.get('IdProcess')?.value && documentoForm.get('IdCostumerType')?.value && documentoForm.get('IdOperationType')?.value" class="flex items-center gap-2 text-green-600 text-xs bg-green-50 border border-green-200 rounded p-2">
+        <div *ngIf="!validandoConfiguracion && !configuracionExiste && mensajeValidacion === '' && documentoForm.get('id_agency')?.value && documentoForm.get('id_process')?.value && documentoForm.get('id_customer_type')?.value && documentoForm.get('id_operation_type')?.value" class="flex items-center gap-2 text-green-600 text-xs bg-green-50 border border-green-200 rounded p-2">
           <mat-icon class="text-base">check_circle</mat-icon>
           <span>Configuración disponible para crear</span>
         </div>
@@ -254,22 +254,22 @@
           <div class="grid grid-cols-1 gap-1">
             <div *ngFor="let tipo of filteredTiposDocumento" class="flex items-center space-x-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50">
               <mat-checkbox 
-                [value]="tipo.Id"
-                (change)="onDocumentTypeChange($event, tipo.Id)"
-                [checked]="isDocumentTypeSelected(tipo.Id)"
+                [value]="tipo.id"
+                (change)="onDocumentTypeChange($event, tipo.id)"
+                [checked]="isDocumentTypeSelected(tipo.id)"
                 color="primary"
                 class="flex-shrink-0">
               </mat-checkbox>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-700 truncate">{{ tipo.Name }}</div>
+                <div class="text-sm font-medium text-gray-700 truncate">{{ tipo.name }}</div>
                 <div class="text-xs text-gray-500 flex flex-wrap gap-2 mt-1">
-                  <span *ngIf="tipo.ProcessTypeName" class="inline-flex items-center bg-blue-50 px-2 py-1 rounded">
+                  <span *ngIf="tipo.process_type_name" class="inline-flex items-center bg-blue-50 px-2 py-1 rounded">
                     <mat-icon class="text-xs mr-1 text-blue-600">schedule</mat-icon>
-                    {{ tipo.ProcessTypeName }}
+                    {{ tipo.process_type_name }}
                   </span>
-                  <span *ngIf="tipo.SubProcessName" class="inline-flex items-center bg-green-50 px-2 py-1 rounded">
+                  <span *ngIf="tipo.sub_process_name" class="inline-flex items-center bg-green-50 px-2 py-1 rounded">
                     <mat-icon class="text-xs mr-1 text-green-600">subdirectory_arrow_right</mat-icon>
-                    {{ tipo.SubProcessName }}
+                    {{ tipo.sub_process_name }}
                   </span>
                 </div>
               </div>

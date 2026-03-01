@@ -164,11 +164,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // TrackBy functions para optimizar *ngFor
   trackByAgenciaId(index: number, item: any): any {
-    return item?.Id || index;
+    return item?.id ?? item?.Id ?? index;
   }
 
   trackByProcesoId(index: number, item: any): any {
-    return item?.Id || index;
+    return item?.id ?? item?.Id ?? index;
   }
 
   trackByFaseValue(index: number, item: CatalogItem): any {
@@ -1386,7 +1386,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
             
             // Verificar que la agencia guardada existe en la lista
-            if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+            if (savedAgencyId !== null && this.agencias.some(ag => (ag.id ?? (ag as any).Id) === savedAgencyId)) {
               // La agencia guardada existe, usarla
               this.selectedAgency = savedAgencyId;
               this.cdr.markForCheck();
@@ -1394,14 +1394,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
               // Si no hay agencia guardada válida, establecer la predeterminada
               this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
                 next: (agenciaId) => {
-                  if (agenciaId && this.agencias.some(ag => ag.Id === agenciaId)) {
+                  if (agenciaId && this.agencias.some(ag => (ag.id ?? (ag as any).Id) === agenciaId)) {
                     this.selectedAgency = agenciaId;
                     this.cdr.markForCheck();
                   } else if (this.agencias.length > 0) {
                     // Solo como último recurso, seleccionar la primera
                     const primeraAgencia = this.agencias[0];
-                    this.selectedAgency = primeraAgencia.Id;
-                    this.defaultAgencyService.seleccionarAgencia(primeraAgencia.Id);
+                    const pid = primeraAgencia.id ?? (primeraAgencia as any).Id;
+                    this.selectedAgency = pid;
+                    this.defaultAgencyService.seleccionarAgencia(pid);
                     this.cdr.markForCheck();
                   }
                 },
@@ -1410,8 +1411,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencias.length > 0) {
                     const primeraAgencia = this.agencias[0];
-                    this.selectedAgency = primeraAgencia.Id;
-                    this.defaultAgencyService.seleccionarAgencia(primeraAgencia.Id);
+                    const pid = primeraAgencia.id ?? (primeraAgencia as any).Id;
+                    this.selectedAgency = pid;
+                    this.defaultAgencyService.seleccionarAgencia(pid);
                     this.cdr.markForCheck();
                   }
                 }

@@ -16,17 +16,17 @@
       <mat-label>Nombre del Tipo de Documento</mat-label>
       <input 
         matInput 
-        formControlName="Name" 
+        formControlName="name" 
         placeholder="Ej: CEDULA, PASAPORTE, LICENCIA DE CONDUCIR"
         maxlength="600">
       <mat-hint>Nombre completo del tipo de documento (máximo 600 caracteres)</mat-hint>
-      <mat-error *ngIf="documentTypeForm.get('Name')?.hasError('required')">
+      <mat-error *ngIf="documentTypeForm.get('name')?.hasError('required')">
         El nombre es requerido
       </mat-error>
-      <mat-error *ngIf="documentTypeForm.get('Name')?.hasError('minlength')">
+      <mat-error *ngIf="documentTypeForm.get('name')?.hasError('minlength')">
         El nombre debe tener al menos 3 caracteres
       </mat-error>
-      <mat-error *ngIf="documentTypeForm.get('Name')?.hasError('maxlength')">
+      <mat-error *ngIf="documentTypeForm.get('name')?.hasError('maxlength')">
         El nombre no puede exceder 600 caracteres
       </mat-error>
     </mat-form-field>
@@ -34,9 +34,9 @@
           <!-- Fase -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Fase</mat-label>
-        <mat-select formControlName="IdProcessType" [disabled]="loadingCatalogs">
-          <mat-option *ngFor="let fileStatus of fileStatuses" [value]="fileStatus.Id">
-            {{ fileStatus.Name }}
+        <mat-select formControlName="id_process_type" [disabled]="loadingCatalogs">
+          <mat-option *ngFor="let fileStatus of fileStatuses" [value]="fileStatus.id ?? fileStatus.Id">
+            {{ fileStatus.name ?? fileStatus.Name }}
           </mat-option>
         </mat-select>
         <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -49,10 +49,10 @@
       <!-- Sub Fase -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Sub Fase</mat-label>
-        <mat-select formControlName="IdSubProcess" [disabled]="loadingCatalogs || !isSubPhaseEnabled">
+        <mat-select formControlName="id_sub_process" [disabled]="loadingCatalogs || !isSubPhaseEnabled">
           <mat-option [value]="'0'">Sin sub fase</mat-option>
-          <mat-option *ngFor="let subProcess of subProcesses" [value]="subProcess.Id">
-            {{ subProcess.Name }}
+          <mat-option *ngFor="let subProcess of subProcesses" [value]="subProcess.id ?? subProcess.Id">
+            {{ subProcess.name ?? subProcess.Name }}
           </mat-option>
         </mat-select>
         <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
@@ -68,7 +68,7 @@
       <!-- Requerido -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>¿Es Requerido?</mat-label>
-        <mat-select formControlName="Required">
+        <mat-select formControlName="required">
           <mat-option [value]="'1'">Sí</mat-option>
           <mat-option [value]="'0'">No</mat-option>
         </mat-select>
@@ -78,7 +78,7 @@
       <!-- Requiere Expiración -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>¿Requiere Fecha de Expiración?</mat-label>
-        <mat-select formControlName="ReqExpiration">
+        <mat-select formControlName="req_expiration">
           <mat-option [value]="'1'">Sí</mat-option>
           <mat-option [value]="'0'">No</mat-option>
         </mat-select>
@@ -88,7 +88,7 @@
       <!-- Disponible al Cliente -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>¿Disponible al Cliente?</mat-label>
-        <mat-select formControlName="AvailableToClient">
+        <mat-select formControlName="available_to_client">
           <mat-option [value]="'1'">Sí</mat-option>
           <mat-option [value]="'0'">No</mat-option>
         </mat-select>
@@ -99,7 +99,7 @@
     <!-- Estado -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estado</mat-label>
-      <mat-select formControlName="Enabled">
+      <mat-select formControlName="enabled">
         <mat-option [value]="'1'">Activo</mat-option>
         <mat-option [value]="'0'">Inactivo</mat-option>
       </mat-select>
@@ -112,19 +112,19 @@
               <div class="grid grid-cols-2 gap-6 text-sm">
         <div>
           <span class="text-gray-500">ID:</span>
-          <span class="ml-2 font-mono">{{ data.documentType?.Id }}</span>
+          <span class="ml-2 font-mono">{{ data.documentType?.id }}</span>
         </div>
         <div>
           <span class="text-gray-500">Último Usuario:</span>
-          <span class="ml-2">{{ data.documentType?.LastUserUpdateName || 'N/A' }}</span>
+          <span class="ml-2">{{ data.documentType?.last_user_update_name || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Fecha Registro:</span>
-          <span class="ml-2">{{ data.documentType?.RegistrationDate || 'N/A' }}</span>
+          <span class="ml-2">{{ data.documentType?.registration_date || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Última Actualización:</span>
-          <span class="ml-2">{{ data.documentType?.UpdateDate || 'N/A' }}</span>
+          <span class="ml-2">{{ data.documentType?.update_date || 'N/A' }}</span>
         </div>
 
       </div>

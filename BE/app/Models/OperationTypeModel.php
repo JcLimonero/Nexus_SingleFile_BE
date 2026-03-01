@@ -7,29 +7,29 @@ use CodeIgniter\Model;
 class OperationTypeModel extends Model
 {
     protected $table = 'operation_type';
-    protected $primaryKey = 'Id';
-    protected $useAutoIncrement = false;
+    protected $primaryKey = 'id';
+    protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'Id', 'Name', 'RegistrationDate', 'UpdateDate', 
-        'IdLastUserUpdate', 'Enabled'
+        'id', 'name', 'registration_date', 'update_date',
+        'id_last_user_update', 'enabled'
     ];
 
     // Validation
     protected $validationRules = [
-        'Name' => 'required|min_length[3]|max_length[600]',
-        'Enabled' => 'permit_empty|in_list[0,1]'
+        'name' => 'required|min_length[3]|max_length[600]',
+        'enabled' => 'permit_empty|in_list[0,1]'
     ];
 
     protected $validationMessages = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre del tipo de operación es requerido',
             'min_length' => 'El nombre debe tener al menos 3 caracteres',
             'max_length' => 'El nombre no puede exceder 600 caracteres'
         ],
-        'Enabled' => [
+        'enabled' => [
             'in_list' => 'El estado debe ser 0 o 1'
         ]
     ];
@@ -38,111 +38,106 @@ class OperationTypeModel extends Model
     protected $cleanValidationRules = true;
 
     // Callbacks
-    protected $beforeInsert = ['generateId', 'setTimestamps'];
+    protected $beforeInsert = ['setTimestamps'];
     protected $beforeUpdate = ['setUpdateTimestamp'];
-
-    protected function generateId(array $data): array
-    {
-        if (!isset($data['data']['Id']) || empty($data['data']['Id'])) {
-            $data['data']['Id'] = $this->generateUniqueId();
-        }
-        return $data;
-    }
 
     protected function setTimestamps(array $data): array
     {
-        $data['data']['RegistrationDate'] = date('Y-m-d H:i:s');
-        $data['data']['UpdateDate'] = date('Y-m-d H:i:s');
+        $data['data']['registration_date'] = date('Y-m-d H:i:s');
+        $data['data']['update_date'] = date('Y-m-d H:i:s');
         return $data;
     }
 
     protected function setUpdateTimestamp(array $data): array
     {
-        $data['data']['UpdateDate'] = date('Y-m-d H:i:s');
+        $data['data']['update_date'] = date('Y-m-d H:i:s');
         return $data;
     }
 
-    private function generateUniqueId(): string
+    private function mapSortField($sortBy)
     {
-        do {
-            $id = 'OT' . str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
-        } while ($this->where('Id', $id)->countAllResults() > 0);
-        
-        return $id;
+        $map = ['Name' => 'name', 'RegistrationDate' => 'registration_date', 'UpdateDate' => 'update_date', 'Id' => 'id', 'Enabled' => 'enabled'];
+        return $map[$sortBy] ?? 'name';
     }
 
-    // Métodos para obtener tipos de operación con información del usuario
+    // Métodos para obtener tipos de operación con información del usuario (snake_case)
     public function getAllOperationTypesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('operation_type.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'operation_type.IdLastUserUpdate = u.Id', 'left')
-                    ->orderBy("operation_type.{$sortBy}", $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->select('operation_type.*, u.name as last_user_update_name')
+                    ->join('user u', 'operation_type.id_last_user_update = u.id', 'left')
+                    ->orderBy("operation_type.{$field}", $sortOrder)
                     ->findAll();
     }
 
     public function getOperationTypeByIdWithUser($id)
     {
-        return $this->select('operation_type.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'operation_type.IdLastUserUpdate = u.Id', 'left')
-                    ->where('operation_type.Id', $id)
+        return $this->select('operation_type.*, u.name as last_user_update_name')
+                    ->join('user u', 'operation_type.id_last_user_update = u.id', 'left')
+                    ->where('operation_type.id', $id)
                     ->first();
     }
 
     public function getOperationTypesByNameWithUser($search, $sortBy = 'Name', $sortOrder = 'ASC', $enabledOnly = true)
     {
-        $query = $this->select('operation_type.*, u.Name as LastUserUpdateName')
-                      ->join('user u', 'operation_type.IdLastUserUpdate = u.Id', 'left')
-                      ->like('operation_type.Name', $search);
+        $field = $this->mapSortField($sortBy);
+        $query = $this->select('operation_type.*, u.name as last_user_update_name')
+                      ->join('user u', 'operation_type.id_last_user_update = u.id', 'left')
+                      ->like('operation_type.name', $search);
 
         if ($enabledOnly) {
-            $query->where('operation_type.Enabled', 1);
+            $query->where('operation_type.enabled', 1);
         }
 
-        return $query->orderBy("operation_type.{$sortBy}", $sortOrder)->findAll();
+        return $query->orderBy("operation_type.{$field}", $sortOrder)->findAll();
     }
 
-    // Métodos para obtener tipos de operación por estado
+    // Métodos para obtener tipos de operación por estado (snake_case)
     public function getAllEnabledOperationTypes($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', 1)
-                    ->orderBy($sortBy, $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->where('enabled', 1)
+                    ->orderBy($field, $sortOrder)
                     ->findAll();
     }
 
     public function getAllEnabledOperationTypesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('operation_type.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'operation_type.IdLastUserUpdate = u.Id', 'left')
-                    ->where('operation_type.Enabled', 1)
-                    ->orderBy("operation_type.{$sortBy}", $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->select('operation_type.*, u.name as last_user_update_name')
+                    ->join('user u', 'operation_type.id_last_user_update = u.id', 'left')
+                    ->where('operation_type.enabled', 1)
+                    ->orderBy("operation_type.{$field}", $sortOrder)
                     ->findAll();
     }
 
     public function getAllDisabledOperationTypes($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', 0)
-                    ->orderBy($sortBy, $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->where('enabled', 0)
+                    ->orderBy($field, $sortOrder)
                     ->findAll();
     }
 
     public function getAllDisabledOperationTypesWithUser($sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('operation_type.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'operation_type.IdLastUserUpdate = u.Id', 'left')
-                    ->where('operation_type.Enabled', 0)
-                    ->orderBy("operation_type.{$sortBy}", $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->select('operation_type.*, u.name as last_user_update_name')
+                    ->join('user u', 'operation_type.id_last_user_update = u.id', 'left')
+                    ->where('operation_type.enabled', 0)
+                    ->orderBy("operation_type.{$field}", $sortOrder)
                     ->findAll();
     }
 
     // Métodos de conteo
     public function countEnabledOperationTypes()
     {
-        return $this->where('Enabled', 1)->countAllResults();
+        return $this->where('enabled', 1)->countAllResults();
     }
 
     public function countDisabledOperationTypes()
     {
-        return $this->where('Enabled', 0)->countAllResults();
+        return $this->where('enabled', 0)->countAllResults();
     }
 
     public function countAllOperationTypes()
@@ -153,10 +148,10 @@ class OperationTypeModel extends Model
     // Verificar si el nombre está duplicado
     public function isNameDuplicate($name, $excludeId = null)
     {
-        $query = $this->where('Name', trim($name));
+        $query = $this->where('name', trim($name));
         
         if ($excludeId) {
-            $query->where('Id !=', $excludeId);
+            $query->where('id !=', $excludeId);
         }
         
         return $query->countAllResults() > 0;
@@ -165,17 +160,19 @@ class OperationTypeModel extends Model
     // Obtener tipos de operación por estado
     public function getOperationTypesByStatus($enabled, $sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->where('Enabled', $enabled)
-                    ->orderBy($sortBy, $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->where('enabled', $enabled)
+                    ->orderBy($field, $sortOrder)
                     ->findAll();
     }
 
     public function getOperationTypesByStatusWithUser($enabled, $sortBy = 'Name', $sortOrder = 'ASC')
     {
-        return $this->select('operation_type.*, u.Name as LastUserUpdateName')
-                    ->join('user u', 'operation_type.IdLastUserUpdate = u.Id', 'left')
-                    ->where('operation_type.Enabled', $enabled)
-                    ->orderBy("operation_type.{$sortBy}", $sortOrder)
+        $field = $this->mapSortField($sortBy);
+        return $this->select('operation_type.*, u.name as last_user_update_name')
+                    ->join('user u', 'operation_type.id_last_user_update = u.id', 'left')
+                    ->where('operation_type.enabled', $enabled)
+                    ->orderBy("operation_type.{$field}", $sortOrder)
                     ->findAll();
     }
 }

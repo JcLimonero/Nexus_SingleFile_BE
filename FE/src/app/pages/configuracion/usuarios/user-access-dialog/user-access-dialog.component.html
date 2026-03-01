@@ -22,15 +22,15 @@
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div>
           <span class="text-blue-700 font-medium">ID:</span>
-          <span class="ml-2 font-mono text-blue-900">{{ data.user.Id }}</span>
+          <span class="ml-2 font-mono text-blue-900">{{ data.user.id }}</span>
         </div>
         <div>
           <span class="text-blue-700 font-medium">Usuario DMS:</span>
-          <span class="ml-2 text-blue-900">{{ data.user.User }}</span>
+          <span class="ml-2 text-blue-900">{{ data.user.user }}</span>
         </div>
-        <div class="col-span-2" *ngIf="data.user.Email">
+        <div class="col-span-2" *ngIf="data.user.mail">
           <span class="text-blue-700 font-medium">Correo Electrónico:</span>
-          <span class="ml-2 text-blue-900">{{ data.user.Email }}</span>
+          <span class="ml-2 text-blue-900">{{ data.user.mail }}</span>
         </div>
       </div>
     </div>
@@ -48,8 +48,8 @@
                 multiple 
                 [value]="selectedAgencies"
                 (selectionChange)="onAgencySelectionChange($event.value)">
-                <mat-option *ngFor="let agency of allAgencies" [value]="agency.Id">
-                  {{ agency.Name }}
+                <mat-option *ngFor="let agency of allAgencies" [value]="agency.id">
+                  {{ agency.name }}
                 </mat-option>
               </mat-select>
               <mat-hint>Selecciona las agencias a las que el usuario tendrá acceso</mat-hint>
@@ -125,8 +125,8 @@
                 multiple 
                 [value]="selectedProcesses"
                 (selectionChange)="onProcessSelectionChange($event.value)">
-                <mat-option *ngFor="let process of allProcesses" [value]="process.Id">
-                  {{ process.Name }}
+                <mat-option *ngFor="let process of allProcesses" [value]="process.id">
+                  {{ process.name }}
                 </mat-option>
               </mat-select>
               <mat-hint>Selecciona los procesos que el usuario podrá gestionar</mat-hint>

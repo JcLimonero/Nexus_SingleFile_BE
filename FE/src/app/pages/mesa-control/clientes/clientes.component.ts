@@ -54,8 +54,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
   searchTerm = '';
   filterAgency: number | null = null;
   filterSoloUmbralAML = false;
-  agencies: { Id: number; Name: string }[] = [];
-  companies: { Id: number; Name: string }[] = [];
+  agencies: { id: number; name: string }[] = [];
+  companies: { id: number; name: string }[] = [];
 
   totalRecords = 0;
   pageSize = 25;
@@ -91,10 +91,10 @@ export class ClientesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {
-          this.agencies = agencias.map(a => ({ Id: a.Id, Name: a.Name }));
+          this.agencies = agencias.map(a => ({ id: (a as any).id ?? (a as any)['Id'], name: (a as any).name ?? (a as any)['Name'] }));
           // Selecciona el primer elemento por defecto si hay agencias
           if (this.agencies.length > 0) {
-            this.filterAgency = this.agencies[0].Id;
+            this.filterAgency = this.agencies[0].id ?? (this.agencies[0] as any).Id;
           } else {
             this.filterAgency = null;
           }
@@ -109,7 +109,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           if (res.success && res.data?.companies) {
-            this.companies = res.data.companies.map((c: { Id: number; Name: string }) => ({ Id: c.Id, Name: c.Name }));
+            this.companies = res.data.companies.map((c: any) => ({ id: c.id ?? c.Id, name: c.name ?? c.Name }));
             this.cdr.markForCheck();
           }
         }

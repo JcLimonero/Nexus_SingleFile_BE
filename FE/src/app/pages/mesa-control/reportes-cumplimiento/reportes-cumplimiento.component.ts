@@ -75,7 +75,7 @@ export class ReportesCumplimientoComponent implements OnInit {
   totalSinAviso = 0;
   pageSizeOptionsSinAviso = [10, 25, 50, 100];
 
-  agencies: { Id: number; Name: string; IdCompany?: number }[] = [];
+  agencies: { id: number; name: string; id_company?: number }[] = [];
   companies: Company[] = [];
   filterCompania: number | null = null;
   selectedAgencyIds: number[] = [];
@@ -92,11 +92,11 @@ export class ReportesCumplimientoComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
-  get agenciesFiltradas(): { Id: number; Name: string }[] {
+  get agenciesFiltradas(): { id: number; name: string; id_company?: number }[] {
     if (!this.filterCompania) return this.agencies;
     const idComp = Number(this.filterCompania);
     return this.agencies.filter(a => {
-      const aId = a.IdCompany ?? (a as any).id_company ?? (a as any).idCompany;
+      const aId = a.id_company ?? (a as any).IdCompany ?? (a as any).idCompany;
       if (aId == null || aId === '') return false;
       return Number(aId) === idComp;
     });
@@ -106,28 +106,28 @@ export class ReportesCumplimientoComponent implements OnInit {
     const list = this.agenciesFiltradas;
     if (list.length === 0) return this.filterCompania ? 'Sin agencias para esta razón social' : 'No hay agencias';
     if (this.selectedAgencyIds.length === 0) return 'Todas';
-    const allSelected = list.every(a => this.selectedAgencyIds.includes(a.Id)) && this.selectedAgencyIds.length === list.length;
+    const allSelected = list.every(a => this.selectedAgencyIds.includes(a.id)) && this.selectedAgencyIds.length === list.length;
     return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
   }
 
   get isAllAgenciesSelected(): boolean {
     const list = this.agenciesFiltradas;
-    return list.length > 0 && list.every(a => this.selectedAgencyIds.includes(a.Id));
+    return list.length > 0 && list.every(a => this.selectedAgencyIds.includes(a.id));
   }
 
   get isSomeAgenciesSelected(): boolean {
     const list = this.agenciesFiltradas;
-    const selectedInList = list.filter(a => this.selectedAgencyIds.includes(a.Id)).length;
+    const selectedInList = list.filter(a => this.selectedAgencyIds.includes(a.id)).length;
     return selectedInList > 0 && selectedInList < list.length;
   }
 
   toggleTodos(checked: boolean): void {
     const list = this.agenciesFiltradas;
     if (checked) {
-      const idsToAdd = list.map(a => a.Id).filter(id => !this.selectedAgencyIds.includes(id));
+      const idsToAdd = list.map(a => a.id).filter(id => !this.selectedAgencyIds.includes(id));
       this.selectedAgencyIds = [...this.selectedAgencyIds, ...idsToAdd];
     } else {
-      const idsToRemove = list.map(a => a.Id);
+      const idsToRemove = list.map(a => a.id);
       this.selectedAgencyIds = this.selectedAgencyIds.filter(id => !idsToRemove.includes(id));
     }
     this.onFilterChange();
@@ -174,11 +174,14 @@ export class ReportesCumplimientoComponent implements OnInit {
   loadAgencies(): void {
     this.defaultAgencyService.obtenerAgencias(true).subscribe({
       next: (agencias) => {
-        this.agencies = agencias.map(a => ({
-          Id: a.Id,
-          Name: a.Name,
-          IdCompany: (a as any).IdCompany ?? (a as any).id_company ?? (a as any).idCompany
-        }));
+        this.agencies = agencias.map(a => {
+          const aAny = a as any;
+          return {
+            id: aAny.id ?? aAny.Id,
+            name: aAny.name ?? aAny.Name,
+            id_company: aAny.id_company ?? aAny.IdCompany ?? aAny.idCompany
+          };
+        });
       },
       error: () => {}
     });
@@ -406,7 +409,7 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   onFilterChange(): void {
     if (this.filterCompania && this.selectedAgencyIds.length) {
-      const validIds = new Set(this.agenciesFiltradas.map(a => a.Id));
+      const validIds = new Set(this.agenciesFiltradas.map(a => a.id));
       this.selectedAgencyIds = this.selectedAgencyIds.filter(id => validIds.has(id));
     }
     this.loadDashboard();

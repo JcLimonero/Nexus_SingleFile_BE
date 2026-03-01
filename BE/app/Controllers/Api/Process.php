@@ -39,11 +39,12 @@ class Process extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?: 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
             
-            // Validar parámetros de ordenamiento
+            // Validar parámetros de ordenamiento (mapear a snake_case para el modelo)
             $allowedSortFields = ['Name', 'RegistrationDate', 'UpdateDate'];
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'Name';
             }
+            // El modelo manejará el mapeo internamente
             
             $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
             
@@ -71,19 +72,20 @@ class Process extends BaseController
                 $userId = $currentUser['user_id'];
                 $db = \Config\Database::connect();
                 
-                // Obtener IDs de procesos asignados al usuario
+                // Obtener IDs de procesos asignados al usuario (usar snake_case)
                 $userProcesses = $db->table('process_user')
-                    ->select('IdProcess')
-                    ->where('IdUser', $userId)
+                    ->select('id_process')
+                    ->where('id_user', $userId)
                     ->get()
                     ->getResultArray();
                 
-                $allowedProcessIds = array_column($userProcesses, 'IdProcess');
+                $allowedProcessIds = array_column($userProcesses, 'id_process');
                 
-                // Filtrar los procesos obtenidos
+                // Filtrar los procesos obtenidos (compatibilidad con ambos formatos)
                 if (!empty($allowedProcessIds)) {
                     $processes = array_filter($processes, function($process) use ($allowedProcessIds) {
-                        return in_array($process['Id'], $allowedProcessIds);
+                        $processId = $process['id'] ?? $process['Id'] ?? null;
+                        return $processId !== null && in_array($processId, $allowedProcessIds);
                     });
                     // CRÍTICO: Reindexar el array después de array_filter para evitar que JSON lo serialice como objeto
                     $processes = array_values($processes);
@@ -116,13 +118,13 @@ class Process extends BaseController
                 $db = \Config\Database::connect();
                 
                 $builder = $db->table('process_user pu')
-                    ->join('process p', 'p.Id = pu.IdProcess', 'inner')
-                    ->where('pu.IdUser', $userId);
+                    ->join('process p', 'p.id = pu.id_process', 'inner')
+                    ->where('pu.id_user', $userId);
                 
                 if ($enabled === 'true') {
-                    $builder->where('p.Enabled', 1);
+                    $builder->where('p.enabled', 1);
                 } elseif ($enabled === 'false') {
-                    $builder->where('p.Enabled', 0);
+                    $builder->where('p.enabled', 0);
                 }
                 
                 $total = $builder->countAllResults();
@@ -188,13 +190,13 @@ class Process extends BaseController
             
 
             
-            // Preparar datos para inserción
+            // Preparar datos para inserción (mapear PascalCase a snake_case)
             $processData = [
-                'Name' => trim($data['Name']),
-                'Enabled' => $data['Enabled'] ?? 1,
-                'RegistrationDate' => date('Y-m-d H:i:s'),
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             // Insertar proceso
@@ -332,13 +334,19 @@ class Process extends BaseController
             
 
             
-            // Preparar datos para actualización
-            $updateData = [
-                'Name' => trim($data['Name']),
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $existingProcess['Enabled'],
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
-            ];
+            // Preparar datos para actualización (snake_case)
+            $updateData = [];
+            if (isset($data['Name']) || isset($data['name'])) {
+                $updateData['name'] = trim($data['Name'] ?? $data['name'] ?? '');
+            }
+            if (isset($data['Enabled']) || isset($data['enabled'])) {
+                $updateData['enabled'] = isset($data['Enabled']) ? (int)$data['Enabled'] : (int)$data['enabled'];
+            } else {
+                // Si no se especifica, mantener el valor actual
+                $updateData['enabled'] = $existingProcess['enabled'] ?? $existingProcess['Enabled'] ?? 1;
+            }
+            $updateData['update_date'] = date('Y-m-d H:i:s');
+            $updateData['id_last_user_update'] = $this->getCurrentUserId() ?? 0;
             
             // Actualizar proceso
             if ($this->processModel->update($id, $updateData)) {
@@ -403,7 +411,8 @@ class Process extends BaseController
                     ]);
             }
             
-            log_message('debug', "DELETE /api/process/{$id} - Proceso encontrado: " . $existingProcess['Name']);
+            $processName = $existingProcess['name'] ?? $existingProcess['Name'] ?? 'N/A';
+            log_message('debug', "DELETE /api/process/{$id} - Proceso encontrado: " . $processName);
             
             // Obtener parámetros de la petición
             $forceDelete = $this->request->getGet('force') === 'true';
@@ -431,11 +440,11 @@ class Process extends BaseController
                         ]);
                 }
             } else {
-                // Soft delete - deshabilitar
+                // Soft delete - deshabilitar (snake_case)
                 $updateData = [
-                    'Enabled' => 0,
-                    'UpdateDate' => date('Y-m-d H:i:s'),
-                    'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                    'enabled' => 0,
+                    'update_date' => date('Y-m-d H:i:s'),
+                    'id_last_user_update' => $this->getCurrentUserId() ?? 0
                 ];
                 
                 if ($this->processModel->update($id, $updateData)) {
@@ -493,14 +502,15 @@ class Process extends BaseController
                     ]);
             }
             
-            // Cambiar estado
-            $newStatus = $existingProcess['Enabled'] ? 0 : 1;
+            // Cambiar estado (compatibilidad con ambos formatos)
+            $currentStatus = $existingProcess['enabled'] ?? $existingProcess['Enabled'] ?? 0;
+            $newStatus = $currentStatus ? 0 : 1;
             $statusText = $newStatus ? 'habilitado' : 'deshabilitado';
             
             $updateData = [
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $this->getCurrentUserId() ?? 0
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $this->getCurrentUserId() ?? 0
             ];
             
             if ($this->processModel->update($id, $updateData)) {

@@ -354,7 +354,7 @@ class Miniportal extends BaseController
         $exists = $this->db->table('file_document dbf')
             ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
             ->where('dbf.IdFile', $idFile)
-            ->where('dbf.IdDocumentContainer', $fileContainer)
+            ->where('dbf.id_document_container', $fileContainer)
             ->where('dbf.Enabled', 1)
             ->where('dt.AvailableToClient', 1)
             ->countAllResults();
@@ -517,27 +517,27 @@ class Miniportal extends BaseController
                 SELECT
                     dbf.Id as idFileDocument,
                     dbf.IdCurrentStatus as idEstatus,
-                    dbf.Comment as comentarioRechazo,
-                    p.Name as proceso,
-                    fs.Name as fase,
-                    dbf.Name as documento,
-                    dt.Name as tipoDocumento,
-                    dfs.Name as estatus,
-                    dbf.RegistrationDate as fecha,
-                    dbf.IdDocumentContainer as documentContainer,
-                    dt.AvailableToClient as DisponibleCliente,
-                    CASE WHEN ap.Id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
+                    dbf.comment as comentarioRechazo,
+                    p.name as proceso,
+                    fs.name as fase,
+                    dbf.name as documento,
+                    dt.name as tipoDocumento,
+                    dfs.name as estatus,
+                    dbf.registration_date as fecha,
+                    dbf.id_document_container as documentContainer,
+                    dt.available_to_client as DisponibleCliente,
+                    CASE WHEN ap.id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
                 FROM file_document dbf
-                INNER JOIN expedient f ON dbf.IdFile = f.Id
-                INNER JOIN process p ON f.IdProcess = p.Id
-                INNER JOIN document_type dt ON dbf.IdDocumentType = dt.Id
-                INNER JOIN file_status fs ON dt.IdProcessType = fs.Id
-                INNER JOIN document_file_status dfs ON dbf.IdCurrentStatus = dfs.Id
-                LEFT JOIN file_pld_documento_aprobado ap ON ap.IdFileDocument = dbf.Id AND ap.IdFile = dbf.IdFile AND ap.AprobadoCliente = 1
-                WHERE dbf.IdFile = ?
-                AND dbf.Enabled = 1
-                AND dt.AvailableToClient = 1
-                ORDER BY p.Name ASC, fs.Name ASC, dt.Name ASC
+                INNER JOIN expedient f ON dbf.id_file = f.id
+                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN document_type dt ON dbf.id_document_type = dt.id
+                INNER JOIN file_status fs ON dt.id_process_type = fs.id
+                INNER JOIN document_file_status dfs ON dbf.id_current_status = dfs.id
+                LEFT JOIN file_pld_documento_aprobado ap ON ap.id_file_document = dbf.id AND ap.id_file = dbf.id_file AND ap.aprobado_cliente = 1
+                WHERE dbf.id_file = ?
+                AND dbf.enabled = 1
+                AND dt.available_to_client = 1
+                ORDER BY p.name ASC, fs.name ASC, dt.name ASC
             ";
             $query = $this->db->query($sql, [$idFile]);
             return $query->getResultArray();
@@ -555,30 +555,30 @@ class Miniportal extends BaseController
         $builder = $this->db->table('file_document dbf');
         $results = $builder
             ->select('
-                dbf.Id as idFileDocument,
-                dbf.IdCurrentStatus as idEstatus,
-                dbf.Comment as comentarioRechazo,
-                p.Name as proceso,
-                fs.Name as fase,
-                dbf.Name as documento,
-                dt.Name as tipoDocumento,
-                dfs.Name as estatus,
-                dbf.RegistrationDate as fecha,
-                dbf.IdDocumentContainer as documentContainer,
-                dt.AvailableToClient as DisponibleCliente,
+                dbf.id as idFileDocument,
+                dbf.id_current_status as idEstatus,
+                dbf.comment as comentarioRechazo,
+                p.name as proceso,
+                fs.name as fase,
+                dbf.name as documento,
+                dt.name as tipoDocumento,
+                dfs.name as estatus,
+                dbf.registration_date as fecha,
+                dbf.id_document_container as documentContainer,
+                dt.available_to_client as DisponibleCliente,
                 0 as aprobadoCliente
             ')
-            ->join('expedient f', 'dbf.IdFile = f.Id', 'inner')
-            ->join('process p', 'f.IdProcess = p.Id', 'inner')
-            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->join('file_status fs', 'dt.IdProcessType = fs.Id', 'inner')
-            ->join('document_file_status dfs', 'dbf.IdCurrentStatus = dfs.Id', 'inner')
-            ->where('dbf.IdFile', $idFile)
-            ->where('dbf.Enabled', 1)
-            ->where('dt.AvailableToClient', 1)
-            ->orderBy('p.Name', 'ASC')
-            ->orderBy('fs.Name', 'ASC')
-            ->orderBy('dt.Name', 'ASC')
+            ->join('expedient f', 'dbf.id_file = f.id', 'inner')
+            ->join('process p', 'f.id_process = p.id', 'inner')
+            ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
+            ->join('file_status fs', 'dt.id_process_type = fs.id', 'inner')
+            ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
+            ->where('dbf.id_file', $idFile)
+            ->where('dbf.enabled', 1)
+            ->where('dt.available_to_client', 1)
+            ->orderBy('p.name', 'ASC')
+            ->orderBy('fs.name', 'ASC')
+            ->orderBy('dt.name', 'ASC')
             ->get()
             ->getResultArray();
 
@@ -592,35 +592,35 @@ class Miniportal extends BaseController
     {
         $sql = "
             SELECT
-                f.Id as idFile,
-                f.IdOrderTotal as ndPedido,
-                f.RegistrationDate as fechaRegistro,
-                fs.Name as estatus,
-                COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))) as cliente,
-                a.Name as agencia,
-                COALESCE(obc1.VIN, obc2.VIN) as vin,
-                COALESCE(obc1.Model, obc2.Model) as modelo,
-                COALESCE(obc1.Year, obc2.Year) as year,
-                COALESCE(obc1.CarType, obc2.CarType) as version
+                f.id as idFile,
+                f.id_order_total as ndPedido,
+                f.registration_date as fechaRegistro,
+                fs.name as estatus,
+                COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))) as cliente,
+                a.name as agencia,
+                COALESCE(obc1.vin, obc2.vin) as vin,
+                COALESCE(obc1.model, obc2.model) as modelo,
+                COALESCE(obc1.year, obc2.year) as year,
+                COALESCE(obc1.car_type, obc2.car_type) as version
             FROM expedient f
-            INNER JOIN client c ON f.IdClient = c.Id
-            INNER JOIN agency a ON f.IdAgency = a.Id
-            LEFT JOIN file_status fs ON f.IdCurrentState = fs.Id
-            LEFT JOIN order obc1 ON obc1.Id = f.IdOrder
+            INNER JOIN client c ON f.id_client = c.id
+            INNER JOIN agency a ON f.id_agency = a.id
+            LEFT JOIN file_status fs ON f.id_current_state = fs.id
+            LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
             LEFT JOIN (
-                SELECT obc2a.IdDMS, obc2a.idagency, obc2a.VIN, obc2a.Model, obc2a.Year, obc2a.CarType
-                FROM order obc2a
+                SELECT obc2a.id_dms, obc2a.id_agency, obc2a.vin, obc2a.model, obc2a.year, obc2a.car_type
+                FROM order_by_car obc2a
                 INNER JOIN (
-                    SELECT IdDMS, idagency, MAX(COALESCE(RegistrationDate, '1900-01-01')) as MaxDate
-                    FROM order
-                    GROUP BY IdDMS, idagency
-                ) obc2b ON obc2a.IdDMS = obc2b.IdDMS
-                    AND obc2a.idagency = obc2b.idagency
-                    AND COALESCE(obc2a.RegistrationDate, '1900-01-01') = obc2b.MaxDate
-            ) obc2 ON f.IdOrder IS NULL
-                AND obc2.IdDMS = f.IdOrderTotal
-                AND obc2.idagency = f.IdAgency
-            WHERE f.Id = ? AND f.IdCurrentState != 5
+                    SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
+                    FROM order_by_car
+                    GROUP BY id_dms, id_agency
+                ) obc2b ON obc2a.id_dms = obc2b.id_dms
+                    AND obc2a.id_agency = obc2b.id_agency
+                    AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+            ) obc2 ON f.id_order IS NULL
+                AND obc2.id_dms = f.id_order_total
+                AND obc2.id_agency = f.id_agency
+            WHERE f.id = ? AND f.id_current_state != 5
         ";
         $query = $this->db->query($sql, [$idFile]);
         $row = $query->getRowArray();

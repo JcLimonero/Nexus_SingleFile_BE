@@ -4,13 +4,14 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface FileReason {
-  Id: number;
-  Name: string;
-  IdTypeReason: number;
-  Enabled: number;
-  RegistrationDate: string;
-  UpdateDate: string;
-  IdLastUserUpdate: number;
+  id: number;
+  name: string;
+  id_type_reason: number;
+  enabled: number;
+  registration_date?: string;
+  update_date?: string;
+  id_last_user_update?: number;
+  type_reason_label?: string;
 }
 
 export interface FileReasonFilters {
@@ -39,7 +40,7 @@ export interface FileReasonResponse {
 export interface FileReasonStats {
   total_reasons: number;
   type_reason_stats: Array<{
-    IdTypeReason: number;
+    id_type_reason: number;
     count: number;
   }>;
 }

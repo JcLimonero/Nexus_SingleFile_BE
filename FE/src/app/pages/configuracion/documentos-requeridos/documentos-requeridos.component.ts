@@ -143,25 +143,25 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     this.dataSource.sortingDataAccessor = (item: any, property: string) => {
       switch (property) {
         case 'id':
-          return item.Id;
+          return item.id;
         case 'agencia':
-          return item.AgenciaName || '';
+          return item.agencia_name || '';
         case 'proceso':
-          return item.ProcesoName || '';
+          return item.proceso_name || '';
         case 'tipoCliente':
-          return item.TipoClienteName || '';
+          return item.tipo_cliente_name || '';
         case 'tipoOperacion':
-          return item.TipoOperacionName || '';
+          return item.tipo_operacion_name || '';
         case 'tipoDocumento':
-          return item.TipoDocumentoName || '';
+          return item.tipo_documento_name || '';
         case 'etapa':
-          return item.ProcessTypeName || '';
+          return item.process_type_name || '';
         case 'subEtapa':
-          return item.SubProcessName || '';
+          return item.sub_process_name || '';
         case 'requerido':
-          return item.Required === '1' ? 'Sí' : 'No';
+          return item.required === '1' ? 'Sí' : 'No';
         case 'requiereExpiracion':
-          return item.ReqExpiration === '1' ? 'Sí' : 'No';
+          return item.req_expiration === '1' ? 'Sí' : 'No';
         default:
           return item[property];
       }
@@ -171,15 +171,15 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     this.dataSourceConfiguraciones.sortingDataAccessor = (item: any, property: string) => {
       switch (property) {
         case 'agencia':
-          return item.AgenciaName || '';
+          return item.agencia_name || '';
         case 'proceso':
-          return item.ProcesoName || '';
+          return item.proceso_name || '';
         case 'tipoCliente':
-          return item.TipoClienteName || '';
+          return item.tipo_cliente_name || '';
         case 'tipoOperacion':
-          return item.TipoOperacionName || '';
+          return item.tipo_operacion_name || '';
         case 'enabled':
-          return item.Enabled === '1' || item.Enabled === 1 ? 'Activo' : 'Inactivo';
+          return item.enabled === '1' || item.enabled === 1 ? 'Activo' : 'Inactivo';
         case 'totalDocumentos':
           return item.totalDocumentos || 0;
         default:
@@ -314,10 +314,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     const filters: DocumentoRequeridoFilters = {};
     
     // Solo agregar filtros que estén seleccionados
-    if (this.selectedProcess) filters.IdProcess = this.selectedProcess;
-    if (this.selectedAgency) filters.IdAgency = this.selectedAgency;
-    if (this.selectedCustomerType) filters.IdCostumerType = this.selectedCustomerType;
-    if (this.selectedOperationType) filters.IdOperationType = this.selectedOperationType;
+    if (this.selectedProcess) filters.id_process = this.selectedProcess;
+    if (this.selectedAgency) filters.id_agency = this.selectedAgency;
+    if (this.selectedCustomerType) filters.id_customer_type = this.selectedCustomerType;
+    if (this.selectedOperationType) filters.id_operation_type = this.selectedOperationType;
 
             this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
           next: (response) => {
@@ -384,10 +384,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     // Para crear una nueva configuración, usar filtros del Tab 2 si están disponibles,
     // o del Tab 1 (filtro de agencia), o valores vacíos
     const configuracion = {
-      IdProcess: this.selectedProcess || '',
-      IdAgency: this.selectedAgency || this.selectedAgencyForConfiguraciones || '',
-      IdCostumerType: this.selectedCustomerType || '',
-      IdOperationType: this.selectedOperationType || ''
+      id_process: this.selectedProcess || '',
+      id_agency: this.selectedAgency || this.selectedAgencyForConfiguraciones || '',
+      id_customer_type: this.selectedCustomerType || '',
+      id_operation_type: this.selectedOperationType || ''
     };
 
     const dialogRef = this.dialog.open(DocumentoRequeridoEditDialogComponent, {
@@ -433,19 +433,19 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   editConfiguration(): void {
     // Buscar el estado de la configuración desde los datos cargados
     const existingConfig = this.dataSource.data.find(doc => 
-      doc.IdProcess === this.selectedProcess &&
-      doc.IdAgency === this.selectedAgency &&
-      doc.IdCostumerType === this.selectedCustomerType &&
-      doc.IdOperationType === this.selectedOperationType
+      doc.id_process === this.selectedProcess &&
+      doc.id_agency === this.selectedAgency &&
+      doc.id_customer_type === this.selectedCustomerType &&
+      doc.id_operation_type === this.selectedOperationType
     );
 
     // Crear objeto de configuración con los filtros seleccionados
     const configuracion = {
-      IdProcess: this.selectedProcess,
-      IdAgency: this.selectedAgency,
-      IdCostumerType: this.selectedCustomerType,
-      IdOperationType: this.selectedOperationType,
-      Enabled: existingConfig?.Enabled || '1'
+      id_process: this.selectedProcess,
+      id_agency: this.selectedAgency,
+      id_customer_type: this.selectedCustomerType,
+      id_operation_type: this.selectedOperationType,
+      enabled: existingConfig?.enabled || '1'
     };
 
     const dialogRef = this.dialog.open(DocumentoRequeridoEditDialogComponent, {
@@ -486,10 +486,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     }
 
     // Obtener nombres de los elementos seleccionados
-    const currentAgency = this.agencies.find(a => a.Id.toString() === this.selectedAgency);
-    const currentProcess = this.processes.find(p => p.Id.toString() === this.selectedProcess);
-    const currentCustomerType = this.customerTypes.find(c => c.Id.toString() === this.selectedCustomerType);
-    const currentOperationType = this.operationTypes.find(o => o.Id.toString() === this.selectedOperationType);
+    const currentAgency = this.agencies.find(a => String(a.id) === String(this.selectedAgency));
+    const currentProcess = this.processes.find(p => String(p.id) === String(this.selectedProcess));
+    const currentCustomerType = this.customerTypes.find(c => String(c.id) === String(this.selectedCustomerType));
+    const currentOperationType = this.operationTypes.find(o => String(o.id) === String(this.selectedOperationType));
 
     if (!currentAgency || !currentProcess || !currentCustomerType || !currentOperationType) {
       this.snackBar.open('Error obteniendo información de la configuración', 'Error', { duration: 3000 });
@@ -498,20 +498,20 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
     // Crear objeto de configuración con los filtros seleccionados
     const configuracion = {
-      IdProcess: this.selectedProcess,
-      IdAgency: parseInt(this.selectedAgency),
-      IdCostumerType: this.selectedCustomerType,
-      IdOperationType: this.selectedOperationType
+      id_process: this.selectedProcess,
+      id_agency: parseInt(this.selectedAgency),
+      id_customer_type: this.selectedCustomerType,
+      id_operation_type: this.selectedOperationType
     };
 
     const dialogRef = this.dialog.open(DuplicateConfigurationDialogComponent, {
       width: '800px',
       data: {
         configuracion: configuracion,
-        currentAgencyName: currentAgency.Name,
-        processName: currentProcess.Name,
-        customerTypeName: currentCustomerType.Name,
-        operationTypeName: currentOperationType.Name
+        currentAgencyName: currentAgency.name,
+        processName: currentProcess.name,
+        customerTypeName: currentCustomerType.name,
+        operationTypeName: currentOperationType.name
       }
     });
 
@@ -537,7 +537,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     // Construir filtros solo con la agencia seleccionada
     const filters: DocumentoRequeridoFilters = {};
     if (this.selectedAgencyForConfiguraciones) {
-      filters.IdAgency = this.selectedAgencyForConfiguraciones;
+      filters.id_agency = this.selectedAgencyForConfiguraciones;
     }
 
     this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
@@ -549,20 +549,20 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
           const configuracionesMap = new Map<string, any>();
           
           documentos.forEach((doc: DocumentoRequerido) => {
-            const key = `${doc.IdProcess}-${doc.IdAgency}-${doc.IdCostumerType}-${doc.IdOperationType}`;
+            const key = `${doc.id_process}-${doc.id_agency}-${doc.id_customer_type}-${doc.id_operation_type}`;
             
             if (!configuracionesMap.has(key)) {
               configuracionesMap.set(key, {
-                IdConfigurationProcess: doc.IdConfigurationProcess,
-                IdProcess: doc.IdProcess,
-                IdAgency: doc.IdAgency,
-                IdCostumerType: doc.IdCostumerType,
-                IdOperationType: doc.IdOperationType,
-                ProcesoName: doc.ProcesoName || 'N/A',
-                AgenciaName: doc.AgenciaName || 'N/A',
-                TipoClienteName: doc.TipoClienteName || 'N/A',
-                TipoOperacionName: doc.TipoOperacionName || 'N/A',
-                Enabled: doc.Enabled || '1',
+                id_configuration_process: doc.id_configuration_process,
+                id_process: doc.id_process,
+                id_agency: doc.id_agency,
+                id_customer_type: doc.id_customer_type,
+                id_operation_type: doc.id_operation_type,
+                proceso_name: doc.proceso_name || 'N/A',
+                agencia_name: doc.agencia_name || 'N/A',
+                tipo_cliente_name: doc.tipo_cliente_name || 'N/A',
+                tipo_operacion_name: doc.tipo_operacion_name || 'N/A',
+                enabled: doc.enabled || '1',
                 totalDocumentos: 0
               });
             }
@@ -610,10 +610,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
    * Aplicar configuración seleccionada del Tab 1 al Tab 2
    */
   aplicarConfiguracion(configuracion: any): void {
-    this.selectedProcess = configuracion.IdProcess;
-    this.selectedAgency = configuracion.IdAgency;
-    this.selectedCustomerType = configuracion.IdCostumerType;
-    this.selectedOperationType = configuracion.IdOperationType;
+    this.selectedProcess = configuracion.id_process;
+    this.selectedAgency = configuracion.id_agency;
+    this.selectedCustomerType = configuracion.id_customer_type;
+    this.selectedOperationType = configuracion.id_operation_type;
     this.loadData();
     // Cambiar al tab 2 automáticamente (opcional, se puede hacer con referencia al tab group)
     this.snackBar.open('Configuración aplicada. Revisa el tab "Vista Detallada"', 'Info', { duration: 3000 });
@@ -628,11 +628,11 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
       data: {
         mode: 'edit',
         configuracion: {
-          IdProcess: configuracion.IdProcess,
-          IdAgency: configuracion.IdAgency,
-          IdCostumerType: configuracion.IdCostumerType,
-          IdOperationType: configuracion.IdOperationType,
-          Enabled: configuracion.Enabled || '1'
+          id_process: configuracion.id_process,
+          id_agency: configuracion.id_agency,
+          id_customer_type: configuracion.id_customer_type,
+          id_operation_type: configuracion.id_operation_type,
+          enabled: configuracion.enabled || '1'
         }
       }
     });
@@ -651,10 +651,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
    */
   duplicateConfigurationFromTab1(configuracion: any): void {
     // Obtener nombres de los elementos de la configuración
-    const currentAgency = this.agencies.find(a => a.Id.toString() === configuracion.IdAgency);
-    const currentProcess = this.processes.find(p => p.Id.toString() === configuracion.IdProcess);
-    const currentCustomerType = this.customerTypes.find(c => c.Id.toString() === configuracion.IdCostumerType);
-    const currentOperationType = this.operationTypes.find(o => o.Id.toString() === configuracion.IdOperationType);
+    const currentAgency = this.agencies.find(a => String(a.id) === String(configuracion.id_agency));
+    const currentProcess = this.processes.find(p => String(p.id) === String(configuracion.id_process));
+    const currentCustomerType = this.customerTypes.find(c => String(c.id) === String(configuracion.id_customer_type));
+    const currentOperationType = this.operationTypes.find(o => String(o.id) === String(configuracion.id_operation_type));
 
     if (!currentAgency || !currentProcess || !currentCustomerType || !currentOperationType) {
       this.snackBar.open('Error obteniendo información de la configuración', 'Error', { duration: 3000 });
@@ -663,20 +663,20 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
     // Crear objeto de configuración
     const config = {
-      IdProcess: configuracion.IdProcess,
-      IdAgency: parseInt(configuracion.IdAgency),
-      IdCostumerType: configuracion.IdCostumerType,
-      IdOperationType: configuracion.IdOperationType
+      id_process: configuracion.id_process,
+      id_agency: parseInt(configuracion.id_agency),
+      id_customer_type: configuracion.id_customer_type,
+      id_operation_type: configuracion.id_operation_type
     };
 
     const dialogRef = this.dialog.open(DuplicateConfigurationDialogComponent, {
       width: '800px',
       data: {
         configuracion: config,
-        currentAgencyName: currentAgency.Name,
-        processName: currentProcess.Name,
-        customerTypeName: currentCustomerType.Name,
-        operationTypeName: currentOperationType.Name
+        currentAgencyName: currentAgency.name,
+        processName: currentProcess.name,
+        customerTypeName: currentCustomerType.name,
+        operationTypeName: currentOperationType.name
       }
     });
 

@@ -229,7 +229,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     const list = this.agenciasFiltradas;
     if (list.length === 0) return this.filterCompania !== this.COMPANIA_TODAS ? 'Sin agencias para esta razón social' : 'No hay agencias';
     if (this.selectedAgencyIds.length === 0) return 'Seleccione agencias';
-    const allSelected = list.every(a => this.selectedAgencyIds.includes(a.Id)) && this.selectedAgencyIds.length === list.length;
+    const allSelected = list.every(a => this.selectedAgencyIds.includes(a.id ?? (a as any).Id)) && this.selectedAgencyIds.length === list.length;
     return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
   }
 
@@ -250,7 +250,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
           this.agencias = (lista || []).filter((a) => this.defaultAgencyService.esAgenciaHabilitada(a));
           // Seleccionar por defecto la agencia guardada en localStorage
           const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-          if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+          if (savedAgencyId !== null && this.agencias.some(ag => (ag.id ?? (ag as any).Id) === savedAgencyId)) {
             this.selectedAgencyIds = [savedAgencyId];
           }
           this.loadingAgencias = false;
@@ -266,22 +266,22 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   get isAllAgenciesSelected(): boolean {
     const list = this.agenciasFiltradas;
-    return list.length > 0 && list.every(a => this.selectedAgencyIds.includes(a.Id));
+    return list.length > 0 && list.every(a => this.selectedAgencyIds.includes(a.id ?? (a as any).Id));
   }
 
   get isSomeAgenciesSelected(): boolean {
     const list = this.agenciasFiltradas;
-    const selectedInList = list.filter(a => this.selectedAgencyIds.includes(a.Id)).length;
+    const selectedInList = list.filter(a => this.selectedAgencyIds.includes(a.id ?? (a as any).Id)).length;
     return selectedInList > 0 && selectedInList < list.length;
   }
 
   toggleTodos(checked: boolean): void {
     const list = this.agenciasFiltradas;
     if (checked) {
-      const idsToAdd = list.map(a => a.Id).filter(id => !this.selectedAgencyIds.includes(id));
+      const idsToAdd = list.map(a => a.id ?? (a as any).Id).filter(id => !this.selectedAgencyIds.includes(id));
       this.selectedAgencyIds = [...this.selectedAgencyIds, ...idsToAdd];
     } else {
-      const idsToRemove = list.map(a => a.Id);
+      const idsToRemove = list.map(a => a.id ?? (a as any).Id);
       this.selectedAgencyIds = this.selectedAgencyIds.filter(id => !idsToRemove.includes(id));
       if (this.selectedAgencyIds.length === 0) {
         this.dataSource.data = [];
@@ -311,7 +311,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   }
 
   get selectedAgencies(): Agencia[] {
-    return this.agencias.filter(a => this.selectedAgencyIds.includes(a.Id));
+    return this.agencias.filter(a => this.selectedAgencyIds.includes(a.id ?? (a as any).Id));
   }
 
   aplicarFiltros(): void {
@@ -448,7 +448,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   private cargarPedidosMultiAgencias(selected: Agencia[]): void {
     const agenciesWithId = selected
       .filter(a => a['IdAgency'])
-      .map(a => ({ idAgency: a['IdAgency'], name: a.Name || '' }));
+      .map(a => ({ idAgency: a['id_agency_dms'] ?? a['IdAgency'], name: ((a as any).name ?? (a as any).Name) || '' }));
     if (agenciesWithId.length === 0) {
       this.snackBar.open('No hay agencias con IdAgency configurado', 'Cerrar', { duration: 3000 });
       return;

@@ -151,15 +151,9 @@ export class NavigationLoaderService {
               },
               {
                 type: 'link',
-                label: 'Motivos de Aprobación y Rechazo',
+                label: 'Motivos de Rechazo',
                 route: '/configuracion/motivos-rechazo',
                 icon: 'mat:thumbs_up_down'
-              },
-              {
-                type: 'link',
-                label: 'Motivos Extraordinarios',
-                route: '/configuracion/motivos-extraordinarios',
-                icon: 'mat:report_problem'
               }
             ]
           },

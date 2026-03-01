@@ -7,13 +7,13 @@ use CodeIgniter\Model;
 class CustomerTypeModel extends Model
 {
     protected $table            = 'customer_type';
-    protected $primaryKey       = 'Id';
-    protected $useAutoIncrement = false;
+    protected $primaryKey       = 'id';
+    protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate'
+        'id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -25,16 +25,16 @@ class CustomerTypeModel extends Model
     // Dates
     protected $useTimestamps = false;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'RegistrationDate';
-    protected $updatedField  = 'UpdateDate';
+    protected $createdField  = 'registration_date';
+    protected $updatedField  = 'update_date';
     protected $deletedField  = 'deleted_at';
 
-    // Validation
+    // Validation (snake_case)
     protected $validationRules      = [
-        'Name' => 'required|max_length[600]'
+        'name' => 'required|max_length[600]'
     ];
     protected $validationMessages   = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre del tipo de cliente es requerido',
             'max_length' => 'El nombre del tipo de cliente no puede exceder 600 caracteres',
             'is_unique' => 'Ya existe un tipo de cliente con este nombre'
@@ -59,7 +59,7 @@ class CustomerTypeModel extends Model
      */
     public function getActiveCustomerTypes()
     {
-        return $this->where('Enabled', 1)->orderBy('Name', 'ASC')->findAll();
+        return $this->where('enabled', 1)->orderBy('name', 'ASC')->findAll();
     }
 
     /**
@@ -67,7 +67,7 @@ class CustomerTypeModel extends Model
      */
     public function getCustomerTypeByName($name)
     {
-        return $this->where('Name', $name)->first();
+        return $this->where('name', $name)->first();
     }
 
     /**
@@ -80,7 +80,8 @@ class CustomerTypeModel extends Model
             return false;
         }
 
-        $newStatus = $customerType['Enabled'] == 1 ? 0 : 1;
-        return $this->update($id, ['Enabled' => $newStatus]);
+        $enabled = $customerType['enabled'] ?? $customerType['Enabled'] ?? 1;
+        $newStatus = $enabled == 1 ? 0 : 1;
+        return $this->update($id, ['enabled' => $newStatus]);
     }
 }

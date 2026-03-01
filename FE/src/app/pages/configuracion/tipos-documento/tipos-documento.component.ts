@@ -46,7 +46,7 @@ import { AddToConfigurationsDialogComponent } from './add-to-configurations-dial
 export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy {
   tiposDocumento: DocumentType[] = [];
   dataSource = new MatTableDataSource<DocumentType>([]);
-  displayedColumns: string[] = ['Id', 'Name', 'ProcessTypeName', 'SubProcessName', 'Required', 'ReqExpiration', 'AvailableToClient', 'Enabled', 'configuraciones', 'acciones'];
+  displayedColumns: string[] = ['id', 'name', 'process_type_name', 'sub_process_name', 'required', 'req_expiration', 'available_to_client', 'enabled', 'configuraciones', 'acciones'];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -63,14 +63,14 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   
   // Mapeo de nombres de columnas para mostrar
   columnNames: { [key: string]: string } = {
-    'Id': 'ID',
-    'Name': 'Nombre',
-    'ProcessTypeName': 'Fase',
-    'SubProcessName': 'Sub Fase',
-    'Required': 'Requerido',
-    'ReqExpiration': 'Requiere expiración',
-    'AvailableToClient': 'Disponible al cliente',
-    'Enabled': 'Estado',
+    'id': 'ID',
+    'name': 'Nombre',
+    'process_type_name': 'Fase',
+    'sub_process_name': 'Sub Fase',
+    'required': 'Requerido',
+    'req_expiration': 'Requiere expiración',
+    'available_to_client': 'Disponible al cliente',
+    'enabled': 'Estado',
     'configuraciones': 'Configuraciones',
     'acciones': 'Acciones'
   };
@@ -104,7 +104,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
       // Configurar filtro personalizado (solo para búsqueda local si es necesario)
       this.dataSource.filterPredicate = (data: DocumentType, filter: string) => {
         const searchTerm = filter.toLowerCase();
-        return data.Name.toLowerCase().includes(searchTerm);
+        return data.name.toLowerCase().includes(searchTerm);
       };
     });
   }
@@ -156,11 +156,10 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
           
           // Verificar que el conteo coincida con la cantidad real de configuraciones
           this.tiposDocumento.forEach(tipo => {
-            const count = tipo.configurationsCount || 0;
+            const count = tipo.configurations_count ?? tipo.configurationsCount ?? 0;
             const actualLength = tipo.configurations?.length || 0;
             if (count !== actualLength) {
-              // Corregir el conteo si hay discrepancia
-              tipo.configurationsCount = actualLength;
+              tipo.configurations_count = tipo.configurationsCount = actualLength;
             }
           });
           
@@ -200,7 +199,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
         if (response?.success) {
           const uniquePhases = [...new Set(
             (response.data.document_types || [])
-              .map(tipo => tipo.ProcessTypeName)
+              .map(tipo => tipo.process_type_name)
               .filter(phase => phase && phase !== 'N/A')
           )];
           
@@ -297,11 +296,11 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   deleteDocumentType(documentType: DocumentType): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de documento "${documentType.Name}"?`)) {
-      this.documentTypeService.deleteDocumentType(documentType.Id!).subscribe({
+    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de documento "${documentType.name}"?`)) {
+      this.documentTypeService.deleteDocumentType(documentType.id!).subscribe({
         next: (response) => {
           if (response.success) {
-            this.tiposDocumento = this.tiposDocumento.filter(t => t.Id !== documentType.Id);
+            this.tiposDocumento = this.tiposDocumento.filter(t => t.id !== documentType.id);
             this.applyFilter();
             this.snackBar.open('Tipo de documento eliminado exitosamente', 'Éxito', {
               duration: 2000
@@ -322,13 +321,12 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   toggleStatus(documentType: DocumentType): void {
-    this.documentTypeService.toggleStatus(documentType.Id!).subscribe({
+    this.documentTypeService.toggleStatus(documentType.id!).subscribe({
       next: (response) => {
         if (response.success) {
-          // Actualizar el estado en la lista local
-          const index = this.tiposDocumento.findIndex(t => t.Id === documentType.Id);
+          const index = this.tiposDocumento.findIndex(t => t.id === documentType.id);
           if (index !== -1) {
-            this.tiposDocumento[index].Enabled = this.tiposDocumento[index].Enabled === '1' ? '0' : '1';
+            this.tiposDocumento[index].enabled = this.tiposDocumento[index].enabled === '1' ? '0' : '1';
             this.applyFilter();
           }
           
@@ -350,26 +348,19 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   openConfigurationsDialog(documentType: DocumentType): void {
-    // Validar que el ID existe y es válido
-    if (!documentType.Id) {
-
+    if (!documentType.id) {
       this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
       return;
     }
 
-    // Convertir el ID a número para validación
-    const documentTypeId = parseInt(documentType.Id, 10);
+    const documentTypeId = parseInt(documentType.id, 10);
     if (isNaN(documentTypeId) || documentTypeId <= 0) {
-
-      this.snackBar.open(`Error: ID de documento inválido: ${documentType.Id}`, 'Error', { duration: 3000 });
+      this.snackBar.open(`Error: ID de documento inválido: ${documentType.id}`, 'Error', { duration: 3000 });
       return;
     }
 
-    // Obtener el tipo de documento completo desde la lista original para asegurar que tenemos todas las configuraciones
-    const fullDocumentType = this.tiposDocumento.find(dt => dt.Id === documentType.Id) || documentType;
-    
-    // Verificar que el documento existe en la lista original
-    const existsInOriginal = this.tiposDocumento.some(dt => dt.Id === documentType.Id);
+    const fullDocumentType = this.tiposDocumento.find(dt => dt.id === documentType.id) || documentType;
+    const existsInOriginal = this.tiposDocumento.some(dt => dt.id === documentType.id);
     if (!existsInOriginal) {
       
     }
@@ -422,7 +413,7 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   openAddToConfigurationsDialog(documentType: DocumentType): void {
-    if (!documentType?.Id) {
+    if (!documentType?.id) {
       this.snackBar.open('Error: El tipo de documento no tiene un ID válido', 'Error', { duration: 3000 });
       return;
     }

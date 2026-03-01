@@ -29,11 +29,9 @@ class CustomerType extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'Name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            // Validar campos permitidos para ordenamiento
-            $allowedSortFields = ['Id', 'Name', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate'];
-            if (!in_array($sortBy, $allowedSortFields)) {
-                $sortBy = 'Name';
-            }
+            // Validar campos permitidos para ordenamiento (snake_case)
+            $sortFieldMap = ['Id' => 'id', 'Name' => 'name', 'Enabled' => 'enabled', 'RegistrationDate' => 'registration_date', 'UpdateDate' => 'update_date', 'IdLastUserUpdate' => 'id_last_user_update'];
+            $sortField = $sortFieldMap[$sortBy] ?? 'name';
 
             // Validar orden
             $sortOrder = strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC';
@@ -48,24 +46,24 @@ class CustomerType extends BaseController
                 $offset = ($page - 1) * $limit;
             }
 
-            // Construir la consulta
+            // Construir la consulta (snake_case)
             $db = \Config\Database::connect();
             $builder = $db->table('customer_type ct');
             
-            $builder->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')
-                ->join('user u', 'u.Id = ct.IdLastUserUpdate', 'left');
+            $builder->select('ct.id, ct.name, ct.enabled, ct.registration_date, ct.update_date, ct.id_last_user_update, u.name as last_user_update_name')
+                ->join('user u', 'u.id = ct.id_last_user_update', 'left');
 
             // Aplicar filtros
             if ($enabled !== null && $enabled !== '') {
-                $builder->where('ct.Enabled', $enabled);
+                $builder->where('ct.enabled', $enabled);
             }
 
             if ($search) {
-                $builder->like('ct.Name', $search);
+                $builder->like('ct.name', $search);
             }
 
             // Aplicar ordenamiento
-            $builder->orderBy("ct.$sortBy", $sortOrder);
+            $builder->orderBy("ct.$sortField", $sortOrder);
 
             // Obtener total de registros
             $total = $builder->countAllResults(false);
@@ -110,16 +108,15 @@ class CustomerType extends BaseController
         try {
             $data = $this->request->getJSON(true);
             
-            // Validar campos requeridos
-            if (empty($data['Name'])) {
+            $name = $data['name'] ?? $data['Name'] ?? null;
+            if (empty($name)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El nombre del tipo de cliente es requerido'
                 ])->setStatusCode(400);
             }
             
-            // Verificar si el nombre ya existe
-            $existingType = $this->customerTypeModel->where('Name', $data['Name'])->first();
+            $existingType = $this->customerTypeModel->where('name', $name)->first();
             if ($existingType) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -127,26 +124,21 @@ class CustomerType extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Generar el siguiente ID manualmente
-            $db = \Config\Database::connect();
-            $maxIdQuery = $db->query("SELECT MAX(Id) as max_id FROM customer_type");
-            $maxIdResult = $maxIdQuery->getRow();
-            $nextId = ($maxIdResult->max_id ?? 0) + 1;
+            $insertData = [
+                'name' => trim($name),
+                'enabled' => $data['enabled'] ?? $data['Enabled'] ?? 1,
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => session()->get('user_id') ?? 0
+            ];
             
-            $data['Id'] = $nextId;
-            $data['Enabled'] = $data['Enabled'] ?? 1;
-            $data['RegistrationDate'] = date('Y-m-d H:i:s');
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
-            $data['IdLastUserUpdate'] = session()->get('user_id') ?? 0;
-            
-            // Insertar tipo de cliente
-            $typeId = $this->customerTypeModel->insert($data);
+            $typeId = $this->customerTypeModel->insert($insertData);
             
             if ($typeId) {
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Tipo de cliente creado exitosamente',
-                    'data' => ['id' => $nextId]
+                    'data' => ['id' => $typeId]
                 ])->setStatusCode(201);
             } else {
                 return $this->response->setJSON([
@@ -182,9 +174,9 @@ class CustomerType extends BaseController
             $builder = $db->table('customer_type ct');
             
             $customerType = $builder
-                ->select('ct.Id, ct.Name, ct.Enabled, ct.RegistrationDate, ct.UpdateDate, ct.IdLastUserUpdate, u.Name as LastUserUpdateName')
-                ->join('user u', 'u.Id = ct.IdLastUserUpdate', 'left')
-                ->where('ct.Id', $id)
+                ->select('ct.id, ct.name, ct.enabled, ct.registration_date, ct.update_date, ct.id_last_user_update, u.name as last_user_update_name')
+                ->join('user u', 'u.id = ct.id_last_user_update', 'left')
+                ->where('ct.id', $id)
                 ->get()
                 ->getRowArray();
             
@@ -236,8 +228,10 @@ class CustomerType extends BaseController
             }
             
             // Verificar nombre único (si se está cambiando)
-            if (isset($data['Name']) && $data['Name'] !== $existingType['Name']) {
-                $duplicateType = $this->customerTypeModel->where('Name', $data['Name'])->where('Id !=', $id)->first();
+            $newName = $data['name'] ?? $data['Name'] ?? null;
+            $existingName = $existingType['name'] ?? $existingType['Name'] ?? null;
+            if ($newName !== null && $newName !== $existingName) {
+                $duplicateType = $this->customerTypeModel->where('name', $newName)->where('id !=', $id)->first();
                 if ($duplicateType) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -246,11 +240,15 @@ class CustomerType extends BaseController
                 }
             }
             
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
-            $data['IdLastUserUpdate'] = session()->get('user_id') ?? 0;
+            $updatePayload = [
+                'name' => $newName ?? $existingName,
+                'enabled' => $data['enabled'] ?? $data['Enabled'] ?? $existingType['enabled'] ?? $existingType['Enabled'] ?? 1,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => session()->get('user_id') ?? 0
+            ];
             
-            // Actualizar tipo de cliente
-            $updated = $this->customerTypeModel->update($id, $data);
+            // Actualizar tipo de cliente (snake_case)
+            $updated = $this->customerTypeModel->update($id, $updatePayload);
             
             if ($updated) {
                 return $this->response->setJSON([
@@ -343,12 +341,13 @@ class CustomerType extends BaseController
                 ])->setStatusCode(404);
             }
             
-            // Cambiar estado
-            $newStatus = $existingType['Enabled'] == 1 ? 0 : 1;
+            // Cambiar estado (snake_case)
+            $enabled = $existingType['enabled'] ?? $existingType['Enabled'] ?? 1;
+            $newStatus = $enabled == 1 ? 0 : 1;
             $updated = $this->customerTypeModel->update($id, [
-                'Enabled' => $newStatus,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => session()->get('user_id') ?? 0
+                'enabled' => $newStatus,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => session()->get('user_id') ?? 0
             ]);
             
             if ($updated) {
@@ -390,8 +389,8 @@ class CustomerType extends BaseController
             }
             
             $customerTypes = $this->customerTypeModel
-                ->like('Name', $query)
-                ->orderBy('Name', 'ASC')
+                ->like('name', $query)
+                ->orderBy('name', 'ASC')
                 ->findAll();
             
             return $this->response->setJSON([
@@ -421,8 +420,8 @@ class CustomerType extends BaseController
     {
         try {
             $totalTypes = $this->customerTypeModel->countAllResults();
-            $activeTypes = $this->customerTypeModel->where('Enabled', 1)->countAllResults();
-            $inactiveTypes = $this->customerTypeModel->where('Enabled', 0)->countAllResults();
+            $activeTypes = $this->customerTypeModel->where('enabled', 1)->countAllResults();
+            $inactiveTypes = $this->customerTypeModel->where('enabled', 0)->countAllResults();
             
             return $this->response->setJSON([
                 'success' => true,

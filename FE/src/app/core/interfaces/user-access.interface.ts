@@ -5,24 +5,24 @@ export interface UserAccess {
 }
 
 export interface Agency {
-  Id: string;
-  Name: string;
-  Enabled: string;
-  RegistrationDate?: string | null;
-  UpdateDate?: string | null;
-  IdLastUserUpdate?: string;
-  IdAgency?: string;
-  LastUserUpdateName?: string;
+  id: string;
+  name: string;
+  enabled: string;
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  id_agency_dms?: string;
+  last_user_update_name?: string;
 }
 
 export interface Process {
-  Id: string;
-  Name: string;
-  Enabled: string;
-  RegistrationDate?: string | null;
-  UpdateDate?: string | null;
-  IdLastUserUpdate?: string;
-  LastUserUpdateName?: string;
+  id: string;
+  name: string;
+  enabled: string;
+  registration_date?: string | null;
+  update_date?: string | null;
+  id_last_user_update?: string;
+  last_user_update_name?: string;
 }
 
 export interface AgencyResponse {
@@ -57,10 +57,10 @@ export interface ProcessResponse {
 
 export interface UserAccessDialogData {
   user: {
-    Id: string;
-    Name: string;
-    User: string;
-    Email?: string;
+    id: string;
+    name: string;
+    user: string;
+    mail?: string;
   };
   mode: 'view' | 'edit';
 }
@@ -83,13 +83,13 @@ export interface UserAccessResponse {
 }
 
 export interface AgencyDetail {
-  IdAgency: string;
-  AgencyName: string;
-  Enabled: string;
+  id_agency: string;
+  agency_name: string;
+  enabled: string;
 }
 
 export interface ProcessDetail {
-  IdProcess: string;
-  ProcessName: string;
-  Enabled: string;
+  id_process: string;
+  process_name: string;
+  enabled: string;
 }
