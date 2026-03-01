@@ -320,8 +320,8 @@ private cargarAgencias(showMessage: boolean = false): void {
 
   private intentarCargarClientes(): void {
     if (
-      this.selectedAgency === null ||
-      this.selectedProcess === null ||
+      this.selectedAgency == null ||
+      this.selectedProcess == null ||
       !this.agenciasCargadas ||
       !this.procesosCargados
     ) {
@@ -332,6 +332,13 @@ private cargarAgencias(showMessage: boolean = false): void {
   }
 
   private cargarClientes(): void {
+    if (this.selectedAgency == null || this.selectedAgency === undefined) {
+      this.loadingClientes = false;
+      this.clientesOriginales = [];
+      this.clientesDataSource.data = [];
+      return;
+    }
+
     const filtros: FiltrosValidacion = {
       agencia: this.selectedAgency ?? undefined,
       proceso: this.selectedProcess ?? undefined,
