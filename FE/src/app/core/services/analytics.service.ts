@@ -306,29 +306,24 @@ export class AnalyticsService {
       );
   }
 
-  // Métodos para obtener métricas del sistema
+  // Métodos para obtener métricas del sistema (una sola llamada al backend)
   getSystemMetrics(): Observable<SystemMetrics> {
-    return combineLatest([
-      this.http.get<any>(`${this.baseUrl}/analytics/widget-system-overview-metrics`),
-      this.http.get<any>(`${this.baseUrl}/analytics/widget-document-statistics`),
-      this.http.get<any>(`${this.baseUrl}/analytics/widget-process-statistics`),
-      this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-statistics`)
-    ]).pipe(
-      map(([userStats, docStats, processStats, agencyStats]) => {
-        return {
-          totalUsers: userStats.data?.totalUsers || 0,
-          activeUsers: userStats.data?.activeUsers || 0,
-          totalDocuments: docStats.data?.totalDocuments || 0,
-          totalProcesses: processStats.data?.totalProcesses || 0,
-          totalAgencies: agencyStats.data?.totalAgencies || 0,
-          systemUptime: 99.9, // Esto debería venir del backend
-          averageResponseTime: 150 // Esto debería venir del backend
-        };
-      }),
+    return this.http.get<any>(`${this.baseUrl}/analytics/widget-system-overview-metrics`).pipe(
+      map((res) => ({
+        totalUsers: res.data?.totalUsers || 0,
+        activeUsers: res.data?.activeUsers || 0,
+        totalDocuments: res.data?.totalDocuments || 0,
+        totalProcesses: res.data?.totalProcesses || 0,
+        totalAgencies: res.data?.totalAgencies || 0,
+        systemUptime: res.data?.systemUptime ?? 99.9,
+        averageResponseTime: res.data?.averageResponseTime ?? 150
+      }))
     );
   }
 
-  // Método para obtener datos combinados del dashboard
+  /**
+   * Obtener datos combinados del dashboard - UNA SOLA llamada API (más rápido)
+   */
   getDashboardData(filters?: AnalyticsFilters): Observable<{
     userActivity: UserActivityStats;
     documents: DocumentStats;
@@ -336,20 +331,31 @@ export class AnalyticsService {
     agencies: AgencyStats;
     system: SystemMetrics;
   }> {
-    return combineLatest([
-      this.getUserActivityStats(filters),
-      this.getDocumentStats(filters),
-      this.getProcessStats(filters),
-      this.getAgencyStats(filters),
-      this.getSystemMetrics()
-    ]).pipe(
-      map(([userActivity, documents, processes, agencies, system]) => ({
-        userActivity,
-        documents,
-        processes,
-        agencies,
-        system
-      }))
+    const params = this.buildParams(filters);
+    return this.http.get<any>(`${this.baseUrl}/analytics/dashboard`, { params }).pipe(
+      map((res) => {
+        if (res?.success && res?.data) {
+          return res.data;
+        }
+        throw new Error('Respuesta inválida del dashboard');
+      }),
+      catchError(() =>
+        combineLatest([
+          this.getUserActivityStats(filters),
+          this.getDocumentStats(filters),
+          this.getProcessStats(filters),
+          this.getAgencyStats(filters),
+          this.getSystemMetrics()
+        ]).pipe(
+          map(([userActivity, documents, processes, agencies, system]) => ({
+            userActivity,
+            documents,
+            processes,
+            agencies,
+            system
+          }))
+        )
+      )
     );
   }
 
