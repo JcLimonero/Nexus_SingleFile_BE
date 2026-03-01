@@ -111,6 +111,33 @@
 | id_agency | varchar(100) |
 | amount | double |
 
+### payment_method (Migración 042)
+| Columna | Tipo |
+|---------|------|
+| id | bigint PRI |
+| name | varchar(600) |
+| registration_date | timestamp |
+| update_date | timestamp |
+| id_last_user_update | bigint |
+| enabled | tinyint |
+
+### config (Migración 043)
+| Columna | Tipo |
+|---------|------|
+| id | bigint PRI |
+| config_key | varchar(255) |
+| config_value | text |
+| category | varchar(100) |
+| description | varchar(500) |
+| sensitive | tinyint |
+| registration_date | timestamp |
+| update_date | timestamp |
+| id_last_user_update | bigint |
+
+**Categorías:** `backblaze`, `orders_api`, `document_types`
+
+**Claves:** backblaze_key_id, backblaze_application_key, backblaze_bucket_id, backblaze_bucket_name, backblaze_endpoint, orders_api_url, orders_api_key, orders_api_user, orders_api_password, id_document_type_liquidacion
+
 ---
 
 **BE y FE deben usar estos nombres exactos (snake_case) en requests/responses.**
