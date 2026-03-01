@@ -953,7 +953,7 @@ class Validacion extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN file_status fs ON f.id_current_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
+                LEFT JOIN `order` obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
                     SELECT obc2a.id_dms,
                         obc2a.id_agency,
@@ -961,10 +961,10 @@ class Validacion extends BaseController
                         obc2a.model,
                         obc2a.year,
                         obc2a.car_type
-                    FROM order_by_car obc2a
+                    FROM `order` obc2a
                     INNER JOIN (
                         SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
-                        FROM order_by_car
+                        FROM `order`
                         GROUP BY id_dms, id_agency
                     ) obc2b ON obc2a.id_dms = obc2b.id_dms
                         AND obc2a.id_agency = obc2b.id_agency
@@ -2132,13 +2132,13 @@ class Validacion extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN file_status fs ON f.id_current_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
+                LEFT JOIN `order` obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
                     SELECT obc2a.id_dms, obc2a.id_agency, obc2a.vin, obc2a.model, obc2a.year, obc2a.car_type
-                    FROM order_by_car obc2a
+                    FROM `order` obc2a
                     INNER JOIN (
                         SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
-                        FROM order_by_car GROUP BY id_dms, id_agency
+                        FROM `order` GROUP BY id_dms, id_agency
                     ) obc2b ON obc2a.id_dms = obc2b.id_dms
                         AND obc2a.id_agency = obc2b.id_agency
                         AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate

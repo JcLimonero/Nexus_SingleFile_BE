@@ -1,14 +1,13 @@
--- Vista para alertas AML: total de operaciones por cliente, compañía y año.
--- Usada por el módulo Clientes para indicar cuándo un cliente supera el umbral.
--- Columnas esperadas: idCliente, idCompany, anio, totalMonto
---
--- IMPORTANTE: Usa la misma lógica de join que expedientes (id_order o id_order_total+id_agency)
--- para que el monto mostrado en detalle coincida con el usado para el umbral AML.
--- amount NULL se trata como 0. Solo incluye clientes con totalMonto > 0 (HAVING).
---
--- Actualizado para snake_case (tablas: expedient, client, agency, order)
+-- ============================================================================
+-- MIGRACIÓN 040: Corregir vista view_client_company_amount
+-- ============================================================================
+-- La vista usa tablas/columnas renombradas (order, snake_case).
+-- Ejecutar después de la migración 039.
+-- ============================================================================
 
-CREATE OR REPLACE VIEW view_client_company_amount AS
+DROP VIEW IF EXISTS view_client_company_amount;
+
+CREATE VIEW view_client_company_amount AS
 SELECT
     c.id AS idCliente,
     a.id_company AS idCompany,

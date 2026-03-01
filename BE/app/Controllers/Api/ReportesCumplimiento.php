@@ -77,9 +77,9 @@ class ReportesCumplimiento extends BaseController
 
             $sql = "
                 SELECT
-                    c.Id as idCliente,
-                    MIN(ctr.IdDMS) as ndCliente,
-                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, ''))))) as cliente,
+                    c.id as idCliente,
+                    MIN(ctr.id_dms) as ndCliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     aml.totalMonto,
                     aml.idCompany,
                     aml.anio
@@ -159,9 +159,9 @@ class ReportesCumplimiento extends BaseController
 
             $sql = "
                 SELECT
-                    co.Id as idCompany,
-                    COALESCE(NULLIF(TRIM(co.Name), ''), 'Sin razón social') as razonSocial,
-                    a.Id as idAgency,
+                    co.id as idCompany,
+                    COALESCE(NULLIF(TRIM(co.name), ''), 'Sin razón social') as razonSocial,
+                    a.id as idAgency,
                     a.name as nombreAgencia,
                     f.id_current_state as idEstado,
                     fs.name as nombreEstado,
@@ -253,10 +253,10 @@ class ReportesCumplimiento extends BaseController
 
             $sql = "
                 SELECT
-                    co.Id as idCompany,
-                    COALESCE(NULLIF(TRIM(co.Name), ''), 'Sin razón social') as razonSocial,
-                    a.Id as idAgency,
-                    a.Name as nombreAgencia,
+                    co.id as idCompany,
+                    COALESCE(NULLIF(TRIM(co.name), ''), 'Sin razón social') as razonSocial,
+                    a.id as idAgency,
+                    a.name as nombreAgencia,
                     dbf.id_current_status as idEstatus,
                     dfs.name as nombreEstatus,
                     COUNT(*) as total
@@ -346,12 +346,12 @@ class ReportesCumplimiento extends BaseController
 
             $sql = "
                 SELECT
-                    f.Id as idFile,
-                    f.IdOrderTotal as ndPedido,
-                    COALESCE(NULLIF(TRIM(c.RazonSocial), ''),
-                        TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))
+                    f.id as idFile,
+                    f.id_order_total as ndPedido,
+                    COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                        TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
-                    ct.Name as tipoCliente,
+                    ct.name as tipoCliente,
                     a.name as agencia,
                     p.name as proceso,
                     fs.name as fase,
@@ -366,7 +366,7 @@ class ReportesCumplimiento extends BaseController
                 AND f.id_current_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
                 AND NOT EXISTS (
-                    SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.id_file = f.id
+                    SELECT 1 FROM file_pld_beneficial_owner bf WHERE bf.IdFile = f.id
                 )
             ";
             $params = [$anio];
@@ -459,7 +459,7 @@ class ReportesCumplimiento extends BaseController
                 WHERE f.id_current_state NOT IN (5)
                 AND NOT EXISTS (
                     SELECT 1 FROM file_pld fp
-                    WHERE fp.id_file = f.id AND fp.AvisoPrivacidadEntregado = 1
+                    WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1
                 )
             ";
             $params = [];
@@ -630,7 +630,7 @@ class ReportesCumplimiento extends BaseController
                 INNER JOIN agency a ON f.id_agency = a.id
                 WHERE f.id_customer_type = 3 AND f.id_current_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM file_pld_beneficiariofinal bf WHERE bf.id_file = f.id)
+                AND NOT EXISTS (SELECT 1 FROM file_pld_beneficial_owner bf WHERE bf.IdFile = f.id)
             ";
             $paramsBenef = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
@@ -645,7 +645,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 WHERE f.id_current_state NOT IN (5) AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.id_file = f.id AND fp.AvisoPrivacidadEntregado = 1)
+                AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1)
             ";
             $paramsAviso = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {

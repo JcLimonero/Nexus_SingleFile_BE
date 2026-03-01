@@ -169,8 +169,11 @@ export class DefaultAgencyService {
    * Guardar agencia seleccionada en localStorage
    */
   private guardarAgenciaEnStorage(agenciaId: number): void {
+    if (agenciaId == null) {
+      return;
+    }
     try {
-      localStorage.setItem(this.STORAGE_KEY_SELECTED_AGENCY, agenciaId.toString());
+      localStorage.setItem(this.STORAGE_KEY_SELECTED_AGENCY, String(agenciaId));
     } catch (error) {
       console.warn('Error guardando agencia seleccionada en localStorage:', error);
     }
@@ -275,7 +278,10 @@ export class DefaultAgencyService {
       if (storedAgency !== null) {
         // Si hay agencias cargadas, verificar que la agencia guardada existe en la lista
         if (this.agenciasSubject.value.length > 0) {
-          const agenciaEncontrada = this.agenciasSubject.value.find(ag => (ag.id ?? (ag as any).Id) === storedAgency);
+          const agenciaEncontrada = this.agenciasSubject.value.find(ag => {
+            const agId = ag.id ?? (ag as any).Id ?? (ag as any).IdAgency;
+            return agId != null && Number(agId) === Number(storedAgency);
+          });
           if (agenciaEncontrada) {
             // La agencia guardada existe y es válida, usarla SIN llamar al API
             this.selectedAgencySubject.next(storedAgency);
@@ -319,7 +325,10 @@ export class DefaultAgencyService {
 
           if (defaultAgencyId && this.agenciasSubject.value.length > 0) {
             // Buscar la agencia predeterminada del usuario en la lista
-            const agenciaPredeterminada = this.agenciasSubject.value.find(ag => (ag.id ?? (ag as any).Id) === defaultAgencyId);
+            const agenciaPredeterminada = this.agenciasSubject.value.find(ag => {
+            const agId = ag.id ?? (ag as any).Id ?? (ag as any).IdAgency;
+            return agId != null && Number(agId) === Number(defaultAgencyId);
+          });
             if (agenciaPredeterminada) {
               agenciaSeleccionada = defaultAgencyId;
             } else {
@@ -354,7 +363,10 @@ export class DefaultAgencyService {
           
           // Verificar que la agencia guardada existe en la lista de agencias disponibles
           if (agenciaSeleccionada !== null && this.agenciasSubject.value.length > 0) {
-            const agenciaEncontrada = this.agenciasSubject.value.find(ag => (ag.id ?? (ag as any).Id) === agenciaSeleccionada);
+            const agenciaEncontrada = this.agenciasSubject.value.find(ag => {
+              const agId = ag.id ?? (ag as any).Id ?? (ag as any).IdAgency;
+              return agId != null && Number(agId) === Number(agenciaSeleccionada);
+            });
             if (!agenciaEncontrada) {
               // La agencia guardada no existe en la lista, limpiar y no seleccionar nada
               this.eliminarAgenciaDeStorage();
@@ -396,6 +408,9 @@ export class DefaultAgencyService {
    * para mejorar el rendimiento
    */
   seleccionarAgencia(agenciaId: number): void {
+    if (agenciaId == null) {
+      return;
+    }
     // Actualizar el BehaviorSubject inmediatamente
     this.selectedAgencySubject.next(agenciaId);
     // Guardar en localStorage para persistencia

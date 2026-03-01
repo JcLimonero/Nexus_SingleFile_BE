@@ -54,7 +54,7 @@ class Files extends BaseController
                             LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                             LEFT JOIN agency a ON f.id_agency = a.id
                             LEFT JOIN file_status fs ON f.id_current_state = fs.id
-                            LEFT JOIN order_by_car obc ON f.id_order_total = obc.id_dms
+                            LEFT JOIN `order` obc ON f.id_order_total = obc.id_dms
                             WHERE TRIM(ctr.id_dms) = ?
                         ";
 
@@ -143,10 +143,10 @@ class Files extends BaseController
                         obc1.year,
                         obc1.model,
                         obc1.vin
-                    FROM order_by_car obc1
+                    FROM `order` obc1
                     INNER JOIN (
                         SELECT id_dms, MAX(registration_date) as MaxDate
-                        FROM order_by_car
+                        FROM `order`
                         GROUP BY id_dms
                     ) obc2 ON obc1.id_dms = obc2.id_dms 
                         AND obc1.registration_date = obc2.MaxDate
@@ -420,7 +420,7 @@ class Files extends BaseController
                 FROM expedient f
                 LEFT JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN file_status fs ON f.id_current_state = fs.id
-                LEFT JOIN order_by_car obc ON f.id_order_total = obc.id_dms
+                LEFT JOIN `order` obc ON f.id_order_total = obc.id_dms
                 WHERE a.id_agency_dms = ?
             ";
 
@@ -1155,8 +1155,8 @@ class Files extends BaseController
         $existing = $existingQuery->getRow();
         
         if ($existing) {
-            error_log("✅ Order ya existe con ID: " . $existing->Id);
-            return $existing->id ?? $existing->Id;
+            error_log("✅ Order ya existe con ID: " . ($existing->id ?? $existing->Id ?? ''));
+            return $existing->id ?? $existing->Id ?? null;
         }
         
         error_log("⚠️ Order no existe, creando nuevo registro...");

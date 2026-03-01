@@ -93,6 +93,24 @@
 | id_last_user_update | bigint |
 | enabled | tinyint |
 
+### order (Migración 039)
+| Columna | Tipo |
+|---------|------|
+| id | bigint PRI |
+| number | varchar(50) |
+| car_type | varchar(200) |
+| year | int |
+| vin | varchar(50) |
+| registration_date | timestamp |
+| update_date | timestamp |
+| id_last_user_update | bigint |
+| enabled | tinyint(1) |
+| model | varchar(200) |
+| advisor | varchar(200) |
+| id_dms | varchar(50) |
+| id_agency | varchar(100) |
+| amount | double |
+
 ---
 
 **BE y FE deben usar estos nombres exactos (snake_case) en requests/responses.**

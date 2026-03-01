@@ -190,18 +190,18 @@ class Client extends BaseController
                     c.id as idCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     MAX(ctr.id_dms) as ndCliente,
-                    MAX(COALESCE(obc1.Amount, obc2.Amount)) as monto
+                    MAX(COALESCE(obc1.amount, obc2.Amount)) as monto
                 FROM client_header hc
                 INNER JOIN client c ON c.id = hc.id_client
                 INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
                 INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
-                LEFT JOIN order_by_car obc1 ON obc1.id = f.id_order
+                LEFT JOIN `order` obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
-                    SELECT obc2a.id_dms, obc2a.id_agency, obc2a.Amount
-                    FROM order_by_car obc2a
+                    SELECT obc2a.id_dms, obc2a.id_agency, obc2a.amount as Amount
+                    FROM `order` obc2a
                     INNER JOIN (
                         SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
-                        FROM order_by_car
+                        FROM `order`
                         GROUP BY id_dms, id_agency
                     ) obc2b ON obc2a.id_dms = obc2b.id_dms
                         AND obc2a.id_agency = obc2b.id_agency

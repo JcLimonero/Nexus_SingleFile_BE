@@ -278,7 +278,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
             
             // Verificar que la agencia guardada existe en la lista
-            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+            if (savedAgencyId !== null && this.agencies.some(ag => {
+              const agId = ag.id ?? ag.Id ?? ag.IdAgency;
+              return agId != null && Number(agId) === Number(savedAgencyId);
+            })) {
               // La agencia guardada existe, usarla
               this.selectedAgencyId = savedAgencyId;
               this.onAgencyChange(savedAgencyId);
@@ -287,15 +290,18 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               // Si no hay agencia guardada válida, establecer la predeterminada
               this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
                 next: (agenciaId) => {
-                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
+                  if (agenciaId && this.agencies.some(ag => {
+                    const agId = ag.id ?? ag.Id ?? ag.IdAgency;
+                    return agId != null && Number(agId) === Number(agenciaId);
+                  })) {
                     this.selectedAgencyId = agenciaId;
                     this.onAgencyChange(agenciaId);
                     this.cdr.markForCheck();
                   } else if (this.agencies.length > 0) {
                     // Solo como último recurso, seleccionar la primera
                     const primeraAgencia = this.agencies[0];
-                    this.selectedAgencyId = primeraAgencia.Id;
-                    this.onAgencyChange(primeraAgencia.Id);
+                    this.selectedAgencyId = primeraAgencia.id ?? primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.id ?? primeraAgencia.Id);
                     this.cdr.markForCheck();
                   }
                 },
@@ -304,8 +310,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencies.length > 0) {
                     const primeraAgencia = this.agencies[0];
-                    this.selectedAgencyId = primeraAgencia.Id;
-                    this.onAgencyChange(primeraAgencia.Id);
+                    this.selectedAgencyId = primeraAgencia.id ?? primeraAgencia.Id;
+                    this.onAgencyChange(primeraAgencia.id ?? primeraAgencia.Id);
                     this.cdr.markForCheck();
                   }
                 }
@@ -329,7 +335,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.selectedAgencyId = agencyId;
     this.cdr.markForCheck();
     // Encontrar y guardar el objeto agencia completo
-    this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
+    this.selectedAgency = this.agencies.find(agency => {
+      const agId = agency.id ?? agency.Id ?? agency.IdAgency;
+      return agId != null && Number(agId) === Number(agencyId);
+    }) || null;
     
     // Actualizar el caché usando seleccionarAgencia (ya actualiza cookie y BehaviorSubject)
     if (agencyId !== null) {
@@ -364,7 +373,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   trackByAgencyId(index: number, agency: any): any {
-    return agency?.Id || index;
+    return agency?.id ?? agency?.Id ?? index;
   }
 
   // Client search methods
@@ -455,7 +464,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   private searchClientInVanguardia(): void {
     // Obtener la agencia seleccionada para enviar el connectionstring a Vanguardia
-    const selectedAgency = this.agencies.find(agency => agency.Id === this.selectedAgencyId);
+    const selectedAgency = this.agencies.find(agency => {
+      const agId = agency.id ?? agency.Id ?? agency.IdAgency;
+      return agId != null && Number(agId) === Number(this.selectedAgencyId);
+    });
     if (!selectedAgency) {
       this.snackBar.open('Agencia no encontrada para búsqueda en Vanguardia', 'Cerrar', {
         duration: 3000
@@ -517,8 +529,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     const importData = this.vanguardiaClientImportService.convertVanguardiaDataForImport(vanguardiaClient);
     
     // Usar el Id interno de la agencia seleccionada en lugar del idAgency del cliente de Vanguardia
-    if (this.selectedAgency && this.selectedAgency.Id) {
-      importData.idAgency = String(this.selectedAgency.Id);
+    if (this.selectedAgency) {
+      const agencyId = this.selectedAgency.id ?? this.selectedAgency.Id ?? this.selectedAgency.IdAgency;
+      if (agencyId != null) {
+        importData.idAgency = String(agencyId);
+      }
     }
     
     // Importar cliente al sistema local
@@ -704,7 +719,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
    * Seleccionar cliente y pedido automáticamente desde parámetros de URL
    */
   private seleccionarClienteYPedidoDesdeURL(idCliente: string, idPedido?: string, idFile?: string): void {
-    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+    const agencyId = this.selectedAgency?.id ?? this.selectedAgency?.Id ?? this.selectedAgency?.IdAgency;
+    if (!this.selectedAgency || agencyId == null) {
       setTimeout(() => {
         this.seleccionarClienteYPedidoDesdeURL(idCliente, idPedido, idFile);
       }, 500);
@@ -712,7 +728,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
 
     // Buscar el cliente por ndCliente
-    this.clientSearchService.searchClients(this.selectedAgency.IdAgency, idCliente, 50)
+    this.clientSearchService.searchClients(agencyId, idCliente, 50)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: ClientSearchResponse) => {
@@ -840,7 +856,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+    const agencyId = this.selectedAgency?.id ?? this.selectedAgency?.Id ?? this.selectedAgency?.IdAgency;
+    if (!this.selectedAgency || agencyId == null) {
       this.snackBar.open('Debe seleccionar una agencia primero', 'Cerrar', {
         duration: 3000
       });
@@ -875,8 +892,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
     this.filesLoading = true;
 
+    const agencyId = this.selectedAgency.id ?? this.selectedAgency.Id ?? this.selectedAgency.IdAgency;
     let params = new HttpParams();
-    params = params.set('agencyId', this.selectedAgency.IdAgency);
+    params = params.set('agencyId', String(agencyId));
     params = params.set('ndCliente', this.selectedClient.ndCliente);
     params = params.set('statusId', '1'); // ID para Integración
 
@@ -948,7 +966,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
     
-    if (!this.selectedAgency || !this.selectedAgency.IdAgency) {
+    const agencyId = this.selectedAgency?.id ?? this.selectedAgency?.Id ?? this.selectedAgency?.IdAgency;
+    if (!this.selectedAgency || agencyId == null) {
       this.snackBar.open('Debe seleccionar una agencia primero', 'Cerrar', {
         duration: 3000
       });
@@ -1178,8 +1197,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const agencyId = this.selectedAgency.id ?? this.selectedAgency.Id ?? this.selectedAgency.IdAgency;
     let params = new HttpParams();
-    params = params.set('agencyId', this.selectedAgency.IdAgency);
+    params = params.set('agencyId', String(agencyId));
     params = params.set('ndCliente', this.selectedClient.ndCliente);
     params = params.set('statusId', '1'); // ID para Integración
 

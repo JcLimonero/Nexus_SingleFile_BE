@@ -3221,3 +3221,265 @@ CRITICAL - 2026-03-01 22:09:24 --> ErrorException: Maximum execution time of 30 
 [Method: GET, Route: api/analytics/widget-process-statistics]
 in SYSTEMPATH\Database\MySQLi\Connection.php on line 202.
  1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+ERROR - 2026-03-01 22:25:28 --> mysqli_sql_exception: Table 'nexfile.order_by_car' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1004): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->getClientes()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:25:29 --> mysqli_sql_exception: Table 'nexfile.order_by_car' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1004): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->getClientes()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:25:31 --> mysqli_sql_exception: Table 'nexfile.order_by_car' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1004): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->getClientes()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:25:32 --> mysqli_sql_exception: Table 'nexfile.order_by_car' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1004): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->getClientes()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:27:44 --> mysqli_sql_exception: Unknown column 'obc1.car_type' in 'field list' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1004): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->getClientes()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:27:46 --> mysqli_sql_exception: Unknown column 'obc1.car_type' in 'field list' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1004): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->getClientes()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:34:21 --> mysqli_sql_exception: View 'nexfile.view_client_company_amount' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Client.php(109): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Client->list()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Client))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:34:38 --> mysqli_sql_exception: View 'nexfile.view_client_company_amount' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Client.php(109): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Client->list()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Client))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:35:52 --> mysqli_sql_exception: Table 'nexfile.file_pld_beneficiariofinal' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(640): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->dashboard()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:35:52 --> ReportesCumplimiento::dashboard - Table 'nexfile.file_pld_beneficiariofinal' doesn't exist
+ERROR - 2026-03-01 22:35:54 --> mysqli_sql_exception: Unknown column 'ctr.IdDMS' in 'field list' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(109): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:35:54 --> ReportesCumplimiento::expedientesAlertaPld - Unknown column 'ctr.IdDMS' in 'field list'
+ERROR - 2026-03-01 22:35:58 --> mysqli_sql_exception: Table 'nexfile.file_pld_beneficiariofinal' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(387): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesSinBeneficiario()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:35:58 --> ReportesCumplimiento::expedientesSinBeneficiario - Table 'nexfile.file_pld_beneficiariofinal' doesn't exist
+ERROR - 2026-03-01 22:35:59 --> mysqli_sql_exception: Unknown column 'fp.id_file' in 'where clause' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(486): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesSinAviso()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:35:59 --> ReportesCumplimiento::expedientesSinAviso - Unknown column 'fp.id_file' in 'where clause'
+ERROR - 2026-03-01 22:36:15 --> mysqli_sql_exception: Table 'nexfile.file_pld_beneficiariofinal' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(640): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->dashboard()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:36:15 --> ReportesCumplimiento::dashboard - Table 'nexfile.file_pld_beneficiariofinal' doesn't exist
+ERROR - 2026-03-01 22:36:17 --> mysqli_sql_exception: Unknown column 'ctr.IdDMS' in 'field list' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(109): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:36:17 --> ReportesCumplimiento::expedientesAlertaPld - Unknown column 'ctr.IdDMS' in 'field list'
+ERROR - 2026-03-01 22:36:21 --> mysqli_sql_exception: Table 'nexfile.file_pld_beneficiariofinal' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(387): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesSinBeneficiario()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:36:21 --> ReportesCumplimiento::expedientesSinBeneficiario - Table 'nexfile.file_pld_beneficiariofinal' doesn't exist
+ERROR - 2026-03-01 22:36:22 --> mysqli_sql_exception: Unknown column 'fp.id_file' in 'where clause' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(486): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesSinAviso()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:36:22 --> ReportesCumplimiento::expedientesSinAviso - Unknown column 'fp.id_file' in 'where clause'
+ERROR - 2026-03-01 22:37:51 --> mysqli_sql_exception: Table 'nexfile.file_pld_beneficiariofinal' doesn't exist in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('\r\n             ...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\r\n             ...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\r\n             ...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(640): CodeIgniter\Database\BaseConnection->query('\r\n             ...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->dashboard()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:37:51 --> ReportesCumplimiento::dashboard - Table 'nexfile.file_pld_beneficiariofinal' doesn't exist
+ERROR - 2026-03-01 22:37:59 --> mysqli_sql_exception: Unknown column 'fp.id_file' in 'where clause' in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(486): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesSinAviso()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#11 {main}
+ERROR - 2026-03-01 22:37:59 --> ReportesCumplimiento::expedientesSinAviso - Unknown column 'fp.id_file' in 'where clause'

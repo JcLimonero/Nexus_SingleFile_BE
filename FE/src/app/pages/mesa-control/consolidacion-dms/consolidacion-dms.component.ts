@@ -187,8 +187,6 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
         setTimeout(() => {
   if (this.companies.length > 0) {
     const id = this.getCompanyId(this.companies[0]);
-    console.log('ID primera compañía:', id);  // ← ¿qué imprime?
-    console.log('companies:', this.companies); // ← ¿cómo luce el objeto?
     this.filterCompania = id;
   }
   this.cdr.markForCheck();
@@ -513,17 +511,17 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     ];
     const keys = Object.keys(row);
     const ordered: string[] = [];
-    
+
     // Agregar columnas preferidas primero
     for (const k of preferred) {
       if (keys.includes(k)) ordered.push(k);
     }
-    
+
     // Agregar el resto de columnas
     for (const k of keys) {
       if (!ordered.includes(k)) ordered.push(k);
     }
-    
+
     // Filtrar columnas que no queremos mostrar
     const excludedColumns = [
       'idAgency', 'IdAgency', 'idagency', 'IDAgency',
