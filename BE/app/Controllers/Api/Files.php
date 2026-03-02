@@ -1247,20 +1247,32 @@ class Files extends BaseController
         // Manejar NULLs correctamente en la búsqueda
         if ($vin === null || $vin === '') {
             $existingQuery = $this->db->query(
-                "SELECT id FROM `order` WHERE id_dms = ? AND (vin IS NULL OR vin = '') AND id_agency = ?",
+                "SELECT id, amount FROM `order` WHERE id_dms = ? AND (vin IS NULL OR vin = '') AND id_agency = ?",
                 [$idDMS, $agencyId]
             );
         } else {
             $existingQuery = $this->db->query(
-                "SELECT id FROM `order` WHERE id_dms = ? AND vin = ? AND id_agency = ?",
+                "SELECT id, amount FROM `order` WHERE id_dms = ? AND vin = ? AND id_agency = ?",
                 [$idDMS, $vin, $agencyId]
             );
         }
-        $existing = $existingQuery->getRow();
+        $existing = $existingQuery->getRowArray();
         
         if ($existing) {
-            error_log("✅ Order ya existe con ID: " . ($existing->id ?? $existing->Id ?? ''));
-            return $existing->id ?? $existing->Id ?? null;
+            $existingId = $existing['id'] ?? $existing['Id'] ?? null;
+            error_log("✅ Order ya existe con ID: " . $existingId);
+
+            // Actualizar amount si viene en los datos y el registro actual no lo tiene
+            $amount = $order['amount'] ?? $order['Amount'] ?? $order['monto'] ?? $order['Monto'] ?? null;
+            if ($amount !== null && $amount !== '') {
+                $amountVal = is_numeric($amount) ? (float) $amount : null;
+                $currentAmount = $existing['amount'] ?? $existing['Amount'] ?? null;
+                if (($currentAmount === null || $currentAmount === '' || $currentAmount == 0) && $amountVal !== null) {
+                    $this->db->table('order')->where('id', $existingId)->update(['amount' => $amountVal, 'update_date' => date('Y-m-d H:i:s')]);
+                    error_log("Order actualizado con amount: " . $amountVal);
+                }
+            }
+            return $existingId;
         }
         
         error_log("⚠️ Order no existe, creando nuevo registro...");
@@ -1274,6 +1286,11 @@ class Files extends BaseController
         
         $currentDate = date('Y-m-d H:i:s');
         
+        $amount = $order['amount'] ?? $order['Amount'] ?? $order['monto'] ?? $order['Monto'] ?? null;
+        if ($amount !== null && $amount !== '') {
+            $amount = is_numeric($amount) ? (float) $amount : null;
+        }
+
         $orderByCarData = [
             'id' => $nextId,
             'number' => $idDMS,
@@ -1286,7 +1303,8 @@ class Files extends BaseController
             'model' => $order['model'] ?? null,
             'advisor' => $order['ndConsultant'] ?? null,
             'id_dms' => $idDMS,
-            'id_agency' => $agencyId
+            'id_agency' => $agencyId,
+            'amount' => $amount
         ];
 
         error_log("Datos de Order a insertar: " . json_encode($orderByCarData));

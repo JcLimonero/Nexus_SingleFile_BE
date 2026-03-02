@@ -103,7 +103,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   // Tabla de clientes
   get clientesDisplayedColumns(): string[] {
     // Columna idFile solo para roles 7 y 8, al inicio cuando se muestra
-    const base = ['ndCliente', 'ndPedido', 'cliente', 'tipoCliente', 'proceso', 'operacion', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
+    const base = ['ndCliente', 'ndPedido', 'cliente', 'tipoCliente', 'proceso', 'operacion', 'montoUnidad', 'avisoConfidencialidad', 'beneficiarios', 'porcentajeBeneficiarios', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
     if (this.isAdmin) {
       return ['idFile', ...base];
     }

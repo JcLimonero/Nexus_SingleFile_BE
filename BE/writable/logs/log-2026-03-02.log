@@ -314,3 +314,23 @@ Stack trace:
 #9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
 #10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
 #11 {main}
+ERROR - 2026-03-02 05:12:43 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_activity_logs`, CONSTRAINT `FK_user_activity_logs_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(394): CodeIgniter\Database\BaseBuilder->insert()
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\BaseModel.php(838): CodeIgniter\Model->doInsert(Array)
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(797): CodeIgniter\BaseModel->insert(Array, true)
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Models\UserActivityLogModel.php(55): CodeIgniter\Model->insert(Array)
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(66): App\Models\UserActivityLogModel->createLog(Array)
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Validacion.php(1314): App\Controllers\Api\Validacion->logActivity('ELIMINAR_PEDIDO', 'Pedido 1 elimin...', Array, '1')
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Validacion->eliminarPedido()
+#11 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
+#12 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#13 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#14 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#15 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#16 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#17 {main}

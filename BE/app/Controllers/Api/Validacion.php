@@ -965,8 +965,21 @@ class Validacion extends BaseController
                     COALESCE(obc1.vin, obc2.vin) as vin,
                     COALESCE(obc1.model, obc2.model) as modelo,
                     COALESCE(obc1.year, obc2.year) as year,
-                    COALESCE(obc1.car_type, obc2.car_type) as version
+                    COALESCE(obc1.car_type, obc2.car_type) as version,
+                    COALESCE(obc1.amount, obc2.amount) as montoUnidad,
+                    COALESCE(fp.AvisoPrivacidadEntregado, 0) as avisoConfidencialidadAceptado,
+                    (
+                        SELECT COUNT(*) 
+                        FROM file_pld_beneficial_owner bf 
+                        WHERE bf.IdFile = f.id AND COALESCE(bf.Enabled, 1) = 1
+                    ) + CASE WHEN COALESCE(fp.BeneficiarioFinalCapturado, 0) = 1 THEN 1 ELSE 0 END as cantidadBeneficiarios,
+                    (
+                        SELECT COALESCE(SUM(bf2.PorcentajeParticipacion), 0) 
+                        FROM file_pld_beneficial_owner bf2 
+                        WHERE bf2.IdFile = f.id AND COALESCE(bf2.Enabled, 1) = 1
+                    ) + COALESCE(fp.BeneficiarioFinalPorcentaje, 0) as porcentajeBeneficiarios
                 FROM expedient f
+                LEFT JOIN file_pld fp ON fp.IdFile = f.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_process = p.id
@@ -981,7 +994,8 @@ class Validacion extends BaseController
                         obc2a.vin,
                         obc2a.model,
                         obc2a.year,
-                        obc2a.car_type
+                        obc2a.car_type,
+                        obc2a.amount
                     FROM `order` obc2a
                     INNER JOIN (
                         SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) as MaxDate
