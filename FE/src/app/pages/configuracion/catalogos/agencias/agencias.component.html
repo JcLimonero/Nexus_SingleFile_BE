@@ -6,6 +6,16 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
 
           <div class="flex items-center gap-3 flex-wrap">
+            <!-- Filtro por estado -->
+            <mat-form-field appearance="outline" class="min-w-48">
+              <mat-label>Estado</mat-label>
+              <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
+                <mat-option value="">Todos</mat-option>
+                <mat-option value="1">Activas</mat-option>
+                <mat-option value="0">Inactivas</mat-option>
+              </mat-select>
+            </mat-form-field>
+
             <!-- Búsqueda por texto -->
             <mat-form-field appearance="outline" class="w-[400px]">
               <mat-label>Buscar agencias</mat-label>
@@ -19,15 +29,7 @@
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
   
-            <!-- Filtro por estado -->
-            <mat-form-field appearance="outline" class="min-w-48">
-              <mat-label>Estado</mat-label>
-              <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
-                <mat-option value="">Todos</mat-option>
-                <mat-option value="1">Activas</mat-option>
-                <mat-option value="0">Inactivas</mat-option>
-              </mat-select>
-            </mat-form-field>
+            
           </div>
 
           <div class="flex items-center gap-2">

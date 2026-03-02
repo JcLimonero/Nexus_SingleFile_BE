@@ -818,76 +818,123 @@ Stack trace:
 #10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
 #11 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
 #12 {main}
-ERROR - 2026-03-02 14:16:47 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+ERROR - 2026-03-02 15:09:34 --> Error connecting to the database: mysqli_sql_exception: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
 Stack trace:
-#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
-#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
-#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
-#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
-#4 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AuthModel.php(223): CodeIgniter\Database\BaseBuilder->insert(Array)
-#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AuthModel.php(92): App\Models\AuthModel->saveRefreshToken('1', 'eyJ0eXAiOiJKV1Q...')
-#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Auth.php(41): App\Models\AuthModel->authenticate('admin@nexusqtec...', '$2y$10$RWcmMG80...')
-#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Auth->login()
-#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
-#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
-#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
-#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
-#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
-#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('74.208.78.55', 'remote_nexus_q_...', Object(SensitiveParameterValue), 'nexfile', 3306, '', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `process...', Array, false)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\ProcessModel.php(154): CodeIgniter\BaseModel->findAll()
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Process.php(63): App\Models\ProcessModel->getAllProcessesWithUser('Name', 'ASC')
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Process->index()
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Process))
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:246
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `process...', Array, false)
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\ProcessModel.php(154): CodeIgniter\BaseModel->findAll()
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Process.php(63): App\Models\ProcessModel->getAllProcessesWithUser('Name', 'ASC')
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Process->index()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Process))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
 #14 {main}
-ERROR - 2026-03-02 14:16:47 --> Error guardando refresh token: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE)
-ERROR - 2026-03-02 14:19:08 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_activity_logs`, CONSTRAINT `FK_user_activity_logs_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+ERROR - 2026-03-02 15:09:57 --> ReportesCumplimiento::dashboard - Undefined variable $anioActual
+ERROR - 2026-03-02 15:09:59 --> mysqli_sql_exception: Unknown column 'aml.anio' in 'group statement' in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
 Stack trace:
-#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
-#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
-#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
-#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
-#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(394): CodeIgniter\Database\BaseBuilder->insert()
-#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(838): CodeIgniter\Model->doInsert(Array)
-#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(797): CodeIgniter\BaseModel->insert(Array, true)
-#7 /Users/jclimonero/Developer/SingleFile/BE/app/Models/UserActivityLogModel.php(55): CodeIgniter\Model->insert(Array)
-#8 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Validacion.php(66): App\Models\UserActivityLogModel->createLog(Array)
-#9 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Validacion.php(2410): App\Controllers\Api\Validacion->logActivity('GENERAR_TOKEN_M...', 'Token Miniporta...', Array, 1)
-#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Validacion->generarTokenMiniportal()
-#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
-#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
-#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
-#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
-#15 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
-#16 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
-#17 {main}
-ERROR - 2026-03-02 14:23:19 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_activity_logs`, CONSTRAINT `FK_user_activity_logs_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(107): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#11 {main}
+ERROR - 2026-03-02 15:09:59 --> ReportesCumplimiento::expedientesAlertaPld - Unknown column 'aml.anio' in 'group statement'
+ERROR - 2026-03-02 15:12:46 --> ReportesCumplimiento::dashboard - Undefined variable $anioActual
+ERROR - 2026-03-02 15:12:48 --> mysqli_sql_exception: Unknown column 'aml.anio' in 'group statement' in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
 Stack trace:
-#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
-#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
-#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
-#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
-#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(394): CodeIgniter\Database\BaseBuilder->insert()
-#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/BaseModel.php(838): CodeIgniter\Model->doInsert(Array)
-#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Model.php(797): CodeIgniter\BaseModel->insert(Array, true)
-#7 /Users/jclimonero/Developer/SingleFile/BE/app/Models/UserActivityLogModel.php(55): CodeIgniter\Model->insert(Array)
-#8 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Validacion.php(66): App\Models\UserActivityLogModel->createLog(Array)
-#9 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Validacion.php(2410): App\Controllers\Api\Validacion->logActivity('GENERAR_TOKEN_M...', 'Token Miniporta...', Array, 1)
-#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Validacion->generarTokenMiniportal()
-#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Validacion))
-#12 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
-#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
-#14 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
-#15 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
-#16 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
-#17 {main}
-ERROR - 2026-03-02 14:23:24 --> mysqli_sql_exception: Table 'nexfile.file_pld_documento_aprobado' doesn't exist in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(107): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#11 {main}
+ERROR - 2026-03-02 15:12:48 --> ReportesCumplimiento::expedientesAlertaPld - Unknown column 'aml.anio' in 'group statement'
+ERROR - 2026-03-02 15:21:42 --> Error connecting to the database: mysqli_sql_exception: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
 Stack trace:
-#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('\n              ...', 0)
-#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('\n              ...')
-#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('\n              ...')
-#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(544): CodeIgniter\Database\BaseConnection->query('\n              ...', Array)
-#4 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Miniportal.php(323): App\Controllers\Api\Miniportal->getDocumentosByFile(1)
-#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Miniportal->getDocumentos('020fce72-5da3-4...')
-#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Miniportal))
-#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
-#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
-#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
-#10 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
-#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
-#12 {main}
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('74.208.78.55', 'remote_nexus_q_...', Object(SensitiveParameterValue), 'nexfile', 3306, '', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `agency`...', Array, false)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AgencyModel.php(159): CodeIgniter\BaseModel->findAll()
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Agency.php(67): App\Models\AgencyModel->getAllEnabledAgenciesWithUser('Name', 'ASC')
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:246
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `agency`...', Array, false)
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Model.php(286): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\BaseModel.php(677): CodeIgniter\Model->doFindAll(0, 0)
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Models\AgencyModel.php(159): CodeIgniter\BaseModel->findAll()
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\Agency.php(67): App\Models\AgencyModel->getAllEnabledAgenciesWithUser('Name', 'ASC')
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Agency->index()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Agency))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#14 {main}
+ERROR - 2026-03-02 15:21:51 --> ReportesCumplimiento::dashboard - Undefined variable $anioActual
+ERROR - 2026-03-02 15:21:53 --> mysqli_sql_exception: Unknown column 'aml.anio' in 'group statement' in C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT COUNT(*)...', 0)
+#1 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT COUNT(*)...')
+#2 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT COUNT(*)...')
+#3 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\app\Controllers\Api\ReportesCumplimiento.php(107): CodeIgniter\Database\BaseConnection->query('SELECT COUNT(*)...', Array)
+#4 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\ReportesCumplimiento->expedientesAlertaPld()
+#5 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\ReportesCumplimiento))
+#6 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 C:\Users\GiovanaRodriguezDonj\Documents\total\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\Users\\Giovan...')
+#11 {main}
+ERROR - 2026-03-02 15:21:53 --> ReportesCumplimiento::expedientesAlertaPld - Unknown column 'aml.anio' in 'group statement'

@@ -5,18 +5,6 @@
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 flex-wrap">
-            <!-- Búsqueda por texto -->
-            <mat-form-field appearance="outline" class="w-[350px]">
-              <mat-label>Buscar tipos de documento</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="searchTerm" 
-                (ngModelChange)="applyFilter()"
-                placeholder="Buscar por nombre..."
-                maxlength="100">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-  
             <!-- Filtro por estado -->
             <mat-form-field appearance="outline" class="min-w-48">
               <mat-label>Estado</mat-label>
@@ -26,7 +14,7 @@
                 <mat-option value="0">Inactivos</mat-option>
               </mat-select>
             </mat-form-field>
-  
+
             <!-- Filtro por fase -->
             <mat-form-field appearance="outline" class="min-w-48">
               <mat-label>Fase</mat-label>
@@ -56,6 +44,18 @@
                 <mat-option value="1">Sí</mat-option>
                 <mat-option value="0">No</mat-option>
               </mat-select>
+            </mat-form-field>
+
+            <!-- Búsqueda por texto -->
+            <mat-form-field appearance="outline" class="w-[350px]">
+              <mat-label>Buscar tipos de documento</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="searchTerm" 
+                (ngModelChange)="applyFilter()"
+                placeholder="Buscar por nombre..."
+                maxlength="100">
+              <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
           </div>
 
