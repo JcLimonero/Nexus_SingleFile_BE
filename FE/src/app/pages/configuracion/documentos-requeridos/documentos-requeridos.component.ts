@@ -33,6 +33,7 @@ import { Proceso } from '../../../core/interfaces/proceso.interface';
 import { CostumerType } from '../../../core/interfaces/costumer-type.interface';
 import { TipoOperacion } from '../../../core/interfaces/tipo-operacion.interface';
 import { DocumentoRequerido, DocumentoRequeridoFilters } from '../../../core/interfaces/documento-requerido.interface';
+import { AuthService } from '../../../core/services/auth.service';
 import { DocumentoRequeridoEditDialogComponent } from './documento-requerido-edit-dialog/documento-requerido-edit-dialog.component';
 import { DuplicateConfigurationDialogComponent } from './duplicate-configuration-dialog/duplicate-configuration-dialog.component';
 import { DocumentosConfiguracionDialogComponent } from './documentos-configuracion-dialog/documentos-configuracion-dialog.component';
@@ -67,7 +68,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   @ViewChild('configuracionesSort') configuracionesSort!: MatSort;
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
 
-  displayedColumns: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'etapa', 'subEtapa', 'requerido', 'requiereExpiracion'];
+  displayedColumns: string[] = [];
   dataSource = new MatTableDataSource<DocumentoRequerido>([]);
   pageSizeDocumentos = 10;
   pageIndexDocumentos = 0;
@@ -75,7 +76,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   pageSizeOptionsDocumentos = [10, 25, 50, 100, 200, 500];
   
   // Tab 1: Configuraciones agrupadas
-  displayedColumnsConfiguraciones: string[] = ['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'totalDocumentos', 'enabled', 'acciones'];
+  displayedColumnsConfiguraciones: string[] = [];
   dataSourceConfiguraciones = new MatTableDataSource<any>([]);
   selectedAgencyForConfiguraciones = '';
   
@@ -102,6 +103,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   constructor(
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private authService: AuthService,
     private procesoService: ProcesoService,
     private agencyService: AgencyService,
     private costumerTypeService: CostumerTypeService,
@@ -110,6 +112,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'etapa', 'subEtapa', 'requerido', 'requiereExpiracion']);
+    this.displayedColumnsConfiguraciones = this.authService.getDisplayedColumnsWithOptionalId(['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'totalDocumentos', 'enabled', 'acciones']);
     this.loadCatalogs();
     this.loadData();
     this.loadConfiguraciones();

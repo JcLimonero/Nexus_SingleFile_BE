@@ -107,11 +107,19 @@ class DocumentType extends BaseController
             // Contar total de registros
             $total = $this->documentTypeModel->countDocumentTypesWithFilters($filters);
 
+            $protectedId = $this->getProtectedDocumentTypeIdLiquidacion();
+            $protectedIds = $protectedId !== null ? [$protectedId] : [];
+            foreach ($documentTypes as &$dt) {
+                $dt['protected'] = in_array((int)($dt['id'] ?? $dt['Id'] ?? 0), $protectedIds);
+            }
+            unset($dt);
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Tipos de documento obtenidos exitosamente',
                 'data' => [
                     'document_types' => $documentTypes,
+                    'protected_document_type_ids' => $protectedIds,
                     'total' => $total,
                     'limit' => $limit ?? 'all',
                     'offset' => $offset,
@@ -176,7 +184,7 @@ class DocumentType extends BaseController
                 'req_expiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : (isset($data['req_expiration']) ? (int)$data['req_expiration'] : 0),
                 'id_process_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_process_type']) ? (int)$data['id_process_type'] : 0),
                 'required' => isset($data['Required']) ? (int)$data['Required'] : (isset($data['required']) ? (int)$data['required'] : 1),
-                'id_sub_process' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : (isset($data['id_sub_process']) ? (int)$data['id_sub_process'] : 0),
+                'id_sub_process' => $this->normalizeIdSubProcess($data),
                 'available_to_client' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : (isset($data['available_to_client']) ? (int)$data['available_to_client'] : 1),
                 'registration_date' => date('Y-m-d H:i:s'),
                 'update_date' => null,
@@ -264,6 +272,27 @@ class DocumentType extends BaseController
     }
 
     /**
+     * Obtener ID del tipo de documento de Liquidación desde config (protegido, no editable/eliminable).
+     * Retorna null si no está configurado en la tabla config.
+     */
+    private function getProtectedDocumentTypeIdLiquidacion(): ?int
+    {
+        try {
+            $row = $this->documentTypeModel->db->table('config')
+                ->select('config_value')
+                ->where('config_key', 'id_document_type_liquidacion')
+                ->get()
+                ->getRowArray();
+            if ($row && !empty(trim($row['config_value'] ?? ''))) {
+                return (int) $row['config_value'];
+            }
+        } catch (\Throwable $e) {
+            // Tabla config puede no existir
+        }
+        return null;
+    }
+
+    /**
      * PUT /api/document-type/{id}
      * Actualizar un tipo de documento
      */
@@ -275,6 +304,15 @@ class DocumentType extends BaseController
                     'success' => false,
                     'message' => 'ID del tipo de documento requerido'
                 ])->setStatusCode(400);
+            }
+
+            $idInt = (int) $id;
+            $protectedId = $this->getProtectedDocumentTypeIdLiquidacion();
+            if ($protectedId !== null && $idInt === $protectedId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El tipo de documento de Liquidación no puede ser editado'
+                ])->setStatusCode(403);
             }
 
             $documentType = $this->documentTypeModel->find($id);
@@ -313,7 +351,7 @@ class DocumentType extends BaseController
                 'req_expiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : (isset($data['req_expiration']) ? (int)$data['req_expiration'] : ($documentType['req_expiration'] ?? $documentType['ReqExpiration'] ?? 0)),
                 'id_process_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_process_type']) ? (int)$data['id_process_type'] : ($documentType['id_process_type'] ?? $documentType['IdProcessType'] ?? 0)),
                 'required' => isset($data['Required']) ? (int)$data['Required'] : (isset($data['required']) ? (int)$data['required'] : ($documentType['required'] ?? $documentType['Required'] ?? 1)),
-                'id_sub_process' => isset($data['IdSubProcess']) ? (int)$data['IdSubProcess'] : (isset($data['id_sub_process']) ? (int)$data['id_sub_process'] : ($documentType['id_sub_process'] ?? $documentType['IdSubProcess'] ?? 0)),
+                'id_sub_process' => $this->normalizeIdSubProcess($data, $documentType),
                 'available_to_client' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : (isset($data['available_to_client']) ? (int)$data['available_to_client'] : ($documentType['available_to_client'] ?? $documentType['AvailableToClient'] ?? 1)),
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => $this->getCurrentUserId() ?? 0
@@ -362,6 +400,15 @@ class DocumentType extends BaseController
                 ])->setStatusCode(400);
             }
 
+            $idInt = (int) $id;
+            $protectedId = $this->getProtectedDocumentTypeIdLiquidacion();
+            if ($protectedId !== null && $idInt === $protectedId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El tipo de documento de Liquidación no puede ser eliminado'
+                ])->setStatusCode(403);
+            }
+
             $documentType = $this->documentTypeModel->find($id);
             if (!$documentType) {
                 return $this->response->setJSON([
@@ -406,6 +453,15 @@ class DocumentType extends BaseController
                     'success' => false,
                     'message' => 'ID del tipo de documento requerido'
                 ])->setStatusCode(400);
+            }
+
+            $idInt = (int) $id;
+            $protectedId = $this->getProtectedDocumentTypeIdLiquidacion();
+            if ($protectedId !== null && $idInt === $protectedId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El tipo de documento de Liquidación no puede cambiar de estado'
+                ])->setStatusCode(403);
             }
 
             $documentType = $this->documentTypeModel->find($id);
@@ -819,6 +875,25 @@ class DocumentType extends BaseController
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
+    }
+
+    /**
+     * Normaliza id_sub_process: "Sin sub fase" (null, 0, '') se guarda como NULL en BD.
+     * @param array $data Datos del request
+     * @param array|null $documentType Registro actual (solo para update, cuando la clave no viene en data)
+     */
+    private function normalizeIdSubProcess(array $data, ?array $documentType = null): ?int
+    {
+        $keyExists = array_key_exists('id_sub_process', $data) || array_key_exists('IdSubProcess', $data);
+        $val = $data['id_sub_process'] ?? $data['IdSubProcess'] ?? null;
+        if (!$keyExists && $documentType !== null) {
+            $val = $documentType['id_sub_process'] ?? $documentType['IdSubProcess'] ?? null;
+        }
+        if ($val === null || $val === '' || $val === '0' || (is_numeric($val) && (int)$val === 0)) {
+            return null;
+        }
+        $int = (int)$val;
+        return $int > 0 ? $int : null;
     }
 
     /**

@@ -58,7 +58,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   statusFilter = '';
   pageRangeText = '0-0';
   
-  displayedColumns: string[] = ['id', 'id_agency_dms', 'name', 'enabled'];
+  displayedColumns: string[] = [];
   
   loading = false;
 
@@ -74,6 +74,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'id_agency_dms', 'name', 'enabled']);
     // Verificar autenticación antes de cargar datos
     if (this.checkAuthentication()) {
       this.loadAgencias();

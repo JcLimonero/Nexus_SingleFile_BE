@@ -1,0 +1,36 @@
+ERROR - 2026-03-02 00:21:17 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(223): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(92): App\Models\AuthModel->saveRefreshToken('1', 'eyJ0eXAiOiJKV1Q...')
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('admin@nexusqtec...', '$2y$10$RWcmMG80...')
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#14 {main}
+ERROR - 2026-03-02 00:21:17 --> Error guardando refresh token: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE)
+ERROR - 2026-03-02 00:28:42 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
+#1 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
+#2 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
+#3 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
+#4 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(223): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Models\AuthModel.php(92): App\Models\AuthModel->saveRefreshToken('1', 'eyJ0eXAiOiJKV1Q...')
+#6 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\app\Controllers\Api\Auth.php(41): App\Models\AuthModel->authenticate('admin@nexusqtec...', '$2y$10$RWcmMG80...')
+#7 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#8 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#9 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\public\index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 D:\Developer\singleFile\Nexus_SingleFile_BE\BE\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('D:\\Developer\\si...')
+#14 {main}
+ERROR - 2026-03-02 00:28:42 --> Error guardando refresh token: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE)

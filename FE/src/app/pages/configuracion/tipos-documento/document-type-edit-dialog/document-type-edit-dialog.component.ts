@@ -54,17 +54,15 @@ export class DocumentTypeEditDialogComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.loadCatalogs();
-    
-    // Escuchar cambios en la fase para habilitar/deshabilitar sub fase
-    this.documentTypeForm.get('id_process_type')?.valueChanges.subscribe(selectedPhase => {
 
-      this.isSubPhaseEnabled = selectedPhase === 'Liberación';
-
-      if (!this.isSubPhaseEnabled) {
-        this.documentTypeForm.patchValue({ id_sub_process: '0' });
-        
+    this.documentTypeForm.get('id_process_type')?.valueChanges.subscribe(selectedPhaseId => {
+      this.isSubPhaseEnabled = selectedPhaseId != null && selectedPhaseId !== '' && selectedPhaseId !== '0';
+      if (this.isSubPhaseEnabled) {
+        this.documentTypeForm.patchValue({ id_sub_process: null }, { emitEvent: false });
+        this.loadSubProcessesByPhase(selectedPhaseId);
       } else {
-
+        this.documentTypeForm.patchValue({ id_sub_process: null }, { emitEvent: false });
+        this.subProcesses = [];
       }
     });
   }
@@ -74,86 +72,76 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
       enabled: ['1', Validators.required],
       req_expiration: ['0'],
-      id_process_type: ['Liberación'],
+      id_process_type: [null as number | null],
       required: ['1'],
-      id_sub_process: ['0'],
+      id_sub_process: [null as number | null],
       available_to_client: ['1']
     });
-    
-    // Inicializar el estado de la sub fase
-    this.isSubPhaseEnabled = true; // Por defecto es "Liberación"
-
   }
 
   private loadCatalogs(): void {
-
     this.loadingCatalogs = true;
-    
-    // Cargar estados de archivo (File_Status)
+
     this.documentTypeService.getActiveFileStatuses().subscribe({
       next: (fileStatusesResponse) => {
-
         if (fileStatusesResponse?.success) {
           this.fileStatuses = fileStatusesResponse.data.file_statuses || [];
-
-        } else {
-
         }
         this.checkCatalogsLoaded();
       },
-      error: (error) => {
-
-        this.checkCatalogsLoaded();
-      }
-    });
-
-    // Cargar subestados de archivo (File_SubStatus)
-    this.documentTypeService.getActiveSubProcesses().subscribe({
-      next: (subProcessesResponse) => {
-
-        if (subProcessesResponse?.success) {
-          this.subProcesses = subProcessesResponse.data.file_sub_statuses || [];
-
-        } else {
-
-        }
-        this.checkCatalogsLoaded();
-      },
-      error: (error) => {
-
-        this.checkCatalogsLoaded();
-      }
+      error: () => this.checkCatalogsLoaded()
     });
   }
 
   private checkCatalogsLoaded(): void {
-    // Verificar si ambos catálogos han terminado de cargar (exitosamente o con error)
-    if (this.fileStatuses.length > 0 || this.subProcesses.length > 0) {
+    if (this.fileStatuses.length > 0) {
       this.loadingCatalogs = false;
-
-      // Poblar el formulario después de que los catálogos estén listos
       this.populateForm();
     }
   }
 
+  /** Cargar sub fases filtradas por id_file_status (relación file_status - file_sub_status) */
+  private loadSubProcessesByPhase(phaseId: number | string): void {
+    const id = typeof phaseId === 'string' ? parseInt(phaseId, 10) : phaseId;
+    if (isNaN(id)) {
+      this.subProcesses = [];
+      return;
+    }
+    this.documentTypeService.getActiveSubProcesses(id).subscribe({
+      next: (res) => {
+        this.subProcesses = res?.data?.file_sub_statuses || [];
+      },
+      error: () => { this.subProcesses = []; }
+    });
+  }
+
   private populateForm(): void {
+    const defaultPhase = this.fileStatusesForForm.find(fs => (fs.name ?? fs.Name) === 'Liberación')
+      ?? this.fileStatusesForForm[0];
+    const defaultPhaseId = defaultPhase ? (defaultPhase.id ?? defaultPhase.Id) : null;
+
     if (this.data.documentType && this.data.mode === 'edit') {
       const dt = this.data.documentType;
-      const selectedPhase = dt.id_process_type ?? (dt as any).IdProcessType ?? '0';
+      const selectedPhaseId = dt.id_process_type ?? (dt as any).IdProcessType ?? defaultPhaseId;
+      const selectedSubProcess = dt.id_sub_process ?? (dt as any).IdSubProcess ?? null;
       this.documentTypeForm.patchValue({
         name: dt.name ?? (dt as any).Name,
         enabled: dt.enabled ?? (dt as any).Enabled,
         req_expiration: dt.req_expiration ?? (dt as any).ReqExpiration ?? '0',
-        id_process_type: selectedPhase,
+        id_process_type: selectedPhaseId,
         required: dt.required ?? (dt as any).Required ?? '1',
-        id_sub_process: selectedPhase === 'Liberación' ? (dt.id_sub_process ?? (dt as any).IdSubProcess ?? '0') : '0',
+        id_sub_process: selectedSubProcess,
         available_to_client: dt.available_to_client ?? (dt as any).AvailableToClient ?? '1'
-      });
-      
-      
-      // Actualizar el estado de la sub fase
-      this.isSubPhaseEnabled = selectedPhase === 'Liberación';
-
+      }, { emitEvent: false });
+      this.isSubPhaseEnabled = selectedPhaseId != null && selectedPhaseId !== '' && selectedPhaseId !== '0';
+      if (this.isSubPhaseEnabled) this.loadSubProcessesByPhase(selectedPhaseId);
+    } else {
+      this.documentTypeForm.patchValue({
+        id_process_type: defaultPhaseId,
+        id_sub_process: null
+      }, { emitEvent: false });
+      this.isSubPhaseEnabled = defaultPhaseId != null;
+      if (this.isSubPhaseEnabled) this.loadSubProcessesByPhase(defaultPhaseId);
     }
   }
 
@@ -249,5 +237,15 @@ export class DocumentTypeEditDialogComponent implements OnInit {
 
   get submitButtonText(): string {
     return this.data.mode === 'create' ? 'Crear' : 'Actualizar';
+  }
+
+  /** Fases disponibles: en modo crear se oculta Liquidación (documento del sistema) */
+  get fileStatusesForForm(): any[] {
+    if (this.data.mode !== 'create') {
+      return this.fileStatuses;
+    }
+    return this.fileStatuses.filter(
+      fs => (fs.name ?? fs.Name ?? '') !== 'Liquidación'
+    );
   }
 }

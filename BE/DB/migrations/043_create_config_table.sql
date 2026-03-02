@@ -39,4 +39,5 @@ INSERT INTO `config` (`config_key`, `config_value`, `category`, `description`, `
 
 -- Tipos de documento (IDs de catálogos)
 INSERT INTO `config` (`config_key`, `config_value`, `category`, `description`, `sensitive`, `registration_date`, `update_date`) VALUES
-('id_document_type_liquidacion', '21', 'document_types', 'ID del tipo de documento de Liquidación en document_type', 0, NOW(), NOW());
+('id_document_type_liquidacion', '46', 'document_types', 'ID del tipo de documento de Liquidación en document_type (no editable/eliminable)', 0, NOW(), NOW())
+ON DUPLICATE KEY UPDATE config_value = '46', description = VALUES(description), update_date = NOW();

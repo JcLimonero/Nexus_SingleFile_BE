@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 import { TipoOperacion, TipoOperacionResponse } from '../../../../core/interfaces/tipo-operacion.interface';
+import { AuthService } from '../../../../core/services/auth.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
 import { TipoOperacionEditDialogComponent } from './tipo-operacion-edit-dialog/tipo-operacion-edit-dialog.component';
 
@@ -44,7 +45,7 @@ import { TipoOperacionEditDialogComponent } from './tipo-operacion-edit-dialog/t
 export class TiposOperacionComponent implements OnInit, AfterViewInit {
   tiposOperacion: TipoOperacion[] = [];
   dataSource = new MatTableDataSource<TipoOperacion>([]);
-  displayedColumns: string[] = ['id', 'name', 'enabled', 'acciones'];
+  displayedColumns: string[] = [];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -55,11 +56,13 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
 
   constructor(
     private tipoOperacionService: TipoOperacionService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'enabled', 'acciones']);
     this.loadTiposOperacion();
   }
 

@@ -17,6 +17,7 @@ import { MatCardModule } from '@angular/material/card';
 import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/document-type.interface';
 import { FASES_OCULTAS } from '../../../core/constants/catalogs';
 import { DocumentTypeService } from '../../../core/services/document-type.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
 import { DocumentTypeConfigurationsDialogComponent } from './document-type-configurations-dialog/document-type-configurations-dialog.component';
 import { AddToConfigurationsDialogComponent } from './add-to-configurations-dialog/add-to-configurations-dialog.component';
@@ -47,7 +48,7 @@ import { AddToConfigurationsDialogComponent } from './add-to-configurations-dial
 export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy {
   tiposDocumento: DocumentType[] = [];
   dataSource = new MatTableDataSource<DocumentType>([]);
-  displayedColumns: string[] = ['id', 'name', 'process_type_name', 'sub_process_name', 'required', 'req_expiration', 'available_to_client', 'enabled', 'configuraciones', 'acciones'];
+  displayedColumns: string[] = [];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -80,11 +81,13 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
 
   constructor(
     private documentTypeService: DocumentTypeService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'process_type_name', 'sub_process_name', 'required', 'req_expiration', 'available_to_client', 'enabled', 'configuraciones', 'acciones']);
     this.loadAvailablePhases();
     this.loadTiposDocumento();
   }
@@ -238,6 +241,10 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   openEditDialog(documentType: DocumentType): void {
+    if (documentType.protected) {
+      this.snackBar.open('El tipo de documento de Liquidación no puede editarse', 'Info', { duration: 3000 });
+      return;
+    }
     const dialogData = {
       documentType: documentType,
       mode: 'edit'
@@ -257,6 +264,10 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   deleteDocumentType(documentType: DocumentType): void {
+    if (documentType.protected) {
+      this.snackBar.open('El tipo de documento de Liquidación no puede eliminarse', 'Info', { duration: 3000 });
+      return;
+    }
     if (confirm(`¿Estás seguro de que quieres eliminar el tipo de documento "${documentType.name}"?`)) {
       this.documentTypeService.deleteDocumentType(documentType.id!).subscribe({
         next: (response) => {

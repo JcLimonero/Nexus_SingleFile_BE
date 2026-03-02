@@ -19,6 +19,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Proceso, ProcesoCreateRequest, ProcesoUpdateRequest } from '../../../../core/interfaces/proceso.interface';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ProcesoService } from '../../../../core/services/proceso.service';
 import { ProcesoEditDialogComponent, ProcesoEditDialogData } from './proceso-edit-dialog/proceso-edit-dialog.component';
 
@@ -56,7 +57,7 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
   searchTerm = '';
   statusFilter = '';
   
-  displayedColumns: string[] = ['id', 'name', 'enabled', 'acciones'];
+  displayedColumns: string[] = [];
   
   loading = false;
 
@@ -65,12 +66,14 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
 
   constructor(
     private procesoService: ProcesoService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'enabled', 'acciones']);
     this.loadProcesos();
   }
 

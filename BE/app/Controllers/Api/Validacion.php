@@ -20,6 +20,27 @@ class Validacion extends BaseController
     }
 
     /**
+     * Obtener ID del tipo de documento de Liquidación desde la tabla config.
+     * Retorna null si no está configurado (config_key: id_document_type_liquidacion).
+     */
+    private function getConfigDocumentTypeLiquidacion(): ?int
+    {
+        try {
+            $row = $this->db->table('config')
+                ->select('config_value')
+                ->where('config_key', 'id_document_type_liquidacion')
+                ->get()
+                ->getRowArray();
+            if ($row && !empty(trim($row['config_value'] ?? ''))) {
+                return (int) $row['config_value'];
+            }
+        } catch (\Throwable $e) {
+            // Tabla config puede no existir
+        }
+        return null;
+    }
+
+    /**
      * Registrar actividad en el log
      */
     private function logActivity($action, $description, $changeDetails = null, $entityId = null)
@@ -1587,7 +1608,14 @@ class Validacion extends BaseController
             }
 
             $idFile = (int) $data['idFile'];
-            $documentTypeId = 21; // document_type de Liquidación
+            $documentTypeId = $this->getConfigDocumentTypeLiquidacion();
+            if ($documentTypeId === null) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Configure id_document_type_liquidacion en la tabla config',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
 
             // Verificar que el expediente exista
             $file = $this->db->table('expedient')
@@ -1619,7 +1647,7 @@ class Validacion extends BaseController
                 ])->setStatusCode(500);
             }
 
-            $baseName = trim($documentType['Name'] ?? 'Liquidación');
+            $baseName = trim($documentType['name'] ?? $documentType['Name'] ?? 'Liquidación');
             if ($baseName === '') {
                 $baseName = 'Liquidación';
             }

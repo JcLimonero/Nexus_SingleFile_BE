@@ -51,7 +51,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   roles: UserRole[] = [];
   agencies: Agency[] = [];
   dataSource = new MatTableDataSource<User>([]);
-  displayedColumns: string[] = ['id', 'name', 'user', 'mail', 'id_user_rol', 'default_agency', 'AssignedAgencies', 'Status', 'acciones'];
+  displayedColumns: string[] = [];
   loading = false;
   loadingCatalogs = false;
   searchTerm = '';
@@ -93,6 +93,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'user', 'mail', 'id_user_rol', 'default_agency', 'AssignedAgencies', 'Status', 'acciones']);
     this.loadUsers();
     this.loadRoles();
     this.loadAgencies();

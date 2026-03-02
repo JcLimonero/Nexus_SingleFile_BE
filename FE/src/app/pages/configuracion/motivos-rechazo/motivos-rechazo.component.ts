@@ -17,6 +17,7 @@ import { MatCardModule } from '@angular/material/card';
 
 import { MotivoEditDialogComponent, MotivoEditData } from './motivo-edit-dialog/motivo-edit-dialog.component';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { FileReasonService, FileReason, FileReasonFilters, FileReasonStats } from '../../../core/services/file-reason.service';
 
 @Component({
@@ -46,7 +47,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  displayedColumns: string[] = ['id', 'name', 'idTypeReason', 'enabled', 'actions'];
+  displayedColumns: string[] = [];
   dataSource = new MatTableDataSource<FileReason>([]);
   loading = false;
 
@@ -66,12 +67,14 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
 
   constructor(
     private fileReasonService: FileReasonService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'idTypeReason', 'enabled', 'actions']);
     this.loadData();
   }
 

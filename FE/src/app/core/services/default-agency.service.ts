@@ -100,6 +100,16 @@ export class DefaultAgencyService {
   }
 
   /**
+   * Limpiar todo el cache (agencias y agencia seleccionada). Llamar en logout.
+   */
+  limpiarTodoEnLogout(): void {
+    this.limpiarCacheAgencias();
+    this.eliminarAgenciaDeStorage();
+    this.selectedAgencySubject.next(null);
+    this.agenciasSubject.next([]);
+  }
+
+  /**
    * Obtener agencias disponibles
    * Primero intenta leer de localStorage, si no existe o está expirado hace la llamada HTTP
    */

@@ -32,7 +32,7 @@ class FileSubStatus extends BaseController
 
             // Obtener parámetros de consulta
             $search = $this->request->getGet('search');
-            $sortBy = $this->request->getGet('sort_by') ?? 'Name';
+            $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
             $builder = $this->db->table('file_sub_status fss');
@@ -41,10 +41,14 @@ class FileSubStatus extends BaseController
             // Aplicar filtros
             // No filtrar por enabled ya que la tabla no tiene esa columna
             if (!empty($search)) {
-                $builder->like('fss.Name', $search);
+                $builder->like('fss.name', $search);
             }
 
-            // Ordenamiento
+            // Ordenamiento (snake_case)
+            $allowedSort = ['id', 'name', 'id_file_status', 'registration_date', 'update_date'];
+            if (!in_array(strtolower($sortBy), $allowedSort)) {
+                $sortBy = 'name';
+            }
             $builder->orderBy("fss.$sortBy", $sortOrder);
 
             $results = $builder->get()->getResultArray();
@@ -83,10 +87,13 @@ class FileSubStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
+            $idFileStatus = $this->request->getGet('id_file_status');
             $builder = $this->db->table('file_sub_status fss');
             $builder->select('fss.*');
-            // No filtrar por Enabled ya que la tabla no tiene esa columna
-            $builder->orderBy('fss.Name', 'ASC');
+            if ($idFileStatus !== null && $idFileStatus !== '') {
+                $builder->where('fss.id_file_status', (int) $idFileStatus);
+            }
+            $builder->orderBy('fss.name', 'ASC');
 
             $results = $builder->get()->getResultArray();
 
@@ -133,7 +140,7 @@ class FileSubStatus extends BaseController
 
             $builder = $this->db->table('file_sub_status fss');
             $builder->select('fss.*');
-            $builder->where('fss.Id', $id);
+            $builder->where('fss.id', $id);
 
             $result = $builder->get()->getRowArray();
 

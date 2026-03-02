@@ -128,11 +128,8 @@ function redirectToLogin(router: Router, authService: AuthService): void {
     return;
   }
 
-  // Limpiar datos de autenticación localmente
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('current_user');
-  localStorage.removeItem('token_expiration');
+  // Limpiar datos de autenticación, agencias y compañías localmente
+  authService.clearLocalSession();
 
   // Redirigir al login con la URL actual como returnUrl
   setTimeout(() => {

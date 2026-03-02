@@ -14,9 +14,9 @@
     <!-- Nombre -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Nombre del Tipo de Documento</mat-label>
-      <input 
-        matInput 
-        formControlName="name" 
+      <input
+        matInput
+        formControlName="name"
         placeholder="Ej: CEDULA, PASAPORTE, LICENCIA DE CONDUCIR"
         maxlength="600">
       <mat-hint>Nombre completo del tipo de documento (máximo 600 caracteres)</mat-hint>
@@ -35,13 +35,13 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Fase</mat-label>
         <mat-select formControlName="id_process_type" [disabled]="loadingCatalogs">
-          <mat-option *ngFor="let fileStatus of fileStatuses" [value]="fileStatus.id ?? fileStatus.Id">
+          <mat-option *ngFor="let fileStatus of fileStatusesForForm" [value]="fileStatus.id ?? fileStatus.Id">
             {{ fileStatus.name ?? fileStatus.Name }}
           </mat-option>
         </mat-select>
         <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
         <mat-hint>
-          Fase asociada al documento (Integración, Liquidación, Liberación)
+          Fase asociada al documento (Integración o Liberación)
           <span *ngIf="loadingCatalogs" class="text-orange-600">(Cargando...)</span>
         </mat-hint>
       </mat-form-field>
@@ -50,16 +50,15 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Sub Fase</mat-label>
         <mat-select formControlName="id_sub_process" [disabled]="loadingCatalogs || !isSubPhaseEnabled">
-          <mat-option [value]="'0'">Sin sub fase</mat-option>
+          <mat-option [value]="null">Sin sub fase</mat-option>
           <mat-option *ngFor="let subProcess of subProcesses" [value]="subProcess.id ?? subProcess.Id">
             {{ subProcess.name ?? subProcess.Name }}
           </mat-option>
         </mat-select>
         <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
         <mat-hint>
-          Sub fase asociada al documento (solo disponible si la fase es "Liberación")
+          Sub fase asociada a la fase seleccionada (relación file_status - file_sub_status)
           <span *ngIf="loadingCatalogs" class="text-orange-600">(Cargando...)</span>
-          <span class="ml-2 text-blue-600">[Estado: {{ isSubPhaseEnabled ? 'Habilitada' : 'Deshabilitada' }}]</span>
         </mat-hint>
       </mat-form-field>
 
@@ -92,7 +91,7 @@
           <mat-option [value]="'1'">Sí</mat-option>
           <mat-option [value]="'0'">No</mat-option>
         </mat-select>
-        <mat-hint>Si está disponible para el cliente</mat-hint>
+        <mat-hint>Si está disponible para ser cargado por el cliente</mat-hint>
       </mat-form-field>
     </div>
 
@@ -132,16 +131,16 @@
 
     <!-- Botones de Acción -->
     <div class="flex justify-end space-x-3 pt-6 border-t mt-6">
-      <button 
-        type="button" 
-        mat-button 
+      <button
+        type="button"
+        mat-button
         (click)="onCancel()"
         [disabled]="loading">
         Cancelar
       </button>
-      <button 
-        type="submit" 
-        mat-raised-button 
+      <button
+        type="submit"
+        mat-raised-button
         color="primary"
         [disabled]="documentTypeForm.invalid || loading">
         <mat-spinner *ngIf="loading" diameter="20" class="mr-2"></mat-spinner>

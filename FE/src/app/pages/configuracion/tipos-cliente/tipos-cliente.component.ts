@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 import { CostumerType, CostumerTypeResponse } from '../../../core/interfaces/costumer-type.interface';
+import { AuthService } from '../../../core/services/auth.service';
 import { CostumerTypeService } from '../../../core/services/costumer-type.service';
 import { CostumerTypeEditDialogComponent } from './costumer-type-edit-dialog/costumer-type-edit-dialog.component';
 
@@ -44,7 +45,7 @@ import { CostumerTypeEditDialogComponent } from './costumer-type-edit-dialog/cos
 export class TiposClienteComponent implements OnInit, AfterViewInit {
   tiposCliente: CostumerType[] = [];
   dataSource = new MatTableDataSource<CostumerType>([]);
-  displayedColumns: string[] = ['id', 'name', 'enabled', 'acciones'];
+  displayedColumns: string[] = [];
   loading = false;
   searchTerm = '';
   statusFilter = '';
@@ -55,12 +56,14 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
 
   constructor(
     private costumerTypeService: CostumerTypeService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'enabled', 'acciones']);
     this.loadTiposCliente();
   }
 

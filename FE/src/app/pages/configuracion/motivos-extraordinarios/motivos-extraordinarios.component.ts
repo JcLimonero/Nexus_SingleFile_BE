@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { FileExtraordinaryReason, FileExtraordinaryReasonService, FileExtraordinaryReasonFilters } from 'src/app/core/services/file-extraordinary-reason.service';
 import { MotivoExtraordinarioEditDialogComponent } from './motivo-extraordinario-edit-dialog/motivo-extraordinario-edit-dialog.component';
 
@@ -44,7 +45,7 @@ import { MotivoExtraordinarioEditDialogComponent } from './motivo-extraordinario
   ]
 })
 export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['id', 'name', 'idTypeReason', 'enabled', 'actions'];
+  displayedColumns: string[] = [];
   dataSource = new MatTableDataSource<FileExtraordinaryReason>();
   
   loading = false;
@@ -61,11 +62,13 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
 
   constructor(
     private fileExtraordinaryReasonService: FileExtraordinaryReasonService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'idTypeReason', 'enabled', 'actions']);
     this.loadData();
   }
 

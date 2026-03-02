@@ -30,6 +30,8 @@ export interface DocumentType {
   configurations?: DocumentTypeConfiguration[];
   configurations_count?: number;
   configurationsCount?: number; // BE aún devuelve camelCase
+  /** true si es tipo protegido (ej. Liquidación) - no editable/eliminable */
+  protected?: boolean;
 }
 
 export interface DocumentTypeResponse {

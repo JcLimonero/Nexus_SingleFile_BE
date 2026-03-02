@@ -9,6 +9,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { ValidacionService } from '../validacion/validacion.service';
 
 export interface ExpedienteCorregir {
@@ -53,14 +54,16 @@ export class ExpedientesCorregirComponent implements OnInit {
   reparandoIds = new Set<number>();
   reparandoAgencia: number | null = null;
 
-  displayedColumns = ['idExpediente', 'ndDMS', 'api_result', 'created_at', 'acciones'];
+  displayedColumns: string[] = [];
 
   constructor(
     private validacionService: ValidacionService,
+    private authService: AuthService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['idExpediente', 'ndDMS', 'api_result', 'created_at', 'acciones'], 'idExpediente');
     this.cargar();
   }
 
