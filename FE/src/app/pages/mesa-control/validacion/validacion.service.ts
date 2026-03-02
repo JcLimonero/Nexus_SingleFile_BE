@@ -44,6 +44,7 @@ export interface Documento {
   comentario: string;
   asignado: string;
   idEstatus: number;
+  idDocumentType?: number; // ID del tipo de documento (para excluir liquidación)
   documentContainer?: string; // ID del archivo en Backblaze
   idDocumentByFile?: number;
   ReqExpiration?: number;
@@ -136,9 +137,10 @@ export class ValidacionService {
   }
 
   /**
-   * Cargar documentos de un archivo específico
+   * Cargar documentos de un archivo específico.
+   * Retorna documentos e idDocumentTypeLiquidacion (desde config) para excluir documentos de liquidación de validación.
    */
-  cargarDocumentos(idFile: number): Observable<Documento[]> {
+  cargarDocumentos(idFile: number): Observable<{ documentos: Documento[]; idDocumentTypeLiquidacion: number | null }> {
     this.loadingSubject.next(true);
 
     let params = new HttpParams();
@@ -147,9 +149,10 @@ export class ValidacionService {
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos`, { params }).pipe(
       map(response => {
         if (response && response.success && response.data) {
-          return response.data;
+          const idLiq = response.idDocumentTypeLiquidacion != null ? Number(response.idDocumentTypeLiquidacion) : null;
+          return { documentos: response.data, idDocumentTypeLiquidacion: idLiq };
         }
-        return [];
+        return { documentos: [], idDocumentTypeLiquidacion: null };
       })
     );
   }

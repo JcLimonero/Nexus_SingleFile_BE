@@ -1148,10 +1148,10 @@ class Validacion extends BaseController
             
             // Actualizar el registro en la tabla File
             $updateData = [
-                'IdCurrentState' => 5, // Estado cancelado
-                'Description' => $comentario,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+                'id_current_state' => 5, // Estado cancelado
+                'description' => $comentario,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
             $result = $this->db->table('expedient')
@@ -1169,7 +1169,7 @@ class Validacion extends BaseController
                         'comentario' => $comentario,
                         'estado_anterior' => 'Activo',
                         'estado_nuevo' => 'Cancelado',
-                        'fecha_cancelacion' => $updateData['UpdateDate']
+                        'fecha_cancelacion' => $updateData['update_date']
                     ],
                     $clienteId
                 );
@@ -1181,7 +1181,7 @@ class Validacion extends BaseController
                         'clienteId' => $clienteId,
                         'motivoId' => $motivoId,
                         'comentario' => $comentario,
-                        'fechaCancelacion' => $updateData['UpdateDate']
+                        'fechaCancelacion' => $updateData['update_date']
                     ]
                 ]);
             } else {
@@ -1247,7 +1247,7 @@ class Validacion extends BaseController
                         'comentario' => $comentario,
                         'estado_anterior' => 'Activo',
                         'estado_nuevo' => 'Liberado por Excepción',
-                        'fecha_excepcion' => $updateData['UpdateDate']
+                        'fecha_excepcion' => $updateData['update_date']
                     ],
                     $clienteId
                 );
@@ -1259,7 +1259,7 @@ class Validacion extends BaseController
                         'clienteId' => $clienteId,
                         'motivoId' => $motivoId,
                         'comentario' => $comentario,
-                        'fechaExcepcion' => $updateData['UpdateDate']
+                        'fechaExcepcion' => $updateData['update_date']
                     ]
                 ]);
             } else {
@@ -1564,6 +1564,8 @@ class Validacion extends BaseController
             $query = $this->db->table('file_document dbf')
                 ->select('
                     dbf.id as idFileDocument,
+                    dbf.id as idDocumentByFile,
+                    dbf.id_document_type as idDocumentType,
                     p.name as proceso,
                     fs.name as fase,
                     dbf.name as documento,
@@ -1597,7 +1599,8 @@ class Validacion extends BaseController
             error_log("Query SQL: " . $query->getCompiledSelect(false));
             
             $results = $query->get()->getResultArray();
-            
+            $idDocumentTypeLiquidacion = $this->getConfigDocumentTypeLiquidacion();
+
             error_log("Resultados encontrados: " . count($results));
             if (count($results) > 0) {
                 error_log("Primer resultado: " . json_encode($results[0]));
@@ -1606,7 +1609,8 @@ class Validacion extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documentos obtenidos exitosamente',
-                'data' => $results
+                'data' => $results,
+                'idDocumentTypeLiquidacion' => $idDocumentTypeLiquidacion
             ]);
 
         } catch (\Exception $e) {
@@ -1684,16 +1688,16 @@ class Validacion extends BaseController
 
             // Obtener documentos existentes de liquidación para calcular el consecutivo
             $existingDocuments = $this->db->table('file_document')
-                ->select('Name')
-                ->where('IdFile', $idFile)
-                ->where('IdDocumentType', $documentTypeId)
-                ->orderBy('Id', 'ASC')
+                ->select('name')
+                ->where('id_file', $idFile)
+                ->where('id_document_type', $documentTypeId)
+                ->orderBy('id', 'ASC')
                 ->get()
                 ->getResultArray();
 
             $maxCounter = 0;
             foreach ($existingDocuments as $existing) {
-                $name = trim($existing['Name'] ?? '');
+                $name = trim($existing['name'] ?? '');
                 if ($name === '') {
                     continue;
                 }
@@ -1708,15 +1712,15 @@ class Validacion extends BaseController
 
             // Garantizar que no exista un documento con el mismo nombre
             while ($this->db->table('file_document')
-                ->where('IdFile', $idFile)
-                ->where('Name', $documentName)
+                ->where('id_file', $idFile)
+                ->where('name', $documentName)
                 ->countAllResults() > 0) {
                 $nextCounter++;
                 $documentName = trim($baseName . ' ' . $nextCounter);
             }
 
             // Obtener siguiente ID manualmente
-            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM file_document")
+            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM file_document")
                 ->getRowArray();
             $nextId = (int) ($nextIdRow['nextId'] ?? 1);
 
@@ -1725,21 +1729,21 @@ class Validacion extends BaseController
 
             $documentModel = new DocumentModel();
             $documentData = [
-                'Id' => $nextId,
-                'Name' => $documentName,
-                'Comment' => null,
-                'ExpirationDate' => null,
-                'PathDocument' => null,
-                'Enabled' => 1,
-                'RegistrationDate' => $now,
-                'UpdateDate' => $now,
-                'LastUserUpdate' => $currentUserId,
-                'IdLastUserUpdate' => $currentUserId,
-                'IdFile' => $idFile,
-                'IdValidation' => null,
-                'IdDocumentType' => $documentTypeId,
-                'IdCurrentStatus' => 1,
-                'IdDocumentError' => null
+                'id' => $nextId,
+                'name' => $documentName,
+                'comment' => null,
+                'expiration_date' => null,
+                'path_document' => null,
+                'enabled' => 1,
+                'registration_date' => $now,
+                'update_date' => $now,
+                'last_user_update' => $currentUserId,
+                'id_last_user_update' => $currentUserId,
+                'id_file' => $idFile,
+                'id_validation' => null,
+                'id_document_type' => $documentTypeId,
+                'id_current_status' => 1,
+                'id_document_error' => null
             ];
 
             if (!$documentModel->insert($documentData)) {
@@ -1757,7 +1761,7 @@ class Validacion extends BaseController
                 "Documento de liquidación agregado al expediente {$idFile}",
                 [
                     'file_id' => $idFile,
-                    'pedido' => $file['IdOrderTotal'] ?? null,
+                    'pedido' => $file['id_order_total'] ?? null,
                     'document_type_id' => $documentTypeId,
                     'document_name' => $documentName,
                     'consecutivo' => $nextCounter
@@ -1808,7 +1812,7 @@ class Validacion extends BaseController
             // Verificar que el documento existe y tiene estatus "3"
             $documento = $this->db->table('file_document')
                 ->where('id', $idFileDocument)
-                ->where('IdCurrentStatus', 3)
+                ->where('id_current_status', 3)
                 ->get()
                 ->getRowArray();
             
@@ -1822,9 +1826,9 @@ class Validacion extends BaseController
             
             // Actualizar el estatus del documento a "4" (Validado y aprobado)
             $updateData = [
-                'IdCurrentStatus' => 4,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+                'id_current_status' => 4,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
             $result = $this->db->table('file_document')
@@ -1833,7 +1837,7 @@ class Validacion extends BaseController
             
             if ($result) {
                 // Registrar actividad en el log (incluir file_id para historial por expediente)
-                $idFile = $documento['IdFile'] ?? null;
+                $idFile = $documento['id_file'] ?? null;
                 $this->logActivity(
                     'VALIDAR_DOCUMENTO',
                     "Documento {$idFileDocument} validado",
@@ -1842,7 +1846,7 @@ class Validacion extends BaseController
                         'documento_id' => $idFileDocument,
                         'estado_anterior' => 'Listo para validar (3)',
                         'estado_nuevo' => 'Validado y aprobado (4)',
-                        'fecha_validacion' => $updateData['UpdateDate']
+                        'fecha_validacion' => $updateData['update_date']
                     ],
                     $idFile
                 );
@@ -1854,7 +1858,7 @@ class Validacion extends BaseController
                         'idFileDocument' => $idFileDocument,
                         'estadoAnterior' => 3,
                         'estadoNuevo' => 4,
-                        'fechaValidacion' => $updateData['UpdateDate']
+                        'fechaValidacion' => $updateData['update_date']
                     ]
                 ]);
             } else {
@@ -1884,16 +1888,15 @@ class Validacion extends BaseController
         try {
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (empty($data['idFileDocument']) || empty($data['nuevoEstatus'])) {
+            // Aceptar idFileDocument o idDocumentByFile (frontend usa idDocumentByFile)
+            $idFileDocument = $data['idFileDocument'] ?? $data['idDocumentByFile'] ?? null;
+            if (empty($idFileDocument) || empty($data['nuevoEstatus'])) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Los parámetros idFileDocument y nuevoEstatus son requeridos',
+                    'message' => 'Los parámetros idFileDocument (o idDocumentByFile) y nuevoEstatus son requeridos',
                     'data' => null
                 ])->setStatusCode(400);
             }
-            
-            $idFileDocument = $data['idFileDocument'];
             $nuevoEstatus = $data['nuevoEstatus'];
             $comentario = $data['comentario'] ?? null;
             $fechaExpiracion = $data['fechaExpiracion'] ?? null;
@@ -1933,7 +1936,7 @@ class Validacion extends BaseController
             
             // Verificar permisos según el rol del usuario
             $userRoleId = $currentUser['role_id'];
-            $currentStatus = $documento['IdCurrentStatus'];
+            $currentStatus = $documento['id_current_status'];
             
             // Lógica de permisos:
             // - Usuarios normales: solo pueden aprobar/rechazar documentos con estatus "3" (en revisión)
@@ -1962,19 +1965,19 @@ class Validacion extends BaseController
             
             // Actualizar el estatus del documento
             $updateData = [
-                'IdCurrentStatus' => $nuevoEstatus,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $currentUser['user_id']
+                'id_current_status' => $nuevoEstatus,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $currentUser['user_id']
             ];
             
             // Si hay comentario, actualizarlo también
             if ($comentario) {
-                $updateData['Comment'] = $comentario;
+                $updateData['comment'] = $comentario;
             }
             
             // Si hay fecha de expiración, actualizarla también
             if ($fechaExpiracion) {
-                $updateData['ExpirationDate'] = $fechaExpiracion;
+                $updateData['expiration_date'] = $fechaExpiracion;
             }
             
             $result = $this->db->table('file_document')
@@ -1988,7 +1991,7 @@ class Validacion extends BaseController
                 $mensaje = $nuevoEstatus == 4 ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
                 
                 // Registrar actividad en el log (incluir file_id para historial por expediente)
-                $idFile = $documento['IdFile'] ?? null;
+                $idFile = $documento['id_file'] ?? null;
                 $this->logActivity(
                     $accion,
                     "Documento {$idFileDocument} " . ($nuevoEstatus == 4 ? 'aprobado' : 'rechazado'),
@@ -1998,7 +2001,7 @@ class Validacion extends BaseController
                         'estado_anterior' => $estadoAnterior,
                         'estado_nuevo' => $estadoNuevo,
                         'comentario' => $comentario,
-                        'fecha_procesamiento' => $updateData['UpdateDate']
+                        'fecha_procesamiento' => $updateData['update_date']
                     ],
                     $idFile
                 );
@@ -2012,7 +2015,7 @@ class Validacion extends BaseController
                         'estadoNuevo' => $nuevoEstatus,
                         'comentario' => $comentario,
                         'fechaExpiracion' => $fechaExpiracion,
-                        'fechaProcesamiento' => $updateData['UpdateDate']
+                        'fechaProcesamiento' => $updateData['update_date']
                     ]
                 ]);
             } else {
@@ -2042,21 +2045,20 @@ class Validacion extends BaseController
         try {
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (empty($data['idFileDocument'])) {
+            // Aceptar idFileDocument o idDocumentByFile (frontend usa idDocumentByFile)
+            $idFileDocument = $data['idFileDocument'] ?? $data['idDocumentByFile'] ?? null;
+            if (empty($idFileDocument)) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'El parámetro idFileDocument es requerido',
+                    'message' => 'El parámetro idFileDocument (o idDocumentByFile) es requerido',
                     'data' => null
                 ])->setStatusCode(400);
             }
             
-            $idFileDocument = $data['idFileDocument'];
-            
             // Verificar que el documento existe y tiene estatus "2"
             $documento = $this->db->table('file_document')
                 ->where('id', $idFileDocument)
-                ->where('IdCurrentStatus', 2)
+                ->where('id_current_status', 2)
                 ->get()
                 ->getRowArray();
             
@@ -2070,9 +2072,9 @@ class Validacion extends BaseController
             
             // Actualizar el estatus del documento a "3" (Listo para validar)
             $updateData = [
-                'IdCurrentStatus' => 3,
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => 1 // TODO: Obtener el ID del usuario actual
+                'id_current_status' => 3,
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
             $result = $this->db->table('file_document')
@@ -2081,7 +2083,7 @@ class Validacion extends BaseController
             
             if ($result) {
                 // Registrar actividad en el log (incluir file_id para historial por expediente)
-                $idFile = $documento['IdFile'] ?? null;
+                $idFile = $documento['id_file'] ?? null;
                 $this->logActivity(
                     'PREPARAR_DOCUMENTO',
                     "Documento {$idFileDocument} preparado para validación",
@@ -2090,7 +2092,7 @@ class Validacion extends BaseController
                         'documento_id' => $idFileDocument,
                         'estado_anterior' => 'Pendiente de validación (2)',
                         'estado_nuevo' => 'Listo para validar (3)',
-                        'fecha_preparacion' => $updateData['UpdateDate']
+                        'fecha_preparacion' => $updateData['update_date']
                     ],
                     $idFile
                 );
@@ -2102,7 +2104,7 @@ class Validacion extends BaseController
                         'idFileDocument' => $idFileDocument,
                         'estadoAnterior' => 2,
                         'estadoNuevo' => 3,
-                        'fechaPreparacion' => $updateData['UpdateDate']
+                        'fechaPreparacion' => $updateData['update_date']
                     ]
                 ]);
             } else {

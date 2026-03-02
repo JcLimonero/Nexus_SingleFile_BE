@@ -130,6 +130,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
   documentosDataSource: any[] = [];
 
+  /** ID del tipo de documento Liquidación (desde config); documentos con este ID no muestran icono validar */
+  idDocumentTypeLiquidacion: number | null = null;
+
   // Cliente seleccionado
   selectedCliente: any = null;
   private advertenciaLiquidacionMostrada = false;
@@ -225,32 +228,61 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Validar documento - abrir dialog para aprobar/rechazar
+   * Validar documento - abrir el componente según tipo:
+   * - Documentos NO liquidación: AprobarDocumentoDialogComponent (validar/aprobar/rechazar)
+   * - Documentos liquidación: componente distinto (por definir)
    */
   onValidarDocumento(documento: any): void {
 
-    // Verificar que el estatus actual sea "3"
-    if (documento.idEstatus !== '3') {
-      this.snackBar.open('Solo se pueden validar documentos con estatus listo para validar', 'Cerrar', { duration: 3000 });
+    // Solo se pueden validar documentos con estatus 2 (Cargado) o 3 (En revisión)
+    if (documento.idEstatus !== '2' && documento.idEstatus !== '3') {
+      this.snackBar.open('Solo se pueden validar documentos cargados o en revisión', 'Cerrar', { duration: 3000 });
       return;
     }
 
-    // Crear dialog para aprobar/rechazar documento
-    const dialogData: AprobarDocumentoData = {
-      documento: documento
+    const abrirDialogValidacion = () => {
+      const dialogData: AprobarDocumentoData = {
+        documento: documento
+      };
+
+      const dialogRef = this.dialog.open(AprobarDocumentoDialogComponent, {
+        width: '600px',
+        data: dialogData
+      });
+
+      dialogRef.afterClosed().subscribe((result: AprobarDocumentoResult) => {
+        if (result) {
+          this.procesarAprobacionDocumento(documento, result);
+        }
+      });
     };
 
-    const dialogRef = this.dialog.open(AprobarDocumentoDialogComponent, {
-      width: '600px',
-      data: dialogData
-    });
+    // Documentos de tipo Liquidación: componente distinto (por definir)
+    if (this.esDocumentoLiquidacion(documento)) {
+      this.snackBar.open('Validación de documento Liquidación: por definir', 'Cerrar', { duration: 3000 });
+      return;
+    }
 
-    dialogRef.afterClosed().subscribe((result: AprobarDocumentoResult) => {
-      if (result) {
-
-        this.procesarAprobacionDocumento(documento, result);
-      }
-    });
+    // Documentos NO liquidación: AprobarDocumentoDialogComponent
+    // Si está en estatus 2 (Cargado), preparar primero (cambiar a 3) y luego abrir dialog
+    if (documento.idEstatus === '2') {
+      this.validacionService.prepararDocumento(documento.idDocumentByFile)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            documento.idEstatus = '3';
+            abrirDialogValidacion();
+            if (this.selectedCliente) {
+              this.cargarDocumentosCliente(this.selectedCliente.idFile);
+            }
+          },
+          error: () => {
+            this.snackBar.open('No se pudo preparar el documento para validación', 'Cerrar', { duration: 3000 });
+          }
+        });
+    } else {
+      abrirDialogValidacion();
+    }
   }
 
   /**
@@ -366,9 +398,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           const mensaje = resultado.aprobado ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
           this.snackBar.open(mensaje, 'Cerrar', { duration: 3000 });
 
-          // Recargar documentos para reflejar el cambio
+          // Recargar documentos y verificar si puede avanzar de fase (solo tras aprobar/rechazar)
           if (this.selectedCliente) {
-            this.cargarDocumentosCliente(this.selectedCliente.idFile);
+            this.cargarDocumentosCliente(this.selectedCliente.idFile, true);
           }
         },
         error: (error) => {
@@ -746,8 +778,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.advertenciaLiberadoMostrada = false;
     this.cdr.markForCheck();
 
-    // Cargar los documentos del archivo específico
-    this.cargarDocumentosCliente(cliente.idFile);
+    // Cargar los documentos y verificar si puede avanzar de fase (al seleccionar pedido)
+    this.cargarDocumentosCliente(cliente.idFile, true);
   }
 
   /**
@@ -962,8 +994,10 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * Cargar documentos de un archivo específico
+   * @param idFile ID del expediente
+   * @param verificarAvanceFase Solo true cuando se recarga tras aprobar/rechazar documento (acción de validación)
    */
-  private cargarDocumentosCliente(idFile: number): void {
+  private cargarDocumentosCliente(idFile: number, verificarAvanceFase = false): void {
 
     this.loadingDocumentos = true;
 
@@ -973,12 +1007,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         timeout(10000)
       )
       .subscribe({
-        next: (documentos) => {
-
-          this.documentosDataSource = documentos;
-          this.verificarAvanceFaseLiquidacion(documentos);
-          this.verificarAvanceFaseLiberacion(documentos);
-          this.verificarAvanceFaseLiberado(documentos);
+        next: (res) => {
+          this.documentosDataSource = res.documentos;
+          this.idDocumentTypeLiquidacion = res.idDocumentTypeLiquidacion;
+          if (verificarAvanceFase) {
+            this.verificarAvanceFaseLiquidacion(res.documentos);
+            this.verificarAvanceFaseLiberacion(res.documentos);
+            this.verificarAvanceFaseLiberado(res.documentos);
+          }
           this.loadingDocumentos = false;
           this.cdr.markForCheck();
         },
@@ -1060,6 +1096,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private esDocumentoDeLiberacion(documento: Documento): boolean {
     return this.normalizarTexto(documento.fase) === 'liberacion';
+  }
+
+  /** Documento de tipo Liquidación (id_document_type desde config) - no se valida desde esta pantalla */
+  esDocumentoLiquidacion(documento: Documento): boolean {
+    if (this.idDocumentTypeLiquidacion == null) return false;
+    const id = (documento as any).idDocumentType;
+    return id != null && Number(id) === this.idDocumentTypeLiquidacion;
   }
 
   private esDocumentoRequerido(documento: Documento): boolean {
@@ -1529,8 +1572,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           duration: 3000
         });
 
-        // Recargar documentos para mostrar el estado actualizado
-        this.cargarDocumentosCliente(this.selectedCliente.idFile);
+        // Recargar documentos y verificar si puede avanzar de fase (solo tras aprobar/rechazar)
+        this.cargarDocumentosCliente(this.selectedCliente.idFile, true);
       },
       error: (error) => {
 

@@ -165,8 +165,9 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
-        $file = $this->request->getFile('expedient');
-        $idFileDocument = (int) ($this->request->getPost('idFileDocument') ?? $this->request->getPost('idDocumentFile') ?? 0);
+        // Aceptar 'expedient' (legacy) o 'file' (miniportal frontend)
+        $file = $this->request->getFile('expedient') ?? $this->request->getFile('file');
+        $idFileDocument = (int) ($this->request->getPost('idFileDocument') ?? $this->request->getPost('idDocumentFile') ?? $this->request->getPost('idDocumentByFile') ?? 0);
 
         if (!$file || !$file->isValid()) {
             return $this->response->setJSON([
@@ -183,12 +184,12 @@ class Miniportal extends BaseController
         }
 
         $doc = $this->db->table('file_document dbf')
-            ->select('dbf.Id, dbf.IdFile')
-            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->where('dbf.Id', $idFileDocument)
-            ->where('dbf.IdFile', $idFile)
-            ->where('dbf.Enabled', 1)
-            ->where('dt.AvailableToClient', 1)
+            ->select('dbf.id, dbf.id_file')
+            ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
+            ->where('dbf.id', $idFileDocument)
+            ->where('dbf.id_file', $idFile)
+            ->where('dbf.enabled', 1)
+            ->where('dt.available_to_client', 1)
             ->get()
             ->getRowArray();
 
@@ -206,58 +207,10 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
-        $fileName = $this->getFileNameFromView($idFileDocument, $idFile, $file);
-        $vanguardiaUrl = 'https://apisvanguardia.com:400/backblaze/upload';
-        $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
-        $boundary = uniqid();
-        $delimiter = '-------------' . $boundary;
-
-        $postData = $this->buildMultipartData([
-            'expedient' => [
-                'filename' => $fileName,
-                'content' => file_get_contents($file->getTempName()),
-                'mimetype' => $file->getClientMimeType()
-            ],
-            'idSingleFile' => (string) $idFile,
-            'idDocumentFile' => (string) $idFileDocument
-        ], $delimiter);
-
-        $ch = curl_init($vanguardiaUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $postData,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => [
-                'X-Provider-Token: ' . $vanguardiaToken,
-                'Content-Type: multipart/form-data; boundary=' . $delimiter,
-                'Content-Length: ' . strlen($postData)
-            ],
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        if ($error) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al subir: ' . $error
-            ])->setStatusCode(500);
-        }
-
-        $responseData = json_decode($response, true);
-
-        if ($httpCode >= 400) {
-            return $this->response->setJSON($responseData ?? [
-                'success' => false,
-                'message' => 'Error al subir el documento'
-            ])->setStatusCode($httpCode);
-        }
-
-        return $this->response->setJSON($responseData ?? ['success' => true, 'message' => 'Documento subido']);
+        // Usar subida directa a Backblaze (nuestra BD) en lugar de Vanguardia
+        $uploader = new \App\Controllers\Api\BackblazeDirectUpload();
+        $uploader->initController($this->request, $this->response, \Config\Services::logger());
+        return $uploader->performUpload($file, (string) $idFile, (string) $idFileDocument);
     }
 
     private function buildMultipartData(array $fields, string $delimiter): string
@@ -352,11 +305,11 @@ class Miniportal extends BaseController
         }
 
         $exists = $this->db->table('file_document dbf')
-            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->where('dbf.IdFile', $idFile)
+            ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
+            ->where('dbf.id_file', $idFile)
             ->where('dbf.id_document_container', $fileContainer)
-            ->where('dbf.Enabled', 1)
-            ->where('dt.AvailableToClient', 1)
+            ->where('dbf.enabled', 1)
+            ->where('dt.available_to_client', 1)
             ->countAllResults();
         if (!$exists) {
             return $this->response->setJSON([
@@ -438,12 +391,12 @@ class Miniportal extends BaseController
         }
 
         $doc = $this->db->table('file_document dbf')
-            ->select('dbf.Id, dbf.IdFile, dbf.IdCurrentStatus')
-            ->join('document_type dt', 'dbf.IdDocumentType = dt.Id', 'inner')
-            ->where('dbf.Id', $idFileDocument)
-            ->where('dbf.IdFile', $idFile)
-            ->where('dbf.Enabled', 1)
-            ->where('dt.AvailableToClient', 1)
+            ->select('dbf.id, dbf.id_file, dbf.id_current_status')
+            ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
+            ->where('dbf.id', $idFileDocument)
+            ->where('dbf.id_file', $idFile)
+            ->where('dbf.enabled', 1)
+            ->where('dt.available_to_client', 1)
             ->get()
             ->getRowArray();
 
@@ -454,7 +407,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        if ((int) ($doc['IdCurrentStatus'] ?? 0) !== 4) {
+        if ((int) ($doc['id_current_status'] ?? 0) !== 4) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Solo se puede aprobar cuando el documento está en estatus 4'
@@ -515,8 +468,8 @@ class Miniportal extends BaseController
         try {
             $sql = "
                 SELECT
-                    dbf.Id as idFileDocument,
-                    dbf.Id as idDocumentByFile,
+                    dbf.id as idFileDocument,
+                    dbf.id as idDocumentByFile,
                     dbf.id_current_status as idEstatus,
                     dbf.comment as comentarioRechazo,
                     p.name as proceso,

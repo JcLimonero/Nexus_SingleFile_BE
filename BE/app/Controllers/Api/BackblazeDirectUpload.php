@@ -44,6 +44,23 @@ class BackblazeDirectUpload extends BaseController
                 ])->setStatusCode(400);
             }
 
+            return $this->performUpload($file, (string) $idSingleFile, (string) $idDocumentFile);
+        } catch (\Exception $e) {
+            log_message('error', 'BackblazeDirectUpload::upload - ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al subir archivo: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Realiza la subida a Backblaze B2 (sin verificación de auth).
+     * Usado por Miniportal que valida con share token.
+     */
+    public function performUpload($file, string $idSingleFile, string $idDocumentFile)
+    {
+        try {
             $fileName = $this->getFileNameFromView($idDocumentFile, $idSingleFile, $file);
             $fileContent = file_get_contents($file->getTempName());
             $mimeType = $file->getClientMimeType() ?: 'b2/x-auto';
@@ -115,7 +132,7 @@ class BackblazeDirectUpload extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'BackblazeDirectUpload::upload - ' . $e->getMessage());
+            log_message('error', 'BackblazeDirectUpload::performUpload - ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al subir archivo: ' . $e->getMessage()
@@ -480,6 +497,8 @@ class BackblazeDirectUpload extends BaseController
                 'id_document_container' => $documentContainer,
                 'name' => $fileName,
                 'id_current_status' => 2, // 2 = Documento cargado (uploaded)
+                'comment' => null,        // Limpiar comentario de rechazo anterior
+                'id_document_error' => null, // Limpiar error anterior
                 'update_date' => date('Y-m-d H:i:s'),
             ]);
     }

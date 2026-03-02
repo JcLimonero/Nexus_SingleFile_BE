@@ -344,9 +344,10 @@ $routes->group('client', function($routes) {
 });
 
 // Rutas de Backblaze: subida directa y descarga desde nuestro bucket
+// Ambas rutas usan BackblazeDirectUpload para que el documento quede en status 2 (Documento cargado)
 $routes->group('backblaze', function($routes) {
     $routes->post('direct-upload', 'BackblazeDirectUpload::upload');
-    $routes->post('upload', 'VanguardiaProxy::upload');
+    $routes->post('upload', 'BackblazeDirectUpload::upload');
     $routes->get('get-private-url', 'BackblazeDirectUpload::getPrivateUrl');
     $routes->get('download', 'BackblazeDirectUpload::download');
 });

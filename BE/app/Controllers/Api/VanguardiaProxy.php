@@ -124,7 +124,7 @@ class VanguardiaProxy extends BaseController
             $delimiter = '-------------' . $boundary;
             
             $postData = $this->buildMultipartData([
-                'expedient' => [
+                'file' => [
                     'filename' => $fileName,
                     'content' => file_get_contents($file->getTempName()),
                     'mimetype' => $file->getClientMimeType()
