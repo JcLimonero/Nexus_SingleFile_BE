@@ -23,7 +23,7 @@
         <mat-card-title class="text-xl text-center">Consulta de expediente</mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <!-- Aviso de confidencialidad (si no aceptado) -->
+        <!-- Aviso de confidencialidad (solo si no ha sido aceptado) -->
         <div *ngIf="!avisoAceptado" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <h3 class="font-semibold text-amber-800 mb-2">Aviso de confidencialidad</h3>
           <p class="text-sm text-amber-900 mb-4">
@@ -119,9 +119,9 @@
                       </span>
                     </div>
                   </div>
-                  <div *ngIf="esDocumentoOpcional(doc) && !isDocumentoAprobado(doc) && !doc.documentContainer" class="doc-item-opcional mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div *ngIf="esDocumentoOpcional(doc) && !isDocumentoAprobado(doc)" class="doc-item-opcional mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                     <p class="text-sm text-amber-900">
-                      Si no desea compartir este documento, debe subir un archivo con su firma confirmando que no desea compartir dicha información.
+                      Documento opcional. Puede cargar un documento validando que rechaza cargar el documento solicitado.
                     </p>
                   </div>
                   <div *ngIf="esDocumentoRechazado(doc)" class="doc-item-rechazo mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">

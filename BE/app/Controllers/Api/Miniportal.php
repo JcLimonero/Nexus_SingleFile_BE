@@ -516,7 +516,8 @@ class Miniportal extends BaseController
             $sql = "
                 SELECT
                     dbf.Id as idFileDocument,
-                    dbf.IdCurrentStatus as idEstatus,
+                    dbf.Id as idDocumentByFile,
+                    dbf.id_current_status as idEstatus,
                     dbf.comment as comentarioRechazo,
                     p.name as proceso,
                     fs.name as fase,
@@ -526,6 +527,7 @@ class Miniportal extends BaseController
                     dbf.registration_date as fecha,
                     dbf.id_document_container as documentContainer,
                     dt.available_to_client as DisponibleCliente,
+                    COALESCE(dt.required, 1) as requerido,
                     CASE WHEN ap.id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
                 FROM file_document dbf
                 INNER JOIN expedient f ON dbf.id_file = f.id
@@ -556,6 +558,7 @@ class Miniportal extends BaseController
         $results = $builder
             ->select('
                 dbf.id as idFileDocument,
+                dbf.id as idDocumentByFile,
                 dbf.id_current_status as idEstatus,
                 dbf.comment as comentarioRechazo,
                 p.name as proceso,
@@ -566,6 +569,7 @@ class Miniportal extends BaseController
                 dbf.registration_date as fecha,
                 dbf.id_document_container as documentContainer,
                 dt.available_to_client as DisponibleCliente,
+                COALESCE(dt.required, 1) as requerido,
                 0 as aprobadoCliente
             ')
             ->join('expedient f', 'dbf.id_file = f.id', 'inner')

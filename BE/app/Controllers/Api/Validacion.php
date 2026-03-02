@@ -967,7 +967,12 @@ class Validacion extends BaseController
                     COALESCE(obc1.year, obc2.year) as year,
                     COALESCE(obc1.car_type, obc2.car_type) as version,
                     COALESCE(obc1.amount, obc2.amount) as montoUnidad,
-                    COALESCE(fp.AvisoPrivacidadEntregado, 0) as avisoConfidencialidadAceptado,
+                    /* Aviso confid.: Sí solo si existe registro en file_pld con AvisoPrivacidadEntregado=1; No si no existe registro o no está entregado */
+                    (SELECT CASE WHEN EXISTS (
+                        SELECT 1 FROM file_pld fp_aviso
+                        WHERE fp_aviso.IdFile = f.id
+                        AND COALESCE(fp_aviso.AvisoPrivacidadEntregado, 0) = 1
+                    ) THEN 1 ELSE 0 END) as avisoConfidencialidadAceptado,
                     (
                         SELECT COUNT(*) 
                         FROM file_pld_beneficial_owner bf 
@@ -1038,6 +1043,17 @@ class Validacion extends BaseController
             // Ejecutar query principal
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
+
+            // Asegurar avisoConfidencialidadAceptado: 1 solo si existe file_pld con AvisoPrivacidadEntregado=1
+            foreach ($results as &$row) {
+                $idFile = (int) ($row['idFile'] ?? 0);
+                $check = $this->db->query(
+                    'SELECT 1 FROM file_pld WHERE IdFile = ? AND COALESCE(AvisoPrivacidadEntregado, 0) = 1 LIMIT 1',
+                    [$idFile]
+                )->getRow();
+                $row['avisoConfidencialidadAceptado'] = $check ? 1 : 0;
+            }
+            unset($row);
 
             // Query para contar total de registros
             $countSql = "
