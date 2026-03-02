@@ -9,9 +9,10 @@
                       <mat-form-field appearance="outline" class="filter-field">
                         <mat-label>Razón social</mat-label>
                         <mat-select
-                          [value]="filterCompania"
+                          [(ngModel)]="filterCompania"
                           (selectionChange)="onCompaniaChange($event.value)"
-                          [disabled]="loading || !hasCompanies()">
+                          [disabled]="loading || !hasCompanies()"
+                          [compareWith]="compareById">
                           <mat-option [value]="null">Todas las razones sociales</mat-option>
                           <mat-option *ngFor="let c of companies; let i = index; trackBy: trackByCompanyId" [value]="c.Id">
                             {{ c.Name }}
@@ -26,9 +27,10 @@
                       <mat-form-field appearance="outline" class="filter-field">
                         <mat-label>Agencia</mat-label>
                         <mat-select
-                          [value]="selectedAgencyId"
+                          [(ngModel)]="selectedAgencyId"
                           (selectionChange)="onAgencyChange($event.value)"
-                          [disabled]="loading || agenciesFiltradas.length === 0">
+                          [disabled]="loading || agenciesFiltradas.length === 0"
+                          [compareWith]="compareById">
                           <mat-option [value]="null">Todas las Agencias</mat-option>
                           <mat-option *ngFor="let agency of agenciesFiltradas; let i = index; trackBy: trackByAgencyId" [value]="agency.Id">
                             {{ agency.Name }}

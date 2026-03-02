@@ -66,6 +66,7 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
 
   // Filtros
   filters: ActivityLogFilters = {
+    action: '',
     limit: 10,
     offset: 0,
     change_details: ''
@@ -165,6 +166,7 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
    */
   clearFilters(): void {
     this.filters = {
+      action: '',
       limit: 100,
       offset: 0,
       change_details: ''

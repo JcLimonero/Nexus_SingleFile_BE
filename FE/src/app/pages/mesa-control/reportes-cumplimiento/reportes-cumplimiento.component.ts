@@ -198,6 +198,14 @@ export class ReportesCumplimientoComponent implements OnInit {
             Id: (c['Id'] ?? c['id']) as number,
             Name: String(c['Name'] ?? c['name'] ?? c['company_name'] ?? '')
           }));
+
+          if (this.filterCompania === null && this.companies.length > 0) {
+            const firstCompanyId = this.getCompanyId(this.companies[0]);
+            if (firstCompanyId) {
+              this.filterCompania = firstCompanyId;
+              this.onFilterChange();
+            }
+          }
         }
       }
     });

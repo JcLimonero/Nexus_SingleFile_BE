@@ -140,6 +140,23 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
     this.destroy$.complete();
   }
 
+  // Helper para extraer el ID de la agencia normalizado a número
+  getAgencyId(agency: any): number {
+    const id = agency?.IdAgency ?? agency?.Id ?? agency?.id;
+    return Number(id);
+  }
+
+  // Helper para extraer el ID del proceso normalizado a número
+  getProcessId(process: any): number {
+    const id = process?.Id ?? process?.id;
+    return Number(id);
+  }
+
+  // Función de comparación para mat-select que normaliza ambos valores a número
+  compareById(val1: any, val2: any): boolean {
+    return Number(val1) === Number(val2);
+  }
+
   onAgenciaChange(): void {
     if (this.selectedAgency !== null && this.selectedAgency !== undefined) {
       // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
@@ -252,12 +269,12 @@ private cargarAgencias(showMessage: boolean = false): void {
         setTimeout(() => {
           const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
 
-          if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
-            this.selectedAgency = savedAgencyId;
+          if (savedAgencyId !== null && this.agencias.some(ag => this.getAgencyId(ag) === Number(savedAgencyId))) {
+            this.selectedAgency = Number(savedAgencyId);
             this.onAgenciaChange();
           } else {
             // ✅ Seleccionar primer item por default
-            this.selectedAgency = this.agencias[0].Id;
+            this.selectedAgency = this.getAgencyId(this.agencias[0]);
             this.onAgenciaChange();
           }
         }, 150);
@@ -312,7 +329,7 @@ private cargarAgencias(showMessage: boolean = false): void {
         if (showMessage) {
           this.snackBar.open('Procesos actualizados', 'Cerrar', { duration: 2000 });
         } else if (this.procesos.length > 0 && this.selectedProcess === null) {
-          this.selectedProcess = this.procesos[0].Id;
+          this.selectedProcess = this.getProcessId(this.procesos[0]);
           this.onProcesoChange();
         }
       });
