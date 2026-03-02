@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { ApiConfigService } from './api-config.service';
 
 export interface CompanyClient {
   idAgency: string;
@@ -52,7 +52,10 @@ export interface CompanyResponse {
 })
 export class CompanyClientService {
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private apiConfig: ApiConfigService
+  ) {}
 
   /**
    * Buscar clientes en el API del Grupo (Company)
@@ -69,7 +72,7 @@ export class CompanyClientService {
       'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
     };
 
-    return this.http.get<CompanyResponse>(environment.vanguardia.apiUrl, {
+    return this.http.get<CompanyResponse>(this.apiConfig.getApiUrl(), {
       params,
       headers
     });
@@ -90,7 +93,7 @@ export class CompanyClientService {
       'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
     };
 
-    return this.http.get<CompanyResponse>(environment.vanguardia.apiUrl, {
+    return this.http.get<CompanyResponse>(this.apiConfig.getApiUrl(), {
       params,
       headers
     });

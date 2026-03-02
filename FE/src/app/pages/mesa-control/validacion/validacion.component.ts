@@ -35,6 +35,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { ApiConfigService } from '../../../core/services/api-config.service';
 import { environment } from '../../../../environments/environment';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
@@ -311,7 +312,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       duration: duration.toString()
     });
 
-    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
+    const url = `${this.apiConfig.getUploadApiBaseUrl()}/get-private-url?${params.toString()}`;
 
     // El proxy agregará X-Provider-Token automáticamente
     this.http.get<any>(url)
@@ -672,6 +673,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     private dialog: MatDialog,
     private authService: AuthService,
     private http: HttpClient,
+    private apiConfig: ApiConfigService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {

@@ -8,6 +8,7 @@ import { ApiBaseService } from './api-base.service';
 import { ActivityLogService } from './activity-log.service';
 import { DefaultAgencyService } from './default-agency.service';
 import { CompanyService } from './company.service';
+import { ApiConfigService } from './api-config.service';
 
 export interface User {
   id: string;
@@ -67,7 +68,8 @@ export class AuthService {
     private activityLogService: ActivityLogService,
     private defaultAgencyService: DefaultAgencyService,
     private companyService: CompanyService,
-    private userAccessService: UserAccessService
+    private userAccessService: UserAccessService,
+    private apiConfigService: ApiConfigService
   ) {
     this.loadStoredAuth();
   }
@@ -91,6 +93,7 @@ export class AuthService {
         this.refreshTokenSubject.next(refreshToken);
         this.currentUserSubject.next(user);
         this.tokenExpirationSubject.next(expiration);
+        this.apiConfigService.load();
       } else {
         // Token expirado, intentar renovar
         this.refreshAccessToken();
@@ -127,6 +130,7 @@ export class AuthService {
               }));
             }
             this.activityLogService.logLogin(response.user!.username || response.user!.email);
+            this.apiConfigService.load();
             this.defaultAgencyService.obtenerAgencias(true).subscribe();
             this.companyService.getCompanies(true).subscribe();
             return of(response);
@@ -279,9 +283,10 @@ export class AuthService {
     localStorage.removeItem('current_user');
     localStorage.removeItem('token_expiration');
 
-    // Limpiar agencias y compañías del localStorage en logout
+    // Limpiar agencias, compañías y config del localStorage en logout
     this.defaultAgencyService.limpiarTodoEnLogout();
     this.companyService.limpiarCacheEnLogout();
+    this.apiConfigService.clearCache();
 
     this.accessTokenSubject.next(null);
     this.refreshTokenSubject.next(null);

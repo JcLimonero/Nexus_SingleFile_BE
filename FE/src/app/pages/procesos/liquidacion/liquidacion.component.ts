@@ -19,6 +19,7 @@ import { Subject, takeUntil, Observable, throwError, of } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { ApiConfigService } from '../../../core/services/api-config.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
@@ -120,6 +121,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private dialog: MatDialog,
     private clientSearchService: ClientSearchService,
+    private apiConfig: ApiConfigService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -1115,7 +1117,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
           // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
-          return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData);
+          return this.http.post<any>(this.apiConfig.getUploadApiUrl(), formData);
         })
       )
       .pipe(
@@ -1218,7 +1220,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       duration: duration.toString()
     });
 
-    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
+    const url = `${this.apiConfig.getUploadApiBaseUrl()}/get-private-url?${params.toString()}`;
 
     // El proxy agregará X-Provider-Token automáticamente
     this.http.get<any>(url)

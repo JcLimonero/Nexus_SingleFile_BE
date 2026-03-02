@@ -11,7 +11,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { Cliente, Documento, ValidacionService } from '../../../mesa-control/validacion/validacion.service';
-import { environment } from '../../../../../environments/environment';
+import { ApiConfigService } from '../../../../core/services/api-config.service';
 
 export interface GlobalDocumentosDialogData {
   cliente: Cliente;
@@ -59,6 +59,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     private validacionService: ValidacionService,
     private http: HttpClient,
     private snackBar: MatSnackBar,
+    private apiConfig: ApiConfigService,
     private dialogRef: MatDialogRef<GlobalDocumentosDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: GlobalDocumentosDialogData
   ) {}
@@ -195,7 +196,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     formData.append('idDocumentFile', clave);
 
     this.http
-      .post<any>(environment.vanguardia.uploadApiUrl, formData)
+      .post<any>(this.apiConfig.getUploadApiUrl(), formData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -259,7 +260,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     }
     params.append('duration', '3600');
 
-    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
+    const url = `${this.apiConfig.getUploadApiBaseUrl()}/get-private-url?${params.toString()}`;
 
     this.http
       .get<any>(url)

@@ -23,6 +23,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { VanguardiaClientService, VanguardiaResponse } from '../../../core/services/vanguardia-client.service';
 import { VanguardiaClientImportService, VanguardiaClientImportResponse } from '../../../core/services/vanguardia-client-import.service';
+import { ApiConfigService } from '../../../core/services/api-config.service';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
@@ -144,6 +145,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     private clientSearchService: ClientSearchService,
     private vanguardiaClientService: VanguardiaClientService,
     private vanguardiaClientImportService: VanguardiaClientImportService,
+    private apiConfig: ApiConfigService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -1042,7 +1044,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
     };
 
-    this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
+    this.http.get<any>(this.apiConfig.getOrdersApiUrl(), { 
       params,
       headers
     })
@@ -1769,7 +1771,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (IdDocumentByFile)
 
           // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
-          return this.http.post<any>(environment.vanguardia.uploadApiUrl, formData);
+          return this.http.post<any>(this.apiConfig.getUploadApiUrl(), formData);
         })
       )
       .pipe(
@@ -1900,7 +1902,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       duration: duration.toString()
     });
 
-    const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
+    const url = `${this.apiConfig.getUploadApiBaseUrl()}/get-private-url?${params.toString()}`;
 
     // El proxy agregará X-Provider-Token automáticamente
     this.http.get<any>(url)

@@ -55,6 +55,9 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('logout', 'Auth::logout');
     });
     
+    // Configuración pública (sin auth) - URLs de APIs Vanguardia desde BD
+    $routes->get('config/group_api_url', 'Config::groupApiUrl');
+
     // Rutas de gestión de contraseñas
     $routes->group('password', function($routes) {
         $routes->post('change', 'PasswordManager::changePassword');

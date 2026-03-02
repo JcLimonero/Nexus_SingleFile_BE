@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
+import { ApiConfigService } from '../../../core/services/api-config.service';
 
 export interface PedidoDms {
   [key: string]: unknown;
@@ -19,13 +19,16 @@ export interface ConsolidacionDmsResponse {
   providedIn: 'root'
 })
 export class ConsolidacionDmsService {
-  private get apiUrl(): string {
-    return environment.vanguardia.invoicesApiUrl;
-  }
-
   private readonly vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private apiConfig: ApiConfigService
+  ) {}
+
+  private get apiUrl(): string {
+    return this.apiConfig.getInvoicesApiUrl();
+  }
 
   /**
    * Obtener lista de pedidos del DMS vía API singlefileinvoices.
