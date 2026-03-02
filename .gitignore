@@ -1,3 +1,13 @@
 
 venv-pillow/
 FE/dist/*
+BE/writable/logs/*
+BE/writable/cache/*
+BE/writable/session/*
+BE/writable/uploads/*
+BE/writable/debugbar/*
+BE/writable/debugbar/cache/*
+BE/writable/debugbar/logs/*
+BE/writable/debugbar/session/*
+BE/writable/debugbar/uploads/*
+BE/writable/debugbar/debugbar/*

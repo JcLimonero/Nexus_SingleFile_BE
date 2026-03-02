@@ -59,18 +59,7 @@
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Búsqueda por texto -->
-          <mat-form-field appearance="outline" class="w-36 flex-shrink-0" style="width: 20%;">
-            <mat-label>Buscar logs</mat-label>
-            <input 
-              matInput 
-              [(ngModel)]="filters.user_id" 
-              (ngModelChange)="applyFilters()"
-              placeholder="Buscar por usuario..."
-              maxlength="100">
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
-
+          
           <!-- Filtro por acción -->
           <mat-form-field appearance="outline" class="w-32 flex-shrink-0" style="width: 20%;">
             <mat-label>Acción</mat-label>
@@ -96,6 +85,18 @@
             <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.end_date" (ngModelChange)="applyFilters()">
             <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+
+          <!-- Búsqueda por texto -->
+          <mat-form-field appearance="outline" class="w-36 flex-shrink-0" style="width: 20%;">
+            <mat-label>Buscar logs</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="filters.user_id" 
+              (ngModelChange)="applyFilters()"
+              placeholder="Buscar por usuario..."
+              maxlength="100">
+            <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
 
           <div class="flex items-center gap-2 flex-shrink-0">
