@@ -32,7 +32,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelect } from '@angular/material/select';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
@@ -83,7 +83,8 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
                 MatInputModule,
                 MatNativeDateModule,
                 MatTooltipModule,
-                ReactiveFormsModule
+                ReactiveFormsModule,
+                FormsModule
   ]
 })
 export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
@@ -202,18 +203,25 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   onCompaniaChange(companiaId: number | null): void {
     this.filterCompania = companiaId;
     if (companiaId === null) {
-      // Al seleccionar "Todas las razones sociales", por defecto "Todas las Agencias"
       this.selectedAgencyId = null;
       this.currentFilters = { ...this.currentFilters, agencyId: undefined };
       this.loadUsers(null);
+      this.changeDetector.markForCheck();
+      this.filtersChange$.next();
+      return;
+    }
+
+    // Cuando cambia la compañía, resetear la agencia a la primera disponible
+    const filtradas = this.agenciesFiltradas;
+    const firstFiltered = filtradas[0];
+    if (firstFiltered) {
+      this.selectedAgencyId = firstFiltered.Id;
+      this.currentFilters = { ...this.currentFilters, agencyId: firstFiltered.Id };
+      this.loadUsers(firstFiltered.Id);
     } else {
-      const filtradas = this.agenciesFiltradas;
-      const selectedInList = this.selectedAgencyId != null && filtradas.some(a => a.Id === this.selectedAgencyId);
-      if (!selectedInList) {
-        this.selectedAgencyId = null;
-        this.currentFilters = { ...this.currentFilters, agencyId: undefined };
-        this.loadUsers(null);
-      }
+      this.selectedAgencyId = null;
+      this.currentFilters = { ...this.currentFilters, agencyId: undefined };
+      this.loadUsers(null);
     }
     this.changeDetector.markForCheck();
     this.filtersChange$.next();
@@ -234,6 +242,18 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   hasCompanies(): boolean {
     return Array.isArray(this.companies) && this.companies.length > 0;
+  }
+
+  /**
+   * Comparador para mat-select que maneja correctamente null y números
+   * Necesario para que el mat-select reconozca correctamente el valor seleccionado
+   */
+  compareById(a: any, b: any): boolean {
+    // Manejar null correctamente
+    if (a === null && b === null) return true;
+    if (a === null || b === null) return false;
+    // Comparar números normalmente
+    return a === b;
   }
 
   onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
@@ -348,42 +368,42 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           this.companies = this.buildCompaniesFromAgencies(mapped);
           this.changeDetector.markForCheck();
 
-          // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
+          // Establecer compañía y agencia predeterminadas DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            // Obtener la agencia guardada
             const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
             
             // Verificar que la agencia guardada existe en la lista
             if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
               // La agencia guardada existe, usarla
               this.selectedAgencyId = savedAgencyId;
-              this.onAgencyChange(savedAgencyId, this.isInitializing);
+              
+              // Establecer filterCompania con la compañía de la agencia seleccionada
+              const selectedAgency = this.agencies.find(ag => ag.Id === savedAgencyId);
+              if (selectedAgency && selectedAgency.IdCompany) {
+                this.filterCompania = selectedAgency.IdCompany;
+              } else {
+                this.filterCompania = this.companies[0]?.Id ?? null;
+              }
+              
               this.changeDetector.markForCheck();
+              this.onAgencyChange(savedAgencyId, this.isInitializing);
             } else {
-              // Si no hay agencia guardada válida, establecer la predeterminada
-              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
-                next: (agenciaId) => {
-                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
-                    this.selectedAgencyId = agenciaId;
-                    this.onAgencyChange(agenciaId, this.isInitializing);
-                    this.changeDetector.markForCheck();
-                  } else {
-                    // Si no hay agencia guardada, cargar dashboard sin filtros
-                    if (this.isInitializing) {
-                      this.isInitializing = false;
-                      this.filtersChange$.next();
-                    }
-                  }
-                },
-                error: (error) => {
-                  console.error('Error estableciendo agencia predeterminada:', error);
-                  // Si falla, cargar dashboard sin filtros
-                  if (this.isInitializing) {
-                    this.isInitializing = false;
-                    this.filtersChange$.next();
-                  }
+              // Si no hay agencia guardada válida, usar la primera compañía y agencia
+              this.filterCompania = this.companies[0]?.Id ?? null;
+              this.changeDetector.markForCheck();
+              
+              const firstAgency = this.agenciesFiltradas[0];
+              if (firstAgency) {
+                this.selectedAgencyId = firstAgency.Id;
+                this.onAgencyChange(firstAgency.Id, this.isInitializing);
+                this.changeDetector.markForCheck();
+              } else {
+                // Si no hay agencias, cargar dashboard
+                if (this.isInitializing) {
+                  this.isInitializing = false;
+                  this.filtersChange$.next();
                 }
-              });
+              }
             }
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
