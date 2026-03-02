@@ -256,14 +256,16 @@ class AuthModel extends Model
             
             // Verificar que el token esté en la base de datos
             $db = \Config\Database::connect();
+            $userId = $decoded->user_id;
             $storedToken = $db->table('user_refresh_token')
-                ->where('id_user', $decoded->user_id)
+                ->where('id_user', $userId)
                 ->where('refresh_token', $refreshToken)
                 ->where('expiration_date >', date('Y-m-d H:i:s'))
                 ->get()
                 ->getRowArray();
             
             if (!$storedToken) {
+                log_message('info', "AuthModel::refreshAccessToken - Token no encontrado en DB para user_id={$userId}");
                 return [
                     'success' => false,
                     'message' => 'Refresh token no válido o expirado'
@@ -291,6 +293,7 @@ class AuthModel extends Model
             ];
             
         } catch (\Exception $e) {
+            log_message('error', 'AuthModel::refreshAccessToken - ' . $e->getMessage());
             return [
                 'success' => false,
                 'message' => 'Error renovando token: ' . $e->getMessage()

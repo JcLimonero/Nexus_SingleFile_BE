@@ -7,7 +7,9 @@ export interface ClienteMesa {
   idCliente: number;
   ndCliente: string;
   cliente: string;
+  /** id del header del cliente (backend puede enviar idClientHeader o idHeaderClient) */
   idHeaderClient: number;
+  idClientHeader?: number;
   /** true si el cliente supera el umbral PLD (operaciones por razón social en el año) */
   excedeUmbralAML?: boolean;
 }

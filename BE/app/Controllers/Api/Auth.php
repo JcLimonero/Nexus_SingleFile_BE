@@ -215,9 +215,10 @@ class Auth extends BaseController
     public function refresh()
     {
         try {
-            $refreshToken = $this->request->getPost('refresh_token') ?? $this->request->getJSON()->refresh_token ?? null;
+            $data = $this->request->getJSON(true) ?? $this->request->getPost();
+            $refreshToken = $data['refresh_token'] ?? null;
             
-            if (!$refreshToken) {
+            if (!$refreshToken || !is_string($refreshToken)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Refresh token requerido'
@@ -234,6 +235,7 @@ class Auth extends BaseController
             }
             
         } catch (\Exception $e) {
+            log_message('error', 'Auth::refresh - ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor'

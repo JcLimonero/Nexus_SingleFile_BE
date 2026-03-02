@@ -130,7 +130,10 @@ export class ClientesComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.loading = false;
         if (res.success && res.data) {
-          this.dataSource.data = res.data.clientes;
+          this.dataSource.data = (res.data.clientes || []).map((c: any) => ({
+            ...c,
+            idHeaderClient: c.idHeaderClient ?? c.idClientHeader ?? c.id_header_client
+          }));
           this.totalRecords = res.data.total;
           this.amlUmbral = res.data.amlUmbral ?? null;
         } else {
@@ -178,10 +181,11 @@ export class ClientesComponent implements OnInit, OnDestroy {
   }
 
   openDetalle(row: ClienteMesa): void {
+    const idHeaderClient = row.idHeaderClient ?? (row as any).idClientHeader;
     this.dialog.open(ClienteDetalleDialogComponent, {
       width: '800px',
       maxWidth: '95vw',
-      data: { idHeaderClient: row.idHeaderClient, cliente: row.cliente, ndCliente: row.ndCliente }
+      data: { idHeaderClient, idClientHeader: idHeaderClient, cliente: row.cliente, ndCliente: row.ndCliente }
     });
   }
 

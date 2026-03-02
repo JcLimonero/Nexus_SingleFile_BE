@@ -13,7 +13,8 @@ import { ClientesMesaService, ExpedienteCliente } from '../../../../core/service
 import { ValidacionService } from '../../validacion/validacion.service';
 
 export interface ClienteDetalleDialogData {
-  idHeaderClient: number;
+  idHeaderClient?: number;
+  idClientHeader?: number;
   cliente: string;
   ndCliente: string;
 }
@@ -60,7 +61,12 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.clientesService.getExpedientes(this.data.idHeaderClient).subscribe({
+    const idHeaderClient = this.data?.idHeaderClient ?? this.data?.idClientHeader;
+    if (idHeaderClient == null || idHeaderClient === undefined) {
+      this.loading = false;
+      return;
+    }
+    this.clientesService.getExpedientes(idHeaderClient).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.success && res.data?.expedientes) {

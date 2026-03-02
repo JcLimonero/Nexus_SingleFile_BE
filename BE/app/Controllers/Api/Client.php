@@ -114,9 +114,10 @@ class Client extends BaseController
             $query = $this->db->query($sql, $params);
             $clientes = $query->getResultArray();
 
-            // Asegurar que excedeUmbralAML sea boolean (MySQL puede devolver "0"/"1" como string)
+            // Asegurar que excedeUmbralAML sea boolean y compatibilidad idHeaderClient (frontend espera este nombre)
             foreach ($clientes as &$cli) {
                 $cli['excedeUmbralAML'] = (bool) (int) ($cli['excedeUmbralAML'] ?? 0);
+                $cli['idHeaderClient'] = $cli['idClientHeader'] ?? $cli['id_header_client'] ?? null;
             }
             unset($cli);
 
