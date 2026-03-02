@@ -25,6 +25,7 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { NavigationService } from '../../../../core/navigation/navigation.service';
+import { AppLayoutService } from '../../../../core/services/app-layout.service';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
@@ -66,6 +67,7 @@ export class SidenavItemComponent implements OnInit, OnChanges {
 
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
   private readonly el: ElementRef = inject(ElementRef);
+  private readonly layoutService: AppLayoutService = inject(AppLayoutService);
 
   constructor(
     private router: Router,
@@ -115,27 +117,19 @@ export class SidenavItemComponent implements OnInit, OnChanges {
   }
 
   toggleOpen() {
-    this.isOpen = !this.isOpen;
-
-    if (this.isOpen && this.level === 0) {
-      const rect = this.el.nativeElement.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const childCount = (this.item as NavigationDropdown).children?.length || 0;
-      // Estimate flyout height: each item ~44px + 22px padding
-      const estimatedHeight = childCount * 44 + 22;
-      const spaceBelow = viewportHeight - rect.top;
-
-      if (estimatedHeight <= spaceBelow) {
-        // Fits below: align top with the item
-        this.flyoutTop = rect.top + 'px';
-        this.flyoutBottom = 'auto';
-      } else {
-        // Doesn't fit: anchor to bottom of viewport with margin
-        this.flyoutTop = 'auto';
-        this.flyoutBottom = '12px';
-      }
+    // In collapsed mode, clicking a dropdown icon expands the full sidebar
+    if (this.collapsed && this.isDropdown(this.item)) {
+      this.layoutService.expandSidenav();
+      // After expanding, open the dropdown so children are visible
+      setTimeout(() => {
+        this.isOpen = true;
+        this.navigationService.triggerOpenChange(this.item as NavigationDropdown);
+        this.cd.markForCheck();
+      }, 50);
+      return;
     }
 
+    this.isOpen = !this.isOpen;
     this.navigationService.triggerOpenChange(this.item as NavigationDropdown);
     this.cd.markForCheck();
   }

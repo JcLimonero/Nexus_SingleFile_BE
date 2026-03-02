@@ -62,84 +62,9 @@
         display: none;
       }
 
-      // Dropdown como flyout lateral en icon-bar
+      // En modo colapsado, ocultar dropdown children (se expande el sidebar al hacer click)
       .vex-sidenav-item__dropdown {
-        position: fixed;
-        left: calc(var(--vex-sidenav-collapsed-width, 72px) + 6px);
-        min-width: 210px;
-        background: #FFFFFF;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-        border-radius: 12px;
-        z-index: 999;
-        overflow: hidden !important;
-        max-height: calc(100vh - 24px);
-        overflow-y: auto !important;
-        padding: 8px 0 14px 0;
-
-        // Mostrar sub-items dentro del flyout (override display:none)
-        vex-sidenav-item {
-          display: block !important;
-        }
-
-        // Items del flyout en estilo card limpio
-        .vex-sidenav-item {
-          flex-direction: row;
-          align-items: center;
-          padding: 12px 20px;
-          min-height: 44px;
-          gap: 12px;
-          color: #2B2B2B;
-          border-radius: 0;
-          transition: background 0.15s ease, color 0.15s ease;
-          background: transparent;
-          border-left: 3px solid transparent;
-
-          &:hover {
-            background: #F5F5F5 !important;
-            color: #2B2B2B !important;
-
-            .vex-sidenav-item__label {
-              color: #2B2B2B !important;
-            }
-
-            .vex-sidenav-item__icon {
-              color: #2B2B2B !important;
-            }
-          }
-
-          &.vex-sidenav-item--active {
-            background: transparent !important;
-            border-left: 3px solid var(--vex-color-primary, #0ea5e9);
-
-            .vex-sidenav-item__label {
-              color: var(--vex-color-primary, #0ea5e9) !important;
-              font-weight: 600;
-            }
-
-            .vex-sidenav-item__icon {
-              color: var(--vex-color-primary, #0ea5e9) !important;
-            }
-          }
-        }
-
-        .vex-sidenav-item__label {
-          display: block !important;
-          font-size: 14px;
-          font-weight: 400;
-          text-align: left;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          color: #2B2B2B;
-        }
-
-        .vex-sidenav-item__icon {
-          margin-inline-end: 0;
-          color: #77797B;
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
-        }
+        display: none !important;
       }
 
       .vex-sidenav-user {
