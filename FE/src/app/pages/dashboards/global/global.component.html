@@ -52,16 +52,6 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="min-w-48 flex-1">
-            <mat-label>Buscar</mat-label>
-            <input
-              matInput
-              [(ngModel)]="searchTerm"
-              (input)="onSearchChange()"
-              placeholder="Pedido, cliente o nombre" />
-            <mat-icon matSuffix>search</mat-icon>
-          </mat-form-field>
-
           <mat-form-field appearance="outline" class="min-w-48">
             <mat-label>Rango Fecha Registro</mat-label>
             <mat-date-range-input [formGroup]="registrationDateRangeGroup" [rangePicker]="registrationDatePicker">
@@ -100,6 +90,16 @@
               matTooltip="Limpiar filtro de fecha de liberación">
               <mat-icon>clear</mat-icon>
             </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48 flex-1">
+            <mat-label>Buscar</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchTerm"
+              (input)="onSearchChange()"
+              placeholder="Pedido, cliente o nombre" />
+            <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
 
           <mat-slide-toggle

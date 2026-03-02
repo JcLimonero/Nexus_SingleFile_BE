@@ -5,6 +5,16 @@
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 flex-wrap">
+            <!-- Filtro por tipo de razón -->
+            <mat-form-field appearance="outline" class="min-w-48">
+              <mat-label>Tipo de Razón</mat-label>
+              <mat-select [(ngModel)]="filters.id_type_reason" (ngModelChange)="applyFilters()">
+                <mat-option value="">Todos los tipos</mat-option>
+                <mat-option value="4">Aprobación</mat-option>
+                <mat-option value="5">Rechazo</mat-option>
+              </mat-select>
+            </mat-form-field>
+            
             <!-- Búsqueda por texto -->
             <mat-form-field appearance="outline" class="w-[400px]">
               <mat-label>Buscar motivos</mat-label>
@@ -17,15 +27,7 @@
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
   
-            <!-- Filtro por tipo de razón -->
-            <mat-form-field appearance="outline" class="min-w-48">
-              <mat-label>Tipo de Razón</mat-label>
-              <mat-select [(ngModel)]="filters.id_type_reason" (ngModelChange)="applyFilters()">
-                <mat-option value="">Todos los tipos</mat-option>
-                <mat-option value="4">Aprobación</mat-option>
-                <mat-option value="5">Rechazo</mat-option>
-              </mat-select>
-            </mat-form-field>
+            
           </div>
 
           <div class="flex items-center gap-2">
