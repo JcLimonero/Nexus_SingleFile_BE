@@ -268,13 +268,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Si el documento está en estatus 2 (Documento Cargado), cambiar a estatus 3 (En revisión)
     if (documento.idEstatus === '2') {
-      
+
 
       this.validacionService.prepararDocumento(documento.idDocumentByFile)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            
+
             // Actualizar el estatus local del documento
             documento.idEstatus = '3';
             // Abrir el documento
@@ -325,7 +325,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
             if (newWindow) {
 
             } else {
-              
+
               this.snackBar.open('No se pudo abrir el documento. Verifica que no tengas bloqueado el navegador de pop-ups.', 'Cerrar', {
                 duration: 5000
               });
@@ -632,7 +632,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (error) => {
         let errorMessage = 'Error desconocido';
-        
+
         if (error?.error?.message) {
           errorMessage = error.error.message;
         } else if (error?.message) {
@@ -640,7 +640,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         } else if (typeof error === 'string') {
           errorMessage = error;
         }
-        
+
         this.snackBar.open(
           `Error al cambiar el estatus: ${errorMessage}`,
           'Cerrar',
@@ -920,9 +920,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       idPedido: String(idPedido),
       idFile: String(idFile)
     });
-    
+
     const url = `${ruta}?${queryParams.toString()}`;
-    
+
     // Abrir en una nueva pestaña
     window.open(url, '_blank');
   }
@@ -932,8 +932,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   puedeNavegarAFase(fase: string): boolean {
     const faseNormalizada = this.normalizarTexto(fase);
-    return faseNormalizada === 'integracion' || 
-           faseNormalizada === 'liquidacion' || 
+    return faseNormalizada === 'integracion' ||
+           faseNormalizada === 'liquidacion' ||
            faseNormalizada === 'liberacion';
   }
 
@@ -1163,7 +1163,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           let errorMessage = 'Error desconocido';
-          
+
           if (error?.error?.message) {
             errorMessage = error.error.message;
           } else if (error?.message) {
@@ -1171,7 +1171,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           } else if (typeof error === 'string') {
             errorMessage = error;
           }
-          
+
           this.snackBar.open(
             `No se pudo avanzar el pedido a Liquidación: ${errorMessage}`,
             'Cerrar',
@@ -1330,7 +1330,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
           // Debug: mostrar el estado de cada proceso
           procesos.forEach((proceso, index) => {
-            
+
           });
 
           // TEMPORAL: Mostrar todos los procesos para debugging
@@ -1339,7 +1339,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           // ORIGINAL: Mostrar solo procesos habilitados (Enabled = 1)
           // this.procesos = procesos.filter(proceso => proceso && proceso.Enabled === 1);
 
-          
+
 
           // Por defecto seleccionar "Todos los procesos"
           this.selectedProcess = this.ALL_PROCESSES_VALUE;
@@ -1384,7 +1384,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           setTimeout(() => {
             // Obtener la agencia guardada
             const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-            
+
             // Verificar que la agencia guardada existe en la lista
             if (savedAgencyId !== null && this.agencias.some(ag => (ag.id ?? (ag as any).Id) === savedAgencyId)) {
               // La agencia guardada existe, usarla
@@ -1469,7 +1469,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   loadData() {
     // Los datos se cargarán cuando se seleccione agencia y proceso
-    
+
   }
 
   // Métodos para estadísticas
@@ -1574,8 +1574,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private procesarEliminacionDocumento(documento: any): void {
 
-    
-    
+
+
 
     this.loadingDocumentos = true;
 
@@ -1650,7 +1650,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
     if (this.selectedAgency !== null) {
       this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
-      
+
       // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
       // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
       // seleccionarAgencia() ya maneja el caché local
@@ -1729,11 +1729,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.showCancelledOrders) {
         // Solo mostrar cancelados
         clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) === '5');
-        
+
       } else {
         // Excluir cancelados
         clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) !== '5');
-        
+
       }
 
       this.allClientes = clientesRestaurados;
@@ -1753,19 +1753,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Filtrar clientes por fase desde los datos originales usando ID
     const clientesFiltrados = this.clientesOriginales.filter(cliente => {
-      
+
 
       // Aplicar filtro de cancelados
       if (this.showCancelledOrders) {
         // Solo mostrar cancelados
         if (String(cliente.IdCurrentState) !== '5') {
-          
+
           return false;
         }
       } else {
         // Excluir cancelados
         if (String(cliente.IdCurrentState) === '5') {
-          
+
           return false;
         }
       }
@@ -1857,8 +1857,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: (clientes) => {
 
-          
-          
+
+
 
           // Verificar específicamente el campo IdCurrentState
           if (clientes.length > 0) {
@@ -2057,13 +2057,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           start: 'asc',
           disableClear: false
         });
-        
+
       } catch (error) {
-        
+
       }
 
       // Opción 2: Llamar directamente al método de ordenamiento
-      
+
       this.aplicarOrdenamiento();
 
     } else {
@@ -2216,11 +2216,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.showCancelledOrders) {
         // Solo mostrar cancelados
         clientesFiltrados = clientesFiltrados.filter(cliente => String(cliente.IdCurrentState) === '5');
-        
+
       } else {
         // Excluir cancelados
         clientesFiltrados = clientesFiltrados.filter(cliente => String(cliente.IdCurrentState) !== '5');
-        
+
       }
     }
 

@@ -154,8 +154,9 @@ class DocumentType extends BaseController
         try {
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (!isset($data['Name']) || empty(trim($data['Name']))) {
+            // Validar datos requeridos (acepta Name o name)
+            $name = trim($data['Name'] ?? $data['name'] ?? '');
+            if (empty($name)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El nombre del tipo de documento es requerido'
@@ -163,7 +164,6 @@ class DocumentType extends BaseController
             }
 
             // Verificar si ya existe un tipo de documento con el mismo nombre
-            $name = trim($data['Name'] ?? $data['name'] ?? '');
             $existing = $this->documentTypeModel->getDocumentTypeByName($name);
             if ($existing) {
                 return $this->response->setJSON([
@@ -325,8 +325,12 @@ class DocumentType extends BaseController
 
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
-            if (!isset($data['Name']) || empty(trim($data['Name']))) {
+            // Nombre: usar el enviado o el existente (permite actualizaciones parciales)
+            $name = trim($data['Name'] ?? $data['name'] ?? '');
+            if (empty($name)) {
+                $name = trim($documentType['name'] ?? $documentType['Name'] ?? '');
+            }
+            if (empty($name)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El nombre del tipo de documento es requerido'
@@ -334,7 +338,6 @@ class DocumentType extends BaseController
             }
 
             // Verificar si ya existe otro tipo de documento con el mismo nombre
-            $name = trim($data['Name'] ?? $data['name'] ?? '');
             $existing = $this->documentTypeModel->getDocumentTypeByName($name);
             $existingId = $existing['id'] ?? $existing['Id'] ?? null;
             if ($existing && $existingId != $id) {

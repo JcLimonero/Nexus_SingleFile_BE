@@ -119,6 +119,11 @@
                       </span>
                     </div>
                   </div>
+                  <div *ngIf="esDocumentoOpcional(doc) && !isDocumentoAprobado(doc) && !doc.documentContainer" class="doc-item-opcional mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p class="text-sm text-amber-900">
+                      Si no desea compartir este documento, debe subir un archivo con su firma confirmando que no desea compartir dicha información.
+                    </p>
+                  </div>
                   <div *ngIf="esDocumentoRechazado(doc)" class="doc-item-rechazo mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <p class="text-sm font-medium text-red-800 mb-1">Documento rechazado</p>
                     <p *ngIf="doc.comentarioRechazo?.trim()" class="text-sm text-red-700">{{ doc.comentarioRechazo }}</p>

@@ -44,6 +44,8 @@ export interface DocumentoMiniportal {
   documentContainer: string;
   DisponibleCliente?: number;
   aprobadoCliente?: number;
+  /** 0 = opcional, 1 = obligatorio (default) */
+  requerido?: number;
 }
 
 export interface MiniportalDocumentsResponse {

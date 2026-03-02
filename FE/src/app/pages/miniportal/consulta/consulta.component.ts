@@ -213,6 +213,11 @@ export class ConsultaMiniportalComponent implements OnInit {
     return Number(doc.idEstatus) === 5;
   }
 
+  /** Documento opcional cuando requerido === 0 */
+  esDocumentoOpcional(doc: DocumentoMiniportal): boolean {
+    return Number(doc.requerido) === 0;
+  }
+
   aprobarDocumento(doc: DocumentoMiniportal): void {
     if (this.isDocumentoAprobado(doc)) return;
     this.approvingIds.add(doc.idDocumentByFile);

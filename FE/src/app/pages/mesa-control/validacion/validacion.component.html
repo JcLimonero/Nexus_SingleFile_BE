@@ -92,7 +92,7 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-  
+
           <mat-form-field appearance="outline" class="min-w-48">
             <mat-label>Proceso</mat-label>
             <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos" (selectionChange)="onProcesoChange()">
@@ -109,7 +109,7 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-  
+
           <mat-form-field appearance="outline" class="min-w-48">
             <mat-label>Fase</mat-label>
             <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
@@ -119,7 +119,7 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-  
+
           <!-- Buscador integrado -->
            <div class="flex items-center align-center ">
              <mat-form-field appearance="outline" class=" w-[500px]">
@@ -332,9 +332,9 @@
                 Navegar
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button 
+                <button
                   *ngIf="puedeNavegarAFase(item.fase)"
-                  mat-icon-button 
+                  mat-icon-button
                   color="primary"
                   class="!w-8 !h-8 !min-h-8 !p-0"
                   (click)="navegarAPantallaFase(item, $event)"
