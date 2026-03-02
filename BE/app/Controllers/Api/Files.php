@@ -110,6 +110,16 @@ class Files extends BaseController
             $statusId = ($statusId !== null && $statusId !== '') ? trim($statusId) : null;
             $ndCliente = ($ndCliente !== null && $ndCliente !== '') ? trim($ndCliente) : null;
 
+            // Resolver agencyId: el frontend puede enviar agency.id (interno) o id_agency_dms
+            $internalAgencyId = $this->getAgencyInternalId($agencyId);
+            if (!$internalAgencyId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Agencia no encontrada',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
             // Query mejorado para obtener TODOS los files/pedidos por agencia y cliente
             // Usamos INNER JOIN con Agency para asegurar que existe la agencia
             // LEFT JOINs con otras tablas para no perder registros aunque falten datos relacionados
@@ -151,10 +161,10 @@ class Files extends BaseController
                     ) obc2 ON obc1.id_dms = obc2.id_dms 
                         AND obc1.registration_date = obc2.MaxDate
                 ) obc ON f.id_order_total = obc.id_dms
-                WHERE a.id_agency_dms = ?
+                WHERE a.id = ?
             ";
 
-            $params = [$agencyId];
+            $params = [$internalAgencyId];
 
             // Agregar filtro de estatus si se proporciona
             // IMPORTANTE: Filtramos directamente por f.id_current_state porque el LEFT JOIN con file_status
@@ -576,10 +586,28 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Obtener idCliente (Client.Id) desde view_client_relations por ndCliente e idAgency
+            // Obtener idCliente (Client.Id) desde view_client_relations por ndCliente e idAgency.
+            // Priorizar la agencia seleccionada por el usuario para que el expediente aparezca en su lista.
+            // Fallback: agencia del pedido (order.idAgency mapea a id_agency_dms en la API Vanguardia).
             $ndDMS = trim((string) $clientId);
             $idClientResolved = $this->getClientIdFromViewClientRelations($ndDMS, $internalAgencyId);
-            error_log("Buscando IdClient en view_client_relations: ndDMS={$ndDMS}, IdAgency={$internalAgencyId} => " . ($idClientResolved ?? 'null'));
+            error_log("Buscando IdClient (agencia seleccionada): ndDMS={$ndDMS}, IdAgency={$internalAgencyId} => " . ($idClientResolved ?? 'null'));
+
+            $agencyForFile = $internalAgencyId;
+            if ($idClientResolved === null) {
+                $orderAgencyRaw = $order['idAgency'] ?? $order['id_agency'] ?? $order['IdAgency'] ?? null;
+                if ($orderAgencyRaw !== null && $orderAgencyRaw !== '') {
+                    $orderAgencyInternal = $this->getAgencyInternalIdFromDms($orderAgencyRaw);
+                    if ($orderAgencyInternal) {
+                        $idClientResolved = $this->getClientIdFromViewClientRelations($ndDMS, $orderAgencyInternal);
+                        error_log("Fallback (agencia pedido id_agency_dms={$orderAgencyRaw}): ndDMS={$ndDMS}, IdAgency={$orderAgencyInternal} => " . ($idClientResolved ?? 'null'));
+                        if ($idClientResolved !== null) {
+                            $agencyForFile = $orderAgencyInternal;
+                        }
+                    }
+                }
+            }
+
             if ($idClientResolved === null) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -615,8 +643,8 @@ class Files extends BaseController
 
             error_log("✅ Order ID obtenido: " . $orderByCarId);
 
-            // Crear file usando IdClient de view_client_relations (hc.IdClient), agencia y Order
-            $fileId = $this->createFile($order, $process, $customerType, $operationType, $idClientResolved, $internalAgencyId, $currentUser['user_id'], $sellerId, $orderByCarId);
+            // Crear file: usar agencyForFile (coincide con la agencia donde se encontró el cliente)
+            $fileId = $this->createFile($order, $process, $customerType, $operationType, $idClientResolved, $agencyForFile, $currentUser['user_id'], $sellerId, $orderByCarId);
 
             if (!$fileId) {
                 $this->db->transRollback();
@@ -629,7 +657,7 @@ class Files extends BaseController
             // Crear documentos asociados - pasar ambos IDs (interno y externo) para buscar correctamente
             // IMPORTANTE: Este método DEBE crear TODOS los documentos requeridos en FileDocument
             try {
-                $documentsCreated = $this->createFileDocuments($fileId, $process['Id'], $customerType['Id'], $operationType['Id'], $internalAgencyId, $agencyId, $currentUser['user_id']);
+                $documentsCreated = $this->createFileDocuments($fileId, $process['Id'], $customerType['Id'], $operationType['Id'], $agencyForFile, $agencyId, $currentUser['user_id']);
                 
                 error_log("Total de documentos creados: " . $documentsCreated);
                 
@@ -954,13 +982,12 @@ class Files extends BaseController
         error_log("Documentos requeridos encontrados: " . count($requiredDocuments));
         error_log("Documentos requeridos: " . json_encode($requiredDocuments));
 
-        // Si no hay documentos requeridos, retornar 0 pero no es un error
+        $documentsCreated = 0;
+        $createdDocumentTypeIds = [];
+
         if (empty($requiredDocuments)) {
             error_log("⚠️ No se encontraron documentos requeridos para esta configuración (Process: $processId, CustomerType: $customerTypeId, OperationType: $operationTypeId, Agency: $internalAgencyId/$externalAgencyId)");
-            return 0;
         }
-
-        $documentsCreated = 0;
 
         foreach ($requiredDocuments as $index => $document) {
             error_log("=== PROCESANDO DOCUMENTO " . ($index + 1) . " ===");
@@ -1033,6 +1060,7 @@ class Files extends BaseController
                 }
                 
                 $documentsCreated++;
+                $createdDocumentTypeIds[] = $documentIdType;
             } catch (\Exception $e) {
                 error_log("ERROR al insertar documento: " . $e->getMessage());
                 error_log("Stack trace: " . $e->getTraceAsString());
@@ -1040,9 +1068,63 @@ class Files extends BaseController
             }
         }
 
+        // Siempre agregar documento de Liquidación (id desde config) si no está ya en la lista
+        $idLiquidacion = $this->getConfigDocumentTypeLiquidacion();
+        if ($idLiquidacion !== null && !in_array($idLiquidacion, $createdDocumentTypeIds, true)) {
+            try {
+                $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 as nextId FROM file_document");
+                $nextDocId = $nextDocIdQuery->getRow()->nextId;
+                $currentDate = date('Y-m-d H:i:s');
+                $documentData = [
+                    'id' => $nextDocId,
+                    'id_file' => $fileId,
+                    'id_document_type' => $idLiquidacion,
+                    'name' => 'Liquidación',
+                    'comment' => null,
+                    'expiration_date' => null,
+                    'path_document' => null,
+                    'enabled' => 1,
+                    'registration_date' => $currentDate,
+                    'update_date' => null,
+                    'last_user_update' => $userId,
+                    'id_last_user_update' => $userId,
+                    'id_validation' => null,
+                    'id_current_status' => 1,
+                    'id_document_error' => null,
+                    'server_path' => null
+                ];
+                if ($this->db->table('file_document')->insert($documentData)) {
+                    $documentsCreated++;
+                    error_log("Documento de Liquidación agregado automáticamente (id_document_type: $idLiquidacion)");
+                }
+            } catch (\Exception $e) {
+                error_log("Advertencia: No se pudo agregar documento de Liquidación: " . $e->getMessage());
+            }
+        }
+
         error_log("=== FINALIZANDO createFileDocuments ===");
         error_log("Total documentos creados: " . $documentsCreated);
         return $documentsCreated;
+    }
+
+    /**
+     * Obtener ID del tipo de documento de Liquidación desde la tabla config (config_key: id_document_type_liquidacion)
+     */
+    private function getConfigDocumentTypeLiquidacion(): ?int
+    {
+        try {
+            $row = $this->db->table('config')
+                ->select('config_value')
+                ->where('config_key', 'id_document_type_liquidacion')
+                ->get()
+                ->getRowArray();
+            if ($row && !empty(trim($row['config_value'] ?? ''))) {
+                return (int) $row['config_value'];
+            }
+        } catch (\Throwable $e) {
+            // Tabla config puede no existir
+        }
+        return null;
     }
 
     /**
@@ -1072,12 +1154,34 @@ class Files extends BaseController
             ->getRowArray();
             
         if ($agency) {
-            error_log("Agencia encontrada por IdAgencyDMS externo: $agencyId, Id interno: " . $agency['Id']);
-            return $agency['Id'];
+            error_log("Agencia encontrada por IdAgencyDMS externo: $agencyId, Id interno: " . ($agency['id'] ?? $agency['Id'] ?? 'N/A'));
+            return $agency['id'] ?? $agency['Id'] ?? null;
         }
         
         error_log("Agencia no encontrada para ID: $agencyId");
         return $agencyId; // Fallback al valor original
+    }
+
+    /**
+     * Obtener agency.id (interno) desde id_agency_dms (DMS).
+     * Usar cuando el valor viene de la API Vanguardia (ej. order.idAgency).
+     */
+    private function getAgencyInternalIdFromDms($dmsAgencyId)
+    {
+        $dmsAgencyId = trim((string) $dmsAgencyId);
+        if ($dmsAgencyId === '') {
+            return null;
+        }
+        $agency = $this->db->table('agency')
+            ->where('id_agency_dms', $dmsAgencyId)
+            ->get()
+            ->getRowArray();
+        if ($agency) {
+            error_log("Agencia desde DMS id_agency_dms={$dmsAgencyId} => id interno=" . ($agency['id'] ?? $agency['Id'] ?? 'N/A'));
+            return $agency['id'] ?? $agency['Id'] ?? null;
+        }
+        error_log("Agencia no encontrada para id_agency_dms: $dmsAgencyId");
+        return null;
     }
 
     /**

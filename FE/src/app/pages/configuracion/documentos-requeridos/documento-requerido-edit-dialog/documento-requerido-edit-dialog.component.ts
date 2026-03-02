@@ -51,8 +51,18 @@ import { FASES_OCULTAS } from '../../../../core/constants/catalogs';
 })
 export class DocumentoRequeridoEditDialogComponent implements OnInit {
   documentoForm!: FormGroup;
-  loading = false;
-  loadingCatalogs = false;
+  private _loading = false;
+  get loading(): boolean { return this._loading; }
+  set loading(v: boolean) {
+    this._loading = v;
+    this.updateFormDisabledState();
+  }
+  private _loadingCatalogs = false;
+  get loadingCatalogs(): boolean { return this._loadingCatalogs; }
+  set loadingCatalogs(v: boolean) {
+    this._loadingCatalogs = v;
+    this.updateFormDisabledState();
+  }
   
   // Contador de catálogos procesados
   private catalogsProcessed = 0;
@@ -152,6 +162,8 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       });
     }
 
+    this.updateFormDisabledState();
+
     // Solo en modo create, agregar listeners para validar en tiempo real
     if (this.data.mode === 'create') {
       // Escuchar cambios en los campos de configuración
@@ -168,6 +180,18 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         this.validarConfiguracionExistente();
       });
     }
+  }
+
+  private updateFormDisabledState(): void {
+    if (!this.documentoForm) return;
+    const enabledCtrl = this.documentoForm.get('enabled');
+    if (enabledCtrl) {
+      this._loading ? enabledCtrl.disable() : enabledCtrl.enable();
+    }
+    ['id_agency', 'id_process', 'id_customer_type', 'id_operation_type'].forEach(name => {
+      const c = this.documentoForm.get(name);
+      if (c) (this._loadingCatalogs ? c.disable() : c.enable());
+    });
   }
 
   private loadExistingDocuments(): void {
@@ -279,11 +303,14 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       }
     });
 
-    // Cargar tipos de documento
+    // Cargar tipos de documento (excluir Liquidación - se agrega automáticamente al crear expediente)
     this.documentTypeService.getDocumentTypes().subscribe({
       next: (response: any) => {
         if (response?.success && response.data) {
-          this.tiposDocumento = response.data.document_types || [];
+          const all = response.data.document_types || [];
+          // Excluir Liquidación (con o sin acento) - se agrega automáticamente al crear expediente
+          const norm = (n: string | undefined) => (n ?? '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          this.tiposDocumento = all.filter((t: DocumentType) => norm(t.name) !== 'liquidacion');
           this.filteredTiposDocumento = [...this.tiposDocumento]; // Inicializar filtrado
           
           // Extraer fases y subfases únicas disponibles
@@ -417,12 +444,13 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     let errorCount = 0;
     const totalToCreate = this.selectedDocumentTypes.length;
     
+    const formVal = this.documentoForm.getRawValue();
     this.selectedDocumentTypes.forEach((documentTypeId: string, index: number) => {
       const documentoData: DocumentoRequeridoCreateRequest = {
-        id_process: this.documentoForm.value.id_process,
-        id_agency: this.documentoForm.value.id_agency,
-        id_customer_type: this.documentoForm.value.id_customer_type,
-        id_operation_type: this.documentoForm.value.id_operation_type,
+        id_process: formVal.id_process,
+        id_agency: formVal.id_agency,
+        id_customer_type: formVal.id_customer_type,
+        id_operation_type: formVal.id_operation_type,
         id_document_type: documentTypeId
       };
 
@@ -488,12 +516,12 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   private updateDocumentoRequerido(): void {
     // Si no hay documento pero hay configuración, actualizar solo el estado de la configuración
     if (!this.data.documento && this.data.configuracion) {
-      // Obtener el ID de la configuración buscando un documento de esa configuración
+      const formVal = this.documentoForm.getRawValue();
       const filters = {
-        id_process: this.documentoForm.value.id_process,
-        id_agency: this.documentoForm.value.id_agency,
-        id_customer_type: this.documentoForm.value.id_customer_type,
-        id_operation_type: this.documentoForm.value.id_operation_type
+        id_process: formVal.id_process,
+        id_agency: formVal.id_agency,
+        id_customer_type: formVal.id_customer_type,
+        id_operation_type: formVal.id_operation_type
       };
 
       this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
@@ -506,12 +534,12 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             // Actualizar el estado de la configuración usando el primer documento como referencia
             const documentoData: DocumentoRequeridoUpdateRequest = {
               id: firstDoc.id,
-              id_process: this.documentoForm.value.id_process,
-              id_agency: this.documentoForm.value.id_agency,
-              id_customer_type: this.documentoForm.value.id_customer_type,
-              id_operation_type: this.documentoForm.value.id_operation_type,
+              id_process: formVal.id_process,
+              id_agency: formVal.id_agency,
+              id_customer_type: formVal.id_customer_type,
+              id_operation_type: formVal.id_operation_type,
               id_document_type: firstDoc.id_document_type,
-              enabled: this.documentoForm.value.enabled ? '1' : '0'
+              enabled: formVal.enabled ? '1' : '0'
             };
 
             // Actualizar documentos y luego actualizar el ConfigurationProcess
@@ -520,7 +548,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
                 if (updateResponse.success) {
                   // Ahora actualizar todos los documentos de esta configuración con el nuevo estado
                   // y actualizar el ConfigurationProcess
-                  this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
+                  this.updateConfigurationProcessStatus(configProcessId, formVal.enabled);
                 } else {
                   this.snackBar.open(updateResponse.message || 'Error al actualizar configuración', 'Error', {
                     duration: 3000
@@ -566,15 +594,15 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       return;
     }
 
-    // Para edición, solo actualizamos el primer tipo seleccionado (compatibilidad)
+    const formVal = this.documentoForm.getRawValue();
     const documentoData: DocumentoRequeridoUpdateRequest = {
       id: this.data.documento.id,
-      id_process: this.documentoForm.value.id_process,
-      id_agency: this.documentoForm.value.id_agency,
-      id_customer_type: this.documentoForm.value.id_customer_type,
-      id_operation_type: this.documentoForm.value.id_operation_type,
-      id_document_type: this.selectedDocumentTypes[0], // Tomar el primer tipo seleccionado
-      enabled: this.documentoForm.value.enabled ? '1' : '0' // Convertir boolean a string
+      id_process: formVal.id_process,
+      id_agency: formVal.id_agency,
+      id_customer_type: formVal.id_customer_type,
+      id_operation_type: formVal.id_operation_type,
+      id_document_type: this.selectedDocumentTypes[0],
+      enabled: formVal.enabled ? '1' : '0'
     };
 
     this.documentoRequeridoService.updateDocumentoRequerido(this.data.documento.id, documentoData).subscribe({
@@ -583,7 +611,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
           // Actualizar también el ConfigurationProcess
           const configProcessId = this.data.documento?.id_configuration_process;
           if (configProcessId) {
-            this.updateConfigurationProcessStatus(configProcessId, this.documentoForm.value.enabled);
+            this.updateConfigurationProcessStatus(configProcessId, formVal.enabled);
           } else {
             this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
               duration: 2000

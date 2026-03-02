@@ -18,16 +18,18 @@
 
 // Tabla compacta - mismo estilo que usuarios
 .compact-table {
-  .mat-mdc-header-cell {
+  ::ng-deep .mat-mdc-header-cell {
     padding: 4px 8px;
     font-size: 0.75rem;
     line-height: 1;
+    vertical-align: middle !important;
   }
   
-  .mat-mdc-cell {
+  ::ng-deep .mat-mdc-cell {
     padding: 0 8px;
     font-size: 0.75rem;
     line-height: 1;
+    vertical-align: middle !important;
   }
   
   .mat-mdc-row {
@@ -51,6 +53,24 @@
   background-color: #f3f4f6;
 }
 
+// Paginador compacto
+.mat-mdc-paginator {
+  min-height: 40px;
+  font-size: 0.8125rem;
+
+  .mat-mdc-paginator-container {
+    padding: 4px 8px;
+  }
+
+  .mat-mdc-paginator-page-size {
+    align-items: center;
+  }
+
+  .mat-mdc-paginator-range-label {
+    margin: 0 16px;
+  }
+}
+
 // Animación para el spinner de carga
 .animate-spin {
   animation: spin 1s linear infinite;
@@ -70,13 +90,12 @@
   margin-bottom: 0;
 }
 
-// Estilos para los botones de acción
 .mat-mdc-icon-button {
   transition: all 0.2s ease-in-out;
 }
 
 .mat-mdc-icon-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 // Estilos para el mensaje de no datos

@@ -26,7 +26,6 @@
             <mat-slide-toggle 
               formControlName="enabled" 
               color="primary"
-              [disabled]="loading"
               class="scale-90">
             </mat-slide-toggle>
             <span class="text-xs text-yellow-600">
@@ -67,8 +66,8 @@
       <div *ngIf="data.mode === 'create'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Agencia (Primero) -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Agencia *</mat-label>
-          <mat-select formControlName="id_agency" [disabled]="loadingCatalogs">
+          <mat-label>Agencia</mat-label>
+          <mat-select formControlName="id_agency">
             <mat-option value="">Seleccionar agencia</mat-option>
             <mat-option *ngFor="let agency of agencias" [value]="agency.id">
               {{ agency.name }}
@@ -81,8 +80,8 @@
 
         <!-- Proceso -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Proceso *</mat-label>
-          <mat-select formControlName="id_process" [disabled]="loadingCatalogs">
+          <mat-label>Proceso</mat-label>
+          <mat-select formControlName="id_process">
             <mat-option value="">Seleccionar proceso</mat-option>
             <mat-option *ngFor="let proceso of procesos" [value]="proceso.id">
               {{ proceso.name }}
@@ -95,8 +94,8 @@
 
         <!-- Tipo de Cliente -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Tipo de Cliente *</mat-label>
-          <mat-select formControlName="id_customer_type" [disabled]="loadingCatalogs">
+          <mat-label>Tipo de Cliente</mat-label>
+          <mat-select formControlName="id_customer_type">
             <mat-option value="">Seleccionar tipo de cliente</mat-option>
             <mat-option *ngFor="let tipoCliente of tiposCliente" [value]="tipoCliente.id">
               {{ tipoCliente.name }}
@@ -109,8 +108,8 @@
 
         <!-- Tipo de Operación -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Tipo de Operación *</mat-label>
-          <mat-select formControlName="id_operation_type" [disabled]="loadingCatalogs">
+          <mat-label>Tipo de Operación</mat-label>
+          <mat-select formControlName="id_operation_type">
             <mat-option value="">Seleccionar tipo de operación</mat-option>
             <mat-option *ngFor="let tipoOperacion of tiposOperacion" [value]="tipoOperacion.id">
               {{ tipoOperacion.name }}

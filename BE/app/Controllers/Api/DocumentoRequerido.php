@@ -32,18 +32,17 @@ class DocumentoRequerido extends BaseController
                 }
             }
             $offset = $this->request->getGet('offset') ? (int)$this->request->getGet('offset') : 0;
-            $sortBy = $this->request->getGet('sort_by') ?: 'Id';
+            $sortBy = $this->request->getGet('sort_by') ?: 'id';
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
 
-            // Construir filtros (aceptar snake_case y PascalCase para compatibilidad FE/BE)
             $filters = [
-                'IdProcess' => $this->request->getGet('id_process') ?? $this->request->getGet('IdProcess'),
-                'IdAgency' => $this->request->getGet('id_agency') ?? $this->request->getGet('IdAgency'),
-                'IdCustomerType' => $this->request->getGet('id_customer_type') ?? $this->request->getGet('IdCustomerType'),
-                'IdOperationType' => $this->request->getGet('id_operation_type') ?? $this->request->getGet('IdOperationType'),
-                'IdDocumentType' => $this->request->getGet('id_document_type') ?? $this->request->getGet('IdDocumentType'),
-                'Required' => $this->request->getGet('required') !== null ? (int)$this->request->getGet('required') : ($this->request->getGet('Required') !== null ? (int)$this->request->getGet('Required') : null),
-                'Enabled' => $this->request->getGet('enabled') !== null ? (int)$this->request->getGet('enabled') : ($this->request->getGet('Enabled') !== null ? (int)$this->request->getGet('Enabled') : null)
+                'id_process' => $this->request->getGet('id_process'),
+                'id_agency' => $this->request->getGet('id_agency'),
+                'id_customer_type' => $this->request->getGet('id_customer_type'),
+                'id_operation_type' => $this->request->getGet('id_operation_type'),
+                'id_document_type' => $this->request->getGet('id_document_type'),
+                'required' => $this->request->getGet('required') !== null ? (int)$this->request->getGet('required') : null,
+                'enabled' => $this->request->getGet('enabled') !== null ? (int)$this->request->getGet('enabled') : null
             ];
             
             // Solo aplicar filtro de Enabled si se especifica explícitamente
@@ -190,7 +189,6 @@ class DocumentoRequerido extends BaseController
         try {
             $data = $this->request->getJSON(true);
             
-            // Validar datos requeridos
             if (!$this->validateRequiredFields($data)) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -198,13 +196,12 @@ class DocumentoRequerido extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Verificar si ya existe un documento requerido para la misma configuración
             if ($this->documentoRequeridoModel->existsDocumentoRequerido(
-                $data['IdProcess'], 
-                $data['IdAgency'], 
-                $data['IdCustomerType'], 
-                $data['IdOperationType'], 
-                $data['IdDocumentType']
+                $data['id_process'], 
+                $data['id_agency'], 
+                $data['id_customer_type'], 
+                $data['id_operation_type'], 
+                $data['id_document_type']
             )) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -212,16 +209,22 @@ class DocumentoRequerido extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Crear el documento requerido usando el modelo
+            $userId = $this->getCurrentUserId();
+            if (!$userId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Autenticación requerida para realizar esta acción'
+                ])->setStatusCode(401);
+            }
+            $data['id_last_user_update'] = $userId;
             $result = $this->documentoRequeridoModel->createDocumentoRequerido($data);
             
             if ($result) {
-                // Obtener el documento creado con relaciones
                 $documentoCreado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
-                    'IdProcess' => $data['IdProcess'],
-                    'IdAgency' => $data['IdAgency'],
-                    'IdCustomerType' => $data['IdCustomerType'],
-                    'IdOperationType' => $data['IdOperationType']
+                    'id_process' => $data['id_process'],
+                    'id_agency' => $data['id_agency'],
+                    'id_customer_type' => $data['id_customer_type'],
+                    'id_operation_type' => $data['id_operation_type']
                 ]);
                 
                 return $this->response->setJSON([
@@ -278,6 +281,14 @@ class DocumentoRequerido extends BaseController
                 ])->setStatusCode(400);
             }
 
+            $userId = $this->getCurrentUserId();
+            if (!$userId) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Autenticación requerida para realizar esta acción'
+                ])->setStatusCode(401);
+            }
+
             $data = $this->request->getJSON(true);
             
             // Log para debug
@@ -305,63 +316,47 @@ class DocumentoRequerido extends BaseController
                 return (string)$value;
             };
             
-            if (count($data) === 1 && isset($data['Enabled'])) {
-                // Caso 1: Solo viene Enabled en el request
+            if (count($data) === 1 && isset($data['enabled'])) {
                 $isOnlyEnabledUpdate = true;
-                log_message('info', "DocumentoRequerido::update - Solo viene Enabled en el request");
             } else {
-                // Caso 2: Vienen otros campos, verificar si son iguales a los existentes
                 $configFieldsMatch = true;
-                
-                // Comparar cada campo de configuración (ignorar 'Id' y 'Enabled' del request)
-                $configFields = ['IdProcess', 'IdAgency', 'IdCustomerType', 'IdOperationType', 'IdDocumentType'];
+                $configFields = ['id_process', 'id_agency', 'id_customer_type', 'id_operation_type', 'id_document_type'];
                 foreach ($configFields as $field) {
                     if (isset($data[$field])) {
                         $requestValue = $normalizeValue($data[$field]);
                         $existingValue = isset($existingDocumento[$field]) ? $normalizeValue($existingDocumento[$field]) : null;
-                        
                         if ($requestValue !== $existingValue) {
                             $configFieldsMatch = false;
-                            log_message('info', "DocumentoRequerido::update - Campo {$field} difiere: Request={$requestValue}, Existing={$existingValue}");
                             break;
                         }
                     }
                 }
-                
-                // Si los campos de configuración coinciden y viene Enabled, es solo actualización de Enabled
-                if ($configFieldsMatch && isset($data['Enabled'])) {
+                if ($configFieldsMatch && isset($data['enabled'])) {
                     $isOnlyEnabledUpdate = true;
-                    log_message('info', "DocumentoRequerido::update - Campos de configuración coinciden, solo se actualiza Enabled");
                 }
             }
             
             log_message('info', "DocumentoRequerido::update - Es solo actualización de Enabled: " . ($isOnlyEnabledUpdate ? 'Sí' : 'No'));
             
-            // Verificar si ya existe otro documento requerido para la misma configuración
-            // Solo si se están actualizando los campos de configuración (no solo Enabled)
-            if (!$isOnlyEnabledUpdate && isset($data['IdProcess']) && isset($data['IdAgency']) && 
-                isset($data['IdCustomerType']) && isset($data['IdOperationType']) && 
-                isset($data['IdDocumentType'])) {
+            if (!$isOnlyEnabledUpdate && isset($data['id_process']) && isset($data['id_agency']) && 
+                isset($data['id_customer_type']) && isset($data['id_operation_type']) && 
+                isset($data['id_document_type'])) {
                 
-                // Verificar si los valores realmente están cambiando
                 $configChanged = (
-                    $normalizeValue($data['IdProcess']) !== $normalizeValue($existingDocumento['IdProcess']) ||
-                    $normalizeValue($data['IdAgency']) !== $normalizeValue($existingDocumento['IdAgency']) ||
-                    $normalizeValue($data['IdCustomerType']) !== $normalizeValue($existingDocumento['IdCustomerType']) ||
-                    $normalizeValue($data['IdOperationType']) !== $normalizeValue($existingDocumento['IdOperationType']) ||
-                    $normalizeValue($data['IdDocumentType']) !== $normalizeValue($existingDocumento['IdDocumentType'])
+                    $normalizeValue($data['id_process']) !== $normalizeValue($existingDocumento['id_process'] ?? '') ||
+                    $normalizeValue($data['id_agency']) !== $normalizeValue($existingDocumento['id_agency'] ?? '') ||
+                    $normalizeValue($data['id_customer_type']) !== $normalizeValue($existingDocumento['id_customer_type'] ?? '') ||
+                    $normalizeValue($data['id_operation_type']) !== $normalizeValue($existingDocumento['id_operation_type'] ?? '') ||
+                    $normalizeValue($data['id_document_type']) !== $normalizeValue($existingDocumento['id_document_type'] ?? '')
                 );
                 
-                log_message('info', "DocumentoRequerido::update - Configuración cambió: " . ($configChanged ? 'Sí' : 'No'));
-                
-                // Solo validar duplicados si la configuración realmente está cambiando
                 if ($configChanged) {
                     if ($this->documentoRequeridoModel->existsDocumentoRequerido(
-                        $data['IdProcess'], 
-                        $data['IdAgency'], 
-                        $data['IdCustomerType'], 
-                        $data['IdOperationType'], 
-                        $data['IdDocumentType'],
+                        $data['id_process'], 
+                        $data['id_agency'], 
+                        $data['id_customer_type'], 
+                        $data['id_operation_type'], 
+                        $data['id_document_type'],
                         $id
                     )) {
                         log_message('warning', "DocumentoRequerido::update - Ya existe un documento con esta configuración");
@@ -375,25 +370,23 @@ class DocumentoRequerido extends BaseController
 
             // Si solo se actualiza Enabled, preparar datos mínimos y actualizar directamente configuration_process
             if ($isOnlyEnabledUpdate) {
-                $enabledValue = $data['Enabled'] === '1' || $data['Enabled'] === 1 ? 1 : 0;
-                log_message('info', "DocumentoRequerido::update - Actualizando solo Enabled a: {$enabledValue}");
+                $enabledValue = $data['enabled'] === '1' || $data['enabled'] === 1 ? 1 : 0;
                 
-                // Actualizar directamente el configuration_process relacionado
-                $configProcessModel = new \App\Models\configuration_processModel();
-                $configProcessId = $existingDocumento['Idconfiguration_process'] ?? null;
+                $configProcessModel = new \App\Models\ConfigurationProcessModel();
+                $configProcessId = $existingDocumento['id_configuration_process'] ?? null;
                 
                 if ($configProcessId) {
                     $updateResult = $configProcessModel->update($configProcessId, [
                         'enabled' => $enabledValue,
                         'update_date' => date('Y-m-d H:i:s'),
-                        'id_last_user_update' => $this->getCurrentUserId() ?? 0
+                        'id_last_user_update' => $userId
                     ]);
                     
                     if ($updateResult) {
                         log_message('info', "DocumentoRequerido::update - configuration_process actualizado exitosamente");
                         // Obtener el documento actualizado con relaciones
                         $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
-                            'Id' => $id
+                            'id' => $id
                         ]);
                         
                         return $this->response->setJSON([
@@ -409,7 +402,7 @@ class DocumentoRequerido extends BaseController
                         ])->setStatusCode(500);
                     }
                 } else {
-                    log_message('error', "DocumentoRequerido::update - No se encontró Idconfiguration_process");
+                    log_message('error', "DocumentoRequerido::update - No se encontró id_configuration_process");
                     return $this->response->setJSON([
                         'success' => false,
                         'message' => 'No se encontró la configuración de proceso asociada'
@@ -417,30 +410,29 @@ class DocumentoRequerido extends BaseController
                 }
             }
             
-            // Si no es solo Enabled, usar el flujo normal de actualización
             $updateData = $data;
+            $updateData['id_last_user_update'] = $userId;
 
-            // Actualizar el documento requerido usando el modelo
             $result = $this->documentoRequeridoModel->updateDocumentoRequerido($id, $updateData);
             
             if ($result) {
                 // Si se actualizó el estado Enabled, actualizar también el configuration_process
-                if (isset($updateData['Enabled'])) {
-                    $configProcessModel = new \App\Models\configuration_processModel();
-                    $configProcessId = $existingDocumento['Idconfiguration_process'] ?? null;
+                if (isset($updateData['enabled'])) {
+                    $configProcessModel = new \App\Models\ConfigurationProcessModel();
+                    $configProcessId = $existingDocumento['id_configuration_process'] ?? null;
                     
                     if ($configProcessId) {
                         $configProcessModel->update($configProcessId, [
-                            'enabled' => $updateData['Enabled'] === '1' || $updateData['Enabled'] === 1 ? 1 : 0,
+                            'enabled' => $updateData['enabled'] === '1' || $updateData['enabled'] === 1 ? 1 : 0,
                             'update_date' => date('Y-m-d H:i:s'),
-                            'id_last_user_update' => $this->getCurrentUserId() ?? 0
+                            'id_last_user_update' => $userId
                         ]);
                     }
                 }
                 
                 // Obtener el documento actualizado con relaciones
                 $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
-                    'Id' => $id
+                    'id' => $id
                 ]);
                 
                 return $this->response->setJSON([
@@ -552,18 +544,17 @@ class DocumentoRequerido extends BaseController
             $errors = [];
 
             foreach ($data['documentos'] as $index => $documento) {
-                if (!isset($documento['Id'])) {
-                    $errors[] = 'Cada documento debe tener Id';
+                $docId = $documento['id'] ?? null;
+                if (!$docId) {
+                    $errors[] = 'Cada documento debe tener id';
                     $success = false;
                     continue;
                 }
 
-                // En la nueva estructura, el orden se maneja por el índice en la lista
-                // No hay campo de orden específico, pero podemos actualizar la configuración si es necesario
-                $result = $this->documentoRequeridoModel->update($documento['Id'], []);
+                $result = $this->documentoRequeridoModel->update($docId, []);
                 
                 if (!$result) {
-                    $errors[] = "Error al actualizar documento ID {$documento['Id']}";
+                    $errors[] = "Error al actualizar documento ID {$docId}";
                     $success = false;
                 }
             }
@@ -608,13 +599,14 @@ class DocumentoRequerido extends BaseController
             $source = $data['source'];
             $target = $data['target'];
 
-            // Obtener documentos de la configuración fuente
-            $documentosFuente = $this->documentoRequeridoModel->getDocumentosRequeridos([
-                'IdProcess' => $source['IdProcess'],
-                'IdAgency' => $source['IdAgency'],
-                'IdCustomerType' => $source['IdCustomerType'],
-                'IdOperationType' => $source['IdOperationType']
-            ]);
+            $sourceFilters = [
+                'id_process' => $source['id_process'] ?? null,
+                'id_agency' => $source['id_agency'] ?? null,
+                'id_customer_type' => $source['id_customer_type'] ?? null,
+                'id_operation_type' => $source['id_operation_type'] ?? null
+            ];
+            $sourceFilters = array_filter($sourceFilters);
+            $documentosFuente = $this->documentoRequeridoModel->getDocumentosRequeridos($sourceFilters);
 
             if (empty($documentosFuente)) {
                 return $this->response->setJSON([
@@ -623,36 +615,41 @@ class DocumentoRequerido extends BaseController
                 ])->setStatusCode(400);
             }
 
+            $targetProcess = $target['id_process'] ?? null;
+            $targetAgency = $target['id_agency'] ?? null;
+            $targetCustomerType = $target['id_customer_type'] ?? null;
+            $targetOperationType = $target['id_operation_type'] ?? null;
+
             $duplicados = 0;
             $errors = [];
 
             foreach ($documentosFuente as $documento) {
-                // Verificar si ya existe en la configuración destino
+                $idDocType = $documento['id_document_type'] ?? null;
                 if ($this->documentoRequeridoModel->existsDocumentoRequerido(
-                    $target['IdProcess'], 
-                    $target['IdAgency'], 
-                    $target['IdCustomerType'], 
-                    $target['IdOperationType'], 
-                    $documento['IdDocumentType']
+                    $targetProcess, 
+                    $targetAgency, 
+                    $targetCustomerType, 
+                    $targetOperationType, 
+                    $idDocType
                 )) {
-                    $errors[] = "El documento {$documento['IdDocumentType']} ya existe en la configuración destino";
+                    $errors[] = "El documento {$idDocType} ya existe en la configuración destino";
                     continue;
                 }
 
-                // Crear documento duplicado usando el modelo
                 $duplicateData = [
-                    'IdProcess' => $target['IdProcess'],
-                    'IdAgency' => $target['IdAgency'],
-                    'IdCustomerType' => $target['IdCustomerType'],
-                    'IdOperationType' => $target['IdOperationType'],
-                    'IdDocumentType' => $documento['IdDocumentType']
+                    'id_process' => $targetProcess,
+                    'id_agency' => $targetAgency,
+                    'id_customer_type' => $targetCustomerType,
+                    'id_operation_type' => $targetOperationType,
+                    'id_document_type' => $idDocType
                 ];
 
                 $result = $this->documentoRequeridoModel->createDocumentoRequerido($duplicateData);
                 if ($result) {
                     $duplicados++;
                 } else {
-                    $errors[] = "Error al duplicar documento ID {$documento['Id']}";
+                    $docId = $documento['id'] ?? '?';
+                    $errors[] = "Error al duplicar documento ID {$docId}";
                 }
             }
 
@@ -682,19 +679,14 @@ class DocumentoRequerido extends BaseController
         }
     }
 
-    /**
-     * Validar campos requeridos
-     */
     private function validateRequiredFields($data)
     {
-        $requiredFields = ['IdProcess', 'IdAgency', 'IdCustomerType', 'IdOperationType', 'IdDocumentType'];
-        
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || empty($data[$field])) {
+        $required = ['id_process', 'id_agency', 'id_customer_type', 'id_operation_type', 'id_document_type'];
+        foreach ($required as $field) {
+            if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
                 return false;
             }
         }
-        
         return true;
     }
 
@@ -703,16 +695,8 @@ class DocumentoRequerido extends BaseController
      */
     private function getMaxId()
     {
-        $result = $this->documentoRequeridoModel->select('MAX(Id) as max_id')->get()->getRow();
+        $result = $this->documentoRequeridoModel->select('MAX(id) as max_id')->get()->getRow();
         return $result && $result->max_id ? (int)$result->max_id : 0;
     }
 
-    /**
-     * Obtener ID del usuario actual
-     */
-    protected function getCurrentUserId()
-    {
-        // TODO: Implementar obtención del ID del usuario actual desde la sesión
-        return 1; // Por ahora retornar 1 como usuario por defecto
-    }
 }

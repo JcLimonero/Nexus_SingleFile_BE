@@ -156,8 +156,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
 
     // Rutas de configuración de procesos
     $routes->group('configuration-process', function($routes) {
-        $routes->get('enabled', 'configuration_process::getEnabledConfigurations');
-        $routes->get('enabled-by-agency/(:num)', 'configuration_process::getEnabledConfigurationsByAgency/$1');
+        $routes->get('enabled', 'ConfigurationProcess::getEnabledConfigurations');
+        $routes->get('enabled-by-agency/(:num)', 'ConfigurationProcess::getEnabledConfigurationsByAgency/$1');
     });
 
     // Rutas de logs de actividad de usuarios
@@ -415,9 +415,13 @@ $routes->group('documents', function($routes) {
         $routes->get('(:num)', 'ClientSearch::getById/$1');
     });
 
-    // Rutas de importación de clientes de Vanguardia
+    // Rutas de importación de clientes del Grupo (Company)
+    $routes->group('company-client-import', function($routes) {
+        $routes->post('import', 'CompanyClientImport::import');
+    });
+    // Compatibilidad: vanguardia-client-import redirige a CompanyClientImport
     $routes->group('vanguardia-client-import', function($routes) {
-        $routes->post('import', 'VanguardiaClientImport::import');
+        $routes->post('import', 'CompanyClientImport::import');
     });
 });
 

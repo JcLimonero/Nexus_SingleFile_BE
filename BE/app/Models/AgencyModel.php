@@ -151,7 +151,7 @@ class AgencyModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName, company.agency_connection as agency_connection')
                     ->join('user u', 'agency.id_last_user_update = u.id', 'left')
                     ->join('company', 'agency.id_company = company.id', 'left')
                     ->where('agency.enabled', 1)
@@ -190,7 +190,7 @@ class AgencyModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName, company.agency_connection as agency_connection')
                     ->join('user u', 'agency.id_last_user_update = u.id', 'left')
                     ->join('company', 'agency.id_company = company.id', 'left')
                     ->where('agency.enabled', 0)
@@ -228,7 +228,7 @@ class AgencyModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName, company.agency_connection as agency_connection')
                     ->join('user u', 'agency.id_last_user_update = u.id', 'left')
                     ->join('company', 'agency.id_company = company.id', 'left')
                     ->orderBy($sortField === 'companyName' ? 'company.name' : "agency.{$sortField}", $sortOrder)
@@ -248,7 +248,7 @@ class AgencyModel extends Model
      */
     public function getAgencyByIdWithUser($id)
     {
-        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+        return $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName, company.agency_connection as agency_connection')
                     ->join('user u', 'agency.id_last_user_update = u.id', 'left')
                     ->join('company', 'agency.id_company = company.id', 'left')
                     ->where('agency.id', $id)
@@ -290,7 +290,7 @@ class AgencyModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        $query = $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+        $query = $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName, company.agency_connection as agency_connection')
                       ->join('user u', 'agency.id_last_user_update = u.id', 'left')
                       ->join('company', 'agency.id_company = company.id', 'left')
                       ->like('agency.name', $name);
@@ -337,7 +337,7 @@ class AgencyModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        $query = $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName')
+        $query = $this->select('agency.*, u.name as LastUserUpdateName, company.name as CompanyName, company.agency_connection as agency_connection')
                       ->join('user u', 'agency.id_last_user_update = u.id', 'left')
                       ->join('company', 'agency.id_company = company.id', 'left')
                       ->where('agency.id_agency_dms', $region);

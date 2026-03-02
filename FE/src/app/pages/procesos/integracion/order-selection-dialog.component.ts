@@ -180,6 +180,19 @@ import { AuthService } from '../../../core/services/auth.service';
               </td>
             </ng-container>
 
+            <!-- Monto Column -->
+            <ng-container matColumnDef="monto">
+              <th mat-header-cell *matHeaderCellDef class="text-right">Monto</th>
+              <td mat-cell *matCellDef="let order" class="text-right">
+                <span *ngIf="getOrderMonto(order); else noMonto" class="order-info font-medium">
+                  {{ formatMonto(getOrderMonto(order)) }}
+                </span>
+                <ng-template #noMonto>
+                  <span class="text-gray-400 italic order-info">-</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
                 class="hover:bg-gray-50">
@@ -199,7 +212,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 <!-- Sin pedidos nuevos -->
                 <div *ngIf="filteredOrders.length === 0" class="text-center py-8">
                   <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
-                  <p class="text-gray-500">Todos los pedidos de Vanguardia ya existen en el sistema</p>
+                  <p class="text-gray-500">Todos los pedidos del Grupo ya existen en el sistema</p>
                   <p class="text-sm text-gray-400 mt-2">No hay pedidos nuevos para agregar</p>
                 </div>
               </div>
@@ -299,6 +312,19 @@ import { AuthService } from '../../../core/services/auth.service';
                         <span *ngIf="order.order?.version; else noVersion" class="order-info">{{ order.order.version }}</span>
                         <ng-template #noVersion>
                           <span class="text-gray-400 italic order-info">Sin versión</span>
+                        </ng-template>
+                      </td>
+                    </ng-container>
+
+                    <!-- Monto Column -->
+                    <ng-container matColumnDef="monto">
+                      <th mat-header-cell *matHeaderCellDef class="text-right">Monto</th>
+                      <td mat-cell *matCellDef="let order" class="text-right">
+                        <span *ngIf="getOrderMonto(order, true); else noMontoExisting" class="order-info font-medium">
+                          {{ formatMonto(getOrderMonto(order, true)) }}
+                        </span>
+                        <ng-template #noMontoExisting>
+                          <span class="text-gray-400 italic order-info">-</span>
                         </ng-template>
                       </td>
                     </ng-container>
@@ -518,11 +544,12 @@ export class OrderSelectionDialogComponent implements OnInit {
     'model',
     'version',
     'colorExterior',
-    'colorInterior'
+    'colorInterior',
+    'monto'
   ];
 
   get existingDisplayedColumns(): string[] {
-    const base = ['order_dms', 'year', 'vin', 'model', 'version', 'actions'];
+    const base = ['order_dms', 'year', 'vin', 'model', 'version', 'monto', 'actions'];
     return this.isAdmin ? ['fileId', ...base] : base;
   }
 
@@ -876,10 +903,10 @@ export class OrderSelectionDialogComponent implements OnInit {
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
-            this.processes = response.data.processes || [];
-            this.costumerTypes = response.data.costumerTypes || [];
-            this.operationTypes = response.data.operationTypes || [];
-            this.allConfigurations = response.data.configurations || [];
+            this.processes = Array.isArray(response.data.processes) ? response.data.processes : [];
+            this.costumerTypes = Array.isArray(response.data.costumerTypes) ? response.data.costumerTypes : (Array.isArray(response.data.customerTypes) ? response.data.customerTypes : []);
+            this.operationTypes = Array.isArray(response.data.operationTypes) ? response.data.operationTypes : [];
+            this.allConfigurations = Array.isArray(response.data.configurations) ? response.data.configurations : [];
             
             // Inicializar opciones disponibles
             this.availableCostumerTypes = [...this.costumerTypes];
@@ -893,7 +920,16 @@ export class OrderSelectionDialogComponent implements OnInit {
           }
         },
         error: (error) => {
-
+          // Asegurar arrays vacíos para evitar "not iterable"
+          this.processes = [];
+          this.costumerTypes = [];
+          this.operationTypes = [];
+          this.allConfigurations = [];
+          this.availableCostumerTypes = [];
+          this.availableOperationTypes = [];
+          this.loadingProcesses = false;
+          this.loadingCostumerTypes = false;
+          this.loadingOperationTypes = false;
           // Fallback: cargar datos individuales si falla el endpoint de configuraciones
           this.loadIndividualComboData();
         }
@@ -951,7 +987,8 @@ export class OrderSelectionDialogComponent implements OnInit {
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
-            this.costumerTypes = response.data.costumerTypes || response.data;
+            const raw = response.data.costumerTypes ?? response.data;
+            this.costumerTypes = Array.isArray(raw) ? raw : [];
 
             // Re-filtrar tipos de cliente disponibles si hay un proceso seleccionado
             if (this.selectedProcess) {
@@ -983,7 +1020,8 @@ export class OrderSelectionDialogComponent implements OnInit {
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
-            this.operationTypes = response.data.operationTypes || response.data;
+            const raw = response.data.operationTypes ?? response.data;
+            this.operationTypes = Array.isArray(raw) ? raw : [];
 
             // Re-filtrar tipos de operación disponibles si hay proceso y tipo de cliente seleccionados
             if (this.selectedProcess && this.selectedCostumerType) {
@@ -1031,46 +1069,42 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private filterCostumerTypesByProcess(): void {
+    const types = Array.isArray(this.costumerTypes) ? this.costumerTypes : [];
     if (!this.selectedProcess) {
-      this.availableCostumerTypes = [...this.costumerTypes];
+      this.availableCostumerTypes = [...types];
       return;
     }
 
-    // Buscar configuraciones que tengan este proceso
-    const configurationsWithProcess = this.allConfigurations.filter(config => 
-      config.IdProcess === this.selectedProcess.Id
+    const configs = Array.isArray(this.allConfigurations) ? this.allConfigurations : [];
+    const configurationsWithProcess = configs.filter(config => 
+      (config.IdProcess ?? config.id_process) === (this.selectedProcess?.Id ?? this.selectedProcess?.id)
     );
 
-    // Extraer tipos de cliente únicos
-    const costumerTypeIds = [...new Set(configurationsWithProcess.map(config => config.IdCostumerType))];
+    const costumerTypeIds = [...new Set(configurationsWithProcess.map(config => config.IdCostumerType ?? config.id_customer_type))];
     
-    // Filtrar tipos de cliente disponibles
-    this.availableCostumerTypes = this.costumerTypes.filter(costumerType => 
-      costumerTypeIds.includes(costumerType.Id)
+    this.availableCostumerTypes = types.filter(ct => 
+      costumerTypeIds.includes(ct.Id ?? ct.id)
     );
-
   }
 
   private filterOperationTypesByProcessAndCostumerType(): void {
+    const types = Array.isArray(this.operationTypes) ? this.operationTypes : [];
     if (!this.selectedProcess || !this.selectedCostumerType) {
-      this.availableOperationTypes = [...this.operationTypes];
+      this.availableOperationTypes = [...types];
       return;
     }
 
-    // Buscar configuraciones que tengan esta combinación proceso + tipo cliente
-    const configurationsWithProcessAndCostumer = this.allConfigurations.filter(config => 
-      config.IdProcess === this.selectedProcess.Id && 
-      config.IdCostumerType === this.selectedCostumerType.Id
+    const configs = Array.isArray(this.allConfigurations) ? this.allConfigurations : [];
+    const configurationsWithProcessAndCostumer = configs.filter(config => 
+      (config.IdProcess ?? config.id_process) === (this.selectedProcess?.Id ?? this.selectedProcess?.id) && 
+      (config.IdCostumerType ?? config.id_customer_type) === (this.selectedCostumerType?.Id ?? this.selectedCostumerType?.id)
     );
 
-    // Extraer tipos de operación únicos
-    const operationTypeIds = [...new Set(configurationsWithProcessAndCostumer.map(config => config.IdOperationType))];
+    const operationTypeIds = [...new Set(configurationsWithProcessAndCostumer.map(config => config.IdOperationType ?? config.id_operation_type))];
     
-    // Filtrar tipos de operación disponibles
-    this.availableOperationTypes = this.operationTypes.filter(operationType => 
-      operationTypeIds.includes(operationType.Id)
+    this.availableOperationTypes = types.filter(ot => 
+      operationTypeIds.includes(ot.Id ?? ot.id)
     );
-
   }
 
   isFormValid(): boolean {
@@ -1110,10 +1144,10 @@ export class OrderSelectionDialogComponent implements OnInit {
     const requestData = {
       order: this.selectedOrder,
       process: this.selectedProcess,
-      costumerType: this.selectedCostumerType,
+      customerType: this.selectedCostumerType,
       operationType: this.selectedOperationType,
-      clientId: this.data.ndCliente, // ID del cliente
-      agencyId: this.data.agencyId   // ID de la agencia
+      clientId: this.data.ndCliente,
+      agencyId: this.data.agencyId
     };
 
     this.http.post<any>(`${environment.apiBaseUrl}/api/files/create-from-vanguardia-new`, requestData)
@@ -1146,5 +1180,29 @@ export class OrderSelectionDialogComponent implements OnInit {
           });
         }
       });
+  }
+
+  getOrderMonto(order: any, isExisting = false): number | string | null {
+    if (!order) return null;
+    if (isExisting) {
+      const o = order.order ?? order;
+      const val = o?.amount ?? o?.monto ?? o?.Amount ?? o?.Monto ?? order.amount ?? order.monto;
+      return val != null && val !== '' ? val : null;
+    }
+    const val = order.amount ?? order.monto ?? order.Amount ?? order.Monto
+      ?? order.vanguardiaData?.amount ?? order.vanguardiaData?.monto;
+    return val != null && val !== '' ? val : null;
+  }
+
+  formatMonto(value: number | string | null): string {
+    if (value == null || value === '') return '-';
+    const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]/g, '')) : Number(value);
+    if (isNaN(num)) return String(value);
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
   }
 }

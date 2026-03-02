@@ -3,16 +3,16 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
-use App\Models\configuration_processModel;
+use App\Models\ConfigurationProcessModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class configuration_process extends BaseController
+class ConfigurationProcess extends BaseController
 {
     protected $configurationProcessModel;
     
     public function __construct()
     {
-        $this->configurationProcessModel = new configuration_processModel();
+        $this->configurationProcessModel = new ConfigurationProcessModel();
     }
     
     /**
@@ -182,12 +182,28 @@ class configuration_process extends BaseController
             $configurations = $builder->get()->getResultArray();
 
             // Organizar los datos por categorías para facilitar el uso en cascada
+            // Incluir costumerTypes (typo usado en FE) y Id/Name para compatibilidad
             $organizedData = [
                 'processes' => [],
                 'customerTypes' => [],
+                'costumerTypes' => [],
                 'operationTypes' => [],
-                'configurations' => $configurations
+                'configurations' => []
             ];
+
+            // Normalizar configuraciones con Id/Name (PascalCase) para compatibilidad FE
+            foreach ($configurations as $config) {
+                $organizedData['configurations'][] = [
+                    'id' => $config['configuration_id'],
+                    'Id' => $config['configuration_id'],
+                    'id_process' => $config['id_process'],
+                    'IdProcess' => $config['id_process'],
+                    'id_customer_type' => $config['id_customer_type'],
+                    'IdCostumerType' => $config['id_customer_type'],
+                    'id_operation_type' => $config['id_operation_type'],
+                    'IdOperationType' => $config['id_operation_type'],
+                ];
+            }
 
             // Extraer procesos únicos
             $processIds = [];
@@ -196,7 +212,9 @@ class configuration_process extends BaseController
                     $processIds[] = $config['id_process'];
                     $organizedData['processes'][] = [
                         'id' => $config['id_process'],
-                        'name' => $config['process_name']
+                        'Id' => $config['id_process'],
+                        'name' => $config['process_name'],
+                        'Name' => $config['process_name']
                     ];
                 }
             }
@@ -206,10 +224,14 @@ class configuration_process extends BaseController
             foreach ($configurations as $config) {
                 if (!in_array($config['id_customer_type'], $customerTypeIds)) {
                     $customerTypeIds[] = $config['id_customer_type'];
-                    $organizedData['customerTypes'][] = [
+                    $item = [
                         'id' => $config['id_customer_type'],
-                        'name' => $config['customer_type_name']
+                        'Id' => $config['id_customer_type'],
+                        'name' => $config['customer_type_name'],
+                        'Name' => $config['customer_type_name']
                     ];
+                    $organizedData['customerTypes'][] = $item;
+                    $organizedData['costumerTypes'][] = $item;
                 }
             }
 
@@ -220,7 +242,9 @@ class configuration_process extends BaseController
                     $operationTypeIds[] = $config['id_operation_type'];
                     $organizedData['operationTypes'][] = [
                         'id' => $config['id_operation_type'],
-                        'name' => $config['operation_type_name']
+                        'Id' => $config['id_operation_type'],
+                        'name' => $config['operation_type_name'],
+                        'Name' => $config['operation_type_name']
                     ];
                 }
             }

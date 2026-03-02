@@ -201,12 +201,19 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
 
   onCompaniaChange(companiaId: number | null): void {
     this.filterCompania = companiaId;
-    const filtradas = this.agenciesFiltradas;
-    const selectedInList = this.selectedAgencyId != null && filtradas.some(a => a.Id === this.selectedAgencyId);
-    if (!selectedInList) {
+    if (companiaId === null) {
+      // Al seleccionar "Todas las razones sociales", por defecto "Todas las Agencias"
       this.selectedAgencyId = null;
       this.currentFilters = { ...this.currentFilters, agencyId: undefined };
       this.loadUsers(null);
+    } else {
+      const filtradas = this.agenciesFiltradas;
+      const selectedInList = this.selectedAgencyId != null && filtradas.some(a => a.Id === this.selectedAgencyId);
+      if (!selectedInList) {
+        this.selectedAgencyId = null;
+        this.currentFilters = { ...this.currentFilters, agencyId: undefined };
+        this.loadUsers(null);
+      }
     }
     this.changeDetector.markForCheck();
     this.filtersChange$.next();
@@ -217,7 +224,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     const idComp = Number(this.filterCompania);
     return this.agencies.filter(a => {
       const aId = (a as any).IdCompany ?? (a as any).id_company ?? (a as any).idCompany;
-      return (aId ?? 0) === idComp;
+      return Number(aId ?? 0) === idComp;
     });
   }
 
@@ -309,11 +316,12 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     return dateRange.startDate <= dateRange.endDate;
   }
 
-  /** Construir companies desde las agencias (cada una tiene IdCompany y CompanyName del API) */
+  /** Construir companies desde las agencias (cada una tiene IdCompany/id_company y CompanyName del API) */
   private buildCompaniesFromAgencies(agencias: { Id: number; Name: string; IdCompany?: number; CompanyName?: string }[]): Company[] {
     const map = new Map<number, Company>();
     for (const a of agencias) {
-      const idComp = a.IdCompany ?? 0;
+      const rawId = (a as any).IdCompany ?? (a as any).id_company ?? (a as any).idCompany;
+      const idComp = Number(rawId ?? 0);
       if (!map.has(idComp)) {
         map.set(idComp, {
           Id: idComp,
@@ -325,7 +333,8 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private loadAgencies(): void {
-    this.defaultAgencyService.obtenerAgencias()
+    // forceRefresh para asegurar que las agencias incluyan id_company (necesario para filtrar por razón social)
+    this.defaultAgencyService.obtenerAgencias(true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {

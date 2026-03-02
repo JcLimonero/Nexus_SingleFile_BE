@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class configuration_processModel extends Model
+class ConfigurationProcessModel extends Model
 {
     protected $table            = 'configuration_process';
     protected $primaryKey       = 'id';
@@ -127,24 +127,23 @@ class configuration_processModel extends Model
 
     /**
      * Obtener o crear configuración de proceso
+     * @param int|null $userId ID del usuario logueado (requerido al crear)
      */
-    public function getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType)
+    public function getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType, $userId = null)
     {
-        // Buscar configuración existente
         $config = $this->getConfigurationByParams($idProcess, $idAgency, $idCustomerType, $idOperationType);
         
         if ($config) {
             return $config['id'];
         }
         
-        // Crear nueva configuración
         $insertData = [
             'id_process' => $idProcess,
             'id_agency' => $idAgency,
             'id_customer_type' => $idCustomerType,
             'id_operation_type' => $idOperationType,
             'enabled' => 1,
-            'id_last_user_update' => 1 // TODO: Obtener ID del usuario actual
+            'id_last_user_update' => $userId ?? 1
         ];
         
         $this->insert($insertData);

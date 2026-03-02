@@ -1199,7 +1199,7 @@ class Validacion extends BaseController
                 'id_current_state' => 6, // Estado excepción
                 'description' => $comentario,
                 'update_date' => date('Y-m-d H:i:s'),
-                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
+                'id_last_user_update' => $this->getCurrentUserId() ?? 1
             ];
             
             $result = $this->db->table('expedient')
@@ -1415,7 +1415,7 @@ class Validacion extends BaseController
             $updateData = [
                 'id_current_state' => $nuevoIdCurrentState,
                 'update_date' => date('Y-m-d H:i:s'),
-                'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
+                'id_last_user_update' => $this->getCurrentUserId() ?? 1
             ];
             
             $result = $this->db->table('expedient')

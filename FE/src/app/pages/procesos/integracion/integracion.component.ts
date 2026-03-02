@@ -263,8 +263,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   // Agency filter methods
   private loadAgencies(): void {
     this.agenciesLoading = true;
-    
-    this.defaultAgencyService.obtenerAgencias()
+    // forceRefresh para asegurar agency_connection desde company (necesario para búsqueda en Vanguardia)
+    this.defaultAgencyService.obtenerAgencias(true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (agencias) => {
@@ -469,23 +469,24 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return agId != null && Number(agId) === Number(this.selectedAgencyId);
     });
     if (!selectedAgency) {
-      this.snackBar.open('Agencia no encontrada para búsqueda en Vanguardia', 'Cerrar', {
+      this.snackBar.open('Agencia no encontrada para búsqueda en el Grupo', 'Cerrar', {
         duration: 3000
       });
       return;
     }
 
-    // Verificar que la agencia tenga AgencyConnection
-    if (!selectedAgency.AgencyConnection) {
-      this.snackBar.open('La agencia seleccionada no tiene connectionstring configurado', 'Cerrar', {
-        duration: 3000
+    // Verificar que la agencia tenga AgencyConnection para buscar en Vanguardia
+    const conn = selectedAgency.AgencyConnection ?? selectedAgency.agency_connection;
+    if (!conn) {
+      this.snackBar.open('No se encontraron clientes. Para buscar en sistemas externos, configure el connection string de la compañía (razón social) asociada a la agencia.', 'Cerrar', {
+        duration: 5000
       });
       return;
     }
 
     // Realizar búsqueda en el API de Vanguardia usando connectionstring
     // connectionstring=xxx&ndDMS=10004
-    this.vanguardiaClientService.searchClients(selectedAgency.AgencyConnection, this.clientSearchTerm.trim())
+    this.vanguardiaClientService.searchClients(conn, this.clientSearchTerm.trim())
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaResponse) => {
@@ -497,7 +498,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             if (this.clients.length > 0) {
               // Mostrar mensaje de que se encontraron en Vanguardia
-              this.snackBar.open(`Se encontraron ${this.clients.length} cliente(s) en Vanguardia. Importando al sistema local...`, 'Cerrar', {
+              this.snackBar.open(`Se encontraron ${this.clients.length} cliente(s) en el Grupo. Importando al sistema local...`, 'Cerrar', {
                 duration: 4000
               });
               
@@ -505,19 +506,19 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               this.importVanguardiaClient(this.clients[0]);
             } else {
               // Sin resultados en Vanguardia tampoco
-              this.snackBar.open('No se encontraron clientes en el sistema local ni en Vanguardia', 'Cerrar', {
+              this.snackBar.open('No se encontraron clientes en el sistema local ni en el Grupo', 'Cerrar', {
                 duration: 4000
               });
             }
           } else {
             // Sin resultados en Vanguardia
-            this.snackBar.open('No se encontraron clientes en el sistema local ni en Vanguardia', 'Cerrar', {
+            this.snackBar.open('No se encontraron clientes en el sistema local ni en el Grupo', 'Cerrar', {
               duration: 4000
             });
           }
         },
         error: (error) => {
-          this.snackBar.open('Error al buscar en Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
+          this.snackBar.open('Error al buscar en el Grupo: ' + (error.error?.message || error.message), 'Cerrar', {
             duration: 4000
           });
         }
@@ -577,7 +578,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             // Mostrar mensaje apropiado según el caso
             if (response.message && response.message.includes('importado exitosamente')) {
-              this.snackBar.open(`Cliente ${importedClient.cliente || importedClient.ndCliente} importado exitosamente desde Vanguardia`, 'Cerrar', {
+              this.snackBar.open(`Cliente ${importedClient.cliente || importedClient.ndCliente} importado exitosamente desde el Grupo`, 'Cerrar', {
                 duration: 5000
               });
             } else if (response.message && response.message.includes('vinculado por RFC')) {
@@ -591,7 +592,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               });
             }
           } else {
-            this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (response.message || 'Error desconocido'), 'Cerrar', {
+            this.snackBar.open('Error al importar cliente desde el Grupo: ' + (response.message || 'Error desconocido'), 'Cerrar', {
               duration: 4000
             });
           }
@@ -638,7 +639,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               });
             }
           } else {
-            this.snackBar.open('Error al importar cliente desde Vanguardia: ' + (error.error?.message || error.message), 'Cerrar', {
+            this.snackBar.open('Error al importar cliente desde el Grupo: ' + (error.error?.message || error.message), 'Cerrar', {
               duration: 5000
             });
           }
@@ -1022,19 +1023,19 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.loadingOrdersFromVanguardia = true;
     this.cdr.markForCheck();
     
-    // Verificar que la agencia tenga AgencyConnection
-    if (!this.selectedAgency.AgencyConnection) {
+    const conn = this.selectedAgency?.AgencyConnection ?? this.selectedAgency?.agency_connection;
+    if (!conn) {
       this.loadingOrdersFromVanguardia = false;
       this.cdr.markForCheck();
-      this.snackBar.open('La agencia seleccionada no tiene connectionstring configurado', 'Cerrar', {
-        duration: 3000
+      this.snackBar.open('Para cargar pedidos desde sistemas externos, configure el connection string de la compañía (razón social) asociada a la agencia.', 'Cerrar', {
+        duration: 5000
       });
       return;
     }
     
     let params = new HttpParams();
     params = params.set('customerDMS', this.selectedClient.ndCliente);
-    params = params.set('connectionstring', this.selectedAgency.AgencyConnection);
+    params = params.set('connectionstring', conn);
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
     const headers = {
@@ -1090,14 +1091,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             // Mostrar directamente el diálogo con todos los datos
             this.showOrderSelectionDialogDirectly(ordersData);
             
-            this.snackBar.open(`${ordersData.length} pedidos encontrados en Vanguardia`, 'Cerrar', {
+            this.snackBar.open(`${ordersData.length} pedidos encontrados en el Grupo`, 'Cerrar', {
               duration: 3000
             });
           } else {
             // Desactivar loading
             this.loadingOrdersFromVanguardia = false;
             this.cdr.markForCheck();
-            this.snackBar.open('No se encontraron pedidos en Vanguardia para este cliente', 'Cerrar', {
+            this.snackBar.open('No se encontraron pedidos en el Grupo para este cliente', 'Cerrar', {
               duration: 3000
             });
           }
@@ -1107,20 +1108,20 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           this.loadingOrdersFromVanguardia = false;
           this.cdr.markForCheck();
           
-          let errorMessage = 'Error desconocido al cargar pedidos desde Vanguardia';
+          let errorMessage = 'Error desconocido al cargar pedidos desde el Grupo';
           
           if (error.status === 0) {
-            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia.';
+            errorMessage = 'Error de CORS: No se puede conectar con el servidor del Grupo.';
           } else if (error.status === 400) {
-            errorMessage = 'Error 400: Solicitud inválida a Vanguardia.';
+            errorMessage = 'Error 400: Solicitud inválida al Grupo.';
           } else if (error.status === 401) {
-            errorMessage = 'Error 401: Token de autenticación inválido para Vanguardia.';
+            errorMessage = 'Error 401: Token de autenticación inválido para el Grupo.';
           } else if (error.status === 403) {
-            errorMessage = 'Error 403: Acceso denegado a Vanguardia.';
+            errorMessage = 'Error 403: Acceso denegado al Grupo.';
           } else if (error.status === 404) {
-            errorMessage = 'Error 404: Endpoint de Vanguardia no encontrado.';
+            errorMessage = 'Error 404: Endpoint del Grupo no encontrado.';
           } else if (error.status === 500) {
-            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
+            errorMessage = 'Error 500: Error interno del servidor del Grupo.';
           } else if (error.error && error.error.message) {
             errorMessage = error.error.message;
           } else if (error.message) {
@@ -1154,7 +1155,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           agencia: order.agencia || order.agency || this.selectedAgency?.Name || 'Sin agencia',
           fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
           fileId: order.fileId || order.id || `file-${index + 1}`,
-          // Marcar como pedido de Vanguardia
+          monto: order.monto ?? order.amount ?? order.Monto ?? order.Amount,
+          order_dms: order.numeroPedido || order.orderNumber || order.id,
+          external_color: order.colorExterior || order.external_color || order.color_exterior,
+          internal_color: order.colorInterior || order.internal_color || order.color_interior,
           isVanguardiaOrder: true,
           vanguardiaData: order
         };
@@ -1175,7 +1179,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         agencia: ordersData.agencia || ordersData.agency || this.selectedAgency?.Name || 'Sin agencia',
         fechaRegistro: ordersData.fechaRegistro || ordersData.registrationDate || new Date(),
         fileId: ordersData.fileId || ordersData.id || 'file-1',
-        // Marcar como pedido de Vanguardia
+        monto: ordersData.monto ?? ordersData.amount ?? ordersData.Monto ?? ordersData.Amount,
+        order_dms: ordersData.numeroPedido || ordersData.orderNumber || ordersData.id,
+        external_color: ordersData.colorExterior || ordersData.external_color || ordersData.color_exterior,
+        internal_color: ordersData.colorInterior || ordersData.internal_color || ordersData.color_interior,
         isVanguardiaOrder: true,
         vanguardiaData: ordersData
       }];
@@ -1218,7 +1225,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           if (newOrders.length > 0) {
             this.showOrderSelectionDialog(newOrders);
           } else {
-            this.snackBar.open('Todos los pedidos de Vanguardia ya existen en el sistema', 'Cerrar', {
+            this.snackBar.open('Todos los pedidos del Grupo ya existen en el sistema', 'Cerrar', {
               duration: 3000
             });
             // Cargar pedidos existentes en la tabla
@@ -1293,7 +1300,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               // Desactivar loading
               this.loadingOrdersFromVanguardia = false;
               this.cdr.markForCheck();
-              this.snackBar.open('Todos los pedidos de Vanguardia ya existen en el sistema', 'Cerrar', {
+              this.snackBar.open('Todos los pedidos del Grupo ya existen en el sistema', 'Cerrar', {
                 duration: 3000
               });
               return;
@@ -1786,13 +1793,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           let errorMessage = 'Error desconocido';
           
           if (error.status === 0) {
-            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia. Verifique la configuración del servidor.';
+            errorMessage = 'Error de CORS: No se puede conectar con el servidor del Grupo. Verifique la configuración del servidor.';
           } else if (error.status === 400) {
             // Error 400: puede ser validación o registro no encontrado
             if (error.error && error.error.message) {
               const backendMessage = error.error.message;
               if (backendMessage.includes('No se encontró registro') || backendMessage.includes('No se encontró')) {
-                errorMessage = `El registro del documento no existe en la base de datos de Vanguardia. Esto puede ocurrir si el registro fue eliminado o las bases de datos no están sincronizadas. Por favor, recarga la página para sincronizar los datos.`;
+                errorMessage = `El registro del documento no existe en la base de datos del Grupo. Esto puede ocurrir si el registro fue eliminado o las bases de datos no están sincronizadas. Por favor, recarga la página para sincronizar los datos.`;
                 // Recargar documentos para sincronizar después de mostrar el mensaje
                 setTimeout(() => {
                   if (this.selectedFile) {
@@ -1817,7 +1824,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           } else if (error.status === 404) {
             errorMessage = 'Error 404: Endpoint no encontrado.';
           } else if (error.status === 500) {
-            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
+            errorMessage = 'Error 500: Error interno del servidor del Grupo.';
           } else if (error.error && error.error.message) {
             errorMessage = error.error.message;
           } else if (error.message) {

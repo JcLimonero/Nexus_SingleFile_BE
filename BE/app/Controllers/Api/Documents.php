@@ -40,8 +40,8 @@ class Documents extends BaseController
                     df.server_path as backblazeUrl,
                     df.id_document_container as backblazeFileId,
                     df.registration_date as uploadDate,
-                    dt.ReqExpiration as hasExpiration,
-                    df.ExpirationDate as expirationDate,
+                    dt.req_expiration as hasExpiration,
+                    df.expiration_date as expirationDate,
                     dt.id_sub_process as subProcessId,
                     fss.name as subProcessName,
                     CASE 

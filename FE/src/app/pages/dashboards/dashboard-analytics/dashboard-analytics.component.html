@@ -3,15 +3,33 @@
               <!-- Filtros unificados -->
               <div class="filters-container">
                 <div class="filters-row">
-                  <!-- Filtros Razón social + Agencia (ligados) -->
+                  <!-- Filtros Razón social + Agencia (ligados: razón social filtra agencias) -->
                   <div class="filter-group">
+                    <div class="filter-field-wrapper">
+                      <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Razón social</mat-label>
+                        <mat-select
+                          [value]="filterCompania"
+                          (selectionChange)="onCompaniaChange($event.value)"
+                          [disabled]="loading || !hasCompanies()">
+                          <mat-option [value]="null">Todas las razones sociales</mat-option>
+                          <mat-option *ngFor="let c of companies; let i = index; trackBy: trackByCompanyId" [value]="c.Id">
+                            {{ c.Name }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
+                        <mat-hint align="start" *ngIf="!loading && !hasCompanies()">Sin razones sociales</mat-hint>
+                      </mat-form-field>
+                    </div>
+
                     <div class="filter-field-wrapper">
                       <mat-form-field appearance="outline" class="filter-field">
                         <mat-label>Agencia</mat-label>
                         <mat-select
-                          [value]="agenciesFiltradas.length ? agenciesFiltradas[0].Id : null"
+                          [value]="selectedAgencyId"
                           (selectionChange)="onAgencyChange($event.value)"
                           [disabled]="loading || agenciesFiltradas.length === 0">
+                          <mat-option [value]="null">Todas las Agencias</mat-option>
                           <mat-option *ngFor="let agency of agenciesFiltradas; let i = index; trackBy: trackByAgencyId" [value]="agency.Id">
                             {{ agency.Name }}
                           </mat-option>
@@ -22,24 +40,9 @@
                         </mat-hint>
                       </mat-form-field>
                     </div>
-
-                    <div class="filter-field-wrapper">
-                      <mat-form-field appearance="outline" class="filter-field">
-                        <mat-label>Razón social</mat-label>
-                        <mat-select
-                          [value]="companies.length ? companies[0].Id : null"
-                          (selectionChange)="onCompaniaChange($event.value)"
-                          [disabled]="loading || !hasCompanies()">
-                          <mat-option *ngFor="let c of companies; let i = index; trackBy: trackByCompanyId" [value]="c.Id">
-                            {{ c.Name }}
-                          </mat-option>
-                        </mat-select>
-                        <mat-hint align="start" *ngIf="loading">Cargando...</mat-hint>
-                        <mat-hint align="start" *ngIf="!loading && !hasCompanies()">Sin razones sociales</mat-hint>
-                      </mat-form-field>
-                    </div>
                     
-                    <!-- Filtro por Usuario -->
+                    <!-- Filtro por Usuario - OCULTO -->
+                    <!--
                     <div class="filter-field-wrapper">
                       <mat-form-field appearance="outline" class="filter-field">
                         <mat-label>Usuario</mat-label>
@@ -57,6 +60,7 @@
                         <mat-hint align="end" *ngIf="isUserFilterDisabled">Filtro deshabilitado para su rol</mat-hint>
                       </mat-form-field>
                     </div>
+                    -->
                   </div>
 
                   <!-- Filtros de Fechas - OCULTOS -->

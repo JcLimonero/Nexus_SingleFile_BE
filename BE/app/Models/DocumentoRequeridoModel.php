@@ -13,7 +13,7 @@ class DocumentoRequeridoModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'id', 'id_document_type', 'id_configuration_process'
+        'id', 'id_document_type', 'id_configuration_process', 'id_last_user_update'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -86,7 +86,7 @@ class DocumentoRequeridoModel extends Model
     /**
      * Obtener documentos requeridos con filtros y paginación
      */
-    public function getDocumentosRequeridos($filters = [], $limit = null, $offset = null, $sortBy = 'Id', $sortOrder = 'ASC')
+    public function getDocumentosRequeridos($filters = [], $limit = null, $offset = null, $sortBy = 'id', $sortOrder = 'ASC')
     {
         try {
             // Usar db->table() directamente para tener más control sobre el alias
@@ -128,49 +128,38 @@ class DocumentoRequeridoModel extends Model
             $builder->join('file_status fs', 'fs.id = dt.id_process_type', 'left');
             $builder->join('file_sub_status sp', 'sp.id = dt.id_sub_process', 'left');
             
-            // Aplicar filtros (mapear nombres de filtros PascalCase a snake_case)
-            if (!empty($filters['IdProcess'])) {
-                $builder->where('cp.id_process', $filters['IdProcess']);
+            if (!empty($filters['id_process'])) {
+                $builder->where('cp.id_process', $filters['id_process']);
             }
-            if (!empty($filters['IdAgency'])) {
-                $builder->where('cp.id_agency', $filters['IdAgency']);
+            if (!empty($filters['id_agency'])) {
+                $builder->where('cp.id_agency', $filters['id_agency']);
             }
-            if (!empty($filters['IdCustomerType'])) {
-                $builder->where('cp.id_customer_type', $filters['IdCustomerType']);
+            if (!empty($filters['id_customer_type'])) {
+                $builder->where('cp.id_customer_type', $filters['id_customer_type']);
             }
-            if (!empty($filters['IdOperationType'])) {
-                $builder->where('cp.id_operation_type', $filters['IdOperationType']);
+            if (!empty($filters['id_operation_type'])) {
+                $builder->where('cp.id_operation_type', $filters['id_operation_type']);
             }
-            if (!empty($filters['IdDocumentType'])) {
-                $builder->where('cpd.id_document_type', $filters['IdDocumentType']);
+            if (!empty($filters['id_document_type'])) {
+                $builder->where('cpd.id_document_type', $filters['id_document_type']);
             }
-            // Solo aplicar filtro de Enabled si se especifica explícitamente
-            if (isset($filters['Enabled']) && $filters['Enabled'] !== null) {
-                $builder->where('cp.enabled', $filters['Enabled']);
+            if (isset($filters['enabled']) && $filters['enabled'] !== null) {
+                $builder->where('cp.enabled', $filters['enabled']);
+            }
+            if (!empty($filters['id'])) {
+                $builder->where('cpd.id', $filters['id']);
             }
             
-            // Validar y aplicar ordenamiento
-            // Mapear campos de ordenamiento a sus columnas reales o alias (snake_case)
             $sortFieldMap = [
-                'Id' => 'cpd.id',
                 'id' => 'cpd.id',
-                'Name' => 'dt.name',
                 'name' => 'dt.name',
-                'ProcesoName' => 'p.name',
                 'proceso_name' => 'p.name',
-                'AgenciaName' => 'a.name',
                 'agencia_name' => 'a.name',
-                'TipoOperacionName' => 'ot.name',
                 'tipo_operacion_name' => 'ot.name',
-                'TipoClienteName' => 'ct.name',
                 'tipo_cliente_name' => 'ct.name',
-                'TipoDocumentoName' => 'dt.name',
                 'tipo_documento_name' => 'dt.name',
-                'Enabled' => 'cp.enabled',
                 'enabled' => 'cp.enabled',
-                'RegistrationDate' => 'cp.registration_date',
                 'registration_date' => 'cp.registration_date',
-                'UpdateDate' => 'cp.update_date',
                 'update_date' => 'cp.update_date'
             ];
             
@@ -211,24 +200,23 @@ class DocumentoRequeridoModel extends Model
         $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'left');
         
         // Aplicar filtros (mapear nombres de filtros PascalCase a snake_case)
-        if (!empty($filters['IdProcess'])) {
-            $builder->where('cp.id_process', $filters['IdProcess']);
+        if (!empty($filters['id_process'])) {
+            $builder->where('cp.id_process', $filters['id_process']);
         }
-        if (!empty($filters['IdAgency'])) {
-            $builder->where('cp.id_agency', $filters['IdAgency']);
+        if (!empty($filters['id_agency'])) {
+            $builder->where('cp.id_agency', $filters['id_agency']);
         }
-        if (!empty($filters['IdCustomerType'])) {
-            $builder->where('cp.id_customer_type', $filters['IdCustomerType']);
+        if (!empty($filters['id_customer_type'])) {
+            $builder->where('cp.id_customer_type', $filters['id_customer_type']);
         }
-        if (!empty($filters['IdOperationType'])) {
-            $builder->where('cp.id_operation_type', $filters['IdOperationType']);
+        if (!empty($filters['id_operation_type'])) {
+            $builder->where('cp.id_operation_type', $filters['id_operation_type']);
         }
-        if (!empty($filters['IdDocumentType'])) {
-            $builder->where('cpd.id_document_type', $filters['IdDocumentType']);
+        if (!empty($filters['id_document_type'])) {
+            $builder->where('cpd.id_document_type', $filters['id_document_type']);
         }
-        // Solo aplicar filtro de Enabled si se especifica explícitamente
-        if (isset($filters['Enabled']) && $filters['Enabled'] !== null) {
-            $builder->where('cp.enabled', $filters['Enabled']);
+        if (isset($filters['enabled']) && $filters['enabled'] !== null) {
+            $builder->where('cp.enabled', $filters['enabled']);
         }
         
         return $builder->countAllResults();
@@ -271,11 +259,10 @@ class DocumentoRequeridoModel extends Model
     /**
      * Obtener o crear configuración de proceso
      */
-    public function getOrCreateconfiguration_process($idProcess, $idAgency, $idCustomerType, $idOperationType)
+    public function getOrCreateconfiguration_process($idProcess, $idAgency, $idCustomerType, $idOperationType, $userId = null)
     {
-        // Usar el model configuration_processModel
-        $configProcessModel = new \App\Models\configuration_processModel();
-        return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType);
+        $configProcessModel = new \App\Models\ConfigurationProcessModel();
+        return $configProcessModel->getOrCreateConfiguration($idProcess, $idAgency, $idCustomerType, $idOperationType, $userId);
     }
 
     /**
@@ -329,7 +316,7 @@ class DocumentoRequeridoModel extends Model
     /**
      * Obtener documentos requeridos con información de relaciones
      */
-    public function getDocumentosRequeridosWithRelations($filters = [], $limit = null, $offset = null, $sortBy = 'Id', $sortOrder = 'ASC')
+    public function getDocumentosRequeridosWithRelations($filters = [], $limit = null, $offset = null, $sortBy = 'id', $sortOrder = 'ASC')
     {
         return $this->getDocumentosRequeridos($filters, $limit, $offset, $sortBy, $sortOrder);
     }
@@ -339,18 +326,19 @@ class DocumentoRequeridoModel extends Model
      */
     public function createDocumentoRequerido($data)
     {
-        // Obtener o crear configuración de proceso
+        $userId = $data['id_last_user_update'] ?? null;
         $idConfigProcess = $this->getOrCreateconfiguration_process(
-            $data['IdProcess'] ?? $data['id_process'] ?? 0,
-            $data['IdAgency'] ?? $data['id_agency'] ?? 0,
-            $data['IdCustomerType'] ?? $data['id_customer_type'] ?? 0,
-            $data['IdOperationType'] ?? $data['id_operation_type'] ?? 0
+            $data['id_process'] ?? 0,
+            $data['id_agency'] ?? 0,
+            $data['id_customer_type'] ?? 0,
+            $data['id_operation_type'] ?? 0,
+            $userId
         );
         
-        // Insertar en la tabla de relación (mapear a snake_case)
         $insertData = [
-            'id_document_type' => $data['IdDocumentType'] ?? $data['id_document_type'] ?? null,
-            'id_configuration_process' => $idConfigProcess
+            'id_document_type' => $data['id_document_type'] ?? null,
+            'id_configuration_process' => $idConfigProcess,
+            'id_last_user_update' => $userId ?? 1
         ];
         
         return $this->insert($insertData);
@@ -361,34 +349,28 @@ class DocumentoRequeridoModel extends Model
      */
     public function updateDocumentoRequerido($id, $data)
     {
-        // Si se cambia la configuración, crear nueva o usar existente
-        if (isset($data['IdProcess']) || isset($data['id_process']) || isset($data['IdAgency']) || isset($data['id_agency']) ||
-            isset($data['IdCustomerType']) || isset($data['id_customer_type']) || isset($data['IdOperationType']) || isset($data['id_operation_type'])) {
-            
+        if (isset($data['id_process']) || isset($data['id_agency']) || isset($data['id_customer_type']) || isset($data['id_operation_type'])) {
+            $userId = $data['id_last_user_update'] ?? null;
             $idConfigProcess = $this->getOrCreateconfiguration_process(
-                $data['IdProcess'] ?? $data['id_process'] ?? 0,
-                $data['IdAgency'] ?? $data['id_agency'] ?? 0,
-                $data['IdCustomerType'] ?? $data['id_customer_type'] ?? 0,
-                $data['IdOperationType'] ?? $data['id_operation_type'] ?? 0
+                $data['id_process'] ?? 0,
+                $data['id_agency'] ?? 0,
+                $data['id_customer_type'] ?? 0,
+                $data['id_operation_type'] ?? 0,
+                $userId
             );
             
             $data['id_configuration_process'] = $idConfigProcess;
         }
         
-        // Actualizar solo los campos permitidos de configuration_process_document_type
-        // Nota: Enabled está en configuration_process, no en configuration_process_document_type
-        // El controlador se encargará de actualizar configuration_process si se envía Enabled
         $updateData = [];
-        if (isset($data['IdDocumentType']) || isset($data['id_document_type'])) {
-            $updateData['id_document_type'] = $data['IdDocumentType'] ?? $data['id_document_type'];
+        if (isset($data['id_document_type'])) {
+            $updateData['id_document_type'] = $data['id_document_type'];
         }
-        if (isset($data['id_configuration_process']) || isset($data['Idconfiguration_process'])) {
-            $updateData['id_configuration_process'] = $data['id_configuration_process'] ?? $data['Idconfiguration_process'];
+        if (isset($data['id_configuration_process'])) {
+            $updateData['id_configuration_process'] = $data['id_configuration_process'];
         }
         
-        // Si solo se está actualizando Enabled, no hay nada que actualizar en esta tabla
-        // pero aún así retornamos true para que el controlador pueda actualizar configuration_process
-        if (isset($data['Enabled']) && empty($updateData)) {
+        if (isset($data['enabled']) && empty($updateData)) {
             // Saltar validación ya que no estamos actualizando nada en esta tabla
             return true; // Permitir que el controlador actualice configuration_process
         }
