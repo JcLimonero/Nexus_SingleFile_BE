@@ -988,3 +988,79 @@ Stack trace:
 #13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
 #14 {main}
 ERROR - 2026-03-02 18:38:53 --> Error guardando refresh token: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE)
+ERROR - 2026-03-02 19:04:43 --> mysqli_sql_exception: Table 'process' already exists in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('CREATE TABLE `p...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('CREATE TABLE `p...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('CREATE TABLE `p...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/Forge.php(570): CodeIgniter\Database\BaseConnection->query('CREATE TABLE `p...')
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Database/Migrations/2024-01-01-000001_CreateProcessTable.php(55): CodeIgniter\Database\Forge->createTable('process')
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MigrationRunner.php(876): App\Database\Migrations\CreateProcessTable->up()
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MigrationRunner.php(182): CodeIgniter\Database\MigrationRunner->migrate('up', Object(stdClass))
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Commands/Database/Migrate.php(85): CodeIgniter\Database\MigrationRunner->latest(NULL)
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Commands.php(74): CodeIgniter\Commands\Database\Migrate->run(Array)
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CLI/Console.php(47): CodeIgniter\CLI\Commands->run('migrate', Array)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(388): CodeIgniter\CLI\Console->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#12 /Users/jclimonero/Developer/SingleFile/BE/spark(94): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#13 {main}
+ERROR - 2026-03-02 19:08:20 --> mysqli_sql_exception: View 'nexfile.view_document_name' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT file_nam...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT file_nam...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT file_nam...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Documents.php(320): CodeIgniter\Database\BaseConnection->query('SELECT file_nam...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Documents->getFileName()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Documents))
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#11 {main}
+ERROR - 2026-03-02 19:08:40 --> mysqli_sql_exception: View 'nexfile.view_document_name' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT file_nam...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT file_nam...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT file_nam...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Documents.php(320): CodeIgniter\Database\BaseConnection->query('SELECT file_nam...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Documents->getFileName()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Documents))
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#11 {main}
+ERROR - 2026-03-02 19:11:50 --> mysqli_sql_exception: View 'nexfile.view_document_name' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('SELECT file_nam...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT file_nam...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT file_nam...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Documents.php(320): CodeIgniter\Database\BaseConnection->query('SELECT file_nam...', Array)
+#4 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Documents->getFileName()
+#5 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Documents))
+#6 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#9 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#11 {main}
+ERROR - 2026-03-02 19:18:11 --> mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE) in /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:327
+Stack trace:
+#0 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
+#1 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
+#2 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
+#3 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(2345): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', Array, false)
+#4 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AuthModel.php(223): CodeIgniter\Database\BaseBuilder->insert(Array)
+#5 /Users/jclimonero/Developer/SingleFile/BE/app/Models/AuthModel.php(92): App\Models\AuthModel->saveRefreshToken('1', 'eyJ0eXAiOiJKV1Q...')
+#6 /Users/jclimonero/Developer/SingleFile/BE/app/Controllers/Api/Auth.php(41): App\Models\AuthModel->authenticate('admin@nexusqtec...', '$2y$10$RWcmMG80...')
+#7 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(933): App\Controllers\Api\Auth->login()
+#8 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Api\Auth))
+#9 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(363): CodeIgniter\CodeIgniter->run()
+#11 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 /Users/jclimonero/Developer/SingleFile/BE/public/index.php(60): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 /Users/jclimonero/Developer/SingleFile/BE/vendor/codeigniter4/framework/system/rewrite.php(44): require_once('/Users/jclimone...')
+#14 {main}
+ERROR - 2026-03-02 19:18:11 --> Error guardando refresh token: Cannot add or update a child row: a foreign key constraint fails (`nexfile`.`user_refresh_token`, CONSTRAINT `FK_user_refresh_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE)

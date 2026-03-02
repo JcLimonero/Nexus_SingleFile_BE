@@ -1031,7 +1031,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     const duration = 3600;
     const params = new URLSearchParams({
       file: document.documentContainer,
-      duration: duration.toString()
+      duration: duration.toString(),
+      baseUrl: environment.apiBaseUrl
     });
 
     const url = `${this.apiConfig.getUploadApiBaseUrl()}/get-private-url?${params.toString()}`;

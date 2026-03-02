@@ -302,13 +302,16 @@ class Documents extends BaseController
     public function getFileName()
     {
         try {
-            $idFileDocument = $this->request->getGet('idFileDocument');
-            $idFile = $this->request->getGet('idFile');
+            $idFileDocument = $this->request->getGet('idFileDocument')
+                ?? $this->request->getGet('idDocumentByFile')
+                ?? $this->request->getPost('idFileDocument')
+                ?? $this->request->getPost('idDocumentByFile');
+            $idFile = $this->request->getGet('idFile') ?? $this->request->getPost('idFile');
 
             if (!$idFileDocument || !$idFile) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Los parámetros idFileDocument e idFile son requeridos',
+                    'message' => 'Los parámetros idFileDocument (o idDocumentByFile) e idFile son requeridos',
                     'data' => null
                 ])->setStatusCode(400);
             }

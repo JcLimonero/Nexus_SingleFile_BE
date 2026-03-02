@@ -12,6 +12,7 @@ import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { Cliente, Documento, ValidacionService } from '../../../mesa-control/validacion/validacion.service';
 import { ApiConfigService } from '../../../../core/services/api-config.service';
+import { environment } from '../../../../../environments/environment';
 
 export interface GlobalDocumentosDialogData {
   cliente: Cliente;
@@ -259,6 +260,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
       params.append('file', documentContainer);
     }
     params.append('duration', '3600');
+    params.append('baseUrl', environment.apiBaseUrl);
 
     const url = `${this.apiConfig.getUploadApiBaseUrl()}/get-private-url?${params.toString()}`;
 

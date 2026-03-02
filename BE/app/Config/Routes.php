@@ -343,10 +343,12 @@ $routes->group('client', function($routes) {
     $routes->get('(:num)/expedientes', 'Client::expedientes/$1');
 });
 
-// Rutas de Proxy a Backblaze (para evitar CORS y agregar X-Provider-Token)
+// Rutas de Backblaze: subida directa y descarga desde nuestro bucket
 $routes->group('backblaze', function($routes) {
+    $routes->post('direct-upload', 'BackblazeDirectUpload::upload');
     $routes->post('upload', 'VanguardiaProxy::upload');
-    $routes->get('get-private-url', 'VanguardiaProxy::getPrivateUrl');
+    $routes->get('get-private-url', 'BackblazeDirectUpload::getPrivateUrl');
+    $routes->get('download', 'BackblazeDirectUpload::download');
 });
 
 // Rutas de proxy a APIs Vanguardia (vgd)

@@ -36,12 +36,12 @@ export const AuthInterceptor: HttpInterceptorFn = (
     
     if (token && isAuthenticated) {
       // Clonar la request y agregar el header de autorización
-      const authRequest = request.clone({
-        setHeaders: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // No forzar Content-Type en FormData (subidas): el navegador debe setear multipart/form-data con boundary
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+      if (!(request.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+      }
+      const authRequest = request.clone({ setHeaders: headers });
 
       return next(authRequest).pipe(
         catchError((error: HttpErrorResponse) => {
@@ -176,12 +176,11 @@ function handleTokenRefresh(
         // Token renovado, clonar la request con el nuevo token
         const newToken = authService.getToken();
         if (newToken) {
-          const newRequest = request.clone({
-            setHeaders: {
-              'Authorization': `Bearer ${newToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
+          const headers: Record<string, string> = { 'Authorization': `Bearer ${newToken}` };
+          if (!(request.body instanceof FormData)) {
+            headers['Content-Type'] = 'application/json';
+          }
+          const newRequest = request.clone({ setHeaders: headers });
           return next(newRequest);
         }
       }

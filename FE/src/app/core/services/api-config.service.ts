@@ -40,7 +40,8 @@ export class ApiConfigService {
             api_url: (res.data.api_url || '').replace(/\/$/, '') || '/vgd/singlefilecustomer',
             orders_api_url: (res.data.orders_api_url || '').replace(/\/$/, '') || '/vgd/singlefileorderslastest',
             invoices_api_url: (res.data.invoices_api_url || '').replace(/\/$/, '') || '/vgd/singlefileinvoices',
-            upload_api_url: (res.data.upload_api_url || '').replace(/\/$/, '') || '/backblaze/upload',
+            // Siempre usar environment.apiBaseUrl (localhost en dev) para subidas, no la IP del servidor
+            upload_api_url: `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze/direct-upload`,
           };
         } else {
           this.vanguardia = this.getFallbackVanguardia();
@@ -59,7 +60,7 @@ export class ApiConfigService {
       api_url: v?.apiUrl || '/vgd/singlefilecustomer',
       orders_api_url: v?.ordersApiUrl || '/vgd/singlefileorderslastest',
       invoices_api_url: v?.invoicesApiUrl || '/vgd/singlefileinvoices',
-      upload_api_url: v?.uploadApiUrl || '/backblaze/upload',
+      upload_api_url: `${environment.apiBaseUrl}/api/backblaze/direct-upload`,
     };
   }
 
@@ -80,14 +81,14 @@ export class ApiConfigService {
     return this.vanguardia?.invoices_api_url ?? this.getFallbackVanguardia().invoices_api_url;
   }
 
+  /** Siempre usa environment.apiBaseUrl (localhost en dev) para subidas */
   getUploadApiUrl(): string {
-    return this.vanguardia?.upload_api_url ?? this.getFallbackVanguardia().upload_api_url;
+    return `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze/direct-upload`;
   }
 
-  /** URL base para get-private-url (uploadApiUrl sin /upload) */
+  /** URL base para get-private-url y otros endpoints Backblaze (sin /direct-upload ni /upload) */
   getUploadApiBaseUrl(): string {
-    const u = this.getUploadApiUrl();
-    return u.replace(/\/upload\/?$/, '') || u;
+    return `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze`;
   }
 
   isLoaded(): boolean {

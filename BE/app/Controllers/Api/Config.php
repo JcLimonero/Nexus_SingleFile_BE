@@ -30,7 +30,7 @@ class Config extends BaseController
         try {
             $db = \Config\Database::connect();
             $rows = $db->table('config')
-                ->select('config_key, config_value')
+                ->select('config_key, config_value, category')
                 ->where('category', 'group_api_url')
                 ->get()
                 ->getResultArray();
@@ -44,11 +44,16 @@ class Config extends BaseController
             }
 
             $base = rtrim($raw['api_base_url'] ?? '', '/');
+
+            // Siempre usar la API propia de esta aplicación para subidas (direct-upload a Backblaze)
+            $uploadBase = rtrim($this->request->getUri()->getBaseURL(), '/');
+            $uploadApiUrl = $uploadBase . '/api/backblaze/direct-upload';
+
             $data = [
                 'api_url' => $base . $this->ensureLeadingSlash($raw['api_url'] ?? '/vgd/singlefilecustomer'),
                 'orders_api_url' => $base . $this->ensureLeadingSlash($raw['orders_api_url'] ?? '/vgd/singlefileorderslastest'),
                 'invoices_api_url' => $base . $this->ensureLeadingSlash($raw['invoices_api_url'] ?? '/vgd/singlefileinvoices'),
-                'upload_api_url' => $base . $this->ensureLeadingSlash($raw['upload_api_url'] ?? '/backblaze/upload'),
+                'upload_api_url' => $uploadApiUrl,
             ];
 
             return $this->response->setJSON([
@@ -58,11 +63,12 @@ class Config extends BaseController
         } catch (\Exception $e) {
             log_message('error', 'Config::groupApiUrl - ' . $e->getMessage());
             $base = rtrim(self::VANGUARDIA_DEFAULTS['api_base_url'], '/');
+            $uploadBase = rtrim($this->request->getUri()->getBaseURL(), '/');
             $fallback = [
                 'api_url' => $base . '/vgd/singlefilecustomer',
                 'orders_api_url' => $base . '/vgd/singlefileorderslastest',
                 'invoices_api_url' => $base . '/vgd/singlefileinvoices',
-                'upload_api_url' => $base . '/backblaze/upload',
+                'upload_api_url' => $uploadBase . '/api/backblaze/direct-upload',
             ];
             return $this->response
                 ->setStatusCode(500)
