@@ -134,10 +134,6 @@ export class SidenavItemComponent implements OnInit, OnChanges {
     this.cd.markForCheck();
   }
 
-  onLinkClick() {
-    this.navigationService.triggerCloseAll();
-  }
-
   onOpenChange(item: NavigationDropdown) {
     if (this.isChildrenOf(this.item as NavigationDropdown, item)) {
       return;
