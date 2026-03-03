@@ -16,7 +16,7 @@ class AML extends BaseConfig
      * Umbral en unidades UMA (Unidad de Medida y Actualización).
      * 3210 UMA según normativa PLD.
      */
-    public int $umbralUMA = 1;
+    public int $umbralUMA = 3210;
 
     /**
      * Valor diario de la UMA en pesos (MXN). Actualizar cuando INEGI publique nuevo valor.
