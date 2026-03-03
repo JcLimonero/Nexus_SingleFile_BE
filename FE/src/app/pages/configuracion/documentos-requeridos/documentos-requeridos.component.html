@@ -61,12 +61,13 @@
 
         <!-- Tabla de Configuraciones Agrupadas -->
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <div class="relative overflow-x-auto">
-            <!-- Loading Spinner -->
-            <div *ngIf="loadingConfiguraciones" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-              <mat-spinner diameter="50"></mat-spinner>
-            </div>
+          <!-- Loading Spinner - sobre la tabla -->
+          <div *ngIf="loadingConfiguraciones" class="flex flex-col items-center justify-center py-16 bg-gray-50 border-b">
+            <mat-spinner diameter="48"></mat-spinner>
+            <span class="text-sm text-gray-600 mt-3">Cargando configuraciones...</span>
+          </div>
 
+          <div *ngIf="!loadingConfiguraciones" class="overflow-x-auto">
             <table mat-table [dataSource]="dataSourceConfiguraciones" matSort #configuracionesSort="matSort" class="w-full compact-table" style="line-height: 1;">
               <!-- Columna ID -->
               <ng-container matColumnDef="id">
@@ -189,7 +190,7 @@
             </table>
 
             <!-- No Data Message -->
-            <div *ngIf="dataSourceConfiguraciones.data.length === 0 && !loadingConfiguraciones" class="text-center py-8">
+            <div *ngIf="dataSourceConfiguraciones.data.length === 0" class="text-center py-8">
               <mat-icon class="text-gray-400 text-6xl mb-4">settings</mat-icon>
               <p class="text-gray-500 text-lg">No hay configuraciones disponibles</p>
               <p class="text-gray-400 text-sm mt-2">
@@ -200,6 +201,7 @@
 
           <!-- Paginación (10 registros por defecto) -->
           <mat-paginator
+            *ngIf="!loadingConfiguraciones"
             #configuracionesPaginator
             [pageSizeOptions]="[10, 25, 50, 100, 200, 500, 1000]"
             [pageSize]="10"
@@ -307,12 +309,13 @@
 
         <!-- Tabla -->
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <div class="relative overflow-x-auto">
-            <!-- Loading Spinner -->
-            <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-              <mat-spinner diameter="50"></mat-spinner>
-            </div>
+          <!-- Loading Spinner - sobre la tabla -->
+          <div *ngIf="loading" class="flex flex-col items-center justify-center py-16 bg-gray-50 border-b">
+            <mat-spinner diameter="48"></mat-spinner>
+            <span class="text-sm text-gray-600 mt-3">Cargando documentos requeridos...</span>
+          </div>
 
+          <div *ngIf="!loading" class="overflow-x-auto">
             <table mat-table [dataSource]="dataSource" matSort #sort="matSort" class="w-full compact-table" style="line-height: 1;">
               <!-- Columna ID -->
               <ng-container matColumnDef="id">
@@ -440,7 +443,7 @@
             </table>
 
             <!-- No Data Message -->
-            <div *ngIf="dataSource.data.length === 0 && !loading" class="text-center py-8">
+            <div *ngIf="dataSource.data.length === 0" class="text-center py-8">
               <mat-icon class="text-gray-400 text-6xl mb-4">description</mat-icon>
               <p class="text-gray-500 text-lg">No hay documentos requeridos configurados</p>
               <p class="text-gray-400" *ngIf="!isConfigurationSelected()">
@@ -463,7 +466,7 @@
 
           <!-- Paginación en servidor -->
           <mat-paginator
-            *ngIf="totalDocumentos > 0"
+            *ngIf="totalDocumentos > 0 && !loading"
             [length]="totalDocumentos"
             [pageSize]="pageSizeDocumentos"
             [pageSizeOptions]="pageSizeOptionsDocumentos"
