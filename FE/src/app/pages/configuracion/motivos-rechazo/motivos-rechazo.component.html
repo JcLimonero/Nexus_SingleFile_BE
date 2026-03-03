@@ -8,10 +8,10 @@
             <!-- Filtro por tipo de razón -->
             <mat-form-field appearance="outline" class="min-w-48">
               <mat-label>Tipo de Razón</mat-label>
-              <mat-select [(ngModel)]="filters.id_type_reason" (ngModelChange)="applyFilters()">
+              <mat-select [(ngModel)]="selectedTypeReason" (ngModelChange)="applyFilters()">
                 <mat-option value="">Todos los tipos</mat-option>
-                <mat-option value="4">Aprobación</mat-option>
-                <mat-option value="5">Rechazo</mat-option>
+                <mat-option [value]="4">Aprobación</mat-option>
+                <mat-option [value]="5">Rechazo</mat-option>
               </mat-select>
             </mat-form-field>
             

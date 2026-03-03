@@ -59,6 +59,8 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
     sort_order: 'ASC'
   };
 
+  selectedTypeReason: number | '' = '';
+
   // Paginación
   totalReasons = 0;
   pageSize = 10;
@@ -122,7 +124,12 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   loadData(): void {
     this.loading = true;
     
-    this.fileReasonService.getFileReasons(this.filters).subscribe({
+    const payload: FileReasonFilters = {
+      ...this.filters,
+      id_type_reason: this.selectedTypeReason === '' ? undefined : Number(this.selectedTypeReason)
+    };
+
+    this.fileReasonService.getFileReasons(payload).subscribe({
       next: (response) => {
 
         // Debuggear cada motivo individualmente
@@ -147,6 +154,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
    * Aplicar filtros
    */
   applyFilters(): void {
+    this.filters.id_type_reason = this.selectedTypeReason === '' ? undefined : Number(this.selectedTypeReason);
     if (this.paginator) {
       this.paginator.firstPage();
     }
@@ -168,6 +176,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
       sort_by: 'name',
       sort_order: 'ASC'
     };
+    this.selectedTypeReason = '';
     this.applyFilters();
   }
 

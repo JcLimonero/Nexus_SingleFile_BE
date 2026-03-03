@@ -57,8 +57,8 @@
       <div class="flex flex-wrap items-center gap-4">
         <mat-form-field appearance="outline" class="filtro-field min-w-[200px]" subscriptSizing="dynamic">
           <mat-label>Razón social</mat-label>
-          <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onFilterChange()">
-            <mat-option [value]="null">Todas</mat-option>
+          <mat-select [(ngModel)]="filterCompania" name="filterCompania" [compareWith]="compareById" (selectionChange)="onFilterChange()">
+            <mat-option value="">Todas las razones</mat-option>
             <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
           </mat-select>
         </mat-form-field>
@@ -76,7 +76,7 @@
               [indeterminate]="isSomeAgenciesSelected"
               (change)="toggleTodos($event.checked)"
               (click)="$event.stopPropagation()">
-              Todas
+              Todas las agencias
             </mat-checkbox>
           </div>
           <div class="max-h-64 overflow-y-auto" (click)="$event.stopPropagation()">

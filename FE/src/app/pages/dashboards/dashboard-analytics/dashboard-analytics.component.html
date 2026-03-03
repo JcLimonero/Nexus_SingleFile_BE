@@ -13,7 +13,7 @@
                           (selectionChange)="onCompaniaChange($event.value)"
                           [disabled]="loading || !hasCompanies()"
                           [compareWith]="compareById">
-                          <mat-option [value]="null">Todas las razones sociales</mat-option>
+                          <mat-option [value]="''">Todas las razones</mat-option>
                           <mat-option *ngFor="let c of companies; let i = index; trackBy: trackByCompanyId" [value]="c.Id">
                             {{ c.Name }}
                           </mat-option>
@@ -31,7 +31,7 @@
                           (selectionChange)="onAgencyChange($event.value)"
                           [disabled]="loading || agenciesFiltradas.length === 0"
                           [compareWith]="compareById">
-                          <mat-option [value]="null">Todas las Agencias</mat-option>
+                          <mat-option [value]="''">Todas las agencias</mat-option>
                           <mat-option *ngFor="let agency of agenciesFiltradas; let i = index; trackBy: trackByAgencyId" [value]="agency.Id">
                             {{ agency.Name }}
                           </mat-option>
@@ -213,39 +213,39 @@
         <!-- 1. Expedientes del Día -->
         <div class="widget-container">
           <vex-widget-today-cases
-            [agencyId]="selectedAgencyId"></vex-widget-today-cases>
+            [agencyId]="selectedAgencyIdOrNull"></vex-widget-today-cases>
         </div>
 
         <!-- 2. Expedientes Totales -->
         <div class="widget-container">
           <vex-widget-total-cases
-            [agencyId]="selectedAgencyId"></vex-widget-total-cases>
+            [agencyId]="selectedAgencyIdOrNull"></vex-widget-total-cases>
         </div>
 
         <!-- 3. Expedientes Liberados Totales -->
         <div class="widget-container">
           <vex-widget-total-liberated
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-total-liberated>
         </div>
 
         <!-- 4. Expedientes del Mes -->
         <div class="widget-container">
           <vex-widget-monthly-cases
-            [agencyId]="selectedAgencyId"></vex-widget-monthly-cases>
+            [agencyId]="selectedAgencyIdOrNull"></vex-widget-monthly-cases>
         </div>
 
         <!-- 5. Expedientes Liberados del Mes Actual -->
         <div class="widget-container">
           <vex-widget-current-month-liberated
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-current-month-liberated>
         </div>
 
         <!-- 6. Usuarios Activos -->
         <div class="widget-container">
           <vex-widget-agency-users
-            [agencyId]="selectedAgencyId"></vex-widget-agency-users>
+            [agencyId]="selectedAgencyIdOrNull"></vex-widget-agency-users>
         </div>
       </div>
     </div>
@@ -262,14 +262,14 @@
         <!-- Gráfico de tendencia de expedientes -->
         <div class="chart-container">
           <vex-widget-trend-chart
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-trend-chart>
         </div>
 
         <!-- Widget de Expedientes por Día - Semana Actual -->
         <div class="chart-container">
           <vex-widget-weekly-chart
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-weekly-chart>
         </div>
       </div>
@@ -289,7 +289,7 @@
         <div class="widget-container"
              style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-process-distribution
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-process-distribution>
         </div>
 
@@ -297,7 +297,7 @@
         <div class="widget-container"
              style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-distribution-metrics-donut
-            [agencyId]="selectedAgencyId"></vex-widget-distribution-metrics-donut>
+            [agencyId]="selectedAgencyIdOrNull"></vex-widget-distribution-metrics-donut>
         </div>
       </div>
 
@@ -307,13 +307,13 @@
         <div class="widget-container"
              style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-status-distribution
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-status-distribution>
         </div>
         <div class="widget-container"
              style="flex: 1 1 50% !important; min-width: 0 !important; max-width: 50% !important; width: 100% !important;">
           <vex-widget-current-month-status
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-current-month-status>
         </div>
       </div>
@@ -324,7 +324,7 @@
         <!-- Widget de Estatus Histórico -->
         <div class="widget-container">
           <vex-widget-historical-status
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-historical-status>
         </div>
       </div>
@@ -342,21 +342,21 @@
         <!-- Widget de Distribución por Asesor -->
         <div class="chart-container">
           <vex-widget-advisor-distribution
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-advisor-distribution>
         </div>
 
         <!-- Widget de Período de Atención de Expedientes -->
         <div class="chart-container">
           <vex-widget-attention-period
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-attention-period>
         </div>
 
         <!-- Widget de Período de Atención - Mes Actual -->
         <div class="chart-container">
           <vex-widget-current-month-attention
-            [agencyId]="selectedAgencyId"
+            [agencyId]="selectedAgencyIdOrNull"
             [userId]="selectedUserId"></vex-widget-current-month-attention>
         </div>
       </div>
