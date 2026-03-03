@@ -90,6 +90,7 @@
             <button
               mat-stroked-button
               color="primary"
+              [disabled]="!puedeSubirDocumentos(documento)"
               (click)="fileInput.click()"
               class="text-xs">
               Seleccionar

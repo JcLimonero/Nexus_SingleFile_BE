@@ -191,6 +191,33 @@
           <td mat-cell *matCellDef="let cliente"> {{ cliente.operacion }} </td>
         </ng-container>
 
+        <ng-container matColumnDef="monto">
+          <th mat-header-cell *matHeaderCellDef> Monto </th>
+          <td mat-cell *matCellDef="let cliente"> {{ formatMonto(cliente.montoUnidad) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="avisoConfidencialidad">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Aviso confid. </th>
+          <td mat-cell *matCellDef="let cliente" class="text-center">
+            <mat-icon
+              [ngClass]="cliente.avisoConfidencialidadAceptado ? 'text-green-600' : 'text-gray-400'"
+              matTooltip="{{ cliente.avisoConfidencialidadAceptado ? 'Aprobado' : 'Pendiente' }}">
+              {{ cliente.avisoConfidencialidadAceptado ? 'check_circle' : 'radio_button_unchecked' }}
+            </mat-icon>
+            <span class="text-xs ml-1">{{ cliente.avisoConfidencialidadAceptado ? 'Sí' : 'No' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="beneficiarios">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Beneficiarios </th>
+          <td mat-cell *matCellDef="let cliente" class="text-center">
+            <span
+              [ngClass]="isBeneficiariosCompleto(cliente) ? 'text-green-600 font-semibold' : 'text-amber-600'">
+              {{ cliente.porcentajeBeneficiarios != null ? (cliente.porcentajeBeneficiarios | number:'1.0-0') + '%' : '—' }}
+            </span>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="registro">
           <th mat-header-cell *matHeaderCellDef> Registro </th>
           <td mat-cell *matCellDef="let cliente"> {{ cliente.registro | date: 'yyyy-MM-dd' }} </td>

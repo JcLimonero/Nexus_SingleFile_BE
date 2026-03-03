@@ -96,15 +96,14 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-
           this.error = 'Error al cargar los documentos.';
           this.loading = false;
           this.documentos = [];
-          return of([]);
+          return of({ documentos: [], idDocumentTypeLiquidacion: null, expedientAmount: 0, totalReceiptAmount: 0 });
         })
       )
-      .subscribe((documentos) => {
-        this.documentos = Array.isArray(documentos) ? documentos : [];
+      .subscribe((res) => {
+        this.documentos = Array.isArray(res?.documentos) ? res.documentos : [];
         this.actualizarPendientes();
         this.loading = false;
       });
@@ -168,11 +167,17 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     this.selectedFiles[clave] = file;
   }
 
+  /** Solo permite carga cuando el documento está en: Nuevo (1), Cargado (2), Rechazado (5) o Caducado (6). No permite si está Aprobado (4) o En revisión (3). */
+  puedeSubirDocumentos(documento: Documento): boolean {
+    const status = Number(documento.idEstatus);
+    return status === 1 || status === 2 || status === 5 || status === 6;
+  }
+
   canUpload(documento: Documento): boolean {
+    if (!this.puedeSubirDocumentos(documento)) return false;
     const clave = this.obtenerClaveDocumento(documento);
     const tieneArchivo = clave ? !!this.selectedFiles[clave] : false;
-    const status = Number(documento.idEstatus);
-    return tieneArchivo && status !== 3 && status !== 4;
+    return !!tieneArchivo;
   }
 
   uploadDocument(documento: Documento): void {

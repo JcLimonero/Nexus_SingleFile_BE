@@ -31,6 +31,12 @@ export interface Cliente {
   year?: number | string | null;
   /** Versión de la unidad (OrderByCar.CarType) */
   version?: string | null;
+  /** Monto de la unidad (Order.amount) */
+  montoUnidad?: number | null;
+  /** 1 si aviso de confidencialidad aprobado, 0 si no */
+  avisoConfidencialidadAceptado?: number | null;
+  /** Porcentaje total de beneficiarios (0-100) */
+  porcentajeBeneficiarios?: number | null;
 }
 
 export interface Documento {

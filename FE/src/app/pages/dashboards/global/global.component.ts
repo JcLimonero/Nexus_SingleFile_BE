@@ -281,11 +281,29 @@ private cargarAgencias(showMessage: boolean = false): void {
       'proceso',
       'fase',
       'operacion',
+      'monto',
+      'avisoConfidencialidad',
+      'beneficiarios',
       'registro',
       'fechaLiberacion',
       'documentosNoAprobados',
       'documentos'
     ];
+  }
+
+  formatMonto(value: number | null | undefined): string {
+    if (value == null || value === undefined) return '—';
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  }
+
+  isBeneficiariosCompleto(cliente: Cliente): boolean {
+    const pct = Number(cliente.porcentajeBeneficiarios ?? 0);
+    return pct >= 100;
   }
 
   private cargarProcesos(showMessage: boolean = false): void {
@@ -515,6 +533,9 @@ private cargarAgencias(showMessage: boolean = false): void {
         'Proceso': cliente.proceso || '',
         'Fase': cliente.fase || '',
         'Operación': cliente.operacion || '',
+        'Monto': cliente.montoUnidad != null ? this.formatMonto(cliente.montoUnidad) : '—',
+        'Aviso confid.': cliente.avisoConfidencialidadAceptado ? 'Sí' : 'No',
+        'Beneficiarios %': cliente.porcentajeBeneficiarios != null ? cliente.porcentajeBeneficiarios : '—',
         'Registro': cliente.registro ? new Date(cliente.registro).toLocaleDateString('es-MX') : '',
         'Fecha Liberación': cliente.fechaLiberacion ? new Date(cliente.fechaLiberacion).toLocaleDateString('es-MX') : '—',
         'Documentos Pendientes': cliente.documentosNoAprobados ?? 0
