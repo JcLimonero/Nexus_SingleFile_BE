@@ -34,33 +34,37 @@
           <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
             <mat-card-content class="p-2">
               <div class="flex flex-wrap items-center justify-between gap-3">
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Razón social</mat-label>
-                  <mat-select [(ngModel)]="selectedCompany" [compareWith]="compareById" (selectionChange)="onCompanyFilterChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Todas las razones</mat-option>
-                    <mat-option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Agencia</mat-label>
-                  <mat-select [(ngModel)]="selectedAgencyForConfiguraciones" (ngModelChange)="onAgencyFilterChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Todas las agencias</mat-option>
-                    <mat-option *ngFor="let agency of agenciesFiltradas" [value]="agency.id">
-                      {{ agency.name }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-                </mat-form-field>
-                <button
-                  mat-stroked-button
-                  color="accent"
-                  (click)="loadConfiguraciones()"
-                  [disabled]="loadingConfiguraciones"
-                  matTooltip="Cargar configuraciones"
-                  class="flex items-center gap-2">
-                  <mat-icon [class.animate-spin]="loadingConfiguraciones">refresh</mat-icon>
-                  Cargar
-                </button>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Razón social</mat-label>
+                    <mat-select [(ngModel)]="selectedCompany" [compareWith]="compareById" (selectionChange)="onCompanyFilterChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Todas las razones</mat-option>
+                      <mat-option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Agencia</mat-label>
+                    <mat-select [(ngModel)]="selectedAgencyForConfiguraciones" (ngModelChange)="onAgencyFilterChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Todas las agencias</mat-option>
+                      <mat-option *ngFor="let agency of agenciesFiltradas" [value]="agency.id">
+                        {{ agency.name }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                  </mat-form-field>
+                </div>
+                <div class="flex items-center gap-2 mt-3">
+                    <button
+                      mat-stroked-button
+                      color="accent"
+                      (click)="loadConfiguraciones()"
+                      [disabled]="loadingConfiguraciones"
+                      matTooltip="Cargar configuraciones"
+                      class="flex items-center gap-2">
+                      <mat-icon [class.animate-spin]="loadingConfiguraciones">refresh</mat-icon>
+                      Cargar
+                    </button>
+                </div>
               </div>
             </mat-card-content>
           </mat-card>
@@ -227,56 +231,58 @@
           <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
             <mat-card-content class="p-2">
               <div class="flex flex-wrap items-center justify-between gap-3">
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Razón social</mat-label>
-                  <mat-select [(ngModel)]="selectedCompany" [compareWith]="compareById" (selectionChange)="onCompanyFilterChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Todas las razones</mat-option>
-                    <mat-option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Agencia</mat-label>
-                  <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Seleccionar todas las agencias</mat-option>
-                    <mat-option *ngFor="let agency of agenciesFiltradas" [value]="agency.id">
-                      {{ agency.name }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Proceso</mat-label>
-                  <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Seleccionar todos los procesos</mat-option>
-                    <mat-option *ngFor="let process of processes" [value]="process.id">
-                      {{ process.name }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Tipo de Cliente</mat-label>
-                  <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
-                    <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.id">
-                      {{ customerType.name }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="min-w-48">
-                  <mat-label>Tipo Operación</mat-label>
-                  <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
-                    <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
-                    <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.id">
-                      {{ operationType.name }}
-                    </mat-option>
-                  </mat-select>
-                  <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-                </mat-form-field>
+                <div class="flex flex-wrap items-center gap-3">
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Razón social</mat-label>
+                    <mat-select [(ngModel)]="selectedCompany" [compareWith]="compareById" (selectionChange)="onCompanyFilterChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Todas las razones</mat-option>
+                      <mat-option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Agencia</mat-label>
+                    <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Seleccionar todas las agencias</mat-option>
+                      <mat-option *ngFor="let agency of agenciesFiltradas" [value]="agency.id">
+                        {{ agency.name }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                  </mat-form-field>
+  
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Proceso</mat-label>
+                    <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Seleccionar todos los procesos</mat-option>
+                      <mat-option *ngFor="let process of processes" [value]="process.id">
+                        {{ process.name }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                  </mat-form-field>
+  
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Tipo de Cliente</mat-label>
+                    <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
+                      <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.id">
+                        {{ customerType.name }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                  </mat-form-field>
+  
+                  <mat-form-field appearance="outline" class="min-w-48">
+                    <mat-label>Tipo Operación</mat-label>
+                    <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
+                      <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
+                      <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.id">
+                        {{ operationType.name }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+                  </mat-form-field>
+                </div>
 
                 <div class="flex items-center gap-2">
                   <button
