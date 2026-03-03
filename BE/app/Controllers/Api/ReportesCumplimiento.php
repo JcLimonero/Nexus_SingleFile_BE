@@ -101,7 +101,7 @@ class ReportesCumplimiento extends BaseController
                 $params[] = (int) $idCompany;
             }
 
-            $sql .= " GROUP BY c.id, aml.totalMonto, aml.idCompany, aml.anio ORDER BY aml.totalMonto DESC";
+            $sql .= " GROUP BY c.id, aml.totalMonto, aml.idCompany ORDER BY aml.totalMonto DESC";
 
             $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
             $countQuery = $this->db->query($countSql, $params);
