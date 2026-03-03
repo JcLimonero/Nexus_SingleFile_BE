@@ -54,8 +54,8 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   procesos: any[] = [];
   fases: CatalogItem[] = FASES_FILTER_CATALOG;
 
-  selectedAgency: number | null = null;
-  selectedProcess: number | null = null;
+  selectedAgency: number | string | null = null;
+  selectedProcess: number | string | null = null;
   selectedFase: string = '';
   searchTerm = '';
   showCancelledOrders = false;
@@ -141,9 +141,9 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onAgenciaChange(): void {
-    if (this.selectedAgency !== null && this.selectedAgency !== undefined) {
+    if (this.selectedAgency !== null && this.selectedAgency !== undefined && this.selectedAgency !== '') {
       // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
-      this.defaultAgencyService.seleccionarAgencia(this.selectedAgency);
+      this.defaultAgencyService.seleccionarAgencia(this.selectedAgency as number);
       
       // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
       // La actualización del servidor se puede hacer de forma asíncrona o en otro momento
@@ -338,8 +338,8 @@ private cargarAgencias(showMessage: boolean = false): void {
 
   private intentarCargarClientes(): void {
     if (
-      this.selectedAgency == null ||
-      this.selectedProcess == null ||
+      (this.selectedAgency === null || this.selectedAgency === undefined) ||
+      (this.selectedProcess === null || this.selectedProcess === undefined) ||
       !this.agenciasCargadas ||
       !this.procesosCargados
     ) {
@@ -350,7 +350,7 @@ private cargarAgencias(showMessage: boolean = false): void {
   }
 
   private cargarClientes(): void {
-    if (this.selectedAgency == null || this.selectedAgency === undefined) {
+    if (this.selectedAgency === null || this.selectedAgency === undefined) {
       this.loadingClientes = false;
       this.clientesOriginales = [];
       this.clientesDataSource.data = [];
@@ -358,8 +358,8 @@ private cargarAgencias(showMessage: boolean = false): void {
     }
 
     const filtros: FiltrosValidacion = {
-      agencia: this.selectedAgency ?? undefined,
-      proceso: this.selectedProcess ?? undefined,
+      agencia: (this.selectedAgency === '' ? undefined : this.selectedAgency) as number | undefined,
+      proceso: (this.selectedProcess === '' ? undefined : this.selectedProcess) as number | undefined,
       showCancelled: this.showCancelledOrders
     };
 
