@@ -216,16 +216,18 @@ class AuthModel extends Model
                     ->update([
                         'refresh_token' => $refreshToken,
                         'expiration_date' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
-                        'update_date' => date('Y-m-d H:i:s')
+                        'update_date' => date('Y-m-d H:i:s'),
+                        'id_last_user_update' => $userId
                     ]);
             } else {
-                // Insertar nuevo token
+                // Insertar nuevo token (id_last_user_update evita FK fail: default 0 no existe en user)
                 $db->table('user_refresh_token')->insert([
                     'id_user' => $userId,
                     'refresh_token' => $refreshToken,
                     'expiration_date' => date('Y-m-d H:i:s', time() + $this->refreshTokenExpiration),
                     'created_date' => date('Y-m-d H:i:s'),
-                    'update_date' => date('Y-m-d H:i:s')
+                    'update_date' => date('Y-m-d H:i:s'),
+                    'id_last_user_update' => $userId
                 ]);
             }
             

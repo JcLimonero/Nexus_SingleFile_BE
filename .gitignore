@@ -1,6 +1,6 @@
 
 venv-pillow/
-FE/dist/*
+!FE/dist/*
 
 # BE/writable - ignorar todo excepto archivos de estructura (index.html, .htaccess)
 BE/writable/*
