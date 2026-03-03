@@ -54,8 +54,8 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   procesos: any[] = [];
   fases: CatalogItem[] = FASES_FILTER_CATALOG;
 
-  selectedAgency: number | string | null = null;
-  selectedProcess: number | string | null = null;
+  selectedAgency: number | string | null = '';
+  selectedProcess: number | string | null = '';
   selectedFase: string = '';
   searchTerm = '';
   showCancelledOrders = false;
@@ -249,18 +249,12 @@ private cargarAgencias(showMessage: boolean = false): void {
       }
 
       if (!showMessage && this.agencias.length > 0) {
-        setTimeout(() => {
-          const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-
-          if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
-            this.selectedAgency = savedAgencyId;
-            this.onAgenciaChange();
-          } else {
-            // ✅ Seleccionar primer item por default
-            this.selectedAgency = this.agencias[0].Id;
-            this.onAgenciaChange();
-          }
-        }, 150);
+        const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+        if (savedAgencyId !== null && this.agencias.some(ag => ag.Id === savedAgencyId)) {
+          this.selectedAgency = savedAgencyId;
+          this.onAgenciaChange();
+        }
+        // Si no hay agencia guardada, permanece en '' ("Todas las agencias")
       }
     });
 }
@@ -329,10 +323,8 @@ private cargarAgencias(showMessage: boolean = false): void {
 
         if (showMessage) {
           this.snackBar.open('Procesos actualizados', 'Cerrar', { duration: 2000 });
-        } else if (this.procesos.length > 0 && this.selectedProcess === null) {
-          this.selectedProcess = this.procesos[0].Id;
-          this.onProcesoChange();
         }
+        // Si no hay proceso seleccionado, permanece en '' ("Todos los procesos")
       });
   }
 
