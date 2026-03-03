@@ -581,6 +581,7 @@ class ReportesCumplimiento extends BaseController
         }
 
         try {
+            $anioActual = (int) date('Y');
             $amlConfig = config(AML::class);
             $umbral = $amlConfig->getUmbralMonto();
             $vistaAML = $amlConfig->vistaMontos;
