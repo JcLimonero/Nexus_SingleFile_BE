@@ -444,8 +444,14 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     return `${m1?.label ?? first.month}/${first.year} - ${m2?.label ?? last.month}/${last.year}`;
   }
 
+  /** Obtiene el IdAgency DMS de una agencia (soporta IdAgency, id_agency_dms, IdAgencyDMS) */
+  private getIdAgencyDms(a: Agencia): string | null {
+    const v = a['IdAgency'] ?? a['id_agency_dms'] ?? a['IdAgencyDMS'];
+    return v != null && String(v).trim() !== '' ? String(v).trim() : null;
+  }
+
   cargarPedidos(): void {
-    const selected = this.selectedAgencies.filter(a => a['IdAgency']);
+    const selected = this.selectedAgencies.filter(a => this.getIdAgencyDms(a) != null);
     if (selected.length === 0) {
       this.dataSource.data = [];
       this.displayedColumns = [];
@@ -463,8 +469,8 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   private cargarPedidosMultiAgencias(selected: Agencia[]): void {
     const agenciesWithId = selected
-      .filter(a => a['IdAgency'])
-      .map(a => ({ idAgency: a['id_agency_dms'] ?? a['IdAgency'], name: ((a as any).name ?? (a as any).Name) || '' }));
+      .filter(a => this.getIdAgencyDms(a) != null)
+      .map(a => ({ idAgency: this.getIdAgencyDms(a)!, name: ((a as any).name ?? (a as any).Name) || '' }));
     if (agenciesWithId.length === 0) {
       this.snackBar.open('No hay agencias con IdAgency configurado', 'Cerrar', { duration: 3000 });
       return;
