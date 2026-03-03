@@ -24,6 +24,7 @@ import { MatCardModule } from '@angular/material/card';
 // Importar servicios existentes
 import { ProcesoService } from '../../../core/services/proceso.service';
 import { AgencyService, Agency } from '../../../core/services/agency.service';
+import { CompanyService } from '../../../core/services/company.service';
 import { CostumerTypeService } from '../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../core/services/tipo-operacion.service';
 import { DocumentoRequeridoService } from '../../../core/services/documento-requerido.service';
@@ -83,6 +84,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   loading = false;
   loadingCatalogs = false;
   loadingConfiguraciones = false;
+  selectedCompany = '';
   selectedProcess = '';
   selectedAgency = '';
   selectedCustomerType = '';
@@ -91,6 +93,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   // Datos para los dropdowns usando interfaces existentes
   processes: Proceso[] = [];
   agencies: Agency[] = [];
+  companies: { id: number; name: string }[] = [];
   customerTypes: CostumerType[] = [];
   operationTypes: TipoOperacion[] = [];
   
@@ -106,6 +109,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private procesoService: ProcesoService,
     private agencyService: AgencyService,
+    private companyService: CompanyService,
     private costumerTypeService: CostumerTypeService,
     private tipoOperacionService: TipoOperacionService,
     private documentoRequeridoService: DocumentoRequeridoService
@@ -114,6 +118,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'tipoDocumento', 'etapa', 'subEtapa', 'requerido', 'requiereExpiracion']);
     this.displayedColumnsConfiguraciones = this.authService.getDisplayedColumnsWithOptionalId(['id', 'agencia', 'proceso', 'tipoCliente', 'tipoOperacion', 'totalDocumentos', 'enabled', 'acciones']);
+    this.loadCompanies();
     this.loadCatalogs();
     this.loadData();
     this.loadConfiguraciones();
@@ -284,6 +289,32 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     });
   }
 
+  private loadCompanies(): void {
+    this.companyService.getCompanies().subscribe({
+      next: (res) => {
+        if (res.success && res.data?.companies) {
+          this.companies = res.data.companies.map((c: any) => ({ id: c.id ?? c.Id, name: c.name ?? c.Name }));
+        }
+      }
+    });
+  }
+
+  get agenciesFiltradas(): Agency[] {
+    if (!this.selectedCompany) return this.agencies;
+    const idComp = Number(this.selectedCompany);
+    return this.agencies.filter(a => {
+      const aId = a.id_company ?? (a as any).IdCompany ?? (a as any).idCompany;
+      if (aId == null || aId === '') return false;
+      return Number(aId) === idComp;
+    });
+  }
+
+  compareById(a: any, b: any): boolean {
+    if ((a === null || a === undefined || a === '') && (b === null || b === undefined || b === '')) return true;
+    if (a === null || a === undefined || a === '' || b === null || b === undefined || b === '') return false;
+    return Number(a) === Number(b);
+  }
+
   private checkCatalogsLoaded(): void {
     // Verificar si todos los catálogos han sido procesados (aunque estén vacíos)
     const totalCatalogs = 4; // procesos, agencias, tipos de cliente, tipos de operación
@@ -316,6 +347,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
       limit: this.pageSizeDocumentos,
       offset: this.pageIndexDocumentos * this.pageSizeDocumentos
     };
+    if (this.selectedCompany) filters.id_company = this.selectedCompany;
     if (this.selectedProcess) filters.id_process = this.selectedProcess;
     if (this.selectedAgency) filters.id_agency = this.selectedAgency;
     if (this.selectedCustomerType) filters.id_customer_type = this.selectedCustomerType;
@@ -352,14 +384,19 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   onConfigurationChange(): void {
     this.pageIndexDocumentos = 0;
     this.loadData();
-    
-    // Limpiar el item seleccionado cuando cambian los filtros
     this.selectedItem = null;
+  }
+
+  onCompanyFilterChange(): void {
+    this.selectedAgency = '';
+    this.selectedAgencyForConfiguraciones = '';
+    this.onConfigurationChange();
+    this.loadConfiguraciones();
   }
 
   isConfigurationSelected(): boolean {
     // Si no hay ninguna selección, considerar como si estuviera todo seleccionado (ver todos los datos)
-    if (!this.selectedProcess && !this.selectedAgency && !this.selectedCustomerType && !this.selectedOperationType) {
+    if (!this.selectedCompany && !this.selectedProcess && !this.selectedAgency && !this.selectedCustomerType && !this.selectedOperationType) {
       return true;
     }
     // Si hay al menos una selección, permitir mostrar datos
@@ -373,6 +410,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   }
 
   clearFilters(): void {
+    this.selectedCompany = '';
     this.selectedProcess = '';
     this.selectedAgency = '';
     this.selectedCustomerType = '';
@@ -541,11 +579,10 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   loadConfiguraciones(): void {
     this.loadingConfiguraciones = true;
     
-    // Construir filtros solo con la agencia seleccionada
+    // Construir filtros con razón social y agencia
     const filters: DocumentoRequeridoFilters = {};
-    if (this.selectedAgencyForConfiguraciones) {
-      filters.id_agency = this.selectedAgencyForConfiguraciones;
-    }
+    if (this.selectedCompany) filters.id_company = this.selectedCompany;
+    if (this.selectedAgencyForConfiguraciones) filters.id_agency = this.selectedAgencyForConfiguraciones;
 
     this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
       next: (response) => {

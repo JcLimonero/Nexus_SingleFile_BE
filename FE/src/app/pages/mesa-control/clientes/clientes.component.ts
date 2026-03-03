@@ -52,6 +52,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
   loading = false;
   searchTerm = '';
+  filterCompania: number | '' = '';
   filterAgency: number | '' = '';
   filterSoloUmbralAML = false;
   agencies: { id: number; name: string }[] = [];
@@ -118,6 +119,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
     this.clientesService.list({
       search: this.searchTerm || undefined,
+      idCompany: this.filterCompania || undefined,
       idAgency: this.filterAgency || undefined,
       onlyAmlUmbral: this.filterSoloUmbralAML || undefined,
       limit: this.pageSize,
@@ -172,6 +174,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.searchTerm = '';
+    this.filterCompania = '';
     this.filterAgency = '';
     this.filterSoloUmbralAML = false;
     this.pageIndex = 0;

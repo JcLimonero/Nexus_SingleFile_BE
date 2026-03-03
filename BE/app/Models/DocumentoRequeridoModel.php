@@ -134,6 +134,9 @@ class DocumentoRequeridoModel extends Model
             if (!empty($filters['id_agency'])) {
                 $builder->where('cp.id_agency', $filters['id_agency']);
             }
+            if (!empty($filters['id_company'])) {
+                $builder->where('a.id_company', $filters['id_company']);
+            }
             if (!empty($filters['id_customer_type'])) {
                 $builder->where('cp.id_customer_type', $filters['id_customer_type']);
             }
@@ -205,6 +208,10 @@ class DocumentoRequeridoModel extends Model
         }
         if (!empty($filters['id_agency'])) {
             $builder->where('cp.id_agency', $filters['id_agency']);
+        }
+        if (!empty($filters['id_company'])) {
+            $builder->join('agency a', 'a.id = cp.id_agency', 'left');
+            $builder->where('a.id_company', $filters['id_company']);
         }
         if (!empty($filters['id_customer_type'])) {
             $builder->where('cp.id_customer_type', $filters['id_customer_type']);

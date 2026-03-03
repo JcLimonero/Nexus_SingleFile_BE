@@ -38,6 +38,7 @@ class DocumentoRequerido extends BaseController
             $filters = [
                 'id_process' => $this->request->getGet('id_process'),
                 'id_agency' => $this->request->getGet('id_agency'),
+                'id_company' => $this->request->getGet('id_company'),
                 'id_customer_type' => $this->request->getGet('id_customer_type'),
                 'id_operation_type' => $this->request->getGet('id_operation_type'),
                 'id_document_type' => $this->request->getGet('id_document_type'),

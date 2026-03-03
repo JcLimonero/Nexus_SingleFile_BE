@@ -31,6 +31,7 @@ export class DocumentoRequeridoService {
     if (filters) {
       if (filters.id_process) httpParams = httpParams.set('id_process', filters.id_process);
       if (filters.id_agency) httpParams = httpParams.set('id_agency', filters.id_agency);
+      if (filters.id_company != null) httpParams = httpParams.set('id_company', String(filters.id_company));
       if (filters.id_customer_type) httpParams = httpParams.set('id_customer_type', filters.id_customer_type);
       if (filters.id_operation_type) httpParams = httpParams.set('id_operation_type', filters.id_operation_type);
       if (filters.id_document_type) httpParams = httpParams.set('id_document_type', filters.id_document_type);

@@ -75,10 +75,11 @@ export class ClientesMesaService {
     private apiBase: ApiBaseService
   ) {}
 
-  list(params: { search?: string; idAgency?: number; onlyAmlUmbral?: boolean; limit?: number; offset?: number }): Observable<ClientesListResponse> {
+  list(params: { search?: string; idAgency?: number; idCompany?: number; onlyAmlUmbral?: boolean; limit?: number; offset?: number }): Observable<ClientesListResponse> {
     let httpParams = new HttpParams();
     if (params.search) httpParams = httpParams.set('search', params.search);
     if (params.idAgency != null) httpParams = httpParams.set('idAgency', params.idAgency.toString());
+    if (params.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params.onlyAmlUmbral) httpParams = httpParams.set('onlyAmlUmbral', '1');
     if (params.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
