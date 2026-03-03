@@ -14,6 +14,15 @@ export interface ClienteMesa {
   excedeUmbralAML?: boolean;
 }
 
+export interface DocumentoLiquidacion {
+  idFileDocument: number;
+  documento: string;
+  monto: number;
+  idPaymentMethod?: number | null;
+  tipoPago: string;
+  documentContainer: string | null;
+}
+
 export interface ExpedienteCliente {
   idFile: number;
   ndPedido: string;
@@ -29,6 +38,7 @@ export interface ExpedienteCliente {
   cliente: string;
   ndCliente: string;
   monto?: number | null;
+  documentosLiquidacion?: DocumentoLiquidacion[];
 }
 
 export interface ClientesListResponse {

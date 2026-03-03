@@ -11,6 +11,35 @@
 
   <mat-spinner *ngIf="loading" diameter="40" class="mx-auto my-8"></mat-spinner>
 
+  <div
+    *ngIf="!loading && grupos.length > 0"
+    class="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="rounded-lg bg-blue-50 border border-blue-200 p-4 flex flex-col">
+      <div class="flex items-center gap-2 mb-2">
+        <mat-icon class="text-blue-600">summarize</mat-icon>
+        <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Últimos 6 meses</span>
+      </div>
+      <span class="text-2xl font-bold text-blue-700">{{ formatMonto(resumenUltimos6Meses.totalMonto) }}</span>
+      <span class="text-xs text-gray-500 mt-1">Suma comprobantes · {{ resumenUltimos6Meses.cantidadOperaciones }} operación(es)</span>
+    </div>
+    <div class="rounded-lg bg-amber-50 border border-amber-200 p-4 flex flex-col">
+      <div class="flex items-center gap-2 mb-2">
+        <mat-icon class="text-amber-600">payments</mat-icon>
+        <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Efectivo en 6 meses</span>
+      </div>
+      <span class="text-2xl font-bold text-amber-700">{{ formatMonto(montoEfectivo6Meses) }}</span>
+      <span class="text-xs text-gray-500 mt-1">Solo depósito en efectivo</span>
+    </div>
+    <div class="rounded-lg bg-slate-50 border border-slate-200 p-4 flex flex-col">
+      <div class="flex items-center gap-2 mb-2">
+        <mat-icon class="text-slate-600">account_balance_wallet</mat-icon>
+        <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total todo el tiempo</span>
+      </div>
+      <span class="text-2xl font-bold text-slate-700">{{ formatMonto(montoTotalTodoTiempo) }}</span>
+      <span class="text-xs text-gray-500 mt-1">Suma de comprobantes cargados</span>
+    </div>
+  </div>
+
   <div *ngIf="!loading && grupos.length === 0" class="py-8 text-center text-gray-500">
     <mat-icon class="text-4xl mb-2">folder_off</mat-icon>
     <p>No hay expedientes para este cliente.</p>
@@ -22,7 +51,18 @@
         {{ grupo.compania }} / {{ grupo.agencia }}
       </div>
       <div class="overflow-x-auto">
-      <table mat-table [dataSource]="grupo.dataSource" class="w-full">
+      <table mat-table [dataSource]="grupo.dataSource" class="w-full" multiTemplateDataRows>
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef class="w-12"></th>
+          <td mat-cell *matCellDef="let row" class="w-12">
+            <button
+              mat-icon-button
+              (click)="toggleExpanded(row); $event.stopPropagation()"
+              [matTooltip]="hasDocumentosLiquidacion(row) ? 'Ver documentos de liquidación' : 'Ver detalles (sin documentos de liquidación)'">
+              <mat-icon>{{ isExpanded(row) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+          </td>
+        </ng-container>
         <ng-container matColumnDef="ndPedido">
           <th mat-header-cell *matHeaderCellDef>ND Pedido</th>
           <td mat-cell *matCellDef="let row">{{ row.ndPedido }}</td>
@@ -59,8 +99,49 @@
             </button>
           </td>
         </ng-container>
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length" class="!p-0">
+            <div
+              *ngIf="isExpanded(row)"
+              class="bg-gray-50 border-t border-gray-200 px-4 py-3">
+              <div class="text-xs font-semibold text-gray-600 mb-2">Documentos de liquidación</div>
+              <table *ngIf="getDocumentosLiquidacion(row).length > 0" mat-table [dataSource]="getDocumentosLiquidacion(row)" class="w-full !shadow-none">
+                <ng-container matColumnDef="documento">
+                  <th mat-header-cell *matHeaderCellDef>Documento</th>
+                  <td mat-cell *matCellDef="let doc">{{ doc.documento || '—' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="monto">
+                  <th mat-header-cell *matHeaderCellDef>Monto</th>
+                  <td mat-cell *matCellDef="let doc">{{ formatMonto(doc.monto) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="tipoPago">
+                  <th mat-header-cell *matHeaderCellDef>Tipo de pago</th>
+                  <td mat-cell *matCellDef="let doc">{{ doc.tipoPago }}</td>
+                </ng-container>
+                <ng-container matColumnDef="ver">
+                  <th mat-header-cell *matHeaderCellDef class="w-12"></th>
+                  <td mat-cell *matCellDef="let doc">
+                    <button
+                      mat-icon-button
+                      color="primary"
+                      size="small"
+                      (click)="onVerDocumentoLiquidacion(doc)"
+                      matTooltip="Ver documento">
+                      <mat-icon style="font-size: 20px; width: 20px; height: 20px;">visibility</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="docsLiquidacionColumns"></tr>
+                <tr mat-row *matRowDef="let doc; columns: docsLiquidacionColumns;"></tr>
+              </table>
+              <div *ngIf="getDocumentosLiquidacion(row).length === 0" class="text-sm text-gray-500 py-2">No hay documentos de liquidación</div>
+            </div>
+          </td>
+        </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="expanded-detail-row" [class.expanded-row-visible]="isExpanded(row)"></tr>
       </table>
       <mat-paginator [pageSizeOptions]="pageSizeOptions" [pageSize]="10" showFirstLastButtons></mat-paginator>
       </div>

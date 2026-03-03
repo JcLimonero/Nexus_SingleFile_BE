@@ -16,6 +16,26 @@ class Client extends BaseController
     }
 
     /**
+     * Obtener ID del tipo de documento de Liquidación desde la tabla config.
+     */
+    private function getConfigDocumentTypeLiquidacion(): ?int
+    {
+        try {
+            $row = $this->db->table('config')
+                ->select('config_value')
+                ->where('config_key', 'id_document_type_liquidacion')
+                ->get()
+                ->getRowArray();
+            if ($row && !empty(trim($row['config_value'] ?? ''))) {
+                return (int) $row['config_value'];
+            }
+        } catch (\Throwable $e) {
+            // Tabla config puede no existir
+        }
+        return null;
+    }
+
+    /**
      * Listar clientes con expediente para módulo Mesa de Control > Clientes.
      * Solo gerentes (6) y administradores (7). Solo clientes que tengan al menos un File.
      * GET /api/client/list
@@ -221,6 +241,64 @@ class Client extends BaseController
 
             $query = $this->db->query($sql, [$idClientHeader]);
             $expedientes = $query->getResultArray();
+
+            // Obtener documentos de liquidación por expediente (monto, tipo pago, documentContainer)
+            $idDocumentTypeLiquidacion = $this->getConfigDocumentTypeLiquidacion();
+            if ($idDocumentTypeLiquidacion && !empty($expedientes)) {
+                $idFiles = array_column($expedientes, 'idFile');
+                $placeholders = implode(',', array_fill(0, count($idFiles), '?'));
+                $sqlLiq = "
+                    SELECT
+                        dbf.id_file as idFile,
+                        dbf.id as idFileDocument,
+                        dbf.name as documento,
+                        dbf.id_document_container as documentContainer,
+                        COALESCE(lrd.amount, 0) as monto,
+                        lrd.id_payment_method as idPaymentMethod,
+                        pm.name as tipoPago
+                    FROM file_document dbf
+                    LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file
+                    LEFT JOIN payment_method pm ON pm.id = lrd.id_payment_method
+                    WHERE dbf.id_file IN ({$placeholders})
+                    AND dbf.id_document_type = ?
+                    AND dbf.enabled = 1
+                    ORDER BY dbf.id_file, dbf.id
+                ";
+                $paramsLiq = array_merge($idFiles, [$idDocumentTypeLiquidacion]);
+                try {
+                    $docsLiq = $this->db->query($sqlLiq, $paramsLiq)->getResultArray();
+                    $docsPorFile = [];
+                    foreach ($docsLiq as $doc) {
+                        $idF = (int) $doc['idFile'];
+                        if (!isset($docsPorFile[$idF])) {
+                            $docsPorFile[$idF] = [];
+                        }
+                        $docsPorFile[$idF][] = [
+                            'idFileDocument' => (int) $doc['idFileDocument'],
+                            'documento' => $doc['documento'] ?? '',
+                            'monto' => (float) ($doc['monto'] ?? 0),
+                            'idPaymentMethod' => isset($doc['idPaymentMethod']) ? (int) $doc['idPaymentMethod'] : null,
+                            'tipoPago' => $doc['tipoPago'] ?? '—',
+                            'documentContainer' => $doc['documentContainer'] ?? null
+                        ];
+                    }
+                    foreach ($expedientes as &$exp) {
+                        $exp['documentosLiquidacion'] = $docsPorFile[(int) $exp['idFile']] ?? [];
+                    }
+                    unset($exp);
+                } catch (\Exception $e) {
+                    error_log("Client::expedientes - Error cargando docs liquidación: " . $e->getMessage());
+                    foreach ($expedientes as &$exp) {
+                        $exp['documentosLiquidacion'] = [];
+                    }
+                    unset($exp);
+                }
+            } else {
+                foreach ($expedientes as &$exp) {
+                    $exp['documentosLiquidacion'] = [];
+                }
+                unset($exp);
+            }
 
             return $this->response->setJSON([
                 'success' => true,

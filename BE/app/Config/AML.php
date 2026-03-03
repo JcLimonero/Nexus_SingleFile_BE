@@ -7,6 +7,7 @@ use CodeIgniter\Config\BaseConfig;
 /**
  * Configuración para alertas AML (Anti-Lavado de Dinero).
  * Umbral: 3210 UMA para los últimos 6 meses desde la fecha de visualización.
+ * Solo se consideran montos cargados con método de pago "Depósito en efectivo" (id: 1).
  * Operaciones que superen este monto por cliente por compañía activan el indicador.
  */
 class AML extends BaseConfig
@@ -15,7 +16,7 @@ class AML extends BaseConfig
      * Umbral en unidades UMA (Unidad de Medida y Actualización).
      * 3210 UMA según normativa PLD.
      */
-    public int $umbralUMA = 3210;
+    public int $umbralUMA = 1;
 
     /**
      * Valor diario de la UMA en pesos (MXN). Actualizar cuando INEGI publique nuevo valor.
@@ -39,6 +40,7 @@ class AML extends BaseConfig
 
     /**
      * Vista que calcula totales por cliente/compañía en los últimos 6 meses.
+     * Solo suma montos de liquidation_receipt_detail con id_payment_method = 1 (Depósito en efectivo).
      */
     public string $vistaMontos = 'view_client_company_amount_6m';
 
