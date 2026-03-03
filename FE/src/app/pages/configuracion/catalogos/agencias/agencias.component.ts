@@ -74,7 +74,7 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'id_agency_dms', 'name', 'enabled']);
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'id_agency_dms', 'name', 'company_name', 'enabled']);
     // Verificar autenticación antes de cargar datos
     if (this.checkAuthentication()) {
       this.loadAgencias();
@@ -109,13 +109,15 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
       this.paginator.page.subscribe(() => this.updatePageRange());
     }
     
-    // Configurar filtro personalizado
+    // Configurar filtro personalizado (se reasigna en loadAgencias al crear nuevo DataSource)
     this.dataSource.filterPredicate = (data: Agency, filter: string) => {
       const searchTerm = filter.toLowerCase();
       const name = data.name ?? (data as any).Name ?? '';
       const idAgency = data.id_agency_dms ?? (data as any).IdAgency ?? '';
+      const companyName = data.company_name ?? (data as any).CompanyName ?? '';
       return name.toLowerCase().includes(searchTerm) ||
-             (idAgency ? String(idAgency).toLowerCase().includes(searchTerm) : false);
+             (idAgency ? String(idAgency).toLowerCase().includes(searchTerm) : false) ||
+             (companyName ? companyName.toLowerCase().includes(searchTerm) : false);
     };
   }
 
@@ -145,6 +147,24 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
           if (this.sort) {
             this.dataSource.sort = this.sort;
           }
+          
+          // Restaurar sortingDataAccessor y filterPredicate (se pierden al crear nuevo DataSource)
+          this.dataSource.sortingDataAccessor = (data: Agency, property: string) => {
+            if (property === 'company_name') {
+              return (data.company_name ?? (data as any).CompanyName ?? '') as string;
+            }
+            const value = (data as any)[property];
+            return typeof value === 'string' ? value.toLowerCase() : value;
+          };
+          this.dataSource.filterPredicate = (data: Agency, filter: string) => {
+            const searchTerm = filter.toLowerCase();
+            const name = data.name ?? (data as any).Name ?? '';
+            const idAgency = data.id_agency_dms ?? (data as any).IdAgency ?? '';
+            const companyName = data.company_name ?? (data as any).CompanyName ?? '';
+            return name.toLowerCase().includes(searchTerm) ||
+                   (idAgency ? String(idAgency).toLowerCase().includes(searchTerm) : false) ||
+                   (companyName ? companyName.toLowerCase().includes(searchTerm) : false);
+          };
           
           this.applyFilter();
           this.updatePageRange();
@@ -189,11 +209,13 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
       const en = (a: Agency) => a.enabled ?? (a as any).Enabled;
       const nm = (a: Agency) => a.name ?? (a as any).Name ?? '';
       const idAg = (a: Agency) => a.id_agency_dms ?? (a as any).IdAgency ?? '';
+      const compName = (a: Agency) => a.company_name ?? (a as any).CompanyName ?? '';
       this.dataSource.data = this.agencias.filter(agencia => 
         en(agencia) === status &&
         (filterValue === '' || 
          nm(agencia).toLowerCase().includes(filterValue.toLowerCase()) ||
-         (idAg(agencia) && String(idAg(agencia)).toLowerCase().includes(filterValue.toLowerCase())))
+         (idAg(agencia) && String(idAg(agencia)).toLowerCase().includes(filterValue.toLowerCase())) ||
+         (compName(agencia) && compName(agencia).toLowerCase().includes(filterValue.toLowerCase())))
       );
       
     } else {

@@ -9,6 +9,8 @@ export interface Agency {
   id: number | string;
   name: string;
   id_agency_dms?: string;
+  id_company?: number;
+  company_name?: string;
   enabled: number | string;
   registration_date?: string;
   update_date?: string;
@@ -279,6 +281,8 @@ export class AgencyService {
       id: response.id ?? response.Id,
       name: response['name'] ?? response['Name'] ?? '',
       id_agency_dms: response['id_agency_dms'] ?? response['IdAgency'],
+      id_company: response['id_company'] ?? response['IdCompany'],
+      company_name: response['company_name'] ?? response['CompanyName'],
       enabled: String(response['enabled'] ?? response['Enabled'] ?? '0'),
       registration_date: response['registration_date'] ?? response['RegistrationDate'],
       update_date: response['update_date'] ?? response['UpdateDate'],

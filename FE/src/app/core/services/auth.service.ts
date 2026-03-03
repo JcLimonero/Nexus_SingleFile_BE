@@ -337,32 +337,52 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  /** Columnas de tipo ID que se ocultan para el rol Demo (presentaciones a clientes). */
+  static readonly DEMO_HIDDEN_ID_COLUMNS = [
+    'id', 'idExpediente', 'idFile', 'id_agency_dms', 'id_user_rol', 'idTypeReason'
+  ];
+
   /**
-   * Verificar si el usuario es administrador
+   * Verificar si el usuario es administrador (incluye Demo para acceso a rutas).
    */
   isAdmin(): boolean {
     const user = this.getCurrentUser();
-    return user ? (user.role_id === '7' || user.role_id === '8') : false;
+    if (!user) return false;
+    const roleId = String(user.role_id || '');
+    return roleId === '7' || roleId === '8' || roleId === '15';
+  }
+
+  /**
+   * Verificar si el usuario tiene rol Demo (admin sin mostrar IDs).
+   */
+  isDemoRole(): boolean {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+    const roleId = String(user.role_id || '');
+    return roleId === '15';
   }
 
   /**
    * Verificar si el usuario es supervisor o soporte (solo estos roles ven la columna ID en tablas).
-   * Soporte = role_id 8, Supervisor = role_name contiene "Supervisor"
+   * Demo (15) NO se considera: no debe ver IDs.
    */
   isSupervisorOrSoporte(): boolean {
     const user = this.getCurrentUser();
     if (!user) return false;
     const roleId = String(user.role_id || '');
-    const roleName = (user.role_name || '').toLowerCase();
     return roleId === '8' || roleId === '7';
   }
 
   /**
    * Devuelve las columnas a mostrar, incluyendo la columna id solo si el usuario es supervisor o soporte.
+   * Para rol Demo: no se muestran columnas de tipo ID en ninguna tabla.
    * @param columns Columnas base
    * @param idColumnName Nombre de la columna id (por defecto 'id', puede ser 'idExpediente', etc.)
    */
   getDisplayedColumnsWithOptionalId(columns: string[], idColumnName: string = 'id'): string[] {
+    if (this.isDemoRole()) {
+      return columns.filter(c => !AuthService.DEMO_HIDDEN_ID_COLUMNS.includes(c));
+    }
     if (this.isSupervisorOrSoporte()) {
       return columns.includes(idColumnName) ? columns : [idColumnName, ...columns];
     }

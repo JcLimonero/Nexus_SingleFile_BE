@@ -107,9 +107,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Tabla de clientes
   get clientesDisplayedColumns(): string[] {
-    // Columna idFile solo para roles 7 y 8, al inicio cuando se muestra
+    // Columna idFile solo para roles 7 y 8 (no para Demo); Demo no debe ver IDs
     const base = ['ndCliente', 'ndPedido', 'cliente', 'tipoCliente', 'proceso', 'operacion', 'montoUnidad', 'avisoConfidencialidad', 'beneficiarios', 'porcentajeBeneficiarios', 'fase', 'fechaLiberacion', 'registro', 'acciones'];
-    if (this.isAdmin) {
+    if (this.isAdmin && !this.authService.isDemoRole()) {
       return ['idFile', ...base];
     }
     return base;

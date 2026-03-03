@@ -42,13 +42,14 @@ export class UserEditDialogComponent implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
   roles: UserRole[] = [];
-  /** Roles visibles en el selector. En create se ocultan 7 y 8, salvo si el logueado es Administrador (7). */
+  /** Roles visibles en el selector. Demo (15) nunca se muestra - rol interno para presentaciones. */
   get rolesForSelect(): UserRole[] {
+    let list = this.roles.filter(r => String(r.id) !== '15');
     if (this.data?.mode === 'create') {
-      if (this.isLoggedInAdmin) return this.roles;
-      return this.roles.filter(r => String(r.id) !== '7' && String(r.id) !== '8');
+      if (this.isLoggedInAdmin) return list;
+      return list.filter(r => String(r.id) !== '7' && String(r.id) !== '8');
     }
-    return this.roles;
+    return list;
   }
 
   get isLoggedInAdmin(): boolean {

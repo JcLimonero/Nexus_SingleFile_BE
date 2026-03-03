@@ -26,6 +26,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 import { CompanyService, Company } from '../../../core/services/company.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service';
 
 @Component({
@@ -153,6 +154,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     private defaultAgencyService: DefaultAgencyService,
     private companyService: CompanyService,
     private consolidacionDmsService: ConsolidacionDmsService,
+    private authService: AuthService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -553,7 +555,12 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       'delivery_month', 'delivery_year',
       'timestamp_dms_month', 'timestamp_dms_year',
     ];
-    return ordered.filter(col => !excludedColumns.includes(col));
+    let result = ordered.filter(col => !excludedColumns.includes(col));
+    // Rol Demo: no mostrar columnas de tipo ID
+    if (this.authService.isDemoRole()) {
+      result = result.filter(col => !AuthService.DEMO_HIDDEN_ID_COLUMNS.includes(col));
+    }
+    return result;
   }
 
   /**

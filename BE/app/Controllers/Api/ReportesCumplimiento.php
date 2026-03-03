@@ -35,7 +35,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * Verificar que el usuario tenga permiso (gerente o administrador)
+     * Verificar que el usuario tenga permiso (gerente, administrador, soporte o demo)
      */
     private function requireComplianceOfficer(): ?array
     {
@@ -44,7 +44,7 @@ class ReportesCumplimiento extends BaseController
             return null;
         }
         $roleId = (int) ($currentUser['role_id'] ?? 0);
-        if (!in_array($roleId, [6, 7, 8], true)) {
+        if (!in_array($roleId, [6, 7, 8, 15], true)) {
             return null;
         }
         return $currentUser;

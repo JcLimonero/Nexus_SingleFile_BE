@@ -10,6 +10,7 @@ class UserAgency extends BaseController
     /**
      * GET /api/user/{userId}/agencies
      * Obtener agencias asignadas a un usuario
+     * Admin (7), Soporte (8) y Demo (15) tienen acceso a todas las agencias
      */
     public function getUserAgencies($userId = null)
     {
@@ -21,8 +22,30 @@ class UserAgency extends BaseController
                 ])->setStatusCode(400);
             }
 
+            $currentUser = $this->getAuthenticatedUser();
             $db = \Config\Database::connect();
-            
+
+            // Admin, Soporte y Demo tienen acceso a todas las agencias
+            $isAdminOrDemo = $currentUser && (int) $currentUser['user_id'] === (int) $userId && $this->isCurrentUserAdmin();
+            if ($isAdminOrDemo) {
+                $agencies = $db->table('agency a')
+                    ->select('a.id as id_agency, a.name as agency_name, a.enabled')
+                    ->where('a.enabled', 1)
+                    ->orderBy('a.name', 'ASC')
+                    ->get()
+                    ->getResultArray();
+                $agencyIds = array_column($agencies, 'id_agency');
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Agencias del usuario obtenidas exitosamente',
+                    'data' => [
+                        'agencies' => $agencyIds,
+                        'agencies_details' => $agencies,
+                        'count' => count($agencies)
+                    ]
+                ]);
+            }
+
             // Obtener agencias asignadas al usuario con información de la agencia
             $builder = $db->table('agency_user au');
             $agencies = $builder

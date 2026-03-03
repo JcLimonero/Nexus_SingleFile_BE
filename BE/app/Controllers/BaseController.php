@@ -102,8 +102,8 @@ abstract class BaseController extends Controller
             return false;
         }
 
-        // El rol de administrador tiene ID = 7
-        return $user['role_id'] == 7;
+        // Administrador = 7, Soporte = 8, Demo = 15 (admin sin mostrar IDs en frontend)
+        return in_array((int) $user['role_id'], [7, 8, 15], true);
     }
 
     /**
