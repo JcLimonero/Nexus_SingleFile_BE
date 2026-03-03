@@ -8,7 +8,7 @@
           <div class="flex items-center gap-3 flex-wrap">
             <!-- Filtro por agencia -->
             <mat-form-field appearance="outline" class="min-w-48">
-          <mat-label>Agencia Predeterminada</mat-label>
+          <mat-label>Agencia</mat-label>
           <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
             <mat-option value="">Todas las agencias</mat-option>
             <mat-option *ngFor="let agency of agencies" [value]="agency.id">

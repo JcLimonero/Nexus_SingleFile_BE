@@ -8,7 +8,6 @@
             <mat-label>Agencia</mat-label>
             <mat-select
               [(ngModel)]="selectedAgency"
-              [compareWith]="compareById"
               [disabled]="loadingAgencias || agencias.length === 0"
               (selectionChange)="onAgenciaChange()">
               <mat-option *ngIf="loadingAgencias" value="" disabled>
@@ -18,7 +17,7 @@
               <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
                 No hay agencias disponibles
               </mat-option>
-              <mat-option *ngFor="let agencia of agencias" [value]="getAgencyId(agencia)">
+              <mat-option *ngFor="let agencia of agencias" [value]="agencia.id ?? agencia.Id">
                 {{ agencia.name ?? agencia.Name }}
               </mat-option>
             </mat-select>
@@ -28,7 +27,6 @@
             <mat-label>Proceso</mat-label>
             <mat-select
               [(ngModel)]="selectedProcess"
-              [compareWith]="compareById"
               [disabled]="loadingProcesos || procesos.length === 0"
               (selectionChange)="onProcesoChange()">
               <mat-option *ngIf="loadingProcesos" value="" disabled>
@@ -38,7 +36,7 @@
               <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
                 No hay procesos disponibles
               </mat-option>
-              <mat-option *ngFor="let proceso of procesos" [value]="getProcessId(proceso)">
+              <mat-option *ngFor="let proceso of procesos" [value]="proceso.id ?? proceso.Id">
                 {{ proceso.name ?? proceso.Name }}
               </mat-option>
             </mat-select>

@@ -81,7 +81,7 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   agencies: { id: number; name: string; id_company?: number }[] = [];
   companies: Company[] = [];
-  filterCompania: number | null = null;
+  filterCompania: number | '' = '';
   selectedAgencyIds: number[] = [];
   filterAnio: number | null = new Date().getFullYear();
   aniosDisponibles: number[] = [new Date().getFullYear() + 1, new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2];
@@ -109,7 +109,7 @@ export class ReportesCumplimientoComponent implements OnInit {
   get agenciaSelectorLabel(): string {
     const list = this.agenciesFiltradas;
     if (list.length === 0) return this.filterCompania ? 'Sin agencias para esta razón social' : 'No hay agencias';
-    if (this.selectedAgencyIds.length === 0) return 'Todas';
+    if (this.selectedAgencyIds.length === 0) return 'Todas las agencias';
     const allSelected = list.every(a => this.selectedAgencyIds.includes(a.id)) && this.selectedAgencyIds.length === list.length;
     return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
   }
@@ -164,6 +164,12 @@ export class ReportesCumplimientoComponent implements OnInit {
     return typeof raw === 'number' ? raw : Number(raw) || 0;
   }
 
+  compareById(a: any, b: any): boolean {
+    if ((a === null || a === undefined || a === '') && (b === null || b === undefined || b === '')) return true;
+    if (a === null || a === undefined || a === '' || b === null || b === undefined || b === '') return false;
+    return Number(a) === Number(b);
+  }
+
   ngOnInit(): void {
     this.loadAgencies();
     this.loadCompanies();
@@ -199,13 +205,7 @@ export class ReportesCumplimientoComponent implements OnInit {
             Name: String(c['Name'] ?? c['name'] ?? c['company_name'] ?? '')
           }));
 
-          if (this.filterCompania === null && this.companies.length > 0) {
-            const firstCompanyId = this.getCompanyId(this.companies[0]);
-            if (firstCompanyId) {
-              this.filterCompania = firstCompanyId;
-              this.onFilterChange();
-            }
-          }
+          // Dejar '' para mostrar 'Todas' por defecto
         }
       }
     });
@@ -213,7 +213,7 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   loadDashboard(): void {
     this.loadingDashboard = true;
-    this.reportesService.getDashboard({ idCompany: this.filterCompania ?? undefined }).subscribe({
+    this.reportesService.getDashboard({ idCompany: this.filterCompania || undefined }).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.dashboard = res.data;
@@ -230,7 +230,7 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadingExpedientes = true;
     this.reportesService.getExpedientesAlertaPld({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
-      idCompany: this.filterCompania ?? undefined,
+      idCompany: this.filterCompania || undefined,
       limit: this.pageSizeExpedientesAlerta,
       offset: this.pageIndexExpedientesAlerta * this.pageSizeExpedientesAlerta
     }).subscribe({
@@ -265,7 +265,7 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadingSinAviso = true;
     this.reportesService.getExpedientesSinAviso({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
-      idCompany: this.filterCompania ?? undefined,
+      idCompany: this.filterCompania || undefined,
       anio: this.filterAnio ?? undefined,
       limit: this.pageSizeSinAviso,
       offset: this.pageIndexSinAviso * this.pageSizeSinAviso
@@ -305,7 +305,7 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadingSinBeneficiario = true;
     this.reportesService.getExpedientesSinBeneficiario({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
-      idCompany: this.filterCompania ?? undefined,
+      idCompany: this.filterCompania || undefined,
       anio: this.filterAnio ?? undefined,
       limit: this.pageSizeSinBeneficiario,
       offset: this.pageIndexSinBeneficiario * this.pageSizeSinBeneficiario
@@ -341,7 +341,7 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadingDocumentos = true;
     this.reportesService.getDocumentosPendientes({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
-      idCompany: this.filterCompania ?? undefined
+      idCompany: this.filterCompania || undefined
     }).subscribe({
       next: (res) => {
         if (res.success && res.data?.grupos) {
@@ -394,7 +394,7 @@ export class ReportesCumplimientoComponent implements OnInit {
     this.loadingResumen = true;
     this.reportesService.getResumenPorAgencia({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
-      idCompany: this.filterCompania ?? undefined,
+      idCompany: this.filterCompania || undefined,
       anio: this.filterAnio ?? undefined
     }).subscribe({
       next: (res) => {
@@ -432,7 +432,7 @@ export class ReportesCumplimientoComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    if (this.filterCompania && this.selectedAgencyIds.length) {
+    if (this.filterCompania !== '' && this.selectedAgencyIds.length) {
       const validIds = new Set(this.agenciesFiltradas.map(a => a.id));
       this.selectedAgencyIds = this.selectedAgencyIds.filter(id => validIds.has(id));
     }

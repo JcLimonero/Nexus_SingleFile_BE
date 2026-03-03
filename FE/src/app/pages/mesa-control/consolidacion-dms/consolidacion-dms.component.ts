@@ -66,7 +66,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   companies: Company[] = [];
   /** Valor centinela para "Todas" (mat-select no muestra bien null) */
   readonly COMPANIA_TODAS = -1;
-  filterCompania: number = -1; // Filtro por razón social (agrupa agencias)
+  filterCompania: number = this.COMPANIA_TODAS; // Filtro por razón social (agrupa agencias)
   selectedAgencyIds: number[] = [];
 
   // Filtro de período
@@ -164,10 +164,6 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     }
     this.cargarAgencias();
     this.cargarCompanias();
-    // Selecciona el primer elemento de companies por defecto si existe
-    if (this.companies && this.companies.length > 0) {
-      this.filterCompania = this.getCompanyId(this.companies[0]);
-    }
   }
 
   private cargarCompanias(): void {
@@ -180,14 +176,8 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
           Name: String(c['Name'] ?? c['name'] ?? c['company_name'] ?? '')
         }));
 
-        // ✅ Esperar a que el mat-select renderice las opciones
-        setTimeout(() => {
-  if (this.companies.length > 0) {
-    const id = this.getCompanyId(this.companies[0]);
-    this.filterCompania = id;
-  }
-  this.cdr.markForCheck();
-}, 0);
+        this.filterCompania = this.COMPANIA_TODAS;
+        this.cdr.markForCheck();
       }
     }
   });

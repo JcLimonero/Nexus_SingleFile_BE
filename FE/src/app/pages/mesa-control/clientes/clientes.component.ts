@@ -52,7 +52,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
   loading = false;
   searchTerm = '';
-  filterAgency: number | null = null;
+  filterAgency: number | '' = '';
   filterSoloUmbralAML = false;
   agencies: { id: number; name: string }[] = [];
   companies: { id: number; name: string }[] = [];
@@ -92,12 +92,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (agencias) => {
           this.agencies = agencias.map(a => ({ id: (a as any).id ?? (a as any)['Id'], name: (a as any).name ?? (a as any)['Name'] }));
-          // Selecciona el primer elemento por defecto si hay agencias
-          if (this.agencies.length > 0) {
-            this.filterAgency = this.agencies[0].id ?? (this.agencies[0] as any).Id;
-          } else {
-            this.filterAgency = null;
-          }
+          // Mantener '' para mostrar "Todas" por defecto
+          this.filterAgency = '';
           this.cdr.markForCheck();
         }
       });
@@ -122,7 +118,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
     this.clientesService.list({
       search: this.searchTerm || undefined,
-      idAgency: this.filterAgency ?? undefined,
+      idAgency: this.filterAgency || undefined,
       onlyAmlUmbral: this.filterSoloUmbralAML || undefined,
       limit: this.pageSize,
       offset: this.pageIndex * this.pageSize
@@ -168,9 +164,15 @@ export class ClientesComponent implements OnInit, OnDestroy {
     this.loadClientes();
   }
 
+  compareById(a: any, b: any): boolean {
+    if ((a === null || a === undefined || a === '') && (b === null || b === undefined || b === '')) return true;
+    if (a === null || a === undefined || a === '' || b === null || b === undefined || b === '') return false;
+    return Number(a) === Number(b);
+  }
+
   clearFilters(): void {
     this.searchTerm = '';
-    this.filterAgency = null;
+    this.filterAgency = '';
     this.filterSoloUmbralAML = false;
     this.pageIndex = 0;
     this.loadClientes();

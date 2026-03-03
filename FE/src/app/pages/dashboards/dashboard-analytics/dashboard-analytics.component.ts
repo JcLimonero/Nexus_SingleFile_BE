@@ -93,8 +93,8 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   currentFilters: AnalyticsFilters = {};
-  filterCompania: number | null = null;
-  selectedAgencyId: number | null = null;
+  filterCompania: number | '' = '';
+  selectedAgencyId: number | '' = '';
   selectedDateRange: DateRange | null = null;
   selectedUserId: number | null = null;
   showManualDateInputs = false;
@@ -200,10 +200,11 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       });
   }
 
-  onCompaniaChange(companiaId: number | null): void {
-    this.filterCompania = companiaId;
-    if (companiaId === null) {
-      this.selectedAgencyId = null;
+  onCompaniaChange(companiaId: number | '' | null): void {
+    this.filterCompania = companiaId ?? '';
+    if (companiaId === null || companiaId === '') {
+      this.filterCompania = '';
+      this.selectedAgencyId = '';
       this.currentFilters = { ...this.currentFilters, agencyId: undefined };
       this.loadUsers(null);
       this.changeDetector.markForCheck();
@@ -219,7 +220,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
       this.currentFilters = { ...this.currentFilters, agencyId: firstFiltered.Id };
       this.loadUsers(firstFiltered.Id);
     } else {
-      this.selectedAgencyId = null;
+      this.selectedAgencyId = '';
       this.currentFilters = { ...this.currentFilters, agencyId: undefined };
       this.loadUsers(null);
     }
@@ -249,20 +250,25 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
    * Necesario para que el mat-select reconozca correctamente el valor seleccionado
    */
   compareById(a: any, b: any): boolean {
-    // Manejar null correctamente
-    if (a === null && b === null) return true;
-    if (a === null || b === null) return false;
-    // Comparar números normalmente
-    return a === b;
+    // Manejar vacío/null como selección de "Todas"
+    const isEmpty = (v: any) => v === null || v === undefined || v === '';
+    if (isEmpty(a) && isEmpty(b)) return true;
+    if (isEmpty(a) || isEmpty(b)) return false;
+    return Number(a) === Number(b);
   }
 
-  onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
-    this.selectedAgencyId = agencyId;
-    this.currentFilters = { ...this.currentFilters, agencyId: agencyId || undefined };
+  get selectedAgencyIdOrNull(): number | null {
+    return this.selectedAgencyId === '' ? null : this.selectedAgencyId;
+  }
+
+  onAgencyChange(agencyId: number | '' | null, skipReload: boolean = false): void {
+    this.selectedAgencyId = agencyId ?? '';
+    const agencyIdNum: number | null = (agencyId === '' || agencyId === null) ? null : agencyId;
+    this.currentFilters = { ...this.currentFilters, agencyId: agencyIdNum ?? undefined };
     this.changeDetector.markForCheck();
 
     // Cargar usuarios para la agencia seleccionada
-    this.loadUsers(agencyId);
+    this.loadUsers(agencyIdNum);
 
     // Si el usuario es gerente o administrador, seleccionar automáticamente "Todos los usuarios"
     if (this.isManagerOrAdmin(this.currentUser)) {
@@ -371,38 +377,33 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           // Establecer compañía y agencia predeterminadas DESPUÉS de que las agencias se carguen
           setTimeout(() => {
             const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            const savedAgencyIdNumber = savedAgencyId !== null ? Number(savedAgencyId) : null;
             
             // Verificar que la agencia guardada existe en la lista
-            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+            if (savedAgencyIdNumber !== null && this.agencies.some(ag => ag.Id === savedAgencyIdNumber)) {
               // La agencia guardada existe, usarla
-              this.selectedAgencyId = savedAgencyId;
+              this.selectedAgencyId = savedAgencyIdNumber;
               
               // Establecer filterCompania con la compañía de la agencia seleccionada
-              const selectedAgency = this.agencies.find(ag => ag.Id === savedAgencyId);
+              const selectedAgency = this.agencies.find(ag => ag.Id === savedAgencyIdNumber);
               if (selectedAgency && selectedAgency.IdCompany) {
                 this.filterCompania = selectedAgency.IdCompany;
               } else {
-                this.filterCompania = this.companies[0]?.Id ?? null;
+                this.filterCompania = '';
               }
               
               this.changeDetector.markForCheck();
-              this.onAgencyChange(savedAgencyId, this.isInitializing);
+              this.onAgencyChange(savedAgencyIdNumber, this.isInitializing);
             } else {
-              // Si no hay agencia guardada válida, usar la primera compañía y agencia
-              this.filterCompania = this.companies[0]?.Id ?? null;
+              // Si no hay agencia guardada válida, mostrar "Todas" en ambos selects
+              this.filterCompania = '';
+              this.selectedAgencyId = '';
               this.changeDetector.markForCheck();
-              
-              const firstAgency = this.agenciesFiltradas[0];
-              if (firstAgency) {
-                this.selectedAgencyId = firstAgency.Id;
-                this.onAgencyChange(firstAgency.Id, this.isInitializing);
-                this.changeDetector.markForCheck();
-              } else {
-                // Si no hay agencias, cargar dashboard
-                if (this.isInitializing) {
-                  this.isInitializing = false;
-                  this.filtersChange$.next();
-                }
+
+              // Completar inicialización y lanzar carga con filtros en "Todas"
+              if (this.isInitializing) {
+                this.isInitializing = false;
+                this.filtersChange$.next();
               }
             }
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
@@ -426,7 +427,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private loadUsers(agencyId: number | null): void {
-    this.userService.getUsersByAgency(agencyId || undefined)
+    this.userService.getUsersByAgency(agencyId ? agencyId : undefined)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -580,7 +581,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   clearAgencyFilter(): void {
-    this.selectedAgencyId = null;
+    this.selectedAgencyId = '';
     this.onAgencyChange(null);
   }
 
@@ -661,12 +662,12 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   hasAnyFilter(): boolean {
-    return this.filterCompania !== null || this.selectedAgencyId !== null || this.selectedUserId !== null || this.hasDateRange();
+    return this.filterCompania !== '' || this.selectedAgencyId !== '' || this.selectedUserId !== null || this.hasDateRange();
   }
 
   clearAllFilters(): void {
-    this.filterCompania = null;
-    this.selectedAgencyId = null;
+    this.filterCompania = '';
+    this.selectedAgencyId = '';
 
     // Limpiar usuario
     this.selectedUserId = null;
