@@ -52,7 +52,7 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit, OnD
   loading = true;
   grupos: GrupoExpedientes[] = [];
   displayedColumns = ['expand', 'ndPedido', 'proceso', 'operacion', 'tipoCliente', 'estatus', 'monto', 'registro', 'acciones'];
-  docsLiquidacionColumns = ['documento', 'monto', 'tipoPago', 'ver'];
+  docsLiquidacionColumns = ['documento', 'monto', 'tipoPago', 'fechaPago', 'ver'];
   readonly pageSizeOptions = [5, 10, 25];
 
   /** Resumen: suma de operaciones en los últimos 6 meses */

@@ -3,30 +3,20 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { inject } from '@angular/core';
 import { ActivityLogService } from '../services/activity-log.service';
-import { environment } from '../../../environments/environment';
 
 /**
  * Interceptor para registrar actividades del usuario
- * SOLO registra las siguientes acciones:
- * - LOGIN: Inicio de sesión
- * - LOGOUT: Cierre de sesión  
- * - CREATE: Creación de registros
- * - UPDATE: Actualización de registros
- * - DELETE: Eliminación de registros
- * - EXPORT: Exportación de datos
- * 
- * NO registra: búsquedas, visualizaciones, estadísticas, etc.
+ * SOLO registra si usuario es Demo o activity_log_enabled en config.
+ * Acciones: LOGIN, LOGOUT, CREATE, UPDATE, DELETE, EXPORT.
  */
 export const ActivityLogInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
-  // Si active_debug no está habilitado, no registrar actividades
-  if (!environment.active_debug) {
+  const activityLogService = inject(ActivityLogService);
+  if (!activityLogService.isActivityLogEnabled()) {
     return next(request);
   }
-
-  const activityLogService = inject(ActivityLogService);
   const startTime = Date.now();
   
   // No loggear peticiones de logs para evitar recursión

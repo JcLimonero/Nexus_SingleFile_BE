@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ActivityLogService } from './activity-log.service';
 
 export interface AnalyticsFilters {
   startDate?: string;
@@ -157,7 +158,10 @@ export class AnalyticsService {
   private filtersSubject = new BehaviorSubject<AnalyticsFilters>({});
   public filters$ = this.filtersSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private activityLogService: ActivityLogService
+  ) {}
 
   // Métodos para manejar filtros
   setFilters(filters: AnalyticsFilters): void {
@@ -174,8 +178,7 @@ export class AnalyticsService {
 
   // Métodos para obtener estadísticas de actividad de usuarios
   getUserActivityStats(filters?: AnalyticsFilters): Observable<UserActivityStats> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
+    if (!this.activityLogService.isActivityLogEnabled()) {
       return of({
         totalLogs: 0,
         uniqueUsers: 0,
@@ -193,8 +196,7 @@ export class AnalyticsService {
   }
 
   getUserActivityLogs(filters?: AnalyticsFilters, limit = 100, offset = 0): Observable<any> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
+    if (!this.activityLogService.isActivityLogEnabled()) {
       return of([]);
     }
 

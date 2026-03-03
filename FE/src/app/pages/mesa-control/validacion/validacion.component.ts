@@ -451,7 +451,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       resultado.comentario,
       resultado.fechaExpiracion,
       resultado.monto,
-      resultado.idPaymentMethod
+      resultado.idPaymentMethod,
+      resultado.fechaPago
     )
       .pipe(takeUntil(this.destroy$), timeout(10000))
       .subscribe({

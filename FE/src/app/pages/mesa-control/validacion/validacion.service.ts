@@ -411,7 +411,7 @@ export class ValidacionService {
 
   /**
    * Aprobar/Rechazar documento - cambiar estatus a "4" (aprobado) o "5" (rechazado)
-   * Para documentos de liquidación: monto e idPaymentMethod son requeridos al aprobar
+   * Para documentos de liquidación: monto, idPaymentMethod y fechaPago son requeridos al aprobar
    */
   aprobarDocumento(
     idDocumentByFile: number,
@@ -419,7 +419,8 @@ export class ValidacionService {
     comentario?: string,
     fechaExpiracion?: Date,
     monto?: number,
-    idPaymentMethod?: number
+    idPaymentMethod?: number,
+    fechaPago?: string
   ): Observable<any> {
     const data: any = {
       idDocumentByFile: idDocumentByFile,
@@ -435,6 +436,9 @@ export class ValidacionService {
     }
     if (idPaymentMethod != null && idPaymentMethod > 0) {
       data.id_payment_method = idPaymentMethod;
+    }
+    if (fechaPago) {
+      data.fecha_pago = fechaPago;
     }
 
     return this.http.post<any>(`${this.apiUrl}/api/clients-validation/aprobar-documento`, data).pipe(

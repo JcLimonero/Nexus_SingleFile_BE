@@ -1584,7 +1584,9 @@ class Validacion extends BaseController
                     dt.available_to_client as DisponibleCliente,
                     COALESCE(lrd.amount, 0) as receiptAmount,
                     lrd.id_payment_method as idPaymentMethod,
-                    pm.name as paymentMethodName
+                    pm.name as paymentMethodName,
+                    lrd.payment_date as paymentDate,
+                    lrd.registration_date as registrationDate
                 ')
                 ->join('expedient f', 'dbf.id_file = f.id', 'inner')
                 ->join('process p', 'f.id_process = p.id', 'inner')
@@ -1671,7 +1673,7 @@ class Validacion extends BaseController
     /**
      * Crear un documento adicional de Liquidación para un expediente
      * POST /api/clients-validation/documentos/liquidacion
-     * Body: { idFile, monto, id_payment_method }
+     * Body: { idFile, monto, id_payment_method, fecha_pago? }
      */
     public function agregarDocumentoLiquidacion()
     {
@@ -1849,6 +1851,18 @@ class Validacion extends BaseController
             $currentUserId = $this->getCurrentUserId() ?? 1;
             $now = date('Y-m-d H:i:s');
 
+            // Fecha real del pago (para PLD): opcional, si no se envía se usa hoy
+            $paymentDate = null;
+            if (!empty($data['fecha_pago'])) {
+                $parsed = date_parse($data['fecha_pago']);
+                if ($parsed['error_count'] === 0 && checkdate($parsed['month'] ?? 0, $parsed['day'] ?? 0, $parsed['year'] ?? 0)) {
+                    $paymentDate = $data['fecha_pago'];
+                }
+            }
+            if ($paymentDate === null) {
+                $paymentDate = date('Y-m-d');
+            }
+
             $documentData = [
                 'id' => $nextId,
                 'name' => $documentName,
@@ -1875,13 +1889,14 @@ class Validacion extends BaseController
                 ])->setStatusCode(500);
             }
 
-            // Insertar detalle de comprobante (monto y método de pago)
+            // Insertar detalle de comprobante (monto, método de pago, fecha real del pago)
             try {
                 $this->db->table('liquidation_receipt_detail')->insert([
                 'id_file_document' => $nextId,
                 'id_file' => $idFile,
                 'amount' => $monto,
                 'id_payment_method' => $idPaymentMethod,
+                'payment_date' => $paymentDate,
                 'registration_date' => $now,
                 'update_date' => $now,
                 'id_last_user_update' => $currentUserId
@@ -2041,6 +2056,7 @@ class Validacion extends BaseController
             $fechaExpiracion = $data['fechaExpiracion'] ?? null;
             $monto = isset($data['monto']) ? (float) $data['monto'] : null;
             $idPaymentMethod = isset($data['id_payment_method']) ? (int) $data['id_payment_method'] : null;
+            $fechaPago = $data['fecha_pago'] ?? null;
 
             // Validar que el nuevo estatus sea válido (4 = Aprobado, 5 = Rechazado)
             if (!in_array($nuevoEstatus, [4, 5])) {
@@ -2185,26 +2201,36 @@ class Validacion extends BaseController
                 $now = date('Y-m-d H:i:s');
                 $currentUserId = $this->getCurrentUserId() ?? 1;
 
+                // Fecha real del pago (para PLD): opcional, si no se envía se usa hoy
+                $paymentDate = null;
+                if (!empty($fechaPago)) {
+                    $parsed = date_parse($fechaPago);
+                    if ($parsed['error_count'] === 0 && checkdate($parsed['month'] ?? 0, $parsed['day'] ?? 0, $parsed['year'] ?? 0)) {
+                        $paymentDate = $fechaPago;
+                    }
+                }
+                if ($paymentDate === null) {
+                    $paymentDate = date('Y-m-d');
+                }
+
+                $lrdUpdateData = [
+                    'amount' => $monto,
+                    'id_payment_method' => $idPaymentMethod,
+                    'payment_date' => $paymentDate,
+                    'update_date' => $now,
+                    'id_last_user_update' => $currentUserId
+                ];
                 if ($existingLrd) {
                     $this->db->table('liquidation_receipt_detail')
                         ->where('id_file_document', $idFileDocument)
                         ->where('id_file', $idFile)
-                        ->update([
-                            'amount' => $monto,
-                            'id_payment_method' => $idPaymentMethod,
-                            'update_date' => $now,
-                            'id_last_user_update' => $currentUserId
-                        ]);
+                        ->update($lrdUpdateData);
                 } else {
-                    $this->db->table('liquidation_receipt_detail')->insert([
+                    $this->db->table('liquidation_receipt_detail')->insert(array_merge($lrdUpdateData, [
                         'id_file_document' => $idFileDocument,
                         'id_file' => $idFile,
-                        'amount' => $monto,
-                        'id_payment_method' => $idPaymentMethod,
                         'registration_date' => $now,
-                        'update_date' => $now,
-                        'id_last_user_update' => $currentUserId
-                    ]);
+                    ]));
                 }
             }
             

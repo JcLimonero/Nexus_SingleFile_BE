@@ -27,7 +27,7 @@
         <span class="font-medium text-gray-700">Fecha:</span>
         <span class="ml-2 text-gray-600">{{ data.documento.fecha }}</span>
       </div>
-      <!-- Monto y método de pago cargados al crear el documento (solo lectura) -->
+      <!-- Monto, método de pago y fecha real cargados al crear el documento (solo lectura) -->
       <ng-container *ngIf="tieneDatosCargados">
         <div>
           <span class="font-medium text-gray-700">Monto del comprobante:</span>
@@ -36,6 +36,10 @@
         <div>
           <span class="font-medium text-gray-700">Método de pago:</span>
           <span class="ml-2 font-semibold text-gray-800">{{ data.documento.paymentMethodName || data.documento.payment_method_name || '—' }}</span>
+        </div>
+        <div *ngIf="data.documento.paymentDate || data.documento.payment_date">
+          <span class="font-medium text-gray-700">Fecha real del pago:</span>
+          <span class="ml-2 font-semibold text-gray-800">{{ data.documento.paymentDate || data.documento.payment_date }}</span>
         </div>
       </ng-container>
     </div>
@@ -85,6 +89,15 @@
         <mat-icon matSuffix>payment</mat-icon>
       </mat-form-field>
     </ng-container>
+
+    <!-- Fecha real del pago (siempre al aprobar) -->
+    <mat-form-field *ngIf="estatusSeleccionado === 'aprobado'" appearance="outline" class="w-full">
+      <mat-label>Fecha real del pago</mat-label>
+      <input matInput [matDatepicker]="pickerPago" [(ngModel)]="fechaPago" placeholder="Seleccionar fecha">
+      <mat-datepicker-toggle matIconSuffix [for]="pickerPago"></mat-datepicker-toggle>
+      <mat-datepicker #pickerPago></mat-datepicker>
+      <mat-hint>Fecha en que se realizó el pago (importante para PLD)</mat-hint>
+    </mat-form-field>
 
     <!-- Fecha de expiración -->
     <mat-form-field *ngIf="requiereExpiracion && estatusSeleccionado === 'aprobado'" appearance="outline" class="w-full">

@@ -255,7 +255,8 @@ class Client extends BaseController
                         dbf.id_document_container as documentContainer,
                         COALESCE(lrd.amount, 0) as monto,
                         lrd.id_payment_method as idPaymentMethod,
-                        pm.name as tipoPago
+                        pm.name as tipoPago,
+                        lrd.payment_date as fechaPago
                     FROM file_document dbf
                     LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file
                     LEFT JOIN payment_method pm ON pm.id = lrd.id_payment_method
@@ -279,7 +280,8 @@ class Client extends BaseController
                             'monto' => (float) ($doc['monto'] ?? 0),
                             'idPaymentMethod' => isset($doc['idPaymentMethod']) ? (int) $doc['idPaymentMethod'] : null,
                             'tipoPago' => $doc['tipoPago'] ?? '—',
-                            'documentContainer' => $doc['documentContainer'] ?? null
+                            'documentContainer' => $doc['documentContainer'] ?? null,
+                            'fechaPago' => $doc['fechaPago'] ?? null
                         ];
                     }
                     foreach ($expedientes as &$exp) {

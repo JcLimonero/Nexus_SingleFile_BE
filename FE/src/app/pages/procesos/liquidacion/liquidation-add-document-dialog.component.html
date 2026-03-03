@@ -57,6 +57,18 @@
       <mat-icon matSuffix>payment</mat-icon>
       <mat-error *ngIf="!idPaymentMethod && formTouched">El tipo de pago es requerido</mat-error>
     </mat-form-field>
+
+    <!-- Fecha real del pago -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Fecha real del pago</mat-label>
+      <input matInput 
+             [matDatepicker]="picker" 
+             [(ngModel)]="fechaPago" 
+             placeholder="Seleccionar fecha">
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-hint>Fecha en que se realizó el pago (importante para PLD)</mat-hint>
+    </mat-form-field>
   </div>
 
   <!-- Botones de acción -->

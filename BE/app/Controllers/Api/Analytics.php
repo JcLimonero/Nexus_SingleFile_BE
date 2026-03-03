@@ -427,12 +427,13 @@ class Analytics extends BaseController
                 
                 $fileMetrics = $query->get()->getRowArray();
                 
-                // Usuarios que tienen acceso a la agencia seleccionada (query separada porque es otra tabla)
-                $totalUsersQuery = $db->table('agency_user');
+                // Usuarios únicos que tienen acceso a la agencia seleccionada (DISTINCT para no duplicar si un usuario tiene varias agencias)
+                $totalUsersQuery = $db->table('agency_user')->select('COUNT(DISTINCT id_user) as total', false);
                 if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
                     $totalUsersQuery->where('id_agency', $agencyId);
                 }
-                $totalUsers = $totalUsersQuery->countAllResults();
+                $totalUsersRow = $totalUsersQuery->get()->getRowArray();
+                $totalUsers = (int)($totalUsersRow['total'] ?? 0);
 
                 // Nombre del mes actual
                 $monthNames = [

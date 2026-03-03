@@ -6,9 +6,28 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule, MAT_DATE_LOCALE, NativeDateAdapter, DateAdapter } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { registerLocaleData } from '@angular/common';
+import localeEsMx from '@angular/common/locales/es-MX';
+
+registerLocaleData(localeEsMx, 'es-MX');
+
+class CustomDateAdapter extends NativeDateAdapter {
+  override getDayOfWeekNames(style: 'long' | 'short' | 'narrow'): string[] {
+    return ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  }
+  override getMonthNames(style: 'long' | 'short' | 'narrow'): string[] {
+    if (style === 'long') {
+      return ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    }
+    return ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  }
+}
 
 @Component({
   selector: 'app-liquidation-add-document-dialog',
@@ -23,12 +42,19 @@ import { environment } from '../../../../environments/environment';
     MatInputModule,
     MatSelectModule,
     MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     FormsModule
+  ],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'es-MX' },
+    { provide: DateAdapter, useClass: CustomDateAdapter }
   ]
 })
 export class LiquidationAddDocumentDialogComponent implements OnInit {
   monto: number | null = null;
   idPaymentMethod: number | null = null;
+  fechaPago: Date = new Date();
   paymentMethods: { id: number; name: string }[] = [];
   expedientAmount = 0;
   totalReceiptAmount = 0;
@@ -114,10 +140,15 @@ export class LiquidationAddDocumentDialogComponent implements OnInit {
     if (!this.validateMonto() || !this.idPaymentMethod) return;
     this.submitting = true;
 
+    const fechaPagoStr = this.fechaPago
+      ? this.fechaPago.toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
+
     this.http.post<any>(`${environment.apiBaseUrl}/api/clients-validation/documentos/liquidacion`, {
       idFile: this.data.fileId,
       monto: this.monto,
-      id_payment_method: this.idPaymentMethod
+      id_payment_method: this.idPaymentMethod,
+      fecha_pago: fechaPagoStr
     }).subscribe({
       next: (res) => {
         this.submitting = false;

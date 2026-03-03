@@ -18,6 +18,7 @@ export interface VanguardiaConfig {
 })
 export class ApiConfigService {
   private vanguardia: VanguardiaConfig | null = null;
+  private activityLogEnabledFromConfig = false;
   private loadPromise: Promise<void> | null = null;
 
   constructor(private http: HttpClient) {}
@@ -32,26 +33,34 @@ export class ApiConfigService {
     }
 
     const configUrl = `${environment.apiBaseUrl}/api/config/group_api_url`;
-    this.loadPromise = this.http.get<{ success: boolean; data: VanguardiaConfig }>(configUrl)
-      .toPromise()
-      .then(res => {
-        if (res?.success && res.data) {
-          this.vanguardia = {
-            api_url: (res.data.api_url || '').replace(/\/$/, '') || '/vgd/singlefilecustomer',
-            orders_api_url: (res.data.orders_api_url || '').replace(/\/$/, '') || '/vgd/singlefileorderslastest',
-            invoices_api_url: (res.data.invoices_api_url || '').replace(/\/$/, '') || '/vgd/singlefileinvoices',
-            // Siempre usar environment.apiBaseUrl (localhost en dev) para subidas, no la IP del servidor
-            upload_api_url: `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze/direct-upload`,
-          };
-        } else {
-          this.vanguardia = this.getFallbackVanguardia();
-        }
-      })
-      .catch(() => {
+    const activityLogUrl = `${environment.apiBaseUrl}/api/config/activity-log-enabled`;
+
+    this.loadPromise = Promise.all([
+      this.http.get<{ success: boolean; data: VanguardiaConfig }>(configUrl).toPromise(),
+      this.http.get<{ success: boolean; data: { activity_log_enabled: boolean } }>(activityLogUrl).toPromise()
+    ]).then(([res, activityRes]) => {
+      if (res?.success && res.data) {
+        this.vanguardia = {
+          api_url: (res.data.api_url || '').replace(/\/$/, '') || '/vgd/singlefilecustomer',
+          orders_api_url: (res.data.orders_api_url || '').replace(/\/$/, '') || '/vgd/singlefileorderslastest',
+          invoices_api_url: (res.data.invoices_api_url || '').replace(/\/$/, '') || '/vgd/singlefileinvoices',
+          upload_api_url: `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze/direct-upload`,
+        };
+      } else {
         this.vanguardia = this.getFallbackVanguardia();
-      });
+      }
+      this.activityLogEnabledFromConfig = !!(activityRes?.success && activityRes?.data?.activity_log_enabled === true);
+    }).catch(() => {
+      this.vanguardia = this.getFallbackVanguardia();
+      this.activityLogEnabledFromConfig = false;
+    });
 
     return this.loadPromise;
+  }
+
+  /** Valor de activity_log_enabled desde la tabla config (sin considerar usuario demo) */
+  getActivityLogEnabledFromConfig(): boolean {
+    return this.activityLogEnabledFromConfig;
   }
 
   private getFallbackVanguardia(): VanguardiaConfig {
@@ -100,6 +109,7 @@ export class ApiConfigService {
    */
   clearCache(): void {
     this.vanguardia = null;
+    this.activityLogEnabledFromConfig = false;
     this.loadPromise = null;
   }
 }

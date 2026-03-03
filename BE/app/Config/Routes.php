@@ -57,6 +57,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     
     // Configuración pública (sin auth) - URLs de APIs Vanguardia desde BD
     $routes->get('config/group_api_url', 'Config::groupApiUrl');
+    $routes->get('config/activity-log-enabled', 'Config::activityLogEnabled');
 
     // Rutas de gestión de contraseñas
     $routes->group('password', function($routes) {

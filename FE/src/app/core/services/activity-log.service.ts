@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { ApiBaseService } from './api-base.service';
-import { environment } from '../../../environments/environment';
+import { ApiConfigService } from './api-config.service';
 
 export interface ActivityLog {
   id?: number;
@@ -42,23 +42,42 @@ export interface ActivityLogStats {
   users_count: Array<{user_id: string; username: string; count: number}>;
 }
 
+/** Demo role_id: siempre activo el registro de logs */
+const DEMO_ROLE_ID = '15';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ActivityLogService {
   constructor(
     private http: HttpClient,
-    private apiBaseService: ApiBaseService
+    private apiBaseService: ApiBaseService,
+    private apiConfigService: ApiConfigService
   ) {}
+
+  /** Usuario Demo (role_id 15) siempre tiene activo el registro. Si no, se usa config. */
+  isActivityLogEnabled(): boolean {
+    const userStr = localStorage.getItem('current_user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (String(user?.role_id) === DEMO_ROLE_ID) {
+          return true;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return this.apiConfigService.getActivityLogEnabledFromConfig();
+  }
 
   /**
    * Crear un nuevo log de actividad
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   createLog(log: ActivityLog): Observable<any> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
-      return of({ success: false, message: 'Debug mode disabled' });
+    if (!this.isActivityLogEnabled()) {
+      return of({ success: false, message: 'Activity log disabled' });
     }
 
     const url = this.apiBaseService.buildApiUrl('user-activity-logs');
@@ -67,11 +86,10 @@ export class ActivityLogService {
 
   /**
    * Obtener todos los logs con filtros
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   getLogs(filters: ActivityLogFilters = {}): Observable<ActivityLogResponse> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
+    if (!this.isActivityLogEnabled()) {
       return of({ success: true, data: [], pagination: { total: 0, limit: 0, offset: 0, has_more: false } } as ActivityLogResponse);
     }
 
@@ -82,11 +100,10 @@ export class ActivityLogService {
 
   /**
    * Obtener logs de un usuario específico
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   getUserLogs(userId: string, limit: number = 100, offset: number = 0): Observable<ActivityLogResponse> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
+    if (!this.isActivityLogEnabled()) {
       return of({ success: true, data: [], pagination: { total: 0, limit: 0, offset: 0, has_more: false } } as ActivityLogResponse);
     }
 
@@ -107,11 +124,10 @@ export class ActivityLogService {
 
   /**
    * Obtener logs por acción específica
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   getActionLogs(action: string, limit: number = 100, offset: number = 0): Observable<ActivityLogResponse> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
+    if (!this.isActivityLogEnabled()) {
       return of({ success: true, data: [], pagination: { total: 0, limit: 0, offset: 0, has_more: false } } as ActivityLogResponse);
     }
 
@@ -122,11 +138,10 @@ export class ActivityLogService {
 
   /**
    * Obtener estadísticas de logs
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   getStats(userId?: string, startDate?: string, endDate?: string): Observable<{success: boolean; data: ActivityLogStats}> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
+    if (!this.isActivityLogEnabled()) {
       return of({ success: true, data: { total_logs: 0, actions_count: [], users_count: [] } as ActivityLogStats });
     }
 
@@ -143,12 +158,11 @@ export class ActivityLogService {
 
   /**
    * Limpiar logs antiguos
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   cleanOldLogs(days: number = 90): Observable<any> {
-    // Si active_debug no está habilitado, retornar observable vacío
-    if (!environment.active_debug) {
-      return of({ success: false, message: 'Debug mode disabled' });
+    if (!this.isActivityLogEnabled()) {
+      return of({ success: false, message: 'Activity log disabled' });
     }
 
     const url = this.apiBaseService.buildApiUrl(`user-activity-logs/clean?days=${days}`);
@@ -157,11 +171,10 @@ export class ActivityLogService {
 
   /**
    * Log automático de acciones del usuario
-   * Solo se ejecuta si active_debug está habilitado
+   * Solo se ejecuta si usuario es Demo o activity_log_enabled en config
    */
   logUserAction(action: string, description?: string, additionalData?: any): void {
-    // Si active_debug no está habilitado, no registrar actividades
-    if (!environment.active_debug) {
+    if (!this.isActivityLogEnabled()) {
       return;
     }
 

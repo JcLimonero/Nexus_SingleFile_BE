@@ -38,6 +38,7 @@ class Documents extends BaseController
                 , COALESCE(lrd.amount, 0) as receiptAmount
                 , lrd.id_payment_method as idPaymentMethod
                 , pm.name as paymentMethodName
+                , lrd.payment_date as paymentDate
             " : "";
 
             $sql = "

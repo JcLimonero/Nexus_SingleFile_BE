@@ -84,4 +84,36 @@ class Config extends BaseController
     {
         return $path !== '' && $path[0] !== '/' ? '/' . $path : $path;
     }
+
+    /**
+     * GET /api/config/activity-log-enabled
+     * Retorna si el registro de logs de actividad está habilitado (desde tabla config).
+     * Público - no requiere autenticación (el frontend usa para decidir si enviar logs).
+     */
+    public function activityLogEnabled()
+    {
+        try {
+            $db = \Config\Database::connect();
+            $row = $db->table('config')
+                ->select('config_value')
+                ->where('config_key', 'activity_log_enabled')
+                ->get()
+                ->getRowArray();
+
+            $val = trim($row['config_value'] ?? '0');
+            $enabled = ($val === '1' || strtolower($val) === 'true');
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => ['activity_log_enabled' => $enabled]
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Config::activityLogEnabled - ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al obtener configuración',
+                'data' => ['activity_log_enabled' => false]
+            ])->setStatusCode(500);
+        }
+    }
 }

@@ -21,6 +21,7 @@ export interface DocumentoLiquidacion {
   idPaymentMethod?: number | null;
   tipoPago: string;
   documentContainer: string | null;
+  fechaPago?: string | null;
 }
 
 export interface ExpedienteCliente {

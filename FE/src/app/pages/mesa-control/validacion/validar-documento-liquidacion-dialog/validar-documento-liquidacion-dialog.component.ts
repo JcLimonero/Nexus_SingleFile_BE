@@ -41,6 +41,7 @@ export interface ValidarDocumentoLiquidacionResult {
   fechaExpiracion?: Date;
   monto?: number;
   idPaymentMethod?: number;
+  fechaPago?: string;
 }
 
 @Component({
@@ -69,6 +70,7 @@ export class ValidarDocumentoLiquidacionDialogComponent implements OnInit {
   estatusSeleccionado = '';
   comentario = '';
   fechaExpiracion: Date | null = null;
+  fechaPago: Date = new Date();
   monto: number | null = null;
   idPaymentMethod: number | null = null;
   montoError = '';
@@ -106,6 +108,11 @@ export class ValidarDocumentoLiquidacionDialogComponent implements OnInit {
     if (this.tieneDatosCargados) {
       this.monto = this.getReceiptAmount();
       this.idPaymentMethod = Number(this.data.documento?.idPaymentMethod ?? this.data.documento?.id_payment_method ?? 0);
+      const pd = this.data.documento?.paymentDate ?? this.data.documento?.payment_date;
+      if (pd) {
+        const d = new Date(pd);
+        if (!isNaN(d.getTime())) this.fechaPago = d;
+      }
     }
     this.loadPaymentMethods();
     this.loadExpedientAmounts();
@@ -206,13 +213,18 @@ export class ValidarDocumentoLiquidacionDialogComponent implements OnInit {
     const pmVal = this.idPaymentMethod ?? Number(this.data.documento?.idPaymentMethod ?? this.data.documento?.id_payment_method ?? 0);
     const idPaymentMethodFinal = this.estatusSeleccionado === 'aprobado' && pmVal > 0 ? pmVal : undefined;
 
+    const fechaPagoStr = this.estatusSeleccionado === 'aprobado' && this.fechaPago
+      ? this.fechaPago.toISOString().split('T')[0]
+      : undefined;
+
     const result: ValidarDocumentoLiquidacionResult = {
       aprobado: this.estatusSeleccionado === 'aprobado',
       estatus: this.estatusSeleccionado,
       comentario: this.comentario.trim() || undefined,
       fechaExpiracion: this.fechaExpiracion || undefined,
       monto: montoFinal,
-      idPaymentMethod: idPaymentMethodFinal
+      idPaymentMethod: idPaymentMethodFinal,
+      fechaPago: fechaPagoStr
     };
     this.dialogRef.close(result);
   }
