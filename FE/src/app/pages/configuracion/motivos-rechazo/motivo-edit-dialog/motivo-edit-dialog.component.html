@@ -26,17 +26,6 @@
       <mat-hint>Máximo 500 caracteres</mat-hint>
     </mat-form-field>
 
-    <!-- Campo Tipo de Razón -->
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Tipo de Razón</mat-label>
-        <mat-select [(ngModel)]="motivo.id_type_reason" name="id_type_reason" required>
-        <mat-option *ngFor="let option of tipoRazonOptions" [value]="option.value">
-          {{ option.label }}
-        </mat-option>
-      </mat-select>
-      <mat-icon matSuffix>category</mat-icon>
-    </mat-form-field>
-
     <!-- Campo Estado -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estado</mat-label>

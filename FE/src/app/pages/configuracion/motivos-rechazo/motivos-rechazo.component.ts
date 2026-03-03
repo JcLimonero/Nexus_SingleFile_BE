@@ -54,12 +54,9 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   // Filtros
   filters: FileReasonFilters = {
     search: '',
-    id_type_reason: undefined,
     sort_by: 'name',
     sort_order: 'ASC'
   };
-
-  selectedTypeReason: number | '' = '';
 
   // Paginación
   totalReasons = 0;
@@ -76,7 +73,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'idTypeReason', 'enabled', 'actions']);
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'enabled', 'actions']);
     this.loadData();
   }
 
@@ -125,8 +122,7 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
     this.loading = true;
     
     const payload: FileReasonFilters = {
-      ...this.filters,
-      id_type_reason: this.selectedTypeReason === '' ? undefined : Number(this.selectedTypeReason)
+      ...this.filters
     };
 
     this.fileReasonService.getFileReasons(payload).subscribe({
@@ -154,7 +150,6 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
    * Aplicar filtros
    */
   applyFilters(): void {
-    this.filters.id_type_reason = this.selectedTypeReason === '' ? undefined : Number(this.selectedTypeReason);
     if (this.paginator) {
       this.paginator.firstPage();
     }
@@ -172,11 +167,9 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
   clearFilters(): void {
     this.filters = {
       search: '',
-      id_type_reason: undefined,
       sort_by: 'name',
       sort_order: 'ASC'
     };
-    this.selectedTypeReason = '';
     this.applyFilters();
   }
 
@@ -270,15 +263,6 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
         this.snackBar.open('Error al cambiar el estado del motivo', 'Error', { duration: 3000 });
       }
     });
-  }
-
-  /**
-   * Obtener color del tipo de razón
-   */
-  getTypeReasonColor(id_type_reason: number): string {
-    if (id_type_reason === 4) return 'emerald'; // Aprobación - verde
-    if (id_type_reason === 5) return 'amber';   // Rechazo - naranja/ámbar
-    return 'gray'; // Tipo desconocido
   }
 
   /**

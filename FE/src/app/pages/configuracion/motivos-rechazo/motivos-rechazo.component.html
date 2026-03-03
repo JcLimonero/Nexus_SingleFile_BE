@@ -5,16 +5,6 @@
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 flex-wrap">
-            <!-- Filtro por tipo de razón -->
-            <mat-form-field appearance="outline" class="min-w-48">
-              <mat-label>Tipo de Razón</mat-label>
-              <mat-select [(ngModel)]="selectedTypeReason" (ngModelChange)="applyFilters()">
-                <mat-option value="">Todos los tipos</mat-option>
-                <mat-option [value]="4">Aprobación</mat-option>
-                <mat-option [value]="5">Rechazo</mat-option>
-              </mat-select>
-            </mat-form-field>
-            
             <!-- Búsqueda por texto -->
             <mat-form-field appearance="outline" class="w-[400px]">
               <mat-label>Buscar motivos</mat-label>
@@ -45,7 +35,7 @@
             <button 
               mat-stroked-button 
               (click)="clearFilters()"
-              [disabled]="!filters.search && !filters.id_type_reason"
+              [disabled]="!filters.search"
               matTooltip="Limpiar todos los filtros"
               class="flex items-center gap-2">
               <mat-icon>clear_all</mat-icon>
@@ -92,19 +82,6 @@
         </th>
         <td mat-cell *matCellDef="let reason" class="text-xs py-0">
           {{ reason.name }}
-        </td>
-      </ng-container>
-
-      <!-- Columna Tipo de Razón -->
-      <ng-container matColumnDef="idTypeReason">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-32 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
-          Tipo de Razón
-        </th>
-        <td mat-cell *matCellDef="let reason" class="text-center">
-          <span class="px-1.5 py-0.5 rounded-full text-xs font-medium"
-                [ngClass]="reason.id_type_reason == 4 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'">
-            {{ reason.type_reason_label }}
-          </span>
         </td>
       </ng-container>
 

@@ -38,12 +38,6 @@ export class MotivoEditDialogComponent implements OnInit {
   isEdit: boolean = false;
   loading = false;
 
-  // Opciones para el tipo de razón
-  tipoRazonOptions = [
-    { value: 4, label: 'Aprobación' },
-    { value: 5, label: 'Rechazo' }
-  ];
-
   constructor(
     public dialogRef: MatDialogRef<MotivoEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: MotivoEditData,
@@ -57,7 +51,6 @@ export class MotivoEditDialogComponent implements OnInit {
     if (data.motivo) {
       this.motivo = { 
         ...data.motivo,
-        id_type_reason: Number(data.motivo.id_type_reason),
         enabled: Number(data.motivo.enabled)
       };
       
@@ -71,7 +64,7 @@ export class MotivoEditDialogComponent implements OnInit {
     if (!this.isEdit) {
       this.motivo = {
         name: '',
-        id_type_reason: 5, // Por defecto Rechazo
+        id_type_reason: 5, // Rechazo (valor fijo, ya no se muestra en UI)
         enabled: 1
       };
     }
