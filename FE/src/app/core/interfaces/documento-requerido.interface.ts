@@ -53,6 +53,7 @@ export interface DocumentoRequeridoResponse {
 export interface DocumentoRequeridoFilters {
   id_process?: string;
   id_agency?: string;
+  id_company?: string | number;
   id_customer_type?: string;
   id_operation_type?: string;
   id_document_type?: string;
