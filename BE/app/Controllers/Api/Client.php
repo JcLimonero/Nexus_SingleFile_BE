@@ -62,6 +62,7 @@ class Client extends BaseController
 
             $search = trim((string) $this->request->getGet('search'));
             $idAgency = $this->request->getGet('idAgency');
+            $idCompany = $this->request->getGet('idCompany');
             $onlyAmlUmbral = $this->request->getGet('onlyAmlUmbral') === '1' || $this->request->getGet('onlyAmlUmbral') === 'true';
             $limit = (int) ($this->request->getGet('limit') ?: 100);
             $offset = (int) ($this->request->getGet('offset') ?: 0);
@@ -86,9 +87,15 @@ class Client extends BaseController
                 INNER JOIN client_header hc ON hc.id_client = c.id
                 INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
                 INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
+                INNER JOIN agency a_ag ON a_ag.id = ctr.id_agency
                 WHERE 1=1
             ";
             $params = [$umbral];
+
+            if ($idCompany !== null && $idCompany !== '') {
+                $sql .= " AND a_ag.id_company = ?";
+                $params[] = (int) $idCompany;
+            }
 
             if ($idAgency !== null && $idAgency !== '') {
                 $sql .= " AND ctr.id_agency = ?";

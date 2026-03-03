@@ -6,6 +6,13 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 flex-wrap">
             <mat-form-field appearance="outline" class="min-w-[180px]">
+              <mat-label>Razón social</mat-label>
+              <mat-select [(ngModel)]="filterCompania" [compareWith]="compareById" (selectionChange)="onFilterChange()">
+                <mat-option value="">Todas las razones</mat-option>
+                <mat-option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="min-w-[180px]">
               <mat-label>Agencia</mat-label>
               <mat-select [(ngModel)]="filterAgency" [compareWith]="compareById" (selectionChange)="onFilterChange()">
                 <mat-option value="">Todas las agencias</mat-option>
