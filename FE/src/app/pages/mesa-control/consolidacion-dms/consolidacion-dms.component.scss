@@ -19,6 +19,9 @@
 $filtro-field-height: 56px;
 $filtro-control-height: calc(56px * 0.7);
 
+// Altura para inputs que deben igualar al selector de agencias
+$filtro-control-height-full: 56px;
+
 .filtro-row {
   display: flex;
   flex-wrap: wrap;
@@ -27,6 +30,8 @@ $filtro-control-height: calc(56px * 0.7);
 }
 
 .filtro-field {
+  min-width: 200px;
+
   &.filtro-mes {
     width: 160px;
     min-width: 160px;
@@ -38,13 +43,13 @@ $filtro-control-height: calc(56px * 0.7);
   }
 
   &.filtro-compania {
-    width: 180px;
-    min-width: 180px;
+    width: 220px;
+    min-width: 220px;
   }
 
   &.filtro-periodo-preset {
-    width: 180px;
-    min-width: 180px;
+    width: 220px;
+    min-width: 220px;
   }
 
   &.filtro-rango-fechas {
@@ -53,12 +58,12 @@ $filtro-control-height: calc(56px * 0.7);
   }
 
   &.filtro-estatus {
-    width: 180px;
-    min-width: 180px;
+    width: 220px;
+    min-width: 220px;
   }
 }
 
-// Altura uniforme para mat-form-field (70% del estándar)
+// Altura uniforme para todos los mat-form-field (misma que agencia)
 :host ::ng-deep .filtro-field.mat-mdc-form-field {
   .mat-mdc-form-field-subscript-wrapper {
     display: none;
@@ -69,9 +74,11 @@ $filtro-control-height: calc(56px * 0.7);
   }
 
   .mat-mdc-form-field-infix {
+    min-height: $filtro-control-height;
     padding-top: 8px;
     padding-bottom: 8px;
-    min-height: $filtro-control-height;
+    display: flex;
+    align-items: center;
   }
 }
 
@@ -105,63 +112,42 @@ $filtro-control-height: calc(56px * 0.7);
 }
 
 .agencia-select-wrapper {
-  position: relative;
   display: inline-block;
-  min-width: 280px;
-  max-width: 320px;
-  height: $filtro-control-height;
-  box-sizing: border-box;
+  min-width: 200px;
+  cursor: pointer;
 
-  .agencia-select-label {
-    position: absolute;
-    top: -9px;
-    left: 12px;
-    padding: 0 4px;
-    background: white;
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.6);
-    z-index: 1;
+  &.agencia-disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.5;
   }
 
-  .agencia-select-trigger {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between;
+  .agencia-form-field {
     width: 100%;
-    height: $filtro-control-height !important;
-    min-height: $filtro-control-height !important;
-    padding: 0 16px !important;
-    margin: 0;
-    text-align: left;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 1 !important;
-    border: 1px solid rgba(0, 0, 0, 0.38);
-    border-radius: 4px;
-    background: white;
-    box-sizing: border-box;
+    pointer-events: none;
 
-    &:hover:not([disabled]) {
-      border-color: rgba(0, 0, 0, 0.87);
+    input {
+      cursor: pointer;
     }
+  }
+}
 
-    .agencia-select-text {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 14px;
-      font-weight: 400;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      line-height: 1;
-    }
+// Penetrar encapsulación para igualar altura del agencia-form-field
+:host ::ng-deep .agencia-select-wrapper .agencia-form-field.mat-mdc-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
 
-    mat-icon {
-      margin-left: 8px;
-      flex-shrink: 0;
-    }
+  .mat-mdc-text-field-wrapper {
+    height: $filtro-control-height;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: $filtro-control-height;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
   }
 }
 
