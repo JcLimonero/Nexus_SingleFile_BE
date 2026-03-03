@@ -898,15 +898,9 @@ class Validacion extends BaseController
             $limit = (int) $this->request->getGet('limit') ?: 10;
             $offset = ($page - 1) * $limit;
 
-            // Validar parámetros requeridos (idProcess opcional: si no viene, "Todos los procesos")
-            if (!$idAgency) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'El parámetro id (agencia) es requerido',
-                    'data' => null
-                ])->setStatusCode(400);
-            }
-
+            // id (agencia) opcional: si no viene o está vacío, "Todas las agencias"
+            // idProcess opcional: si no viene o está vacío, "Todos los procesos"
+            $filtrarPorAgencia = $idAgency !== null && $idAgency !== '';
             $filtrarPorProceso = $idProcess !== null && $idProcess !== '';
 
             // Query principal usando SQL directo para evitar problemas con Query Builder
@@ -1012,7 +1006,8 @@ class Validacion extends BaseController
                 ) obc2 ON f.id_order IS NULL
                     AND obc2.id_dms = f.id_order_total
                     AND obc2.id_agency = f.id_agency
-                WHERE f.id_agency = ?
+                WHERE 1=1
+                " . ($filtrarPorAgencia ? " AND f.id_agency = ?" : "") . "
                 AND p.enabled = 1
                 AND EXISTS (
                     SELECT 1 
@@ -1022,7 +1017,10 @@ class Validacion extends BaseController
                 )
             ";
 
-            $params = [$idAgency];
+            $params = [];
+            if ($filtrarPorAgencia) {
+                $params[] = $idAgency;
+            }
             if ($filtrarPorProceso) {
                 $sql .= " AND f.id_process = ?";
                 $params[] = $idProcess;
@@ -1066,7 +1064,8 @@ class Validacion extends BaseController
                 INNER JOIN process p ON f.id_process = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 INNER JOIN file_status fs ON f.id_current_state = fs.id
-                WHERE f.id_agency = ?
+                WHERE 1=1
+                " . ($filtrarPorAgencia ? " AND f.id_agency = ?" : "") . "
                 AND p.enabled = 1
                 AND EXISTS (
                     SELECT 1 
@@ -1075,7 +1074,10 @@ class Validacion extends BaseController
                     AND ctr_check.id_agency = f.id_agency
                 )
             ";
-            $countParams = [$idAgency];
+            $countParams = [];
+            if ($filtrarPorAgencia) {
+                $countParams[] = $idAgency;
+            }
             if ($filtrarPorProceso) {
                 $countSql .= " AND f.id_process = ?";
                 $countParams[] = $idProcess;

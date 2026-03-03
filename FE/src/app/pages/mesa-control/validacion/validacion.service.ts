@@ -61,8 +61,8 @@ export interface Documento {
 }
 
 export interface FiltrosValidacion {
-  agencia?: number | null;
-  proceso?: number | null;
+  agencia?: number | string | null;
+  proceso?: number | string | null;
   fase?: string;
   estado?: string;
   showCancelled?: boolean;
@@ -148,9 +148,12 @@ export class ValidacionService {
     this.loadingSubject.next(true);
 
     let params = new HttpParams();
-    if (filtros.agencia) params = params.set('id', filtros.agencia);
+    // Solo enviar id cuando hay agencia concreta; "Todas las agencias" no envía id
+    if (filtros.agencia != null && filtros.agencia !== undefined && filtros.agencia !== '') {
+      params = params.set('id', String(filtros.agencia));
+    }
     // Solo enviar idProcess cuando hay proceso concreto; "Todos los procesos" no envía idProcess
-    if (filtros.proceso != null && filtros.proceso !== undefined) {
+    if (filtros.proceso != null && filtros.proceso !== undefined && filtros.proceso !== '') {
       params = params.set('idProcess', filtros.proceso.toString());
     }
     if (filtros.showCancelled !== undefined) params = params.set('showCancelled', filtros.showCancelled.toString());

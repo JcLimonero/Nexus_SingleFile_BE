@@ -10,13 +10,14 @@
               [(ngModel)]="selectedAgency"
               [disabled]="loadingAgencias || agencias.length === 0"
               (selectionChange)="onAgenciaChange()">
-              <mat-option *ngIf="loadingAgencias" value="" disabled>
+              <mat-option *ngIf="loadingAgencias" [value]="null" disabled>
                 <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
                 Cargando agencias...
               </mat-option>
-              <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
+              <mat-option *ngIf="!loadingAgencias && agencias.length === 0" [value]="null" disabled>
                 No hay agencias disponibles
               </mat-option>
+              <mat-option [value]="''">Todas las agencias</mat-option>
               <mat-option *ngFor="let agencia of agencias" [value]="agencia.id ?? agencia.Id">
                 {{ agencia.name ?? agencia.Name }}
               </mat-option>
@@ -29,13 +30,14 @@
               [(ngModel)]="selectedProcess"
               [disabled]="loadingProcesos || procesos.length === 0"
               (selectionChange)="onProcesoChange()">
-              <mat-option *ngIf="loadingProcesos" value="" disabled>
+              <mat-option *ngIf="loadingProcesos" [value]="null" disabled>
                 <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
                 Cargando procesos...
               </mat-option>
-              <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
+              <mat-option *ngIf="!loadingProcesos && procesos.length === 0" [value]="null" disabled>
                 No hay procesos disponibles
               </mat-option>
+              <mat-option [value]="''">Todos los procesos</mat-option>
               <mat-option *ngFor="let proceso of procesos" [value]="proceso.id ?? proceso.Id">
                 {{ proceso.name ?? proceso.Name }}
               </mat-option>
