@@ -2382,6 +2382,7 @@ class Validacion extends BaseController
             $cliente = $this->db->query("
                 SELECT 
                     f.id as idFile,
+                    f.id_client as idClient,
                     COALESCE(
                         (SELECT ctr1.id_dms FROM client_dms_relation ctr1 
                          WHERE ctr1.id_client_header = hc.id AND ctr1.id_agency = f.id_agency LIMIT 1),
@@ -2402,6 +2403,29 @@ class Validacion extends BaseController
                     c.tel_number as telefono,
                     c.tel_number2 as telefono2,
                     c.razon_social as razonSocial,
+                    cid.nombre as cid_nombre,
+                    cid.apellido_paterno as cid_apellido_paterno,
+                    cid.apellido_materno as cid_apellido_materno,
+                    cid.razon_social as cid_razon_social,
+                    cid.rfc as cid_rfc,
+                    cid.curp as cid_curp,
+                    cid.email as cid_email,
+                    cid.telefono as cid_telefono,
+                    cid.telefono2 as cid_telefono2,
+                    cid.calle as cid_calle,
+                    cid.numero_exterior as cid_numero_exterior,
+                    cid.numero_interior as cid_numero_interior,
+                    cid.colonia as cid_colonia,
+                    cid.codigo_postal as cid_codigo_postal,
+                    cid.ciudad as cid_ciudad,
+                    cid.municipio as cid_municipio,
+                    cid.pais as cid_pais,
+                    cid.fecha_nacimiento as cid_fecha_nacimiento,
+                    cid.pais_nacimiento as cid_pais_nacimiento,
+                    cid.pais_nacionalidad as cid_pais_nacionalidad,
+                    cid.autoridad_emite as cid_autoridad_emite,
+                    cid.fecha_constituccion as cid_fecha_constituccion,
+                    cid.actividad_giro as cid_actividad_giro,
                     f.id_customer_type as idCustomerType,
                     ct.name as tipoCliente,
                     p.name as proceso,
@@ -2431,6 +2455,7 @@ class Validacion extends BaseController
                         AND obc2a.id_agency = obc2b.id_agency
                         AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
                 ) obc2 ON f.id_order IS NULL AND obc2.id_dms = f.id_order_total AND obc2.id_agency = f.id_agency
+                LEFT JOIN client_identification_data cid ON cid.id_client = c.id AND cid.enabled = 1
                 WHERE f.id = ?
             ", [$idFile])->getRowArray();
 
@@ -2445,77 +2470,111 @@ class Validacion extends BaseController
             $idCustomerType = (int) ($cliente['idCustomerType'] ?? 0);
             $isClienteMoral = ($idCustomerType === 3);
 
+            // Merge: client_identification_data sobreescribe client cuando tiene valor
+            $m = function ($cid, $client) {
+                $v = trim($cid ?? '');
+                return $v !== '' ? $v : (string) ($client ?? '');
+            };
+            $mDate = function ($cid) {
+                if (empty($cid)) return '';
+                return is_string($cid) ? $cid : date('Y-m-d', strtotime($cid));
+            };
+            $nombre = $m($cliente['cid_nombre'] ?? null, $cliente['nombre'] ?? null);
+            $apellidoPaterno = $m($cliente['cid_apellido_paterno'] ?? null, $cliente['apellidoPaterno'] ?? null);
+            $apellidoMaterno = $m($cliente['cid_apellido_materno'] ?? null, $cliente['apellidoMaterno'] ?? null);
+            $razonSocial = $m($cliente['cid_razon_social'] ?? null, $cliente['razonSocial'] ?? null);
+            $rfc = $m($cliente['cid_rfc'] ?? null, $cliente['rfc'] ?? null);
+            $curp = $m($cliente['cid_curp'] ?? null, $cliente['curp'] ?? null);
+            $email = $m($cliente['cid_email'] ?? null, $cliente['email'] ?? null);
+            $telefono = $m($cliente['cid_telefono'] ?? null, $cliente['telefono'] ?? null);
+            $telefono2 = $m($cliente['cid_telefono2'] ?? null, $cliente['telefono2'] ?? null);
+            $clienteNombre = $razonSocial ?: trim("{$nombre} {$apellidoPaterno} {$apellidoMaterno}");
+            $calle = (string) ($cliente['cid_calle'] ?? '');
+            $numeroExt = (string) ($cliente['cid_numero_exterior'] ?? '');
+            $numeroInt = (string) ($cliente['cid_numero_interior'] ?? '');
+            $colonia = (string) ($cliente['cid_colonia'] ?? '');
+            $cp = (string) ($cliente['cid_codigo_postal'] ?? '');
+            $ciudad = (string) ($cliente['cid_ciudad'] ?? '');
+            $municipio = (string) ($cliente['cid_municipio'] ?? '');
+            $pais = (string) ($cliente['cid_pais'] ?? '');
+            $fechaNac = $mDate($cliente['cid_fecha_nacimiento'] ?? null);
+            $paisNac = (string) ($cliente['cid_pais_nacimiento'] ?? '');
+            $paisNacionalidad = (string) ($cliente['cid_pais_nacionalidad'] ?? '');
+            $autoridadEmite = (string) ($cliente['cid_autoridad_emite'] ?? '');
+            $fechaConst = $mDate($cliente['cid_fecha_constituccion'] ?? null);
+            $actividadGiro = (string) ($cliente['cid_actividad_giro'] ?? '');
+
             if ($isClienteMoral) {
                 // Template 1606181 - Cliente moral (IdCustomerType = 3)
                 $templateId = (int) $config->templateIdIdentificacionMoral;
                 $templateData = [
-                    'actividad_giro_mercantil_u_objeto_social_row_1' => '',
-                    'apellido_materno_row_1' => (string) ($cliente['apellidoMaterno'] ?? ''),
-                    'apellido_paterno_row_1' => (string) ($cliente['apellidoPaterno'] ?? ''),
-                    'autoridad_que_la_emite_row_1' => '',
-                    'c_digo_postal_row_1' => '',
-                    'c_u_r_p_row_1' => (string) ($cliente['curp'] ?? ''),
-                    'calle_avenida_o_v_a_row_1' => '',
-                    'ciudad_poblaci_n_o_entidad_federativa_row_1' => '',
-                    'colonia_o_urbanizaci_n_row_1' => '',
-                    'correo_el_ctronico_row_1' => (string) ($cliente['email'] ?? ''),
-                    'demarcaci_n_pol_tica_o_municipio_row_1' => '',
+                    'actividad_giro_mercantil_u_objeto_social_row_1' => $actividadGiro,
+                    'apellido_materno_row_1' => $apellidoMaterno,
+                    'apellido_paterno_row_1' => $apellidoPaterno,
+                    'autoridad_que_la_emite_row_1' => $autoridadEmite,
+                    'c_digo_postal_row_1' => $cp,
+                    'c_u_r_p_row_1' => $curp,
+                    'calle_avenida_o_v_a_row_1' => $calle,
+                    'ciudad_poblaci_n_o_entidad_federativa_row_1' => $ciudad,
+                    'colonia_o_urbanizaci_n_row_1' => $colonia,
+                    'correo_el_ctronico_row_1' => $email,
+                    'demarcaci_n_pol_tica_o_municipio_row_1' => $municipio,
                     'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => '',
-                    'denominaci_n_o_raz_n_social_row_1' => (string) ($cliente['razonSocial'] ?? $cliente['cliente'] ?? ''),
-                    'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => '',
-                    'extensi_n_en_su_caso_row_1' => '',
+                    'denominaci_n_o_raz_n_social_row_1' => $razonSocial ?: $clienteNombre,
+                    'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => $actividadGiro,
+                    'extensi_n_en_su_caso_row_1' => $numeroInt,
                     'extranjero' => '',
-                    'fecha_de_constituci_n_row_1' => '',
+                    'fecha_de_constituci_n_row_1' => $fechaConst,
                     'fecha_de_elaboraci_n_del_formato_row_1' => date('Y-m-d'),
-                    'fecha_de_nacimiento_row_1' => '',
-                    'n_mero_exterior_row_1' => '',
-                    'n_mero_interior_en_su_caso_row_1' => '',
+                    'fecha_de_nacimiento_row_1' => $fechaNac,
+                    'n_mero_exterior_row_1' => $numeroExt,
+                    'n_mero_interior_en_su_caso_row_1' => $numeroInt,
                     'n_mero_o_folio_row_1' => (string) ($cliente['ndPedido'] ?? ''),
-                    'n_mero_telef_nico_con_clave_lada_row_1' => (string) ($cliente['telefono'] ?? $cliente['telefono2'] ?? ''),
+                    'n_mero_telef_nico_con_clave_lada_row_1' => $telefono ?: $telefono2,
                     'nacional' => '',
                     'nombre_completo_y_firma_del_representante_o_apoderado_legal' => '',
                     'nombre_de_la_identificaci_n_row_1' => '',
-                    'nombre_s_sin_abreviaturas_row_1' => (string) ($cliente['nombre'] ?? ''),
+                    'nombre_s_sin_abreviaturas_row_1' => $nombre,
                     'nombre_y_firma_del_funcionario_o_empleado_que_realiz_el_cotejo' => '',
-                    'pa_s_de_nacimiento_row_1' => '',
-                    'pa_s_de_nacionalidad_row_1' => '',
-                    'pa_s_row_1' => '',
-                    'r_f_c_row_1' => (string) ($cliente['rfc'] ?? ''),
+                    'pa_s_de_nacimiento_row_1' => $paisNac,
+                    'pa_s_de_nacionalidad_row_1' => $paisNacionalidad,
+                    'pa_s_row_1' => $pais,
+                    'r_f_c_row_1' => $rfc,
                 ];
             } else {
                 // Template 1606176 - Cliente físico (IdCustomerType != 3)
                 $templateId = (int) $config->templateIdIdentificacionFisico;
                 $templateData = [
-                    'apellido_materno_row_1' => (string) ($cliente['apellidoMaterno'] ?? ''),
-                    'apellido_paterno_row_1' => (string) ($cliente['apellidoPaterno'] ?? ''),
-                    'autoridad_que_la_emite_row_1' => '',
-                    'c_digo_postal_row_1' => '',
-                    'c_u_r_p_row_1' => (string) ($cliente['curp'] ?? ''),
-                    'calle_avenida_o_v_a_row_1' => '',
-                    'ciudad_poblaci_n_o_entidad_federativa_row_1' => '',
-                    'colonia_o_urbanizaci_n_row_1' => '',
-                    'correo_el_ctronico_row_1' => (string) ($cliente['email'] ?? ''),
-                    'demarcaci_n_pol_tica_o_municipio_row_1' => '',
+                    'apellido_materno_row_1' => $apellidoMaterno,
+                    'apellido_paterno_row_1' => $apellidoPaterno,
+                    'autoridad_que_la_emite_row_1' => $autoridadEmite,
+                    'c_digo_postal_row_1' => $cp,
+                    'c_u_r_p_row_1' => $curp,
+                    'calle_avenida_o_v_a_row_1' => $calle,
+                    'ciudad_poblaci_n_o_entidad_federativa_row_1' => $ciudad,
+                    'colonia_o_urbanizaci_n_row_1' => $colonia,
+                    'correo_el_ctronico_row_1' => $email,
+                    'demarcaci_n_pol_tica_o_municipio_row_1' => $municipio,
                     'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => '',
                     'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => '',
-                    'extensi_n_en_su_caso_row_1' => '',
+                    'extensi_n_en_su_caso_row_1' => $numeroInt,
                     'extranjero' => '',
                     'fecha_de_elaboraci_n_del_formato_row_1' => date('Y-m-d'),
-                    'fecha_de_nacimiento_row_1' => '',
-                    'n_mero_exterior_row_1' => '',
-                    'n_mero_interior_en_su_caso_row_1' => '',
+                    'fecha_de_nacimiento_row_1' => $fechaNac,
+                    'n_mero_exterior_row_1' => $numeroExt,
+                    'n_mero_interior_en_su_caso_row_1' => $numeroInt,
                     'n_mero_o_folio_row_1' => (string) ($cliente['ndPedido'] ?? ''),
-                    'n_mero_telef_nico_con_clave_lada_row_1' => (string) ($cliente['telefono'] ?? $cliente['telefono2'] ?? ''),
+                    'n_mero_telef_nico_con_clave_lada_row_1' => $telefono ?: $telefono2,
                     'nacional' => '',
                     'no_existe_un_due_o_beneficiario_o_beneficiario_controlador_en_la_presente_operaci_n' => '',
-                    'nombre_completo_y_firma_del_cliente' => (string) ($cliente['cliente'] ?? ''),
+                    'nombre_completo_y_firma_del_cliente' => $clienteNombre,
                     'nombre_de_la_identificaci_n_row_1' => '',
-                    'nombre_s_sin_abreviaturas_row_1' => (string) ($cliente['nombre'] ?? ''),
+                    'nombre_s_sin_abreviaturas_row_1' => $nombre,
                     'nombre_y_firma_del_funcionario_o_empleado_que_realiz_el_cotejo' => '',
-                    'pa_s_de_nacimiento_row_1' => '',
-                    'pa_s_de_nacionalidad_row_1' => '',
-                    'pa_s_row_1' => '',
-                    'r_f_c_row_1' => (string) ($cliente['rfc'] ?? ''),
+                    'pa_s_de_nacimiento_row_1' => $paisNac,
+                    'pa_s_de_nacionalidad_row_1' => $paisNacionalidad,
+                    'pa_s_row_1' => $pais,
+                    'r_f_c_row_1' => $rfc,
                     's_existe_un_due_o_beneficiario_o_beneficiario_controlador_en_la_presente_operaci_n' => '',
                 ];
             }
@@ -2563,7 +2622,7 @@ class Validacion extends BaseController
                 ])->setStatusCode(500);
             }
 
-            $filename = 'identificacion_cliente_' . ($cliente['cliente'] ?? $idFile) . '_' . date('Y-m-d') . '.pdf';
+            $filename = 'identificacion_cliente_' . ($clienteNombre ?: $idFile) . '_' . date('Y-m-d') . '.pdf';
             $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $filename);
 
             return $this->response
@@ -2656,6 +2715,178 @@ class Validacion extends BaseController
                 'success' => false,
                 'message' => 'Error al generar el token: ' . $e->getMessage()
             ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Obtener datos de identificación para edición (merge: client_identification_data si existe, si no client)
+     * GET /api/clients-validation/datos-identificacion?idFile=123
+     */
+    public function getDatosIdentificacion()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $idFile = (int) $this->request->getGet('idFile');
+            if (!$idFile) {
+                return $this->response->setJSON(['success' => false, 'message' => 'idFile es requerido'])->setStatusCode(400);
+            }
+            $row = $this->db->query("
+                SELECT
+                    f.id_client as idClient,
+                    f.id_customer_type as idCustomerType,
+                    c.name as nombre,
+                    c.last_name as apellido_paterno,
+                    c.mother_last_name as apellido_materno,
+                    c.razon_social,
+                    c.RFC as rfc,
+                    c.CURP as curp,
+                    c.email,
+                    c.tel_number as telefono,
+                    c.tel_number2 as telefono2,
+                    cid.nombre as cid_nombre,
+                    cid.apellido_paterno as cid_apellido_paterno,
+                    cid.apellido_materno as cid_apellido_materno,
+                    cid.razon_social as cid_razon_social,
+                    cid.rfc as cid_rfc,
+                    cid.curp as cid_curp,
+                    cid.email as cid_email,
+                    cid.telefono as cid_telefono,
+                    cid.telefono2 as cid_telefono2,
+                    cid.calle,
+                    cid.numero_exterior,
+                    cid.numero_interior,
+                    cid.colonia,
+                    cid.codigo_postal,
+                    cid.ciudad,
+                    cid.municipio,
+                    cid.pais,
+                    cid.fecha_nacimiento,
+                    cid.pais_nacimiento,
+                    cid.pais_nacionalidad,
+                    cid.autoridad_emite,
+                    cid.fecha_constituccion,
+                    cid.actividad_giro
+                FROM expedient f
+                INNER JOIN client_header hc ON hc.id_client = f.id_client
+                INNER JOIN client c ON hc.id_client = c.id
+                LEFT JOIN client_identification_data cid ON cid.id_client = c.id AND cid.enabled = 1
+                WHERE f.id = ?
+            ", [$idFile])->getRowArray();
+            if (!$row) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Expediente no encontrado'])->setStatusCode(404);
+            }
+            $merge = function ($cid, $client) {
+                $v = trim($cid ?? '');
+                return $v !== '' ? $v : trim($client ?? '');
+            };
+            $mergeDate = function ($cid, $client) {
+                if (!empty($cid)) {
+                    return is_string($cid) ? $cid : date('Y-m-d', strtotime($cid));
+                }
+                return !empty($client) ? (is_string($client) ? $client : date('Y-m-d', strtotime($client))) : null;
+            };
+            $data = [
+                'idClient' => (int) $row['idClient'],
+                'idCustomerType' => (int) ($row['idCustomerType'] ?? 0),
+                'nombre' => $merge($row['cid_nombre'] ?? null, $row['nombre'] ?? null),
+                'apellido_paterno' => $merge($row['cid_apellido_paterno'] ?? null, $row['apellido_paterno'] ?? null),
+                'apellido_materno' => $merge($row['cid_apellido_materno'] ?? null, $row['apellido_materno'] ?? null),
+                'razon_social' => $merge($row['cid_razon_social'] ?? null, $row['razon_social'] ?? null),
+                'rfc' => $merge($row['cid_rfc'] ?? null, $row['rfc'] ?? null),
+                'curp' => $merge($row['cid_curp'] ?? null, $row['curp'] ?? null),
+                'email' => $merge($row['cid_email'] ?? null, $row['email'] ?? null),
+                'telefono' => $merge($row['cid_telefono'] ?? null, $row['telefono'] ?? null),
+                'telefono2' => $merge($row['cid_telefono2'] ?? null, $row['telefono2'] ?? null),
+                'calle' => trim($row['calle'] ?? ''),
+                'numero_exterior' => trim($row['numero_exterior'] ?? ''),
+                'numero_interior' => trim($row['numero_interior'] ?? ''),
+                'colonia' => trim($row['colonia'] ?? ''),
+                'codigo_postal' => trim($row['codigo_postal'] ?? ''),
+                'ciudad' => trim($row['ciudad'] ?? ''),
+                'municipio' => trim($row['municipio'] ?? ''),
+                'pais' => trim($row['pais'] ?? ''),
+                'fecha_nacimiento' => $mergeDate($row['fecha_nacimiento'] ?? null, null),
+                'pais_nacimiento' => trim($row['pais_nacimiento'] ?? ''),
+                'pais_nacionalidad' => trim($row['pais_nacionalidad'] ?? ''),
+                'autoridad_emite' => trim($row['autoridad_emite'] ?? ''),
+                'fecha_constituccion' => $mergeDate($row['fecha_constituccion'] ?? null, null),
+                'actividad_giro' => trim($row['actividad_giro'] ?? ''),
+            ];
+            return $this->response->setJSON(['success' => true, 'data' => $data]);
+        } catch (\Exception $e) {
+            error_log("Validacion::getDatosIdentificacion - " . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Guardar datos de identificación en client_identification_data
+     * PUT /api/clients-validation/datos-identificacion
+     * Body: { idClient o idFile, ...campos }
+     */
+    public function saveDatosIdentificacion()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $data = $this->request->getJSON(true) ?? $this->request->getPost();
+            $idClient = (int) ($data['idClient'] ?? $data['id_client'] ?? 0);
+            $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            if (!$idClient && $idFile) {
+                $row = $this->db->table('expedient')->select('id_client')->where('id', $idFile)->get()->getRowArray();
+                $idClient = (int) ($row['id_client'] ?? 0);
+            }
+            if (!$idClient) {
+                return $this->response->setJSON(['success' => false, 'message' => 'idClient o idFile es requerido'])->setStatusCode(400);
+            }
+            $userId = $currentUser['user_id'] ?? null;
+            $fields = [
+                'nombre', 'apellido_paterno', 'apellido_materno', 'razon_social', 'rfc', 'curp',
+                'email', 'telefono', 'telefono2', 'calle', 'numero_exterior', 'numero_interior',
+                'colonia', 'codigo_postal', 'ciudad', 'municipio', 'pais',
+                'fecha_nacimiento', 'pais_nacimiento', 'pais_nacionalidad', 'autoridad_emite',
+                'fecha_constituccion', 'actividad_giro'
+            ];
+            $toSave = [];
+            foreach ($fields as $f) {
+                $v = $data[$f] ?? null;
+                if ($v !== null && $v !== '') {
+                    if (in_array($f, ['fecha_nacimiento', 'fecha_constituccion'])) {
+                        $toSave[$f] = is_string($v) ? $v : date('Y-m-d', strtotime($v));
+                    } else {
+                        $toSave[$f] = trim((string) $v);
+                    }
+                } else {
+                    $toSave[$f] = null;
+                }
+            }
+            $toSave['id_last_user_update'] = $userId;
+            $toSave['update_date'] = date('Y-m-d H:i:s');
+            $toSave['enabled'] = 1;
+            $existing = $this->db->table('client_identification_data')
+                ->where('id_client', $idClient)
+                ->get()
+                ->getRowArray();
+            if ($existing) {
+                $this->db->table('client_identification_data')
+                    ->where('id_client', $idClient)
+                    ->update($toSave);
+                $this->logActivity('UPDATE_DATOS_IDENTIFICACION', "Datos de identificación actualizados para cliente {$idClient}", ['idClient' => $idClient], $idClient);
+            } else {
+                $toSave['id_client'] = $idClient;
+                $toSave['registration_date'] = date('Y-m-d H:i:s');
+                $this->db->table('client_identification_data')->insert($toSave);
+                $this->logActivity('CREATE_DATOS_IDENTIFICACION', "Datos de identificación creados para cliente {$idClient}", ['idClient' => $idClient], $idClient);
+            }
+            return $this->response->setJSON(['success' => true, 'data' => ['idClient' => $idClient]]);
+        } catch (\Exception $e) {
+            error_log("Validacion::saveDatosIdentificacion - " . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
         }
     }
 

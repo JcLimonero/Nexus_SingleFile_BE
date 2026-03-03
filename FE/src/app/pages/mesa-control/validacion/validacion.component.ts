@@ -43,6 +43,7 @@ import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-d
 import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialog/advertencia-liberado-dialog.component';
 import { FaltaParaAvanzarDialogComponent, FaltaParaAvanzarData } from './falta-para-avanzar-dialog/falta-para-avanzar-dialog.component';
 import { BeneficiariosDialogComponent, BeneficiariosDialogData } from './beneficiarios-dialog/beneficiarios-dialog.component';
+import { DatosIdentificacionDialogComponent, DatosIdentificacionDialogData } from './datos-identificacion-dialog/datos-identificacion-dialog.component';
 
 @Component({
   selector: 'vex-validacion',
@@ -72,7 +73,8 @@ import { BeneficiariosDialogComponent, BeneficiariosDialogData } from './benefic
     AprobarDocumentoDialogComponent,
     AdvertenciaLiquidacionDialogComponent,
     AdvertenciaLiberacionDialogComponent,
-    AdvertenciaLiberadoDialogComponent
+    AdvertenciaLiberadoDialogComponent,
+    DatosIdentificacionDialogComponent
   ],
   templateUrl: './validacion.component.html',
   styleUrl: './validacion.component.scss',
@@ -198,6 +200,24 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onImprimirIdentificacion(cliente: any): void {
+    const dialogData: DatosIdentificacionDialogData = {
+      idFile: cliente.idFile,
+      cliente: cliente.cliente || 'Cliente',
+      item: cliente
+    };
+    const dialogRef = this.dialog.open(DatosIdentificacionDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      data: dialogData
+    });
+    dialogRef.afterClosed().subscribe((result: { guardado?: boolean; imprimir?: boolean }) => {
+      if (result?.imprimir) {
+        this.descargarIdentificacionPdf(cliente);
+      }
+    });
+  }
+
+  private descargarIdentificacionPdf(cliente: any): void {
     this.validacionService.imprimirIdentificacionCliente(cliente.idFile)
       .pipe(takeUntil(this.destroy$))
       .subscribe({

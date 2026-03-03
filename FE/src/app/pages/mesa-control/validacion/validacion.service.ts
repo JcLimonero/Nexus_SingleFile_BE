@@ -68,6 +68,34 @@ export interface FiltrosValidacion {
   showCancelled?: boolean;
 }
 
+export interface DatosIdentificacion {
+  idClient?: number;
+  idCustomerType?: number;
+  nombre?: string;
+  apellido_paterno?: string;
+  apellido_materno?: string;
+  razon_social?: string;
+  rfc?: string;
+  curp?: string;
+  email?: string;
+  telefono?: string;
+  telefono2?: string;
+  calle?: string;
+  numero_exterior?: string;
+  numero_interior?: string;
+  colonia?: string;
+  codigo_postal?: string;
+  ciudad?: string;
+  municipio?: string;
+  pais?: string;
+  fecha_nacimiento?: string;
+  pais_nacimiento?: string;
+  pais_nacionalidad?: string;
+  autoridad_emite?: string;
+  fecha_constituccion?: string;
+  actividad_giro?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -573,6 +601,34 @@ export class ValidacionService {
 
   setLoading(loading: boolean): void {
     this.loadingSubject.next(loading);
+  }
+
+  /**
+   * Obtener datos de identificación para edición (merge client_identification_data + client)
+   */
+  getDatosIdentificacion(idFile: number): Observable<DatosIdentificacion> {
+    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/datos-identificacion`, {
+      params: { idFile: idFile.toString() }
+    }).pipe(
+      map(response => {
+        if (response?.success && response?.data) return response.data;
+        throw new Error(response?.message || 'Error al obtener datos de identificación');
+      })
+    );
+  }
+
+  /**
+   * Guardar datos de identificación en client_identification_data
+   */
+  saveDatosIdentificacion(idClient: number, data: Partial<DatosIdentificacion>, idFile?: number): Observable<{ idClient: number }> {
+    const body: Record<string, unknown> = { idClient, ...data };
+    if (idFile) body['idFile'] = idFile;
+    return this.http.put<any>(`${this.apiUrl}/api/clients-validation/datos-identificacion`, body).pipe(
+      map(response => {
+        if (response?.success && response?.data) return response.data;
+        throw new Error(response?.message || 'Error al guardar datos de identificación');
+      })
+    );
   }
 
   /**
