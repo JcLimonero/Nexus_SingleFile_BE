@@ -662,7 +662,7 @@ class ReportesCumplimiento extends BaseController
                     'expedientesSinAviso' => $expedientesSinAviso,
                     'umbralAml' => $umbral,
                     'periodoMeses' => $amlConfig->periodoMeses,
-                    'umbralUMA' => $amlConfig->umbralUMA,
+                    'umbralUMA' => $amlConfig->getUmbralUMA(),
                     'anio' => (int) date('Y')
                 ]
             ]);
