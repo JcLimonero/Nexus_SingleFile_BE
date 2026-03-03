@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -24,6 +24,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { ClientSelectionDialogComponent } from '../integracion/client-selection-dialog.component';
+import { LiquidationAddDocumentDialogComponent } from './liquidation-add-document-dialog.component';
 
 @Component({
   selector: 'vex-liquidacion',
@@ -47,8 +48,7 @@ import { ClientSelectionDialogComponent } from '../integracion/client-selection-
     MatCheckboxModule
   ],
   templateUrl: './liquidacion.component.html',
-  styleUrls: ['./liquidacion.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./liquidacion.component.scss']
 })
 export class LiquidacionComponent implements OnInit, OnDestroy {
   loading = false;
@@ -108,7 +108,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   uploadingDocuments: Set<string> = new Set();
   maxFileSizeMB = environment.maxFileSizeMB || 100; // Tamaño máximo configurable
   addingLiquidationDocument = false;
-  
+  expedientAmount = 0;
+  totalReceiptAmount = 0;
+  remainingAmount = 0;
+
   // Process properties - Fixed process for liquidation
   liquidationProcessId = 2; // Liquidación
   private readonly LIQUIDACION_STATE_ID = 2;
@@ -735,8 +738,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   // Métodos para manejo de documentos
   selectFile(file: any): void {
     this.selectedFile = file;
-    this.loadRequiredDocuments(file.fileId); // Usar fileId en lugar de numeroPedido
-    this.cdr.markForCheck();
+    const fileId = file?.fileId ?? file?.id ?? file?.file_id;
+    if (fileId != null) {
+      this.loadRequiredDocuments(String(fileId));
+    } else {
+      this.requiredDocuments = [];
+      this.documentsLoading = false;
+    }
   }
 
   loadRequiredDocuments(fileId: string): void {
@@ -755,8 +763,14 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
 
           if (response && response.success && response.data && response.data.documents) {
             this.requiredDocuments = response.data.documents;
+            this.expedientAmount = response.data.expedientAmount ?? 0;
+            this.totalReceiptAmount = response.data.totalReceiptAmount ?? 0;
+            this.remainingAmount = response.data.remainingAmount ?? Math.max(0, this.expedientAmount - this.totalReceiptAmount);
           } else {
             this.requiredDocuments = [];
+            this.expedientAmount = 0;
+            this.totalReceiptAmount = 0;
+            this.remainingAmount = 0;
           }
           
           this.documentsLoading = false;
@@ -770,6 +784,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           this.snackBar.open('Error al cargar documentos requeridos', 'Cerrar', {
             duration: 3000
           });
+        },
+        complete: () => {
+          this.documentsLoading = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -782,31 +800,32 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.addingLiquidationDocument) {
+    if (this.addingLiquidationDocument || this.remainingAmount <= 0) {
+      if (this.remainingAmount <= 0) {
+        this.snackBar.open('La suma de los comprobantes ya alcanzó el monto del expediente', 'Cerrar', {
+          duration: 3000
+        });
+      }
       return;
     }
 
     const fileId = this.selectedFile.fileId;
-    this.addingLiquidationDocument = true;
+    const dialogRef = this.dialog.open(LiquidationAddDocumentDialogComponent, {
+      width: '600px',
+      data: {
+        fileId,
+        expedientAmount: this.expedientAmount,
+        totalReceiptAmount: this.totalReceiptAmount,
+        remainingAmount: this.remainingAmount
+      }
+    });
 
-    this.http.post<any>(`${environment.apiBaseUrl}/api/clients-validation/documentos/liquidacion`, {
-      idFile: fileId
-    })
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        const message = response?.message || 'Documento de Liquidación agregado';
-        this.snackBar.open(message, 'Cerrar', { duration: 3000 });
-        this.loadRequiredDocuments(fileId);
-      },
-      error: (error) => {
-
-        const errorMessage = error?.error?.message || 'No se pudo agregar el documento de Liquidación';
-        this.snackBar.open(errorMessage, 'Cerrar', { duration: 4000 });
-        this.addingLiquidationDocument = false;
-      },
-      complete: () => {
-        this.addingLiquidationDocument = false;
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((result) => {
+      if (result?.success) {
+        this.snackBar.open('Documento de liquidación agregado correctamente', 'Cerrar', { duration: 3000 });
+        this.loadRequiredDocuments(String(fileId));
+      } else if (result && !result.success && result.message) {
+        this.snackBar.open(result.message, 'Cerrar', { duration: 4000 });
       }
     });
   }
@@ -1358,6 +1377,31 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
 
   trackByDocumentId(index: number, document: any): string {
     return document.fileDocumentId?.toString() || document.documentId?.toString() || index.toString();
+  }
+
+  /**
+   * Obtener monto del comprobante desde el documento (soporta distintas claves de la API)
+   */
+  getReceiptAmount(document: any): number | null {
+    if (!document) return null;
+    const val = document.receiptAmount ?? document.receiptamount ?? document.amount ?? document.monto;
+    if (val === null || val === undefined || val === '') return null;
+    const num = typeof val === 'number' ? val : parseFloat(String(val));
+    return isNaN(num) ? null : num;
+  }
+
+  /**
+   * Formatear monto para mostrar en el listado (evita problemas con currency pipe y valores nulos)
+   */
+  formatReceiptAmount(document: any): string {
+    const amt = this.getReceiptAmount(document);
+    if (amt == null) return 'N/A';
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amt);
   }
 }
 

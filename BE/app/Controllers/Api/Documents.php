@@ -28,6 +28,18 @@ class Documents extends BaseController
             }
 
             // Query corregido - Solo documentos requeridos para el proceso específico
+            // Para liquidación (idProcessType=2) se incluyen amount y payment_method
+            $isLiquidation = ($idProcessType === '2');
+            $liquidacionJoins = $isLiquidation ? "
+                LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_file_document = df.id AND lrd.id_file = f.id
+                LEFT JOIN payment_method pm ON pm.id = lrd.id_payment_method
+            " : "";
+            $liquidacionFields = $isLiquidation ? "
+                , COALESCE(lrd.amount, 0) as receiptAmount
+                , lrd.id_payment_method as idPaymentMethod
+                , pm.name as paymentMethodName
+            " : "";
+
             $sql = "
                 SELECT DISTINCT
                     dt.id as documentId,
@@ -56,12 +68,14 @@ class Documents extends BaseController
                     dfs.name as fileStatusName,
                     df.id_document_container as documentContainer,
                     df.id_current_status as idCurrentStatus
+                    {$liquidacionFields}
                 FROM expedient f
                 INNER JOIN file_document df ON f.id = df.id_file
                 INNER JOIN document_type dt ON df.id_document_type = dt.id
                 INNER JOIN file_status fs ON dt.id_process_type = fs.id 
                 INNER JOIN document_file_status dfs ON dfs.id = df.id_current_status 
                 LEFT JOIN file_sub_status fss ON fss.id = dt.id_sub_process
+                {$liquidacionJoins}
                 WHERE f.id = ?
                 AND dt.id_process_type = ?
                 AND f.id_current_state = dt.id_process_type
@@ -73,13 +87,56 @@ class Documents extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 
+            // Normalizar receiptAmount para liquidación (asegurar que sea número y clave correcta)
+            if ($isLiquidation && !empty($results)) {
+                foreach ($results as &$doc) {
+                    $amt = $doc['receiptAmount'] ?? $doc['receiptamount'] ?? $doc['amount'] ?? null;
+                    $doc['receiptAmount'] = $amt !== null && $amt !== '' ? (float) $amt : null;
+                }
+                unset($doc);
+            }
+
+            $data = [
+                'documents' => $results,
+                'total' => count($results)
+            ];
+
+            // Para liquidación: incluir monto del expediente y suma de comprobantes
+            if ($isLiquidation) {
+                $expedient = $this->db->table('expedient')
+                    ->select('id, id_order, id_order_total, id_agency')
+                    ->where('id', $fileId)
+                    ->get()
+                    ->getRowArray();
+                $montoExpediente = 0.0;
+                if ($expedient) {
+                    if (!empty($expedient['id_order'])) {
+                        $orderRow = $this->db->table('order')->select('amount')->where('id', $expedient['id_order'])->get()->getRowArray();
+                        $montoExpediente = (float) ($orderRow['amount'] ?? 0);
+                    } elseif (!empty($expedient['id_order_total']) && !empty($expedient['id_agency'])) {
+                        $orderRow = $this->db->query("
+                            SELECT obc2a.amount FROM `order` obc2a
+                            INNER JOIN (SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) AS MaxDate FROM `order` GROUP BY id_dms, id_agency) obc2b
+                            ON obc2a.id_dms = obc2b.id_dms AND obc2a.id_agency = obc2b.id_agency AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                            WHERE obc2a.id_dms = ? AND obc2a.id_agency = ?
+                        ", [$expedient['id_order_total'], $expedient['id_agency']])->getRowArray();
+                        $montoExpediente = (float) ($orderRow['amount'] ?? 0);
+                    }
+                }
+                $sumRow = $this->db->query("
+                    SELECT COALESCE(SUM(lrd.amount), 0) AS total FROM liquidation_receipt_detail lrd
+                    INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
+                    WHERE lrd.id_file = ?
+                ", [$fileId])->getRowArray();
+                $data['expedientAmount'] = $montoExpediente;
+                $data['totalReceiptAmount'] = (float) ($sumRow['total'] ?? 0);
+                $data['remainingAmount'] = max(0, $montoExpediente - (float) ($sumRow['total'] ?? 0));
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documentos requeridos obtenidos exitosamente',
-                'data' => [
-                    'documents' => $results,
-                    'total' => count($results)
-                ]
+                'data' => $data
             ]);
 
         } catch (\Exception $e) {

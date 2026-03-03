@@ -357,6 +357,22 @@
 }
 
 
+// Placeholder cuando no hay cliente seleccionado - icono info visible (evitar que se corte)
+.validacion-placeholder-sin-cliente {
+  overflow: visible !important;
+
+  .validacion-placeholder-icon {
+    font-size: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    color: #9ca3af;
+    display: inline-block !important;
+    line-height: 1 !important;
+  }
+}
+
 // Responsive design (igual que Integración, Liquidación, Liberación, Consolidación DMS)
 @media (max-width: 768px) {
   .validacion-container {

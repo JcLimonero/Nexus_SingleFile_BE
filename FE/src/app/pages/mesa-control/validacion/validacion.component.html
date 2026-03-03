@@ -450,10 +450,10 @@
           <!-- Título de tabla removido -->
 
           <!-- Mensaje cuando no hay cliente seleccionado -->
-          <div *ngIf="!selectedCliente" class="flex justify-center items-center py-8 text-gray-500">
-            <div class="text-center">
-              <mat-icon class="text-gray-400 text-4xl mb-2">info</mat-icon>
-              <p class="text-sm">Selecciona un cliente/pedido de la tabla superior para ver sus documentos</p>
+          <div *ngIf="!selectedCliente" class="validacion-placeholder-sin-cliente flex justify-center items-center py-8 text-gray-500">
+            <div class="text-center px-4">
+              <mat-icon class="validacion-placeholder-icon">info</mat-icon>
+              <p class="text-sm mt-2">Selecciona un cliente/pedido de la tabla superior para ver sus documentos</p>
             </div>
           </div>
 
@@ -710,10 +710,10 @@
             </div>
 
           <!-- Mensaje cuando no hay documentos -->
-          <div *ngIf="documentosDataSource.length === 0" class="flex justify-center items-center py-8 text-gray-500">
-            <div class="text-center">
-              <mat-icon class="text-gray-400 text-4xl mb-2">folder_open</mat-icon>
-              <p class="text-sm">No hay documentos disponibles para este cliente y pedido</p>
+          <div *ngIf="documentosDataSource.length === 0" class="validacion-placeholder-sin-cliente flex justify-center items-center py-8 text-gray-500">
+            <div class="text-center px-4">
+              <mat-icon class="validacion-placeholder-icon">folder_open</mat-icon>
+              <p class="text-sm mt-2">No hay documentos disponibles para este cliente y pedido</p>
             </div>
           </div>
           </div>

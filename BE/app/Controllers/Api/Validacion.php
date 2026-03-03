@@ -1044,7 +1044,7 @@ class Validacion extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 
-            // Asegurar avisoConfidencialidadAceptado: 1 solo si existe file_pld con AvisoPrivacidadEntregado=1
+            // Asegurar avisoConfidencialidadAceptado y mapear id_current_state → IdCurrentState para el frontend
             foreach ($results as &$row) {
                 $idFile = (int) ($row['idFile'] ?? 0);
                 $check = $this->db->query(
@@ -1052,6 +1052,8 @@ class Validacion extends BaseController
                     [$idFile]
                 )->getRow();
                 $row['avisoConfidencialidadAceptado'] = $check ? 1 : 0;
+                // Frontend espera IdCurrentState (PascalCase); backend devuelve id_current_state (snake_case)
+                $row['IdCurrentState'] = $row['id_current_state'] ?? null;
             }
             unset($row);
 
@@ -1579,7 +1581,10 @@ class Validacion extends BaseController
                     dt.req_expiration as ReqExpiration,
                     dbf.expiration_date as fechaExpiracion,
                     dbf.id_document_container as documentContainer,
-                    dt.available_to_client as DisponibleCliente
+                    dt.available_to_client as DisponibleCliente,
+                    COALESCE(lrd.amount, 0) as receiptAmount,
+                    lrd.id_payment_method as idPaymentMethod,
+                    pm.name as paymentMethodName
                 ')
                 ->join('expedient f', 'dbf.id_file = f.id', 'inner')
                 ->join('process p', 'f.id_process = p.id', 'inner')
@@ -1587,6 +1592,8 @@ class Validacion extends BaseController
                 ->join('file_status fs', 'dt.id_process_type = fs.id', 'inner')
                 ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
                 ->join('user u', 'dbf.id_last_user_update = u.id', 'left')
+                ->join('liquidation_receipt_detail lrd', 'lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file', 'left')
+                ->join('payment_method pm', 'pm.id = lrd.id_payment_method', 'left')
                 ->where('dbf.id_file', $idFile)
                 ->where('dbf.enabled', 1)
                 ->orderBy('p.name', 'ASC')
@@ -1606,12 +1613,49 @@ class Validacion extends BaseController
                 error_log("Primer resultado: " . json_encode($results[0]));
             }
 
-            return $this->response->setJSON([
+            $responseData = [
                 'success' => true,
                 'message' => 'Documentos obtenidos exitosamente',
                 'data' => $results,
                 'idDocumentTypeLiquidacion' => $idDocumentTypeLiquidacion
-            ]);
+            ];
+
+            // Incluir monto del expediente y suma de comprobantes para validación de avance a liberación
+            $expedientAmount = 0.0;
+            $totalReceiptAmount = 0.0;
+            $file = $this->db->table('expedient')
+                ->select('id, id_order, id_order_total, id_agency')
+                ->where('id', $idFile)
+                ->get()
+                ->getRowArray();
+            if ($file) {
+                if (!empty($file['id_order'])) {
+                    $orderRow = $this->db->table('order')->select('amount')->where('id', $file['id_order'])->get()->getRowArray();
+                    $expedientAmount = (float) ($orderRow['amount'] ?? 0);
+                } elseif (!empty($file['id_order_total']) && !empty($file['id_agency'])) {
+                    $orderRow = $this->db->query("
+                        SELECT obc2a.amount FROM `order` obc2a
+                        INNER JOIN (SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) AS MaxDate FROM `order` GROUP BY id_dms, id_agency) obc2b
+                        ON obc2a.id_dms = obc2b.id_dms AND obc2a.id_agency = obc2b.id_agency AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                        WHERE obc2a.id_dms = ? AND obc2a.id_agency = ?
+                    ", [$file['id_order_total'], $file['id_agency']])->getRowArray();
+                    $expedientAmount = (float) ($orderRow['amount'] ?? 0);
+                }
+                try {
+                    $sumRow = $this->db->query("
+                        SELECT COALESCE(SUM(lrd.amount), 0) AS total FROM liquidation_receipt_detail lrd
+                        INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
+                        WHERE lrd.id_file = ?
+                    ", [$idFile])->getRowArray();
+                    $totalReceiptAmount = (float) ($sumRow['total'] ?? 0);
+                } catch (\Exception $e) {
+                    // Tabla puede no existir
+                }
+            }
+            $responseData['expedientAmount'] = $expedientAmount;
+            $responseData['totalReceiptAmount'] = $totalReceiptAmount;
+
+            return $this->response->setJSON($responseData);
 
         } catch (\Exception $e) {
             error_log("Error en Validacion::getDocumentos: " . $e->getMessage());
@@ -1627,6 +1671,7 @@ class Validacion extends BaseController
     /**
      * Crear un documento adicional de Liquidación para un expediente
      * POST /api/clients-validation/documentos/liquidacion
+     * Body: { idFile, monto, id_payment_method }
      */
     public function agregarDocumentoLiquidacion()
     {
@@ -1641,6 +1686,32 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
 
+            if (!isset($data['monto']) || $data['monto'] === '' || $data['monto'] === null) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El monto del comprobante es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            if (empty($data['id_payment_method'])) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El tipo de pago es requerido',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $monto = (float) $data['monto'];
+            if ($monto <= 0) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El monto debe ser mayor a cero',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $idPaymentMethod = (int) $data['id_payment_method'];
             $idFile = (int) $data['idFile'];
             $documentTypeId = $this->getConfigDocumentTypeLiquidacion();
             if ($documentTypeId === null) {
@@ -1651,9 +1722,9 @@ class Validacion extends BaseController
                 ])->setStatusCode(500);
             }
 
-            // Verificar que el expediente exista
+            // Verificar que el expediente exista y obtener monto del pedido
             $file = $this->db->table('expedient')
-                ->select('id, id_order_total')
+                ->select('id, id_order, id_order_total, id_agency')
                 ->where('id', $idFile)
                 ->get()
                 ->getRowArray();
@@ -1664,6 +1735,57 @@ class Validacion extends BaseController
                     'message' => 'El expediente especificado no existe',
                     'data' => null
                 ])->setStatusCode(404);
+            }
+
+            // Obtener monto del expediente (order.amount)
+            $montoExpediente = 0.0;
+            if (!empty($file['id_order'])) {
+                $orderRow = $this->db->table('order')
+                    ->select('amount')
+                    ->where('id', $file['id_order'])
+                    ->get()
+                    ->getRowArray();
+                $montoExpediente = (float) ($orderRow['amount'] ?? 0);
+            } elseif (!empty($file['id_order_total']) && !empty($file['id_agency'])) {
+                $orderRow = $this->db->query("
+                    SELECT obc2a.amount
+                    FROM `order` obc2a
+                    INNER JOIN (
+                        SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) AS MaxDate
+                        FROM `order`
+                        GROUP BY id_dms, id_agency
+                    ) obc2b ON obc2a.id_dms = obc2b.id_dms
+                        AND obc2a.id_agency = obc2b.id_agency
+                        AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                    WHERE obc2a.id_dms = ? AND obc2a.id_agency = ?
+                ", [$file['id_order_total'], $file['id_agency']])->getRowArray();
+                $montoExpediente = (float) ($orderRow['amount'] ?? 0);
+            }
+
+            // Suma actual de comprobantes de liquidación del expediente
+            try {
+                $sumRow = $this->db->query("
+                    SELECT COALESCE(SUM(lrd.amount), 0) AS total
+                    FROM liquidation_receipt_detail lrd
+                    INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
+                    WHERE lrd.id_file = ? AND fd.id_document_type = ?
+                ", [$idFile, $documentTypeId])->getRowArray();
+            } catch (\Exception $e) {
+                error_log("Error consultando liquidation_receipt_detail: " . $e->getMessage());
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'La tabla liquidation_receipt_detail no existe. Ejecute la migración 051: BE/DB/migrations/051_create_liquidation_receipt_detail.sql',
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+            $sumaActual = (float) ($sumRow['total'] ?? 0);
+
+            if (($sumaActual + $monto) > $montoExpediente) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'La suma de los montos de los comprobantes no puede superar el monto del expediente ($' . number_format($montoExpediente, 2) . '). Suma actual: $' . number_format($sumaActual, 2),
+                    'data' => null
+                ])->setStatusCode(400);
             }
 
             // Obtener el nombre base del tipo de documento
@@ -1727,7 +1849,6 @@ class Validacion extends BaseController
             $currentUserId = $this->getCurrentUserId() ?? 1;
             $now = date('Y-m-d H:i:s');
 
-            $documentModel = new DocumentModel();
             $documentData = [
                 'id' => $nextId,
                 'name' => $documentName,
@@ -1746,13 +1867,31 @@ class Validacion extends BaseController
                 'id_document_error' => null
             ];
 
-            if (!$documentModel->insert($documentData)) {
+            if (!$this->db->table('file_document')->insert($documentData)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se pudo crear el documento de liquidación',
-                    'data' => [
-                        'errors' => $documentModel->errors()
-                    ]
+                    'data' => null
+                ])->setStatusCode(500);
+            }
+
+            // Insertar detalle de comprobante (monto y método de pago)
+            try {
+                $this->db->table('liquidation_receipt_detail')->insert([
+                'id_file_document' => $nextId,
+                'id_file' => $idFile,
+                'amount' => $monto,
+                'id_payment_method' => $idPaymentMethod,
+                'registration_date' => $now,
+                'update_date' => $now,
+                'id_last_user_update' => $currentUserId
+            ]);
+            } catch (\Exception $e) {
+                error_log("Error insertando liquidation_receipt_detail: " . $e->getMessage());
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Error al guardar el detalle del comprobante. Verifique que la tabla liquidation_receipt_detail existe (ejecute la migración 051). Detalle: ' . $e->getMessage(),
+                    'data' => null
                 ])->setStatusCode(500);
             }
 
@@ -1900,7 +2039,9 @@ class Validacion extends BaseController
             $nuevoEstatus = $data['nuevoEstatus'];
             $comentario = $data['comentario'] ?? null;
             $fechaExpiracion = $data['fechaExpiracion'] ?? null;
-            
+            $monto = isset($data['monto']) ? (float) $data['monto'] : null;
+            $idPaymentMethod = isset($data['id_payment_method']) ? (int) $data['id_payment_method'] : null;
+
             // Validar que el nuevo estatus sea válido (4 = Aprobado, 5 = Rechazado)
             if (!in_array($nuevoEstatus, [4, 5])) {
                 return $this->response->setJSON([
@@ -1978,6 +2119,93 @@ class Validacion extends BaseController
             // Si hay fecha de expiración, actualizarla también
             if ($fechaExpiracion) {
                 $updateData['expiration_date'] = $fechaExpiracion;
+            }
+
+            // Documentos de liquidación: al aprobar, requerir monto y método de pago e insertar/actualizar liquidation_receipt_detail
+            $idFile = (int) ($documento['id_file'] ?? 0);
+            $idDocumentType = (int) ($documento['id_document_type'] ?? 0);
+            $documentTypeLiquidacion = $this->getConfigDocumentTypeLiquidacion();
+
+            if ($nuevoEstatus == 4 && $documentTypeLiquidacion !== null && $idDocumentType === $documentTypeLiquidacion) {
+                if ($monto === null || $monto <= 0) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'El monto del comprobante es requerido para documentos de liquidación',
+                        'data' => null
+                    ])->setStatusCode(400);
+                }
+                if (empty($idPaymentMethod)) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'El tipo de pago es requerido para documentos de liquidación',
+                        'data' => null
+                    ])->setStatusCode(400);
+                }
+
+                // Obtener monto del expediente
+                $file = $this->db->table('expedient')->select('id, id_order, id_order_total, id_agency')->where('id', $idFile)->get()->getRowArray();
+                $montoExpediente = 0.0;
+                if ($file) {
+                    if (!empty($file['id_order'])) {
+                        $orderRow = $this->db->table('order')->select('amount')->where('id', $file['id_order'])->get()->getRowArray();
+                        $montoExpediente = (float) ($orderRow['amount'] ?? 0);
+                    } elseif (!empty($file['id_order_total']) && !empty($file['id_agency'])) {
+                        $orderRow = $this->db->query("
+                            SELECT obc2a.amount FROM `order` obc2a
+                            INNER JOIN (SELECT id_dms, id_agency, MAX(COALESCE(registration_date, '1900-01-01')) AS MaxDate FROM `order` GROUP BY id_dms, id_agency) obc2b
+                            ON obc2a.id_dms = obc2b.id_dms AND obc2a.id_agency = obc2b.id_agency AND COALESCE(obc2a.registration_date, '1900-01-01') = obc2b.MaxDate
+                            WHERE obc2a.id_dms = ? AND obc2a.id_agency = ?
+                        ", [$file['id_order_total'], $file['id_agency']])->getRowArray();
+                        $montoExpediente = (float) ($orderRow['amount'] ?? 0);
+                    }
+                }
+
+                $sumRow = $this->db->query("
+                    SELECT COALESCE(SUM(lrd.amount), 0) AS total FROM liquidation_receipt_detail lrd
+                    INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
+                    WHERE lrd.id_file = ? AND fd.id_document_type = ?
+                ", [$idFile, $documentTypeLiquidacion])->getRowArray();
+                $sumaActual = (float) ($sumRow['total'] ?? 0);
+
+                $existingLrd = $this->db->table('liquidation_receipt_detail')
+                    ->where('id_file_document', $idFileDocument)
+                    ->where('id_file', $idFile)
+                    ->get()->getRowArray();
+                $montoAnterior = $existingLrd ? (float) ($existingLrd['amount'] ?? 0) : 0;
+                $sumaParaValidar = $sumaActual - $montoAnterior + $monto;
+
+                if ($sumaParaValidar > $montoExpediente) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'La suma de los comprobantes no puede superar el monto del expediente ($' . number_format($montoExpediente, 2) . ')',
+                        'data' => null
+                    ])->setStatusCode(400);
+                }
+
+                $now = date('Y-m-d H:i:s');
+                $currentUserId = $this->getCurrentUserId() ?? 1;
+
+                if ($existingLrd) {
+                    $this->db->table('liquidation_receipt_detail')
+                        ->where('id_file_document', $idFileDocument)
+                        ->where('id_file', $idFile)
+                        ->update([
+                            'amount' => $monto,
+                            'id_payment_method' => $idPaymentMethod,
+                            'update_date' => $now,
+                            'id_last_user_update' => $currentUserId
+                        ]);
+                } else {
+                    $this->db->table('liquidation_receipt_detail')->insert([
+                        'id_file_document' => $idFileDocument,
+                        'id_file' => $idFile,
+                        'amount' => $monto,
+                        'id_payment_method' => $idPaymentMethod,
+                        'registration_date' => $now,
+                        'update_date' => $now,
+                        'id_last_user_update' => $currentUserId
+                    ]);
+                }
             }
             
             $result = $this->db->table('file_document')

@@ -17,7 +17,9 @@ export interface Cliente {
   operacion: string;
   fase: string;
   registro: string;
-  IdCurrentState: number;
+  IdCurrentState?: number;
+  /** id_current_state (snake_case) - valor devuelto por el backend */
+  id_current_state?: number;
   tieneDocumentosPendientes: number;
   documentosNoAprobados?: number;
   fechaLiberacion?: string;
@@ -138,9 +140,14 @@ export class ValidacionService {
 
   /**
    * Cargar documentos de un archivo específico.
-   * Retorna documentos e idDocumentTypeLiquidacion (desde config) para excluir documentos de liquidación de validación.
+   * Retorna documentos, idDocumentTypeLiquidacion, expedientAmount y totalReceiptAmount (para validación de avance a liberación).
    */
-  cargarDocumentos(idFile: number): Observable<{ documentos: Documento[]; idDocumentTypeLiquidacion: number | null }> {
+  cargarDocumentos(idFile: number): Observable<{
+    documentos: Documento[];
+    idDocumentTypeLiquidacion: number | null;
+    expedientAmount?: number;
+    totalReceiptAmount?: number;
+  }> {
     this.loadingSubject.next(true);
 
     let params = new HttpParams();
@@ -150,9 +157,16 @@ export class ValidacionService {
       map(response => {
         if (response && response.success && response.data) {
           const idLiq = response.idDocumentTypeLiquidacion != null ? Number(response.idDocumentTypeLiquidacion) : null;
-          return { documentos: response.data, idDocumentTypeLiquidacion: idLiq };
+          const expedientAmount = response.expedientAmount != null ? Number(response.expedientAmount) : 0;
+          const totalReceiptAmount = response.totalReceiptAmount != null ? Number(response.totalReceiptAmount) : 0;
+          return {
+            documentos: response.data,
+            idDocumentTypeLiquidacion: idLiq,
+            expedientAmount,
+            totalReceiptAmount
+          };
         }
-        return { documentos: [], idDocumentTypeLiquidacion: null };
+        return { documentos: [], idDocumentTypeLiquidacion: null, expedientAmount: 0, totalReceiptAmount: 0 };
       })
     );
   }
@@ -363,17 +377,30 @@ export class ValidacionService {
 
   /**
    * Aprobar/Rechazar documento - cambiar estatus a "4" (aprobado) o "5" (rechazado)
+   * Para documentos de liquidación: monto e idPaymentMethod son requeridos al aprobar
    */
-  aprobarDocumento(idDocumentByFile: number, nuevoEstatus: number, comentario?: string, fechaExpiracion?: Date): Observable<any> {
+  aprobarDocumento(
+    idDocumentByFile: number,
+    nuevoEstatus: number,
+    comentario?: string,
+    fechaExpiracion?: Date,
+    monto?: number,
+    idPaymentMethod?: number
+  ): Observable<any> {
     const data: any = {
       idDocumentByFile: idDocumentByFile,
       nuevoEstatus: nuevoEstatus,
       comentario: comentario
     };
 
-    // Si hay fecha de expiración, agregarla al payload
     if (fechaExpiracion) {
-      data.fechaExpiracion = fechaExpiracion.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      data.fechaExpiracion = fechaExpiracion.toISOString().split('T')[0];
+    }
+    if (monto != null && monto > 0) {
+      data.monto = monto;
+    }
+    if (idPaymentMethod != null && idPaymentMethod > 0) {
+      data.id_payment_method = idPaymentMethod;
     }
 
     return this.http.post<any>(`${this.apiUrl}/api/clients-validation/aprobar-documento`, data).pipe(

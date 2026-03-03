@@ -1163,8 +1163,9 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     const groups = new Map<string, { id: string; name: string; documents: any[]; hasPending: boolean; hasRejected: boolean }>();
 
     this.requiredDocuments.forEach((doc) => {
-      const id = doc.subProcessId ? String(doc.subProcessId) : 'default';
-      const name = doc.subProcessName || (doc.subProcessId ? `Subproceso ${doc.subProcessId}` : 'General');
+      const hasSubProcess = doc.subProcessId != null && doc.subProcessId !== 0 && String(doc.subProcessId) !== '0';
+      const id = hasSubProcess ? String(doc.subProcessId) : 'default';
+      const name = doc.subProcessName || (hasSubProcess ? `Subproceso ${doc.subProcessId}` : 'General');
 
       if (!groups.has(id)) {
         groups.set(id, { id, name, documents: [], hasPending: false, hasRejected: false });

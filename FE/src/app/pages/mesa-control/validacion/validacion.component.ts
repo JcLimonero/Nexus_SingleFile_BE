@@ -24,6 +24,7 @@ import { ExcepcionPedidoDialogComponent, ExcepcionPedidoData, ExcepcionPedidoRes
 import { EliminarPedidoDialogComponent, EliminarPedidoData, EliminarPedidoResult } from './eliminar-pedido-dialog/eliminar-pedido-dialog.component';
 import { CambiarEstatusDialogComponent, CambiarEstatusData, CambiarEstatusResult } from './cambiar-estatus-dialog/cambiar-estatus-dialog.component';
 import { AprobarDocumentoDialogComponent, AprobarDocumentoData, AprobarDocumentoResult } from './aprobar-documento-dialog/aprobar-documento-dialog.component';
+import { ValidarDocumentoLiquidacionDialogComponent, ValidarDocumentoLiquidacionData, ValidarDocumentoLiquidacionResult } from './validar-documento-liquidacion-dialog/validar-documento-liquidacion-dialog.component';
 import { RechazarDocumentoDialogComponent, RechazarDocumentoData, RechazarDocumentoResult } from './rechazar-documento-dialog/rechazar-documento-dialog.component';
 import { EliminarDocumentoDialogComponent, EliminarDocumentoData, EliminarDocumentoResult } from './eliminar-documento-dialog/eliminar-documento-dialog.component';
 import { FASES_FILTER_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
@@ -40,6 +41,7 @@ import { environment } from '../../../../environments/environment';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
 import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialog/advertencia-liberado-dialog.component';
+import { FaltaParaAvanzarDialogComponent, FaltaParaAvanzarData } from './falta-para-avanzar-dialog/falta-para-avanzar-dialog.component';
 import { BeneficiariosDialogComponent, BeneficiariosDialogData } from './beneficiarios-dialog/beneficiarios-dialog.component';
 
 @Component({
@@ -138,6 +140,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private advertenciaLiquidacionMostrada = false;
   private advertenciaLiberacionMostrada = false;
   private advertenciaLiberadoMostrada = false;
+  private readonly INTEGRACION_STATE_ID = 1;
   private readonly LIQUIDACION_STATE_ID = 2;
   private readonly LIBERACION_STATE_ID = 3;
   private readonly LIBERADO_STATE_ID = 4;
@@ -235,7 +238,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   onValidarDocumento(documento: any): void {
 
     // Solo se pueden validar documentos con estatus 2 (Cargado) o 3 (En revisión)
-    if (documento.idEstatus !== '2' && documento.idEstatus !== '3') {
+    const idEstatus = Number(documento?.idEstatus);
+    if (idEstatus !== 2 && idEstatus !== 3) {
       this.snackBar.open('Solo se pueden validar documentos cargados o en revisión', 'Cerrar', { duration: 3000 });
       return;
     }
@@ -257,15 +261,51 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     };
 
-    // Documentos de tipo Liquidación: componente distinto (por definir)
+    // Documentos de tipo Liquidación: ValidarDocumentoLiquidacionDialogComponent (monto y método de pago)
     if (this.esDocumentoLiquidacion(documento)) {
-      this.snackBar.open('Validación de documento Liquidación: por definir', 'Cerrar', { duration: 3000 });
+      if (!this.selectedCliente?.idFile) {
+        this.snackBar.open('No se pudo obtener el expediente', 'Cerrar', { duration: 3000 });
+        return;
+      }
+      const abrirDialogLiquidacion = () => {
+        const dialogData: ValidarDocumentoLiquidacionData = {
+          documento,
+          idFile: this.selectedCliente!.idFile
+        };
+        const dialogRef = this.dialog.open(ValidarDocumentoLiquidacionDialogComponent, {
+          width: '600px',
+          data: dialogData
+        });
+        dialogRef.afterClosed().subscribe((result: ValidarDocumentoLiquidacionResult) => {
+          if (result) {
+            this.procesarAprobacionDocumentoLiquidacion(documento, result);
+          }
+        });
+      };
+      if (idEstatus === 2) {
+        this.validacionService.prepararDocumento(documento.idDocumentByFile)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              documento.idEstatus = 3;
+              abrirDialogLiquidacion();
+              if (this.selectedCliente) {
+                this.cargarDocumentosCliente(this.selectedCliente.idFile);
+              }
+            },
+            error: () => {
+              this.snackBar.open('No se pudo preparar el documento para validación', 'Cerrar', { duration: 3000 });
+            }
+          });
+      } else {
+        abrirDialogLiquidacion();
+      }
       return;
     }
 
     // Documentos NO liquidación: AprobarDocumentoDialogComponent
     // Si está en estatus 2 (Cargado), preparar primero (cambiar a 3) y luego abrir dialog
-    if (documento.idEstatus === '2') {
+    if (idEstatus === 2) {
       this.validacionService.prepararDocumento(documento.idDocumentByFile)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -383,6 +423,30 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Procesar aprobación/rechazo de documento
    */
+  private procesarAprobacionDocumentoLiquidacion(documento: any, resultado: ValidarDocumentoLiquidacionResult): void {
+    const nuevoEstatus = resultado.aprobado ? 4 : 5;
+    this.validacionService.aprobarDocumento(
+      documento.idDocumentByFile,
+      nuevoEstatus,
+      resultado.comentario,
+      resultado.fechaExpiracion,
+      resultado.monto,
+      resultado.idPaymentMethod
+    )
+      .pipe(takeUntil(this.destroy$), timeout(10000))
+      .subscribe({
+        next: () => {
+          this.snackBar.open(resultado.aprobado ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente', 'Cerrar', { duration: 3000 });
+          if (this.selectedCliente) {
+            this.cargarDocumentosCliente(this.selectedCliente.idFile, true);
+          }
+        },
+        error: (error) => {
+          this.snackBar.open(`Error al procesar el documento: ${error.message || 'Error desconocido'}`, 'Cerrar', { duration: 5000 });
+        }
+      });
+  }
+
   private procesarAprobacionDocumento(documento: any, resultado: AprobarDocumentoResult): void {
 
     const nuevoEstatus = resultado.aprobado ? 4 : 5; // 4 = Aprobado, 5 = Rechazado
@@ -995,7 +1059,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Cargar documentos de un archivo específico
    * @param idFile ID del expediente
-   * @param verificarAvanceFase Solo true cuando se recarga tras aprobar/rechazar documento (acción de validación)
+   * @param verificarAvanceFase true al seleccionar el pedido o al terminar de validar un documento (muestra diálogo de avance de fase si aplica)
    */
   private cargarDocumentosCliente(idFile: number, verificarAvanceFase = false): void {
 
@@ -1012,7 +1076,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           this.idDocumentTypeLiquidacion = res.idDocumentTypeLiquidacion;
           if (verificarAvanceFase) {
             this.verificarAvanceFaseLiquidacion(res.documentos);
-            this.verificarAvanceFaseLiberacion(res.documentos);
+            this.verificarAvanceFaseLiberacion(res.documentos, res.expedientAmount ?? 0, res.totalReceiptAmount ?? 0);
             this.verificarAvanceFaseLiberado(res.documentos);
           }
           this.loadingDocumentos = false;
@@ -1028,6 +1092,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
+  /** Integración → Liquidación: todos los documentos de tipo integración requeridos validados */
   private verificarAvanceFaseLiquidacion(documentos: Documento[]): void {
     if (this.advertenciaLiquidacionMostrada || !this.selectedCliente) {
       return;
@@ -1035,6 +1100,11 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const faseCliente = this.normalizarTexto(this.selectedCliente.fase);
     if (faseCliente !== 'integracion') {
+      return;
+    }
+
+    const idState = String(this.selectedCliente.IdCurrentState ?? this.selectedCliente.id_current_state ?? '');
+    if (idState !== this.INTEGRACION_STATE_ID.toString()) {
       return;
     }
 
@@ -1055,7 +1125,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.mostrarAdvertenciaLiquidacion();
   }
 
-  private verificarAvanceFaseLiberacion(documentos: Documento[]): void {
+  /** Liquidación → Liberación: al menos un doc de liquidación, todos validados, suma montos = monto unidad */
+  private verificarAvanceFaseLiberacion(
+    documentos: Documento[],
+    expedientAmount: number = 0,
+    totalReceiptAmount: number = 0
+  ): void {
     if (this.advertenciaLiberacionMostrada || !this.selectedCliente) {
       return;
     }
@@ -1065,26 +1140,58 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    if (String(this.selectedCliente.IdCurrentState) !== this.LIQUIDACION_STATE_ID.toString()) {
+    const idState = String(this.selectedCliente.IdCurrentState ?? this.selectedCliente.id_current_state ?? '');
+    if (idState !== this.LIQUIDACION_STATE_ID.toString()) {
       return;
     }
 
-    const documentosLiquidacionRequeridos = documentos.filter((doc) => {
-      return this.esDocumentoDeLiquidacion(doc) && this.esDocumentoRequerido(doc);
-    });
+    const documentosLiquidacion = documentos.filter((doc) => this.esDocumentoDeLiquidacion(doc));
 
-    if (documentosLiquidacionRequeridos.length === 0) {
+    if (documentosLiquidacion.length === 0) {
       return;
     }
 
-    const todosValidados = documentosLiquidacionRequeridos.every((doc) => this.esDocumentoAprobado(doc));
+    const todosValidados = documentosLiquidacion.every((doc) => this.esDocumentoAprobado(doc));
     if (!todosValidados) {
+      return;
+    }
+
+    // La suma de montos de liquidación debe ser igual al monto de la unidad
+    const montoIgualUnidad = expedientAmount <= 0 || Math.abs(totalReceiptAmount - expedientAmount) < 0.01;
+    if (!montoIgualUnidad) {
+      this.mostrarFaltaParaLiberacion(expedientAmount, totalReceiptAmount);
       return;
     }
 
     this.advertenciaLiberacionMostrada = true;
     this.mostrarAdvertenciaLiberacion();
   }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  }
+
+  private mostrarFaltaParaLiberacion(expedientAmount: number, totalReceiptAmount: number): void {
+    const data: FaltaParaAvanzarData = {
+      titulo: 'Falta para pasar a Liberación',
+      faseActual: 'Liquidación',
+      faseSiguiente: 'Liberación',
+      cumplido: ['Todos los documentos de liquidación están validados'],
+      falta: [
+        `La suma de los montos de los comprobantes (${this.formatCurrency(totalReceiptAmount)}) debe ser igual al monto de la unidad (${this.formatCurrency(expedientAmount)})`
+      ]
+    };
+    this.dialog.open(FaltaParaAvanzarDialogComponent, {
+      width: '480px',
+      data
+    });
+  }
+
 
   private esDocumentoDeIntegracion(documento: Documento): boolean {
     return this.normalizarTexto(documento.fase) === 'integracion';
@@ -1256,6 +1363,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
+  /** Liberación → Liberado: todos los documentos de tipo liberación requeridos validados */
   private verificarAvanceFaseLiberado(documentos: Documento[]): void {
     if (this.advertenciaLiberadoMostrada || !this.selectedCliente) {
       return;

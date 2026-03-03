@@ -104,6 +104,10 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->patch('(:num)/estado', 'Process::toggleStatus/$1');
     });
 
+    $routes->group('payment-method', function($routes) {
+        $routes->get('/', 'PaymentMethod::index');
+    });
+
     $routes->group('operation-type', function($routes) {
         $routes->get('/', 'OperationType::index');
         $routes->post('/', 'OperationType::create');

@@ -1,0 +1,74 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">Agregar comprobante de liquidación</h2>
+    <button mat-icon-button (click)="onCancel()" class="text-gray-500 hover:text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Información del expediente -->
+  <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+    <h3 class="text-sm font-medium text-gray-600 mb-2">Información del expediente:</h3>
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="font-medium text-gray-700">Monto del expediente:</span>
+        <span class="ml-2 text-gray-600">{{ formatCurrency(expedientAmount) }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-700">Suma de comprobantes:</span>
+        <span class="ml-2 text-gray-600">{{ formatCurrency(totalReceiptAmount) }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-green-700">Disponible para agregar:</span>
+        <span class="ml-2 font-semibold text-green-700">{{ formatCurrency(remainingAmount) }}</span>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-2">La suma de los comprobantes no puede superar el monto del expediente.</p>
+  </div>
+
+  <!-- Formulario -->
+  <div class="space-y-4">
+    <!-- Monto del comprobante -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Monto del comprobante</mat-label>
+      <input matInput 
+             type="number" 
+             [(ngModel)]="monto" 
+             min="0" 
+             step="0.01" 
+             placeholder="0.00"
+             (ngModelChange)="onMontoChange()">
+      <mat-icon matSuffix>attach_money</mat-icon>
+      <mat-error *ngIf="montoError">{{ montoError }}</mat-error>
+      <mat-hint>Monto mayor a cero, no puede superar lo disponible</mat-hint>
+    </mat-form-field>
+
+    <!-- Tipo de pago -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Tipo de pago</mat-label>
+      <mat-select [(ngModel)]="idPaymentMethod" 
+                  placeholder="Seleccione el método de pago" 
+                  required>
+        <mat-option *ngFor="let pm of paymentMethods" [value]="pm.id">
+          {{ pm.name }}
+        </mat-option>
+      </mat-select>
+      <mat-icon matSuffix>payment</mat-icon>
+      <mat-error *ngIf="!idPaymentMethod && formTouched">El tipo de pago es requerido</mat-error>
+    </mat-form-field>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="flex justify-end mt-6 pt-4 border-t border-gray-200 space-x-3">
+    <button mat-button (click)="onCancel()" class="text-gray-600">
+      Cancelar
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onConfirm()"
+            [disabled]="!puedeConfirmar || submitting">
+      {{ submitting ? 'Agregando...' : 'Agregar' }}
+    </button>
+  </div>
+</div>

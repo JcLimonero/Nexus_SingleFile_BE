@@ -357,12 +357,16 @@
             Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.vehiculo }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
           </div>
         </mat-card-title>
-        <div class="flex items-center md:ml-4">
+        <div class="flex items-center md:ml-4 gap-2">
+          <span *ngIf="expedientAmount > 0" class="text-xs text-gray-600">
+            Monto expediente: {{ expedientAmount | currency:'MXN':'symbol':'1.2-2':'es-MX' }} | Comprobantes: {{ totalReceiptAmount | currency:'MXN':'symbol':'1.2-2':'es-MX' }} | Disponible: {{ remainingAmount | currency:'MXN':'symbol':'1.2-2':'es-MX' }}
+          </span>
           <button 
             mat-stroked-button 
             color="primary"
             (click)="agregarDocumentoLiquidacion()"
-            [disabled]="addingLiquidationDocument || documentsLoading"
+            [disabled]="addingLiquidationDocument || documentsLoading || remainingAmount <= 0"
+            [matTooltip]="remainingAmount <= 0 ? 'La suma de comprobantes ya alcanzó el monto del expediente' : 'Agregar comprobante de liquidación'"
             class="text-xs">
             <mat-icon class="mr-1" style="font-size: 14px;">add</mat-icon>
             {{ addingLiquidationDocument ? 'Agregando...' : 'Agregar documento' }}
@@ -417,6 +421,10 @@
               <!-- Nombre del documento -->
               <div class="flex-1">
                 <div class="font-medium text-gray-900 text-sm">{{ document.fileName || document.documentName }}</div>
+                <div *ngIf="document.paymentMethodName || getReceiptAmount(document) != null" class="text-xs text-gray-600 mt-1">
+                  <span>Monto: {{ formatReceiptAmount(document) }}</span>
+                  <span *ngIf="document.paymentMethodName"> · Pago: {{ document.paymentMethodName }}</span>
+                </div>
                 <div *ngIf="document.hasExpiration === '1' && document.expirationDate" 
                      class="text-xs text-gray-500">
                   Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
