@@ -121,7 +121,7 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
     legend: {
       show: true,
       position: 'top',
-      horizontalAlign: 'right',
+      horizontalAlign: 'left',
       fontSize: '12px',
       fontFamily: 'Inter, sans-serif',
       fontWeight: 500,
