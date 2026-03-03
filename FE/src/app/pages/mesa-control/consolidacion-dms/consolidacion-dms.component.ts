@@ -213,9 +213,40 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     if (this.loadingAgencias) return 'Cargando...';
     const list = this.agenciasFiltradas;
     if (list.length === 0) return this.filterCompania !== this.COMPANIA_TODAS ? 'Sin agencias para esta razón social' : 'No hay agencias';
-    if (this.selectedAgencyIds.length === 0) return 'Seleccione agencias';
-    const allSelected = list.every(a => this.selectedAgencyIds.includes(a.id ?? (a as any).Id)) && this.selectedAgencyIds.length === list.length;
-    return allSelected ? `Todas (${list.length})` : `${this.selectedAgencyIds.length} agencia(s)`;
+    const selectedCount = list.filter(a => this.selectedAgencyIds.includes(a.id ?? (a as any).Id)).length;
+    if (selectedCount === 0) return 'Seleccione agencias';
+    const allSelected = selectedCount === list.length;
+    return allSelected ? `Todas (${list.length})` : `${selectedCount} agencia(s)`;
+  }
+
+  onCompaniaChange(companiaId: number): void {
+    const normalized = typeof companiaId === 'number' ? companiaId : Number(companiaId);
+    if (Number.isNaN(normalized)) {
+      return;
+    }
+
+    if (normalized === this.COMPANIA_TODAS) {
+      this.selectedAgencyIds = [];
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const ids = this.agencias
+      .filter((agencia) => {
+        const companyId = agencia['IdCompany'] ?? agencia['id_company'] ?? agencia['idCompany'];
+        if (companyId == null || companyId === '') return false;
+        const num = typeof companyId === 'number' ? companyId : Number(companyId);
+        return !Number.isNaN(num) && num === normalized;
+      })
+      .map((agencia) => {
+        const rawId = agencia.id ?? (agencia as any).Id;
+        const num = typeof rawId === 'number' ? rawId : Number(rawId);
+        return Number.isNaN(num) ? null : num;
+      })
+      .filter((id): id is number => id !== null);
+
+    this.selectedAgencyIds = ids;
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy(): void {

@@ -45,7 +45,7 @@
           </mat-menu>
           <mat-form-field appearance="outline" class="filtro-field filtro-compania" subscriptSizing="dynamic" floatLabel="always">
             <mat-label>Razón social</mat-label>
-            <mat-select [(ngModel)]="filterCompania" name="filterCompania">
+            <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onCompaniaChange($event.value)">
               <mat-option [value]="-1">Todas las razones</mat-option>
               <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
             </mat-select>          
