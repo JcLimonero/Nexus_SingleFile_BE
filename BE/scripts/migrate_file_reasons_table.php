@@ -10,7 +10,7 @@
 $host = 'localhost';
 $username = 'root';
 $password = '00@Limonero';
-$database = 'singlefile_db';
+$database = 'NexFile_db';
 
 echo "=== Migración de Tabla File_Reasons ===\n\n";
 

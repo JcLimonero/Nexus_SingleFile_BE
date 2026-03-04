@@ -1,12 +1,12 @@
-# Configuración del Servidor - SingleFile
+# Configuración del Servidor - NexFile
 
-Este documento explica cómo configurar la aplicación SingleFile directamente en el servidor modificando archivos JSON externos.
+Este documento explica cómo configurar la aplicación NexFile directamente en el servidor modificando archivos JSON externos.
 
 ## Archivos de Configuración
 
 ### Backend - Configuración de Base de Datos
 
-**Archivo:** `BE/singlefile-api/config/database-config.json`
+**Archivo:** `BE/NexFile-api/config/database-config.json`
 
 Este archivo permite configurar la conexión a la base de datos y otros parámetros del backend.
 
@@ -15,7 +15,7 @@ Este archivo permite configurar la conexión a la base de datos y otros parámet
   "database": {
     "hostname": "localhost",
     "port": 3306,
-    "database": "singlefile_db",
+    "database": "NexFile_db",
     "username": "root",
     "password": "",
     "driver": "MySQLi",
@@ -76,7 +76,7 @@ Este archivo permite configurar las URLs de las APIs y otros parámetros del fro
 
 ### 1. Configurar Base de Datos (Backend)
 
-1. Edita el archivo `BE/singlefile-api/config/database-config.json`
+1. Edita el archivo `BE/NexFile-api/config/database-config.json`
 2. Modifica los valores en la sección `database`:
    - `hostname`: Servidor de la base de datos
    - `port`: Puerto de la base de datos (por defecto 3306 para MySQL)
@@ -106,7 +106,7 @@ Este archivo permite configurar las URLs de las APIs y otros parámetros del fro
 ```json
 {
   "api": {
-    "baseUrl": "http://dev.singlefile.com"
+    "baseUrl": "http://dev.NexFile.com"
   }
 }
 ```
@@ -115,7 +115,7 @@ Este archivo permite configurar las URLs de las APIs y otros parámetros del fro
 ```json
 {
   "api": {
-    "baseUrl": "https://api.singlefile.com"
+    "baseUrl": "https://api.NexFile.com"
   }
 }
 ```

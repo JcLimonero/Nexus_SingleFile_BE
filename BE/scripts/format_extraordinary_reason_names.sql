@@ -1,7 +1,7 @@
 -- Script para formatear nombres existentes en File_Extraordinary_Reasons
 -- Convierte todos los nombres a formato de mayúsculas y minúsculas
 
-USE singlefile_db;
+USE NexFile_db;
 
 -- Función para formatear nombres (equivalente a ucwords(strtolower()) en PHP)
 DELIMITER $$

@@ -9,7 +9,7 @@
 $mysql_config = [
     'host' => 'localhost',
     'port' => 3306,
-    'database' => 'singlefile_db',
+    'database' => 'NexFile_db',
     'username' => 'root',
     'password' => '00@Limonero'
 ];
@@ -25,7 +25,7 @@ $hfsql_config = [
 
 // Configuración de Archivos CSV
 $csv_config = [
-    'agency_file' => '/Users/jclimonero/Documents/Developer/SingleFile/script/Agency.csv',
+    'agency_file' => '/Users/jclimonero/Documents/Developer/NexFile/script/Agency.csv',
     'encoding' => 'UTF-8',
     'delimiter' => ',',
     'enclosure' => '"',

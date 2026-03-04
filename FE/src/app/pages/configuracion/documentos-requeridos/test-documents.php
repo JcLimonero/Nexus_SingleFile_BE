@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 
 // Configuración de la base de datos
 $host = 'localhost';
-$dbname = 'singlefile';
+$dbname = 'NexFile';
 $username = 'root';
 $password = '';
 

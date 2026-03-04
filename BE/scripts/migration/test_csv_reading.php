@@ -6,7 +6,7 @@
  */
 
 // Ruta al archivo CSV
-$csv_file = '/Users/jclimonero/Documents/Developer/SingleFile/script/Agency.csv';
+$csv_file = '/Users/jclimonero/Documents/Developer/NexFile/script/Agency.csv';
 
 echo "🧪 Probando lectura del archivo CSV...\n\n";
 

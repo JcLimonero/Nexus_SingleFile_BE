@@ -18,7 +18,7 @@ try {
     $hostname = 'localhost';
     $username = 'root';
     $password_db = '00@Limonero';
-    $database = 'singlefile_db';
+    $database = 'NexFile_db';
     
     $db = new mysqli($hostname, $username, $password_db, $database);
     

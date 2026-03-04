@@ -16,7 +16,7 @@ class VanguardiaProxy extends BaseController
 
     /**
      * Proxy para búsqueda de clientes
-     * GET /api/vgd/singlefilecustomer
+     * GET /api/vgd/NexFilecustomer
      */
     public function searchClients()
     {
@@ -24,7 +24,7 @@ class VanguardiaProxy extends BaseController
             $params = $this->request->getGet();
             $queryString = http_build_query($params);
             
-            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefilecustomer?{$queryString}";
+            $url = "{$this->vanguardiaBaseUrl}/vgd/NexFilecustomer?{$queryString}";
             
             $response = $this->makeVanguardiaRequest('GET', $url);
             
@@ -42,16 +42,16 @@ class VanguardiaProxy extends BaseController
     }
 
     /**
-     * Proxy para facturas/pedidos DMS (singlefileinvoices)
-     * GET /api/vgd/singlefileinvoices
+     * Proxy para facturas/pedidos DMS (NexFileinvoices)
+     * GET /api/vgd/NexFileinvoices
      */
-    public function singlefileInvoices()
+    public function NexFileInvoices()
     {
         try {
             $params = $this->request->getGet();
             $queryString = http_build_query($params);
 
-            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileinvoices?{$queryString}";
+            $url = "{$this->vanguardiaBaseUrl}/vgd/NexFileinvoices?{$queryString}";
 
             $response = $this->makeVanguardiaRequest('GET', $url);
 
@@ -60,17 +60,17 @@ class VanguardiaProxy extends BaseController
                 ->setStatusCode($response['status']);
 
         } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::singlefileInvoices: " . $e->getMessage());
+            error_log("Error en VanguardiaProxy::NexFileInvoices: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al consultar API singlefileinvoices: ' . $e->getMessage()
+                'message' => 'Error al consultar API NexFileinvoices: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
 
     /**
      * Proxy para búsqueda de pedidos
-     * GET /api/vgd/singlefileorderslastest
+     * GET /api/vgd/NexFileorderslastest
      */
     public function searchOrders()
     {
@@ -78,7 +78,7 @@ class VanguardiaProxy extends BaseController
             $params = $this->request->getGet();
             $queryString = http_build_query($params);
             
-            $url = "{$this->vanguardiaBaseUrl}/vgd/singlefileorderslastest?{$queryString}";
+            $url = "{$this->vanguardiaBaseUrl}/vgd/NexFileorderslastest?{$queryString}";
             
             $response = $this->makeVanguardiaRequest('GET', $url);
             
@@ -106,7 +106,7 @@ class VanguardiaProxy extends BaseController
             
             // Obtener el archivo
             $file = $this->request->getFile('expedient');
-            $idSingleFile = $this->request->getPost('idSingleFile');
+            $idNexFile = $this->request->getPost('idNexFile');
             $idDocumentFile = $this->request->getPost('idDocumentFile');
 
             if (!$file || !$file->isValid()) {
@@ -117,7 +117,7 @@ class VanguardiaProxy extends BaseController
             }
 
             // Obtener el nombre del archivo desde la vista view_document_name
-            $fileName = $this->getFileNameFromView($idDocumentFile, $idSingleFile, $file);
+            $fileName = $this->getFileNameFromView($idDocumentFile, $idNexFile, $file);
             
             // Preparar datos multipart
             $boundary = uniqid();
@@ -129,7 +129,7 @@ class VanguardiaProxy extends BaseController
                     'content' => file_get_contents($file->getTempName()),
                     'mimetype' => $file->getClientMimeType()
                 ],
-                'idSingleFile' => $idSingleFile,
+                'idNexFile' => $idNexFile,
                 'idDocumentFile' => $idDocumentFile
             ], $delimiter);
 

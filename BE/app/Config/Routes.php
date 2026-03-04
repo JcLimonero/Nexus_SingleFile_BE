@@ -359,7 +359,7 @@ $routes->group('backblaze', function($routes) {
 
 // Rutas de proxy a APIs Vanguardia (vgd)
 $routes->group('vgd', function($routes) {
-    $routes->get('singlefileinvoices', 'VanguardiaProxy::singlefileInvoices');
+    $routes->get('NexFileinvoices', 'VanguardiaProxy::NexFileInvoices');
 });
 
 // Rutas de files/pedidos (Principal)

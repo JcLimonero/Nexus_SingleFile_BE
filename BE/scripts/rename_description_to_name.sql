@@ -1,7 +1,7 @@
 -- Script para renombrar columna Description a Name y actualizar valores
--- Ejecutar en la base de datos singlefile_db
+-- Ejecutar en la base de datos NexFile_db
 
-USE singlefile_db;
+USE NexFile_db;
 
 -- 1. Renombrar la columna Description a Name
 ALTER TABLE File_Reasons CHANGE COLUMN Description Name VARCHAR(500) NOT NULL;

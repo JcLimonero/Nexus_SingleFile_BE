@@ -31,7 +31,7 @@ export class ConsolidacionDmsService {
   }
 
   /**
-   * Obtener lista de pedidos del DMS vía API singlefileinvoices.
+   * Obtener lista de pedidos del DMS vía API NexFileinvoices.
    * @param id_agency ID de agencia externo (de Vanguardia)
    * @param delivery_month Mes de entrega (1-12)
    * @param delivery_year Año de entrega

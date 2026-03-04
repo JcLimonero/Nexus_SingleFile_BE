@@ -41,9 +41,9 @@ export class ApiConfigService {
     ]).then(([res, activityRes]) => {
       if (res?.success && res.data) {
         this.vanguardia = {
-          api_url: (res.data.api_url || '').replace(/\/$/, '') || '/vgd/singlefilecustomer',
-          orders_api_url: (res.data.orders_api_url || '').replace(/\/$/, '') || '/vgd/singlefileorderslastest',
-          invoices_api_url: (res.data.invoices_api_url || '').replace(/\/$/, '') || '/vgd/singlefileinvoices',
+          api_url: (res.data.api_url || '').replace(/\/$/, '') || '/vgd/NexFilecustomer',
+          orders_api_url: (res.data.orders_api_url || '').replace(/\/$/, '') || '/vgd/NexFileorderslastest',
+          invoices_api_url: (res.data.invoices_api_url || '').replace(/\/$/, '') || '/vgd/NexFileinvoices',
           upload_api_url: `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze/direct-upload`,
         };
       } else {
@@ -66,9 +66,9 @@ export class ApiConfigService {
   private getFallbackVanguardia(): VanguardiaConfig {
     const v = environment.vanguardia;
     return {
-      api_url: v?.apiUrl || '/vgd/singlefilecustomer',
-      orders_api_url: v?.ordersApiUrl || '/vgd/singlefileorderslastest',
-      invoices_api_url: v?.invoicesApiUrl || '/vgd/singlefileinvoices',
+      api_url: v?.apiUrl || '/vgd/NexFilecustomer',
+      orders_api_url: v?.ordersApiUrl || '/vgd/NexFileorderslastest',
+      invoices_api_url: v?.invoicesApiUrl || '/vgd/NexFileinvoices',
       upload_api_url: `${environment.apiBaseUrl}/api/backblaze/direct-upload`,
     };
   }

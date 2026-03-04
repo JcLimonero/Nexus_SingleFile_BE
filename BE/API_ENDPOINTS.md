@@ -1,4 +1,4 @@
-# API Endpoints – SingleFile Backend
+# API Endpoints – NexFile Backend
 
 Base URL: `http://localhost:8080/api` (o el que uses en `php spark serve`).
 
@@ -277,7 +277,7 @@ Base URL: `http://localhost:8080/api` (o el que uses en `php spark serve`).
 |--------|------|-------------|
 | POST | `/backblaze/upload` | Subir a Backblaze |
 | GET | `/backblaze/get-private-url` | URL privada |
-| GET | `/vgd/singlefileinvoices` | Facturas Vanguardia |
+| GET | `/vgd/NexFileinvoices` | Facturas Vanguardia |
 
 ---
 

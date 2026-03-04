@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingleFile API - Deployment Test</title>
+    <title>NexFile API - Deployment Test</title>
     <style>
         * {
             margin: 0;
@@ -130,7 +130,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo">🚀 SingleFile API</div>
+        <div class="logo">🚀 NexFile API</div>
         <div class="status">
             <span class="success-indicator"></span>
             Deployment Exitoso
@@ -138,7 +138,7 @@
         
         <div class="info">
             <h3>📋 Información del Sistema</h3>
-            <p><strong>Servidor:</strong> SingleFile API Backend</p>
+            <p><strong>Servidor:</strong> NexFile API Backend</p>
             <p><strong>Versión:</strong> CodeIgniter 4</p>
             <p><strong>PHP:</strong> <span id="php-version"></span></p>
             <p><strong>Estado:</strong> ✅ Operativo</p>
@@ -180,7 +180,7 @@
         </div>
         
         <div class="footer">
-            <p>SingleFile API - Sistema de Gestión de Documentos</p>
+            <p>NexFile API - Sistema de Gestión de Documentos</p>
             <p>Desarrollado con ❤️ usando CodeIgniter 4</p>
         </div>
     </div>

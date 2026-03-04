@@ -1,7 +1,7 @@
 -- Script para actualizar la tabla File_Extraordinary_Reasons existente
--- Ejecutar en la base de datos singlefile_db
+-- Ejecutar en la base de datos NexFile_db
 
-USE singlefile_db;
+USE NexFile_db;
 
 -- 1. Renombrar columnas existentes si es necesario
 ALTER TABLE File_Extraordinary_Reasons CHANGE COLUMN Comment Name VARCHAR(500) NOT NULL;

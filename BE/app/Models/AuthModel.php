@@ -15,7 +15,7 @@ class AuthModel extends Model
     protected bool $updateOnlyChanged = false;
     
     // Configuración de JWT
-    private $jwtSecret = 'singlefile-secret-key-2025';
+    private $jwtSecret = 'NexFile-secret-key-2025';
     private $jwtExpiration = 10800; // 3 horas
     private $refreshTokenExpiration = 2592000; // 30 días
     
@@ -163,8 +163,8 @@ class AuthModel extends Model
     private function generateAccessToken($user)
     {
         $payload = [
-            'iss' => 'singlefile-api', // Emisor
-            'aud' => 'singlefile-client', // Audiencia
+            'iss' => 'NexFile-api', // Emisor
+            'aud' => 'NexFile-client', // Audiencia
             'iat' => time(), // Tiempo de emisión
             'exp' => time() + $this->jwtExpiration, // Expiración
             'user_id' => $user['id'] ?? $user['Id'] ?? null,
@@ -182,8 +182,8 @@ class AuthModel extends Model
     private function generateRefreshToken($user)
     {
         $payload = [
-            'iss' => 'singlefile-api', // Emisor
-            'aud' => 'singlefile-client', // Audiencia
+            'iss' => 'NexFile-api', // Emisor
+            'aud' => 'NexFile-client', // Audiencia
             'iat' => time(), // Tiempo de emisión
             'exp' => time() + $this->refreshTokenExpiration, // Expiración más larga
             'user_id' => $user['id'] ?? $user['Id'] ?? null,

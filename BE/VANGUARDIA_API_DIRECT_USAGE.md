@@ -21,7 +21,7 @@ Content-Type: multipart/form-data
 | Parámetro | Tipo | Requerido | Descripción |
 |-----------|------|-----------|-------------|
 | `file` | File | ✅ | Archivo a subir |
-| `idSingleFile` | Integer | ✅ | ID del archivo en tabla (IdFile) |
+| `idNexFile` | Integer | ✅ | ID del archivo en tabla (IdFile) |
 | `idDocumentFile` | Integer | ✅ | ID del documento (fileDocumentId) |
 
 ### Extensiones Permitidas
@@ -41,10 +41,10 @@ Content-Type: multipart/form-data
 ### Ejemplo de Uso (JavaScript/Angular)
 
 ```typescript
-uploadFile(file: File, idSingleFile: number, fileDocumentId: number) {
+uploadFile(file: File, idNexFile: number, fileDocumentId: number) {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('idSingleFile', idSingleFile.toString());
+  formData.append('idNexFile', idNexFile.toString());
   formData.append('idDocumentFile', fileDocumentId.toString());
 
   return this.http.post('https://apisvanguardia.com:400/backblaze/upload', formData, {
@@ -60,7 +60,7 @@ uploadFile(file: File, idSingleFile: number, fileDocumentId: number) {
 ```bash
 curl -X POST "https://apisvanguardia.com:400/backblaze/upload" \
   -F "file=@documento.pdf" \
-  -F "idSingleFile=13835" \
+  -F "idNexFile=13835" \
   -F "idDocumentFile=212341"
 ```
 
@@ -123,10 +123,10 @@ export class FileUploadService {
 
   constructor(private http: HttpClient) {}
 
-  uploadFile(file: File, idSingleFile: number, fileDocumentId: number): Observable<any> {
+  uploadFile(file: File, idNexFile: number, fileDocumentId: number): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('idSingleFile', idSingleFile.toString());
+    formData.append('idNexFile', idNexFile.toString());
     formData.append('idDocumentFile', fileDocumentId.toString());
 
     return this.http.post(`${this.apiUrl}/backblaze/upload`, formData);

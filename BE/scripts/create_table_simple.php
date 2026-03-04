@@ -8,7 +8,7 @@ echo "Creando tabla de logs de actividad...\n";
 
 // Configuración de la base de datos (ajustar según tu configuración)
 $host = 'localhost';
-$dbname = 'singlefile_db'; // Nombre de la base de datos del proyecto
+$dbname = 'NexFile_db'; // Nombre de la base de datos del proyecto
 $username = 'root';         // Usuario de BD
 $password = '00@Limonero';  // Contraseña de BD
 

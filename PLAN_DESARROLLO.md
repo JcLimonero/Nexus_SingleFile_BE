@@ -1,4 +1,4 @@
-# Plan de Desarrollo – SingleFile / NexFile
+# Plan de Desarrollo – NexFile / NexFile
 
 ## 1. Miniportal (Prioridad alta)
 

@@ -1,5 +1,5 @@
 @echo off
-echo 🚀 Iniciando SingleFile Development Environment...
+echo 🚀 Iniciando NexFile Development Environment...
 
 REM Verificar si el puerto 3500 está en uso
 netstat -an | findstr :3500 >nul
@@ -19,7 +19,7 @@ if %errorlevel% equ 0 (
 
 REM Iniciar Backend en puerto 3500
 echo 🔧 Iniciando Backend en puerto 3500...
-cd ..\BE\singlefile-api
+cd ..\BE\NexFile-api
 start "Backend" php spark serve --host=0.0.0.0 --port=3500
 
 REM Esperar a que el backend esté listo
@@ -32,7 +32,7 @@ cd ..\..\FE
 start "Frontend" ng serve --port 3600
 
 echo.
-echo 🎉 SingleFile Development Environment iniciado exitosamente!
+echo 🎉 NexFile Development Environment iniciado exitosamente!
 echo.
 echo 📱 Frontend: http://localhost:3600
 echo 🔧 Backend:  http://localhost:3500

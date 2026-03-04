@@ -141,6 +141,6 @@
 
 El sistema de encriptado de contraseñas está **100% funcional** y **listo para producción**. Todas las contraseñas están encriptadas con bcrypt, la migración se completó correctamente, y el sistema de autenticación está implementado y funcionando.
 
-**Desarrollador:** SingleFile Team  
+**Desarrollador:** NexFile Team  
 **Última Verificación:** 24/08/2025 02:40:19 UTC  
 **Estado:** ✅ COMPLETADO

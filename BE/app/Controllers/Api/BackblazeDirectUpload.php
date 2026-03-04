@@ -27,7 +27,7 @@ class BackblazeDirectUpload extends BaseController
 
             // Aceptar 'file' (frontend) o 'expedient' (miniportal)
             $file = $this->request->getFile('file') ?? $this->request->getFile('expedient');
-            $idSingleFile = $this->request->getPost('idSingleFile');
+            $idNexFile = $this->request->getPost('idNexFile');
             $idDocumentFile = $this->request->getPost('idDocumentFile');
 
             if (!$file || !$file->isValid()) {
@@ -37,14 +37,14 @@ class BackblazeDirectUpload extends BaseController
                 ])->setStatusCode(400);
             }
 
-            if (!$idSingleFile || !$idDocumentFile) {
+            if (!$idNexFile || !$idDocumentFile) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'idSingleFile e idDocumentFile son requeridos'
+                    'message' => 'idNexFile e idDocumentFile son requeridos'
                 ])->setStatusCode(400);
             }
 
-            return $this->performUpload($file, (string) $idSingleFile, (string) $idDocumentFile);
+            return $this->performUpload($file, (string) $idNexFile, (string) $idDocumentFile);
         } catch (\Exception $e) {
 
             return $this->response->setJSON([
@@ -58,11 +58,11 @@ class BackblazeDirectUpload extends BaseController
      * Realiza la subida a Backblaze B2 (sin verificación de auth).
      * Usado por Miniportal que valida con share token.
      */
-    public function performUpload($file, string $idSingleFile, string $idDocumentFile)
+    public function performUpload($file, string $idNexFile, string $idDocumentFile)
     {
         try {
-            $fileName = $this->getFileNameFromView($idDocumentFile, $idSingleFile, $file);
-            $b2Path = $this->buildBackblazePath($idSingleFile, $idDocumentFile, $fileName);
+            $fileName = $this->getFileNameFromView($idDocumentFile, $idNexFile, $file);
+            $b2Path = $this->buildBackblazePath($idNexFile, $idDocumentFile, $fileName);
             $fileContent = file_get_contents($file->getTempName());
             $mimeType = $file->getClientMimeType() ?: 'b2/x-auto';
 
@@ -472,7 +472,7 @@ class BackblazeDirectUpload extends BaseController
      * Construye la ruta en Backblaze: Compañia/Agencia/año/mes(texto)/id_order_total/[id_dms(Cliente)]_nombre archivo
      * id_dms es el id del cliente en client_dms_relation
      */
-    private function buildBackblazePath(string $idSingleFile, string $idDocumentFile, string $fileName): string
+    private function buildBackblazePath(string $idNexFile, string $idDocumentFile, string $fileName): string
     {
         $db = \Config\Database::connect();
         $row = $db->query(

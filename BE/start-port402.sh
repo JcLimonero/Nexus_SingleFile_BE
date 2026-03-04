@@ -4,7 +4,7 @@
 # SCRIPT PARA INICIAR EL SERVIDOR EN PUERTO 402
 #--------------------------------------------------------------------
 
-echo "🚀 Iniciando SingleFile API en puerto 402..."
+echo "🚀 Iniciando NexFile API en puerto 402..."
 
 # Verificar que PHP esté instalado
 if ! command -v php &> /dev/null; then

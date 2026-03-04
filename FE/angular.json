@@ -91,8 +91,8 @@
                 }
               ]
             },
-            "singlefile": {
-              "baseHref": "/singlefile/",
+            "NexFile": {
+              "baseHref": "/NexFile/",
               "optimization": false,
               "outputHashing": "none",
               "sourceMap": true,
@@ -115,8 +115,8 @@
             "production": {
               "buildTarget": "vex:build:production"
             },
-            "singlefile": {
-              "buildTarget": "vex:build:singlefile"
+            "NexFile": {
+              "buildTarget": "vex:build:NexFile"
             }
           }
         },

@@ -108,6 +108,9 @@ class UserAccess extends BaseController
                 ])->setStatusCode(404);
             }
 
+            // id_last_user_update: FK requiere valor existente en user(id). Usar usuario actual o NULL.
+            $currentUserId = $this->getCurrentUserId();
+
             // Iniciar transacción
             $db->transStart();
 
@@ -117,10 +120,12 @@ class UserAccess extends BaseController
             foreach ($agencies as $agencyId) {
                 $agencyExists = $db->table('agency')->where('id', $agencyId)->countAllResults() > 0;
                 if ($agencyExists) {
-                    $agencyInsertData[] = [
+                    $row = [
                         'id_user' => $userId,
                         'id_agency' => $agencyId
                     ];
+                    $row['id_last_user_update'] = $currentUserId;
+                    $agencyInsertData[] = $row;
                 }
             }
             if (!empty($agencyInsertData)) {
@@ -133,10 +138,12 @@ class UserAccess extends BaseController
             foreach ($processes as $processId) {
                 $processExists = $db->table('process')->where('id', $processId)->countAllResults() > 0;
                 if ($processExists) {
-                    $processInsertData[] = [
+                    $row = [
                         'id_user' => $userId,
                         'id_process' => $processId
                     ];
+                    $row['id_last_user_update'] = $currentUserId;
+                    $processInsertData[] = $row;
                 }
             }
             if (!empty($processInsertData)) {

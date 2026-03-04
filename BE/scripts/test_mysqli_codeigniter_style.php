@@ -9,7 +9,7 @@ echo "=== Prueba de Conexión estilo CodeIgniter ===\n\n";
 $hostname = '192.168.190.140';
 $username = 'vgd_testing';
 $password = '00@DealerSolutions';
-$database = 'singlefile_db';
+$database = 'NexFile_db';
 $port = 3306;
 
 echo "Configuración:\n";

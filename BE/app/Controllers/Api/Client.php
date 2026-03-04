@@ -37,7 +37,7 @@ class Client extends BaseController
 
     /**
      * Listar clientes con expediente para módulo Mesa de Control > Clientes.
-     * Solo gerentes (6) y administradores (7). Solo clientes que tengan al menos un File.
+     * Solo gerentes (6), administradores (7) y Demo (15). Solo clientes que tengan al menos un File.
      * GET /api/client/list
      * Params: search (cliente/ndCliente), idAgency (opcional), limit, offset
      */
@@ -53,10 +53,10 @@ class Client extends BaseController
             }
 
             $roleId = (int) ($currentUser['role_id'] ?? 0);
-            if (!in_array($roleId, [6, 7], true)) {
+            if (!in_array($roleId, [6, 7, 15], true)) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Acceso denegado. Solo gerentes y administradores pueden ver este módulo.'
+                    'message' => 'Acceso denegado. Solo gerentes, administradores y Demo pueden ver este módulo.'
                 ])->setStatusCode(403);
             }
 
@@ -185,7 +185,7 @@ class Client extends BaseController
             }
 
             $roleId = (int) ($currentUser['role_id'] ?? 0);
-            if (!in_array($roleId, [6, 7], true)) {
+            if (!in_array($roleId, [6, 7, 15], true)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Acceso denegado.'

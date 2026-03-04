@@ -198,7 +198,7 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
 
     const formData = new FormData();
     formData.append('file', file); // Archivo con nombre sanitizado
-    formData.append('idSingleFile', this.data.cliente.idFile.toString());
+    formData.append('idNexFile', this.data.cliente.idFile.toString());
     formData.append('idDocumentFile', clave);
 
     this.http
