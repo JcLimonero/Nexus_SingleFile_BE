@@ -62,6 +62,7 @@ class BackblazeDirectUpload extends BaseController
     {
         try {
             $fileName = $this->getFileNameFromView($idDocumentFile, $idSingleFile, $file);
+            $b2Path = $this->buildBackblazePath($idSingleFile, $idDocumentFile, $fileName);
             $fileContent = file_get_contents($file->getTempName());
             $mimeType = $file->getClientMimeType() ?: 'b2/x-auto';
 
@@ -100,7 +101,7 @@ class BackblazeDirectUpload extends BaseController
             $uploadResult = $this->b2UploadFile(
                 $uploadUrlData['uploadUrl'],
                 $uploadUrlData['authorizationToken'],
-                $fileName,
+                $b2Path,
                 $fileContent,
                 $mimeType
             );
@@ -268,8 +269,9 @@ class BackblazeDirectUpload extends BaseController
                     $contentType = trim(substr($line, 13));
                 }
                 if (stripos($line, 'X-Bz-File-Name:') === 0) {
-                    $fileName = trim(substr($line, 15));
-                    $fileName = rawurldecode($fileName);
+                    $fullPath = trim(substr($line, 15));
+                    $fullPath = rawurldecode($fullPath);
+                    $fileName = basename($fullPath);
                     $contentDisposition = 'inline; filename="' . str_replace('"', '\\"', $fileName) . '"';
                 }
             }
@@ -464,6 +466,77 @@ class BackblazeDirectUpload extends BaseController
         }
 
         return json_decode($response, true);
+    }
+
+    /**
+     * Construye la ruta en Backblaze: Compañia/Agencia/año/mes(texto)/id_order_total/[id_dms(Cliente)]_nombre archivo
+     * id_dms es el id del cliente en client_dms_relation
+     */
+    private function buildBackblazePath(string $idSingleFile, string $idDocumentFile, string $fileName): string
+    {
+        $db = \Config\Database::connect();
+        $row = $db->query(
+            "SELECT 
+                e.id_order_total,
+                e.registration_date,
+                e.id_client,
+                e.id_agency,
+                a.name AS agency_name,
+                c.name AS company_name,
+                ctr.id_dms AS id_dms_cliente
+            FROM file_document fd
+            INNER JOIN expedient e ON e.id = fd.id_file
+            LEFT JOIN agency a ON a.id = e.id_agency
+            LEFT JOIN company c ON c.id = a.id_company
+            LEFT JOIN client_header hc ON hc.id_client = e.id_client
+            LEFT JOIN client_dms_relation ctr ON ctr.id_client_header = hc.id AND ctr.id_agency = e.id_agency
+            WHERE fd.id = ?",
+            [(int) $idDocumentFile]
+        )->getRow();
+
+        if (!$row) {
+            $year = date('Y');
+            $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            $mes = $meses[(int) date('n') - 1];
+            $fileName = $this->sanitizeFileName($fileName);
+            return trim("SinCompania/SinAgencia/{$year}/{$mes}/sin-pedido/sin-cliente_{$fileName}", '/');
+        }
+
+        $company = $row->company_name ?? 'SinCompania';
+        $agency = $row->agency_name ?? 'SinAgencia';
+        $idOrderTotal = $row->id_order_total ?? 'sin-pedido';
+        $idDmsCliente = $row->id_dms_cliente ?? null;
+        $regDate = $row->registration_date ?? date('Y-m-d H:i:s');
+
+        $year = date('Y', strtotime($regDate));
+        $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        $mes = $meses[(int) date('n', strtotime($regDate)) - 1];
+
+        $company = $this->sanitizePathSegment($company);
+        $agency = $this->sanitizePathSegment($agency);
+        $idOrderTotal = $this->sanitizePathSegment((string) $idOrderTotal);
+        $fileName = $this->sanitizeFileName($fileName);
+        $idDmsCliente = trim((string) $idDmsCliente) !== '' ? $this->sanitizePathSegment((string) $idDmsCliente) : 'sin-cliente';
+        $finalFileName = $idDmsCliente . '_' . $fileName;
+
+        return trim("{$company}/{$agency}/{$year}/{$mes}/{$idOrderTotal}/{$finalFileName}", '/');
+    }
+
+    private function sanitizePathSegment(string $s): string
+    {
+        $s = trim($s);
+        $s = preg_replace('/[^\p{L}\p{N}\s\-_\.]/u', '', $s);
+        $s = preg_replace('/\s+/', '_', $s);
+        return $s ?: 'sin_nombre';
+    }
+
+    private function sanitizeFileName(string $s): string
+    {
+        $s = trim($s);
+        $s = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '_', $s);
+        $s = preg_replace('/[^\p{L}\p{N}\s\-_\.]/u', '', $s);
+        $s = preg_replace('/\s+/', '_', $s);
+        return $s ?: 'documento';
     }
 
     private function getFileNameFromView($idFileDocument, $idFile, $file): string

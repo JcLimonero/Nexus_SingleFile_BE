@@ -13,7 +13,8 @@
   ],
   "include": [
     "src/**/*.d.ts",
-    "src/**/*.ts"
+    "src/main.ts",
+    "src/polyfills.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts",
@@ -25,6 +26,9 @@
     "src/@vex/config/constants.ts",
     "src/@vex/utils/is-nil.ts",
     "src/app/core/services/user-profile-image.service.ts",
+    "src/app/core/services/company-client-import.service.ts",
+    "src/app/core/services/company-client.service.ts",
+    "src/app/layouts/components/app-scrollbar/**",
     "src/app/layouts/components/config-panel/config-panel-toggle/config-panel-toggle.component.ts",
     "src/app/layouts/components/config-panel/config-panel.component.ts",
     "src/app/layouts/components/toolbar/mega-menu/mega-menu.component.ts",
