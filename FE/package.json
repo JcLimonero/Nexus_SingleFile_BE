@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 3600",
+    "start": "ng serve --port 3600 --hmr",
     "build": "ng build",
     "build:prod": "ng build --prod",
     "watch": "ng build --watch --configuration development",
