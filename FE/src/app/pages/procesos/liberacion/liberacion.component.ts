@@ -130,7 +130,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Obtener la agencia guardada inmediatamente al inicializar
-    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+    const savedAgencyId = this.normalizeAgencyId(this.defaultAgencyService.getAgenciaSeleccionada());
     if (savedAgencyId !== null) {
       this.selectedAgencyId = savedAgencyId;
     }
@@ -139,8 +139,12 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.defaultAgencyService.selectedAgency$
       .pipe(takeUntil(this.destroy$))
       .subscribe(agenciaId => {
-        if (agenciaId !== null && agenciaId !== this.selectedAgencyId) {
-          this.selectedAgencyId = agenciaId;
+        const normalizedId = this.normalizeAgencyId(agenciaId);
+        if (normalizedId !== this.selectedAgencyId) {
+          this.selectedAgencyId = normalizedId;
+          this.selectedAgency = normalizedId !== null
+            ? this.agencies.find(agency => this.getAgencyId(agency) === normalizedId) || null
+            : null;
         }
       });
 
@@ -200,10 +204,10 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
             // Obtener la agencia guardada
-            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            const savedAgencyId = this.normalizeAgencyId(this.defaultAgencyService.getAgenciaSeleccionada());
             
             // Verificar que la agencia guardada existe en la lista
-            if (savedAgencyId !== null && this.agencies.some(ag => ag.Id === savedAgencyId)) {
+            if (savedAgencyId !== null && this.agencies.some(ag => this.getAgencyId(ag) === savedAgencyId)) {
               // La agencia guardada existe, usarla
               this.selectedAgencyId = savedAgencyId;
               this.onAgencyChange(savedAgencyId);
@@ -211,22 +215,29 @@ export class LiberacionComponent implements OnInit, OnDestroy {
               // Si no hay agencia guardada válida, establecer la predeterminada
               this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
                 next: (agenciaId) => {
-                  if (agenciaId && this.agencies.some(ag => ag.Id === agenciaId)) {
-                    this.selectedAgencyId = agenciaId;
-                    this.onAgencyChange(agenciaId);
+                  const normalizedDefault = this.normalizeAgencyId(agenciaId);
+                  if (normalizedDefault !== null && this.agencies.some(ag => this.getAgencyId(ag) === normalizedDefault)) {
+                    this.selectedAgencyId = normalizedDefault;
+                    this.onAgencyChange(normalizedDefault);
                   } else if (this.agencies.length > 0) {
                     // Solo como último recurso, seleccionar la primera
                     const primeraAgencia = this.agencies[0];
-                    this.selectedAgencyId = primeraAgencia.Id;
-                    this.onAgencyChange(primeraAgencia.Id);
+                    const firstId = this.getAgencyId(primeraAgencia);
+                    if (firstId !== null) {
+                      this.selectedAgencyId = firstId;
+                      this.onAgencyChange(firstId);
+                    }
                   }
                 },
                 error: (error) => {
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencies.length > 0) {
                     const primeraAgencia = this.agencies[0];
-                    this.selectedAgencyId = primeraAgencia.Id;
-                    this.onAgencyChange(primeraAgencia.Id);
+                    const firstId = this.getAgencyId(primeraAgencia);
+                    if (firstId !== null) {
+                      this.selectedAgencyId = firstId;
+                      this.onAgencyChange(firstId);
+                    }
                   }
                 }
               });
@@ -241,13 +252,24 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       });
   }
 
-  onAgencyChange(agencyId: number | null): void {
-    this.selectedAgencyId = agencyId;
-    this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
+  private normalizeAgencyId(value: unknown): number | null {
+    if (value === null || value === undefined) return null;
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  getAgencyId = (agency: any): number | null => {
+    return this.normalizeAgencyId(agency?.id ?? agency?.Id ?? agency?.IdAgency ?? null);
+  };
+
+  onAgencyChange(agencyId: number | string | null): void {
+    const normalizedId = this.normalizeAgencyId(agencyId);
+    this.selectedAgencyId = normalizedId;
+    this.selectedAgency = this.agencies.find(agency => this.getAgencyId(agency) === normalizedId) || null;
     
     // Actualizar el caché usando seleccionarAgencia (ya actualiza cookie y BehaviorSubject)
-    if (agencyId !== null) {
-      this.defaultAgencyService.seleccionarAgencia(agencyId);
+    if (normalizedId !== null) {
+      this.defaultAgencyService.seleccionarAgencia(normalizedId);
     }
     
     // COMENTADO: Llamada HTTP deshabilitada para mejorar performance
@@ -281,9 +303,9 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     return this.agencies && this.agencies.length > 0;
   }
 
-  trackByAgencyId(index: number, agency: any): number {
-    return agency.Id;
-  }
+  trackByAgencyId = (index: number, agency: any): number => {
+    return this.getAgencyId(agency) ?? index;
+  };
 
   // ====================================
   //         Búsqueda de clientes

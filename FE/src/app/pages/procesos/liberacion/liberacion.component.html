@@ -16,7 +16,7 @@
                 <mat-option [value]="null">Todas las agencias</mat-option>
                 <mat-option 
                   *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
-                  [value]="agency.id ?? agency.Id">
+                  [value]="getAgencyId(agency)">
                   {{ agency.name ?? agency.Name }}
                 </mat-option>
               </mat-select>
