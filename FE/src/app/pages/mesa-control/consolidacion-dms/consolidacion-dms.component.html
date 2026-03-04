@@ -5,6 +5,14 @@
     <mat-card-content class="p-2">
       <div class="filtro-row justify-between">
         <div class="filtro-row">
+          <mat-form-field appearance="outline" class="filtro-field filtro-compania filtro-field-full-height" subscriptSizing="dynamic" floatLabel="always">
+            <mat-label>Razón social</mat-label>
+            <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onCompaniaChange($event.value)">
+              <mat-option [value]="-1">Todas las razones</mat-option>
+              <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
+            </mat-select>          
+          </mat-form-field>
+          
           <div
             class="agencia-select-wrapper filtro-field"
             [matMenuTriggerFor]="(loadingAgencias || agenciasFiltradas.length === 0) ? null : agenciaMenu"
@@ -40,13 +48,7 @@
               </div>
             </div>
           </mat-menu>
-          <mat-form-field appearance="outline" class="filtro-field filtro-compania filtro-field-full-height" subscriptSizing="dynamic" floatLabel="always">
-            <mat-label>Razón social</mat-label>
-            <mat-select [(ngModel)]="filterCompania" name="filterCompania" (selectionChange)="onCompaniaChange($event.value)">
-              <mat-option [value]="-1">Todas las razones</mat-option>
-              <mat-option *ngFor="let c of companies" [value]="getCompanyId(c)">{{ getCompanyName(c) }}</mat-option>
-            </mat-select>          
-          </mat-form-field>
+          
           <div class="periodo-select-wrapper filtro-field">
             <mat-form-field appearance="outline" class="filtro-field filtro-periodo-preset filtro-field-full-height" subscriptSizing="dynamic" floatLabel="always">
               <mat-label>Período</mat-label>
