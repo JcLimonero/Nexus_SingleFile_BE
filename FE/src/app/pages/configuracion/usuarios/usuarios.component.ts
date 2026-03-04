@@ -60,7 +60,17 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   assignedAgencyFilter = '';
   statusFilter = '';
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatPaginator, { static: false })
+  set paginator(value: MatPaginator) {
+    this._paginator = value;
+    if (this._paginator && this.dataSource) {
+      this.dataSource.paginator = this._paginator;
+    }
+  }
+  get paginator(): MatPaginator {
+    return this._paginator!;
+  }
+  private _paginator?: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
@@ -100,7 +110,9 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
+    if (this._paginator) {
+      this.dataSource.paginator = this._paginator;
+    }
     this.dataSource.sort = this.sort;
 
     // Configurar filtro personalizado
@@ -299,6 +311,10 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     
     this.dataSource.data = filteredData;
     
+    // Conectar paginador si aún no está conectado (puede no existir al inicio por *ngIf)
+    if (this._paginator && !this.dataSource.paginator) {
+      this.dataSource.paginator = this._paginator;
+    }
     // Reset paginator to first page
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
