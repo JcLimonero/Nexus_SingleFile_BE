@@ -119,7 +119,7 @@ class ConfigurationProcess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getEnabledConfigurations: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor',
@@ -256,7 +256,7 @@ class ConfigurationProcess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getEnabledConfigurationsByAgency: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor',

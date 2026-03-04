@@ -1582,7 +1582,6 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
                   }
                 },
                 error: (error) => {
-                  console.error('Error estableciendo agencia predeterminada:', error);
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencias.length > 0) {
                     const primeraAgencia = this.agencias[0];
@@ -1597,7 +1596,6 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
           this.mostrarError('Error cargando agencias');
           this.agencias = [];
           this.selectedAgency = null;

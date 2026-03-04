@@ -46,7 +46,7 @@ class BackblazeDirectUpload extends BaseController
 
             return $this->performUpload($file, (string) $idSingleFile, (string) $idDocumentFile);
         } catch (\Exception $e) {
-            log_message('error', 'BackblazeDirectUpload::upload - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al subir archivo: ' . $e->getMessage()
@@ -132,7 +132,7 @@ class BackblazeDirectUpload extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'BackblazeDirectUpload::performUpload - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al subir archivo: ' . $e->getMessage()
@@ -181,7 +181,7 @@ class BackblazeDirectUpload extends BaseController
                 'data' => ['url' => $url]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'BackblazeDirectUpload::getPrivateUrl - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar URL: ' . $e->getMessage()
@@ -250,7 +250,7 @@ class BackblazeDirectUpload extends BaseController
 
             if ($httpCode !== 200) {
                 $body = substr($response, $headerSize);
-                log_message('error', 'Backblaze download failed: ' . $body);
+
                 $err = json_decode($body, true);
                 return $this->response->setJSON([
                     'success' => false,
@@ -279,7 +279,7 @@ class BackblazeDirectUpload extends BaseController
                 ->setHeader('Content-Disposition', $contentDisposition)
                 ->setBody($body);
         } catch (\Exception $e) {
-            log_message('error', 'BackblazeDirectUpload::download - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al descargar: ' . $e->getMessage()
@@ -360,7 +360,7 @@ class BackblazeDirectUpload extends BaseController
         curl_close($ch);
 
         if ($httpCode !== 200 || !$response) {
-            log_message('error', 'Backblaze b2_authorize_account failed: ' . $response);
+
             return null;
         }
 
@@ -423,7 +423,7 @@ class BackblazeDirectUpload extends BaseController
         curl_close($ch);
 
         if ($httpCode !== 200 || !$response) {
-            log_message('error', 'Backblaze b2_get_upload_url failed: ' . $response);
+
             return null;
         }
 
@@ -459,7 +459,7 @@ class BackblazeDirectUpload extends BaseController
         curl_close($ch);
 
         if ($httpCode !== 200 || !$response) {
-            log_message('error', 'Backblaze b2_upload_file failed (HTTP ' . $httpCode . '): ' . $response);
+
             return null;
         }
 
@@ -482,7 +482,7 @@ class BackblazeDirectUpload extends BaseController
                 return $fileNameBase . ($extension ? '.' . $extension : '');
             }
         } catch (\Exception $e) {
-            log_message('error', 'BackblazeDirectUpload::getFileNameFromView - ' . $e->getMessage());
+
         }
 
         return $file->getClientName();

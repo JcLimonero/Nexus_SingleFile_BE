@@ -818,7 +818,7 @@ class Files extends BaseController
                 return (int) $row['idCliente'];
             }
         } catch (\Throwable $e) {
-            log_message('info', 'getClientIdFromViewClientRelations: vista no usada - ' . $e->getMessage());
+
         }
         return null;
     }
@@ -1371,8 +1371,6 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
-            log_message('info', "checkExistingOrders: AgencyId={$agencyId}, ndCliente=" . ($ndCliente ?? 'null') . ", pedidos a verificar=" . count($orders));
-
             // Extraer order_dms únicos para la consulta (evita N consultas)
             $orderDmsUnique = [];
             $validOrders = []; // [ ['order' => ..., 'order_dms' => ... ], ... ]
@@ -1418,7 +1416,7 @@ class Files extends BaseController
                         $idClientFromView = (int) $rowView['idCliente'];
                     }
                 } catch (\Throwable $e) {
-                    log_message('info', 'checkExistingOrders: view_client_relations no usada, ' . $e->getMessage());
+
                 }
             }
 
@@ -1469,8 +1467,6 @@ class Files extends BaseController
                 }
             }
 
-            log_message('info', "checkExistingOrders: resultado " . count($existingOrders) . " existentes, " . count($newOrders) . " nuevos");
-
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Verificación completada',
@@ -1484,7 +1480,7 @@ class Files extends BaseController
             ]);
 
         } catch (\Throwable $e) {
-            log_message('error', 'checkExistingOrders: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al verificar pedidos existentes: ' . $e->getMessage(),
@@ -1566,8 +1562,6 @@ class Files extends BaseController
                 ])->setStatusCode(404);
             }
 
-            log_message('info', "repairClientRelation: File.Id={$idExpediente} actualizado con IdClient={$idClient} (ndDMS={$ndDMS}, IdAgency={$idAgency})");
-
             $apiResultJson = json_encode(['success' => true, 'idClient' => $idClient]);
             $this->db->query("
                 UPDATE files_to_correct
@@ -1584,7 +1578,7 @@ class Files extends BaseController
                 ]
             ]);
         } catch (\Throwable $e) {
-            log_message('error', 'repairClientRelation: ' . $e->getMessage());
+
             $input = $this->request->getJSON(true) ?: $this->request->getPost();
             $payload = [
                 'success' => false,
@@ -1613,7 +1607,7 @@ class Files extends BaseController
                         [json_encode($payload), $ex, $ag, $nd]);
                 }
             } catch (\Throwable $e2) {
-                log_message('error', 'No se pudo registrar error en files_to_correct: ' . $e2->getMessage());
+
             }
             return $this->response->setJSON([
                 'success' => false,
@@ -1637,7 +1631,7 @@ class Files extends BaseController
             $this->db->query("UPDATE files_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
                 [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
         } catch (\Throwable $e) {
-            log_message('error', 'guardarErrorRepair: ' . $e->getMessage());
+
         }
     }
 

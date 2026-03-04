@@ -63,7 +63,7 @@ class FileSubStatus extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileSubStatus::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener subestados de archivo: ' . $e->getMessage()
@@ -107,7 +107,7 @@ class FileSubStatus extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileSubStatus::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener subestados de archivo: ' . $e->getMessage()
@@ -158,7 +158,7 @@ class FileSubStatus extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileSubStatus::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener subestado de archivo: ' . $e->getMessage()

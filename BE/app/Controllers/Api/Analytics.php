@@ -88,7 +88,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getDashboardData: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos del dashboard',
@@ -113,7 +113,7 @@ class Analytics extends BaseController
             }
             return $this->response->setJSON(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getDocumentStats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -201,7 +201,7 @@ class Analytics extends BaseController
             $data = $this->getProcessStatsData($filters);
             return $this->response->setJSON(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getProcessStats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -312,7 +312,7 @@ class Analytics extends BaseController
             $data = $this->getAgencyStatsData($filters);
             return $this->response->setJSON(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getAgencyStats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -354,7 +354,7 @@ class Analytics extends BaseController
             $data = $this->getSystemMetricsData();
             return $this->response->setJSON(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getSystemMetrics: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -459,7 +459,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getAgencyMetrics: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener métricas de agencia',
@@ -479,7 +479,6 @@ class Analytics extends BaseController
             $year = $filters['year'] ?? date('Y');
             $agencyId = $filters['agency_id'] ?? null;
             $idSeller = $filters['idSeller'] ?? null;
-
 
             // Configurar zona horaria de Guadalajara (GMT-6)
             date_default_timezone_set('America/Mexico_City');
@@ -534,11 +533,10 @@ class Analytics extends BaseController
                 'agency_id' => $agencyId
             ];
 
-
             return $this->response->setJSON(['success' => true, 'data' => $data]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getTrendData: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de tendencia',
@@ -619,7 +617,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $data]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getDistributionMetrics: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener métricas de distribución',
@@ -672,7 +670,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $data]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::debugFileStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener información de estados',
@@ -744,7 +742,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $data]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::debugTrendJanuary2025: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener información de enero 2025',
@@ -797,7 +795,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $data]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::debugSqlQueries: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener consultas SQL',
@@ -887,7 +885,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $result]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::debugServerDate: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener fecha del servidor',
@@ -942,7 +940,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $result]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::debugTodayFiles: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener expedientes del día',
@@ -990,7 +988,7 @@ class Analytics extends BaseController
             return $this->response->setJSON(['success' => true, 'data' => $result]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::debugAgencyUsers: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener información de agencias y usuarios',
@@ -1094,7 +1092,7 @@ class Analytics extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::exportAnalytics: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al exportar datos',
@@ -1118,7 +1116,7 @@ class Analytics extends BaseController
             return $stats;
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getUserActivityStats: ' . $e->getMessage());
+
             return [];
         }
     }
@@ -1214,7 +1212,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getProcessDistribution: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener distribución por proceso',
@@ -1275,7 +1273,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getStatusDistribution: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener distribución por estatus',
@@ -1349,7 +1347,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getCurrentMonthStatusDistribution: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener distribución por estatus del mes actual',
@@ -1447,7 +1445,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getPreviousMonthsData: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de meses anteriores',
@@ -1515,7 +1513,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Analytics::getHistoricalStatusDistribution: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener distribución histórica por estatus',
@@ -1606,7 +1604,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getAdvisorDistribution: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener distribución de asesores: ' . $e->getMessage()
@@ -1701,7 +1699,7 @@ class Analytics extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getWeeklyData: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos semanales: ' . $e->getMessage()
@@ -1719,8 +1717,6 @@ class Analytics extends BaseController
             $filters = $this->getFiltersFromRequest();
             $agencyId = $filters['agency_id'] ?? null;
             $userId = $filters['user_id'] ?? null;
-
-            log_message('info', 'getAttentionPeriod - agencyId: ' . $agencyId . ', userId: ' . $userId);
 
             // Configurar zona horaria de Guadalajara (GMT-6)
             date_default_timezone_set('America/Mexico_City');
@@ -1741,7 +1737,6 @@ class Analytics extends BaseController
             }
 
             $totalCount = $countQuery->get()->getRowArray();
-            log_message('info', 'Total expedientes con fechas válidas: ' . $totalCount['total']);
 
             // Si no hay datos, retornar rangos vacíos
             if ($totalCount['total'] == 0) {
@@ -1793,8 +1788,7 @@ class Analytics extends BaseController
             }
 
             $results = $query->get()->getResultArray();
-            log_message('info', 'Resultados de la consulta: ' . json_encode($results));
-            
+
             // Definir colores para cada rango
             $colors = [
                 '0-5' => '#10b981',    // Verde
@@ -1842,16 +1836,13 @@ class Analytics extends BaseController
                 }
             }
 
-            log_message('info', 'Datos finales: ' . json_encode($finalData));
-
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $finalData
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getAttentionPeriod: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de período de atención: ' . $e->getMessage()
@@ -1869,8 +1860,6 @@ class Analytics extends BaseController
             $filters = $this->getFiltersFromRequest();
             $agencyId = $filters['agency_id'] ?? null;
             $userId = $filters['user_id'] ?? null;
-
-            log_message('info', 'getCurrentMonthAttention - agencyId: ' . $agencyId . ', userId: ' . $userId);
 
             // Configurar zona horaria de Guadalajara (GMT-6)
             date_default_timezone_set('America/Mexico_City');
@@ -1901,7 +1890,6 @@ class Analytics extends BaseController
             }
 
             $totalCount = $countQuery->get()->getRowArray();
-            log_message('info', 'Total expedientes del mes actual con fechas válidas: ' . $totalCount['total']);
 
             // Si no hay datos, retornar rangos vacíos
             if ($totalCount['total'] == 0) {
@@ -1956,8 +1944,7 @@ class Analytics extends BaseController
             }
 
             $results = $query->get()->getResultArray();
-            log_message('info', 'Resultados del mes actual: ' . json_encode($results));
-            
+
             // Definir colores para cada rango
             $colors = [
                 '0-5' => '#10b981',    // Verde
@@ -2005,23 +1992,19 @@ class Analytics extends BaseController
                 }
             }
 
-            log_message('info', 'Datos finales del mes actual: ' . json_encode($finalData));
-
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $finalData
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getCurrentMonthAttention: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de período de atención del mes actual: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
-
 
     /**
      * GET /api/analytics/current-month-liberated
@@ -2033,8 +2016,6 @@ class Analytics extends BaseController
             $filters = $this->getFiltersFromRequest();
             $agencyId = $filters['agency_id'] ?? null;
             $userId = $filters['user_id'] ?? null;
-
-            log_message('info', 'getCurrentMonthLiberated - agencyId: ' . $agencyId . ', userId: ' . $userId);
 
             // Configurar zona horaria de Guadalajara (GMT-6)
             date_default_timezone_set('America/Mexico_City');
@@ -2083,16 +2064,13 @@ class Analytics extends BaseController
                 'year' => $currentYear
             ];
 
-            log_message('info', 'Datos de expedientes liberados del mes actual: ' . json_encode($data));
-
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $data
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getCurrentMonthLiberated: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de expedientes liberados del mes actual: ' . $e->getMessage()
@@ -2110,8 +2088,6 @@ class Analytics extends BaseController
             $filters = $this->getFiltersFromRequest();
             $agencyId = $filters['agency_id'] ?? null;
             $userId = $filters['user_id'] ?? null;
-
-            log_message('info', 'getTotalLiberated - agencyId: ' . $agencyId . ', userId: ' . $userId);
 
             // Configurar zona horaria de Guadalajara (GMT-6)
             date_default_timezone_set('America/Mexico_City');
@@ -2141,16 +2117,13 @@ class Analytics extends BaseController
                 'total' => $total
             ];
 
-            log_message('info', 'Datos de expedientes liberados totales: ' . json_encode($data));
-
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $data
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getTotalLiberated: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener datos de expedientes liberados totales: ' . $e->getMessage()
@@ -2171,8 +2144,6 @@ class Analytics extends BaseController
         $userId = $filters['user_id'] ?? null;
         $currentMonth = $filters['current_month'] ?? null;
         $liberatedOnly = $filters['liberated_only'] ?? null; // ← NUEVO PARÁMETRO
-
-        log_message('info', 'getOrdersByAttentionPeriod - range: ' . $range . ', agencyId: ' . $agencyId . ', userId: ' . $userId . ', currentMonth: ' . $currentMonth . ', liberatedOnly: ' . $liberatedOnly);
 
             if (!$range) {
                 return $this->response->setJSON([
@@ -2267,16 +2238,13 @@ class Analytics extends BaseController
             $query = $db->query($sql, $params);
             $results = $query->getResultArray();
 
-            log_message('info', 'Pedidos encontrados para rango ' . $range . ': ' . count($results));
-
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $results
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getOrdersByAttentionPeriod: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener pedidos por período de atención: ' . $e->getMessage()

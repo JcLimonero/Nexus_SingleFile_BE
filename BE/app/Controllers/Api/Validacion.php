@@ -621,8 +621,6 @@ class Validacion extends BaseController
                 return ['success' => false, 'idClient' => null, 'message' => $msg];
             }
 
-            log_message('info', "autoRepararExpedientes: File.Id={$idExpediente} actualizado con IdClient={$idClient}");
-
             $this->db->query("
                 UPDATE files_to_correct SET api_result = ?
                 WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
@@ -631,7 +629,7 @@ class Validacion extends BaseController
             return ['success' => true, 'idClient' => $idClient, 'message' => 'OK'];
         } catch (\Throwable $e) {
             $msg = $e->getMessage();
-            log_message('error', "ejecutarReparacionClientRelation: expediente {$idExpediente} - {$msg}");
+
             $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg, $e);
             return ['success' => false, 'idClient' => null, 'message' => $msg];
         }
@@ -668,7 +666,7 @@ class Validacion extends BaseController
                 WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
             ", [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
         } catch (\Throwable $e2) {
-            log_message('error', 'No se pudo registrar error en files_to_correct: ' . $e2->getMessage());
+
         }
     }
 

@@ -62,7 +62,7 @@ class FileStatus extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileStatus::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estados de archivo: ' . $e->getMessage()
@@ -104,7 +104,7 @@ class FileStatus extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileStatus::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener fases específicas: ' . $e->getMessage()
@@ -155,7 +155,7 @@ class FileStatus extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileStatus::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener fase: ' . $e->getMessage()

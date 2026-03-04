@@ -70,7 +70,7 @@ class UserAgency extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAgency::getUserAgencies: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener agencias del usuario: ' . $e->getMessage()
@@ -154,7 +154,7 @@ class UserAgency extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAgency::assignAgencies: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al asignar agencias: ' . $e->getMessage()
@@ -210,7 +210,7 @@ class UserAgency extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAgency::removeAgency: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al remover agencia: ' . $e->getMessage()
@@ -247,7 +247,7 @@ class UserAgency extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAgency::removeAllAgencies: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al remover agencias: ' . $e->getMessage()
@@ -320,7 +320,7 @@ class UserAgency extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAgency::getUsersAgenciesBatch: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener agencias de usuarios: ' . $e->getMessage()
@@ -378,7 +378,7 @@ class UserAgency extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAgency::getStats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()

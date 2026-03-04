@@ -126,7 +126,7 @@ class ReportesCumplimiento extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'ReportesCumplimiento::expedientesAlertaPld - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar el reporte',
@@ -222,7 +222,7 @@ class ReportesCumplimiento extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'ReportesCumplimiento::resumenPorAgencia - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar el reporte',
@@ -311,7 +311,7 @@ class ReportesCumplimiento extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'ReportesCumplimiento::documentosPendientes - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar el reporte',
@@ -403,7 +403,7 @@ class ReportesCumplimiento extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'ReportesCumplimiento::expedientesSinBeneficiario - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar el reporte',
@@ -550,7 +550,7 @@ class ReportesCumplimiento extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'ReportesCumplimiento::expedientesSinAviso - ' . $e->getMessage());
+
             if (strpos($e->getMessage(), "doesn't exist") !== false) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -668,7 +668,7 @@ class ReportesCumplimiento extends BaseController
                 ]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'ReportesCumplimiento::dashboard - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar el dashboard',

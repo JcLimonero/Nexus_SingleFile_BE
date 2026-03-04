@@ -219,8 +219,6 @@ class ProcessModel extends Model
         return $query->orderBy("process.{$sortField}", $sortOrder)->findAll();
     }
 
-
-
     /**
      * Obtener todos los procesos habilitados
      */
@@ -326,8 +324,6 @@ class ProcessModel extends Model
         
         return $query->countAllResults() > 0;
     }
-
-
 
     /**
      * Obtener procesos por estado

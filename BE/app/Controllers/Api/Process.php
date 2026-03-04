@@ -397,12 +397,11 @@ class Process extends BaseController
             }
             
             // Debug: verificar la petición
-            log_message('debug', "DELETE /api/process/{$id} - Iniciando eliminación");
-            
+
             // Verificar que el proceso existe
             $existingProcess = $this->processModel->find($id);
             if (!$existingProcess) {
-                log_message('debug', "DELETE /api/process/{$id} - Proceso no encontrado");
+
                 return $this->response
                     ->setStatusCode(404)
                     ->setJSON([
@@ -412,18 +411,15 @@ class Process extends BaseController
             }
             
             $processName = $existingProcess['name'] ?? $existingProcess['Name'] ?? 'N/A';
-            log_message('debug', "DELETE /api/process/{$id} - Proceso encontrado: " . $processName);
-            
+
             // Obtener parámetros de la petición
             $forceDelete = $this->request->getGet('force') === 'true';
-            log_message('debug', "DELETE /api/process/{$id} - Force delete: " . ($forceDelete ? 'SÍ' : 'NO'));
-            
+
             if ($forceDelete) {
                 // Hard delete - eliminar permanentemente
-                log_message('debug', "DELETE /api/process/{$id} - Ejecutando HARD DELETE");
-                
+
                 if ($this->processModel->delete($id)) {
-                    log_message('debug', "DELETE /api/process/{$id} - HARD DELETE exitoso");
+
                     return $this->response
                         ->setStatusCode(200)
                         ->setJSON([
@@ -431,7 +427,7 @@ class Process extends BaseController
                             'message' => 'Proceso eliminado permanentemente'
                         ]);
                 } else {
-                    log_message('debug', "DELETE /api/process/{$id} - HARD DELETE falló");
+
                     return $this->response
                         ->setStatusCode(500)
                         ->setJSON([
@@ -623,7 +619,7 @@ class Process extends BaseController
                 ]);
                 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Process::stats: ' . $e->getMessage());
+
             return $this->response
                 ->setStatusCode(500)
                 ->setJSON([

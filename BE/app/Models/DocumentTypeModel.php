@@ -95,8 +95,7 @@ class DocumentTypeModel extends Model
         $documentTypeId = (int)$documentTypeId;
         
         // Log para debug
-        log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Buscando configuraciones para documento ID: {$documentTypeId}");
-        
+
         $builder = $this->db->table('configuration_process_document_type cpd');
         
         $builder->select('
@@ -138,8 +137,7 @@ class DocumentTypeModel extends Model
         try {
             $result = $builder->get()->getResultArray();
         } catch (\Exception $e) {
-            log_message('error', "DocumentTypeModel::getConfigurationsByDocumentType - Error en consulta SQL para documento ID {$documentTypeId}: " . $e->getMessage());
-            log_message('error', "DocumentTypeModel::getConfigurationsByDocumentType - Query: " . $builder->getCompiledSelect(false));
+
             return [];
         }
         
@@ -150,14 +148,14 @@ class DocumentTypeModel extends Model
             if ($rowDocTypeId === $documentTypeId) {
                 $filteredResult[] = $row;
             } else {
-                log_message('error', "DocumentTypeModel::getConfigurationsByDocumentType - Configuración con IdDocumentType incorrecto. Esperado: {$documentTypeId}, Encontrado: {$rowDocTypeId}, Row: " . json_encode($row));
+
             }
         }
         
         // Log para debug
-        log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Encontradas " . count($result) . " configuraciones (después del query), " . count($filteredResult) . " después de validación para documento ID: {$documentTypeId}");
+
         if (count($filteredResult) > 0) {
-            log_message('debug', "DocumentTypeModel::getConfigurationsByDocumentType - Primera configuración validada: " . json_encode($filteredResult[0]));
+
         }
         
         return $filteredResult;

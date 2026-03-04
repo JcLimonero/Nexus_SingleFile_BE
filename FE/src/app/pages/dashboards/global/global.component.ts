@@ -232,7 +232,6 @@ private cargarAgencias(showMessage: boolean = false): void {
       takeUntil(this.destroy$),
       timeout(10000),
       catchError((error) => {
-        console.error('Error cargando agencias:', error);
         this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
         this.agencias = [];
         this.loadingAgencias = false;

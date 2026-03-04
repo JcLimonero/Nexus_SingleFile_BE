@@ -70,7 +70,7 @@ class FileReason extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener motivos de rechazo: ' . $e->getMessage()
@@ -132,7 +132,7 @@ class FileReason extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -170,7 +170,7 @@ class FileReason extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener el motivo de rechazo: ' . $e->getMessage()
@@ -247,7 +247,7 @@ class FileReason extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -298,7 +298,7 @@ class FileReason extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -336,7 +336,7 @@ class FileReason extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la búsqueda: ' . $e->getMessage()
@@ -360,7 +360,7 @@ class FileReason extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -387,14 +387,13 @@ class FileReason extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener motivos activos: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
-
 
     
     /**
@@ -442,7 +441,7 @@ class FileReason extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileReason::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()

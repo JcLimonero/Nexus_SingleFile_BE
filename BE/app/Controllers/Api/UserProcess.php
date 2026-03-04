@@ -47,7 +47,7 @@ class UserProcess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserProcess::getUserProcesses: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener procesos del usuario: ' . $e->getMessage()
@@ -131,7 +131,7 @@ class UserProcess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserProcess::assignProcesses: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al asignar procesos: ' . $e->getMessage()
@@ -187,7 +187,7 @@ class UserProcess extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserProcess::removeProcess: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al remover proceso: ' . $e->getMessage()
@@ -224,7 +224,7 @@ class UserProcess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserProcess::removeAllProcesses: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al remover procesos: ' . $e->getMessage()
@@ -282,7 +282,7 @@ class UserProcess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserProcess::getStats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()

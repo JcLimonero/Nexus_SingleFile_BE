@@ -409,7 +409,6 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
           this.agencies = [];
           this.changeDetector.markForCheck();
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {

@@ -235,7 +235,7 @@ class Auth extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Auth::refresh - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor'

@@ -82,7 +82,7 @@ class UserRol extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener roles: ' . $e->getMessage()
@@ -137,7 +137,7 @@ class UserRol extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear rol: ' . $e->getMessage()
@@ -174,7 +174,7 @@ class UserRol extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener rol: ' . $e->getMessage()
@@ -243,7 +243,7 @@ class UserRol extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar rol: ' . $e->getMessage()
@@ -297,7 +297,7 @@ class UserRol extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar rol: ' . $e->getMessage()
@@ -349,7 +349,7 @@ class UserRol extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar estado del rol: ' . $e->getMessage()
@@ -388,7 +388,7 @@ class UserRol extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la búsqueda: ' . $e->getMessage()
@@ -428,7 +428,7 @@ class UserRol extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -451,7 +451,7 @@ class UserRol extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserRol::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener roles activos: ' . $e->getMessage()

@@ -92,12 +92,12 @@ class DocumentType extends BaseController
                     // Log para debug si hay diferencia
                     if ($configCount > 0) {
                         $docTypeName = $docType['name'] ?? $docType['Name'] ?? 'N/A';
-                        log_message('debug', "DocumentType::index - Tipo {$docTypeId} ({$docTypeName}): {$configCount} configuraciones");
+
                     }
                 } catch (\Exception $e) {
                     // Si hay un error al obtener configuraciones, continuar con array vacío
                     $docTypeId = $docType['id'] ?? $docType['Id'] ?? 'N/A';
-                    log_message('error', "DocumentType::index - Error al obtener configuraciones para tipo {$docTypeId}: " . $e->getMessage());
+
                     $docType['configurations'] = [];
                     $docType['configurationsCount'] = 0;
                 }
@@ -131,8 +131,7 @@ class DocumentType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::index: ' . $e->getMessage());
-            log_message('error', 'Error en DocumentType::index - Trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipos de documento: ' . $e->getMessage(),
@@ -212,7 +211,7 @@ class DocumentType extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear tipo de documento: ' . $e->getMessage()
@@ -263,7 +262,7 @@ class DocumentType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipo de documento: ' . $e->getMessage()
@@ -381,7 +380,7 @@ class DocumentType extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar tipo de documento: ' . $e->getMessage()
@@ -436,7 +435,7 @@ class DocumentType extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar tipo de documento: ' . $e->getMessage()
@@ -502,7 +501,7 @@ class DocumentType extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar estado: ' . $e->getMessage()
@@ -529,7 +528,7 @@ class DocumentType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipos de documento activos: ' . $e->getMessage()
@@ -571,7 +570,7 @@ class DocumentType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en búsqueda: ' . $e->getMessage()
@@ -587,8 +586,7 @@ class DocumentType extends BaseController
     {
         try {
             // Log del ID recibido antes de cualquier procesamiento
-            log_message('info', "DocumentType::getConfigurations - ID recibido (raw): " . var_export($id, true) . ", Tipo: " . gettype($id));
-            
+
             if (!$id) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -600,11 +598,10 @@ class DocumentType extends BaseController
             $documentTypeId = (int)$id;
             
             // Log después de la conversión
-            log_message('info', "DocumentType::getConfigurations - ID convertido a entero: {$documentTypeId}");
-            
+
             // Verificar que el ID sea válido (mayor a 0)
             if ($documentTypeId <= 0) {
-                log_message('error', "DocumentType::getConfigurations - ID inválido: {$documentTypeId}");
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'ID del tipo de documento inválido'
@@ -614,12 +611,10 @@ class DocumentType extends BaseController
             // Verificar que el documento exista en la base de datos
             $documentType = $this->documentTypeModel->find($documentTypeId);
             if (!$documentType) {
-                log_message('error', "DocumentType::getConfigurations - Documento con ID {$documentTypeId} no encontrado en la base de datos");
-                
+
                 // Verificar cuál es el ID máximo en la base de datos
                 $maxId = $this->getMaxId();
-                log_message('info', "DocumentType::getConfigurations - ID máximo en DocumentType: {$maxId}");
-                
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => "Tipo de documento con ID {$documentTypeId} no encontrado. El ID máximo en la base de datos es {$maxId}."
@@ -628,7 +623,6 @@ class DocumentType extends BaseController
 
             // Log para debug
             $docTypeName = $documentType['name'] ?? $documentType['Name'] ?? 'N/A';
-            log_message('info', "DocumentType::getConfigurations - Buscando configuraciones para documento ID: {$documentTypeId}, Nombre: {$docTypeName}");
 
             $configurations = $this->documentTypeModel->getConfigurationsByDocumentType($documentTypeId);
             
@@ -639,7 +633,7 @@ class DocumentType extends BaseController
                 if ($configDocTypeId === $documentTypeId) {
                     $filteredConfigurations[] = $config;
                 } else {
-                    log_message('error', "DocumentType::getConfigurations - Configuración con ID incorrecto. Esperado: {$documentTypeId}, Encontrado: {$configDocTypeId}, Config: " . json_encode($config));
+
                 }
             }
             $configurations = $filteredConfigurations;
@@ -664,7 +658,7 @@ class DocumentType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::getConfigurations: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener configuraciones: ' . $e->getMessage()
@@ -729,7 +723,7 @@ class DocumentType extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::deleteConfiguration: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar configuración: ' . $e->getMessage()
@@ -784,7 +778,7 @@ class DocumentType extends BaseController
                 'message' => 'Configuraciones disponibles para agregar'
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::getConfigurationsToAdd: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener configuraciones: ' . $e->getMessage()
@@ -841,7 +835,7 @@ class DocumentType extends BaseController
                 'data' => ['added' => $added]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::addToConfigurations: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al agregar a configuraciones: ' . $e->getMessage()
@@ -872,7 +866,7 @@ class DocumentType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentType::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()

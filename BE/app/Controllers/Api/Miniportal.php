@@ -429,7 +429,7 @@ class Miniportal extends BaseController
                 'FechaAprobacion' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Miniportal::approveDocument - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al registrar aprobación'

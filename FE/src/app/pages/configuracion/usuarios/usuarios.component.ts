@@ -234,7 +234,6 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         this.checkCatalogsLoaded();
       },
       error: (error) => {
-        console.error('Error cargando agencias:', error);
         this.snackBar.open('Error al cargar agencias', 'Error', {
           duration: 3000
         });

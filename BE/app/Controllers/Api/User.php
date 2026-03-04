@@ -123,7 +123,7 @@ class User extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener usuarios: ' . $e->getMessage()
@@ -229,7 +229,7 @@ class User extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear usuario: ' . $e->getMessage()
@@ -275,7 +275,7 @@ class User extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener usuario: ' . $e->getMessage()
@@ -382,7 +382,7 @@ class User extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar usuario: ' . $e->getMessage()
@@ -429,7 +429,7 @@ class User extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar usuario: ' . $e->getMessage()
@@ -482,7 +482,7 @@ class User extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar estado del usuario: ' . $e->getMessage()
@@ -547,7 +547,7 @@ class User extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::changePassword: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar contraseña: ' . $e->getMessage()
@@ -604,7 +604,7 @@ class User extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::resetPassword: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al resetear contraseña: ' . $e->getMessage()
@@ -653,7 +653,7 @@ class User extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la búsqueda: ' . $e->getMessage()
@@ -682,7 +682,7 @@ class User extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -718,7 +718,7 @@ class User extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::checkUsernameAvailability: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la verificación: ' . $e->getMessage()
@@ -754,7 +754,7 @@ class User extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en User::checkEmailAvailability: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la verificación: ' . $e->getMessage()

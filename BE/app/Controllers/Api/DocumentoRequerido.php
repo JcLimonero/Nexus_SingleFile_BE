@@ -75,18 +75,15 @@ class DocumentoRequerido extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::index: ' . $e->getMessage());
-            log_message('error', 'File: ' . $e->getFile() . ' Line: ' . $e->getLine());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
-            
+
             // Log adicional para debugging
             if ($e->getCode() !== 0) {
-                log_message('error', 'Error code: ' . $e->getCode());
+
             }
             
             // Intentar obtener más información del error si es un error de base de datos
             if (method_exists($e, 'getSqlMessage')) {
-                log_message('error', 'SQL Error: ' . $e->getSqlMessage());
+
             }
             
             return $this->response->setJSON([
@@ -108,17 +105,12 @@ class DocumentoRequerido extends BaseController
     {
         try {
             // Log para debug
-            log_message('info', "DocumentoRequerido::show - ID recibido como parámetro: " . var_export($id, true));
-            log_message('info', "DocumentoRequerido::show - Tipo de ID: " . gettype($id));
-            log_message('info', "DocumentoRequerido::show - URI completa: " . $this->request->getUri()->getPath());
-            log_message('info', "DocumentoRequerido::show - Segmentos URI: " . json_encode($this->request->getUri()->getSegments()));
-            
+
             // Obtener el ID de la URI si no viene como parámetro
             if (!$id || $id === '') {
                 // Intentar obtener de los segmentos de la URI usando getSegment
                 $uriSegments = $this->request->getUri()->getSegments();
-                log_message('info', "DocumentoRequerido::show - Total segmentos: " . count($uriSegments));
-                
+
                 // Buscar el segmento después de 'documento-requerido' o 'api/documento-requerido'
                 $foundIndex = false;
                 foreach ($uriSegments as $index => $segment) {
@@ -126,7 +118,7 @@ class DocumentoRequerido extends BaseController
                         $potentialId = $uriSegments[$index + 1];
                         if (is_numeric($potentialId)) {
                             $id = (int)$potentialId;
-                            log_message('info', "DocumentoRequerido::show - ID extraído después de 'documento-requerido': {$id}");
+
                             break;
                         }
                     }
@@ -137,13 +129,13 @@ class DocumentoRequerido extends BaseController
                     $lastSegment = end($uriSegments);
                     if (is_numeric($lastSegment)) {
                         $id = (int)$lastSegment;
-                        log_message('info', "DocumentoRequerido::show - ID extraído del último segmento: {$id}");
+
                     }
                 }
             }
             
             if (!$id) {
-                log_message('error', "DocumentoRequerido::show - ID no proporcionado");
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'ID del documento requerido es requerido'
@@ -152,20 +144,17 @@ class DocumentoRequerido extends BaseController
 
             // Convertir a entero para asegurar consistencia
             $id = (int)$id;
-            log_message('info', "DocumentoRequerido::show - Buscando documento con ID: {$id}");
 
             $documento = $this->documentoRequeridoModel->find($id);
             
             if (!$documento) {
-                log_message('warning', "DocumentoRequerido::show - Documento con ID {$id} no encontrado");
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Documento requerido no encontrado'
                 ])->setStatusCode(404);
             }
 
-            log_message('info', "DocumentoRequerido::show - Documento encontrado: " . json_encode($documento));
-            
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documento requerido obtenido exitosamente',
@@ -173,8 +162,7 @@ class DocumentoRequerido extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::show: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener documento requerido: ' . $e->getMessage()
@@ -241,7 +229,7 @@ class DocumentoRequerido extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear documento requerido: ' . $e->getMessage()
@@ -293,12 +281,11 @@ class DocumentoRequerido extends BaseController
             $data = $this->request->getJSON(true);
             
             // Log para debug
-            log_message('info', "DocumentoRequerido::update - ID: {$id}, Data recibida: " . json_encode($data));
-            
+
             // Verificar si el documento existe y obtenerlo con sus relaciones
             $existingDocumento = $this->documentoRequeridoModel->findWithRelations($id);
             if (!$existingDocumento) {
-                log_message('error', "DocumentoRequerido::update - Documento con ID {$id} no encontrado");
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Documento requerido no encontrado'
@@ -306,7 +293,6 @@ class DocumentoRequerido extends BaseController
             }
             
             // Log para debug
-            log_message('info', "DocumentoRequerido::update - Documento existente: " . json_encode($existingDocumento));
 
             // Determinar si solo se está actualizando Enabled
             // Si solo viene Enabled, o si todos los demás campos son iguales a los existentes
@@ -336,9 +322,7 @@ class DocumentoRequerido extends BaseController
                     $isOnlyEnabledUpdate = true;
                 }
             }
-            
-            log_message('info', "DocumentoRequerido::update - Es solo actualización de Enabled: " . ($isOnlyEnabledUpdate ? 'Sí' : 'No'));
-            
+
             if (!$isOnlyEnabledUpdate && isset($data['id_process']) && isset($data['id_agency']) && 
                 isset($data['id_customer_type']) && isset($data['id_operation_type']) && 
                 isset($data['id_document_type'])) {
@@ -360,7 +344,7 @@ class DocumentoRequerido extends BaseController
                         $data['id_document_type'],
                         $id
                     )) {
-                        log_message('warning', "DocumentoRequerido::update - Ya existe un documento con esta configuración");
+
                         return $this->response->setJSON([
                             'success' => false,
                             'message' => 'Ya existe un documento requerido para esta configuración'
@@ -384,7 +368,7 @@ class DocumentoRequerido extends BaseController
                     ]);
                     
                     if ($updateResult) {
-                        log_message('info', "DocumentoRequerido::update - configuration_process actualizado exitosamente");
+
                         // Obtener el documento actualizado con relaciones
                         $documentoActualizado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
                             'id' => $id
@@ -396,14 +380,14 @@ class DocumentoRequerido extends BaseController
                             'data' => $documentoActualizado[0] ?? $existingDocumento
                         ]);
                     } else {
-                        log_message('error', "DocumentoRequerido::update - Error al actualizar configuration_process");
+
                         return $this->response->setJSON([
                             'success' => false,
                             'message' => 'Error al actualizar el estado'
                         ])->setStatusCode(500);
                     }
                 } else {
-                    log_message('error', "DocumentoRequerido::update - No se encontró id_configuration_process");
+
                     return $this->response->setJSON([
                         'success' => false,
                         'message' => 'No se encontró la configuración de proceso asociada'
@@ -449,7 +433,7 @@ class DocumentoRequerido extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar documento requerido: ' . $e->getMessage()
@@ -495,7 +479,7 @@ class DocumentoRequerido extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar documento requerido: ' . $e->getMessage()
@@ -518,7 +502,7 @@ class DocumentoRequerido extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -574,7 +558,7 @@ class DocumentoRequerido extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::reorder: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al reordenar documentos: ' . $e->getMessage()
@@ -672,7 +656,7 @@ class DocumentoRequerido extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentoRequerido::duplicate: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al duplicar configuración: ' . $e->getMessage()

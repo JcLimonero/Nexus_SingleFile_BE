@@ -53,7 +53,6 @@ export class DefaultAgencyService {
       localStorage.setItem(this.STORAGE_KEY_AGENCIAS, JSON.stringify(agencias));
       localStorage.setItem(this.STORAGE_KEY_AGENCIAS_TIMESTAMP, Date.now().toString());
     } catch (error) {
-      console.warn('Error guardando agencias en localStorage:', error);
     }
   }
 
@@ -82,7 +81,6 @@ export class DefaultAgencyService {
 
       return JSON.parse(cachedData);
     } catch (error) {
-      console.warn('Error leyendo agencias de localStorage:', error);
       return null;
     }
   }
@@ -95,7 +93,6 @@ export class DefaultAgencyService {
       localStorage.removeItem(this.STORAGE_KEY_AGENCIAS);
       localStorage.removeItem(this.STORAGE_KEY_AGENCIAS_TIMESTAMP);
     } catch (error) {
-      console.warn('Error limpiando cache de agencias:', error);
     }
   }
 
@@ -185,7 +182,6 @@ export class DefaultAgencyService {
     try {
       localStorage.setItem(this.STORAGE_KEY_SELECTED_AGENCY, String(agenciaId));
     } catch (error) {
-      console.warn('Error guardando agencia seleccionada en localStorage:', error);
     }
   }
 
@@ -201,7 +197,6 @@ export class DefaultAgencyService {
       }
       return null;
     } catch (error) {
-      console.warn('Error leyendo agencia seleccionada de localStorage:', error);
       return null;
     }
   }
@@ -213,7 +208,6 @@ export class DefaultAgencyService {
     try {
       localStorage.removeItem(this.STORAGE_KEY_SELECTED_AGENCY);
     } catch (error) {
-      console.warn('Error eliminando agencia seleccionada de localStorage:', error);
     }
   }
 
@@ -304,7 +298,6 @@ export class DefaultAgencyService {
           // En su lugar, usar la agencia guardada y dejar que el usuario la cambie si es necesario.
           // Esto evita llamadas innecesarias al API cuando la agencia es válida pero no está en la lista
           // (por ejemplo, si las agencias se están cargando o hay un problema de permisos temporal)
-          console.warn(`Agencia guardada (${storedAgency}) no encontrada en la lista de agencias disponibles. Usando agencia guardada.`);
           this.selectedAgencySubject.next(storedAgency);
           observer.next(storedAgency);
           observer.complete();
@@ -449,7 +442,6 @@ export class DefaultAgencyService {
           }
         },
         error: (error) => {
-          console.error('Error actualizando agencia predeterminada:', error);
           // En caso de error, aún actualizar localmente
           this.selectedAgencySubject.next(agenciaId);
           this.guardarAgenciaEnStorage(agenciaId);

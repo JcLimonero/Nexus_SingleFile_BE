@@ -32,7 +32,7 @@ class MigrateExistingPasswords extends Migration
         }
         
         // Log de la migración
-        log_message('info', 'Migrated ' . count($users) . ' user passwords to bcrypt hash');
+
     }
 
     public function down()

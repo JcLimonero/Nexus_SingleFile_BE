@@ -43,7 +43,7 @@ class FileExtraordinaryReason extends ResourceController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener los motivos extraordinarios: ' . $e->getMessage()
@@ -196,7 +196,7 @@ class FileExtraordinaryReason extends ResourceController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener el motivo extraordinario: ' . $e->getMessage()
@@ -274,7 +274,7 @@ class FileExtraordinaryReason extends ResourceController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -325,7 +325,7 @@ class FileExtraordinaryReason extends ResourceController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -359,7 +359,7 @@ class FileExtraordinaryReason extends ResourceController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la búsqueda: ' . $e->getMessage()
@@ -383,7 +383,7 @@ class FileExtraordinaryReason extends ResourceController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -407,7 +407,7 @@ class FileExtraordinaryReason extends ResourceController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener motivos activos: ' . $e->getMessage()
@@ -444,7 +444,7 @@ class FileExtraordinaryReason extends ResourceController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en FileExtraordinaryReason::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()

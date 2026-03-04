@@ -276,14 +276,12 @@ export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {
                   }
                 },
                 error: (error) => {
-                  console.error('Error estableciendo agencia predeterminada:', error);
                 }
               });
             }
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
           this.agencies = [];
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {
             duration: 3000

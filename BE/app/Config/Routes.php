@@ -375,7 +375,6 @@ $routes->group('files', function($routes) {
     $routes->post('compare-dms-orders', 'Files::compareDmsOrders');
 });
 
-
 // Rutas de documentos
 $routes->group('documents', function($routes) {
     $routes->get('required', 'Documents::getRequiredDocuments');

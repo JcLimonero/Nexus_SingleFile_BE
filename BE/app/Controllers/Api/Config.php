@@ -61,7 +61,7 @@ class Config extends BaseController
                 'data' => $data
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Config::groupApiUrl - ' . $e->getMessage());
+
             $base = rtrim(self::VANGUARDIA_DEFAULTS['api_base_url'], '/');
             $uploadBase = rtrim($this->request->getUri()->getBaseURL(), '/');
             $fallback = [
@@ -108,7 +108,7 @@ class Config extends BaseController
                 'data' => ['activity_log_enabled' => $enabled]
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Config::activityLogEnabled - ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener configuración',

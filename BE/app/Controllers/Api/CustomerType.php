@@ -91,7 +91,7 @@ class CustomerType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipos de cliente: ' . $e->getMessage()
@@ -148,7 +148,7 @@ class CustomerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear tipo de cliente: ' . $e->getMessage()
@@ -194,7 +194,7 @@ class CustomerType extends BaseController
             ]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipo de cliente: ' . $e->getMessage()
@@ -263,7 +263,7 @@ class CustomerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar tipo de cliente: ' . $e->getMessage()
@@ -310,7 +310,7 @@ class CustomerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::delete: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar tipo de cliente: ' . $e->getMessage()
@@ -364,7 +364,7 @@ class CustomerType extends BaseController
             }
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar estado del tipo de cliente: ' . $e->getMessage()
@@ -404,7 +404,7 @@ class CustomerType extends BaseController
             ]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en la búsqueda: ' . $e->getMessage()
@@ -434,7 +434,7 @@ class CustomerType extends BaseController
             ]);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
@@ -458,7 +458,7 @@ class CustomerType extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en CustomerType::active: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener tipos de cliente activos: ' . $e->getMessage()

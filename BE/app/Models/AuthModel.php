@@ -234,7 +234,7 @@ class AuthModel extends Model
             return true;
         } catch (\Exception $e) {
             // Log del error pero no fallar la autenticación
-            log_message('error', 'Error guardando refresh token: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -267,7 +267,7 @@ class AuthModel extends Model
                 ->getRowArray();
             
             if (!$storedToken) {
-                log_message('info', "AuthModel::refreshAccessToken - Token no encontrado en DB para user_id={$userId}");
+
                 return [
                     'success' => false,
                     'message' => 'Refresh token no válido o expirado'
@@ -295,7 +295,7 @@ class AuthModel extends Model
             ];
             
         } catch (\Exception $e) {
-            log_message('error', 'AuthModel::refreshAccessToken - ' . $e->getMessage());
+
             return [
                 'success' => false,
                 'message' => 'Error renovando token: ' . $e->getMessage()

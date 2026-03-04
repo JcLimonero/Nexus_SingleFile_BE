@@ -98,7 +98,7 @@ class UserProfileImage extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en uploadProfileImage: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -142,7 +142,7 @@ class UserProfileImage extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getProfileImage: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -183,7 +183,7 @@ class UserProfileImage extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en removeProfileImage: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
@@ -233,7 +233,7 @@ class UserProfileImage extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en getProfileImageInfo: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor: ' . $e->getMessage()

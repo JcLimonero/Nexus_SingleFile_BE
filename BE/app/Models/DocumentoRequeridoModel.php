@@ -184,12 +184,10 @@ class DocumentoRequeridoModel extends Model
             return $result;
         
         } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
-            log_message('error', 'Database error in getDocumentosRequeridos: ' . $e->getMessage());
-            log_message('error', 'SQL: ' . ($this->db->getLastQuery() ?: 'No query available'));
+
             throw $e;
         } catch (\Exception $e) {
-            log_message('error', 'General error in getDocumentosRequeridos: ' . $e->getMessage());
-            log_message('error', 'File: ' . $e->getFile() . ' Line: ' . $e->getLine());
+
             throw $e;
         }
     }

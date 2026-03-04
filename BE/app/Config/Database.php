@@ -235,12 +235,11 @@ class Database extends Config
                     'encrypt' => $dbConfig['encrypt'] ?? $this->default['encrypt'],
                     'compress' => $dbConfig['compress'] ?? $this->default['compress'],
                 ]);
-                
-                log_message('info', 'Configuración de base de datos cargada desde archivo externo');
+
             }
         } catch (\Exception $e) {
             // Si hay error, usar configuración por defecto
-            log_message('warning', 'Error al cargar configuración externa: ' . $e->getMessage());
+
         }
     }
 }

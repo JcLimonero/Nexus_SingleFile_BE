@@ -412,7 +412,7 @@ class DocumentModel extends Model
             ];
             
         } catch (\Exception $e) {
-            log_message('error', 'Error en DocumentModel::getDocumentStats: ' . $e->getMessage());
+
             throw $e;
         }
     }

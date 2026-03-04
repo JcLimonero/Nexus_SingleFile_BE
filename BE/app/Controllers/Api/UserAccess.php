@@ -63,7 +63,7 @@ class UserAccess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAccess::getUserAccess: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener accesos del usuario: ' . $e->getMessage()
@@ -164,7 +164,7 @@ class UserAccess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAccess::updateUserAccess: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar accesos: ' . $e->getMessage()
@@ -219,7 +219,7 @@ class UserAccess extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserAccess::clearUserAccess: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar accesos: ' . $e->getMessage()

@@ -53,7 +53,7 @@ class UserActivityLog extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener los logs de actividad',
@@ -88,7 +88,7 @@ class UserActivityLog extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::getExpedienteLogs: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener el historial del expediente',
@@ -123,7 +123,7 @@ class UserActivityLog extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::getUserLogs: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener los logs del usuario',
@@ -158,7 +158,7 @@ class UserActivityLog extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::getActionLogs: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener los logs de la acción',
@@ -186,7 +186,7 @@ class UserActivityLog extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::getStats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener las estadísticas',
@@ -231,7 +231,7 @@ class UserActivityLog extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear el log de actividad',
@@ -265,7 +265,7 @@ class UserActivityLog extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en UserActivityLog::cleanOldLogs: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al limpiar logs antiguos',

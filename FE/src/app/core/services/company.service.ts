@@ -60,7 +60,6 @@ export class CompanyService {
       localStorage.setItem(this.STORAGE_KEY_COMPANIES, JSON.stringify(companies));
       localStorage.setItem(this.STORAGE_KEY_COMPANIES_TIMESTAMP, Date.now().toString());
     } catch (e) {
-      console.warn('Error guardando companies en localStorage:', e);
     }
   }
 
@@ -83,7 +82,6 @@ export class CompanyService {
       localStorage.removeItem(this.STORAGE_KEY_COMPANIES);
       localStorage.removeItem(this.STORAGE_KEY_COMPANIES_TIMESTAMP);
     } catch (e) {
-      console.warn('Error limpiando cache de companies:', e);
     }
   }
 }

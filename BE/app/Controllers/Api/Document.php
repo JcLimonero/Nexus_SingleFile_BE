@@ -92,7 +92,7 @@ class Document extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::index: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener documentos: ' . $e->getMessage()
@@ -186,7 +186,7 @@ class Document extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::create: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al crear documento: ' . $e->getMessage()
@@ -226,7 +226,7 @@ class Document extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::show: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener documento: ' . $e->getMessage()
@@ -303,7 +303,7 @@ class Document extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::update: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar documento: ' . $e->getMessage()
@@ -318,9 +318,7 @@ class Document extends BaseController
     public function delete($id = null)
     {
         try {
-            log_message('info', "=== INICIO DELETE DOCUMENTO ===");
-            log_message('info', "ID recibido: {$id}");
-            
+
             if (!$id) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -339,14 +337,12 @@ class Document extends BaseController
 
             $document = $this->documentModel->find($id);
             if (!$document) {
-                log_message('error', "Documento con ID {$id} no encontrado");
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Documento no encontrado'
                 ])->setStatusCode(404);
             }
-
-            log_message('info', "Documento encontrado: Id={$document['Id']}, IdFile={$document['IdFile']}, Name={$document['Name']}, Enabled={$document['Enabled']}");
 
             // Eliminación lógica: cambiar Enabled a 0
             $updateData = [
@@ -355,12 +351,10 @@ class Document extends BaseController
                 'IdLastUserUpdate' => $currentUser['user_id'] ?? 0
             ];
 
-            log_message('info', "Actualizando documento ID {$id} con Enabled=0");
             $result = $this->documentModel->update($id, $updateData);
             
             if ($result) {
-                log_message('info', "✅ Documento {$id} (Name: {$document['Name']}) eliminado lógicamente por usuario {$currentUser['user_id']}");
-                log_message('info', "=== FIN DELETE DOCUMENTO EXITOSO ===");
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Documento eliminado exitosamente',
@@ -370,7 +364,7 @@ class Document extends BaseController
                     ]
                 ]);
             } else {
-                log_message('error', "❌ Error al actualizar documento ID {$id}");
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Error al eliminar el documento'
@@ -378,8 +372,7 @@ class Document extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::delete: ' . $e->getMessage());
-            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al eliminar documento: ' . $e->getMessage()
@@ -445,7 +438,7 @@ class Document extends BaseController
             }
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::toggleStatus: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al cambiar estado: ' . $e->getMessage()
@@ -480,7 +473,7 @@ class Document extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::getByFile: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener documentos del archivo: ' . $e->getMessage()
@@ -524,7 +517,7 @@ class Document extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::stats: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas: ' . $e->getMessage(),
@@ -570,7 +563,7 @@ class Document extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error en Document::search: ' . $e->getMessage());
+
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error en búsqueda: ' . $e->getMessage()
