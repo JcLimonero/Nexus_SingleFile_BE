@@ -520,11 +520,31 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          this.snackBar.open('Error al buscar en el Grupo: ' + (error.error?.message || error.message), 'Cerrar', {
-            duration: 4000
+          const msg = this.getFriendlySearchError(error);
+          this.snackBar.open(msg, 'Cerrar', {
+            duration: 5000
           });
         }
       });
+  }
+
+  /** Mensaje amigable para errores de búsqueda en el Grupo (evita exponer detalles técnicos) */
+  private getFriendlySearchError(error: any): string {
+    const status = error?.status;
+    const msg = (error?.error?.message || error?.message || '').toLowerCase();
+    if (status === 0 || msg.includes('unknown error') || msg.includes('failed to fetch') || msg.includes('network')) {
+      return 'No se pudo conectar con el servicio del Grupo. Verifique que el servidor esté disponible o intente más tarde.';
+    }
+    if (status === 404) {
+      return 'El servicio del Grupo no está disponible en este momento.';
+    }
+    if (status === 500) {
+      return 'Ocurrió un error en el servicio del Grupo. Por favor intente más tarde.';
+    }
+    if (status === 401 || status === 403) {
+      return 'No tiene permisos para consultar el servicio del Grupo.';
+    }
+    return 'No se pudieron buscar clientes en el Grupo. Por favor intente de nuevo.';
   }
 
   private importVanguardiaClient(vanguardiaClient: any): void {
@@ -567,6 +587,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               telefono2: response.data.telefono2,
               razonSocial: response.data.razonSocial,
               curp: response.data.curp,
+              tipoCliente: response.data.tipoCliente ?? response.data.tipo_cliente,
+              tipo_cliente: response.data.tipoCliente ?? response.data.tipo_cliente ?? vanguardiaClient?.tipo_cliente,
               asesor: response.data.asesor,
               agenciaOrigen: response.data.agenciaOrigen || String(clientIdAgency),
               fechaRegistro: response.data.fechaRegistro,
@@ -1035,9 +1057,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
     
+    const idAgencyDms = this.selectedAgency?.id_agency_dms ?? this.selectedAgency?.IdAgencyDms ?? (this.selectedAgency as any)?.IdAgency;
     let params = new HttpParams();
-    params = params.set('customerDMS', this.selectedClient.ndCliente);
-    params = params.set('connectionstring', conn);
+    params = params.set('customer_dms', this.selectedClient.ndCliente);
+    params = params.set('connection_string', conn);
+    if (idAgencyDms != null && idAgencyDms !== '') {
+      params = params.set('id_agency', String(idAgencyDms));
+    }
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
     const headers = {

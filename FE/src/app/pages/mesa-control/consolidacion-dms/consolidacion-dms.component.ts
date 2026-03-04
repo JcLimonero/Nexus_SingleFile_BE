@@ -127,26 +127,27 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     6: 'Liberado por Excepción',
   };
 
-  // Mapeo de nombres de columnas originales a nombres de visualización
+  // Mapeo de nombres de columnas (snake_case) a nombres de visualización
   private columnDisplayNames: { [key: string]: string } = {
-    'order_dms': 'ND Pedido',
-    'orderDMS': 'ND Pedido',
-    'OrderDMS': 'ND Pedido',
-    'state': 'Estatus',
-    'State': 'Estatus',
-    'vin': 'VIN',
-    'Vin': 'VIN',
-    'VIN': 'VIN',
-    'invoice_reference': 'Factura',
-    'invoiceReference': 'Factura',
-    'InvoiceReference': 'Factura',
-    'delivery_date': 'Fecha Liberación',
-    'deliveryDate': 'Fecha Liberación',
-    'DeliveryDate': 'Fecha Liberación',
-    'timestamp_dms': 'Fecha DMS',
-    'timestampDMS': 'Fecha DMS',
-    'TimestampDMS': 'Fecha DMS',
+    'id_agency': 'Agencia',
     'agencyName': 'Agencia',
+    'order_dms': 'Pedido DMS',
+    'customer_dms': 'Cliente DMS',
+    'consultant_name': 'Consultor',
+    'nd_cliente': 'ND Cliente',
+    'nd_consultant': 'ND Consultor',
+    'state': 'Estatus',
+    'vin': 'VIN',
+    'invoice_reference': 'Factura',
+    'delivery_date': 'Fecha Liberación',
+    'delivery_month': 'Mes Entrega',
+    'delivery_year': 'Año Entrega',
+    'timestamp_dms': 'Fecha DMS',
+    'external_color': 'Color Exterior',
+    'internal_color': 'Color Interior',
+    'model': 'Modelo',
+    'version': 'Versión',
+    'connection_string': 'Conexión',
   };
 
   constructor(
@@ -338,14 +339,14 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       if (this.filterEstatus === 0) {
         // Sin Integrar: state null, vacío, 0 o NaN
         filtered = filtered.filter(row => {
-          const v = row['state'] ?? row['State'];
+          const v = row['state'];
           if (v == null || v === '') return true;
           const num = typeof v === 'number' ? v : parseInt(String(v), 10);
           return Number.isNaN(num) || num === 0;
         });
       } else {
         filtered = filtered.filter(row => {
-          const v = row['state'] ?? row['State'];
+          const v = row['state'];
           const num = typeof v === 'number' ? v : parseInt(String(v), 10);
           return !Number.isNaN(num) && num === this.filterEstatus;
         });
@@ -472,7 +473,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   private cargarPedidosMultiAgencias(selected: Agencia[]): void {
     const agenciesWithId = selected
       .filter(a => this.getIdAgencyDms(a) != null)
-      .map(a => ({ idAgency: this.getIdAgencyDms(a)!, name: ((a as any).name ?? (a as any).Name) || '' }));
+      .map(a => ({ id_agency: this.getIdAgencyDms(a)!, name: ((a as any).name ?? (a as any).Name) || '' }));
     if (agenciesWithId.length === 0) {
       this.snackBar.open('No hay agencias con IdAgency configurado', 'Cerrar', { duration: 3000 });
       return;
@@ -514,26 +515,15 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
   }
 
   private buildColumns(row: PedidoDms, includeAgencyColumn: boolean): string[] {
-    // Columnas preferidas en orden específico
+    // Columnas preferidas en orden específico (snake_case)
     const preferred = [
-      ...(includeAgencyColumn ? ['agencyName'] as const : []),
+      ...(includeAgencyColumn ? ['id_agency', 'agencyName'] as const : []),
       'order_dms',
-      'orderDMS',
-      'OrderDMS',
       'state',
-      'State',
       'vin',
-      'Vin',
-      'VIN',
       'invoice_reference',
-      'invoiceReference',
-      'InvoiceReference',
       'delivery_date',
-      'deliveryDate',
-      'DeliveryDate',
       'timestamp_dms',
-      'timestampDMS',
-      'TimestampDMS',
     ];
     const keys = Object.keys(row);
     const ordered: string[] = [];
@@ -550,8 +540,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
     // Filtrar columnas que no queremos mostrar
     const excludedColumns = [
-      'idAgency', 'IdAgency', 'idagency', 'IDAgency',
-      ...(includeAgencyColumn ? [] : ['agencyName']),
+      ...(includeAgencyColumn ? [] : ['id_agency', 'agencyName']),
       'delivery_month', 'delivery_year',
       'timestamp_dms_month', 'timestamp_dms_year',
     ];
@@ -575,7 +564,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
    * Para otras columnas retorna cadena vacía.
    */
   getStateCellClass(row: PedidoDms, col: string): string {
-    if (col !== 'state' && col !== 'State') return '';
+    if (col !== 'state') return '';
     const label = this.cellValue(row, col);
     const stateClasses: { [key: string]: string } = {
       'Integración': 'bg-green-100 text-green-800',
@@ -592,8 +581,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   cellValue(row: PedidoDms, col: string): string {
     const v = row[col];
-    // Columna state: traducir número a etiqueta
-    if (col === 'state' || col === 'State') {
+    if (col === 'state') {
       if (v == null || v === '') return 'Sin Integrar';
       const num = typeof v === 'number' ? v : parseInt(String(v), 10);
       if (Number.isNaN(num)) return 'Sin Integrar';

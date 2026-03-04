@@ -1,0 +1,17 @@
+{
+  "database": {
+    "hostname": "74.208.78.55",
+    "port": 3306,
+    "database": "dwh",
+    "username": "remote_nexus_q_techs",
+    "password": "00@Nexus@?@",
+    "driver": "MySQLi",
+    "prefix": "",
+    "charset": "utf8mb4",
+    "collation": "utf8mb4_unicode_520_ci",
+    "debug": true,
+    "strict": false,
+    "encrypt": false,
+    "compress": false
+  }
+}

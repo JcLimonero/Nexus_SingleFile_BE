@@ -15,6 +15,7 @@ export interface VanguardiaClientImportRequest {
   phone: string;
   mobile_phone: string;
   mail: string;
+  tipo_cliente?: string;  // 'fisica' | 'moral'
 }
 
 export interface VanguardiaClientImportResponse {
@@ -33,6 +34,8 @@ export interface VanguardiaClientImportResponse {
     telefono2: string;
     razonSocial: string;
     curp: string;
+    tipoCliente?: string;
+    tipo_cliente?: string;
     asesor: string;
     agenciaOrigen: string;
     fechaRegistro: string;
@@ -68,9 +71,11 @@ export class VanguardiaClientImportService {
    * @returns Datos en formato de importación
    */
   convertVanguardiaDataForImport(vanguardiaClient: any): VanguardiaClientImportRequest {
+    const ndDMS = vanguardiaClient.ndDMS ?? vanguardiaClient.nd_cliente ?? '';
+    const idAgency = vanguardiaClient.idAgency ?? vanguardiaClient.id_agency ?? '';
     return {
-      idAgency: vanguardiaClient.idAgency || '',
-      ndDMS: vanguardiaClient.ndDMS || '',
+      idAgency: String(idAgency),
+      ndDMS: String(ndDMS),
       bussines_name: vanguardiaClient.bussines_name || '',
       name: vanguardiaClient.name || '',
       paternal_surname: vanguardiaClient.paternal_surname || '',
@@ -79,7 +84,8 @@ export class VanguardiaClientImportService {
       curp: vanguardiaClient.curp || '',
       phone: vanguardiaClient.phone || '',
       mobile_phone: vanguardiaClient.mobile_phone || '',
-      mail: vanguardiaClient.mail || ''
+      mail: vanguardiaClient.mail || '',
+      tipo_cliente: vanguardiaClient.tipo_cliente || ''
     };
   }
 }

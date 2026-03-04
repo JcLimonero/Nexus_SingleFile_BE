@@ -15,6 +15,7 @@ export interface CompanyClient {
   phone: string;
   mobile_phone: string;
   mail: string;
+  tipo_cliente?: string;  // 'fisica' | 'moral'
   // Campos adicionales para compatibilidad
   idCliente?: number;
   ndCliente?: string;
@@ -65,8 +66,8 @@ export class CompanyClientService {
    */
   searchClients(connectionstring: string, ndDMS: string): Observable<CompanyResponse> {
     let params = new HttpParams();
-    params = params.set('connectionstring', connectionstring);
-    params = params.set('ndDMS', ndDMS);
+    params = params.set('connection_string', connectionstring);
+    params = params.set('nd_cliente', ndDMS);
 
     const headers = {
       'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
@@ -86,7 +87,7 @@ export class CompanyClientService {
    */
   getClientById(id: number, connectionstring: string): Observable<CompanyResponse> {
     let params = new HttpParams();
-    params = params.set('connectionstring', connectionstring);
+    params = params.set('connection_string', connectionstring);
     params = params.set('id', id.toString());
 
     const headers = {
@@ -106,8 +107,8 @@ export class CompanyClientService {
    */
   convertCompanyClient(companyData: any): CompanyClient {
     return {
-      idAgency: companyData.idAgency || '',
-      ndDMS: companyData.ndDMS || '',
+      idAgency: (companyData.id_agency ?? companyData.idAgency ?? '') as string,
+      ndDMS: (companyData.nd_cliente ?? companyData.ndDMS ?? '') as string,
       bussines_name: companyData.bussines_name || '',
       name: companyData.name || '',
       paternal_surname: companyData.paternal_surname || '',
@@ -117,8 +118,8 @@ export class CompanyClientService {
       phone: companyData.phone || '',
       mobile_phone: companyData.mobile_phone || '',
       mail: companyData.mail || '',
-      idCliente: parseInt(companyData.ndDMS) || 0,
-      ndCliente: companyData.ndDMS || '',
+      idCliente: parseInt(companyData.nd_cliente ?? companyData.ndDMS ?? '') || 0,
+      ndCliente: companyData.nd_cliente ?? companyData.ndDMS ?? '',
       cliente: `${companyData.name || ''} ${companyData.paternal_surname || ''} ${companyData.maternal_surname || ''}`.trim(),
       nombre: companyData.name || '',
       apellidoPaterno: companyData.paternal_surname || '',
@@ -127,6 +128,7 @@ export class CompanyClientService {
       telefono: companyData.phone || '',
       telefono2: companyData.mobile_phone || '',
       razonSocial: companyData.bussines_name || '',
+      tipo_cliente: companyData.tipo_cliente || '',
       asesor: '',
       agenciaOrigen: '',
       fechaRegistro: '',

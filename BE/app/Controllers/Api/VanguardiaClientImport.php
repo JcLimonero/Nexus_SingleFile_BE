@@ -524,6 +524,7 @@ class VanguardiaClientImport extends ResourceController
             'tel_number2' => $vanguardiaData['mobile_phone'] ?? '',
             'email' => $vanguardiaData['mail'] ?? '',
             'razon_social' => $razonSocial,
+            'tipo_cliente' => (($t = trim($vanguardiaData['tipo_cliente'] ?? '')) !== '') ? $t : null,
             'adviser' => '', // Se puede asignar después
             'agency_origin' => $vanguardiaData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'),
@@ -735,6 +736,7 @@ class VanguardiaClientImport extends ResourceController
                 c.tel_number2 as telefono2,
                 c.razon_social as razonSocial,
                 c.CURP as curp,
+                c.tipo_cliente as tipoCliente,
                 c.adviser as asesor,
                 c.agency_origin as agenciaOrigen,
                 c.registration_date as fechaRegistro,

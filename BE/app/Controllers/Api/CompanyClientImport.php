@@ -281,7 +281,8 @@ class CompanyClientImport extends BaseController
             'mother_last_name' => $companyData['maternal_surname'] ?? '', 'RFC' => $companyData['rfc'] ?? '',
             'CURP' => $companyData['curp'] ?? '', 'tel_number' => $companyData['phone'] ?? '',
             'tel_number2' => $companyData['mobile_phone'] ?? '', 'email' => $companyData['mail'] ?? '',
-            'razon_social' => $razonSocial, 'adviser' => '', 'agency_origin' => $companyData['idAgency'] ?? '',
+            'razon_social' => $razonSocial, 'tipo_cliente' => (($t = trim($companyData['tipo_cliente'] ?? '')) !== '') ? $t : null, 'adviser' => '',
+            'agency_origin' => $companyData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'), 'update_date' => date('Y-m-d H:i:s'), 'id_last_user_update' => $this->getCurrentUserId() ?? 1
         ];
         if (!$this->db->table('client')->insert($clientData)) throw new \Exception('Error al insertar en tabla Client');
@@ -344,7 +345,7 @@ class CompanyClientImport extends BaseController
                 TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
                 c.name as nombre, c.last_name as apellidoPaterno, c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc, c.email as email, c.tel_number as telefono, c.tel_number2 as telefono2,
-                c.razon_social as razonSocial, c.CURP as curp, c.adviser as asesor, c.agency_origin as agenciaOrigen,
+                c.razon_social as razonSocial, c.CURP as curp, c.tipo_cliente as tipoCliente, c.adviser as asesor, c.agency_origin as agenciaOrigen,
                 c.registration_date as fechaRegistro, c.update_date as fechaActualizacion,
                 hc.id as headerClientId, ctr.id as relationId
             FROM client c INNER JOIN client_header hc ON c.id = hc.id_client

@@ -237,7 +237,7 @@
         
         <!-- Mensaje cuando no hay tipos disponibles -->
         <div *ngIf="filteredTiposDocumento.length === 0 && searchTerm" class="text-center py-4 text-gray-500">
-          <mat-icon class="text-2xl mb-1 text-gray-300">search_off</mat-icon>
+          <mat-icon class="text-2xl mb-1 text-gray-300" style="width: 24px; height: 24px;" svgIcon="mat:search_off"></mat-icon>
           <p class="text-sm font-medium">No se encontraron resultados</p>
           <p class="text-xs">Intenta con otros términos de búsqueda</p>
         </div>

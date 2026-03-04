@@ -103,7 +103,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <td mat-cell *matCellDef="let order">
                 <div class="flex items-center order-info">
                   <mat-icon class="mr-1 text-blue-600" style="font-size: 14px;">receipt</mat-icon>
-                  <span class="font-medium">{{ order.order_dms || order.orderDMS || order.numeroPedido || 'N/A' }}</span>
+                  <span class="font-medium">{{ order.order_dms || 'N/A' }}</span>
                 </div>
               </td>
             </ng-container>
@@ -265,7 +265,7 @@ import { AuthService } from '../../../core/services/auth.service';
                       <td mat-cell *matCellDef="let order">
                         <div class="flex items-center order-info">
                           <mat-icon class="mr-1 text-orange-600" style="font-size: 14px;">receipt</mat-icon>
-                          <span class="font-medium">{{ order.order_dms || order.order?.order_dms || order.order?.orderDMS || order.order?.numeroPedido || 'N/A' }}</span>
+                          <span class="font-medium">{{ order.order_dms || order.order?.order_dms || 'N/A' }}</span>
                         </div>
                       </td>
                     </ng-container>
@@ -487,7 +487,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="mt-4 p-3 bg-white rounded border">
             <h4 class="font-medium text-gray-700 mb-2">Resumen de configuración:</h4>
             <div class="text-sm text-gray-600 space-y-1">
-              <p><strong>Pedido:</strong> {{ selectedOrder.order_dms || selectedOrder.orderDMS || selectedOrder.numeroPedido }}</p>
+              <p><strong>Pedido:</strong> {{ selectedOrder.order_dms }}</p>
               <p><strong>Proceso:</strong> {{ selectedProcess?.Name || 'No seleccionado' }}</p>
               <p><strong>Tipo Cliente:</strong> {{ selectedCostumerType?.Name || 'No seleccionado' }}</p>
               <p><strong>Operación:</strong> {{ selectedOperationType?.Name || 'No seleccionado' }}</p>
@@ -704,14 +704,14 @@ export class OrderSelectionDialogComponent implements OnInit {
     // Crear un Set con los order_dms existentes para búsqueda rápida
     const existingOrderDms = new Set(
       existingFiles.map(file => {
-        const orderDms = file.order_dms || file.numeroPedido || '';
+        const orderDms = file.order_dms ?? '';
         return orderDms?.toString().toLowerCase();
       }).filter(Boolean)
     );
     
     // Filtrar pedidos de Vanguardia que no existen en la tabla de file
     const newOrders = this.originalOrders.filter(order => {
-      const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+      const orderDms = (order.order_dms || '').toString().toLowerCase();
       return orderDms && !existingOrderDms.has(orderDms);
     });
     
@@ -721,7 +721,7 @@ export class OrderSelectionDialogComponent implements OnInit {
     const deduplicatedOrders: any[] = [];
     
     for (const order of newOrders) {
-      const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+      const orderDms = (order.order_dms || '').toString().toLowerCase();
       const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
       
       // Crear una clave única: order_dms + vin (si ambos existen) o solo order_dms
@@ -749,7 +749,7 @@ export class OrderSelectionDialogComponent implements OnInit {
       // Aplicar filtro de búsqueda
       const searchLower = this.searchTerm.toLowerCase();
       filtered = baseOrders.filter(order => {
-        const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+        const orderDms = (order.order_dms || '').toString().toLowerCase();
         const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
         const model = (order.model || order.Model || '').toString().toLowerCase();
         return orderDms.includes(searchLower) || vin.includes(searchLower) || model.includes(searchLower);
@@ -760,7 +760,7 @@ export class OrderSelectionDialogComponent implements OnInit {
       const deduplicated: any[] = [];
       
       for (const order of filtered) {
-        const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+        const orderDms = (order.order_dms || '').toString().toLowerCase();
         const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
         const uniqueKey = orderDms && vin ? `${orderDms}_${vin}` : orderDms;
         
@@ -802,7 +802,7 @@ export class OrderSelectionDialogComponent implements OnInit {
     } else {
       const searchLower = this.existingSearchTerm.toLowerCase();
       this.filteredExistingOrders = this.existingOrders.filter(existing => {
-        const orderDms = (existing.order_dms || existing.order?.order_dms || existing.order?.orderDMS || existing.order?.numeroPedido || '').toString().toLowerCase();
+        const orderDms = (existing.order_dms || existing.order?.order_dms || '').toString().toLowerCase();
         const vin = (existing.order?.vin || existing.order?.VIN || existing.order?.Vin || '').toString().toLowerCase();
         const model = (existing.order?.model || existing.order?.Model || '').toString().toLowerCase();
         const fileId = (existing.fileId || '').toString().toLowerCase();

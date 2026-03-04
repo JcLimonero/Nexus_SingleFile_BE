@@ -15,6 +15,7 @@ export interface VanguardiaClient {
   phone: string;
   mobile_phone: string;
   mail: string;
+  tipo_cliente?: string;  // 'fisica' | 'moral'
   // Campos adicionales para compatibilidad
   idCliente?: number;
   ndCliente?: string;
@@ -65,8 +66,8 @@ export class VanguardiaClientService {
    */
   searchClients(connectionstring: string, ndDMS: string): Observable<VanguardiaResponse> {
     let params = new HttpParams();
-    params = params.set('connectionstring', connectionstring);
-    params = params.set('ndDMS', ndDMS);
+    params = params.set('connection_string', connectionstring);
+    params = params.set('nd_cliente', ndDMS);
 
     const headers = {
       'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
@@ -86,7 +87,7 @@ export class VanguardiaClientService {
    */
   getClientById(id: number, connectionstring: string): Observable<VanguardiaResponse> {
     let params = new HttpParams();
-    params = params.set('connectionstring', connectionstring);
+    params = params.set('connection_string', connectionstring);
     params = params.set('id', id.toString());
 
     const headers = {
@@ -106,9 +107,8 @@ export class VanguardiaClientService {
    */
   convertVanguardiaClient(vanguardiaData: any): VanguardiaClient {
     return {
-      // Campos originales de Vanguardia
-      idAgency: vanguardiaData.idAgency || '',
-      ndDMS: vanguardiaData.ndDMS || '',
+      idAgency: (vanguardiaData.id_agency ?? vanguardiaData.idAgency ?? '') as string,
+      ndDMS: (vanguardiaData.nd_cliente ?? vanguardiaData.ndDMS ?? '') as string,
       bussines_name: vanguardiaData.bussines_name || '',
       name: vanguardiaData.name || '',
       paternal_surname: vanguardiaData.paternal_surname || '',
@@ -119,8 +119,8 @@ export class VanguardiaClientService {
       mobile_phone: vanguardiaData.mobile_phone || '',
       mail: vanguardiaData.mail || '',
       // Campos adicionales para compatibilidad
-      idCliente: parseInt(vanguardiaData.ndDMS) || 0,
-      ndCliente: vanguardiaData.ndDMS || '',
+      idCliente: parseInt(vanguardiaData.nd_cliente ?? vanguardiaData.ndDMS ?? '') || 0,
+      ndCliente: vanguardiaData.nd_cliente ?? vanguardiaData.ndDMS ?? '',
       cliente: `${vanguardiaData.name || ''} ${vanguardiaData.paternal_surname || ''} ${vanguardiaData.maternal_surname || ''}`.trim(),
       nombre: vanguardiaData.name || '',
       apellidoPaterno: vanguardiaData.paternal_surname || '',
@@ -129,6 +129,7 @@ export class VanguardiaClientService {
       telefono: vanguardiaData.phone || '',
       telefono2: vanguardiaData.mobile_phone || '',
       razonSocial: vanguardiaData.bussines_name || '',
+      tipo_cliente: vanguardiaData.tipo_cliente || '',
       asesor: '',
       agenciaOrigen: '',
       fechaRegistro: '',

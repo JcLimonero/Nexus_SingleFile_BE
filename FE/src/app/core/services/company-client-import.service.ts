@@ -15,6 +15,7 @@ export interface CompanyClientImportRequest {
   phone: string;
   mobile_phone: string;
   mail: string;
+  tipo_cliente?: string;  // 'fisica' | 'moral'
 }
 
 export interface CompanyClientImportResponse {
@@ -33,6 +34,8 @@ export interface CompanyClientImportResponse {
     telefono2: string;
     razonSocial: string;
     curp: string;
+    tipoCliente?: string;
+    tipo_cliente?: string;
     asesor: string;
     agenciaOrigen: string;
     fechaRegistro: string;
@@ -68,9 +71,11 @@ export class CompanyClientImportService {
    * @returns Datos en formato de importación
    */
   convertCompanyDataForImport(companyClient: any): CompanyClientImportRequest {
+    const ndDMS = companyClient.ndDMS ?? companyClient.nd_cliente ?? '';
+    const idAgency = companyClient.idAgency ?? companyClient.id_agency ?? '';
     return {
-      idAgency: companyClient.idAgency || '',
-      ndDMS: companyClient.ndDMS || '',
+      idAgency: String(idAgency),
+      ndDMS: String(ndDMS),
       bussines_name: companyClient.bussines_name || '',
       name: companyClient.name || '',
       paternal_surname: companyClient.paternal_surname || '',
@@ -79,7 +84,8 @@ export class CompanyClientImportService {
       curp: companyClient.curp || '',
       phone: companyClient.phone || '',
       mobile_phone: companyClient.mobile_phone || '',
-      mail: companyClient.mail || ''
+      mail: companyClient.mail || '',
+      tipo_cliente: companyClient.tipo_cliente || ''
     };
   }
 }

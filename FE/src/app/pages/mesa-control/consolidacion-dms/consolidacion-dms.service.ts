@@ -32,23 +32,23 @@ export class ConsolidacionDmsService {
 
   /**
    * Obtener lista de pedidos del DMS vía API singlefileinvoices.
-   * @param idAgency IdAgency externo de la agencia seleccionada (de Vanguardia)
-   * @param deliveryMonth Mes de entrega (1-12)
-   * @param deliveryYear Año de entrega
+   * @param id_agency ID de agencia externo (de Vanguardia)
+   * @param delivery_month Mes de entrega (1-12)
+   * @param delivery_year Año de entrega
    */
   getPedidosDms(
-    idAgency: number | string,
-    deliveryMonth: number,
-    deliveryYear: number
+    id_agency: number | string,
+    delivery_month: number,
+    delivery_year: number
   ): Observable<{ data: PedidoDms[]; raw?: unknown }> {
-    if (!idAgency || (typeof idAgency === 'number' && idAgency <= 0)) {
+    if (!id_agency || (typeof id_agency === 'number' && id_agency <= 0)) {
       return of({ data: [] });
     }
 
     let params = new HttpParams();
-    params = params.set('idAgency', String(idAgency));
-    params = params.set('delivery_month', String(deliveryMonth));
-    params = params.set('delivery_year', String(deliveryYear));
+    params = params.set('id_agency', String(id_agency));
+    params = params.set('delivery_month', String(delivery_month));
+    params = params.set('delivery_year', String(delivery_year));
     params = params.set('perpage', '5000');
 
     const headers = {
@@ -82,18 +82,18 @@ export class ConsolidacionDmsService {
 
   /**
    * Obtener pedidos del DMS para múltiples agencias (un solo mes/año).
-   * Cada fila incluye el campo `agencyName` para mostrar en la tabla.
+   * Cada fila incluye el campo agencyName para mostrar en la tabla.
    */
   getPedidosDmsMultiAgencias(
-    agencies: { idAgency: number | string; name: string }[],
-    deliveryMonth: number,
-    deliveryYear: number
+    agencies: { id_agency: number | string; name: string }[],
+    delivery_month: number,
+    delivery_year: number
   ): Observable<{ data: PedidoDms[] }> {
     if (!agencies || agencies.length === 0) {
       return of({ data: [] });
     }
     const requests = agencies.map(a =>
-      this.getPedidosDms(a.idAgency, deliveryMonth, deliveryYear).pipe(
+      this.getPedidosDms(a.id_agency, delivery_month, delivery_year).pipe(
         map(({ data }) =>
           data.map(row => ({ ...row, agencyName: a.name }))
         )
@@ -112,7 +112,7 @@ export class ConsolidacionDmsService {
    * Combina los resultados de todos los periodos.
    */
   getPedidosDmsMultiAgenciasForPeriods(
-    agencies: { idAgency: number | string; name: string }[],
+    agencies: { id_agency: number | string; name: string }[],
     periods: { month: number; year: number }[]
   ): Observable<{ data: PedidoDms[] }> {
     if (!agencies || agencies.length === 0 || !periods || periods.length === 0) {
