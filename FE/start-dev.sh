@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Iniciando SingleFile Development Environment..."
+echo "🚀 Iniciando NexFile Development Environment..."
 
 # Función para verificar si un puerto está en uso
 check_port() {
@@ -18,7 +18,7 @@ check_port 3600
 
 # Iniciar Backend en puerto 3500
 echo "🔧 Iniciando Backend en puerto 3500..."
-cd ../BE/singlefile-api
+cd ../BE/NexFile-api
 php spark serve --host=0.0.0.0 --port=3500 &
 BACKEND_PID=$!
 echo "✅ Backend iniciado con PID: $BACKEND_PID"
@@ -43,7 +43,7 @@ FRONTEND_PID=$!
 echo "✅ Frontend iniciado con PID: $FRONTEND_PID"
 
 echo ""
-echo "🎉 SingleFile Development Environment iniciado exitosamente!"
+echo "🎉 NexFile Development Environment iniciado exitosamente!"
 echo ""
 echo "📱 Frontend: http://localhost:3600"
 echo "🔧 Backend:  http://localhost:3500"

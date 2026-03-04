@@ -24,8 +24,11 @@ class FileShareTokenModel extends Model
 
     /**
      * Generar o obtener token para un expediente
+     * @param int $idFile ID del expediente
+     * @param string|null $expirationDate Fecha de expiración (opcional)
+     * @param int|null $userId ID del usuario que genera el token (para id_last_user_update, evita FK con 0)
      */
-    public function getOrCreateToken(int $idFile, ?string $expirationDate = null): ?array
+    public function getOrCreateToken(int $idFile, ?string $expirationDate = null, ?int $userId = null): ?array
     {
         $existing = $this->where('id_file', $idFile)->first();
         if ($existing) {
@@ -37,11 +40,15 @@ class FileShareTokenModel extends Model
             // Token expirado o deshabilitado: renovar con nuevo UUID
             $token = $this->generateUUID();
             $rowId = $existing['id'] ?? $existing['Id'] ?? null;
-            $this->update($rowId, [
+            $updateData = [
                 'token' => $token,
                 'expiration_date' => $expirationDate,
                 'enabled' => 1
-            ]);
+            ];
+            if ($userId !== null) {
+                $updateData['id_last_user_update'] = $userId;
+            }
+            $this->update($rowId, $updateData);
             return $this->normalizeTokenRow($this->find($rowId));
         }
 
@@ -52,6 +59,8 @@ class FileShareTokenModel extends Model
             'expiration_date' => $expirationDate,
             'enabled' => 1
         ];
+        // id_last_user_update: siempre usar el id del usuario logueado cuando se proporciona
+        $data['id_last_user_update'] = $userId ?? null;
         $id = $this->insert($data);
         return $id ? $this->normalizeTokenRow($this->find($id)) : null;
     }

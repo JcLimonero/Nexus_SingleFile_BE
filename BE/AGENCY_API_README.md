@@ -508,7 +508,7 @@ curl -X DELETE "http://localhost:8080/api/agency/123?force=true"
 Para probar el API completo, ejecuta el script de pruebas:
 
 ```bash
-cd BE/singlefile-api
+cd BE/NexFile-api
 php scripts/test_agency_crud.php
 ```
 

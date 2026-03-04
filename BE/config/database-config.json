@@ -33,7 +33,7 @@
     "keyId": "tu_key_id_aqui",
     "applicationKey": "tu_application_key_aqui",
     "bucketId": "tu_bucket_id_aqui",
-    "bucketName": "singlefile-bucket",
+    "bucketName": "NexFile-bucket",
     "apiUrl": "https://api.backblazeb2.com",
     "downloadUrl": "https://f000.backblazeb2.com"
   },

@@ -1,10 +1,10 @@
-# 🔧 Solución: Página Colgada en https://apisvanguardia.com:400/singlefile/
+# 🔧 Solución: Página Colgada en https://apisvanguardia.com:400/NexFile/
 
 ## 🔍 Diagnóstico del Problema
 
 La página se queda en la pantalla de carga porque:
 
-1. **Base href incorrecto**: El `base href` está configurado como `/` pero la aplicación está desplegada en `/singlefile/`
+1. **Base href incorrecto**: El `base href` está configurado como `/` pero la aplicación está desplegada en `/NexFile/`
 2. **Rutas de assets incorrectas**: Los archivos JavaScript, CSS e imágenes no se cargan porque buscan en rutas incorrectas
 3. **Error silencioso en bootstrap**: Si hay errores, no se muestran en la consola
 
@@ -12,7 +12,7 @@ La página se queda en la pantalla de carga porque:
 
 ### 1. Verificar Errores en la Consola del Navegador
 
-1. Abre `https://apisvanguardia.com:400/singlefile/` en el navegador
+1. Abre `https://apisvanguardia.com:400/NexFile/` en el navegador
 2. Presiona `F12` para abrir las herramientas de desarrollador
 3. Ve a la pestaña **Console** y revisa los errores
 4. Ve a la pestaña **Network** y verifica qué archivos fallan al cargar (404, CORS, etc.)
@@ -21,7 +21,7 @@ La página se queda en la pantalla de carga porque:
 
 ```bash
 cd FE
-ng build --configuration production --base-href /singlefile/
+ng build --configuration production --base-href /NexFile/
 ```
 
 Luego desplegar los archivos de `dist/vex/` en el servidor.
@@ -32,11 +32,11 @@ Si no puedes reconstruir, necesitas configurar el servidor web para que:
 
 #### Para Apache (.htaccess):
 
-Crea o actualiza el archivo `.htaccess` en el directorio `/singlefile/`:
+Crea o actualiza el archivo `.htaccess` en el directorio `/NexFile/`:
 
 ```apache
 RewriteEngine On
-RewriteBase /singlefile/
+RewriteBase /NexFile/
 
 # Si es un archivo o directorio existente, servirlo
 RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
@@ -44,15 +44,15 @@ RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
 RewriteRule ^ - [L]
 
 # Si no existe, redirigir a index.html
-RewriteRule ^ /singlefile/index.html [L]
+RewriteRule ^ /NexFile/index.html [L]
 ```
 
 #### Para Nginx:
 
 ```nginx
-location /singlefile/ {
+location /NexFile/ {
     alias /ruta/a/dist/vex/;
-    try_files $uri $uri/ /singlefile/index.html;
+    try_files $uri $uri/ /NexFile/index.html;
     
     # Headers para SPA
     add_header Cache-Control "no-cache, no-store, must-revalidate";
@@ -62,10 +62,10 @@ location /singlefile/ {
 ### 4. Verificar que los Assets se Cargan Correctamente
 
 En la consola del navegador, verifica que estos archivos se cargan:
-- `https://apisvanguardia.com:400/singlefile/main.[hash].js`
-- `https://apisvanguardia.com:400/singlefile/polyfills.[hash].js`
-- `https://apisvanguardia.com:400/singlefile/styles.[hash].css`
-- `https://apisvanguardia.com:400/singlefile/assets/img/icons/logos/logo_loading_blue.svg`
+- `https://apisvanguardia.com:400/NexFile/main.[hash].js`
+- `https://apisvanguardia.com:400/NexFile/polyfills.[hash].js`
+- `https://apisvanguardia.com:400/NexFile/styles.[hash].css`
+- `https://apisvanguardia.com:400/NexFile/assets/img/icons/logos/logo_loading_blue.svg`
 
 ### 5. Mejorar el Manejo de Errores (Opcional)
 
@@ -108,8 +108,8 @@ export const environment = {
   production: true,
   apiBaseUrl: 'https://apisvanguardia.com:400',  // URL correcta del backend
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest',
+    apiUrl: 'https://apisvanguardia.com:400/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/NexFileorderslastest',
     uploadApiUrl: 'https://apisvanguardia.com:400/api/backblaze/upload'
   }
 };
@@ -123,7 +123,7 @@ export const environment = {
 - [ ] No hay errores 404 en la consola
 - [ ] No hay errores CORS en la consola
 - [ ] El backend responde en `https://apisvanguardia.com:400/api/`
-- [ ] El `baseHref` está configurado como `/singlefile/` en el build
+- [ ] El `baseHref` está configurado como `/NexFile/` en el build
 - [ ] El servidor web está configurado para servir la SPA correctamente
 
 ## 🚨 Errores Comunes
@@ -134,7 +134,7 @@ export const environment = {
 ### Error: "CORS policy blocked"
 **Solución**: Configura CORS en el backend para permitir `https://apisvanguardia.com:400`.
 
-### Error: "Cannot GET /singlefile/"
+### Error: "Cannot GET /NexFile/"
 **Solución**: El servidor web no está configurado para servir `index.html` en todas las rutas.
 
 ### La página se queda en blanco después del splash

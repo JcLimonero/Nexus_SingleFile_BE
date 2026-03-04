@@ -671,14 +671,14 @@ class Validacion extends BaseController
     }
 
     /**
-     * Llamar API singlefileorderslastest y devolver array de pedidos.
+     * Llamar API NexFileorderslastest y devolver array de pedidos.
      */
-    private function callSinglefileorderslastest(string $agencyConnection, string $ndCliente): array
+    private function callNexFileorderslastest(string $agencyConnection, string $ndCliente): array
     {
         $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
         $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
 
-        $url = $vanguardiaBaseUrl . '/vgd/singlefileorderslastest?'
+        $url = $vanguardiaBaseUrl . '/vgd/NexFileorderslastest?'
             . 'customerDMS=' . urlencode($ndCliente)
             . '&connectionstring=' . urlencode($agencyConnection)
             . '&perpage=1000';
@@ -2711,7 +2711,8 @@ class Validacion extends BaseController
             }
 
             $shareTokenModel = new \App\Models\FileShareTokenModel();
-            $tokenData = $shareTokenModel->getOrCreateToken($idFile);
+            $userId = (int) ($currentUser['user_id'] ?? 0);
+            $tokenData = $shareTokenModel->getOrCreateToken($idFile, null, $userId);
             if (!$tokenData) {
                 return $this->response->setJSON([
                     'success' => false,

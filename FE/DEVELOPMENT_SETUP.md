@@ -1,4 +1,4 @@
-# 🚀 SingleFile - Configuración del Entorno de Desarrollo
+# 🚀 NexFile - Configuración del Entorno de Desarrollo
 
 ## 📋 Requisitos Previos
 
@@ -42,7 +42,7 @@ start-dev.bat
 
 #### 1. Iniciar Backend:
 ```bash
-cd BE/singlefile-api
+cd BE/NexFile-api
 php spark serve --host=0.0.0.0 --port=8080
 ```
 

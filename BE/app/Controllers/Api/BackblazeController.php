@@ -87,7 +87,7 @@ class BackblazeController extends BaseController
         
         // Simulación temporal - reemplazar con implementación real
         $baseUrl = 'https://f000.backblazeb2.com/file/';
-        $bucketName = 'singlefile-bucket'; // Configurar según tu bucket
+        $bucketName = 'NexFile-bucket'; // Configurar según tu bucket
         
         // URL simulada - en producción sería la URL real de Backblaze
         $privateUrl = $baseUrl . $bucketName . '/' . urlencode($fileName);

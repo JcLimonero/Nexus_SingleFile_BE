@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Script para construir el frontend con la configuración correcta para /singlefile/
+# Script para construir el frontend con la configuración correcta para /NexFile/
 
 echo "🔨 Construyendo aplicación Angular para producción..."
-echo "📍 Base href: /singlefile/"
+echo "📍 Base href: /NexFile/"
 echo ""
 
 # Construir con baseHref correcto
-ng build --configuration production --base-href /singlefile/
+ng build --configuration production --base-href /NexFile/
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -15,7 +15,7 @@ if [ $? -eq 0 ]; then
     echo "📦 Archivos generados en: dist/vex/"
     echo ""
     echo "📋 Próximos pasos:"
-    echo "1. Copiar los archivos de dist/vex/ al servidor en /singlefile/"
+    echo "1. Copiar los archivos de dist/vex/ al servidor en /NexFile/"
     echo "2. Verificar que el servidor web esté configurado correctamente"
     echo "3. Verificar que el backend esté accesible en https://apisvanguardia.com:400/api/"
 else

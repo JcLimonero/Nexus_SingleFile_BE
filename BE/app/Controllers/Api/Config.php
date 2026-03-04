@@ -13,16 +13,16 @@ class Config extends BaseController
 {
     private const VANGUARDIA_DEFAULTS = [
         'api_base_url' => 'https://apisvanguardia.com:400',
-        'api_url' => '/vgd/singlefilecustomer',
-        'orders_api_url' => '/vgd/singlefileorderslastest',
-        'invoices_api_url' => '/vgd/singlefileinvoices',
+        'api_url' => '/vgd/NexFilecustomer',
+        'orders_api_url' => '/vgd/NexFileorderslastest',
+        'invoices_api_url' => '/vgd/NexFileinvoices',
         'upload_api_url' => '/backblaze/upload',
     ];
 
     /**
      * GET /api/config/group_api_url
      * Retorna URLs completas de APIs externas (Vanguardia, Backblaze) desde la tabla config.
-     * Construye URLs como: api_base_url + path (ej: https://apisvanguardia.com:400/vgd/singlefilecustomer)
+     * Construye URLs como: api_base_url + path (ej: https://apisvanguardia.com:400/vgd/NexFilecustomer)
      * Público - no requiere autenticación (necesario para bootstrap del frontend)
      */
     public function groupApiUrl()
@@ -50,9 +50,9 @@ class Config extends BaseController
             $uploadApiUrl = $uploadBase . '/api/backblaze/direct-upload';
 
             $data = [
-                'api_url' => $base . $this->ensureLeadingSlash($raw['api_url'] ?? '/vgd/singlefilecustomer'),
-                'orders_api_url' => $base . $this->ensureLeadingSlash($raw['orders_api_url'] ?? '/vgd/singlefileorderslastest'),
-                'invoices_api_url' => $base . $this->ensureLeadingSlash($raw['invoices_api_url'] ?? '/vgd/singlefileinvoices'),
+                'api_url' => $base . $this->ensureLeadingSlash($raw['api_url'] ?? '/vgd/NexFilecustomer'),
+                'orders_api_url' => $base . $this->ensureLeadingSlash($raw['orders_api_url'] ?? '/vgd/NexFileorderslastest'),
+                'invoices_api_url' => $base . $this->ensureLeadingSlash($raw['invoices_api_url'] ?? '/vgd/NexFileinvoices'),
                 'upload_api_url' => $uploadApiUrl,
             ];
 
@@ -65,9 +65,9 @@ class Config extends BaseController
             $base = rtrim(self::VANGUARDIA_DEFAULTS['api_base_url'], '/');
             $uploadBase = rtrim($this->request->getUri()->getBaseURL(), '/');
             $fallback = [
-                'api_url' => $base . '/vgd/singlefilecustomer',
-                'orders_api_url' => $base . '/vgd/singlefileorderslastest',
-                'invoices_api_url' => $base . '/vgd/singlefileinvoices',
+                'api_url' => $base . '/vgd/NexFilecustomer',
+                'orders_api_url' => $base . '/vgd/NexFileorderslastest',
+                'invoices_api_url' => $base . '/vgd/NexFileinvoices',
                 'upload_api_url' => $uploadBase . '/api/backblaze/direct-upload',
             ];
             return $this->response

@@ -7,11 +7,11 @@ Esta implementación permite a los usuarios subir, ver y eliminar imágenes de p
 
 ### Backend (CodeIgniter)
 
-#### 1. Script SQL - `BE/singlefile-api/scripts/add_profile_image_fields.sql`
+#### 1. Script SQL - `BE/NexFile-api/scripts/add_profile_image_fields.sql`
 - Agrega campos `profile_image`, `image_type`, e `image_size` a la tabla `Users`
 - Incluye comentarios descriptivos y índices para optimización
 
-#### 2. Modelo Actualizado - `BE/singlefile-api/app/Models/UserModel.php`
+#### 2. Modelo Actualizado - `BE/NexFile-api/app/Models/UserModel.php`
 - Nuevos campos en `$allowedFields`
 - Métodos para manejar imágenes:
   - `updateProfileImage()` - Actualizar imagen
@@ -19,14 +19,14 @@ Esta implementación permite a los usuarios subir, ver y eliminar imágenes de p
   - `getProfileImage()` - Obtener imagen
   - `hasProfileImage()` - Verificar si tiene imagen
 
-#### 3. Controlador - `BE/singlefile-api/app/Controllers/UserProfileImageController.php`
+#### 3. Controlador - `BE/NexFile-api/app/Controllers/UserProfileImageController.php`
 - `uploadProfileImage()` - Subir nueva imagen
 - `getProfileImage()` - Obtener imagen completa
 - `getProfileImageInfo()` - Obtener información sin imagen
 - `removeProfileImage()` - Eliminar imagen
 - Validaciones de tipo, tamaño y dimensiones
 
-#### 4. Rutas - `BE/singlefile-api/app/Config/Routes.php`
+#### 4. Rutas - `BE/NexFile-api/app/Config/Routes.php`
 - Grupo `user/profile-image` con endpoints para todas las operaciones
 
 ### Frontend (Angular)
@@ -55,7 +55,7 @@ Esta implementación permite a los usuarios subir, ver y eliminar imágenes de p
 ### Paso 1: Base de Datos
 ```sql
 -- Ejecutar el script SQL
-source BE/singlefile-api/scripts/add_profile_image_fields.sql
+source BE/NexFile-api/scripts/add_profile_image_fields.sql
 ```
 
 ### Paso 2: Backend

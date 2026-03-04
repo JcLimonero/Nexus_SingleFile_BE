@@ -1,7 +1,7 @@
 {
-  "name": "nexus-singlefile-api-tests",
+  "name": "nexus-NexFile-api-tests",
   "version": "1.0.0",
-  "description": "Pruebas de API con Playwright para Nexus SingleFile Backend",
+  "description": "Pruebas de API con Playwright para Nexus NexFile Backend",
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",

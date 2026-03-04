@@ -1,7 +1,7 @@
 -- Script para crear la tabla File_Extraordinary_Reasons
--- Ejecutar en la base de datos singlefile_db
+-- Ejecutar en la base de datos NexFile_db
 
-USE singlefile_db;
+USE NexFile_db;
 
 -- 1. Crear la tabla si no existe
 CREATE TABLE IF NOT EXISTS File_Extraordinary_Reasons (

@@ -1,7 +1,7 @@
 -- Script para corregir la estructura de la tabla File_Extraordinary_Reasons
--- Ejecutar en la base de datos singlefile_db
+-- Ejecutar en la base de datos NexFile_db
 
-USE singlefile_db;
+USE NexFile_db;
 
 -- 1. Corregir el campo Id para que sea AUTO_INCREMENT
 ALTER TABLE File_Extraordinary_Reasons MODIFY COLUMN Id INT NOT NULL AUTO_INCREMENT;

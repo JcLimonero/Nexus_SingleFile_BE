@@ -1,7 +1,7 @@
 -- Script para corregir el AUTO_INCREMENT en File_Extraordinary_Reasons
--- Ejecutar en la base de datos singlefile_db
+-- Ejecutar en la base de datos NexFile_db
 
-USE singlefile_db;
+USE NexFile_db;
 
 -- 1. Eliminar la restricción de clave foránea temporalmente
 ALTER TABLE File_Extraordinary_Reasons DROP FOREIGN KEY file_extraordinary_reasons_ibfk_1;

@@ -6,7 +6,7 @@
 
 // Configuración de la base de datos
 $host = 'localhost';
-$dbname = 'singlefile_db';
+$dbname = 'NexFile_db';
 $username = 'root';
 $password = '00@Limonero';
 

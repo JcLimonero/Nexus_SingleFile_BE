@@ -1,12 +1,12 @@
-# 🚀 Instrucciones de Deploy para /singlefile/
+# 🚀 Instrucciones de Deploy para /NexFile/
 
 ## ⚠️ Problema Resuelto
 
-Los errores 404 se debían a que el `baseHref` estaba configurado como `/` en lugar de `/singlefile/`.
+Los errores 404 se debían a que el `baseHref` estaba configurado como `/` en lugar de `/NexFile/`.
 
 ## ✅ Solución Aplicada
 
-1. ✅ `baseHref` actualizado en `src/index.html` a `/singlefile/`
+1. ✅ `baseHref` actualizado en `src/index.html` a `/NexFile/`
 2. ✅ `baseHref` agregado en `angular.json` para la configuración de producción
 3. ✅ Script de build creado con la configuración correcta
 
@@ -23,13 +23,13 @@ O usar el script:
 
 ```bash
 cd FE
-./build-production-singlefile.sh
+./build-production-NexFile.sh
 ```
 
 ### 2. Verificar los Archivos Generados
 
 Los archivos se generarán en `FE/dist/vex/` con las rutas correctas:
-- `index.html` (con `<base href="/singlefile/">`)
+- `index.html` (con `<base href="/NexFile/">`)
 - `main.[hash].js`
 - `polyfills.[hash].js`
 - `runtime.[hash].js`
@@ -41,12 +41,12 @@ Los archivos se generarán en `FE/dist/vex/` con las rutas correctas:
 
 Copiar todos los archivos de `FE/dist/vex/` a:
 ```
-https://apisvanguardia.com:400/singlefile/
+https://apisvanguardia.com:400/NexFile/
 ```
 
 **Estructura esperada en el servidor:**
 ```
-/singlefile/
+/NexFile/
   ├── index.html
   ├── main.[hash].js
   ├── polyfills.[hash].js
@@ -64,11 +64,11 @@ https://apisvanguardia.com:400/singlefile/
 
 #### Para Apache (.htaccess)
 
-Crear o actualizar `.htaccess` en `/singlefile/`:
+Crear o actualizar `.htaccess` en `/NexFile/`:
 
 ```apache
 RewriteEngine On
-RewriteBase /singlefile/
+RewriteBase /NexFile/
 
 # Si es un archivo o directorio existente, servirlo
 RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
@@ -76,15 +76,15 @@ RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
 RewriteRule ^ - [L]
 
 # Si no existe, redirigir a index.html (para rutas de Angular)
-RewriteRule ^ /singlefile/index.html [L]
+RewriteRule ^ /NexFile/index.html [L]
 ```
 
 #### Para Nginx
 
 ```nginx
-location /singlefile/ {
+location /NexFile/ {
     alias /ruta/completa/a/dist/vex/;
-    try_files $uri $uri/ /singlefile/index.html;
+    try_files $uri $uri/ /NexFile/index.html;
     
     # Headers para SPA
     add_header Cache-Control "no-cache, no-store, must-revalidate" always;
@@ -93,14 +93,14 @@ location /singlefile/ {
 
 ### 5. Verificar el Deploy
 
-1. Abrir `https://apisvanguardia.com:400/singlefile/` en el navegador
+1. Abrir `https://apisvanguardia.com:400/NexFile/` en el navegador
 2. Abrir la consola del navegador (F12)
 3. Verificar que NO haya errores 404
 4. Los archivos deben cargarse desde:
-   - ✅ `https://apisvanguardia.com:400/singlefile/main.[hash].js`
-   - ✅ `https://apisvanguardia.com:400/singlefile/polyfills.[hash].js`
-   - ✅ `https://apisvanguardia.com:400/singlefile/styles.[hash].css`
-   - ✅ `https://apisvanguardia.com:400/singlefile/assets/img/icons/logos/logo_loading_blue.svg`
+   - ✅ `https://apisvanguardia.com:400/NexFile/main.[hash].js`
+   - ✅ `https://apisvanguardia.com:400/NexFile/polyfills.[hash].js`
+   - ✅ `https://apisvanguardia.com:400/NexFile/styles.[hash].css`
+   - ✅ `https://apisvanguardia.com:400/NexFile/assets/img/icons/logos/logo_loading_blue.svg`
 
 ## 🔍 Verificación Post-Deploy
 
@@ -119,8 +119,8 @@ location /singlefile/ {
 **Causa**: El `baseHref` no está configurado correctamente o los archivos no están en la ruta correcta.
 
 **Solución**: 
-1. Verificar que el `index.html` tenga `<base href="/singlefile/">`
-2. Verificar que los archivos estén en `/singlefile/` en el servidor
+1. Verificar que el `index.html` tenga `<base href="/NexFile/">`
+2. Verificar que los archivos estén en `/NexFile/` en el servidor
 3. Reconstruir la aplicación con `ng build --configuration production`
 
 #### ❌ La página se queda en blanco después del splash

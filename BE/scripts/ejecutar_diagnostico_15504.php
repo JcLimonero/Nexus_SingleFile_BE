@@ -21,7 +21,7 @@ try {
     
     if ($mysqli->connect_error) {
         // Intentar con el otro nombre de base de datos
-        $database = 'singlefile_db';
+        $database = 'NexFile_db';
         $mysqli = @new mysqli($hostname, $username, $password, $database, $port);
         
         if ($mysqli->connect_error) {

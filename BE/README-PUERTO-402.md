@@ -1,14 +1,14 @@
-# 🚀 Deploy SingleFile API - Puerto 402
+# 🚀 Deploy NexFile API - Puerto 402
 
 ## 📋 Instrucciones de Deploy
 
 ### 1. Preparación del Servidor
 ```bash
 # Descomprimir el archivo ZIP
-unzip singlefile-backend-deploy.zip
+unzip NexFile-backend-deploy.zip
 
 # Entrar al directorio
-cd singlefile-api/
+cd NexFile-api/
 ```
 
 ### 2. Configuración para Puerto 402

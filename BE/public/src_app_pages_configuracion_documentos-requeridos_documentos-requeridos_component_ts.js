@@ -2576,7 +2576,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   DuplicateConfigurationDialogComponent: () => (/* binding */ DuplicateConfigurationDialogComponent)
 /* harmony export */ });
-/* harmony import */ var _Users_jclimonero_Documents_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ 71670);
+/* harmony import */ var _Users_jclimonero_Documents_Developer_NexFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/asyncToGenerator.js */ 71670);
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @angular/common */ 26575);
 /* harmony import */ var _angular_forms__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @angular/forms */ 28849);
 /* harmony import */ var _angular_material_dialog__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/material/dialog */ 17401);
@@ -2746,7 +2746,7 @@ class DuplicateConfigurationDialogComponent {
   }
   loadAgencies() {
     var _this = this;
-    return (0,_Users_jclimonero_Documents_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Documents_Developer_NexFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       _this.loading = true;
       try {
         // Cargar todas las agencias
@@ -2768,11 +2768,11 @@ class DuplicateConfigurationDialogComponent {
   }
   checkExistingConfigurations() {
     var _this2 = this;
-    return (0,_Users_jclimonero_Documents_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Documents_Developer_NexFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       try {
         // Para cada agencia disponible, verificar si ya tiene esta configuración
         const promises = _this2.availableAgencies.map( /*#__PURE__*/function () {
-          var _ref = (0,_Users_jclimonero_Documents_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* (agency) {
+          var _ref = (0,_Users_jclimonero_Documents_Developer_NexFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* (agency) {
             // Verificar si existe configuración para esta agencia
             const hasConfig = yield _this2.documentoRequeridoService.getDocumentosRequeridos({
               IdProcess: _this2.data.configuracion.IdProcess,
@@ -2832,7 +2832,7 @@ class DuplicateConfigurationDialogComponent {
   }
   duplicateConfiguration() {
     var _this3 = this;
-    return (0,_Users_jclimonero_Documents_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
+    return (0,_Users_jclimonero_Documents_Developer_NexFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* () {
       if (!_this3.canDuplicate()) {
         return;
       }
@@ -2840,7 +2840,7 @@ class DuplicateConfigurationDialogComponent {
       try {
         // Duplicar la configuración para cada agencia seleccionada
         const promises = _this3.selectedAgencies.map( /*#__PURE__*/function () {
-          var _ref2 = (0,_Users_jclimonero_Documents_Developer_SingleFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* (agencyId) {
+          var _ref2 = (0,_Users_jclimonero_Documents_Developer_NexFile_FE_node_modules_babel_runtime_helpers_esm_asyncToGenerator_js__WEBPACK_IMPORTED_MODULE_0__["default"])(function* (agencyId) {
             const sourceConfig = {
               IdProcess: _this3.data.configuracion.IdProcess,
               IdAgency: _this3.data.configuracion.IdAgency.toString(),

@@ -115,5 +115,5 @@
 
 **Estado**: ✅ COMPLETADO  
 **Versión**: 1.0  
-**Desarrollador**: SingleFile Team  
+**Desarrollador**: NexFile Team  
 **Última Verificación**: 24/08/2025 02:36:32 UTC

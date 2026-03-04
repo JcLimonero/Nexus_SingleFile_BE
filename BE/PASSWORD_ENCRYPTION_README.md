@@ -1,6 +1,6 @@
 # 🔐 Implementación de Encriptado de Contraseñas
 
-Este documento describe la implementación del sistema de encriptado de contraseñas para la tabla `User` en SingleFile API.
+Este documento describe la implementación del sistema de encriptado de contraseñas para la tabla `User` en NexFile API.
 
 ## 📋 Cambios Implementados
 
@@ -44,7 +44,7 @@ Este documento describe la implementación del sistema de encriptado de contrase
 ### Paso 1: Ejecutar Migraciones de Base de Datos
 
 ```bash
-cd BE/singlefile-api
+cd BE/NexFile-api
 php spark migrate
 ```
 
@@ -108,7 +108,7 @@ POST /api/password/force-migration - Forzar migración
 curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@singlefile.com",
+    "email": "admin@NexFile.com",
     "password": "admin123"
   }'
 ```
@@ -187,4 +187,4 @@ php scripts/migrate_passwords.php
 
 **Fecha de Implementación:** Enero 2025  
 **Versión:** 1.0  
-**Desarrollador:** SingleFile Team
+**Desarrollador:** NexFile Team

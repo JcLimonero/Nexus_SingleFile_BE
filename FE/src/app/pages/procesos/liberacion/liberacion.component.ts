@@ -943,7 +943,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           // Preparar datos para Vanguardia API
           const formData = new FormData();
           formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
-          formData.append('idSingleFile', this.selectedFile.fileId.toString());
+          formData.append('idNexFile', this.selectedFile.fileId.toString());
           formData.append('idDocumentFile', document.fileDocumentId.toString());
 
           // Usar API de Vanguardia

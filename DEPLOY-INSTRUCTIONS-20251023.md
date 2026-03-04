@@ -1,4 +1,4 @@
-# 🚀 Instrucciones de Deploy - SingleFile
+# 🚀 Instrucciones de Deploy - NexFile
 **Fecha:** 23 de Octubre de 2025  
 **Hora:** 10:51 AM  
 **Versión:** Producción con cambios de Validación
@@ -35,8 +35,8 @@
 
 ### ✅ Autenticación con APIs de Vanguardia
 4. **Header `X-Provider-Token` agregado** a todas las llamadas:
-   - API de búsqueda de clientes (`singlefilecustomer`)
-   - API de pedidos (`singlefileorderslastest`)
+   - API de búsqueda de clientes (`NexFilecustomer`)
+   - API de pedidos (`NexFileorderslastest`)
    - API de subida de archivos (`backblaze/upload`)
    - API de obtención de URLs privadas (`get-private-url`)
 5. **Error 403 resuelto** en todas las integraciones con Vanguardia
@@ -69,7 +69,7 @@ nano .env
 ```env
 # Base de datos
 database.default.hostname = TU_HOST_MYSQL
-database.default.database = singlefile_db
+database.default.database = NexFile_db
 database.default.username = TU_USUARIO_DB
 database.default.password = TU_PASSWORD_DB
 
@@ -249,7 +249,7 @@ b26e88c4-ddbe-4adb-a214-4667f454824a
 ```
 Host: 192.168.190.140:3306
 Usuario: vgd_testing
-Base de Datos: singlefile_db
+Base de Datos: NexFile_db
 ```
 
 ---
@@ -311,7 +311,7 @@ Base de Datos: singlefile_db
 ## 📂 Ubicación de los Archivos
 
 ```
-/Users/jclimonero/Developer/SingleFile/
+/Users/jclimonero/Developer/NexFile/
 ├── FE-deploy-production-20251023-1051.zip  (9.7 MB)
 └── BE-deploy-production-20251023-1051.zip  (14 MB)
 ```

@@ -12,8 +12,8 @@ export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:8080',
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest',
+    apiUrl: 'https://apisvanguardia.com:400/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/NexFileorderslastest',
     uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
   }
 };
@@ -22,7 +22,7 @@ export const environment = {
 #### 2. **Upload Method** (`uploadDocument`)
 - ✅ **Eliminado**: Uso del API local como puente
 - ✅ **Implementado**: Llamada directa al API de Vanguardia
-- ✅ **Parámetros**: `file`, `idSingleFile`, `fileDocumentId`
+- ✅ **Parámetros**: `file`, `idNexFile`, `fileDocumentId`
 - ✅ **Headers**: `Content-Type: multipart/form-data`
 
 ```typescript
@@ -30,7 +30,7 @@ uploadDocument(document: any): void {
   // Preparar datos para Vanguardia API
   const formData = new FormData();
   formData.append('file', this.selectedFiles[document.documentId]);
-  formData.append('idSingleFile', this.selectedFile.fileId.toString());
+  formData.append('idNexFile', this.selectedFile.fileId.toString());
   formData.append('idDocumentFile', document.fileDocumentId.toString());
 
   // Usar API de Vanguardia directamente
@@ -144,8 +144,8 @@ export const environment = {
   production: true,
   apiBaseUrl: 'https://tu-servidor.com',
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/singlefilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest',
+    apiUrl: 'https://apisvanguardia.com:400/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/NexFileorderslastest',
     uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
   }
 };

@@ -9,13 +9,13 @@
 $mysql_config = [
     'host' => 'localhost',
     'port' => 3306,
-    'database' => 'singlefile_db',
+    'database' => 'NexFile_db',
     'username' => 'root',
     'password' => 'TU_CONTRASEÑA_AQUI' // Configurar tu contraseña aquí
 ];
 
 // Ruta al archivo CSV
-$csv_file = '/Users/jclimonero/Documents/Developer/SingleFile/script/Agency.csv';
+$csv_file = '/Users/jclimonero/Documents/Developer/NexFile/script/Agency.csv';
 
 class AgencyCSVMigration {
     private $mysql_connection;

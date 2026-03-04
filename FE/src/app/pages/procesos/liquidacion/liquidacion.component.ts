@@ -1127,7 +1127,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           // Preparar datos para Backblaze según documentación API
           const formData = new FormData();
           formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
-          formData.append('idSingleFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
+          formData.append('idNexFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
           formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
           // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)

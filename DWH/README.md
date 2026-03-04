@@ -1,6 +1,6 @@
 # DWH API - Nexfile
 
-APIs de consumo del DWH (vgd_dwh_prod). Expone los endpoints compatibles con el frontend SingleFile.
+APIs de consumo del DWH (vgd_dwh_prod). Expone los endpoints compatibles con el frontend NexFile.
 
 ## Endpoints
 
