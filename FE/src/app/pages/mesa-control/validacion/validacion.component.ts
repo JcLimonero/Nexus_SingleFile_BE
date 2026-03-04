@@ -31,6 +31,7 @@ import { FASES_FILTER_CATALOG, CatalogItem } from '../../../core/constants/catal
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Subject, Subscription, takeUntil, catchError, of, timeout } from 'rxjs';
+import { distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
@@ -805,16 +806,26 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadData();
 
     // Suscribirse a los cambios de agencia del servicio compartido
-    this.defaultAgencyService.selectedAgency$.subscribe(agenciaId => {
-      if (agenciaId !== null) {
-        this.selectedAgency = agenciaId;
+    // distinctUntilChanged evita cargas duplicadas cuando se emite el mismo valor varias veces
+    // debounceTime evita cargas en cascada cuando hay múltiples emisiones rápidas (ej. al refrescar)
+    this.defaultAgencyService.selectedAgency$
+      .pipe(
+        distinctUntilChanged(),
+        debounceTime(100),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(agenciaId => {
+        if (agenciaId !== null) {
+          this.selectedAgency = agenciaId;
+          // Limpiar selección al cambiar agencia para evitar diálogos con datos de otra agencia
+          this.clearSelection();
 
-        // Si hay proceso seleccionado (incl. "Todos los procesos"), cargar clientes
-        if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
-          this.cargarClientes();
+          // Si hay proceso seleccionado (incl. "Todos los procesos"), cargar clientes
+          if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
+            this.cargarClientes();
+          }
         }
-      }
-    });
+      });
   }
 
   ngOnDestroy() {
@@ -1118,6 +1129,10 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.advertenciaLiquidacionMostrada || !this.selectedCliente) {
       return;
     }
+    // Solo mostrar si el cliente pertenece a la agencia actualmente seleccionada
+    if (!this.clientePerteneceAgenciaActual(this.selectedCliente)) {
+      return;
+    }
 
     const faseCliente = this.normalizarTexto(this.selectedCliente.fase);
     if (faseCliente !== 'integracion') {
@@ -1153,6 +1168,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     totalReceiptAmount: number = 0
   ): void {
     if (this.advertenciaLiberacionMostrada || !this.selectedCliente) {
+      return;
+    }
+    if (!this.clientePerteneceAgenciaActual(this.selectedCliente)) {
       return;
     }
 
@@ -1214,16 +1232,28 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
 
+  /** Verificar si el cliente pertenece a la agencia actualmente seleccionada
+   * Evita mostrar diálogos de avance de fase cuando la agencia cambió durante la carga
+   */
+  private clientePerteneceAgenciaActual(cliente: any): boolean {
+    if (this.selectedAgency === null) return false;
+    const idAgenciaCliente = Number((cliente as any).idAgency ?? (cliente as any).id_agency ?? 0);
+    return idAgenciaCliente === Number(this.selectedAgency);
+  }
+
   private esDocumentoDeIntegracion(documento: Documento): boolean {
-    return this.normalizarTexto(documento.fase) === 'integracion';
+    const fase = (documento as any).fase ?? (documento as any).Fase ?? '';
+    return this.normalizarTexto(fase) === 'integracion';
   }
 
   private esDocumentoDeLiquidacion(documento: Documento): boolean {
-    return this.normalizarTexto(documento.fase) === 'liquidacion';
+    const fase = (documento as any).fase ?? (documento as any).Fase ?? '';
+    return this.normalizarTexto(fase) === 'liquidacion';
   }
 
   private esDocumentoDeLiberacion(documento: Documento): boolean {
-    return this.normalizarTexto(documento.fase) === 'liberacion';
+    const fase = (documento as any).fase ?? (documento as any).Fase ?? '';
+    return this.normalizarTexto(fase) === 'liberacion';
   }
 
   /** Documento de tipo Liquidación (id_document_type desde config) - no se valida desde esta pantalla */
@@ -1249,7 +1279,8 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private esDocumentoAprobado(documento: Documento): boolean {
-    const estatus = Number(documento.idEstatus);
+    const doc = documento as any;
+    const estatus = Number(doc.idEstatus ?? doc.IdEstatus ?? doc.id_current_status ?? 0);
     return estatus === 4;
   }
 
@@ -1387,6 +1418,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   /** Liberación → Liberado: todos los documentos de tipo liberación requeridos validados */
   private verificarAvanceFaseLiberado(documentos: Documento[]): void {
     if (this.advertenciaLiberadoMostrada || !this.selectedCliente) {
+      return;
+    }
+    if (!this.clientePerteneceAgenciaActual(this.selectedCliente)) {
       return;
     }
 
@@ -2006,6 +2040,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const esTodosProcesos = this.selectedProcess === this.ALL_PROCESSES_VALUE;
+    const agenciaAlIniciar = this.selectedAgency;
 
     this.loading = true;
 
@@ -2029,9 +2064,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       )
       .subscribe({
         next: (clientes) => {
-
-
-
+          // Descartar resultado si la agencia cambió durante la carga (evita datos de agencia incorrecta)
+          if (this.selectedAgency !== agenciaAlIniciar) {
+            this.loading = false;
+            this.cdr.markForCheck();
+            return;
+          }
 
           // Verificar específicamente el campo IdCurrentState
           if (clientes.length > 0) {

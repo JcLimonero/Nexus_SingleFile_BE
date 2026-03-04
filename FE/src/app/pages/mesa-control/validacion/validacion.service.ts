@@ -9,6 +9,9 @@ export interface Cliente {
   idFile: number;
   ndCliente: number;
   ndPedido: number;
+  /** ID de la agencia del expediente (para validar que el cliente pertenece a la agencia seleccionada) */
+  idAgency?: number;
+  id_agency?: number;
   tipoCliente?: string | null;
   /** IdCostumerType: 3 = Persona Moral (requiere beneficiarios) */
   idCostumerType?: number | null;

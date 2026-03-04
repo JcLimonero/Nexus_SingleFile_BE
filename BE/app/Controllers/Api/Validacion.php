@@ -1563,6 +1563,8 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // requerido: si el documento está en configuration_process_document_type para este expediente, es requerido (1).
+            // Si no, usar dt.required del document_type (por defecto 1).
             $query = $this->db->table('file_document dbf')
                 ->select('
                     dbf.id as idFileDocument,
@@ -1575,7 +1577,18 @@ class Validacion extends BaseController
                     dbf.comment as comentario,
                     dbf.registration_date as fecha,
                     u.name as asignado,
-                    dt.required as requerido,
+                    COALESCE(
+                        (SELECT 1 FROM configuration_process_document_type cpd
+                         INNER JOIN configuration_process cp ON cp.id = cpd.id_configuration_process AND cp.enabled = 1
+                         WHERE cpd.id_document_type = dbf.id_document_type
+                           AND cp.id_process = f.id_process
+                           AND cp.id_agency = f.id_agency
+                           AND COALESCE(cp.id_customer_type, 0) = COALESCE(f.id_customer_type, 0)
+                           AND COALESCE(cp.id_operation_type, 0) = COALESCE(f.id_operation, 0)
+                         LIMIT 1),
+                        dt.required,
+                        1
+                    ) as requerido,
                     dfs.id as idEstatus,
                     dfs.name as EstatusName,
                     dt.req_expiration as ReqExpiration,
