@@ -19,8 +19,6 @@ export interface ConsolidacionDmsResponse {
   providedIn: 'root'
 })
 export class ConsolidacionDmsService {
-  private readonly vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
-
   constructor(
     private http: HttpClient,
     private apiConfig: ApiConfigService
@@ -51,11 +49,7 @@ export class ConsolidacionDmsService {
     params = params.set('delivery_year', String(delivery_year));
     params = params.set('perpage', '5000');
 
-    const headers = {
-      'X-Provider-Token': this.vanguardiaToken
-    };
-
-    return this.http.get<ConsolidacionDmsResponse | PedidoDms[]>(this.apiUrl, { params, headers }).pipe(
+    return this.http.get<ConsolidacionDmsResponse | PedidoDms[]>(this.apiUrl, { params }).pipe(
       map(response => {
         let list: PedidoDms[] = [];
         if (Array.isArray(response)) {

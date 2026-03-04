@@ -1,4 +1,4 @@
-# 🔧 Solución: Página Colgada en https://apisvanguardia.com:400/NexFile/
+# 🔧 Solución: Página Colgada en https://[tu-dominio]/NexFile/
 
 ## 🔍 Diagnóstico del Problema
 
@@ -12,7 +12,7 @@ La página se queda en la pantalla de carga porque:
 
 ### 1. Verificar Errores en la Consola del Navegador
 
-1. Abre `https://apisvanguardia.com:400/NexFile/` en el navegador
+1. Abre `https://[tu-dominio]/NexFile/` en el navegador
 2. Presiona `F12` para abrir las herramientas de desarrollador
 3. Ve a la pestaña **Console** y revisa los errores
 4. Ve a la pestaña **Network** y verifica qué archivos fallan al cargar (404, CORS, etc.)
@@ -62,10 +62,10 @@ location /NexFile/ {
 ### 4. Verificar que los Assets se Cargan Correctamente
 
 En la consola del navegador, verifica que estos archivos se cargan:
-- `https://apisvanguardia.com:400/NexFile/main.[hash].js`
-- `https://apisvanguardia.com:400/NexFile/polyfills.[hash].js`
-- `https://apisvanguardia.com:400/NexFile/styles.[hash].css`
-- `https://apisvanguardia.com:400/NexFile/assets/img/icons/logos/logo_loading_blue.svg`
+- `https://[tu-dominio]/NexFile/main.[hash].js`
+- `https://[tu-dominio]/NexFile/polyfills.[hash].js`
+- `https://[tu-dominio]/NexFile/styles.[hash].css`
+- `https://[tu-dominio]/NexFile/assets/img/icons/logos/logo_loading_blue.svg`
 
 ### 5. Mejorar el Manejo de Errores (Opcional)
 
@@ -94,10 +94,10 @@ bootstrapApplication(AppComponent, appConfig).catch((err) => {
 ### Verificar Configuración del Backend
 
 Asegúrate de que el backend esté accesible en:
-- `https://apisvanguardia.com:400/api/`
+- `https://[tu-dominio]/api/`
 
 Y que los headers CORS permitan el origen:
-- `https://apisvanguardia.com:400`
+- `https://[tu-dominio]`
 
 ### Verificar Environment de Producción
 
@@ -106,11 +106,11 @@ El archivo `FE/src/environments/environment.prod.ts` debe tener:
 ```typescript
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://apisvanguardia.com:400',  // URL correcta del backend
+  apiBaseUrl: 'https://[tu-dominio]',  // URL correcta del backend
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/NexFilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/NexFileorderslastest',
-    uploadApiUrl: 'https://apisvanguardia.com:400/api/backblaze/upload'
+    apiUrl: 'https://[tu-dominio]/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://[tu-dominio]/vgd/NexFileorderslastest',
+    uploadApiUrl: 'https://[tu-dominio]/api/backblaze/upload'
   }
 };
 ```
@@ -122,7 +122,7 @@ export const environment = {
 - [ ] Las imágenes/assets se cargan correctamente
 - [ ] No hay errores 404 en la consola
 - [ ] No hay errores CORS en la consola
-- [ ] El backend responde en `https://apisvanguardia.com:400/api/`
+- [ ] El backend responde en `https://[tu-dominio]/api/`
 - [ ] El `baseHref` está configurado como `/NexFile/` en el build
 - [ ] El servidor web está configurado para servir la SPA correctamente
 
@@ -132,7 +132,7 @@ export const environment = {
 **Solución**: Los archivos no se encuentran. Verifica las rutas y el baseHref.
 
 ### Error: "CORS policy blocked"
-**Solución**: Configura CORS en el backend para permitir `https://apisvanguardia.com:400`.
+**Solución**: Configura CORS en el backend para permitir `https://[tu-dominio]`.
 
 ### Error: "Cannot GET /NexFile/"
 **Solución**: El servidor web no está configurado para servir `index.html` en todas las rutas.

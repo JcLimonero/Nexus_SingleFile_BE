@@ -1082,14 +1082,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
     params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
-    const headers = {
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
-    this.http.get<any>(this.apiConfig.getOrdersApiUrl(), { 
-      params,
-      headers
-    })
+    this.http.get<any>(this.apiConfig.getOrdersApiUrl(), { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

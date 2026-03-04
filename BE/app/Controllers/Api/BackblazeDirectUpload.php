@@ -165,29 +165,33 @@ class BackblazeDirectUpload extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $token = bin2hex(random_bytes(16));
-            $cache = \Config\Services::cache();
-            $cache->save("b2_download_{$token}", ['fileId' => $fileId], $duration);
-
-            // Usar baseUrl del frontend (localhost en dev) si se envía; si no, usar la del request
             $baseUrl = trim($this->request->getGet('baseUrl') ?? '');
-            if (empty($baseUrl) || !preg_match('#^https?://#', $baseUrl)) {
-                $baseUrl = rtrim($this->request->getUri()->getBaseURL(), '/');
-            }
-            $baseUrl = rtrim($baseUrl, '/');
-            $url = "{$baseUrl}/api/backblaze/download?file=" . rawurlencode($fileId) . "&token={$token}";
-
-            return $this->response->setJSON([
-                'success' => true,
-                'data' => ['url' => $url]
-            ]);
+            $result = $this->generatePrivateUrlForFile($fileId, $duration, $baseUrl);
+            return $this->response->setJSON(['success' => true, 'data' => $result]);
         } catch (\Exception $e) {
-
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al generar URL: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
+    }
+
+    /**
+     * Genera URL privada de descarga (para uso interno, ej. Miniportal).
+     * @return array{url: string}
+     */
+    public function generatePrivateUrlForFile(string $fileContainer, int $duration = 3600, string $baseUrl = ''): array
+    {
+        $token = bin2hex(random_bytes(16));
+        $cache = \Config\Services::cache();
+        $cache->save("b2_download_{$token}", ['fileId' => $fileContainer], $duration);
+
+        if (empty($baseUrl) || !preg_match('#^https?://#', $baseUrl)) {
+            $baseUrl = rtrim($this->request->getUri()->getBaseURL(), '/');
+        }
+        $baseUrl = rtrim($baseUrl, '/');
+        $url = "{$baseUrl}/api/backblaze/download?file=" . rawurlencode($fileContainer) . "&token={$token}";
+        return ['url' => $url];
     }
 
     /**

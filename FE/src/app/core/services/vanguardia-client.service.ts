@@ -69,14 +69,7 @@ export class VanguardiaClientService {
     params = params.set('connection_string', connectionstring);
     params = params.set('nd_cliente', ndDMS);
 
-    const headers = {
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
-    return this.http.get<VanguardiaResponse>(this.apiConfig.getApiUrl(), {
-      params,
-      headers
-    });
+    return this.http.get<VanguardiaResponse>(this.apiConfig.getApiUrl(), { params });
   }
 
   /**
@@ -90,14 +83,7 @@ export class VanguardiaClientService {
     params = params.set('connection_string', connectionstring);
     params = params.set('id', id.toString());
 
-    const headers = {
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
-    return this.http.get<VanguardiaResponse>(this.apiConfig.getApiUrl(), {
-      params,
-      headers
-    });
+    return this.http.get<VanguardiaResponse>(this.apiConfig.getApiUrl(), { params });
   }
 
   /**

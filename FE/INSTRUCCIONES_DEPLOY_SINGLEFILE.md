@@ -41,7 +41,7 @@ Los archivos se generarán en `FE/dist/vex/` con las rutas correctas:
 
 Copiar todos los archivos de `FE/dist/vex/` a:
 ```
-https://apisvanguardia.com:400/NexFile/
+https://[tu-dominio]/NexFile/
 ```
 
 **Estructura esperada en el servidor:**
@@ -93,14 +93,14 @@ location /NexFile/ {
 
 ### 5. Verificar el Deploy
 
-1. Abrir `https://apisvanguardia.com:400/NexFile/` en el navegador
+1. Abrir `https://[tu-dominio]/NexFile/` en el navegador
 2. Abrir la consola del navegador (F12)
 3. Verificar que NO haya errores 404
 4. Los archivos deben cargarse desde:
-   - ✅ `https://apisvanguardia.com:400/NexFile/main.[hash].js`
-   - ✅ `https://apisvanguardia.com:400/NexFile/polyfills.[hash].js`
-   - ✅ `https://apisvanguardia.com:400/NexFile/styles.[hash].css`
-   - ✅ `https://apisvanguardia.com:400/NexFile/assets/img/icons/logos/logo_loading_blue.svg`
+   - ✅ `https://[tu-dominio]/NexFile/main.[hash].js`
+   - ✅ `https://[tu-dominio]/NexFile/polyfills.[hash].js`
+   - ✅ `https://[tu-dominio]/NexFile/styles.[hash].css`
+   - ✅ `https://[tu-dominio]/NexFile/assets/img/icons/logos/logo_loading_blue.svg`
 
 ## 🔍 Verificación Post-Deploy
 
@@ -128,11 +128,11 @@ location /NexFile/ {
 
 **Solución**: 
 1. Revisar la consola del navegador (F12) para ver errores
-2. Verificar que el backend esté accesible en `https://apisvanguardia.com:400/api/`
+2. Verificar que el backend esté accesible en `https://[tu-dominio]/api/`
 3. Verificar la configuración de CORS en el backend
 
 #### ❌ Error CORS
-**Causa**: El backend no permite el origen `https://apisvanguardia.com:400`.
+**Causa**: El backend no permite el origen `https://[tu-dominio]`.
 
 **Solución**: Configurar CORS en el backend para permitir ese origen.
 
