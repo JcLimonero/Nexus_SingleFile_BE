@@ -189,6 +189,21 @@ foreach ($toInsertFromOrders as $order) {
         } elseif ($v === null && in_array(strtolower($ic), ['delivery_year', 'deliveryyear'], true)) {
             $v = $faker->numberBetween(2023, 2025);
         }
+        if ($v === null && in_array(strtolower($ic), ['release_date', 'releasedate'], true)) {
+            $v = $faker->randomElement(['2025-11-15', '2025-11-20', '2025-12-01', '2025-12-10', '2026-01-05', '2026-01-15']);
+        }
+        if ($v === null && in_array(strtolower($ic), ['bussines_name', 'bussinesname', 'razon_social', 'razonsocial'], true)) {
+            $v = $faker->company;
+        }
+        if ($v === null && in_array(strtolower($ic), ['tipo_cliente', 'tipocliente'], true)) {
+            $v = $faker->randomElement(['fisica', 'moral']);
+        }
+        if ($v === null && in_array(strtolower($ic), ['tipo_operacion', 'tipooperacion'], true)) {
+            $v = $faker->randomElement(['Compra', 'Venta']);
+        }
+        if ($v === null && in_array(strtolower($ic), ['tipo_proceso', 'tipoproceso'], true)) {
+            $v = $faker->randomElement(['Integración', 'Liquidación', 'Liberación']);
+        }
         $dt = $invTypes[$ic] ?? '';
         if ($v !== null && in_array($dt, ['int', 'bigint', 'smallint', 'tinyint', 'mediumint'], true) && !is_numeric($v)) {
             $v = is_string($v) && $v !== '' ? (int) preg_replace('/\D/', '', $v) : null;
@@ -252,6 +267,16 @@ for ($i = 0; $i < $numInvented; $i++) {
             $row[$ic] = $faker->numberBetween(1, 12);
         } elseif (in_array($icLower, ['delivery_year', 'deliveryyear', 'year', 'model_year'])) {
             $row[$ic] = $faker->randomElement([2025, 2026]);
+        } elseif (in_array($icLower, ['release_date', 'releasedate'])) {
+            $row[$ic] = $faker->randomElement(['2025-11-15', '2025-11-20', '2025-12-01', '2025-12-10', '2026-01-05', '2026-01-15']);
+        } elseif (in_array($icLower, ['bussines_name', 'bussinesname', 'razon_social', 'razonsocial'])) {
+            $row[$ic] = $faker->company;
+        } elseif (in_array($icLower, ['tipo_cliente', 'tipocliente'])) {
+            $row[$ic] = $faker->randomElement(['fisica', 'moral']);
+        } elseif (in_array($icLower, ['tipo_operacion', 'tipooperacion'])) {
+            $row[$ic] = $faker->randomElement(['Compra', 'Venta']);
+        } elseif (in_array($icLower, ['tipo_proceso', 'tipoproceso'])) {
+            $row[$ic] = $faker->randomElement(['Integración', 'Liquidación', 'Liberación']);
         } else {
             $row[$ic] = null;
         }

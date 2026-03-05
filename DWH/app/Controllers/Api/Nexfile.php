@@ -163,20 +163,33 @@ class Nexfile extends BaseController
     /**
      * GET /nexfile/invoices
      * Vista: view_single_file_orders
-     * Params: idAgency, delivery_month, delivery_year, perpage
+     * Params: id_agency o id_agencies, release_date_from, release_date_to (filtro por release_date),
+     *         delivery_month, delivery_year (legacy), page, limit
      */
     public function invoices(): ResponseInterface
     {
         try {
             $idAgency = $this->request->getGet('id_agency') ?? $this->request->getGet('idAgency');
+            $idAgenciesRaw = $this->request->getGet('id_agencies') ?? $this->request->getGet('idAgencies');
+            $releaseDateFrom = $this->request->getGet('release_date_from');
+            $releaseDateTo = $this->request->getGet('release_date_to');
             $deliveryMonth = $this->request->getGet('delivery_month');
             $deliveryYear = $this->request->getGet('delivery_year');
-            $perpage = (int) ($this->request->getGet('perpage') ?: 5000);
+            $page = max(1, (int) ($this->request->getGet('page') ?: 1));
+            $limit = min(5000, max(1, (int) ($this->request->getGet('limit') ?: 50)));
+            $perpage = (int) ($this->request->getGet('perpage') ?: 0); // legacy
 
-            if (!$idAgency) {
+            $agencyIds = [];
+            if (!empty($idAgenciesRaw)) {
+                $agencyIds = array_filter(array_map('trim', explode(',', (string) $idAgenciesRaw)));
+            }
+            if (empty($agencyIds) && $idAgency !== null && $idAgency !== '') {
+                $agencyIds = [trim((string) $idAgency)];
+            }
+            if (empty($agencyIds)) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Parámetro id_agency requerido',
+                    'message' => 'Parámetro id_agency o id_agencies requerido',
                 ])->setStatusCode(400);
             }
 
@@ -185,24 +198,52 @@ class Nexfile extends BaseController
             if (!$agencyCol) {
                 $agencyCol = 'id_agency';
             }
-            $sql = 'SELECT * FROM view_single_file_orders WHERE ' . $agencyCol . ' = ?';
-            $params = [$idAgency];
-            if ($deliveryMonth !== null && $deliveryMonth !== '') {
+
+            $placeholders = implode(',', array_fill(0, count($agencyIds), '?'));
+            $sql = 'SELECT * FROM view_single_file_orders WHERE ' . $agencyCol . ' IN (' . $placeholders . ')';
+            $params = $agencyIds;
+
+            $releaseDateCol = $this->findColumn($cols, ['release_date', 'releaseDate']);
+            if ($releaseDateCol && ($releaseDateFrom !== null && $releaseDateFrom !== '' || $releaseDateTo !== null && $releaseDateTo !== '')) {
+                if ($releaseDateFrom !== null && $releaseDateFrom !== '') {
+                    $sql .= ' AND ' . $releaseDateCol . ' >= ?';
+                    $params[] = $releaseDateFrom;
+                }
+                if ($releaseDateTo !== null && $releaseDateTo !== '') {
+                    $sql .= ' AND ' . $releaseDateCol . ' <= ?';
+                    $params[] = $releaseDateTo;
+                }
+            } elseif ($deliveryMonth !== null && $deliveryMonth !== '') {
                 $mCol = $this->findColumn($cols, ['delivery_month', 'deliveryMonth']);
                 if ($mCol) {
                     $sql .= ' AND ' . $mCol . ' = ?';
                     $params[] = $deliveryMonth;
                 }
             }
-            if ($deliveryYear !== null && $deliveryYear !== '') {
+            if ($deliveryYear !== null && $deliveryYear !== '' && ($releaseDateCol === null || ($releaseDateFrom === null && $releaseDateTo === null))) {
                 $yCol = $this->findColumn($cols, ['delivery_year', 'deliveryYear']);
                 if ($yCol) {
                     $sql .= ' AND ' . $yCol . ' = ?';
                     $params[] = $deliveryYear;
                 }
             }
-            $sql .= ' LIMIT ?';
-            $params[] = $perpage;
+
+            $countSql = preg_replace('/SELECT \* FROM/', 'SELECT COUNT(*) as total FROM', $sql);
+            $qCount = $this->db->query($countSql, $params);
+            $total = (int) ($qCount->getRow()->total ?? 0);
+
+            $offset = ($page - 1) * $limit;
+            $releaseCol = $this->findColumn($cols, ['release_date', 'releaseDate']);
+            $orderY = $this->findColumn($cols, ['delivery_year', 'deliveryYear']) ?: 'delivery_year';
+            $orderM = $this->findColumn($cols, ['delivery_month', 'deliveryMonth']) ?: 'delivery_month';
+            $orderO = $this->findColumn($cols, ['order_dms', 'orderDMS', 'numeroPedido']) ?: 'order_dms';
+            if ($releaseCol) {
+                $sql .= " ORDER BY {$releaseCol} DESC, {$orderO} ASC LIMIT ? OFFSET ?";
+            } else {
+                $sql .= " ORDER BY {$orderY} DESC, {$orderM} DESC, {$orderO} ASC LIMIT ? OFFSET ?";
+            }
+            $params[] = $perpage > 0 ? $perpage : $limit;
+            $params[] = $perpage > 0 ? 0 : $offset;
 
             $query = $this->db->query($sql, $params);
             $rows = $query->getResultArray();
@@ -213,9 +254,11 @@ class Nexfile extends BaseController
                 }
             });
 
+            $mapped = $this->mapInvoicesToResponse($rows);
+            $response = ['data' => $mapped, 'total' => $total, 'page' => $page, 'limit' => ($perpage > 0 ? $perpage : $limit)];
             return $this->response
                 ->setHeader('Content-Type', 'application/json; charset=UTF-8')
-                ->setJSON($this->mapInvoicesToResponse($rows), JSON_UNESCAPED_UNICODE);
+                ->setJSON($response, JSON_UNESCAPED_UNICODE);
         } catch (\Throwable $e) {
             log_message('error', 'Nexfile::invoices - ' . $e->getMessage());
             return $this->response->setJSON([
@@ -303,7 +346,10 @@ class Nexfile extends BaseController
             'customerDMS' => 'customer_dms', 'connectionstring' => 'connection_string',
             'externalColor' => 'external_color', 'internalColor' => 'internal_color',
             'deliveryMonth' => 'delivery_month', 'deliveryYear' => 'delivery_year',
+            'releaseDate' => 'release_date',
             'version_name' => 'version', 'modelo' => 'model',
+            'bussinesName' => 'bussines_name', 'razonSocial' => 'bussines_name',
+            'tipoOperacion' => 'tipo_operacion', 'tipoProceso' => 'tipo_proceso',
         ];
         $out = [];
         foreach ($row as $k => $v) {
