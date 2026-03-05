@@ -14,7 +14,6 @@
             {{ agency.Name }}
           </mat-option>
         </mat-select>
-        <mat-hint *ngIf="loading">Cargando...</mat-hint>
         <mat-hint *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
       </mat-form-field>
     </div>

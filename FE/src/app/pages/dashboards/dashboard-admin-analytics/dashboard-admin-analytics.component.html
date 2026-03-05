@@ -16,8 +16,7 @@
                           [value]="agency.Id">
                           {{ agency.Name }}
                         </mat-option>
-                      </mat-select>
-                      <mat-hint *ngIf="loading">Cargando...</mat-hint>
+                      </mat-select>                      
                       <mat-hint *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
                     </mat-form-field>
 
@@ -36,7 +35,6 @@
                           {{ user.Name }}
                         </mat-option>
                       </mat-select>
-                      <mat-hint *ngIf="loading">Cargando...</mat-hint>
                       <mat-hint *ngIf="!loading && !hasUsers()">Sin usuarios</mat-hint>
                       <mat-hint *ngIf="isUserFilterDisabled">Filtro deshabilitado para su rol</mat-hint>
                     </mat-form-field>
