@@ -40,9 +40,16 @@ class Nexfile extends BaseController
             $cols = $this->getViewColumns('view_single_file_client');
             $sql = 'SELECT * FROM view_single_file_client WHERE 1=1';
             $params = [];
-            if ($connectionstring && ($connCol = $this->findColumn($cols, ['connection_string', 'connectionstring', 'agency_connection']))) {
-                $sql .= ' AND ' . $connCol . ' = ?';
-                $params[] = $connectionstring;
+            if ($connectionstring) {
+                // Preferir agency_connection cuando el valor es tipo "XxxConnection" (KiaConnection, GeelyConnection, etc.)
+                $isConnectionType = preg_match('/Connection$/i', (string) $connectionstring);
+                $connCol = $isConnectionType
+                    ? $this->findColumn($cols, ['agency_connection', 'connection_string', 'connectionstring'])
+                    : $this->findColumn($cols, ['connection_string', 'connectionstring', 'agency_connection']);
+                if ($connCol) {
+                    $sql .= ' AND ' . $connCol . ' = ?';
+                    $params[] = $connectionstring;
+                }
             }
             if ($ndCliente !== null && $ndCliente !== '') {
                 $ndCol = $this->findColumn($cols, ['nd_cliente', 'ndCliente', 'nd_dms', 'ndDMS']);
@@ -350,6 +357,7 @@ class Nexfile extends BaseController
             'version_name' => 'version', 'modelo' => 'model',
             'bussinesName' => 'bussines_name', 'razonSocial' => 'bussines_name',
             'tipoOperacion' => 'tipo_operacion', 'tipoProceso' => 'tipo_proceso',
+            'agencyConnection' => 'agency_connection',
         ];
         $out = [];
         foreach ($row as $k => $v) {

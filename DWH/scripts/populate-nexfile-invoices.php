@@ -204,6 +204,10 @@ foreach ($toInsertFromOrders as $order) {
         if ($v === null && in_array(strtolower($ic), ['tipo_proceso', 'tipoproceso'], true)) {
             $v = $faker->randomElement(['Integración', 'Liquidación', 'Liberación']);
         }
+        if ($v === null && in_array(strtolower($ic), ['agency_connection', 'agencyconnection'], true)) {
+            $idAg = $order['id_agency'] ?? $order['idAgency'] ?? '';
+            $v = $agencyConnection[trim((string) $idAg)] ?? 'KiaConnection';
+        }
         $dt = $invTypes[$ic] ?? '';
         if ($v !== null && in_array($dt, ['int', 'bigint', 'smallint', 'tinyint', 'mediumint'], true) && !is_numeric($v)) {
             $v = is_string($v) && $v !== '' ? (int) preg_replace('/\D/', '', $v) : null;
@@ -277,6 +281,8 @@ for ($i = 0; $i < $numInvented; $i++) {
             $row[$ic] = $faker->randomElement(['Compra', 'Venta']);
         } elseif (in_array($icLower, ['tipo_proceso', 'tipoproceso'])) {
             $row[$ic] = $faker->randomElement(['Integración', 'Liquidación', 'Liberación']);
+        } elseif (in_array($icLower, ['agency_connection', 'agencyconnection'])) {
+            $row[$ic] = $agencyConnection[$idAgency] ?? 'KiaConnection';
         } else {
             $row[$ic] = null;
         }
