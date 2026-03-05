@@ -1304,7 +1304,12 @@ class Validacion extends BaseController
     public function eliminarPedido()
     {
         try {
+            // Obtener datos del request (fallback para DELETE con body - getJSON puede fallar)
+            $rawBody = $this->request->getBody();
             $data = $this->request->getJSON(true);
+            if ($data === null && !empty($rawBody)) {
+                $data = json_decode($rawBody, true);
+            }
             
             // Validar datos requeridos
             if (empty($data['clienteId'])) {
@@ -1315,24 +1320,39 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
             
-            $clienteId = $data['clienteId'];
+            $clienteId = (int) $data['clienteId'];
+            
+            // Verificar que el expediente exista
+            $existe = $this->db->table('expedient')->where('id', $clienteId)->countAllResults();
+            if ($existe === 0) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró el pedido con el ID especificado',
+                    'data' => null
+                ])->setStatusCode(404);
+            }
             
             // Iniciar transacción para asegurar consistencia
             $this->db->transStart();
             
+            // Deshabilitar FK checks temporalmente (permite eliminar con referencias en file_pld, file_share_token, etc.)
+            $this->db->query("SET FOREIGN_KEY_CHECKS = 0");
+            
             // 1. Eliminar documentos relacionados (FileDocument)
-            $this->db->table('file_document')
-                ->where('id_file', $clienteId)
-                ->delete();
+            $this->db->query("DELETE FROM file_document WHERE id_file = ?", [$clienteId]);
             
-            // 2. Eliminar el registro principal de File
-            $result = $this->db->table('expedient')
-                ->where('id', $clienteId)
-                ->delete();
+            // 2. Eliminar el registro principal (expedient)
+            $this->db->query("DELETE FROM expedient WHERE id = ?", [$clienteId]);
+            $fileDeleted = $this->db->affectedRows();
             
-            // Verificar si la transacción fue exitosa
-            if ($this->db->transStatus() === false || !$result) {
+            // Rehabilitar verificaciones de clave foránea
+            $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
+            
+            // Verificar si la eliminación fue exitosa
+            if ($this->db->transStatus() === false || $fileDeleted === 0) {
+                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
                 $this->db->transRollback();
+                error_log("eliminarPedido falló: clienteId={$clienteId}, transStatus=" . ($this->db->transStatus() ? 'ok' : 'fail') . ", fileDeleted={$fileDeleted}");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se pudo eliminar el pedido',
@@ -1366,7 +1386,11 @@ class Validacion extends BaseController
             ]);
             
         } catch (\Exception $e) {
-            // Rollback en caso de error
+            try {
+                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
+            } catch (\Exception $fkEx) {
+                error_log("Error restaurando FOREIGN_KEY_CHECKS: " . $fkEx->getMessage());
+            }
             $this->db->transRollback();
             error_log("Error en Validacion::eliminarPedido: " . $e->getMessage());
             return $this->response->setJSON([
