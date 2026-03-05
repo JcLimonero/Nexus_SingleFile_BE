@@ -68,6 +68,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   clientSearchTerm = '';
   clients: any[] = [];
   clientsLoading = false;
+  /** Fase de búsqueda: 'local' = BD local, 'grupo' = Grupo/Vanguardia */
+  clientSearchPhase: 'local' | 'grupo' | null = null;
   showClientResults = false;
   selectedClient: any = null;
 
@@ -440,7 +442,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
 
     this.clientsLoading = true;
+    this.clientSearchPhase = 'local';
     this.showClientResults = true;
+    this.cdr.markForCheck();
 
     // Usar el Id de la agencia seleccionada (que corresponde a File.IdAgency en la vista)
     this.clientSearchService.searchClients(this.selectedAgencyId!, this.clientSearchTerm.trim(), 50)
@@ -453,26 +457,36 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             // Si hay múltiples resultados, mostrar diálogo
             if (this.clients.length > 1) {
+              this.clientSearchPhase = null;
+              this.clientsLoading = false;
               this.showClientSelectionDialog();
             } else if (this.clients.length === 1) {
               // Si hay solo un resultado, seleccionarlo automáticamente
+              this.clientSearchPhase = null;
+              this.clientsLoading = false;
               this.selectClient(this.clients[0]);
             } else {
-              // Sin resultados en el sistema local, buscar en Vanguardia
+              // Sin resultados en el sistema local, buscar en el Grupo
+              this.clientSearchPhase = 'grupo';
               this.searchClientInVanguardia();
             }
           } else {
-            // Sin resultados en el sistema local, buscar en Vanguardia
+            // Sin resultados en el sistema local, buscar en el Grupo
+            this.clientSearchPhase = 'grupo';
             this.searchClientInVanguardia();
           }
           
-          this.clientsLoading = false;
+          if (this.clientSearchPhase !== 'grupo') {
+            this.clientsLoading = false;
+            this.clientSearchPhase = null;
+          }
           this.cdr.markForCheck();
         },
         error: (error: any) => {
           this.clients = [];
-          this.cdr.markForCheck();
+          this.clientSearchPhase = null;
           this.clientsLoading = false;
+          this.cdr.markForCheck();
           this.snackBar.open('Error al buscar clientes', 'Cerrar', {
             duration: 3000
           });
@@ -487,6 +501,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return agId != null && Number(agId) === Number(this.selectedAgencyId);
     });
     if (!selectedAgency) {
+      this.clientSearchPhase = null;
+      this.clientsLoading = false;
+      this.cdr.markForCheck();
       this.snackBar.open('Agencia no encontrada para búsqueda en el Grupo', 'Cerrar', {
         duration: 3000
       });
@@ -496,6 +513,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     // Verificar que la agencia tenga AgencyConnection para buscar en Vanguardia
     const conn = selectedAgency.AgencyConnection ?? selectedAgency.agency_connection;
     if (!conn) {
+      this.clientSearchPhase = null;
+      this.clientsLoading = false;
+      this.cdr.markForCheck();
       this.snackBar.open('No se encontraron clientes. Para buscar en sistemas externos, configure el connection string de la compañía (razón social) asociada a la agencia.', 'Cerrar', {
         duration: 5000
       });
@@ -508,6 +528,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaResponse) => {
+          this.clientSearchPhase = null;
+          this.clientsLoading = false;
           if (response && response.status === 200 && response.data && response.data.data) {
             // Convertir los datos de Vanguardia al formato estándar
             this.clients = response.data.data.map(client => 
@@ -534,12 +556,16 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               duration: 4000
             });
           }
+          this.cdr.markForCheck();
         },
         error: (error) => {
+          this.clientSearchPhase = null;
+          this.clientsLoading = false;
           const msg = this.getFriendlySearchError(error);
           this.snackBar.open(msg, 'Cerrar', {
             duration: 5000
           });
+          this.cdr.markForCheck();
         }
       });
   }
@@ -690,6 +716,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   clearClientSearch(): void {
     this.clientSearchTerm = '';
     this.clients = [];
+    this.clientSearchPhase = null;
     this.showClientResults = false;
     this.selectedClient = null;
     // Limpiar documentos requeridos cuando se limpia la búsqueda de cliente
@@ -699,12 +726,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.filesExceedingSize = {};
     this.selectedDocumentsForBatch.clear();
     this.uploadingDocuments.clear();
+    this.cdr.markForCheck();
   }
 
   clearAllClientData(): void {
     // Limpiar datos del cliente
     this.selectedClient = null;
     this.clients = [];
+    this.clientSearchPhase = null;
     this.showClientResults = false;
     
     // Limpiar archivos/pedidos
@@ -729,6 +758,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.orderSearchTerm = '';
     this.currentPage = 0;
     this.totalItems = 0;
+    this.cdr.markForCheck();
   }
 
   selectClient(client: any): void {
@@ -1380,7 +1410,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           orders: orders, 
           agencyId: this.selectedAgencyId, 
           ndCliente: this.selectedClient?.ndCliente,
-          existingOrders: existingOrders // Pasar pedidos existentes al diálogo
+          existingOrders: existingOrders,
+          clienteTipo: this.selectedClient?.tipo_cliente ?? this.selectedClient?.tipoCliente
         }
       });
 
@@ -1433,7 +1464,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           orders: orders, 
           agencyId: this.selectedAgencyId, 
           ndCliente: this.selectedClient?.ndCliente,
-          existingOrders: existingOrders // Pasar pedidos existentes al diálogo
+          existingOrders: existingOrders,
+          clienteTipo: this.selectedClient?.tipo_cliente ?? this.selectedClient?.tipoCliente
         }
       });
 

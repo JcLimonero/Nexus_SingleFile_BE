@@ -63,6 +63,17 @@
           </div>
         </div>
 
+        <!-- Indicador de fase de búsqueda -->
+        <div *ngIf="clientsLoading" class="mt-3 flex items-center justify-center gap-2 py-4 text-sm">
+          <mat-spinner diameter="24"></mat-spinner>
+          <span *ngIf="clientSearchPhase === 'local'" class="text-blue-600 font-medium">
+            Buscando en base de datos local...
+          </span>
+          <span *ngIf="clientSearchPhase === 'grupo'" class="text-amber-600 font-medium">
+            Sin resultados locales. Buscando en el Grupo...
+          </span>
+        </div>
+
         <!-- Sin resultados -->
         <div *ngIf="showClientResults && clients.length === 0 && !clientsLoading" class="mt-3 text-center py-6">
           <mat-icon class="text-gray-400 mb-2" style="font-size: 40px; width: 40px; height: 40px;" svgIcon="mat:search_off"></mat-icon>

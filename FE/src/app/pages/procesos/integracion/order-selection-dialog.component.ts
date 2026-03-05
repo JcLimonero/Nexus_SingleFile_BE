@@ -395,19 +395,52 @@ import { AuthService } from '../../../core/services/auth.service';
           </h3>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Proceso -->
+            <!-- 1. Tipo de Cliente (primero, ya preseleccionado por defecto) -->
+            <div class="w-full flex items-start gap-2">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Tipo de Cliente</mat-label>
+                <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" [disabled]="creating || loadingCostumerTypes" required>
+                  <mat-option *ngIf="loadingCostumerTypes" value="" disabled>
+                    <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                    Cargando tipos de cliente...
+                  </mat-option>
+                  <mat-option *ngIf="!loadingCostumerTypes && availableCostumerTypes.length === 0" value="" disabled>
+                    No hay tipos de cliente disponibles
+                  </mat-option>
+                  <mat-option *ngFor="let costumerType of availableCostumerTypes" [value]="costumerType">
+                    {{ costumerType.Name ?? costumerType.name }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint *ngIf="data.clienteTipo">Solo configuraciones para {{ data.clienteTipo === 'fisica' ? 'Persona Física' : 'Persona Moral' }}</mat-hint>
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="recargarTiposCliente()"
+                [disabled]="loadingCostumerTypes || creating"
+                matTooltip="Cargar tipos de cliente"
+                class="mt-1">
+                <mat-icon [class.animate-spin]="loadingCostumerTypes">refresh</mat-icon>
+              </button>
+            </div>
+
+            <!-- 2. Proceso (filtrado por tipo de cliente) -->
             <div class="w-full flex items-start gap-2">
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Proceso</mat-label>
-                <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" [disabled]="creating || loadingProcesses" required>
+                <mat-select [(ngModel)]="selectedProcess" (selectionChange)="onProcessChange()" [disabled]="creating || loadingProcesses || !selectedCostumerType" required>
                   <mat-option *ngIf="loadingProcesses" value="" disabled>
                     <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
                     Cargando procesos...
                   </mat-option>
-                  <mat-option *ngIf="!loadingProcesses && processes.length === 0" value="" disabled>
+                  <mat-option *ngIf="!loadingProcesses && !selectedCostumerType" value="" disabled>
+                    Seleccione primero el tipo de cliente
+                  </mat-option>
+                  <mat-option *ngIf="!loadingProcesses && selectedCostumerType && availableProcesses.length === 0" value="" disabled>
                     No hay procesos disponibles
                   </mat-option>
-                  <mat-option *ngFor="let process of processes" [value]="process">
+                  <mat-option *ngFor="let process of availableProcesses" [value]="process">
                     {{ process.Name }}
                   </mat-option>
                 </mat-select>
@@ -424,45 +457,19 @@ import { AuthService } from '../../../core/services/auth.service';
               </button>
             </div>
 
-            <!-- Tipo de Cliente -->
-            <div class="w-full flex items-start gap-2">
-              <mat-form-field appearance="outline" class="flex-1">
-                <mat-label>Tipo de Cliente</mat-label>
-                <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="onCostumerTypeChange()" [disabled]="creating || loadingCostumerTypes" required>
-                  <mat-option *ngIf="loadingCostumerTypes" value="" disabled>
-                    <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
-                    Cargando tipos de cliente...
-                  </mat-option>
-                  <mat-option *ngIf="!loadingCostumerTypes && availableCostumerTypes.length === 0" value="" disabled>
-                    No hay tipos de cliente disponibles
-                  </mat-option>
-                  <mat-option *ngFor="let costumerType of availableCostumerTypes" [value]="costumerType">
-                    {{ costumerType.Name }}
-                  </mat-option>
-                </mat-select>
-                <mat-icon matSuffix>person</mat-icon>
-              </mat-form-field>
-              <button
-                mat-icon-button
-                type="button"
-                (click)="recargarTiposCliente()"
-                [disabled]="loadingCostumerTypes || creating"
-                matTooltip="Cargar tipos de cliente"
-                class="mt-1">
-                <mat-icon [class.animate-spin]="loadingCostumerTypes">refresh</mat-icon>
-              </button>
-            </div>
-
-            <!-- Tipo de Operación -->
+            <!-- 3. Tipo de Operación (filtrado por proceso + tipo de cliente) -->
             <div class="w-full flex items-start gap-2">
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Tipo de Operación</mat-label>
-                <mat-select [(ngModel)]="selectedOperationType" [disabled]="creating || loadingOperationTypes" required>
+                <mat-select [(ngModel)]="selectedOperationType" [disabled]="creating || loadingOperationTypes || !selectedProcess" required>
                   <mat-option *ngIf="loadingOperationTypes" value="" disabled>
                     <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
                     Cargando tipos de operación...
                   </mat-option>
-                  <mat-option *ngIf="!loadingOperationTypes && availableOperationTypes.length === 0" value="" disabled>
+                  <mat-option *ngIf="!loadingOperationTypes && !selectedProcess" value="" disabled>
+                    Seleccione primero el proceso
+                  </mat-option>
+                  <mat-option *ngIf="!loadingOperationTypes && selectedProcess && availableOperationTypes.length === 0" value="" disabled>
                     No hay tipos de operación disponibles
                   </mat-option>
                   <mat-option *ngFor="let operationType of availableOperationTypes" [value]="operationType">
@@ -488,9 +495,9 @@ import { AuthService } from '../../../core/services/auth.service';
             <h4 class="font-medium text-gray-700 mb-2">Resumen de configuración:</h4>
             <div class="text-sm text-gray-600 space-y-1">
               <p><strong>Pedido:</strong> {{ selectedOrder.order_dms }}</p>
+              <p><strong>Tipo Cliente:</strong> {{ selectedCostumerType?.Name ?? selectedCostumerType?.name || 'No seleccionado' }}</p>
               <p><strong>Proceso:</strong> {{ selectedProcess?.Name || 'No seleccionado' }}</p>
-              <p><strong>Tipo Cliente:</strong> {{ selectedCostumerType?.Name || 'No seleccionado' }}</p>
-              <p><strong>Operación:</strong> {{ selectedOperationType?.Name || 'No seleccionado' }}</p>
+              <p><strong>Tipo Operación:</strong> {{ selectedOperationType?.Name || 'No seleccionado' }}</p>
             </div>
             
             <!-- Estado de validación -->
@@ -595,8 +602,9 @@ export class OrderSelectionDialogComponent implements OnInit {
   selectedCostumerType: any = null;
   selectedOperationType: any = null;
 
-  // Opciones filtradas disponibles
+  // Opciones filtradas disponibles (cascada: Tipo Cliente → Proceso → Tipo Operación)
   availableCostumerTypes: any[] = [];
+  availableProcesses: any[] = [];
   availableOperationTypes: any[] = [];
 
   constructor(
@@ -605,7 +613,9 @@ export class OrderSelectionDialogComponent implements OnInit {
       orders: any[], 
       agencyId: number, 
       ndCliente?: string,
-      existingOrders?: any[] // Pedidos existentes que se pasan desde el componente padre
+      existingOrders?: any[],
+      /** Tipo de cliente del cliente seleccionado: 'fisica' | 'moral' - filtra configuraciones a su tipo */
+      clienteTipo?: string
     },
     private http: HttpClient,
     private snackBar: MatSnackBar,
@@ -903,13 +913,25 @@ export class OrderSelectionDialogComponent implements OnInit {
         next: (response) => {
           if (response && response.success && response.data) {
             this.processes = Array.isArray(response.data.processes) ? response.data.processes : [];
-            this.costumerTypes = Array.isArray(response.data.costumerTypes) ? response.data.costumerTypes : (Array.isArray(response.data.customerTypes) ? response.data.customerTypes : []);
+            let rawCostumerTypes = Array.isArray(response.data.costumerTypes) ? response.data.costumerTypes : (Array.isArray(response.data.customerTypes) ? response.data.customerTypes : []);
+            // Si el cliente tiene tipo (fisica/moral), filtrar solo configuraciones de su tipo
+            this.costumerTypes = this.filterCostumerTypesByClienteTipo(rawCostumerTypes);
             this.operationTypes = Array.isArray(response.data.operationTypes) ? response.data.operationTypes : [];
-            this.allConfigurations = Array.isArray(response.data.configurations) ? response.data.configurations : [];
+            let rawConfigs = Array.isArray(response.data.configurations) ? response.data.configurations : [];
+            // Filtrar configuraciones al tipo del cliente cuando aplica
+            this.allConfigurations = this.filterConfigurationsByClienteTipo(rawConfigs, rawCostumerTypes);
             
-            // Inicializar opciones disponibles
+            // Inicializar opciones disponibles (cascada: Tipo Cliente → Proceso → Tipo Operación)
             this.availableCostumerTypes = [...this.costumerTypes];
-            this.availableOperationTypes = [...this.operationTypes];
+            this.filterProcessesByCostumerType();
+            this.filterOperationTypesByProcessAndCostumerType();
+            
+            // Pre-seleccionar tipo de cliente si el cliente tiene tipo y hay solo uno disponible
+            if (this.data.clienteTipo && this.costumerTypes.length === 1) {
+              this.selectedCostumerType = this.costumerTypes[0];
+              this.filterProcessesByCostumerType();
+              this.filterOperationTypesByProcessAndCostumerType();
+            }
             
             // Resetear estados de carga
             this.loadingProcesses = false;
@@ -925,6 +947,7 @@ export class OrderSelectionDialogComponent implements OnInit {
           this.operationTypes = [];
           this.allConfigurations = [];
           this.availableCostumerTypes = [];
+          this.availableProcesses = [];
           this.availableOperationTypes = [];
           this.loadingProcesses = false;
           this.loadingCostumerTypes = false;
@@ -970,6 +993,7 @@ export class OrderSelectionDialogComponent implements OnInit {
                 this.onProcessChange();
               }
             }
+            this.filterProcessesByCostumerType();
           }
           this.loadingProcesses = false;
         },
@@ -987,14 +1011,10 @@ export class OrderSelectionDialogComponent implements OnInit {
         next: (response) => {
           if (response && response.success && response.data) {
             const raw = response.data.costumerTypes ?? response.data;
-            this.costumerTypes = Array.isArray(raw) ? raw : [];
-
-            // Re-filtrar tipos de cliente disponibles si hay un proceso seleccionado
-            if (this.selectedProcess) {
-              this.filterCostumerTypesByProcess();
-            } else {
-              this.availableCostumerTypes = [...this.costumerTypes];
-            }
+            const rawTypes = Array.isArray(raw) ? raw : [];
+            this.costumerTypes = this.filterCostumerTypesByClienteTipo(rawTypes);
+            this.availableCostumerTypes = [...this.costumerTypes];
+            this.filterProcessesByCostumerType();
             // Si había un tipo de cliente seleccionado, intentar mantenerlo
             if (this.selectedCostumerType && this.availableCostumerTypes.length > 0) {
               const found = this.availableCostumerTypes.find(ct => ct.Id === this.selectedCostumerType.Id);
@@ -1046,50 +1066,80 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   onProcessChange(): void {
-
-    // Limpiar selecciones dependientes
-    this.selectedCostumerType = null;
+    // Limpiar solo tipo de operación (proceso y tipo de cliente ya están seleccionados)
     this.selectedOperationType = null;
-    
-    // Filtrar tipos de cliente disponibles para este proceso
-    this.filterCostumerTypesByProcess();
-    
-    // Resetear tipos de operación
-    this.availableOperationTypes = [];
-  }
-
-  onCostumerTypeChange(): void {
-
-    // Limpiar selección de operación
-    this.selectedOperationType = null;
-    
-    // Filtrar tipos de operación disponibles para esta combinación proceso + tipo cliente
     this.filterOperationTypesByProcessAndCostumerType();
   }
 
-  private filterCostumerTypesByProcess(): void {
-    const types = Array.isArray(this.costumerTypes) ? this.costumerTypes : [];
-    if (!this.selectedProcess) {
-      this.availableCostumerTypes = [...types];
+  onCostumerTypeChange(): void {
+    // Limpiar proceso y tipo de operación (cascada: tipo cliente → proceso → tipo operación)
+    this.selectedProcess = null;
+    this.selectedOperationType = null;
+    this.filterProcessesByCostumerType();
+    this.availableOperationTypes = [];
+  }
+
+  /**
+   * Filtra configuraciones al tipo del cliente (solo Persona Física o solo Persona Moral).
+   */
+  private filterConfigurationsByClienteTipo(configs: any[], costumerTypes: any[]): any[] {
+    const filteredTypes = this.filterCostumerTypesByClienteTipo(costumerTypes);
+    if (filteredTypes.length === 0 || filteredTypes.length === costumerTypes.length) return configs;
+    const validIds = new Set(filteredTypes.map(ct => String(ct.Id ?? ct.id)));
+    return configs.filter(c => validIds.has(String(c.IdCostumerType ?? c.id_customer_type ?? '')));
+  }
+
+  /**
+   * Filtra tipos de cliente según el tipo del cliente importado (Persona Física / Persona Moral).
+   * Si el cliente es Persona Física, solo se muestran configuraciones de ese tipo.
+   */
+  private filterCostumerTypesByClienteTipo(types: any[]): any[] {
+    const tipo = (this.data.clienteTipo || '').toString().toLowerCase();
+    if (!tipo || types.length === 0) return types;
+    if (tipo === 'fisica') {
+      return types.filter(ct => {
+        const id = ct.Id ?? ct.id;
+        const name = (ct.Name ?? ct.name ?? '').toString().toLowerCase();
+        return id === 1 || id === '1' || name.includes('física') || name.includes('fisica');
+      });
+    }
+    if (tipo === 'moral') {
+      return types.filter(ct => {
+        const id = ct.Id ?? ct.id;
+        const name = (ct.Name ?? ct.name ?? '').toString().toLowerCase();
+        return id === 2 || id === '2' || id === 3 || id === '3' || name.includes('moral');
+      });
+    }
+    return types;
+  }
+
+  /**
+   * Filtra procesos por tipo de cliente seleccionado (configuraciones que tienen ese tipo de cliente).
+   */
+  private filterProcessesByCostumerType(): void {
+    const procs = Array.isArray(this.processes) ? this.processes : [];
+    if (!this.selectedCostumerType) {
+      this.availableProcesses = [];
       return;
     }
 
     const configs = Array.isArray(this.allConfigurations) ? this.allConfigurations : [];
-    const configurationsWithProcess = configs.filter(config => 
-      (config.IdProcess ?? config.id_process) === (this.selectedProcess?.Id ?? this.selectedProcess?.id)
+    const costumerId = this.selectedCostumerType?.Id ?? this.selectedCostumerType?.id;
+    const configurationsWithCostumer = configs.filter(config =>
+      (config.IdCostumerType ?? config.id_customer_type) === costumerId
     );
 
-    const costumerTypeIds = [...new Set(configurationsWithProcess.map(config => config.IdCostumerType ?? config.id_customer_type))];
-    
-    this.availableCostumerTypes = types.filter(ct => 
-      costumerTypeIds.includes(ct.Id ?? ct.id)
+    const processIds = [...new Set(configurationsWithCostumer.map(config => config.IdProcess ?? config.id_process))];
+
+    this.availableProcesses = procs.filter(p =>
+      processIds.includes(p.Id ?? p.id)
     );
   }
 
   private filterOperationTypesByProcessAndCostumerType(): void {
     const types = Array.isArray(this.operationTypes) ? this.operationTypes : [];
     if (!this.selectedProcess || !this.selectedCostumerType) {
-      this.availableOperationTypes = [...types];
+      this.availableOperationTypes = [];
       return;
     }
 
