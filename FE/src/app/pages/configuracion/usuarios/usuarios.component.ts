@@ -402,30 +402,88 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   deleteUser(user: User): void {
-    const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${user.name || user.user}"?`);
-    
-    if (confirmDelete) {
-      this.userService.deleteUser(user.id).subscribe({
-        next: (response) => {
-          if (response && response.success) {
-            this.users = this.users.filter(u => u.id !== user.id);
-            this.applyFilter();
-            this.snackBar.open('Usuario eliminado exitosamente', 'Éxito', {
-              duration: 2000
+    const userName = user.name || user.user || 'este usuario';
+
+    this.userService.checkUserCanDelete(user.id).subscribe({
+      next: (response) => {
+        if (response.canDelete) {
+          // Sin relaciones: permitir eliminación
+          const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${userName}"?`);
+          if (confirmDelete) {
+            this.ejecutarEliminacion(user);
+          }
+        } else {
+          // Tiene relaciones: si ya está deshabilitado, solo avisar; si no, ofrecer deshabilitar
+          const yaDeshabilitado = String(user.enabled) === '0';
+          if (yaDeshabilitado) {
+            this.snackBar.open('Este usuario ya está deshabilitado y no puede eliminarse por tener registros relacionados.', 'Cerrar', {
+              duration: 4000
             });
           } else {
-            this.snackBar.open(response?.message || 'Error al eliminar usuario', 'Error', {
-              duration: 3000
-            });
+            const relationsText = response.relations?.length
+              ? response.relations.join(', ')
+              : 'registros relacionados';
+            const msg = `Este usuario no puede eliminarse debido a que tiene ${relationsText} relacionados.\n\n¿Deseas deshabilitarlo en su lugar?`;
+            const confirmDisable = confirm(msg);
+            if (confirmDisable) {
+              this.ejecutarDeshabilitacion(user);
+            }
           }
-        },
-        error: (error) => {
-          this.snackBar.open(`Error al eliminar usuario: ${error.message || 'Error desconocido'}`, 'Error', {
-            duration: 5000
-          });
         }
-      });
-    }
+      },
+      error: (error) => {
+        this.snackBar.open(
+          `Error al verificar usuario: ${error?.error?.message || error?.message || 'Error desconocido'}`,
+          'Error',
+          { duration: 5000 }
+        );
+      }
+    });
+  }
+
+  private ejecutarEliminacion(user: User): void {
+    this.userService.deleteUser(user.id).subscribe({
+      next: (response) => {
+        if (response && response.success) {
+          this.users = this.users.filter(u => u.id !== user.id);
+          this.applyFilter();
+          this.snackBar.open('Usuario eliminado exitosamente', 'Éxito', { duration: 2000 });
+        } else {
+          this.snackBar.open(response?.message || 'Error al eliminar usuario', 'Error', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        this.snackBar.open(
+          `Error al eliminar usuario: ${error?.error?.message || error?.message || 'Error desconocido'}`,
+          'Error',
+          { duration: 5000 }
+        );
+      }
+    });
+  }
+
+  private ejecutarDeshabilitacion(user: User): void {
+    this.userService.disableUser(user.id).subscribe({
+      next: (response) => {
+        if (response && response.success) {
+          const idx = this.users.findIndex(u => u.id === user.id);
+          if (idx >= 0) {
+            this.users[idx] = { ...this.users[idx], enabled: '0' };
+          }
+          this.applyFilter();
+          this.snackBar.open('Usuario deshabilitado exitosamente', 'Éxito', { duration: 2000 });
+        } else {
+          this.snackBar.open(response?.message || 'Error al deshabilitar usuario', 'Error', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        this.snackBar.open(
+          `Error al deshabilitar usuario: ${error?.error?.message || error?.message || 'Error desconocido'}`,
+          'Error',
+          { duration: 5000 }
+        );
+      }
+    });
   }
 
   getRoleColor(roleId: string): string {

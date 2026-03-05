@@ -44,6 +44,22 @@ export class UserService {
     return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
   }
 
+  /**
+   * Verificar si un usuario puede eliminarse (no tiene expedientes, documentos, etc. relacionados)
+   */
+  checkUserCanDelete(id: string): Observable<{ success: boolean; canDelete: boolean; relations: string[] }> {
+    return this.http.get<{ success: boolean; canDelete: boolean; relations: string[] }>(
+      `${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/can-delete`
+    );
+  }
+
+  /**
+   * Deshabilitar un usuario (enabled = 0)
+   */
+  disableUser(id: string): Observable<any> {
+    return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/disable`, {});
+  }
+
   toggleStatus(id: string): Observable<any> {
     return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/toggle-status`, {});
   }

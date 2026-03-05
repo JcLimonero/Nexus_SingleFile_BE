@@ -23,13 +23,28 @@
     font-size: 0.75rem;
     line-height: 1;
     vertical-align: middle !important;
+    text-align: left;
   }
-  
+
   ::ng-deep .mat-mdc-cell {
-    padding: 0 8px;
+    padding: 4px 8px;
     font-size: 0.75rem;
     line-height: 1;
     vertical-align: middle !important;
+    text-align: left;
+  }
+
+  // Columnas centradas: forzar text-align center en th y td
+  ::ng-deep .mat-mdc-header-cell.text-center {
+    text-align: center !important;
+  }
+  ::ng-deep .mat-mdc-cell.text-center {
+    text-align: center !important;
+  }
+
+  // Centrar el contenido del sort-header cuando el th tiene text-center
+  ::ng-deep .mat-mdc-header-cell.text-center .mat-sort-header-container {
+    justify-content: center;
   }
   
   .mat-mdc-row {
@@ -40,6 +55,24 @@
   .mat-mdc-header-row {
     height: 32px !important;
     min-height: 32px !important;
+  }
+
+  // Botones de acciones compactos sin ripple desbordado
+  .action-btn {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    line-height: 28px !important;
+
+    ::ng-deep .mat-mdc-button-touch-target {
+      width: 28px !important;
+      height: 28px !important;
+    }
+
+    ::ng-deep .mat-mdc-button-persistent-ripple,
+    ::ng-deep .mat-ripple {
+      border-radius: 50%;
+    }
   }
 }
 

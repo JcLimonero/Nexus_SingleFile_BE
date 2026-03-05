@@ -2,6 +2,9 @@
 venv-pillow/
 !FE/dist/*
 
+# ignore local FE overrides
+FE/src/environments/environment.ts
+
 # BE/writable - ignorar todo excepto archivos de estructura (index.html, .htaccess)
 BE/writable/*
 !BE/writable/index.html

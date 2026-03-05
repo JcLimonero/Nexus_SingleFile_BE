@@ -282,6 +282,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('(:num)', 'User::show/$1');
         $routes->put('(:num)', 'User::update/$1');
         $routes->delete('(:num)', 'User::delete/$1');
+        $routes->get('(:num)/can-delete', 'User::canDelete/$1');
+        $routes->patch('(:num)/disable', 'User::disable/$1');
         $routes->patch('(:num)/toggle-status', 'User::toggleStatus/$1');
         $routes->post('(:num)/change-password', 'User::changePassword/$1');
         $routes->post('(:num)/reset-password', 'User::resetPassword/$1');

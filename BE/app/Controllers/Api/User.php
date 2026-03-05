@@ -391,6 +391,159 @@ class User extends BaseController
     }
 
     /**
+     * Lógica interna para verificar si un usuario puede eliminarse
+     * @return array ['canDelete' => bool, 'relations' => string[]]
+     */
+    private function checkUserCanDelete($userId): array
+    {
+        $db = \Config\Database::connect();
+        $relations = [];
+
+        // Agencias asignadas (agency_user FK)
+        if ($db->tableExists('agency_user')) {
+            $agencyCount = $db->table('agency_user')->where('id_user', $userId)->countAllResults();
+            if ($agencyCount > 0) {
+                $relations[] = 'agencias asignadas';
+            }
+        }
+
+        // Procesos asignados (process_user FK)
+        if ($db->tableExists('process_user')) {
+            $processCount = $db->table('process_user')->where('id_user', $userId)->countAllResults();
+            if ($processCount > 0) {
+                $relations[] = 'procesos asignados';
+            }
+        }
+
+        // Expedientes: como vendedor (id_seller) o último actualizador (id_last_user_update)
+        $expedientCount = $db->table('expedient')
+            ->where('id_seller', $userId)
+            ->orWhere('id_last_user_update', $userId)
+            ->countAllResults();
+        if ($expedientCount > 0) {
+            $relations[] = 'expedientes';
+        }
+
+        // Documentos: último actualizador
+        $docCount = $db->table('file_document')
+            ->where('id_last_user_update', $userId)
+            ->countAllResults();
+        if ($docCount > 0) {
+            $relations[] = 'documentos';
+        }
+
+        // Órdenes: último actualizador
+        if ($db->tableExists('order')) {
+            $orderCount = $db->table('order')
+                ->where('id_last_user_update', $userId)
+                ->countAllResults();
+            if ($orderCount > 0) {
+                $relations[] = 'órdenes';
+            }
+        }
+
+        // Registros en user como id_last_user_update
+        $userAsUpdater = $db->table('user')->where('id_last_user_update', $userId)->countAllResults();
+        if ($userAsUpdater > 0) {
+            $relations[] = 'registros de usuario';
+        }
+
+        return ['canDelete' => empty($relations), 'relations' => $relations];
+    }
+
+    /**
+     * Verificar si un usuario puede eliminarse (no tiene relaciones que lo impidan)
+     * GET /api/user/{id}/can-delete
+     * Retorna: { success, canDelete, relations: ['expedientes', 'documentos', ...] }
+     */
+    public function canDelete($id = null)
+    {
+        try {
+            if (!$id) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'ID de usuario requerido'
+                ])->setStatusCode(400);
+            }
+
+            $existingUser = $this->userModel->select('id')->find($id);
+            $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || $userId === null) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Usuario no encontrado',
+                    'canDelete' => false,
+                    'relations' => []
+                ])->setStatusCode(404);
+            }
+
+            $result = $this->checkUserCanDelete($userId);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'canDelete' => $result['canDelete'],
+                'relations' => $result['relations']
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al verificar: ' . $e->getMessage(),
+                'canDelete' => false,
+                'relations' => []
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Deshabilitar un usuario (enabled = 0)
+     * PATCH /api/user/{id}/disable
+     */
+    public function disable($id = null)
+    {
+        try {
+            if (!$id) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'ID de usuario requerido'
+                ])->setStatusCode(400);
+            }
+
+            $existingUser = $this->userModel->select('id, enabled')->find($id);
+            $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
+            if (!$existingUser || $userId === null) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Usuario no encontrado'
+                ])->setStatusCode(404);
+            }
+
+            $updated = $this->userModel->update($id, [
+                'id' => $id,
+                'enabled' => '0',
+                'update_date' => date('Y-m-d H:i:s')
+            ]);
+
+            if ($updated) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Usuario deshabilitado exitosamente',
+                    'data' => ['enabled' => '0']
+                ]);
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Error al deshabilitar usuario'
+                ])->setStatusCode(500);
+            }
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al deshabilitar usuario: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
      * Eliminar un usuario
      */
     public function delete($id = null)
@@ -411,6 +564,17 @@ class User extends BaseController
                     'success' => false,
                     'message' => 'Usuario no encontrado'
                 ])->setStatusCode(404);
+            }
+
+            // Verificar que no tenga relaciones antes de eliminar
+            $checkResult = $this->checkUserCanDelete($userId);
+            if (!$checkResult['canDelete']) {
+                $relations = $checkResult['relations'];
+                $relationsText = implode(', ', $relations);
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => "No se puede eliminar el usuario porque tiene {$relationsText}. Considere deshabilitarlo en su lugar."
+                ])->setStatusCode(400);
             }
 
             // Eliminar usuario
