@@ -359,8 +359,13 @@ $routes->group('backblaze', function($routes) {
     $routes->get('download', 'BackblazeDirectUpload::download');
 });
 
-// Rutas de proxy a APIs Vanguardia (vgd)
+// Consolidación DMS - una llamada, múltiples agencias, paginación
+$routes->get('consolidacion-dms/pedidos', 'ConsolidacionDms::pedidos');
+
+// Rutas de proxy a APIs Vanguardia (vgd) - evita 401 llamando directo desde el navegador
 $routes->group('vgd', function($routes) {
+    $routes->get('NexFilecustomer', 'VanguardiaProxy::searchClients');
+    $routes->get('NexFileorderslastest', 'VanguardiaProxy::searchOrders');
     $routes->get('NexFileinvoices', 'VanguardiaProxy::NexFileInvoices');
 });
 

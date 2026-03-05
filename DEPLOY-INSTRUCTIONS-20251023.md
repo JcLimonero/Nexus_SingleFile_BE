@@ -294,7 +294,7 @@ Base de Datos: NexFile_db
 - Verificar logs del navegador (Consola F12)
 
 ### No se puede descargar/ver documentos
-- Verificar que la API de Vanguardia está accesible: `https://apisvanguardia.com:400/backblaze/get-private-url`
+- Verificar que la API de Vanguardia está accesible: `https://[tu-dominio]/backblaze/get-private-url`
 - Verificar que el archivo existe en Backblaze
 - Verificar logs del navegador
 

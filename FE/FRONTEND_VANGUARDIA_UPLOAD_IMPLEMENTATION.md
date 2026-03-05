@@ -12,9 +12,9 @@ export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:8080',
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/NexFilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/NexFileorderslastest',
-    uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
+    apiUrl: 'https://[backend-url]/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://[backend-url]/vgd/NexFileorderslastest',
+    uploadApiUrl: 'https://[backend-url]/backblaze/upload'
   }
 };
 ```
@@ -53,7 +53,7 @@ uploadDocument(document: any): void {
 
 #### 3. **View Document Method** (`getBackblazePrivateUrl`)
 - ✅ **Actualizado**: Para usar el API de Vanguardia directamente
-- ✅ **URL**: `https://apisvanguardia.com:400/backblaze/get-private-url`
+- ✅ **URL**: `https://[backend-url]/backblaze/get-private-url`
 
 ```typescript
 private getBackblazePrivateUrl(fileName: string, document: any): void {
@@ -144,9 +144,9 @@ export const environment = {
   production: true,
   apiBaseUrl: 'https://tu-servidor.com',
   vanguardia: {
-    apiUrl: 'https://apisvanguardia.com:400/vgd/NexFilecustomer',
-    ordersApiUrl: 'https://apisvanguardia.com:400/vgd/NexFileorderslastest',
-    uploadApiUrl: 'https://apisvanguardia.com:400/backblaze/upload'
+    apiUrl: 'https://[backend-url]/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://[backend-url]/vgd/NexFileorderslastest',
+    uploadApiUrl: 'https://[backend-url]/backblaze/upload'
   }
 };
 ```

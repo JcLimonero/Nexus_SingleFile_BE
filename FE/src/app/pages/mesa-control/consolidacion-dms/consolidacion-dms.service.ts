@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, forkJoin } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ApiConfigService } from '../../../core/services/api-config.service';
 
@@ -8,124 +8,72 @@ export interface PedidoDms {
   [key: string]: unknown;
 }
 
-export interface ConsolidacionDmsResponse {
+export interface ConsolidacionDmsApiResponse {
   success?: boolean;
-  status?: number;
-  message?: string;
-  data?: PedidoDms[] | { orders?: PedidoDms[]; data?: PedidoDms[]; results?: PedidoDms[] };
+  data?: PedidoDms[];
+  total?: number;
+  page?: number;
+  limit?: number;
 }
 
+/**
+ * Una sola llamada al backend con múltiples agencias y periodos.
+ * Paginación en servidor.
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class ConsolidacionDmsService {
-  private readonly vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
-
   constructor(
     private http: HttpClient,
     private apiConfig: ApiConfigService
   ) {}
 
-  private get apiUrl(): string {
-    return this.apiConfig.getInvoicesApiUrl();
-  }
-
   /**
-   * Obtener lista de pedidos del DMS vía API NexFileinvoices.
-   * @param id_agency ID de agencia externo (de Vanguardia)
-   * @param delivery_month Mes de entrega (1-12)
-   * @param delivery_year Año de entrega
+   * Obtener pedidos del DMS en una sola llamada.
+   * Filtro por release_date (fecha de liberación).
+   * @param idAgencies IDs de agencia DMS (ej: ['88888','99999'])
+   * @param releaseDateFrom Fecha inicio (YYYY-MM-DD)
+   * @param releaseDateTo Fecha fin (YYYY-MM-DD)
+   * @param page Página (1-based)
+   * @param limit Registros por página
+   * @param agencyNames Mapa opcional id_agency -> nombre para mostrar
    */
-  getPedidosDms(
-    id_agency: number | string,
-    delivery_month: number,
-    delivery_year: number
-  ): Observable<{ data: PedidoDms[]; raw?: unknown }> {
-    if (!id_agency || (typeof id_agency === 'number' && id_agency <= 0)) {
-      return of({ data: [] });
+  getPedidosPaginados(
+    idAgencies: string[],
+    releaseDateFrom: string,
+    releaseDateTo: string,
+    page: number = 1,
+    limit: number = 50,
+    agencyNames?: Record<string, string>,
+    filterEstatus: number = -1
+  ): Observable<{ data: PedidoDms[]; total: number; page: number; limit: number }> {
+    if (!idAgencies?.length || !releaseDateFrom || !releaseDateTo) {
+      return of({ data: [], total: 0, page: 1, limit });
     }
 
-    let params = new HttpParams();
-    params = params.set('id_agency', String(id_agency));
-    params = params.set('delivery_month', String(delivery_month));
-    params = params.set('delivery_year', String(delivery_year));
-    params = params.set('perpage', '5000');
+    let params = new HttpParams()
+      .set('id_agencies', idAgencies.join(','))
+      .set('release_date_from', releaseDateFrom)
+      .set('release_date_to', releaseDateTo)
+      .set('page', String(page))
+      .set('limit', String(limit))
+      .set('filter_estatus', String(filterEstatus));
 
-    const headers = {
-      'X-Provider-Token': this.vanguardiaToken
-    };
-
-    return this.http.get<ConsolidacionDmsResponse | PedidoDms[]>(this.apiUrl, { params, headers }).pipe(
-      map(response => {
-        let list: PedidoDms[] = [];
-        if (Array.isArray(response)) {
-          list = response;
-        } else if (response && typeof response === 'object') {
-          const r = response as ConsolidacionDmsResponse;
-          if (r.data) {
-            if (Array.isArray(r.data)) {
-              list = r.data;
-            } else if (Array.isArray((r.data as { orders?: PedidoDms[] }).orders)) {
-              list = (r.data as { orders: PedidoDms[] }).orders;
-            } else if (Array.isArray((r.data as { data?: PedidoDms[] }).data)) {
-              list = (r.data as { data: PedidoDms[] }).data;
-            } else if (Array.isArray((r.data as { results?: PedidoDms[] }).results)) {
-              list = (r.data as { results: PedidoDms[] }).results;
-            }
-          }
-        }
-        return { data: list, raw: response };
-      }),
-      catchError(() => of({ data: [] }))
-    );
-  }
-
-  /**
-   * Obtener pedidos del DMS para múltiples agencias (un solo mes/año).
-   * Cada fila incluye el campo agencyName para mostrar en la tabla.
-   */
-  getPedidosDmsMultiAgencias(
-    agencies: { id_agency: number | string; name: string }[],
-    delivery_month: number,
-    delivery_year: number
-  ): Observable<{ data: PedidoDms[] }> {
-    if (!agencies || agencies.length === 0) {
-      return of({ data: [] });
+    if (agencyNames && Object.keys(agencyNames).length > 0) {
+      const pairs = Object.entries(agencyNames).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join(';');
+      params = params.set('agency_names', pairs);
     }
-    const requests = agencies.map(a =>
-      this.getPedidosDms(a.id_agency, delivery_month, delivery_year).pipe(
-        map(({ data }) =>
-          data.map(row => ({ ...row, agencyName: a.name }))
-        )
-      )
-    );
-    return forkJoin(requests).pipe(
-      map(results => ({
-        data: results.reduce((acc, rows) => acc.concat(rows), [])
+
+    const url = this.apiConfig.getConsolidacionDmsUrl();
+    return this.http.get<ConsolidacionDmsApiResponse>(url, { params }).pipe(
+      map(res => ({
+        data: res?.data ?? [],
+        total: res?.total ?? 0,
+        page: res?.page ?? page,
+        limit: res?.limit ?? limit,
       })),
-      catchError(() => of({ data: [] }))
-    );
-  }
-
-  /**
-   * Obtener pedidos del DMS para múltiples agencias y varios periodos (mes/año).
-   * Combina los resultados de todos los periodos.
-   */
-  getPedidosDmsMultiAgenciasForPeriods(
-    agencies: { id_agency: number | string; name: string }[],
-    periods: { month: number; year: number }[]
-  ): Observable<{ data: PedidoDms[] }> {
-    if (!agencies || agencies.length === 0 || !periods || periods.length === 0) {
-      return of({ data: [] });
-    }
-    const requests = periods.map(({ month, year }) =>
-      this.getPedidosDmsMultiAgencias(agencies, month, year)
-    );
-    return forkJoin(requests).pipe(
-      map(results => ({
-        data: results.reduce((acc, r) => acc.concat(r.data), [] as PedidoDms[])
-      })),
-      catchError(() => of({ data: [] }))
+      catchError(() => of({ data: [], total: 0, page: 1, limit }))
     );
   }
 }

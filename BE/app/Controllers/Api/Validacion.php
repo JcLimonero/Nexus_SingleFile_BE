@@ -671,25 +671,24 @@ class Validacion extends BaseController
     }
 
     /**
-     * Llamar API NexFileorderslastest y devolver array de pedidos.
+     * Llamar API Nexfile orders (DWH) y devolver array de pedidos.
      */
     private function callNexFileorderslastest(string $agencyConnection, string $ndCliente): array
     {
-        $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
-        $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
+        $baseUrl = $this->getNexfileBaseUrl();
+        if (empty($baseUrl)) {
+            return [];
+        }
 
-        $url = $vanguardiaBaseUrl . '/vgd/NexFileorderslastest?'
-            . 'customerDMS=' . urlencode($ndCliente)
-            . '&connectionstring=' . urlencode($agencyConnection)
+        $url = rtrim($baseUrl, '/') . '/nexfile/orders?'
+            . 'customer_dms=' . urlencode($ndCliente)
+            . '&connection_string=' . urlencode($agencyConnection)
             . '&perpage=1000';
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => [
-                'X-Provider-Token: ' . $vanguardiaToken,
-                'Content-Type: application/json'
-            ],
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false
         ]);
@@ -732,6 +731,22 @@ class Validacion extends BaseController
             }
         }
         return $orders;
+    }
+
+    private function getNexfileBaseUrl(): string
+    {
+        $url = getenv('NEXFILE_BASE_URL');
+        if (!empty($url)) {
+            return rtrim($url, '/');
+        }
+        $row = $this->db->table('config')
+            ->select('config_value')
+            ->where('category', 'group_api_url')
+            ->where('config_key', 'nexfile_base_url')
+            ->get()
+            ->getRowArray();
+        $val = trim($row['config_value'] ?? '');
+        return !empty($val) ? rtrim($val, '/') : '';
     }
 
     /**

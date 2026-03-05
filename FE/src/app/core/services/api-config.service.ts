@@ -95,6 +95,11 @@ export class ApiConfigService {
     return `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze/direct-upload`;
   }
 
+  /** URL del endpoint de consolidación DMS (una llamada, paginación) */
+  getConsolidacionDmsUrl(): string {
+    return `${environment.apiBaseUrl.replace(/\/$/, '')}/api/consolidacion-dms/pedidos`;
+  }
+
   /** URL base para get-private-url y otros endpoints Backblaze (sin /direct-upload ni /upload) */
   getUploadApiBaseUrl(): string {
     return `${environment.apiBaseUrl.replace(/\/$/, '')}/api/backblaze`;

@@ -17,7 +17,7 @@ if [ $? -eq 0 ]; then
     echo "📋 Próximos pasos:"
     echo "1. Copiar los archivos de dist/vex/ al servidor en /NexFile/"
     echo "2. Verificar que el servidor web esté configurado correctamente"
-    echo "3. Verificar que el backend esté accesible en https://apisvanguardia.com:400/api/"
+    echo "3. Verificar que el backend esté accesible en https://localhost:8080/api/"
 else
     echo ""
     echo "❌ Error en el build. Revisa los errores arriba."

@@ -1,11 +1,8 @@
 {
   "/backblaze/*": {
-    "target": "https://apisvanguardia.com:400",
-    "secure": true,
+    "target": "http://localhost:8083",
+    "secure": false,
     "changeOrigin": true,
-    "logLevel": "debug",
-    "headers": {
-      "X-Provider-Token": "b26e88c4-ddbe-4adb-a214-4667f454824a"
-    }
+    "logLevel": "debug"
   }
 }

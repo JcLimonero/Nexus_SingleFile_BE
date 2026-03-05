@@ -37,9 +37,8 @@
     "apiUrl": "https://api.backblazeb2.com",
     "downloadUrl": "https://f000.backblazeb2.com"
   },
-  "vanguardia": {
-    "apiUrl": "https://apisvanguardia.com:400",
-    "backblazeUploadEndpoint": "/backblaze/upload"
+  "nexfile": {
+    "baseUrl": "http://localhost:8082"
   },
   "comments": {
     "note": "Este archivo puede ser modificado directamente en el servidor para cambiar la configuración de la base de datos y otros parámetros",

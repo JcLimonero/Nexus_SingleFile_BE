@@ -319,32 +319,11 @@ class Miniportal extends BaseController
         }
 
         $duration = (int) ($this->request->getGet('duration') ?? 3600);
-        $vanguardiaUrl = "https://apisvanguardia.com:400/backblaze/get-private-url?file=" . urlencode($fileContainer) . "&duration={$duration}";
-        $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
-
-        $ch = curl_init($vanguardiaUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => [
-                'X-Provider-Token: ' . $vanguardiaToken,
-                'Content-Type: application/json'
-            ],
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false
-        ]);
-        $resp = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $body = json_decode($resp, true);
-        if (!$body || $httpCode >= 400) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al obtener URL del documento'
-            ])->setStatusCode(500);
-        }
-
-        $url = $body['url'] ?? ($body['data']['url'] ?? null);
+        $baseUrl = rtrim($this->request->getUri()->getBaseURL(), '/');
+        $backblaze = new BackblazeDirectUpload();
+        $backblaze->initController($this->request, $this->response, \Config\Services::logger());
+        $result = $backblaze->generatePrivateUrlForFile($fileContainer, $duration, $baseUrl);
+        $url = $result['url'] ?? null;
         if (!$url) {
             return $this->response->setJSON([
                 'success' => false,

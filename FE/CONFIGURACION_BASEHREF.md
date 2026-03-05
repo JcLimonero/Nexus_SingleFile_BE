@@ -11,7 +11,7 @@
 - El `angular.json` tiene `"baseHref": "/NexFile/"` en la configuración de producción
 - Cuando ejecutas `ng build --configuration production`, Angular **sobrescribe** el `baseHref` del `index.html` con el de la configuración
 - El `index.html` generado en `dist/vex/` tendrá `<base href="/NexFile/">`
-- La aplicación funcionará en `https://apisvanguardia.com:400/NexFile/`
+- La aplicación funcionará en `https://[tu-dominio]/NexFile/`
 
 ## ✅ Comandos
 

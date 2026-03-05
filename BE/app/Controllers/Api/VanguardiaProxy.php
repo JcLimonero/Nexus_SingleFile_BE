@@ -3,150 +3,65 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
 
 /**
- * Proxy para APIs de Vanguardia
- * Evita problemas de CORS agregando el header X-Provider-Token desde el backend
+ * Proxy para APIs Nexfile (DWH).
+ * Reenvía peticiones al DWH local o configurado (nexfile/customers, orders, invoices).
  */
 class VanguardiaProxy extends BaseController
 {
-    private $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
-    private $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
-
     /**
      * Proxy para búsqueda de clientes
-     * GET /api/vgd/NexFilecustomer
+     * GET /api/vgd/NexFilecustomer -> DWH /nexfile/customers
      */
     public function searchClients()
     {
-        try {
-            $params = $this->request->getGet();
-            $queryString = http_build_query($params);
-            
-            $url = "{$this->vanguardiaBaseUrl}/vgd/NexFilecustomer?{$queryString}";
-            
-            $response = $this->makeVanguardiaRequest('GET', $url);
-            
-            return $this->response
-                ->setJSON($response['body'])
-                ->setStatusCode($response['status']);
-
-        } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::searchClients: " . $e->getMessage());
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al consultar API de Vanguardia: ' . $e->getMessage()
-            ])->setStatusCode(500);
-        }
+        return $this->proxyToNexfile('customers');
     }
 
     /**
      * Proxy para facturas/pedidos DMS (NexFileinvoices)
-     * GET /api/vgd/NexFileinvoices
+     * GET /api/vgd/NexFileinvoices -> DWH /nexfile/invoices
      */
     public function NexFileInvoices()
     {
-        try {
-            $params = $this->request->getGet();
-            $queryString = http_build_query($params);
-
-            $url = "{$this->vanguardiaBaseUrl}/vgd/NexFileinvoices?{$queryString}";
-
-            $response = $this->makeVanguardiaRequest('GET', $url);
-
-            return $this->response
-                ->setJSON($response['body'])
-                ->setStatusCode($response['status']);
-
-        } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::NexFileInvoices: " . $e->getMessage());
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al consultar API NexFileinvoices: ' . $e->getMessage()
-            ])->setStatusCode(500);
-        }
+        return $this->proxyToNexfile('invoices');
     }
 
     /**
      * Proxy para búsqueda de pedidos
-     * GET /api/vgd/NexFileorderslastest
+     * GET /api/vgd/NexFileorderslastest -> DWH /nexfile/orders
      */
     public function searchOrders()
     {
-        try {
-            $params = $this->request->getGet();
-            $queryString = http_build_query($params);
-            
-            $url = "{$this->vanguardiaBaseUrl}/vgd/NexFileorderslastest?{$queryString}";
-            
-            $response = $this->makeVanguardiaRequest('GET', $url);
-            
-            return $this->response
-                ->setJSON($response['body'])
-                ->setStatusCode($response['status']);
-
-        } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::searchOrders: " . $e->getMessage());
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al consultar API de Vanguardia: ' . $e->getMessage()
-            ])->setStatusCode(500);
-        }
+        return $this->proxyToNexfile('orders');
     }
 
     /**
-     * Proxy para subida de archivos a Backblaze
-     * POST /api/backblaze/upload
+     * Reenvía la petición al DWH Nexfile (customers, orders, invoices).
      */
-    public function upload()
+    private function proxyToNexfile(string $endpoint)
     {
         try {
-            $url = "https://apisvanguardia.com:400/backblaze/upload";
-            
-            // Obtener el archivo
-            $file = $this->request->getFile('expedient');
-            $idNexFile = $this->request->getPost('idNexFile');
-            $idDocumentFile = $this->request->getPost('idDocumentFile');
-
-            if (!$file || !$file->isValid()) {
-                return $this->response->setJSON([ 
+            $baseUrl = $this->getNexfileBaseUrl();
+            if (empty($baseUrl)) {
+                return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Archivo no válido o no proporcionado'
-                ])->setStatusCode(400);
+                    'message' => 'Configura nexfile_base_url en la tabla config (category group_api_url) o la variable de entorno NEXFILE_BASE_URL'
+                ])->setStatusCode(500);
             }
 
-            // Obtener el nombre del archivo desde la vista view_document_name
-            $fileName = $this->getFileNameFromView($idDocumentFile, $idNexFile, $file);
-            
-            // Preparar datos multipart
-            $boundary = uniqid();
-            $delimiter = '-------------' . $boundary;
-            
-            $postData = $this->buildMultipartData([
-                'file' => [
-                    'filename' => $fileName,
-                    'content' => file_get_contents($file->getTempName()),
-                    'mimetype' => $file->getClientMimeType()
-                ],
-                'idNexFile' => $idNexFile,
-                'idDocumentFile' => $idDocumentFile
-            ], $delimiter);
+            $params = $this->request->getGet();
+            $queryString = http_build_query($params);
+            $url = rtrim($baseUrl, '/') . '/nexfile/' . $endpoint . ($queryString ? '?' . $queryString : '');
 
             $ch = curl_init($url);
             curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $postData,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => [
-                    'X-Provider-Token: ' . $this->vanguardiaToken,
-                    'Content-Type: multipart/form-data; boundary=' . $delimiter,
-                    'Content-Length: ' . strlen($postData)
-                ],
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false
             ]);
-
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $error = curl_error($ch);
@@ -156,158 +71,35 @@ class VanguardiaProxy extends BaseController
                 throw new \Exception("cURL Error: {$error}");
             }
 
-            $responseData = json_decode($response, true);
-            
-            return $this->response
-                ->setJSON($responseData ?? ['error' => 'Invalid response'])
-                ->setStatusCode($httpCode);
-
+            $body = json_decode($response, true) ?? ['error' => 'Invalid response'];
+            return $this->response->setJSON($body)->setStatusCode($httpCode);
         } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::upload: " . $e->getMessage());
+            error_log("Error en VanguardiaProxy::{$endpoint}: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al subir archivo: ' . $e->getMessage()
+                'message' => 'Error al consultar Nexfile: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
 
-    /**
-     * Proxy para obtener URL privada de Backblaze
-     * GET /api/backblaze/get-private-url
-     */
-    public function getPrivateUrl()
+    private function getNexfileBaseUrl(): string
     {
-        try {
-            $params = $this->request->getGet();
-            $queryString = http_build_query($params);
-            
-            $url = "{$this->vanguardiaBaseUrl}/backblaze/get-private-url?{$queryString}";
-            
-            $response = $this->makeVanguardiaRequest('GET', $url);
-            
-            return $this->response
-                ->setJSON($response['body'])
-                ->setStatusCode($response['status']);
-
-        } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::getPrivateUrl: " . $e->getMessage());
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al obtener URL privada: ' . $e->getMessage()
-            ])->setStatusCode(500);
+        $url = getenv('NEXFILE_BASE_URL');
+        if (!empty($url)) {
+            return rtrim($url, '/');
         }
-    }
-
-    /**
-     * Realizar request a API de Vanguardia
-     */
-    private function makeVanguardiaRequest($method, $url, $data = null)
-    {
-        $ch = curl_init($url);
-        
-        $headers = [
-            'X-Provider-Token: ' . $this->vanguardiaToken,
-            'Content-Type: application/json'
-        ];
-
-        curl_setopt_array($ch, [
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false
-        ]);
-
-        if ($data && in_array($method, ['POST', 'PUT', 'PATCH'])) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $db = \Config\Database::connect();
+        $row = $db->table('config')
+            ->select('config_value')
+            ->where('category', 'group_api_url')
+            ->where('config_key', 'nexfile_base_url')
+            ->get()
+            ->getRowArray();
+        $val = trim($row['config_value'] ?? '');
+        if (!empty($val)) {
+            return rtrim($val, '/');
         }
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        if ($error) {
-            throw new \Exception("cURL Error: {$error}");
-        }
-
-        return [
-            'body' => json_decode($response, true) ?? ['error' => 'Invalid response'],
-            'status' => $httpCode
-        ];
-    }
-
-    /**
-     * Construir datos multipart para subida de archivos
-     */
-    private function buildMultipartData($fields, $delimiter)
-    {
-        $data = '';
-        
-        foreach ($fields as $name => $value) {
-            if (is_array($value)) {
-                // Campo de archivo
-                $data .= "--{$delimiter}\r\n";
-                $data .= "Content-Disposition: form-data; name=\"{$name}\"; filename=\"{$value['filename']}\"\r\n";
-                $data .= "Content-Type: {$value['mimetype']}\r\n\r\n";
-                $data .= $value['content'] . "\r\n";
-            } else {
-                // Campo de texto
-                $data .= "--{$delimiter}\r\n";
-                $data .= "Content-Disposition: form-data; name=\"{$name}\"\r\n\r\n";
-                $data .= $value . "\r\n";
-            }
-        }
-        
-        $data .= "--{$delimiter}--\r\n";
-        
-        return $data;
-    }
-
-    /**
-     * Obtener el nombre del archivo desde la vista view_document_name
-     * Usa file_name_original de la vista pero mantiene la extensión del archivo subido
-     */
-    private function getFileNameFromView($idFileDocument, $idFile, $file)
-    {
-        try {
-            $db = \Config\Database::connect();
-            
-            // Consultar la vista view_document_name
-            $query = $db->query(
-                "SELECT file_name_original FROM view_document_name WHERE IdFileDocument = ? AND IdFile = ?",
-                [$idFileDocument, $idFile]
-            );
-            
-            $result = $query->getRow();
-            
-            if ($result && !empty($result->file_name_original)) {
-                // Obtener la extensión del archivo original que está subiendo el usuario
-                $originalFileName = $file->getClientName();
-                $extension = pathinfo($originalFileName, PATHINFO_EXTENSION);
-                
-                // Obtener el nombre base de la vista (sin extensión si tiene)
-                $fileNameFromView = $result->file_name_original;
-                $fileNameBase = pathinfo($fileNameFromView, PATHINFO_FILENAME);
-                
-                // Construir el nombre final: nombre de la vista + extensión del archivo subido
-                $finalFileName = $fileNameBase . ($extension ? '.' . $extension : '');
-                
-                error_log("Nombre de archivo desde vista: {$fileNameFromView}");
-                error_log("Extensión del archivo subido: {$extension}");
-                error_log("Nombre final del archivo: {$finalFileName}");
-                
-                return $finalFileName;
-            } else {
-                // Si no se encuentra en la vista, usar el nombre original del archivo
-                error_log("No se encontró registro en view_document_name para IdFileDocument={$idFileDocument}, IdFile={$idFile}. Usando nombre original del archivo.");
-                return $file->getClientName();
-            }
-        } catch (\Exception $e) {
-            // En caso de error, usar el nombre original del archivo
-            error_log("Error al consultar view_document_name: " . $e->getMessage());
-            return $file->getClientName();
-        }
+        return '';
     }
 }
 
