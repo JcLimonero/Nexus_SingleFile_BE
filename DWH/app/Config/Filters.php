@@ -35,6 +35,7 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'providerToken' => \App\Filters\ProviderTokenFilter::class,
     ];
 
     /**
@@ -108,6 +109,7 @@ class Filters extends BaseFilters
      * @var array<string, array<string, list<string>>>
      */
     public array $filters = [
-        'corsfilter' => ['before' => ['nexfile/*'], 'after' => ['nexfile/*']],
+        'corsfilter'    => ['before' => ['nexfile/*'], 'after' => ['nexfile/*']],
+        'providerToken' => ['before' => ['nexfile/*']],
     ];
 }

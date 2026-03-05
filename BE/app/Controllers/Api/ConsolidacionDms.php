@@ -127,10 +127,16 @@ class ConsolidacionDms extends BaseController
 
     private function httpGet(string $url): ?array
     {
+        $headers = ['Content-Type: application/json'];
+        $token = $this->getNexfileProviderToken();
+        if (!empty($token)) {
+            $headers[] = 'X-Provider-Token: ' . $token;
+        }
+
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_HTTPHEADER => $headers,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
         ]);
@@ -141,5 +147,21 @@ class ConsolidacionDms extends BaseController
             return null;
         }
         return json_decode($response, true);
+    }
+
+    private function getNexfileProviderToken(): string
+    {
+        $token = getenv('NEXFILE_PROVIDER_TOKEN');
+        if (!empty($token)) {
+            return trim($token);
+        }
+        $db = \Config\Database::connect();
+        $row = $db->table('config')
+            ->select('config_value')
+            ->where('category', 'group_api_url')
+            ->where('config_key', 'nexfile_provider_token')
+            ->get()
+            ->getRowArray();
+        return trim($row['config_value'] ?? '');
     }
 }
