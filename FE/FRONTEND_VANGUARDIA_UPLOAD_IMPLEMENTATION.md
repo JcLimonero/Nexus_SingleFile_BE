@@ -11,7 +11,7 @@ Se ha actualizado el componente de integración (`integracion.component.ts`) par
 export const environment = {
   production: false,
   apiBaseUrl: 'http://localhost:8080',
-  vanguardia: {
+  dwh: {
     apiUrl: 'https://[backend-url]/vgd/NexFilecustomer',
     ordersApiUrl: 'https://[backend-url]/vgd/NexFileorderslastest',
     uploadApiUrl: 'https://[backend-url]/backblaze/upload'
@@ -34,7 +34,7 @@ uploadDocument(document: any): void {
   formData.append('idDocumentFile', document.fileDocumentId.toString());
 
   // Usar API de Vanguardia directamente
-  this.http.post<any>(environment.vanguardia.uploadApiUrl, formData)
+  this.http.post<any>(environment.dwh.uploadApiUrl, formData)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
@@ -57,7 +57,7 @@ uploadDocument(document: any): void {
 
 ```typescript
 private getBackblazePrivateUrl(fileName: string, document: any): void {
-  const url = `${environment.vanguardia.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
+  const url = `${environment.dwh.uploadApiUrl.replace('/upload', '')}/get-private-url?${params.toString()}`;
   
   this.http.get<any>(url)
     .pipe(takeUntil(this.destroy$))
@@ -143,7 +143,7 @@ Para producción, actualizar `environment.prod.ts`:
 export const environment = {
   production: true,
   apiBaseUrl: 'https://tu-servidor.com',
-  vanguardia: {
+  dwh: {
     apiUrl: 'https://[backend-url]/vgd/NexFilecustomer',
     ordersApiUrl: 'https://[backend-url]/vgd/NexFileorderslastest',
     uploadApiUrl: 'https://[backend-url]/backblaze/upload'

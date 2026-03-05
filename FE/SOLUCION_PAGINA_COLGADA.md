@@ -107,7 +107,7 @@ El archivo `FE/src/environments/environment.prod.ts` debe tener:
 export const environment = {
   production: true,
   apiBaseUrl: 'https://[tu-dominio]',  // URL correcta del backend
-  vanguardia: {
+  dwh: {
     apiUrl: 'https://[tu-dominio]/vgd/NexFilecustomer',
     ordersApiUrl: 'https://[tu-dominio]/vgd/NexFileorderslastest',
     uploadApiUrl: 'https://[tu-dominio]/api/backblaze/upload'
