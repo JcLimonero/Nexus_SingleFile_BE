@@ -557,7 +557,6 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
           this.currentPage = page;
           this.pageSize = limit;
           this.cdr.markForCheck();
-          this.snackBar.open(`${total} pedidos (pág. ${page})`, 'Cerrar', { duration: 2000 });
         },
         error: () => {
           this.loading = false;

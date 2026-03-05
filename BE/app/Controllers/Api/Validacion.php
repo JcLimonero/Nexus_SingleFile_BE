@@ -1655,17 +1655,9 @@ class Validacion extends BaseController
                 ->orderBy('dt.name', 'ASC');
 
             // Log del query generado para debugging
-            error_log("=== DEBUG getDocumentos ===");
-            error_log("idFile: " . $idFile);
-            error_log("Query SQL: " . $query->getCompiledSelect(false));
-            
+                       
             $results = $query->get()->getResultArray();
             $idDocumentTypeLiquidacion = $this->getConfigDocumentTypeLiquidacion();
-
-            error_log("Resultados encontrados: " . count($results));
-            if (count($results) > 0) {
-                error_log("Primer resultado: " . json_encode($results[0]));
-            }
 
             $responseData = [
                 'success' => true,
