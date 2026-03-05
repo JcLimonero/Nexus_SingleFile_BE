@@ -26,6 +26,8 @@ import { CostumerType } from '../../../../core/interfaces/costumer-type.interfac
 import { TipoOperacion } from '../../../../core/interfaces/tipo-operacion.interface';
 import { DocumentType } from '../../../../core/interfaces/document-type.interface';
 import { FASES_OCULTAS } from '../../../../core/constants/catalogs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-documento-requerido-edit-dialog',
@@ -514,7 +516,13 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   }
 
   private updateDocumentoRequerido(): void {
-    // Si no hay documento pero hay configuración, actualizar solo el estado de la configuración
+    if (this.selectedDocumentTypes.length === 0) {
+      this.snackBar.open('Debes seleccionar al menos un tipo de documento', 'Error', { duration: 3000 });
+      this.loading = false;
+      return;
+    }
+
+    // Si no hay documento pero hay configuración: sincronizar documentos según selección (añadir nuevos, eliminar desmarcados)
     if (!this.data.documento && this.data.configuracion) {
       const formVal = this.documentoForm.getRawValue();
       const filters = {
@@ -524,15 +532,47 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         id_operation_type: formVal.id_operation_type
       };
 
-      this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
-        next: (response) => {
-          if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
-            // Obtener el id_configuration_process del primer documento
-            const firstDoc = response.data.documentos[0];
-            const configProcessId = firstDoc.id_configuration_process;
+      this.documentoRequeridoService.getDocumentosRequeridos(filters).pipe(
+        switchMap((response) => {
+          if (!response.success || !response.data?.documentos) {
+            this.snackBar.open('No se encontró la configuración para actualizar', 'Error', { duration: 3000 });
+            this.loading = false;
+            return of(null);
+          }
 
-            // Actualizar el estado de la configuración usando el primer documento como referencia
-            const documentoData: DocumentoRequeridoUpdateRequest = {
+          const existingDocs = response.data.documentos as DocumentoRequerido[];
+          const existingTypeIds = existingDocs.map(d => String(d.id_document_type));
+          const selectedIds = this.selectedDocumentTypes.map(id => String(id));
+
+          // Tipos a añadir (seleccionados pero no existentes)
+          const typesToAdd = selectedIds.filter(id => !existingTypeIds.includes(id));
+          // Documentos a eliminar (existentes pero no seleccionados)
+          const docsToDelete = existingDocs.filter(d => !selectedIds.includes(String(d.id_document_type)));
+
+          const createRequests = typesToAdd.map(idDocType => {
+            const data: DocumentoRequeridoCreateRequest = {
+              id_process: formVal.id_process,
+              id_agency: formVal.id_agency,
+              id_customer_type: formVal.id_customer_type,
+              id_operation_type: formVal.id_operation_type,
+              id_document_type: idDocType
+            };
+            return this.documentoRequeridoService.createDocumentoRequerido(data).pipe(
+              catchError(() => of({ success: false }))
+            );
+          });
+
+          const deleteRequests = docsToDelete.map(doc =>
+            this.documentoRequeridoService.deleteDocumentoRequerido(doc.id).pipe(
+              catchError(() => of({ success: false }))
+            )
+          );
+
+          const allRequests = [...createRequests, ...deleteRequests];
+          if (allRequests.length === 0) {
+            // Solo actualizar enabled si no hay cambios de documentos
+            const firstDoc = existingDocs[0];
+            const updateData: DocumentoRequeridoUpdateRequest = {
               id: firstDoc.id,
               id_process: formVal.id_process,
               id_agency: formVal.id_agency,
@@ -541,98 +581,139 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
               id_document_type: firstDoc.id_document_type,
               enabled: formVal.enabled ? '1' : '0'
             };
+            return this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.id, updateData);
+          }
 
-            // Actualizar documentos y luego actualizar el ConfigurationProcess
-            this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.id, documentoData).subscribe({
-              next: (updateResponse) => {
-                if (updateResponse.success) {
-                  // Ahora actualizar todos los documentos de esta configuración con el nuevo estado
-                  // y actualizar el ConfigurationProcess
-                  this.updateConfigurationProcessStatus(configProcessId, formVal.enabled);
-                } else {
-                  this.snackBar.open(updateResponse.message || 'Error al actualizar configuración', 'Error', {
-                    duration: 3000
-                  });
-                  this.loading = false;
-                }
-              },
-              error: (error) => {
-                this.snackBar.open('Error al actualizar configuración', 'Error', {
-                  duration: 3000
-                });
-                this.loading = false;
+          return forkJoin(allRequests).pipe(
+            switchMap(() => {
+              // Documentos que se mantienen (existentes y aún seleccionados)
+              const remainingDocs = existingDocs.filter(d => selectedIds.includes(String(d.id_document_type)));
+              const docToUpdate = remainingDocs[0];
+              if (docToUpdate) {
+                const updateData: DocumentoRequeridoUpdateRequest = {
+                  id: docToUpdate.id,
+                  id_process: formVal.id_process,
+                  id_agency: formVal.id_agency,
+                  id_customer_type: formVal.id_customer_type,
+                  id_operation_type: formVal.id_operation_type,
+                  id_document_type: docToUpdate.id_document_type,
+                  enabled: formVal.enabled ? '1' : '0'
+                };
+                return this.documentoRequeridoService.updateDocumentoRequerido(docToUpdate.id, updateData);
               }
-            });
-          } else {
-            this.snackBar.open('No se encontró la configuración para actualizar', 'Error', {
-              duration: 3000
-            });
-            this.loading = false;
+              // Si se eliminaron todos y se añadieron nuevos, el enabled se aplica en los creates o en el backend
+              return of({ success: true });
+            })
+          );
+        })
+      ).subscribe({
+        next: (result) => {
+          if (result !== null) {
+            this.updateConfigurationProcessStatus('', formVal.enabled);
           }
         },
-        error: (error) => {
-          this.snackBar.open('Error al buscar la configuración', 'Error', {
-            duration: 3000
-          });
+        error: () => {
+          this.snackBar.open('Error al actualizar configuración', 'Error', { duration: 3000 });
           this.loading = false;
         }
       });
       return;
     }
 
-    // Si hay documento específico, actualizar normalmente
-    if (!this.data.documento) {
-      this.loading = false;
-      return;
-    }
+    // Si hay documento específico: usar la misma lógica de sincronización (la config se obtiene del documento)
+    if (this.data.documento) {
+      const formVal = this.documentoForm.getRawValue();
+      const filters = {
+        id_process: formVal.id_process,
+        id_agency: formVal.id_agency,
+        id_customer_type: formVal.id_customer_type,
+        id_operation_type: formVal.id_operation_type
+      };
 
-    if (this.selectedDocumentTypes.length === 0) {
-      this.snackBar.open('Debes seleccionar al menos un tipo de documento', 'Error', {
-        duration: 3000
-      });
-      this.loading = false;
-      return;
-    }
-
-    const formVal = this.documentoForm.getRawValue();
-    const documentoData: DocumentoRequeridoUpdateRequest = {
-      id: this.data.documento.id,
-      id_process: formVal.id_process,
-      id_agency: formVal.id_agency,
-      id_customer_type: formVal.id_customer_type,
-      id_operation_type: formVal.id_operation_type,
-      id_document_type: this.selectedDocumentTypes[0],
-      enabled: formVal.enabled ? '1' : '0'
-    };
-
-    this.documentoRequeridoService.updateDocumentoRequerido(this.data.documento.id, documentoData).subscribe({
-      next: (response) => {
-        if (response.success) {
-          // Actualizar también el ConfigurationProcess
-          const configProcessId = this.data.documento?.id_configuration_process;
-          if (configProcessId) {
-            this.updateConfigurationProcessStatus(configProcessId, formVal.enabled);
-          } else {
-            this.snackBar.open('Configuración actualizada exitosamente', 'Éxito', {
-              duration: 2000
-            });
-            this.dialogRef.close(true);
+      this.documentoRequeridoService.getDocumentosRequeridos(filters).pipe(
+        switchMap((response) => {
+          if (!response.success || !response.data?.documentos) {
+            this.snackBar.open('No se encontró la configuración para actualizar', 'Error', { duration: 3000 });
             this.loading = false;
+            return of(null);
           }
-        } else {
-          this.snackBar.open(response.message || 'Error al actualizar configuración', 'Error', {
-            duration: 3000
+
+          const existingDocs = response.data.documentos as DocumentoRequerido[];
+          const existingTypeIds = existingDocs.map(d => String(d.id_document_type));
+          const selectedIds = this.selectedDocumentTypes.map(id => String(id));
+
+          const typesToAdd = selectedIds.filter(id => !existingTypeIds.includes(id));
+          const docsToDelete = existingDocs.filter(d => !selectedIds.includes(String(d.id_document_type)));
+
+          const createRequests = typesToAdd.map(idDocType => {
+            const data: DocumentoRequeridoCreateRequest = {
+              id_process: formVal.id_process,
+              id_agency: formVal.id_agency,
+              id_customer_type: formVal.id_customer_type,
+              id_operation_type: formVal.id_operation_type,
+              id_document_type: idDocType
+            };
+            return this.documentoRequeridoService.createDocumentoRequerido(data).pipe(
+              catchError(() => of({ success: false }))
+            );
           });
+
+          const deleteRequests = docsToDelete.map(doc =>
+            this.documentoRequeridoService.deleteDocumentoRequerido(doc.id).pipe(
+              catchError(() => of({ success: false }))
+            )
+          );
+
+          const allRequests = [...createRequests, ...deleteRequests];
+          if (allRequests.length === 0) {
+            const firstDoc = existingDocs[0];
+            const updateData: DocumentoRequeridoUpdateRequest = {
+              id: firstDoc.id,
+              id_process: formVal.id_process,
+              id_agency: formVal.id_agency,
+              id_customer_type: formVal.id_customer_type,
+              id_operation_type: formVal.id_operation_type,
+              id_document_type: firstDoc.id_document_type,
+              enabled: formVal.enabled ? '1' : '0'
+            };
+            return this.documentoRequeridoService.updateDocumentoRequerido(firstDoc.id, updateData);
+          }
+
+          return forkJoin(allRequests).pipe(
+            switchMap(() => {
+              const remainingDocs = existingDocs.filter(d => selectedIds.includes(String(d.id_document_type)));
+              const docToUpdate = remainingDocs[0];
+              if (docToUpdate) {
+                const updateData: DocumentoRequeridoUpdateRequest = {
+                  id: docToUpdate.id,
+                  id_process: formVal.id_process,
+                  id_agency: formVal.id_agency,
+                  id_customer_type: formVal.id_customer_type,
+                  id_operation_type: formVal.id_operation_type,
+                  id_document_type: docToUpdate.id_document_type,
+                  enabled: formVal.enabled ? '1' : '0'
+                };
+                return this.documentoRequeridoService.updateDocumentoRequerido(docToUpdate.id, updateData);
+              }
+              return of({ success: true });
+            })
+          );
+        })
+      ).subscribe({
+        next: (result) => {
+          if (result !== null) {
+            this.updateConfigurationProcessStatus('', formVal.enabled);
+          }
+        },
+        error: () => {
+          this.snackBar.open('Error al actualizar configuración', 'Error', { duration: 3000 });
           this.loading = false;
         }
-      },
-      error: (error) => {
-        this.snackBar.open('Error al actualizar configuración', 'Error', {
-          duration: 3000
-        });
-        this.loading = false;
-      }
-    });
+      });
+      return;
+    }
+
+    this.loading = false;
   }
 
   /**
