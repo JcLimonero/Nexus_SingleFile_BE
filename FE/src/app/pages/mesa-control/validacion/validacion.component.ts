@@ -1573,6 +1573,17 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
+   * Normalizar ID de agencia para comparaciones robustas (evita fallos por tipo number vs string)
+   */
+  private normalizeAgencyId(value: unknown): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  /**
    * Cargar agencias desde la API usando el servicio compartido
    */
   private cargarAgencias() {
@@ -1591,38 +1602,56 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
           // Establecer agencia predeterminada DESPUÉS de que las agencias se carguen
           setTimeout(() => {
-            // Obtener la agencia guardada
-            const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+            // Obtener la agencia guardada (normalizar para evitar fallos por tipo number vs string)
+            const savedAgencyId = this.normalizeAgencyId(this.defaultAgencyService.getAgenciaSeleccionada());
 
-            // Verificar que la agencia guardada existe en la lista
-            if (savedAgencyId !== null && this.agencias.some(ag => (ag.id ?? (ag as any).Id) === savedAgencyId)) {
-              // La agencia guardada existe, usarla
-              this.selectedAgency = savedAgencyId;
+            // Verificar que la agencia guardada existe en la lista (comparación normalizada)
+            const savedExists = savedAgencyId !== null && this.agencias.some(ag => {
+              const agId = this.normalizeAgencyId(ag?.id ?? (ag as any)?.Id);
+              return agId !== null && agId === savedAgencyId;
+            });
+
+            if (savedExists) {
+              // La agencia guardada existe, usarla (usar el valor original de la agencia para que coincida con mat-option [value])
+              const matchingAgency = this.agencias.find(ag => {
+                const agId = this.normalizeAgencyId(ag?.id ?? (ag as any)?.Id);
+                return agId !== null && agId === savedAgencyId;
+              });
+              this.selectedAgency = matchingAgency ? (matchingAgency.id ?? (matchingAgency as any).Id) : savedAgencyId;
               this.cdr.markForCheck();
             } else {
               // Si no hay agencia guardada válida, establecer la predeterminada
               this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
                 next: (agenciaId) => {
-                  if (agenciaId && this.agencias.some(ag => (ag.id ?? (ag as any).Id) === agenciaId)) {
-                    this.selectedAgency = agenciaId;
+                  const normalizedDefault = this.normalizeAgencyId(agenciaId);
+                  const matchingAgency = normalizedDefault !== null ? this.agencias.find(ag => {
+                    const agId = this.normalizeAgencyId(ag?.id ?? (ag as any)?.Id);
+                    return agId !== null && agId === normalizedDefault;
+                  }) : null;
+                  if (matchingAgency) {
+                    this.selectedAgency = matchingAgency.id ?? (matchingAgency as any).Id;
                     this.cdr.markForCheck();
                   } else if (this.agencias.length > 0) {
                     // Solo como último recurso, seleccionar la primera
                     const primeraAgencia = this.agencias[0];
-                    const pid = primeraAgencia.id ?? (primeraAgencia as any).Id;
-                    this.selectedAgency = pid;
-                    this.defaultAgencyService.seleccionarAgencia(pid);
-                    this.cdr.markForCheck();
+                    const rawId = primeraAgencia?.id ?? (primeraAgencia as any)?.Id;
+                    if (rawId != null) {
+                      this.selectedAgency = rawId;
+                      this.defaultAgencyService.seleccionarAgencia(this.normalizeAgencyId(rawId)!);
+                      this.cdr.markForCheck();
+                    }
                   }
                 },
                 error: (error) => {
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencias.length > 0) {
                     const primeraAgencia = this.agencias[0];
-                    const pid = primeraAgencia.id ?? (primeraAgencia as any).Id;
-                    this.selectedAgency = pid;
-                    this.defaultAgencyService.seleccionarAgencia(pid);
-                    this.cdr.markForCheck();
+                    const rawId = primeraAgencia?.id ?? (primeraAgencia as any)?.Id;
+                    if (rawId != null) {
+                      this.selectedAgency = rawId;
+                      this.defaultAgencyService.seleccionarAgencia(this.normalizeAgencyId(rawId)!);
+                      this.cdr.markForCheck();
+                    }
                   }
                 }
               });
