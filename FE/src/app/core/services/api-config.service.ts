@@ -79,14 +79,23 @@ export class ApiConfigService {
   }
 
   getApiUrl(): string {
+    if (!environment.production) {
+      return this.getFallbackVanguardia().api_url;
+    }
     return this.vanguardia?.api_url ?? this.getFallbackVanguardia().api_url;
   }
 
   getOrdersApiUrl(): string {
+    if (!environment.production) {
+      return this.getFallbackVanguardia().orders_api_url;
+    }
     return this.vanguardia?.orders_api_url ?? this.getFallbackVanguardia().orders_api_url;
   }
 
   getInvoicesApiUrl(): string {
+    if (!environment.production) {
+      return this.getFallbackVanguardia().invoices_api_url;
+    }
     return this.vanguardia?.invoices_api_url ?? this.getFallbackVanguardia().invoices_api_url;
   }
 
