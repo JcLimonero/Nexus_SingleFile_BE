@@ -116,11 +116,15 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   get isAllAgenciesSelected(): boolean {
     const list = this.agenciesFiltradas;
-    return list.length > 0 && list.every(a => this.selectedAgencyIds.includes(a.id));
+    if (list.length === 0) return false;
+    // Vacío = todas seleccionadas (sin filtro)
+    if (this.selectedAgencyIds.length === 0) return true;
+    return list.every(a => this.selectedAgencyIds.includes(a.id));
   }
 
   get isSomeAgenciesSelected(): boolean {
     const list = this.agenciesFiltradas;
+    if (list.length === 0 || this.selectedAgencyIds.length === 0) return false;
     const selectedInList = list.filter(a => this.selectedAgencyIds.includes(a.id)).length;
     return selectedInList > 0 && selectedInList < list.length;
   }
@@ -149,6 +153,8 @@ export class ReportesCumplimientoComponent implements OnInit {
   }
 
   isAgencySelected(agencyId: number): boolean {
+    // Vacío = todas seleccionadas (sin filtro)
+    if (this.selectedAgencyIds.length === 0) return true;
     return this.selectedAgencyIds.includes(agencyId);
   }
 
