@@ -79,10 +79,10 @@
           </div>
 
           <div *ngIf="!loadingConfiguraciones" class="overflow-x-auto">
-            <table mat-table [dataSource]="dataSourceConfiguraciones" matSort #configuracionesSort="matSort" class="w-full compact-table" style="line-height: 1;">
+            <table mat-table [dataSource]="dataSourceConfiguraciones" matSort #configuracionesSort="matSort" class="w-full compact-table" style="line-height: 1; table-layout: fixed;">
               <!-- Columna ID -->
               <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-20 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center py-1 bg-gray-50 text-xs font-medium text-gray-700" style="width: 4%;">
                   ID
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center py-0">
@@ -92,7 +92,7 @@
 
               <!-- Columna Agencia -->
               <ng-container matColumnDef="agencia">
-                <th mat-header-cell *matHeaderCellDef class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
                   Agencia
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
@@ -102,7 +102,7 @@
 
               <!-- Columna Proceso -->
               <ng-container matColumnDef="proceso">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
                   Proceso
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
@@ -112,7 +112,7 @@
 
               <!-- Columna Tipo de Cliente -->
               <ng-container matColumnDef="tipoCliente">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
                   Tipo Cliente
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
@@ -122,7 +122,7 @@
 
               <!-- Columna Tipo de Operación -->
               <ng-container matColumnDef="tipoOperacion">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40 py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="py-1 bg-gray-50 text-xs font-medium text-gray-700">
                   Tipo Operación
                 </th>
                 <td mat-cell *matCellDef="let element" class="py-0">
@@ -132,7 +132,7 @@
 
               <!-- Columna Total Documentos -->
               <ng-container matColumnDef="totalDocumentos">
-                <th mat-header-cell *matHeaderCellDef class="w-32 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef class="text-center py-1 bg-gray-50 text-xs font-medium text-gray-700" style="width: 12%;">
                   Total Documentos
                 </th>
                 <td mat-cell *matCellDef="let element" class="text-center py-0">
@@ -147,10 +147,10 @@
 
               <!-- Columna Enabled -->
               <ng-container matColumnDef="enabled">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center py-1 bg-gray-50 text-xs font-medium text-gray-700" style="max-width: 50px; width: 50px;">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center py-1 bg-gray-50 text-xs font-medium text-gray-700" style="width: 7%;">
                   Estado
                 </th>
-                <td mat-cell *matCellDef="let element" class="text-center py-0" style="max-width: 50px; width: 50px;">
+                <td mat-cell *matCellDef="let element" class="text-center py-0">
                   <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap"
                         [ngClass]="element.enabled === '1' || element.enabled === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                     {{ element.enabled === '1' || element.enabled === 1 ? 'Activo' : 'Inactivo' }}
@@ -160,34 +160,34 @@
 
               <!-- Columna Acciones -->
               <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef class="w-64 text-center py-1 bg-gray-50 text-xs font-medium text-gray-700">
+                <th mat-header-cell *matHeaderCellDef class="text-center py-1 pr-4 bg-gray-50 text-xs font-medium text-gray-700" style="width: 10%;">
                   Acciones
                 </th>
-                <td mat-cell *matCellDef="let element" class="text-center py-0 col-acciones">
-                  <div class="flex items-center justify-center gap-2">
+                <td mat-cell *matCellDef="let element" class="text-center py-0 pr-4">
+                  <div class="flex items-center justify-center gap-1">
                     <button
                       mat-icon-button
                       color="primary"
                       (click)="aplicarConfiguracion(element)"
                       matTooltip="Aplicar esta configuración en el tab de detalle"
-                      class="!w-8 !h-8">
-                      <mat-icon class="!text-base">visibility</mat-icon>
+                      class="action-btn">
+                      <mat-icon class="!text-[16px]">visibility</mat-icon>
                     </button>
                     <button
                       mat-icon-button
                       color="accent"
                       (click)="editConfiguracionFromTab1(element)"
                       matTooltip="Editar configuración"
-                      class="!w-8 !h-8">
-                      <mat-icon class="!text-base">edit</mat-icon>
+                      class="action-btn">
+                      <mat-icon class="!text-[16px]">edit</mat-icon>
                     </button>
                     <button
                       mat-icon-button
                       color="warn"
                       (click)="duplicateConfigurationFromTab1(element)"
                       matTooltip="Duplicar configuración a otras agencias"
-                      class="!w-8 !h-8">
-                      <mat-icon class="!text-base">content_copy</mat-icon>
+                      class="action-btn">
+                      <mat-icon class="!text-[16px]">content_copy</mat-icon>
                     </button>
                   </div>
                 </td>
