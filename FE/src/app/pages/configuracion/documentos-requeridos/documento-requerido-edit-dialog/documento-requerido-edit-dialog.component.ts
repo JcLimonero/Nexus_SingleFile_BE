@@ -27,7 +27,7 @@ import { TipoOperacion } from '../../../../core/interfaces/tipo-operacion.interf
 import { DocumentType } from '../../../../core/interfaces/document-type.interface';
 import { FASES_OCULTAS } from '../../../../core/constants/catalogs';
 import { forkJoin, of } from 'rxjs';
-import { switchMap, catchError } from 'rxjs/operators';
+import { switchMap, catchError, timeout } from 'rxjs/operators';
 
 @Component({
   selector: 'app-documento-requerido-edit-dialog',
@@ -122,11 +122,6 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.loadCatalogs();
-    
-    // Timeout de seguridad para quitar el loading después de 5 segundos
-    setTimeout(() => {
-      this.loadingCatalogs = false;
-    }, 5000);
   }
 
   private initializeForm(): void {
@@ -197,52 +192,43 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   }
 
   private loadExistingDocuments(): void {
+    const config = this.data.configuracion ?? (this.data.documento ? {
+      id_process: this.data.documento.id_process,
+      id_agency: this.data.documento.id_agency,
+      id_customer_type: this.data.documento.id_customer_type,
+      id_operation_type: this.data.documento.id_operation_type
+    } : null);
 
-    // Cargar documentos existentes para esta configuración
-    if (this.data.configuracion) {
-      const filters = {
-        id_process: this.data.configuracion.id_process,
-        id_agency: this.data.configuracion.id_agency,
-        id_customer_type: this.data.configuracion.id_customer_type,
-        id_operation_type: this.data.configuracion.id_operation_type
-      };
-
-      this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
-        next: (response: any) => {
-
-          if (response?.success && response.data?.documentos) {
-            // Extraer los IDs de los tipos de documento ya configurados
-            const existingDocumentTypeIds = response.data.documentos.map((doc: any) => doc.id_document_type);
-
-            
-            
-            // Actualizar el formulario con los documentos existentes
-
-            this.selectedDocumentTypes = existingDocumentTypeIds;
-
-            
-            
-            // Verificar que el formulario se actualizó correctamente
-            setTimeout(() => {
-
-              
-              this.debugFormState();
-            }, 100);
-            
-            // Actualizar la lista filtrada
-            this.filteredTiposDocumento = [...this.tiposDocumento];
-            this.applyFilters();
-          } else {
-
-          }
-        },
-        error: (error: any) => {
-
-        }
-      });
-    } else {
-
+    if (!config) {
+      this.loadingCatalogs = false;
+      return;
     }
+
+    const filters = {
+      id_process: config.id_process,
+      id_agency: config.id_agency,
+      id_customer_type: config.id_customer_type,
+      id_operation_type: config.id_operation_type
+    };
+
+    this.documentoRequeridoService.getDocumentosRequeridos(filters).pipe(
+      timeout(10000) // Fallback: mostrar contenido tras 10s si la petición tarda
+    ).subscribe({
+      next: (response: any) => {
+        if (response?.success && response.data?.documentos) {
+          const existingDocumentTypeIds = response.data.documentos.map((doc: any) => String(doc.id_document_type));
+          this.selectedDocumentTypes = existingDocumentTypeIds;
+        }
+        this.filteredTiposDocumento = [...this.tiposDocumento];
+        this.applyFilters();
+        this.loadingCatalogs = false;
+      },
+      error: () => {
+        this.filteredTiposDocumento = [...this.tiposDocumento];
+        this.applyFilters();
+        this.loadingCatalogs = false;
+      }
+    });
   }
 
   private loadCatalogs(): void {
@@ -333,17 +319,12 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   private checkCatalogsLoaded(): void {
     this.catalogsProcessed++;
 
-    // Si todos los catálogos han sido procesados, quitar el loading
     if (this.catalogsProcessed >= this.totalCatalogs) {
-
-      this.loadingCatalogs = false;
-      
-      // Si estamos en modo edición, cargar documentos existentes DESPUÉS de que todos los catálogos estén listos
       if (this.data.mode === 'edit') {
-
+        // En modo edición: mantener loading hasta que loadExistingDocuments termine
         this.loadExistingDocuments();
       } else {
-
+        this.loadingCatalogs = false;
       }
     }
   }
@@ -817,13 +798,6 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     const operationTypeId = this.documentoForm.get('id_operation_type')?.value;
     const operationType = this.tiposOperacion.find(t => String(t.id) === String(operationTypeId));
     return operationType ? operationType.name : 'No seleccionado';
-  }
-
-  // Método temporal para debuggear el estado del formulario
-  debugFormState(): void {
-
-    
-
   }
 
   // Método para filtrar tipos de documento
