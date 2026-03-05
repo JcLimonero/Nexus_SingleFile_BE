@@ -274,10 +274,11 @@
                 Aviso confid.
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <span class="px-2 py-0.5 rounded text-xs font-medium"
-                      [ngClass]="item.avisoConfidencialidadAceptado ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
-                  {{ item.avisoConfidencialidadAceptado ? 'Sí' : 'No' }}
-                </span>
+                <mat-icon
+                  [ngClass]="item.avisoConfidencialidadAceptado ? 'text-green-600' : 'text-red-600'"
+                  matTooltip="{{ item.avisoConfidencialidadAceptado ? 'Aprobado' : 'Pendiente' }}">
+                  {{ item.avisoConfidencialidadAceptado ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
               </td>
             </ng-container>
 
