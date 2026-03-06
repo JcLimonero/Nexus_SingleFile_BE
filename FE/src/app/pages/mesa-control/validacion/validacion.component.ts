@@ -545,9 +545,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   onAgregarBeneficiarios(cliente: any): void {
     const dialogData: BeneficiariosDialogData = { cliente };
-    this.dialog.open(BeneficiariosDialogComponent, {
+    const dialogRef = this.dialog.open(BeneficiariosDialogComponent, {
       width: '700px',
       data: dialogData
+    });
+    dialogRef.afterClosed().pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.cargarClientes();
     });
   }
 

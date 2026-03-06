@@ -3062,7 +3062,8 @@ class Validacion extends BaseController
                     ])->setStatusCode(400);
                 }
             }
-            $id = $model->add($idFile, $nombre, $rfc, $curp, $porcentaje);
+            $userId = (int) ($currentUser['user_id'] ?? $currentUser['id'] ?? 0);
+            $id = $model->add($idFile, $nombre, $rfc, $curp, $porcentaje, $userId > 0 ? $userId : null);
             if (!$id) {
                 return $this->response->setJSON(['success' => false, 'message' => 'No se pudo agregar el beneficiario'])->setStatusCode(500);
             }

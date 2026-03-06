@@ -16,7 +16,7 @@ class FilePldBeneficiarioFinalModel extends Model
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'IdFile', 'Nombre', 'RFC', 'CURP', 'PorcentajeParticipacion'
+        'IdFile', 'Nombre', 'RFC', 'CURP', 'PorcentajeParticipacion', 'IdLastUserUpdate'
     ];
 
     protected $useTimestamps = false;
@@ -27,15 +27,20 @@ class FilePldBeneficiarioFinalModel extends Model
         return $this->where('IdFile', $idFile)->orderBy('Id', 'ASC')->findAll();
     }
 
-    public function add(int $idFile, string $nombre, ?string $rfc = null, ?string $curp = null, ?float $porcentaje = null): ?int
+    /**
+     * @param int|null $idLastUserUpdate ID del usuario (requerido por FK en BD)
+     */
+    public function add(int $idFile, string $nombre, ?string $rfc = null, ?string $curp = null, ?float $porcentaje = null, ?int $idLastUserUpdate = null): ?int
     {
-        return $this->insert([
+        $data = [
             'IdFile' => $idFile,
             'Nombre' => $nombre,
             'RFC' => $rfc,
             'CURP' => $curp,
-            'PorcentajeParticipacion' => $porcentaje
-        ]);
+            'PorcentajeParticipacion' => $porcentaje,
+            'IdLastUserUpdate' => $idLastUserUpdate
+        ];
+        return $this->insert($data);
     }
 
     public function remove(int $id): bool
