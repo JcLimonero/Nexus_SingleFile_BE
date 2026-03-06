@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "BE - Backend (puerto 8083)",
+      "type": "shell",
+      "command": "php spark serve --host=0.0.0.0 --port=8083",
+      "options": {
+        "cwd": "${workspaceFolder}/BE",
+        "env": {}
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "nexfile"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "FE - Frontend (puerto 4200)",
+      "type": "shell",
+      "command": "npm start -- --port 4200",
+      "options": {
+        "cwd": "${workspaceFolder}/FE",
+        "env": {}
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "nexfile"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "DWH (puerto 8082)",
+      "type": "shell",
+      "command": "php spark serve --host=0.0.0.0 --port=8082",
+      "options": {
+        "cwd": "${workspaceFolder}/DWH",
+        "env": {}
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "nexfile"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Ejecutar proyecto (BE + FE + DWH)",
+      "dependsOn": [
+        "BE - Backend (puerto 8083)",
+        "FE - Frontend (puerto 4200)",
+        "DWH (puerto 8082)"
+      ],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

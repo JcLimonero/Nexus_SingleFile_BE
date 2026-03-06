@@ -296,7 +296,7 @@ class Miniportal extends BaseController
         }
 
         $idFile = (int) $tokenData['IdFile'];
-        $fileContainer = $this->request->getGet('expedient');
+        $fileContainer = $this->request->getGet('file');
         if (!$fileContainer) {
             return $this->response->setJSON([
                 'success' => false,

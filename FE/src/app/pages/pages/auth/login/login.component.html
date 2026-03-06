@@ -13,7 +13,7 @@
       </h4>
     </div>
 
-    <div [formGroup]="form" class="p-6 flex flex-col gap-4">
+    <form [formGroup]="form" class="p-6 flex flex-col gap-4" (ngSubmit)="send()">
       <div class="flex flex-col">
         <mat-form-field appearance="outline" class="flex-1">
           <mat-label>Correo electrónico</mat-label>
@@ -50,16 +50,15 @@
       </div>
 
       <button 
-        (click)="send()" 
         color="primary" 
         mat-raised-button 
-        type="button"
+        type="submit"
         [disabled]="loading || form.invalid">
         <span *ngIf="!loading">INICIAR SESIÓN</span>
         <span *ngIf="loading">INICIANDO...</span>
       </button>
 
 
-    </div>
+    </form>
   </div>
 </div>

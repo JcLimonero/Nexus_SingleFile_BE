@@ -44,6 +44,10 @@ cd BE/
    
    # Configuración de seguridad
    app.forceGlobalSecureRequests = true
+   
+   # URL del frontend para el enlace del miniportal (compartir por WhatsApp)
+   # IMPORTANTE: Sin esto, el enlace generado apuntará a localhost
+   miniportal.frontendUrl = 'https://tu-dominio.com/'
    ```
 
 #### Instalación y Configuración
@@ -212,11 +216,15 @@ tail -f /var/log/nginx/access.log
 - Verificar configuración de base de datos
 - Verificar logs del backend
 
-**3. Errores de CORS**
+**3. Miniportal redirige a localhost**
+- Configurar `miniportal.frontendUrl` en el `.env` del servidor de producción con la URL real del frontend (ej: `https://tu-dominio.com/` o `http://74.208.78.55:8102/`)
+- Sin esta variable, el enlace generado al compartir expediente apunta a `http://localhost:4200`
+
+**4. Errores de CORS**
 - Configurar CORS en el backend
 - Verificar headers de respuesta
 
-**4. Problemas de base de datos**
+**5. Problemas de base de datos**
 - Verificar credenciales en `.env`
 - Verificar que MySQL esté corriendo
 - Verificar permisos de usuario de base de datos

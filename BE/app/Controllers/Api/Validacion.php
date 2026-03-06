@@ -2764,6 +2764,8 @@ class Validacion extends BaseController
                 ])->setStatusCode(500);
             }
 
+            // URL del frontend donde está desplegada la app Angular (miniportal en /consulta/:token)
+            // Configurar miniportal.frontendUrl o app.frontendUrl en .env de producción
             $frontendUrl = env('miniportal.frontendUrl', env('app.frontendUrl', 'http://localhost:4200'));
             $miniportalUrl = rtrim($frontendUrl, '/') . '/consulta/' . $tokenData['Token'];
 

@@ -1,0 +1,24 @@
+---
+description: Ejecutar BE, FE y DWH cuando el usuario diga "ejecuta el proyecto"
+alwaysApply: true
+---
+
+# Ejecutar Proyecto NexFile
+
+Cuando el usuario diga **"ejecuta el proyecto"**, debes iniciar los tres servicios en **terminales separadas**, usando los puertos configurados en los archivos `.env`:
+
+## Puertos (desde BE/.env)
+
+| Servicio | Puerto | Comando |
+|----------|--------|---------|
+| **BE** (Backend) | 8083 | `cd BE && php spark serve --host=0.0.0.0 --port=8083` |
+| **FE** (Frontend) | 4200 | `cd FE && npm start -- --port 4200` |
+| **DWH** | 8082 | `cd DWH && php spark serve --host=0.0.0.0 --port=8082` |
+
+## Cómo ejecutar
+
+1. **BE**: Terminal 1 – Backend CodeIgniter
+2. **FE**: Terminal 2 – Frontend Angular (puerto 4200 para coincidir con miniportal.frontendUrl)
+3. **DWH**: Terminal 3 – API DWH Nexfile
+
+Ejecuta cada comando en una terminal distinta, en segundo plano (`is_background: true`) para que sigan corriendo.
