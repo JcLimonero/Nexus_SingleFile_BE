@@ -86,7 +86,7 @@ export class ReportesCumplimientoComponent implements OnInit {
   filterAnio: number | null = new Date().getFullYear();
   aniosDisponibles: number[] = [new Date().getFullYear() + 1, new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2];
 
-  displayedColumnsExpedientes = ['ndCliente', 'cliente', 'totalMonto'];
+  displayedColumnsExpedientes = ['ndCliente', 'cliente', 'totalMontoExpediente', 'totalMontoEfectivo', 'montoDevolver', 'requiereAtencion', 'reportarFinMes'];
   dataSourceExpedientes = new MatTableDataSource<ExpedienteAlertaPld>([]);
 
   constructor(

@@ -21,6 +21,8 @@ export interface ClienteDetalleDialogData {
   idClientHeader?: number;
   cliente: string;
   ndCliente: string;
+  /** Umbral AML en MXN (3210 UMA). Si efectivo > umbral, mostrar monto a devolver */
+  amlUmbral?: number;
 }
 
 interface GrupoExpedientes {
@@ -63,6 +65,9 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit, OnD
 
   /** Monto total en todo el tiempo, sin importar tipo de pago */
   montoTotalTodoTiempo = 0;
+
+  /** Monto a devolver al cliente cuando efectivo > 3210 UMA */
+  montoDevolver = 0;
 
   /** Fila expandida (por idFile para soportar múltiples tablas) */
   expandedElement: ExpedienteCliente | null = null;
@@ -136,6 +141,14 @@ export class ClienteDetalleDialogComponent implements OnInit, AfterViewInit, OnD
       const docs = exp.documentosLiquidacion ?? [];
       return sum + docs.reduce((s, d) => s + (Number(d.monto) || 0), 0);
     }, 0);
+
+    // Monto a devolver: excedente cuando efectivo > 3210 UMA
+    const umbral = this.data?.amlUmbral;
+    if (umbral != null && umbral > 0 && this.montoEfectivo6Meses > umbral) {
+      this.montoDevolver = this.montoEfectivo6Meses - umbral;
+    } else {
+      this.montoDevolver = 0;
+    }
   }
 
   private agruparPorCompaniaAgencia(expedientes: ExpedienteCliente[]): GrupoExpedientes[] {

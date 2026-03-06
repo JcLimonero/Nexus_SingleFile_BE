@@ -1,6 +1,6 @@
 <div class="reportes-cumplimiento min-h-screen bg-gray-50 p-4">
    <!-- Dashboard resumen -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6" *ngIf="dashboard || loadingDashboard">
     <mat-card *ngIf="loadingDashboard" class="col-span-full flex justify-center items-center p-8">
       <mat-spinner diameter="40"></mat-spinner>
     </mat-card>
@@ -9,9 +9,33 @@
         <div class="flex items-center gap-3">
           <mat-icon class="text-amber-600" style="font-size: 36px; width: 36px; height: 36px;">warning</mat-icon>
           <div>
-            <p class="text-sm text-gray-500">Clientes en alerta PLD</p>
+            <p class="text-sm text-gray-500">Efectivo &gt; 3210 UMA</p>
             <p class="text-2xl font-bold">{{ dashboard.clientesAlertaAml }}</p>
-            <p class="text-xs text-gray-400">Superan umbral {{ formatCurrency(dashboard.umbralAml) }} (3210 UMA / 6 meses)</p>
+            <p class="text-xs text-gray-400">Clientes que requieren devolver excedente en efectivo</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-orange-600" style="font-size: 36px; width: 36px; height: 36px;">person_search</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Requieren atención</p>
+            <p class="text-2xl font-bold">{{ dashboard.clientesRequierenAtencion ?? 0 }}</p>
+            <p class="text-xs text-gray-400">Clientes con expediente &gt; 3210 UMA (cualquier pago)</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card *ngIf="dashboard && !loadingDashboard">
+      <mat-card-content>
+        <div class="flex items-center gap-3">
+          <mat-icon class="text-red-600" style="font-size: 36px; width: 36px; height: 36px;">report</mat-icon>
+          <div>
+            <p class="text-sm text-gray-500">Reportar a fin de mes</p>
+            <p class="text-2xl font-bold">{{ dashboard.clientesReportarFinMes ?? 0 }}</p>
+            <p class="text-xs text-gray-400">Clientes con expediente &gt; 6420 UMA</p>
           </div>
         </div>
       </mat-card-content>
@@ -110,7 +134,14 @@
     <mat-tab label="Expedientes en alerta PLD">
       <mat-card class="mt-4">
         <mat-card-content>
-          <p class="text-sm text-gray-500 mb-4">Clientes cuyas operaciones superan 3210 UMA en los últimos 6 meses por razón social.</p>
+          <div class="mb-4 space-y-2">
+            <p class="text-sm text-gray-500">Clientes cuyas operaciones superan 3210 UMA en los últimos 6 meses. Condiciones PLD:</p>
+            <ul class="text-xs text-gray-600 list-disc list-inside space-y-1">
+              <li><strong>Efectivo &gt; 3210 UMA</strong> ({{ formatCurrency(dashboard?.umbralAml ?? 0) }}): Devolver excedente en efectivo al cliente</li>
+              <li><strong>Expediente &gt; 3210 UMA</strong> ({{ formatCurrency(dashboard?.umbralAml ?? 0) }}, cualquier tipo de pago): Cliente requiere atención</li>
+              <li><strong>Expediente &gt; 6420 UMA</strong> ({{ formatCurrency(dashboard?.umbralReportar ?? 0) }}): Reportar a fin de mes ante la autoridad</li>
+            </ul>
+          </div>
           <div *ngIf="loadingExpedientes" class="flex justify-center p-8">
             <mat-spinner diameter="40"></mat-spinner>
           </div>
@@ -123,9 +154,34 @@
               <th mat-header-cell *matHeaderCellDef>Cliente</th>
               <td mat-cell *matCellDef="let row">{{ row.cliente }}</td>
             </ng-container>
-            <ng-container matColumnDef="totalMonto">
-              <th mat-header-cell *matHeaderCellDef>Monto total (MXN)</th>
-              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalMonto) }}</td>
+            <ng-container matColumnDef="totalMontoExpediente">
+              <th mat-header-cell *matHeaderCellDef matTooltip="Suma de todos los pagos (6 meses)">Total expediente</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalMontoExpediente ?? row.totalMonto) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="totalMontoEfectivo">
+              <th mat-header-cell *matHeaderCellDef matTooltip="Solo depósito en efectivo">Efectivo</th>
+              <td mat-cell *matCellDef="let row">{{ formatCurrency(row.totalMontoEfectivo ?? row.totalMonto) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="montoDevolver">
+              <th mat-header-cell *matHeaderCellDef [matTooltip]="'Efectivo > 3210 UMA (' + formatCurrency(dashboard?.umbralAml ?? 0) + '): Excedente a devolver en efectivo al cliente'">Monto Efectivo Excedido</th>
+              <td mat-cell *matCellDef="let row">
+                <span *ngIf="(row.montoDevolver ?? 0) > 0" class="font-semibold text-amber-700" [matTooltip]="'Efectivo > 3210 UMA (' + formatCurrency(dashboard?.umbralAml ?? 0) + '): Devolver excedente en efectivo al cliente'">{{ formatCurrency(row.montoDevolver) }}</span>
+                <span *ngIf="!(row.montoDevolver ?? 0)" class="text-gray-400">—</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="requiereAtencion">
+              <th mat-header-cell *matHeaderCellDef [matTooltip]="'Expediente > 3210 UMA (' + formatCurrency(dashboard?.umbralAml ?? 0) + ', cualquier tipo de pago): Cliente requiere atención'">Requiere atención</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-icon *ngIf="row.requiereAtencion" class="text-orange-600 align-middle" [matTooltip]="'Expediente > 3210 UMA (' + formatCurrency(dashboard?.umbralAml ?? 0) + ', cualquier tipo de pago): Cliente requiere atención'">warning</mat-icon>
+                <span *ngIf="!row.requiereAtencion" class="text-gray-400">—</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="reportarFinMes">
+              <th mat-header-cell *matHeaderCellDef [matTooltip]="'Expediente > 6420 UMA (' + formatCurrency(dashboard?.umbralReportar ?? 0) + '): Reportar a fin de mes ante la autoridad'">Reportar</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-icon *ngIf="row.reportarFinMes" class="text-red-600 align-middle" [matTooltip]="'Expediente > 6420 UMA (' + formatCurrency(dashboard?.umbralReportar ?? 0) + '): Reportar a fin de mes ante la autoridad'">report</mat-icon>
+                <span *ngIf="!row.reportarFinMes" class="text-gray-400">—</span>
+              </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumnsExpedientes"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumnsExpedientes;"></tr>

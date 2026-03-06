@@ -5,13 +5,17 @@ import { ApiBaseService } from './api-base.service';
 
 export interface ReporteCumplimientoDashboard {
   clientesAlertaAml: number;
+  clientesRequierenAtencion?: number;
+  clientesReportarFinMes?: number;
   expedientesActivos: number;
   documentosPendientes: number;
   expedientesSinBeneficiario?: number;
   expedientesSinAviso?: number;
   umbralAml: number;
+  umbralReportar?: number;
   periodoMeses?: number;
   umbralUMA?: number;
+  umbralReportarUMA?: number;
   anio?: number;
 }
 
@@ -30,7 +34,12 @@ export interface ExpedienteAlertaPld {
   idCliente: number;
   ndCliente: string;
   cliente: string;
-  totalMonto: number;
+  totalMonto?: number;
+  totalMontoEfectivo?: number;
+  totalMontoExpediente?: number;
+  montoDevolver?: number;
+  requiereAtencion?: number | boolean;
+  reportarFinMes?: number | boolean;
   idCompany: number;
 }
 

@@ -190,7 +190,13 @@ export class ClientesComponent implements OnInit, OnDestroy {
     this.dialog.open(ClienteDetalleDialogComponent, {
       width: '800px',
       maxWidth: '95vw',
-      data: { idHeaderClient, idClientHeader: idHeaderClient, cliente: row.cliente, ndCliente: row.ndCliente }
+      data: {
+        idHeaderClient,
+        idClientHeader: idHeaderClient,
+        cliente: row.cliente,
+        ndCliente: row.ndCliente,
+        amlUmbral: this.amlUmbral ?? undefined
+      }
     });
   }
 

@@ -67,7 +67,9 @@ class ReportesCumplimiento extends BaseController
         try {
             $amlConfig = config(AML::class);
             $umbral = $amlConfig->getUmbralMonto();
+            $umbralReportar = $amlConfig->getUmbralReportarMonto();
             $vistaAML = $amlConfig->vistaMontos;
+            $vistaTotal = $amlConfig->vistaMontosTotal ?? 'view_client_company_amount_6m_total';
             $idAgencyIds = $this->parseIdAgencyIds();
             $idCompany = $this->request->getGet('idCompany');
             $limit = (int) ($this->request->getGet('limit') ?: 200);
@@ -79,18 +81,21 @@ class ReportesCumplimiento extends BaseController
                     c.id as idCliente,
                     MIN(ctr.id_dms) as ndCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
-                    aml.totalMonto,
-                    aml.idCompany
+                    COALESCE(aml.totalMonto, 0) as totalMontoEfectivo,
+                    tot.totalMonto as totalMontoExpediente,
+                    tot.idCompany,
+                    CASE WHEN COALESCE(aml.totalMonto, 0) >= ? THEN GREATEST(0, aml.totalMonto - ?) ELSE 0 END as montoDevolver,
+                    1 as requiereAtencion
                 FROM client c
                 INNER JOIN client_header hc ON hc.id_client = c.id
                 INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
                 INNER JOIN agency a_ag ON a_ag.id = ctr.id_agency
-                INNER JOIN {$vistaAML} aml ON aml.idCliente = c.id AND aml.totalMonto >= ?
+                INNER JOIN {$vistaTotal} tot ON tot.idCliente = c.id AND tot.idCompany = a_ag.id_company AND tot.totalMonto >= ?
+                LEFT JOIN {$vistaAML} aml ON aml.idCliente = c.id AND aml.idCompany = tot.idCompany
                 INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
                 WHERE 1=1
             ";
-            $params = [$umbral];
-
+            $params = [$umbral, $umbral, $umbral];
             if (!empty($idAgencyIds)) {
                 $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
                 $sql .= " AND ctr.id_agency IN ($placeholders)";
@@ -100,19 +105,63 @@ class ReportesCumplimiento extends BaseController
                 $sql .= " AND a_ag.id_company = ?";
                 $params[] = (int) $idCompany;
             }
+            $sql .= " GROUP BY c.id, tot.totalMonto, tot.idCompany, aml.totalMonto ORDER BY tot.totalMonto DESC";
 
-            $sql .= " GROUP BY c.id, aml.totalMonto, aml.idCompany ORDER BY aml.totalMonto DESC";
-
-            $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
-            $countQuery = $this->db->query($countSql, $params);
-            $total = (int) ($countQuery->getRow()->total ?? 0);
-
-            $sql .= " LIMIT ? OFFSET ?";
-            $params[] = $limit;
-            $params[] = $offset;
-
-            $query = $this->db->query($sql, $params);
-            $data = $query->getResultArray();
+            try {
+                $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
+                $countQuery = $this->db->query($countSql, $params);
+                $total = (int) ($countQuery->getRow()->total ?? 0);
+                $sql .= " LIMIT ? OFFSET ?";
+                $params[] = $limit;
+                $params[] = $offset;
+                $query = $this->db->query($sql, $params);
+                $data = $query->getResultArray();
+                foreach ($data as &$row) {
+                    $totalExp = (float) ($row['totalMontoExpediente'] ?? 0);
+                    $row['reportarFinMes'] = $totalExp >= $umbralReportar ? 1 : 0;
+                }
+                unset($row);
+            } catch (\Throwable $e) {
+                // Vista view_client_company_amount_6m_total no existe: fallback a solo efectivo
+                $sql = "
+                    SELECT
+                        c.id as idCliente,
+                        MIN(ctr.id_dms) as ndCliente,
+                        ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                        aml.totalMonto as totalMontoEfectivo,
+                        aml.totalMonto as totalMontoExpediente,
+                        aml.idCompany,
+                        CASE WHEN aml.totalMonto >= ? THEN GREATEST(0, aml.totalMonto - ?) ELSE 0 END as montoDevolver,
+                        1 as requiereAtencion,
+                        0 as reportarFinMes
+                    FROM client c
+                    INNER JOIN client_header hc ON hc.id_client = c.id
+                    INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                    INNER JOIN agency a_ag ON a_ag.id = ctr.id_agency
+                    INNER JOIN {$vistaAML} aml ON aml.idCliente = c.id AND aml.totalMonto >= ?
+                    INNER JOIN expedient f ON f.id_client = c.id AND f.id_agency = ctr.id_agency
+                    WHERE 1=1
+                ";
+                $params = [$umbral, $umbral, $umbral];
+                if (!empty($idAgencyIds)) {
+                    $placeholders = implode(',', array_fill(0, count($idAgencyIds), '?'));
+                    $sql .= " AND ctr.id_agency IN ($placeholders)";
+                    $params = array_merge($params, $idAgencyIds);
+                }
+                if ($idCompany !== null && $idCompany !== '') {
+                    $sql .= " AND a_ag.id_company = ?";
+                    $params[] = (int) $idCompany;
+                }
+                $sql .= " GROUP BY c.id, aml.totalMonto, aml.idCompany ORDER BY aml.totalMonto DESC";
+                $countSql = "SELECT COUNT(*) as total FROM ($sql) AS sub";
+                $countQuery = $this->db->query($countSql, $params);
+                $total = (int) ($countQuery->getRow()->total ?? 0);
+                $sql .= " LIMIT ? OFFSET ?";
+                $params[] = $limit;
+                $params[] = $offset;
+                $query = $this->db->query($sql, $params);
+                $data = $query->getResultArray();
+            }
 
             return $this->response->setJSON([
                 'success' => true,
@@ -122,6 +171,9 @@ class ReportesCumplimiento extends BaseController
                     'limit' => $limit,
                     'offset' => $offset,
                     'umbral' => $umbral,
+                    'umbralReportar' => $umbralReportar,
+                    'umbralUMA' => $amlConfig->getUmbralUMA(),
+                    'umbralReportarUMA' => $amlConfig->getUmbralReportarUMA(),
                     'periodoMeses' => $amlConfig->periodoMeses
                 ]
             ]);
@@ -587,7 +639,10 @@ class ReportesCumplimiento extends BaseController
             $vistaAML = $amlConfig->vistaMontos;
             $idCompany = $this->request->getGet('idCompany');
 
-            // Conteo de clientes con alerta AML (últimos 6 meses, umbral 3210 UMA)
+            $vistaTotal = $amlConfig->vistaMontosTotal ?? 'view_client_company_amount_6m_total';
+            $umbralReportar = $amlConfig->getUmbralReportarMonto();
+
+            // Conteo de clientes con alerta AML (efectivo > 3210 UMA en últimos 6 meses)
             $sqlAml = "SELECT COUNT(DISTINCT idCliente) as total FROM {$vistaAML} WHERE totalMonto >= ?";
             $paramsAml = [$umbral];
             if ($idCompany !== null && $idCompany !== '') {
@@ -596,6 +651,31 @@ class ReportesCumplimiento extends BaseController
             }
             $qAml = $this->db->query($sqlAml, $paramsAml);
             $clientesAlertaAml = (int) ($qAml->getRow()->total ?? 0);
+
+            // Clientes que requieren atención y a reportar (requieren vista view_client_company_amount_6m_total)
+            $clientesRequierenAtencion = 0;
+            $clientesReportarFinMes = 0;
+            try {
+                $sqlReq = "SELECT COUNT(DISTINCT idCliente) as total FROM {$vistaTotal} WHERE totalMonto >= ?";
+                $paramsReq = [$umbral];
+                if ($idCompany !== null && $idCompany !== '') {
+                    $sqlReq .= " AND idCompany = ?";
+                    $paramsReq[] = (int) $idCompany;
+                }
+                $qReq = $this->db->query($sqlReq, $paramsReq);
+                $clientesRequierenAtencion = (int) ($qReq->getRow()->total ?? 0);
+
+                $sqlRep = "SELECT COUNT(DISTINCT idCliente) as total FROM {$vistaTotal} WHERE totalMonto >= ?";
+                $paramsRep = [$umbralReportar];
+                if ($idCompany !== null && $idCompany !== '') {
+                    $sqlRep .= " AND idCompany = ?";
+                    $paramsRep[] = (int) $idCompany;
+                }
+                $qRep = $this->db->query($sqlRep, $paramsRep);
+                $clientesReportarFinMes = (int) ($qRep->getRow()->total ?? 0);
+            } catch (\Throwable $e) {
+                // Vista view_client_company_amount_6m_total no existe: ejecutar migración 063
+            }
 
             // Total de expedientes activos (no cancelados) en el año
             $sqlFiles = "SELECT COUNT(*) as total FROM expedient f INNER JOIN agency a ON f.id_agency = a.id WHERE YEAR(f.registration_date) = ? AND f.id_current_state != 5";
@@ -657,13 +737,17 @@ class ReportesCumplimiento extends BaseController
                 'success' => true,
                 'data' => [
                     'clientesAlertaAml' => $clientesAlertaAml,
+                    'clientesRequierenAtencion' => $clientesRequierenAtencion,
+                    'clientesReportarFinMes' => $clientesReportarFinMes,
                     'expedientesActivos' => $expedientesActivos,
                     'documentosPendientes' => $documentosPendientes,
                     'expedientesSinBeneficiario' => $expedientesSinBeneficiario,
                     'expedientesSinAviso' => $expedientesSinAviso,
                     'umbralAml' => $umbral,
+                    'umbralReportar' => $umbralReportar,
                     'periodoMeses' => $amlConfig->periodoMeses,
                     'umbralUMA' => $amlConfig->getUmbralUMA(),
+                    'umbralReportarUMA' => $amlConfig->getUmbralReportarUMA(),
                     'anio' => (int) date('Y')
                 ]
             ]);
