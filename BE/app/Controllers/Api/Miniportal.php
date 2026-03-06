@@ -360,7 +360,7 @@ class Miniportal extends BaseController
         }
 
         $data = $this->request->getJSON(true) ?? $this->request->getPost();
-        $idFileDocument = (int) ($data['idFileDocument'] ?? $data['idDocumentFile'] ?? 0);
+        $idFileDocument = (int) ($data['idFileDocument'] ?? $data['idDocumentFile'] ?? $data['idDocumentByFile'] ?? 0);
 
         if (!$idFileDocument) {
             return $this->response->setJSON([
@@ -401,17 +401,21 @@ class Miniportal extends BaseController
         }
 
         try {
-            $this->db->table('file_pld_documento_aprobado')->insert([
-                'IdFileDocument' => $idFileDocument,
-                'IdFile' => $idFile,
-                'AprobadoCliente' => 1,
-                'FechaAprobacion' => date('Y-m-d H:i:s')
+            $this->db->table('file_pld_approved_document')->insert([
+                'id_document_by_file' => $idFileDocument,
+                'id_file' => $idFile,
+                'approved_by_client' => 1,
+                'approval_date' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
-
+            log_message('error', 'Miniportal::approveDocument - ' . $e->getMessage());
+            $msg = 'Error al registrar aprobación';
+            if (ENVIRONMENT !== 'production') {
+                $msg .= ': ' . $e->getMessage();
+            }
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al registrar aprobación'
+                'message' => $msg
             ])->setStatusCode(500);
         }
 
@@ -427,10 +431,10 @@ class Miniportal extends BaseController
     private function isDocumentoAprobadoPorCliente(int $idFileDocument, int $idFile): bool
     {
         try {
-            $row = $this->db->table('file_pld_documento_aprobado')
-                ->where('IdFileDocument', $idFileDocument)
-                ->where('IdFile', $idFile)
-                ->where('AprobadoCliente', 1)
+            $row = $this->db->table('file_pld_approved_document')
+                ->where('id_document_by_file', $idFileDocument)
+                ->where('id_file', $idFile)
+                ->where('approved_by_client', 1)
                 ->get()
                 ->getRowArray();
             return !empty($row);
@@ -467,7 +471,7 @@ class Miniportal extends BaseController
                 INNER JOIN document_type dt ON dbf.id_document_type = dt.id
                 INNER JOIN file_status fs ON dt.id_process_type = fs.id
                 INNER JOIN document_file_status dfs ON dbf.id_current_status = dfs.id
-                LEFT JOIN file_pld_documento_aprobado ap ON ap.id_file_document = dbf.id AND ap.id_file = dbf.id_file AND ap.aprobado_cliente = 1
+                LEFT JOIN file_pld_approved_document ap ON ap.id_document_by_file = dbf.id AND ap.id_file = dbf.id_file AND ap.approved_by_client = 1
                 WHERE dbf.id_file = ?
                 AND dbf.enabled = 1
                 AND dt.available_to_client = 1
