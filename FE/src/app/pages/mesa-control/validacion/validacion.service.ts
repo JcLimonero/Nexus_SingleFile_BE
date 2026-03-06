@@ -103,7 +103,6 @@ export interface DatosIdentificacion {
   providedIn: 'root'
 })
 export class ValidacionService {
-  private apiUrl = environment.apiBaseUrl;
   // BehaviorSubjects para mantener el estado de los datos
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   private documentosSubject = new BehaviorSubject<Documento[]>([]);
@@ -162,7 +161,8 @@ export class ValidacionService {
     params = params.set('page', '1');
     params = params.set('limit', '10000'); // Obtener más registros para paginación local
 
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
+    const url = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/clientes`;
+    return this.http.get<any>(url, { params }).pipe(
       map(response => {
 
         
@@ -192,7 +192,7 @@ export class ValidacionService {
     let params = new HttpParams();
     params = params.set('idFile', idFile.toString());
 
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/documentos`, { params }).pipe(
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/documentos`, { params }).pipe(
       map(response => {
         if (response && response.success && response.data) {
           const idLiq = response.idDocumentTypeLiquidacion != null ? Number(response.idDocumentTypeLiquidacion) : null;
@@ -214,7 +214,7 @@ export class ValidacionService {
    * Cargar procesos disponibles
    */
   cargarProcesos(): Observable<any[]> {
-    const url = `${this.apiUrl}/api/process`;
+    const url = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/process`;
 
     return this.http.get<any>(url).pipe(
       map((response: any) => {
@@ -235,7 +235,7 @@ export class ValidacionService {
    * Cargar fases disponibles
    */
   cargarFases(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/api/validacion/fases`);
+    return this.http.get<any[]>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/validacion/fases`);
   }
 
   /**
@@ -251,7 +251,7 @@ export class ValidacionService {
       params = params.set('idProcess', idProcess.toString());
     }
 
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/diagnostico`, { params });
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/diagnostico`, { params });
   }
 
   /**
@@ -259,7 +259,7 @@ export class ValidacionService {
    * Solo administrador.
    */
   getExpedientesCorregir(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/expedientes-corregir`);
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/expedientes-corregir`);
   }
 
   /**
@@ -267,7 +267,7 @@ export class ValidacionService {
    * Solo administrador.
    */
   autoRepararSiguientes10(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/expedientes-corregir/auto-reparar`);
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/expedientes-corregir/auto-reparar`);
   }
 
   /**
@@ -275,7 +275,7 @@ export class ValidacionService {
    * Solo administrador.
    */
   autoRepararTodos(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/expedientes-corregir/auto-reparar`, {
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/expedientes-corregir/auto-reparar`, {
       params: { todos: 1 }
     });
   }
@@ -284,7 +284,7 @@ export class ValidacionService {
    * Reparar relación Client_Total_Relation faltante para un File
    */
   repararRelacion(idFile: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/reparar-relacion`, {
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/reparar-relacion`, {
       idFile: idFile
     });
   }
@@ -294,7 +294,7 @@ export class ValidacionService {
    * Para expedientes con tipoReparacion = 'repairClientRelation'
    */
   repairClientRelation(ndDMS: string, idAgency: number, idExpediente: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/files/repair-client-relation`, {
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/files/repair-client-relation`, {
       ndDMS,
       idAgency,
       idExpediente
@@ -309,7 +309,7 @@ export class ValidacionService {
       idDocumentByFile: idDocumentByFile
     };
 
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/validar-documento`, data).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/validar-documento`, data).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -327,7 +327,7 @@ export class ValidacionService {
    * Obtener datos del cliente del expediente (para copiar como beneficiario)
    */
   getClienteDetalle(idFile: number): Observable<{ cliente: string; rfc: string | null; curp: string | null }> {
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/cliente-detalle`, {
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/cliente-detalle`, {
       params: { idFile }
     }).pipe(
       map(response => {
@@ -341,7 +341,7 @@ export class ValidacionService {
    * Obtener beneficiarios finales de un expediente
    */
   getBeneficiarios(idFile: number): Observable<any[]> {
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/beneficiarios`, {
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/beneficiarios`, {
       params: { idFile }
     }).pipe(
       map(response => response?.success && response?.data ? response.data : []),
@@ -353,7 +353,7 @@ export class ValidacionService {
    * Agregar beneficiario final
    */
   addBeneficiario(idFile: number, data: { nombre: string; rfc?: string; curp?: string; porcentajeParticipacion?: number }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/beneficiarios`, {
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/beneficiarios`, {
       idFile,
       nombre: data.nombre,
       rfc: data.rfc || null,
@@ -371,7 +371,7 @@ export class ValidacionService {
    * Eliminar beneficiario final
    */
   deleteBeneficiario(id: number): Observable<void> {
-    return this.http.delete<any>(`${this.apiUrl}/api/clients-validation/beneficiarios/${id}`).pipe(
+    return this.http.delete<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/beneficiarios/${id}`).pipe(
       map(response => {
         if (!response?.success) throw new Error(response?.message || 'Error al eliminar');
       })
@@ -382,7 +382,7 @@ export class ValidacionService {
    * Generar token y URL para Miniportal (compartir por WhatsApp)
    */
   generarTokenMiniportal(idFile: number): Observable<{ token: string; url: string; idFile: number }> {
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/generar-token-miniportal`, { idFile }).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/generar-token-miniportal`, { idFile }).pipe(
       map(response => {
         if (response?.success && response?.data) {
           return response.data;
@@ -400,7 +400,7 @@ export class ValidacionService {
       idDocumentByFile: idDocumentByFile
     };
 
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/preparar-documento`, data).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/preparar-documento`, data).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -446,7 +446,7 @@ export class ValidacionService {
       data.fecha_pago = fechaPago;
     }
 
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/aprobar-documento`, data).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/aprobar-documento`, data).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -464,7 +464,7 @@ export class ValidacionService {
    * Rechazar un documento
    */
   rechazarDocumento(documentoId: string, motivo: string, comentario?: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/validacion/rechazar`, {
+    return this.http.post(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/validacion/rechazar`, {
       documentoId,
       motivo,
       comentario
@@ -475,7 +475,7 @@ export class ValidacionService {
    * Descargar archivo
    */
   descargarArchivo(documentoId: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/api/validacion/descargar/${documentoId}`, {
+    return this.http.get(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/validacion/descargar/${documentoId}`, {
       responseType: 'blob'
     });
   }
@@ -484,7 +484,7 @@ export class ValidacionService {
    * Cancelar proceso
    */
   cancelarProceso(clienteId: string, motivo: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/validacion/cancelar`, {
+    return this.http.post(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/validacion/cancelar`, {
       clienteId,
       motivo
     });
@@ -500,7 +500,7 @@ export class ValidacionService {
       comentario: comentario
     };
 
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/cancelar-pedido`, data).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/cancelar-pedido`, data).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -525,7 +525,7 @@ export class ValidacionService {
       comentario: comentario
     };
 
-    return this.http.post<any>(`${this.apiUrl}/api/clients-validation/excepcion-pedido`, data).pipe(
+    return this.http.post<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/excepcion-pedido`, data).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -548,7 +548,7 @@ export class ValidacionService {
       clienteId: clienteId
     };
 
-    return this.http.delete<any>(`${this.apiUrl}/api/clients-validation/eliminar-pedido`, { body: data }).pipe(
+    return this.http.delete<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/eliminar-pedido`, { body: data }).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -572,7 +572,7 @@ export class ValidacionService {
       nuevoIdCurrentState: nuevoIdCurrentState
     };
 
-    return this.http.put<any>(`${this.apiUrl}/api/clients-validation/cambiar-estatus`, data).pipe(
+    return this.http.put<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/cambiar-estatus`, data).pipe(
       map(response => {
         if (response && response.success) {
           return response.data;
@@ -591,7 +591,7 @@ export class ValidacionService {
    * Crear excepción (método legacy)
    */
   crearExcepcion(clienteId: string, datos: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/validacion/excepcion`, {
+    return this.http.post(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/validacion/excepcion`, {
       clienteId,
       ...datos
     });
@@ -616,7 +616,7 @@ export class ValidacionService {
    * Obtener datos de identificación para edición (merge client_identification_data + client)
    */
   getDatosIdentificacion(idFile: number): Observable<DatosIdentificacion> {
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/datos-identificacion`, {
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/datos-identificacion`, {
       params: { idFile: idFile.toString() }
     }).pipe(
       map(response => {
@@ -632,7 +632,7 @@ export class ValidacionService {
   saveDatosIdentificacion(idClient: number, data: Partial<DatosIdentificacion>, idFile?: number): Observable<{ idClient: number }> {
     const body: Record<string, unknown> = { idClient, ...data };
     if (idFile) body['idFile'] = idFile;
-    return this.http.put<any>(`${this.apiUrl}/api/clients-validation/datos-identificacion`, body).pipe(
+    return this.http.put<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/datos-identificacion`, body).pipe(
       map(response => {
         if (response?.success && response?.data) return response.data;
         throw new Error(response?.message || 'Error al guardar datos de identificación');
@@ -644,7 +644,7 @@ export class ValidacionService {
    * Imprimir identificación de cliente - genera y descarga PDF vía PDF Generator API
    */
   imprimirIdentificacionCliente(idFile: number): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/api/clients-validation/imprimir-identificacion`, {
+    return this.http.get(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/imprimir-identificacion`, {
       params: { idFile: idFile.toString() },
       responseType: 'blob'
     });
@@ -658,7 +658,7 @@ export class ValidacionService {
     if (filtros.agencia) params = params.set('id', filtros.agencia);
     if (filtros.proceso) params = params.set('idProcess', filtros.proceso);
 
-    return this.http.get<any>(`${this.apiUrl}/api/clients-validation/estadisticas`, { params }).pipe(
+    return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/estadisticas`, { params }).pipe(
       map(response => {
         if (response && response.success && response.data) {
           return response.data;

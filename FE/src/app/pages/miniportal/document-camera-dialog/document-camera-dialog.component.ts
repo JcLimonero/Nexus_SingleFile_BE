@@ -129,13 +129,35 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
 
   private async startCamera(): Promise<void> {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      if (!window.isSecureContext) {
+        throw new Error('El acceso a la cámara requiere HTTPS. Abre la página con https://');
+      }
+      const mediaDevices = navigator.mediaDevices;
+      if (!mediaDevices || !mediaDevices.getUserMedia) {
+        throw new Error(
+          'Tu navegador no soporta el acceso a la cámara. En Safari: verifica que no tengas activado el "Modo de bloqueo" (Ajustes > Privacidad).'
+        );
+      }
+
+      const constraints: MediaStreamConstraints[] = [
+        { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } },
+        { video: { facingMode: 'environment' } },
+        { video: true }
+      ];
+
+      let lastError: Error | null = null;
+      for (const c of constraints) {
+        try {
+          this.stream = await mediaDevices.getUserMedia(c);
+          break;
+        } catch (e) {
+          lastError = e instanceof Error ? e : new Error(String(e));
         }
-      });
+      }
+
+      if (!this.stream) {
+        throw lastError ?? new Error('No se pudo acceder a la cámara');
+      }
 
       this.status = 'camera';
       this.cdr.markForCheck();
@@ -143,9 +165,18 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
       setTimeout(() => this.startHighlightLoop(), 300);
     } catch (err) {
       this.status = 'error';
-      this.errorMessage = err instanceof Error ? err.message : 'No se pudo acceder a la cámara. Verifica los permisos.';
+      const msg = err instanceof Error ? err.message : 'No se pudo acceder a la cámara. Verifica los permisos.';
+      this.errorMessage = this.getSafariFriendlyMessage(msg);
       this.cdr.markForCheck();
     }
+  }
+
+  private getSafariFriendlyMessage(original: string): string {
+    const isSafari = /Safari|iPhone|iPad|iPod/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
+    if (isSafari && (original.includes('Permission') || original.includes('NotAllowed') || original.includes('NotFound'))) {
+      return 'No se pudo acceder a la cámara. En Safari: Ajustes > Safari > Cámara > Permite, o desactiva el Modo de bloqueo.';
+    }
+    return original;
   }
 
   private startHighlightLoop(): void {
@@ -178,7 +209,12 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
 
     video.srcObject = this.stream;
     video.onloadedmetadata = () => {
-      video.play();
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Safari puede requerir interacción del usuario; el video puede funcionar igual
+        });
+      }
       this.highlightInterval = setInterval(draw, 80);
     };
   }
