@@ -1,7 +1,8 @@
 
 venv-pillow/
+!FE/dist/
 !FE/dist/*
-
+!FE/dist/favicon.ico
 # ignore local FE overrides
 FE/src/environments/environment.ts
 
