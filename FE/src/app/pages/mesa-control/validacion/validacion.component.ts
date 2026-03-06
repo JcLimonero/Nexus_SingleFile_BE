@@ -195,9 +195,40 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Métodos para las acciones del menú
   onDescargarArchivo(cliente: any): void {
-
-    // Implementar lógica de descarga
-    this.snackBar.open(`Descargando archivo para ${cliente.cliente}`, 'Cerrar', { duration: 3000 });
+    const idFile = cliente?.idFile ?? cliente?.id;
+    if (!idFile) {
+      this.snackBar.open('No se pudo identificar el expediente', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    this.snackBar.open(`Descargando archivos del expediente...`, 'Cerrar', { duration: 2000 });
+    this.validacionService.descargarExpedienteZip(idFile)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `expediente_${idFile}_${new Date().toISOString().split('T')[0]}.zip`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          this.snackBar.open('Archivos descargados correctamente', 'Cerrar', { duration: 3000 });
+        },
+        error: (err) => {
+          const defaultMsg = 'Error al descargar los archivos';
+          if (err?.error instanceof Blob) {
+            err.error.text().then((text: string) => {
+              try {
+                const json = JSON.parse(text);
+                this.snackBar.open(json?.message ?? defaultMsg, 'Cerrar', { duration: 5000 });
+              } catch {
+                this.snackBar.open(defaultMsg, 'Cerrar', { duration: 5000 });
+              }
+            }).catch(() => this.snackBar.open(defaultMsg, 'Cerrar', { duration: 5000 }));
+          } else {
+            this.snackBar.open(err?.error?.message ?? err?.message ?? defaultMsg, 'Cerrar', { duration: 5000 });
+          }
+        }
+      });
   }
 
   onImprimirIdentificacion(cliente: any): void {

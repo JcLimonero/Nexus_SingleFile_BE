@@ -3113,4 +3113,108 @@ class Validacion extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
         }
     }
+
+    /**
+     * Descargar todos los archivos del expediente en un ZIP
+     * GET /api/clients-validation/descargar-expediente-zip/(:num)
+     */
+    public function descargarExpedienteZip($idFile)
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+            }
+            $idFile = (int) $idFile;
+            if (!$idFile) {
+                return $this->response->setJSON(['success' => false, 'message' => 'ID de expediente inválido'])->setStatusCode(400);
+            }
+
+            $docs = $this->db->table('file_document dbf')
+                ->select('dbf.id_document_container as documentContainer, p.name as proceso, fs.name as fase, dt.name as tipoDocumento, dbf.name as documento')
+                ->join('expedient f', 'dbf.id_file = f.id', 'inner')
+                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
+                ->join('file_status fs', 'dt.id_process_type = fs.id', 'inner')
+                ->where('dbf.id_file', $idFile)
+                ->where('dbf.enabled', 1)
+                ->where('dbf.id_document_container IS NOT NULL')
+                ->where('dbf.id_document_container !=', '')
+                ->orderBy('p.name', 'ASC')
+                ->orderBy('fs.name', 'ASC')
+                ->orderBy('dt.name', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            if (empty($docs)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No hay documentos con archivos para descargar en este expediente'
+                ])->setStatusCode(404);
+            }
+
+            $b2 = new \App\Controllers\Api\BackblazeDirectUpload();
+            $zip = new \ZipArchive();
+            $tmpPath = sys_get_temp_dir() . '/expediente_' . $idFile . '_' . uniqid() . '.zip';
+            if ($zip->open($tmpPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo crear el archivo ZIP'
+                ])->setStatusCode(500);
+            }
+
+            $usedNames = [];
+            foreach ($docs as $idx => $doc) {
+                $container = $doc['documentContainer'] ?? $doc['documentcontainer'] ?? ($doc['id_document_container'] ?? null);
+                if (empty($container)) {
+                    continue;
+                }
+                $fetched = $b2->fetchFileContent($container);
+                if (!$fetched || empty($fetched['content'])) {
+                    continue;
+                }
+                $base = preg_replace('/[^a-zA-Z0-9_-]/', '_', $doc['proceso'] ?? '') . '_' .
+                    preg_replace('/[^a-zA-Z0-9_-]/', '_', $doc['fase'] ?? '') . '_' .
+                    preg_replace('/[^a-zA-Z0-9_-]/', '_', $doc['tipoDocumento'] ?? $doc['documento'] ?? 'doc');
+                $ext = pathinfo($fetched['fileName'], PATHINFO_EXTENSION);
+                if ($ext) {
+                    $base .= '.' . $ext;
+                } else {
+                    $base .= '.' . (pathinfo($doc['documento'] ?? 'doc', PATHINFO_EXTENSION) ?: 'pdf');
+                }
+                $zipName = $base;
+                $count = 0;
+                while (isset($usedNames[$zipName])) {
+                    $count++;
+                    $zipName = pathinfo($base, PATHINFO_FILENAME) . '_' . $count . (pathinfo($base, PATHINFO_EXTENSION) ? '.' . pathinfo($base, PATHINFO_EXTENSION) : '');
+                }
+                $usedNames[$zipName] = true;
+                $zip->addFromString($zipName, $fetched['content']);
+            }
+            $numFiles = $zip->numFiles;
+            $zip->close();
+
+            if ($numFiles === 0) {
+                @unlink($tmpPath);
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudieron cargar los archivos desde el almacenamiento'
+                ])->setStatusCode(500);
+            }
+
+            $zipContent = file_get_contents($tmpPath);
+            @unlink($tmpPath);
+            $fileName = 'expediente_' . $idFile . '_' . date('Y-m-d') . '.zip';
+            return $this->response
+                ->setHeader('Content-Type', 'application/zip')
+                ->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                ->setBody($zipContent);
+        } catch (\Exception $e) {
+            error_log("Validacion::descargarExpedienteZip - " . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al generar el ZIP: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
 }

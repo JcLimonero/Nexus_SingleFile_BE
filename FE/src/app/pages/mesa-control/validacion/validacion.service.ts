@@ -472,12 +472,22 @@ export class ValidacionService {
   }
 
   /**
-   * Descargar archivo
+   * Descargar archivo individual (por ID de documento)
    */
   descargarArchivo(documentoId: string): Observable<Blob> {
     return this.http.get(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/validacion/descargar/${documentoId}`, {
       responseType: 'blob'
     });
+  }
+
+  /**
+   * Descargar todos los archivos del expediente en un ZIP
+   */
+  descargarExpedienteZip(idFile: number): Observable<Blob> {
+    return this.http.get(
+      `${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/descargar-expediente-zip/${idFile}`,
+      { responseType: 'blob' }
+    );
   }
 
   /**

@@ -293,6 +293,50 @@ class BackblazeDirectUpload extends BaseController
         }
     }
 
+    /**
+     * Obtener contenido de un archivo desde Backblaze (para uso interno, ej. ZIP de expediente).
+     * @return array{content: string, fileName: string}|null null si falla
+     */
+    public function fetchFileContent(string $fileId): ?array
+    {
+        $config = $this->getBackblazeConfig();
+        if (!$config) {
+            return null;
+        }
+        $auth = $this->b2AuthorizeAccount($config['keyId'], $config['applicationKey']);
+        if (!$auth) {
+            return null;
+        }
+        $downloadUrl = $auth['downloadUrl'] ?? $auth['apiUrl'];
+        $url = rtrim($downloadUrl, '/') . '/b2api/v1/b2_download_file_by_id?fileId=' . rawurlencode($fileId);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['Authorization: ' . ($auth['authorizationToken'] ?? '')],
+            CURLOPT_HEADER => true,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $response = curl_exec($ch);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($httpCode !== 200) {
+            return null;
+        }
+        $headers = substr($response, 0, $headerSize);
+        $body = substr($response, $headerSize);
+        $fileName = 'documento';
+        foreach (explode("\r\n", $headers) as $line) {
+            if (stripos($line, 'X-Bz-File-Name:') === 0) {
+                $fullPath = trim(substr($line, 15));
+                $fullPath = rawurldecode($fullPath);
+                $fileName = basename($fullPath) ?: 'documento';
+                break;
+            }
+        }
+        return ['content' => $body, 'fileName' => $fileName];
+    }
+
     private function getBackblazeConfig(): ?array
     {
         $db = \Config\Database::connect();

@@ -425,6 +425,7 @@ $routes->group('documents', function($routes) {
         $routes->get('beneficiarios', 'Validacion::getBeneficiarios');
         $routes->post('beneficiarios', 'Validacion::addBeneficiario');
         $routes->delete('beneficiarios/(:num)', 'Validacion::deleteBeneficiario/$1');
+        $routes->get('descargar-expediente-zip/(:num)', 'Validacion::descargarExpedienteZip/$1');
     });
 
     // Rutas de búsqueda de clientes usando vista

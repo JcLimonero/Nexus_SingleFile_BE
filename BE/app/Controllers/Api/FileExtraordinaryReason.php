@@ -37,7 +37,7 @@ class FileExtraordinaryReason extends ResourceController
                 'success' => true,
                 'message' => 'Motivos extraordinarios obtenidos exitosamente',
                 'data' => [
-                    'file_exception_reason' => $motivos,
+                    'file_extraordinary_reasons' => $motivos,
                     'total' => $total
                 ]
             ]);
@@ -92,25 +92,18 @@ class FileExtraordinaryReason extends ResourceController
                 ])->setStatusCode(400);
             }
 
-            // Generar ID único manualmente (ya que la tabla no tiene AUTO_INCREMENT)
-            $maxId = $this->fileExtraordinaryReasonModel->select('Id')->orderBy('Id', 'DESC')->first();
-            $data['Id'] = ($maxId ? $maxId['Id'] : 0) + 1;
+            // Mapear a snake_case para la BD
+            $insertData = [
+                'name' => $data['Name'],
+                'id_type_reason' => (int)$data['IdTypeReason'],
+                'enabled' => (int)($data['Enabled'] ?? 1),
+                'id_last_user_update' => (int)($data['IdLastUserUpdate'] ?? 0)
+            ];
             
-            error_log('Max ID encontrado: ' . ($maxId ? $maxId['Id'] : 'NULL'));
-            error_log('Nuevo ID generado: ' . $data['Id']);
-            error_log('Tipo de ID: ' . gettype($data['Id']));
+            error_log('Datos preparados para inserción: ' . json_encode($insertData));
             
-            // Establecer valores por defecto
-            $data['Enabled'] = (int)($data['Enabled'] ?? 1);
-            $data['IdTypeReason'] = (int)$data['IdTypeReason'];
-            $data['RegistrationDate'] = date('Y-m-d H:i:s');
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
-            $data['IdLastUserUpdate'] = (int)($data['IdLastUserUpdate'] ?? 0);
-            
-            error_log('Datos preparados para inserción: ' . json_encode($data));
-            
-            // Insertar el nuevo motivo con ID generado manualmente
-            $result = $this->fileExtraordinaryReasonModel->insert($data);
+            // Insertar el nuevo motivo (AUTO_INCREMENT genera el id)
+            $result = $this->fileExtraordinaryReasonModel->insert($insertData);
             
             error_log('Resultado de inserción: ' . json_encode($result));
             
@@ -121,9 +114,9 @@ class FileExtraordinaryReason extends ResourceController
                     'success' => true,
                     'message' => 'Motivo extraordinario creado exitosamente',
                     'data' => [
-                        'id' => $data['Id'] ?? 'No definido',
-                        'name' => $data['Name'] ?? 'No definido',
-                        'id_type_reason' => $data['IdTypeReason'] ?? 0
+                        'id' => $result,
+                        'name' => $insertData['name'] ?? 'No definido',
+                        'id_type_reason' => $insertData['id_type_reason'] ?? 0
                     ]
                 ];
                 
@@ -144,7 +137,7 @@ class FileExtraordinaryReason extends ResourceController
                     'message' => $errorMessage,
                     'debug_info' => [
                         'db_error' => $dbError,
-                        'data_sent' => $data,
+                        'data_sent' => $insertData,
                         'insert_result' => $result
                     ]
                 ])->setStatusCode(500);
@@ -241,8 +234,8 @@ class FileExtraordinaryReason extends ResourceController
             }
 
             // Verificar si ya existe otro motivo con el mismo nombre
-            $duplicateReason = $this->fileExtraordinaryReasonModel->where('Name', $data['Name'])
-                                                    ->where('Id !=', $id)
+            $duplicateReason = $this->fileExtraordinaryReasonModel->where('name', $data['Name'])
+                                                    ->where('id !=', $id)
                                                     ->first();
             if ($duplicateReason) {
                 return $this->response->setJSON([
@@ -251,11 +244,20 @@ class FileExtraordinaryReason extends ResourceController
                 ])->setStatusCode(400);
             }
 
-            // Actualizar fecha de modificación
-            $data['UpdateDate'] = date('Y-m-d H:i:s');
+            // Mapear a snake_case para la BD
+            $updateData = [
+                'name' => $data['Name'],
+                'update_date' => date('Y-m-d H:i:s')
+            ];
+            if (isset($data['IdTypeReason'])) {
+                $updateData['id_type_reason'] = (int)$data['IdTypeReason'];
+            }
+            if (isset($data['Enabled'])) {
+                $updateData['enabled'] = (int)$data['Enabled'];
+            }
             
             // Actualizar el motivo
-            $result = $this->fileExtraordinaryReasonModel->update($id, $data);
+            $result = $this->fileExtraordinaryReasonModel->update($id, $updateData);
             
             if ($result) {
                 // Obtener el motivo actualizado para devolver todos los campos
@@ -314,7 +316,7 @@ class FileExtraordinaryReason extends ResourceController
                     'message' => 'Motivo extraordinario eliminado exitosamente',
                     'data' => [
                         'id' => $id,
-                        'name' => $existingReason['Name']
+                        'name' => $existingReason['name'] ?? $existingReason['Name'] ?? ''
                     ]
                 ]);
             } else {

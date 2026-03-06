@@ -7,21 +7,21 @@ use CodeIgniter\Model;
 class FileExtraordinaryReasonModel extends Model
 {
     protected $table            = 'file_exception_reason';
-    protected $primaryKey       = 'Id';
-    protected $useAutoIncrement = false;
+    protected $primaryKey       = 'id';
+    protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'Id', 'Name', 'IdTypeReason', 'Enabled', 'RegistrationDate', 'UpdateDate', 'IdLastUserUpdate'
+        'id', 'name', 'id_type_reason', 'enabled', 'registration_date', 'update_date', 'id_last_user_update'
     ];
 
     // Validation
     protected $validationRules      = [
-        'Name' => 'required|max_length[500]'
+        'name' => 'required|max_length[500]'
     ];
     protected $validationMessages   = [
-        'Name' => [
+        'name' => [
             'required' => 'El nombre del motivo es requerido',
             'max_length' => 'El nombre del motivo no puede exceder 500 caracteres'
         ]
@@ -33,19 +33,24 @@ class FileExtraordinaryReasonModel extends Model
     // Timestamps
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';
-    protected $createdField  = 'RegistrationDate';
-    protected $updatedField  = 'UpdateDate';
+    protected $createdField  = 'registration_date';
+    protected $updatedField  = 'update_date';
 
     /**
      * Obtener motivos activos
      */
     public function getActiveFileExtraordinaryReasons()
     {
-        $results = $this->where('Enabled', 1)->orderBy('Name', 'ASC')->findAll();
+        $results = $this->where('enabled', 1)->orderBy('name', 'ASC')->findAll();
         
-        // Agregar descripción del tipo de razón
+        // Agregar descripción del tipo de razón y aliases para compatibilidad con frontend
         foreach ($results as &$result) {
-            $result['TypeReasonLabel'] = $result['IdTypeReason'] == 2 ? 'Excepción' : 'Cancelación';
+            $idType = $result['id_type_reason'] ?? $result['IdTypeReason'] ?? 0;
+            $result['TypeReasonLabel'] = $idType == 2 ? 'Excepción' : 'Cancelación';
+            $result['IdTypeReason'] = $idType;
+            $result['Id'] = $result['id'] ?? $result['Id'] ?? null;
+            $result['Name'] = $result['name'] ?? $result['Name'] ?? '';
+            $result['Enabled'] = $result['enabled'] ?? $result['Enabled'] ?? 1;
         }
         
         return $results;
@@ -56,7 +61,7 @@ class FileExtraordinaryReasonModel extends Model
      */
     public function getFileExtraordinaryReasonByName($name)
     {
-        return $this->where('Name', $name)->first();
+        return $this->where('name', $name)->first();
     }
 
     /**
@@ -68,15 +73,15 @@ class FileExtraordinaryReasonModel extends Model
         
         // Aplicar filtros
         if (!empty($filters['search'])) {
-            $builder->like('Name', $filters['search']);
+            $builder->like('name', $filters['search']);
         }
 
         if (isset($filters['id_type_reason']) && $filters['id_type_reason'] !== '') {
-            $builder->where('IdTypeReason', $filters['id_type_reason']);
+            $builder->where('id_type_reason', $filters['id_type_reason']);
         }
 
         // Ordenamiento
-        $sortBy = $filters['sort_by'] ?? 'Name';
+        $sortBy = $filters['sort_by'] ?? 'name';
         $sortOrder = $filters['sort_order'] ?? 'ASC';
         $builder->orderBy($sortBy, $sortOrder);
 
@@ -91,9 +96,14 @@ class FileExtraordinaryReasonModel extends Model
 
         $results = $builder->get()->getResultArray();
         
-        // Agregar descripción del tipo de razón
+        // Agregar descripción del tipo de razón y aliases para compatibilidad con frontend
         foreach ($results as &$result) {
-            $result['TypeReasonLabel'] = $result['IdTypeReason'] == 2 ? 'Excepción' : 'Cancelación';
+            $idType = $result['id_type_reason'] ?? $result['IdTypeReason'] ?? 0;
+            $result['TypeReasonLabel'] = $idType == 2 ? 'Excepción' : 'Cancelación';
+            $result['IdTypeReason'] = $idType;
+            $result['Id'] = $result['id'] ?? $result['Id'] ?? null;
+            $result['Name'] = $result['name'] ?? $result['Name'] ?? '';
+            $result['Enabled'] = $result['enabled'] ?? $result['Enabled'] ?? 1;
         }
         
         return $results;
@@ -108,11 +118,11 @@ class FileExtraordinaryReasonModel extends Model
         
         // Aplicar filtros
         if (!empty($filters['search'])) {
-            $builder->like('Name', $filters['search']);
+            $builder->like('name', $filters['search']);
         }
 
         if (isset($filters['id_type_reason']) && $filters['id_type_reason'] !== '') {
-            $builder->where('IdTypeReason', $filters['id_type_reason']);
+            $builder->where('id_type_reason', $filters['id_type_reason']);
         }
 
         return $builder->countAllResults();
@@ -129,8 +139,8 @@ class FileExtraordinaryReasonModel extends Model
         
         // Contar por tipo de razón
         $typeReasonStats = $this->db->table('file_exception_reason')
-            ->select('IdTypeReason, COUNT(*) as count')
-            ->groupBy('IdTypeReason')
+            ->select('id_type_reason, COUNT(*) as count')
+            ->groupBy('id_type_reason')
             ->get()
             ->getResultArray();
 
@@ -145,14 +155,19 @@ class FileExtraordinaryReasonModel extends Model
      */
     public function searchFileExtraordinaryReasons($searchTerm, $limit = 10)
     {
-        $results = $this->like('Name', $searchTerm)
-                    ->orderBy('Name', 'ASC')
+        $results = $this->like('name', $searchTerm)
+                    ->orderBy('name', 'ASC')
                     ->limit($limit)
                     ->findAll();
         
-        // Agregar descripción del tipo de razón
+        // Agregar descripción del tipo de razón y aliases para compatibilidad con frontend
         foreach ($results as &$result) {
-            $result['TypeReasonLabel'] = $result['IdTypeReason'] == 2 ? 'Excepción' : 'Cancelación';
+            $idType = $result['id_type_reason'] ?? $result['IdTypeReason'] ?? 0;
+            $result['TypeReasonLabel'] = $idType == 2 ? 'Excepción' : 'Cancelación';
+            $result['IdTypeReason'] = $idType;
+            $result['Id'] = $result['id'] ?? $result['Id'] ?? null;
+            $result['Name'] = $result['name'] ?? $result['Name'] ?? '';
+            $result['Enabled'] = $result['enabled'] ?? $result['Enabled'] ?? 1;
         }
         
         return $results;
@@ -168,7 +183,8 @@ class FileExtraordinaryReasonModel extends Model
             return false;
         }
 
-        $newStatus = $fileExtraordinaryReason['Enabled'] == 1 ? 0 : 1;
-        return $this->update($id, ['Enabled' => $newStatus]);
+        $enabled = $fileExtraordinaryReason['enabled'] ?? $fileExtraordinaryReason['Enabled'] ?? 1;
+        $newStatus = $enabled == 1 ? 0 : 1;
+        return $this->update($id, ['enabled' => $newStatus]);
     }
 }
