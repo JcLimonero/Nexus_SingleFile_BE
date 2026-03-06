@@ -20,6 +20,7 @@ import { Subject, of, takeUntil } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 import { Cliente, FiltrosValidacion, ValidacionService } from '../../mesa-control/validacion/validacion.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { CompanyService } from '../../../core/services/company.service';
 import { FASES_FILTER_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { AuthService } from '../../../core/services/auth.service';
 import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/global-documentos-dialog.component';
@@ -53,7 +54,9 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   agencias: any[] = [];
   procesos: any[] = [];
   fases: CatalogItem[] = FASES_FILTER_CATALOG;
+  companies: { id: number; name: string }[] = [];
 
+  selectedCompany: number | string = '';
   selectedAgency: number | string | null = '';
   selectedProcess: number | string | null = '';
   selectedFase: string = '';
@@ -70,6 +73,7 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
     end: new FormControl<Date | null>(null)
   });
 
+  loadingCompanies = false;
   loadingAgencias = false;
   loadingProcesos = false;
   loadingClientes = false;
@@ -92,6 +96,7 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private validacionService: ValidacionService,
     private defaultAgencyService: DefaultAgencyService,
+    private companyService: CompanyService,
     private snackBar: MatSnackBar,
     private authService: AuthService,
     private dialog: MatDialog
@@ -127,8 +132,51 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
       });
 
     this.inicializarUsuario();
+    this.cargarCompanies();
     this.cargarAgencias();
     this.cargarProcesos();
+  }
+
+  get agenciesFiltradas(): any[] {
+    if (!this.selectedCompany || this.selectedCompany === '') return this.agencias;
+    const idComp = Number(this.selectedCompany);
+    return this.agencias.filter((a: any) => {
+      const aId = a.id_company ?? a.IdCompany ?? a.idCompany;
+      if (aId == null || aId === '') return false;
+      return Number(aId) === idComp;
+    });
+  }
+
+  onCompanyChange(): void {
+    if (this.agenciesFiltradas.length > 0 && this.selectedAgency) {
+      const agencyInList = this.agenciesFiltradas.some(
+        (a: any) => String(a.id ?? a.Id) === String(this.selectedAgency)
+      );
+      if (!agencyInList) {
+        this.selectedAgency = '';
+      }
+    } else if (this.agenciesFiltradas.length === 0) {
+      this.selectedAgency = '';
+    }
+    this.intentarCargarClientes();
+  }
+
+  private cargarCompanies(): void {
+    this.loadingCompanies = true;
+    this.companyService.getCompanies().subscribe({
+      next: (res) => {
+        if (res.success && res.data?.companies) {
+          this.companies = (res.data.companies as any[]).map((c: any) => ({
+            id: c.id ?? c.Id,
+            name: c.name ?? c.Name
+          }));
+        }
+        this.loadingCompanies = false;
+      },
+      error: () => {
+        this.loadingCompanies = false;
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -192,6 +240,7 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   limpiarFiltros(): void {
+    this.selectedCompany = '';
     this.selectedFase = '';
     this.searchTerm = '';
     this.registrationDateRangeGroup.patchValue({ start: null, end: null });
@@ -205,6 +254,7 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
 
   recargarFiltros(): void {
     this.refreshing = true;
+    this.selectedCompany = '';
     this.selectedAgency = null;
     this.selectedProcess = null;
     this.selectedFase = '';

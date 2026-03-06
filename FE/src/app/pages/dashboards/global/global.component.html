@@ -5,20 +5,40 @@
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Razón social</mat-label>
+            <mat-select
+              [(ngModel)]="selectedCompany"
+              [disabled]="loadingCompanies || companies.length === 0"
+              (selectionChange)="onCompanyChange()">
+              <mat-option *ngIf="loadingCompanies" [value]="''" disabled>
+                <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                Cargando...
+              </mat-option>
+              <mat-option *ngIf="!loadingCompanies && companies.length === 0" [value]="''" disabled>
+                No hay razones sociales
+              </mat-option>
+              <mat-option [value]="''">Todas las razones</mat-option>
+              <mat-option *ngFor="let c of companies" [value]="c.id">
+                {{ c.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
             <mat-label>Agencia</mat-label>
             <mat-select
               [(ngModel)]="selectedAgency"
-              [disabled]="loadingAgencias || agencias.length === 0"
+              [disabled]="loadingAgencias || agenciesFiltradas.length === 0"
               (selectionChange)="onAgenciaChange()">
               <mat-option *ngIf="loadingAgencias" [value]="null" disabled>
                 <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
                 Cargando agencias...
               </mat-option>
-              <mat-option *ngIf="!loadingAgencias && agencias.length === 0" [value]="null" disabled>
-                No hay agencias disponibles
+              <mat-option *ngIf="!loadingAgencias && agenciesFiltradas.length === 0" [value]="null" disabled>
+                {{ selectedCompany ? 'Sin agencias para esta razón social' : 'No hay agencias disponibles' }}
               </mat-option>
               <mat-option [value]="''">Todas las agencias</mat-option>
-              <mat-option *ngFor="let agencia of agencias" [value]="agencia.id ?? agencia.Id">
+              <mat-option *ngFor="let agencia of agenciesFiltradas" [value]="agencia.id ?? agencia.Id">
                 {{ agencia.name ?? agencia.Name }}
               </mat-option>
             </mat-select>
@@ -115,7 +135,7 @@
             <button
               mat-stroked-button
               (click)="limpiarFiltros()"
-              [disabled]="!selectedFase && !searchTerm && !hasRegistrationDateRange() && !hasLiberationDateRange()"
+              [disabled]="!selectedFase && !searchTerm && !hasRegistrationDateRange() && !hasLiberationDateRange() && !selectedCompany"
               matTooltip="Limpiar todos los filtros"
               class="flex items-center gap-2">
               <mat-icon>clear_all</mat-icon>
