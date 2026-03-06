@@ -24,3 +24,6 @@ BE/writable/uploads/*
 !BE/writable/uploads/index.html
 BE/writable/debugbar/
 BE/writable/.DS_Store
+
+# Archivos de deploy generados
+*-deploy.zip

@@ -322,7 +322,7 @@ class ReportesCumplimiento extends BaseController
 
     /**
      * GET /api/reportes-cumplimiento/expedientes-sin-beneficiario
-     * Expedientes de persona moral (IdCustomerType=3) sin beneficiarios finales capturados.
+     * Expedientes de persona moral (id_customer_type=2) sin beneficiarios finales capturados.
      */
     public function expedientesSinBeneficiario()
     {
@@ -360,7 +360,7 @@ class ReportesCumplimiento extends BaseController
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_process = p.id
                 INNER JOIN file_status fs ON f.id_current_state = fs.id
-                WHERE f.id_customer_type = 3
+                WHERE f.id_customer_type = 2
                 AND f.id_current_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
                 AND NOT EXISTS (
@@ -626,7 +626,7 @@ class ReportesCumplimiento extends BaseController
             $sqlBenef = "
                 SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                WHERE f.id_customer_type = 3 AND f.id_current_state NOT IN (5)
+                WHERE f.id_customer_type = 2 AND f.id_current_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
                 AND NOT EXISTS (SELECT 1 FROM file_pld_beneficial_owner bf WHERE bf.IdFile = f.id)
             ";

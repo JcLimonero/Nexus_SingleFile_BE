@@ -281,7 +281,7 @@ class CompanyClientImport extends BaseController
             'mother_last_name' => $companyData['maternal_surname'] ?? '', 'RFC' => $companyData['rfc'] ?? '',
             'CURP' => $companyData['curp'] ?? '', 'tel_number' => $companyData['phone'] ?? '',
             'tel_number2' => $companyData['mobile_phone'] ?? '', 'email' => $companyData['mail'] ?? '',
-            'razon_social' => $razonSocial, 'tipo_cliente' => (($t = trim($companyData['tipo_cliente'] ?? '')) !== '') ? $t : null, 'adviser' => '',
+            'razon_social' => $razonSocial, 'tipo_cliente' => $this->normalizeTipoClienteForDb($companyData['tipo_cliente'] ?? null), 'adviser' => '',
             'agency_origin' => $companyData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'), 'update_date' => date('Y-m-d H:i:s'), 'id_last_user_update' => $this->getCurrentUserId() ?? 1
         ];
@@ -353,5 +353,16 @@ class CompanyClientImport extends BaseController
             WHERE c.id = ? AND hc.id = ? AND ctr.id = ?
         ";
         return $this->db->query($sql, [$clientId, $headerClientId, $relationId])->getRowArray();
+    }
+
+    /** Convierte tipo_cliente a ID: 'fisica'/'moral' -> 1/2, 1/2 se mantienen */
+    private function normalizeTipoClienteForDb($value): ?int
+    {
+        if ($value === null || $value === '') return null;
+        $t = strtolower(trim((string) $value));
+        if ($t === 'moral') return 2;
+        if ($t === 'fisica') return 1;
+        if ($t === '1' || $t === '2') return (int) $t;
+        return is_numeric($value) ? (int) $value : null;
     }
 }

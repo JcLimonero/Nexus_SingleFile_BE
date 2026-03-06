@@ -1,0 +1,49 @@
+---
+description: Generar ZIPs de BE y DWH cuando el usuario pida "deploy" o "haz deploy"
+alwaysApply: true
+---
+
+# Deploy NexFile
+
+Cuando el usuario diga **"deploy"**, **"haz deploy"** o similar, debes generar los ZIP de ambos proyectos en la raíz del repositorio.
+
+## Comandos
+
+```bash
+cd /Users/jclimonero/Developer/NexFileOne
+
+# BE-deploy.zip
+zip -r BE-deploy.zip BE \
+  -x "BE/vendor/*" \
+  -x "BE/.env" \
+  -x "BE/writable/logs/*" \
+  -x "BE/writable/cache/*" \
+  -x "BE/writable/session/*" \
+  -x "BE/writable/uploads/*" \
+  -x "BE/scripts/*" \
+  -x "*.DS_Store"
+
+# DWH-deploy.zip
+zip -r DWH-deploy.zip DWH \
+  -x "DWH/vendor/*" \
+  -x "DWH/.env" \
+  -x "DWH/writable/logs/*" \
+  -x "DWH/writable/cache/*" \
+  -x "DWH/writable/session/*" \
+  -x "DWH/writable/uploads/*" \
+  -x "DWH/scripts/*" \
+  -x "*.DS_Store"
+```
+
+## Exclusiones
+
+- `vendor/` – instalar con `composer install` en el servidor
+- `.env` – configurar en el servidor
+- `writable/logs`, `writable/cache`, `writable/session`, `writable/uploads`
+- `scripts/` – scripts de desarrollo/migraciones
+- `*.DS_Store`
+
+## Archivos generados
+
+- `BE-deploy.zip` – Backend (incluye web.config)
+- `DWH-deploy.zip` – DWH API (incluye web.config)

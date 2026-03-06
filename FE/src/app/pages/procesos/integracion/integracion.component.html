@@ -120,7 +120,7 @@
           </div>
           <div class="field-group">
             <label class="field-label">Tipo Cliente</label>
-            <div class="field-value">{{ ((selectedClient.tipo_cliente || selectedClient.tipoCliente) === 'fisica' ? 'Persona Física' : (selectedClient.tipo_cliente || selectedClient.tipoCliente) === 'moral' ? 'Persona Moral' : (selectedClient.tipo_cliente || selectedClient.tipoCliente)) || 'N/A' }}</div>
+            <div class="field-value">{{ getTipoClienteLabel(selectedClient.tipo_cliente ?? selectedClient.tipoCliente) }}</div>
           </div>
         </div>
       </mat-card-content>

@@ -524,7 +524,7 @@ class VanguardiaClientImport extends ResourceController
             'tel_number2' => $vanguardiaData['mobile_phone'] ?? '',
             'email' => $vanguardiaData['mail'] ?? '',
             'razon_social' => $razonSocial,
-            'tipo_cliente' => (($t = trim($vanguardiaData['tipo_cliente'] ?? '')) !== '') ? $t : null,
+            'tipo_cliente' => $this->normalizeTipoClienteForDb($vanguardiaData['tipo_cliente'] ?? null),
             'adviser' => '', // Se puede asignar después
             'agency_origin' => $vanguardiaData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'),
@@ -751,5 +751,16 @@ class VanguardiaClientImport extends ResourceController
 
         $query = $this->db->query($sql, [$clientId, $headerClientId, $relationId]);
         return $query->getRowArray();
+    }
+
+    /** Convierte tipo_cliente a ID: 'fisica'/'moral' -> 1/2, 1/2 se mantienen */
+    private function normalizeTipoClienteForDb($value): ?int
+    {
+        if ($value === null || $value === '') return null;
+        $t = strtolower(trim((string) $value));
+        if ($t === 'moral') return 2;
+        if ($t === 'fisica') return 1;
+        if ($t === '1' || $t === '2') return (int) $t;
+        return is_numeric($value) ? (int) $value : null;
     }
 }

@@ -1201,5 +1201,13 @@ export class LiberacionComponent implements OnInit, OnDestroy {
     this.documentTabs = Array.from(groups.values());
     this.selectedTabIndex = 0;
   }
+
+  /** 1 = Persona Física, 2 = Persona Moral (compat con texto legacy 'fisica'/'moral') */
+  getTipoClienteLabel(tipo: number | string | null | undefined): string {
+    const t = tipo ?? '';
+    if (t === 1 || t === '1' || t === 'fisica') return 'Persona Física';
+    if (t === 2 || t === '2' || t === 'moral') return 'Persona Moral';
+    return 'N/A';
+  }
 }
 

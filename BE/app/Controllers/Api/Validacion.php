@@ -2473,6 +2473,7 @@ class Validacion extends BaseController
                     c.tel_number as telefono,
                     c.tel_number2 as telefono2,
                     c.razon_social as razonSocial,
+                    c.tipo_cliente as client_tipo_cliente,
                     cid.nombre as cid_nombre,
                     cid.apellido_paterno as cid_apellido_paterno,
                     cid.apellido_materno as cid_apellido_materno,
@@ -2496,11 +2497,12 @@ class Validacion extends BaseController
                     cid.autoridad_emite as cid_autoridad_emite,
                     cid.fecha_constituccion as cid_fecha_constituccion,
                     cid.actividad_giro as cid_actividad_giro,
-                    f.id_customer_type as idCustomerType,
+                    f.id_customer_type as id_customer_type,
                     ct.name as tipoCliente,
                     p.name as proceso,
                     ot.name as operacion,
                     a.name as agencia,
+                    co.name as company_name,
                     fs.name as fase,
                     COALESCE(obc1.vin, obc2.vin) as vin,
                     COALESCE(obc1.model, obc2.model) as modelo,
@@ -2514,6 +2516,7 @@ class Validacion extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN file_status fs ON f.id_current_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
+                LEFT JOIN company co ON a.id_company = co.id
                 LEFT JOIN `order` obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
                     SELECT obc2a.id_dms, obc2a.id_agency, obc2a.vin, obc2a.model, obc2a.year, obc2a.car_type
@@ -2537,9 +2540,6 @@ class Validacion extends BaseController
                 ])->setStatusCode(404);
             }
 
-            $idCustomerType = (int) ($cliente['idCustomerType'] ?? 0);
-            $isClienteMoral = ($idCustomerType === 3);
-
             // Merge: client_identification_data sobreescribe client cuando tiene valor
             $m = function ($cid, $client) {
                 $v = trim($cid ?? '');
@@ -2554,6 +2554,17 @@ class Validacion extends BaseController
             $apellidoMaterno = $m($cliente['cid_apellido_materno'] ?? null, $cliente['apellidoMaterno'] ?? null);
             $razonSocial = $m($cliente['cid_razon_social'] ?? null, $cliente['razonSocial'] ?? null);
             $rfc = $m($cliente['cid_rfc'] ?? null, $cliente['rfc'] ?? null);
+
+            // Usar solo client.tipo_cliente: 1 = persona física, 2 = persona moral
+            $clientTipoClienteId = (int) ($cliente['client_tipo_cliente'] ?? 0);
+            if ($clientTipoClienteId !== 1 && $clientTipoClienteId !== 2) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Formato no definido para el tipo de cliente. Configure tipo_cliente en el cliente (1=Persona Física, 2=Persona Moral).',
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+            $isClienteMoral = ($clientTipoClienteId === 2);
             $curp = $m($cliente['cid_curp'] ?? null, $cliente['curp'] ?? null);
             $email = $m($cliente['cid_email'] ?? null, $cliente['email'] ?? null);
             $telefono = $m($cliente['cid_telefono'] ?? null, $cliente['telefono'] ?? null);
@@ -2573,9 +2584,11 @@ class Validacion extends BaseController
             $autoridadEmite = (string) ($cliente['cid_autoridad_emite'] ?? '');
             $fechaConst = $mDate($cliente['cid_fecha_constituccion'] ?? null);
             $actividadGiro = (string) ($cliente['cid_actividad_giro'] ?? '');
+            $companyName = trim((string) ($cliente['company_name'] ?? ''));
 
             if ($isClienteMoral) {
-                // Template 1606181 - Cliente moral (IdCustomerType = 3)
+                // Template 1606181 - Cliente moral: nombre del cliente = denominación o razón social
+                $nombreClienteMoral = trim($razonSocial) !== '' ? $razonSocial : trim("{$nombre} {$apellidoPaterno} {$apellidoMaterno}");
                 $templateId = (int) $config->templateIdIdentificacionMoral;
                 $templateData = [
                     'actividad_giro_mercantil_u_objeto_social_row_1' => $actividadGiro,
@@ -2589,8 +2602,8 @@ class Validacion extends BaseController
                     'colonia_o_urbanizaci_n_row_1' => $colonia,
                     'correo_el_ctronico_row_1' => $email,
                     'demarcaci_n_pol_tica_o_municipio_row_1' => $municipio,
-                    'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => '',
-                    'denominaci_n_o_raz_n_social_row_1' => $razonSocial ?: $clienteNombre,
+                    'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => $companyName,
+                    'denominaci_n_o_raz_n_social_row_1' => $nombreClienteMoral,
                     'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => $actividadGiro,
                     'extensi_n_en_su_caso_row_1' => $numeroInt,
                     'extranjero' => '',
@@ -2604,7 +2617,7 @@ class Validacion extends BaseController
                     'nacional' => '',
                     'nombre_completo_y_firma_del_representante_o_apoderado_legal' => '',
                     'nombre_de_la_identificaci_n_row_1' => '',
-                    'nombre_s_sin_abreviaturas_row_1' => $nombre,
+                    'nombre_s_sin_abreviaturas_row_1' => $nombreClienteMoral,
                     'nombre_y_firma_del_funcionario_o_empleado_que_realiz_el_cotejo' => '',
                     'pa_s_de_nacimiento_row_1' => $paisNac,
                     'pa_s_de_nacionalidad_row_1' => $paisNacionalidad,
@@ -2612,7 +2625,7 @@ class Validacion extends BaseController
                     'r_f_c_row_1' => $rfc,
                 ];
             } else {
-                // Template 1606176 - Cliente físico (IdCustomerType != 3)
+                // Template 1606176 - Cliente físico (id_customer_type = 1)
                 $templateId = (int) $config->templateIdIdentificacionFisico;
                 $templateData = [
                     'apellido_materno_row_1' => $apellidoMaterno,
@@ -2625,7 +2638,7 @@ class Validacion extends BaseController
                     'colonia_o_urbanizaci_n_row_1' => $colonia,
                     'correo_el_ctronico_row_1' => $email,
                     'demarcaci_n_pol_tica_o_municipio_row_1' => $municipio,
-                    'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => '',
+                    'denominaci_n_o_raz_n_social_de_la_empresa_que_elabora_el_formato_row_1' => $companyName,
                     'en_caso_de_relaci_n_de_negocios_actividad_ocupaci_n_o_giro_al_que_se_dedique_row_1' => '',
                     'extensi_n_en_su_caso_row_1' => $numeroInt,
                     'extranjero' => '',

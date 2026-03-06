@@ -1410,5 +1410,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
       maximumFractionDigits: 2
     }).format(amt);
   }
+
+  /** 1 = Persona Física, 2 = Persona Moral (compat con texto legacy 'fisica'/'moral') */
+  getTipoClienteLabel(tipo: number | string | null | undefined): string {
+    const t = tipo ?? '';
+    if (t === 1 || t === '1' || t === 'fisica') return 'Persona Física';
+    if (t === 2 || t === '2' || t === 'moral') return 'Persona Moral';
+    return 'N/A';
+  }
 }
 

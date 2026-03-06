@@ -100,7 +100,7 @@ export class DatosIdentificacionDialogComponent implements OnInit {
       next: (d) => {
         this.idClient = d.idClient ?? null;
         this.idCustomerType = d.idCustomerType ?? 0;
-        this.isClienteMoral = this.idCustomerType === 3;
+        this.isClienteMoral = this.idCustomerType === 2; // 2 = Persona Moral (1 = Persona Física)
         const toDate = (s: string | null | undefined): Date | null => {
           if (!s) return null;
           const d = new Date(s);

@@ -13,7 +13,7 @@ export interface Cliente {
   idAgency?: number;
   id_agency?: number;
   tipoCliente?: string | null;
-  /** IdCostumerType: 3 = Persona Moral (requiere beneficiarios) */
+  /** id_customer_type: 2 = Persona Moral (requiere beneficiarios), 1 = Persona Física */
   idCostumerType?: number | null;
   cliente: string;
   proceso: string;

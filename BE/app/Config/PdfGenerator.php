@@ -29,12 +29,12 @@ class PdfGenerator extends BaseConfig
     public string $workspaceEmail = '';
 
     /**
-     * ID del template de identificación cliente moral (IdCustomerType = 3)
+     * ID del template de identificación cliente moral (id_customer_type = 2)
      */
     public string $templateIdIdentificacionMoral = '1606181';
 
     /**
-     * ID del template de identificación cliente físico (IdCustomerType != 3)
+     * ID del template de identificación cliente físico (id_customer_type = 1)
      */
     public string $templateIdIdentificacionFisico = '1606176';
 

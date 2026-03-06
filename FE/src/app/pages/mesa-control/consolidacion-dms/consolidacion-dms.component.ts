@@ -613,8 +613,8 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     }
     if (col === 'tipo_cliente' && v != null) {
       const s = String(v).toLowerCase();
-      if (s === 'fisica') return 'Persona Física';
-      if (s === 'moral') return 'Persona Moral';
+      if (s === 'fisica' || s === '1') return 'Persona Física';
+      if (s === 'moral' || s === '2') return 'Persona Moral';
       return String(v);
     }
     if (v == null) return '';
