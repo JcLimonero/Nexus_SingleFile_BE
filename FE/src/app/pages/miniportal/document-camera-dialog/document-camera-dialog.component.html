@@ -1,0 +1,44 @@
+<div class="document-camera-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>document_scanner</mat-icon>
+    Tomar foto del documento
+  </h2>
+
+  <mat-dialog-content>
+    <!-- Loading -->
+    <div *ngIf="status === 'loading'" class="camera-loading">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando escáner de documentos...</p>
+      <p class="hint">Coloca el documento sobre una superficie con buen contraste</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="status === 'error'" class="camera-error">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Camera view with document detection overlay -->
+    <div *ngIf="status === 'camera' || status === 'capturing'" class="camera-container">
+      <div class="camera-wrapper">
+        <video #videoEl playsinline autoplay muted class="camera-video"></video>
+        <canvas #canvasSource class="hidden-canvas"></canvas>
+        <canvas #canvasResult class="camera-overlay"></canvas>
+      </div>
+      <p class="camera-hint">Encuadra el documento. Los bordes se detectarán automáticamente.</p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancelar</button>
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="status !== 'camera'"
+      (click)="onCapture()">
+      <mat-spinner *ngIf="status === 'capturing'" diameter="20" class="btn-spinner"></mat-spinner>
+      <mat-icon *ngIf="status !== 'capturing'">camera_alt</mat-icon>
+      {{ status === 'capturing' ? 'Procesando...' : 'Capturar' }}
+    </button>
+  </mat-dialog-actions>
+</div>

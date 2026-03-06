@@ -1,0 +1,42 @@
+<div class="vex-user-menu">
+  <a
+    (click)="close()"
+    [routerLink]="['/apps/social']"
+    class="vex-user-menu-item"
+    matRipple
+    matRippleColor="rgb(var(--vex-color-primary-600), 0.1)">
+    <mat-icon
+      class="vex-user-menu-item__icon icon-sm"
+      svgIcon="mat:settings"></mat-icon>
+    <div class="vex-user-menu-item__label">Configuración de Cuenta</div>
+  </a>
+
+  
+
+  <!-- <a
+    (click)="close()"
+    [routerLink]="['/apps/social']"
+    class="vex-user-menu-item"
+    matRipple
+    matRippleColor="rgb(var(--vex-color-primary-600), 0.1)">
+    <mat-icon
+      class="vex-user-menu-item__icon icon-sm"
+      svgIcon="mat:account_circle"></mat-icon>
+    <div class="vex-user-menu-item__label">Mi Perfil</div>
+  </a> -->
+
+
+
+  <a
+    (click)="logout()"
+    class="vex-user-menu-item"
+    style="cursor: pointer; user-select: none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; padding-top: 12px; color: #EF4444;"
+    matRipple
+    matRippleColor="rgba(239, 68, 68, 0.1)">
+    <mat-icon
+      class="vex-user-menu-item__icon icon-sm"
+      style="color: #EF4444;"
+      svgIcon="mat:logout"></mat-icon>
+    <div class="vex-user-menu-item__label" style="color: #EF4444;">Cerrar Sesión</div>
+  </a>
+</div>

@@ -1,0 +1,156 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">Datos de identificación</h2>
+    <button mat-icon-button (click)="cancelar()" class="text-gray-500 hover:text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <p class="text-sm text-gray-600 mb-4">Cliente: <strong>{{ data.cliente }}</strong></p>
+
+  <div *ngIf="loading" class="flex justify-center py-12">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <form [formGroup]="form" *ngIf="!loading">
+    <mat-accordion>
+      <!-- Datos personales / fiscales -->
+      <mat-expansion-panel [expanded]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Datos personales y fiscales</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <ng-container *ngIf="!isClienteMoral">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nombre(s)</mat-label>
+              <input matInput formControlName="nombre">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Apellido paterno</mat-label>
+              <input matInput formControlName="apellido_paterno">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Apellido materno</mat-label>
+              <input matInput formControlName="apellido_materno">
+            </mat-form-field>
+          </ng-container>
+          <mat-form-field *ngIf="isClienteMoral" appearance="outline" class="w-full md:col-span-2">
+            <mat-label>Razón social</mat-label>
+            <input matInput formControlName="razon_social">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>RFC</mat-label>
+            <input matInput formControlName="rfc">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>CURP</mat-label>
+            <input matInput formControlName="curp">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Teléfono</mat-label>
+            <input matInput formControlName="telefono">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Teléfono 2</mat-label>
+            <input matInput formControlName="telefono2">
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Domicilio -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Domicilio</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <mat-form-field appearance="outline" class="w-full md:col-span-2">
+            <mat-label>Calle</mat-label>
+            <input matInput formControlName="calle">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Número exterior</mat-label>
+            <input matInput formControlName="numero_exterior">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Número interior</mat-label>
+            <input matInput formControlName="numero_interior">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Colonia</mat-label>
+            <input matInput formControlName="colonia">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Código postal</mat-label>
+            <input matInput formControlName="codigo_postal">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Ciudad</mat-label>
+            <input matInput formControlName="ciudad">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Municipio</mat-label>
+            <input matInput formControlName="municipio">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>País</mat-label>
+            <input matInput formControlName="pais">
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Otros -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Otros datos</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <mat-form-field *ngIf="!isClienteMoral" appearance="outline" class="w-full">
+            <mat-label>Fecha de nacimiento</mat-label>
+            <input matInput [matDatepicker]="pickerNac" formControlName="fecha_nacimiento">
+            <mat-datepicker-toggle matIconSuffix [for]="pickerNac"></mat-datepicker-toggle>
+            <mat-datepicker #pickerNac></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field *ngIf="isClienteMoral" appearance="outline" class="w-full">
+            <mat-label>Fecha de constitución</mat-label>
+            <input matInput [matDatepicker]="pickerConst" formControlName="fecha_constituccion">
+            <mat-datepicker-toggle matIconSuffix [for]="pickerConst"></mat-datepicker-toggle>
+            <mat-datepicker #pickerConst></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field *ngIf="!isClienteMoral" appearance="outline" class="w-full">
+            <mat-label>País de nacimiento</mat-label>
+            <input matInput formControlName="pais_nacimiento">
+          </mat-form-field>
+          <mat-form-field *ngIf="!isClienteMoral" appearance="outline" class="w-full">
+            <mat-label>País de nacionalidad</mat-label>
+            <input matInput formControlName="pais_nacionalidad">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full md:col-span-2">
+            <mat-label>Autoridad que emite la identificación</mat-label>
+            <input matInput formControlName="autoridad_emite">
+          </mat-form-field>
+          <mat-form-field *ngIf="isClienteMoral" appearance="outline" class="w-full md:col-span-2">
+            <mat-label>Actividad o giro</mat-label>
+            <input matInput formControlName="actividad_giro">
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <div class="flex flex-wrap justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
+      <button mat-button (click)="imprimirSinEditar()" class="text-gray-600">
+        Imprimir sin editar
+      </button>
+      <button mat-button (click)="cancelar()" class="text-gray-600">Cancelar</button>
+      <button mat-raised-button color="primary" (click)="guardar()" [disabled]="saving">
+        Guardar y cerrar
+      </button>
+      <button mat-raised-button color="accent" (click)="guardarEImprimir()" [disabled]="saving">
+        Guardar e imprimir
+      </button>
+    </div>
+  </form>
+</div>

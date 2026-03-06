@@ -1,0 +1,214 @@
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Subject, takeUntil } from 'rxjs';
+import { AnalyticsService } from '../../../../../core/services/analytics.service';
+import {
+  ApexOptions,
+  VexChartComponent
+} from '@vex/components/vex-chart/vex-chart.component';
+import { defaultChartOptions } from '@vex/utils/default-chart-options';
+
+export interface StatusDistributionData {
+  statusName: string;
+  totalCases: number;
+  percentage: number;
+}
+
+// Tipo para las series de ApexCharts
+type ApexAxisChartSeries = any[];
+
+@Component({
+  selector: 'vex-widget-status-distribution',
+  templateUrl: './widget-status-distribution.component.html',
+  styleUrls: ['./widget-status-distribution.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    VexChartComponent
+  ]
+})
+export class WidgetStatusDistributionComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() agencyId: number | null = null;
+  @Input() userId: number | null = null;
+  @Input() showDetails = true;
+
+  readonly chartColors = [
+    '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+    '#14b8a6', '#0ea5e9', '#eab308', '#dc2626', '#a855f7'
+  ];
+
+  series: ApexAxisChartSeries = [];
+  options: ApexOptions = defaultChartOptions({
+    chart: {
+      type: 'donut',
+      height: 220,
+      toolbar: { show: false },
+      sparkline: { enabled: false }
+    },
+    colors: [
+      '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+      '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+      '#14b8a6', '#0ea5e9', '#eab308', '#dc2626', '#a855f7'
+    ],
+    labels: [],
+    legend: {
+      show: false
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '85%',
+          background: 'transparent',
+          labels: {
+            show: true,
+            name: {
+              show: true,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#2B2B2B',
+              offsetY: -6
+            },
+            value: {
+              show: true,
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#2B2B2B',
+              offsetY: 6,
+              formatter: function (val: string) {
+                return val;
+              }
+            },
+            total: {
+              show: true,
+              showAlways: false,
+              label: 'Total',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: '#868C92',
+              formatter: function (w: any) {
+                const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
+                return total.toString();
+              }
+            }
+          }
+        }
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['#fff']
+    },
+    tooltip: {
+      enabled: true,
+      style: {
+        fontSize: '14px',
+        fontFamily: 'Inter, sans-serif'
+      },
+      fillSeriesColor: false,
+      theme: 'light',
+      y: {
+        formatter: function (val: number, opts: any) {
+          const seriesName = opts.w.config.labels[opts.seriesIndex];
+          const total = opts.w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
+          const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
+          return `${seriesName}: ${val} expedientes (${percentage}%)`;
+        }
+      }
+    }
+  });
+
+  loading = true;
+  error: string | null = null;
+  statusData: StatusDistributionData[] = [];
+
+  private destroy$ = new Subject<void>();
+
+  constructor(private analyticsService: AnalyticsService) {}
+
+  ngOnInit(): void {
+    this.loadStatusDistribution();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['agencyId'] && !changes['agencyId'].firstChange) || 
+        (changes['userId'] && !changes['userId'].firstChange)) {
+      this.loadStatusDistribution();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadStatusDistribution(): void {
+    this.loading = true;
+    this.error = null;
+
+    const filters = {
+      agency_id: this.agencyId,
+      idSeller: this.userId
+    };
+
+    this.analyticsService.getStatusDistribution(filters)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.statusData = data;
+          this.updateChart();
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = 'Error al cargar distribución por estatus';
+          this.loading = false;
+          
+          // Fallback a datos vacíos si hay error
+          this.statusData = [];
+          this.updateChart();
+        }
+      });
+  }
+
+  private updateChart(): void {
+    if (this.statusData.length === 0) {
+      this.series = [];
+      this.options = {
+        ...this.options,
+        labels: []
+      };
+      return;
+    }
+
+    const seriesData = this.statusData.map(item => item.totalCases);
+    const labels = this.statusData.map(item => item.statusName);
+
+    this.series = seriesData;
+    this.options = {
+      ...this.options,
+      labels: labels
+    };
+  }
+
+  refresh(): void {
+    this.loadStatusDistribution();
+  }
+
+  getTotalCases(): number {
+    return this.statusData.reduce((total, item) => total + item.totalCases, 0);
+  }
+
+  getStatusColor(index: number): string {
+    return this.chartColors[index % this.chartColors.length] || '#6b7280';
+  }
+}

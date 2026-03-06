@@ -1,0 +1,253 @@
+.vex-widget-current-month-status {
+  .vex-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    background: #FFFFFF;
+    border: 1px solid #E5E2E1;
+    border-radius: 10px;
+    box-shadow: none;
+  }
+
+  .vex-card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #EFF0F0;
+    margin-bottom: 0;
+
+    .vex-card-title {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #2B2B2B;
+      margin: 0;
+      line-height: 1.3;
+
+      .vex-card-title-icon {
+        color: #8b5cf6;
+        font-size: 1rem;
+        width: 1rem;
+        height: 1rem;
+      }
+    }
+
+    .vex-card-actions {
+      margin-left: auto;
+
+      button mat-icon {
+        color: #ADACAC;
+        font-size: 18px;
+      }
+    }
+  }
+
+  .vex-card-content {
+    flex: 1;
+    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .widget-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    flex: 1;
+
+    .loading-text {
+      margin-top: 0.5rem;
+      color: #868C92;
+      font-size: 0.8125rem;
+    }
+  }
+
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    flex: 1;
+    text-align: center;
+
+    .error-icon {
+      font-size: 24px;
+      color: #ef4444;
+      margin-bottom: 0.5rem;
+    }
+
+    .error-text {
+      color: #868C92;
+      margin-bottom: 0.5rem;
+      font-size: 0.8125rem;
+    }
+  }
+
+  .chart-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chart-legend-flex {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    min-height: 280px;
+  }
+
+  .donut-chart-area {
+    flex: 0 0 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-width: 200px;
+    min-height: 220px;
+    background: transparent;
+  }
+
+  .vertical-legend {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 140px;
+    max-width: 180px;
+
+    .legend-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #2B2B2B;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.5rem;
+      border-radius: 6px;
+      cursor: default;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: #F8F9FA;
+      }
+
+      .legend-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .legend-label {
+        flex: 1;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #2B2B2B;
+      }
+
+      .legend-value {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #868C92;
+      }
+    }
+  }
+
+  .no-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    flex: 1;
+    text-align: center;
+
+    .no-data-icon {
+      font-size: 24px;
+      color: #ADACAC;
+      margin-bottom: 0.5rem;
+    }
+
+    .no-data-text {
+      color: #868C92;
+      font-size: 0.8125rem;
+    }
+  }
+
+  .summary-stats {
+    display: flex;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-top: 12px;
+    background: #F8F9FA;
+    border: 1px solid #EFF0F0;
+    border-radius: 8px;
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.125rem;
+      flex: 1;
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: #868C92;
+        font-weight: 500;
+      }
+
+      .stat-value {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #2B2B2B;
+      }
+    }
+  }
+
+  @media (max-width: 900px) {
+    .chart-legend-flex {
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .vertical-legend {
+      margin-left: 0;
+      max-width: 100%;
+      width: 100%;
+      align-items: center;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .vex-widget-current-month-status {
+    .summary-stats {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+}

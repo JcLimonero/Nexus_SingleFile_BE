@@ -1,0 +1,33 @@
+<div class="dropdown">
+  <!-- Header con info de usuario -->
+  <div class="dropdown-header">
+    <div class="dropdown-header-avatar">
+      <img src="assets/img/avatars/user-avatar-default.png" alt="Usuario" class="dropdown-header-avatar-img">
+    </div>
+    <div class="dropdown-header-info">
+      <div class="dropdown-header-name">{{ (currentUser$ | async)?.name || 'Usuario' }}</div>
+      <div class="dropdown-header-role">{{ (currentUser$ | async)?.role_name || 'Rol' }}</div>
+    </div>
+  </div>
+
+  <!-- Items del menú -->
+  <div class="dropdown-content">
+    <a
+      (click)="close()"
+      *ngFor="let item of items; trackBy: trackById"
+      [routerLink]="item.route"
+      class="dropdown-item"
+      matRipple>
+      <mat-icon [svgIcon]="item.icon" class="dropdown-item-icon"></mat-icon>
+      <span class="dropdown-item-label">{{ item.label }}</span>
+    </a>
+  </div>
+
+  <!-- Separador + Cerrar Sesión -->
+  <div class="dropdown-footer">
+    <a (click)="logout()" class="dropdown-item dropdown-item--logout" matRipple>
+      <mat-icon svgIcon="mat:logout" class="dropdown-item-icon dropdown-item-icon--logout"></mat-icon>
+      <span class="dropdown-item-label">Cerrar Sesión</span>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,167 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <div>
+      <h2>Documentos del pedido {{ data.cliente.ndPedido }}</h2>
+      <p>{{ data.cliente.cliente }}</p>
+    </div>
+    <button mat-icon-button (click)="cerrar()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-summary" [ngClass]="documentosPendientes ? 'dialog-summary--warning' : 'dialog-summary--ok'">
+    <mat-icon>{{ documentosPendientes ? 'warning' : 'check_circle' }}</mat-icon>
+    <span>
+      {{ documentosPendientes ? (documentosPendientes + ' documentos pendientes o rechazados') : 'Todos los documentos están aprobados' }}
+    </span>
+  </div>
+
+  <div *ngIf="loading" class="dialog-loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Cargando documentos...</span>
+  </div>
+
+  <div *ngIf="!loading && error" class="dialog-error">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <div *ngIf="!loading && !error && documentos.length === 0" class="dialog-empty">
+    <mat-icon>folder_open</mat-icon>
+    <p>No hay documentos configurados para este pedido.</p>
+  </div>
+
+  <div *ngIf="!loading && !error && documentos.length > 0" class="dialog-table-wrapper">
+    <table mat-table [dataSource]="documentos" class="documents-table">
+      <ng-container matColumnDef="documento">
+        <th mat-header-cell *matHeaderCellDef> Documento </th>
+        <td mat-cell *matCellDef="let documento">
+          <span class="truncate" matTooltip="{{ documento.documento }}">
+            {{ documento.documento }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="disponibleCliente">
+        <th mat-header-cell *matHeaderCellDef class="text-center"> Cliente </th>
+        <td mat-cell *matCellDef="let documento" class="text-center">
+          <mat-icon
+            class="text-base"
+            [ngClass]="documento.DisponibleCliente == 1 ? 'text-green-600' : 'text-gray-400'"
+            matTooltip="{{ documento.DisponibleCliente == 1 ? 'El cliente puede cargar este documento' : 'Solo carga interna' }}">
+            {{ documento.DisponibleCliente == 1 ? 'cloud_upload' : 'cloud_off' }}
+          </mat-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="estatus">
+        <th mat-header-cell *matHeaderCellDef class="text-center"> Estatus </th>
+        <td mat-cell *matCellDef="let documento" class="text-center">
+          <mat-icon *ngIf="isDocumentoStatus(documento, 4)" class="text-green-500">verified</mat-icon>
+          <mat-icon *ngIf="isDocumentoStatus(documento, 5)" class="text-red-500">cancel</mat-icon>
+          <mat-icon *ngIf="isDocumentoStatus(documento, 2)" class="text-orange-500">pending_actions</mat-icon>
+          <mat-icon
+            *ngIf="!isDocumentoStatus(documento, 4) && !isDocumentoStatus(documento, 5) && !isDocumentoStatus(documento, 2)"
+            class="text-blue-500">
+            hourglass_empty
+          </mat-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ver">
+        <th mat-header-cell *matHeaderCellDef class="text-center"> Ver </th>
+        <td mat-cell *matCellDef="let documento" class="text-center">
+          <button
+            mat-icon-button
+            color="primary"
+            *ngIf="documento.documentContainer"
+            matTooltip="Ver documento"
+            (click)="onVerDocumento(documento)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <span *ngIf="!documento.documentContainer" class="text-xs text-gray-400">—</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cargar">
+        <th mat-header-cell *matHeaderCellDef class="text-center"> Cargar </th>
+        <td mat-cell *matCellDef="let documento" class="text-center">
+          <div class="upload-controls">
+            <button
+              mat-stroked-button
+              color="primary"
+              [disabled]="!puedeSubirDocumentos(documento)"
+              (click)="fileInput.click()"
+              class="text-xs">
+              Seleccionar
+            </button>
+            <input
+              #fileInput
+              type="file"
+              hidden
+              (change)="onFileSelected($event, documento)" />
+
+            <button
+              mat-raised-button
+              color="primary"
+              class="text-xs"
+              [disabled]="!canUpload(documento)"
+              (click)="uploadDocument(documento)">
+              {{ isDocumentoStatus(documento, 2) ? 'Reemplazar' : 'Cargar' }}
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="requerido">
+        <th mat-header-cell *matHeaderCellDef> Requerido </th>
+        <td mat-cell *matCellDef="let documento">{{ documento.requerido ? 'Sí' : 'No' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="requiereExpiracion">
+        <th mat-header-cell *matHeaderCellDef> Expira </th>
+        <td mat-cell *matCellDef="let documento">{{ documento.ReqExpiration ? 'Sí' : 'No' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="fecha">
+        <th mat-header-cell *matHeaderCellDef> Fecha carga </th>
+        <td mat-cell *matCellDef="let documento">
+          {{ documento.fecha ? (documento.fecha | date: 'yyyy-MM-dd') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="fechaExpiracion">
+        <th mat-header-cell *matHeaderCellDef> Expira </th>
+        <td mat-cell *matCellDef="let documento">
+          {{ documento.fechaExpiracion ? (documento.fechaExpiracion | date: 'yyyy-MM-dd') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="comentario">
+        <th mat-header-cell *matHeaderCellDef> Comentario </th>
+        <td mat-cell *matCellDef="let documento">
+          <span class="truncate" matTooltip="{{ documento.comentario || '' }}">
+            {{ documento.comentario || '—' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="asignado">
+        <th mat-header-cell *matHeaderCellDef> Asignado </th>
+        <td mat-cell *matCellDef="let documento">
+          {{ documento.asignado || '—' }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="documentosDisplayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: documentosDisplayedColumns;" class="documents-row"></tr>
+    </table>
+  </div>
+
+  <div class="dialog-actions">
+    <button mat-stroked-button color="primary" (click)="cargarDocumentos()">Actualizar</button>
+    <span class="flex-1"></span>
+    <button mat-raised-button color="primary" (click)="cerrar()">Cerrar</button>
+  </div>
+</div>
+

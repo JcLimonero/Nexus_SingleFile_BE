@@ -1,0 +1,118 @@
+<div class="mt-6 flex flex-col md:flex-row md:items-start">
+  <div class="flex-auto">
+    <div class="card">
+      <div class="px-6 py-4 border-b">
+        <h2 class="title m-0"></h2>
+      </div>
+
+      <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Nombre del Usuario -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:person"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.name || 'Nombre no disponible' }}</p>
+            <p class="m-0 caption text-hint">Nombre completo</p>
+          </div>
+        </div>
+
+        <!-- Usuario DMS -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:account_circle"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.username || 'Usuario no disponible' }}</p>
+            <p class="m-0 caption text-hint">Usuario DMS</p>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:mail"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.email || 'Email no disponible' }}</p>
+            <p class="m-0 caption text-hint">Correo electrónico</p>
+          </div>
+        </div>
+
+        <!-- Rol -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:security"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.role_name || 'Rol no disponible' }}</p>
+            <p class="m-0 caption text-hint">Rol en el sistema</p>
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-primary-600/10 text-primary-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:check_circle"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1">{{ (currentUser$ | async)?.enabled ? 'Activo' : 'Inactivo' }}</p>
+            <p class="m-0 caption text-hint">Estado de la cuenta</p>
+          </div>
+        </div>
+
+        <!-- ID de Usuario -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-gray-600/10 text-dark ltr:mr-3 rtl:ml-3 flex items-center justify-center">
+            <mat-icon class="icon-sm" svgIcon="mat:tag"></mat-icon>
+          </div>
+
+          <div @fadeInRight>
+            <p class="m-0 body-1 font-mono">{{ (currentUser$ | async)?.id || 'ID no disponible' }}</p>
+            <p class="m-0 caption text-hint">Identificador único</p>
+          </div>
+        </div>
+
+        <!-- Cambiar Contraseña -->
+        <div class="py-3 flex items-center">
+          <div
+            @scaleIn
+            class="w-10 h-10 rounded-full bg-warning-600/10 text-warning-600 ltr:mr-3 rtl:ml-3 flex items-center justify-center cursor-pointer hover:bg-warning-600/20 transition-colors"
+            (click)="openChangePasswordDialog()">
+            <mat-icon class="icon-sm" svgIcon="mat:lock"></mat-icon>
+          </div>
+
+          <div @fadeInRight class="flex-1">
+            <p class="m-0 body-1 cursor-pointer hover:text-primary-600 transition-colors" (click)="openChangePasswordDialog()">
+              Cambiar Contraseña
+            </p>
+            <p class="m-0 caption text-hint">Actualiza tu contraseña de acceso</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+</div>

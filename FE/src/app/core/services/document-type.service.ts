@@ -1,0 +1,192 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { 
+  DocumentType, 
+  DocumentTypeResponse, 
+  DocumentTypeCreateRequest, 
+  DocumentTypeUpdateRequest,
+  DocumentTypeStatsResponse,
+  DocumentTypeSearchResponse,
+  DocumentTypeActiveResponse
+} from '../interfaces/document-type.interface';
+import { ApiBaseService } from './api-base.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DocumentTypeService {
+  private readonly API_URL = 'document-type';
+
+  constructor(
+    private http: HttpClient,
+    private apiBaseService: ApiBaseService
+  ) { }
+
+  /**
+   * Obtener todos los tipos de documento con filtros y paginación
+   */
+  getDocumentTypes(params?: {
+    page?: number;
+    limit?: number | string;
+    enabled?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+  }): Observable<DocumentTypeResponse> {
+    let httpParams = new HttpParams();
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          httpParams = httpParams.set(key, value.toString());
+        }
+      });
+    }
+
+    return this.http.get<DocumentTypeResponse>(this.apiBaseService.buildApiUrl(this.API_URL), { params: httpParams });
+  }
+
+  /**
+   * Obtener un tipo de documento específico por ID
+   */
+  getDocumentType(id: string): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
+  }
+
+  /**
+   * Crear un nuevo tipo de documento
+   */
+  createDocumentType(documentType: DocumentTypeCreateRequest): Observable<any> {
+    return this.http.post(this.apiBaseService.buildApiUrl(this.API_URL), documentType);
+  }
+
+  /**
+   * Actualizar un tipo de documento existente
+   */
+  updateDocumentType(id: string, documentType: DocumentTypeUpdateRequest): Observable<any> {
+    return this.http.put(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`, documentType);
+  }
+
+  /**
+   * Eliminar un tipo de documento
+   */
+  deleteDocumentType(id: string): Observable<any> {
+    return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}`);
+  }
+
+  /**
+   * Cambiar estado (habilitado/deshabilitado) de un tipo de documento
+   */
+  toggleStatus(id: string): Observable<any> {
+    return this.http.patch(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/toggle-status`, {});
+  }
+
+  /**
+   * Obtener solo los tipos de documento activos
+   */
+  getActiveDocumentTypes(): Observable<DocumentTypeActiveResponse> {
+    return this.http.get<DocumentTypeActiveResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/active`);
+  }
+
+  /**
+   * Buscar tipos de documento por nombre
+   */
+  searchDocumentTypes(query: string, limit?: string): Observable<DocumentTypeSearchResponse> {
+    let params = new HttpParams().set('q', query);
+    if (limit) {
+      params = params.set('limit', limit);
+    }
+    
+    return this.http.get<DocumentTypeSearchResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/search`, { params });
+  }
+
+  /**
+   * Obtener estadísticas de los tipos de documento
+   */
+  getStats(): Observable<DocumentTypeStatsResponse> {
+    return this.http.get<DocumentTypeStatsResponse>(`${this.apiBaseService.buildApiUrl(this.API_URL)}/stats`);
+  }
+
+  /**
+   * Obtener todos los tipos de documento sin paginación
+   */
+  getAllDocumentTypes(): Observable<DocumentTypeResponse> {
+    return this.getDocumentTypes({ limit: 'all' });
+  }
+
+  /**
+   * Obtener tipos de documento habilitados
+   */
+  getEnabledDocumentTypes(): Observable<DocumentTypeResponse> {
+    return this.getDocumentTypes({ enabled: '1', limit: 'all' });
+  }
+
+  /**
+   * Obtener tipos de documento deshabilitados
+   */
+  getDisabledDocumentTypes(): Observable<DocumentTypeResponse> {
+    return this.getDocumentTypes({ enabled: '0', limit: 'all' });
+  }
+
+  /**
+   * Obtener estados de archivo activos (File_Status) - Integración, Liquidación, Liberación
+   */
+  getActiveFileStatuses(): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl('file-status/active')}`);
+  }
+
+  /**
+   * Obtener todas las fases desde file_status (para filtros)
+   */
+  getFileStatuses(): Observable<{ success: boolean; data?: { file_statuses: { id: number; name: string }[] } }> {
+    return this.http.get<{ success: boolean; data?: { file_statuses: { id: number; name: string }[] } }>(
+      `${this.apiBaseService.buildApiUrl('file-status')}`
+    );
+  }
+
+  /**
+   * Obtener subestados de archivo activos (File_SubStatus).
+   * Si se pasa idFileStatus, filtra por la relación file_sub_status.id_file_status = file_status.id
+   */
+  getActiveSubProcesses(idFileStatus?: number): Observable<any> {
+    let url = `${this.apiBaseService.buildApiUrl('file-sub-status/active')}`;
+    if (idFileStatus != null) {
+      url += `?id_file_status=${idFileStatus}`;
+    }
+    return this.http.get(url);
+  }
+
+  /**
+   * Obtener configuraciones donde se usa un tipo de documento específico
+   */
+  getConfigurations(id: string): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${id}/configurations`);
+  }
+
+  /**
+   * Eliminar un tipo de documento de una configuración específica
+   */
+  deleteConfiguration(documentTypeId: string, configurationId: number): Observable<any> {
+    return this.http.delete(`${this.apiBaseService.buildApiUrl(this.API_URL)}/${documentTypeId}/configuration/${configurationId}`);
+  }
+
+  /**
+   * Obtener configuraciones donde este tipo de documento aún NO está asociado (para agregado masivo).
+   */
+  getConfigurationsToAdd(documentTypeId: string): Observable<{ success: boolean; data?: { configurations: any[]; total: number }; message?: string }> {
+    return this.http.get<{ success: boolean; data?: { configurations: any[]; total: number }; message?: string }>(
+      `${this.apiBaseService.buildApiUrl(this.API_URL)}/${documentTypeId}/configurations-to-add`
+    );
+  }
+
+  /**
+   * Agregar este tipo de documento a varias configuraciones a la vez.
+   */
+  addToConfigurations(documentTypeId: string, configurationIds: number[]): Observable<{ success: boolean; message?: string; data?: { added: number } }> {
+    return this.http.post<{ success: boolean; message?: string; data?: { added: number } }>(
+      `${this.apiBaseService.buildApiUrl(this.API_URL)}/${documentTypeId}/add-to-configurations`,
+      { configurationIds }
+    );
+  }
+}

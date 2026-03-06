@@ -1,0 +1,54 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": [
+      "node"
+    ]
+  },
+  "files": [
+    "src/main.ts",
+    "src/polyfills.ts",
+    "src/environments/environment.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts",
+    "src/main.ts",
+    "src/polyfills.ts",
+    "src/environments/environment.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/@vex/tailwind/**",
+    "src/@vex/config/color-variables.ts",
+    "src/@vex/components/vex-progress-bar/vex-progress-bar.component.ts",
+    "src/@vex/components/vex-sidebar/vex-sidebar.component.ts",
+    "src/@vex/config/constants.ts",
+    "src/@vex/utils/is-nil.ts",
+    "src/app/core/services/user-profile-image.service.ts",
+    "src/app/core/services/company-client-import.service.ts",
+    "src/app/core/services/company-client.service.ts",
+    "src/app/layouts/components/app-scrollbar/**",
+    "src/app/layouts/components/config-panel/config-panel-toggle/config-panel-toggle.component.ts",
+    "src/app/layouts/components/config-panel/config-panel.component.ts",
+    "src/app/layouts/components/toolbar/mega-menu/mega-menu.component.ts",
+    "src/environments/environment.prod.ts",
+    "src/app/pages/dashboards/dashboard-admin-analytics/**",
+    "src/app/pages/dashboards/components/analytics-filters/**",
+    "src/app/pages/dashboards/components/widgets/widget-document-metrics/**",
+    "src/app/pages/dashboards/components/widgets/widget-large-chart/**",
+    "src/app/pages/dashboards/components/widgets/widget-process-metrics/**",
+    "src/app/pages/dashboards/components/widgets/widget-quick-value-center/**",
+    "src/app/pages/dashboards/components/widgets/widget-quick-value-start/**",
+    "src/app/pages/dashboards/components/widgets/widget-real-time-metrics/**",
+    "src/app/pages/dashboards/components/widgets/widget-table/**",
+    "src/app/core/services/real-time-analytics.service.ts",
+    "src/app/pages/mesa-control/dashboard/**",
+    "src/app/pages/mesa-control/monitoreo/**",
+    "src/app/pages/mesa-control/reportes/**",
+    "src/app/pages/procesos/gestion/**",
+    "src/environments/environment.example.ts"
+  ]
+}

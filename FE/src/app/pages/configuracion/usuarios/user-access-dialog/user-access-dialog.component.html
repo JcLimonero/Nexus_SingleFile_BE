@@ -1,0 +1,217 @@
+<div class="p-0">
+  <!-- Header del diálogo -->
+  <div class="flex items-center justify-between p-6 border-b border-gray-200">
+    <h2 class="text-xl font-semibold text-gray-900">
+      {{ dialogTitle }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="flex justify-center items-center py-8">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!loading" class="p-6">
+    <!-- Información del usuario -->
+    <div class="bg-blue-50 p-4 rounded-lg mb-6">
+      <h3 class="text-sm font-medium text-blue-900 mb-3">Información del Usuario</h3>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <span class="text-blue-700 font-medium">ID:</span>
+          <span class="ml-2 font-mono text-blue-900">{{ data.user.id }}</span>
+        </div>
+        <div>
+          <span class="text-blue-700 font-medium">Usuario DMS:</span>
+          <span class="ml-2 text-blue-900">{{ data.user.user }}</span>
+        </div>
+        <div class="col-span-2" *ngIf="data.user.mail">
+          <span class="text-blue-700 font-medium">Correo Electrónico:</span>
+          <span class="ml-2 text-blue-900">{{ data.user.mail }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs para Agencias y Procesos -->
+    <mat-tab-group animationDuration="300ms">
+      <!-- Tab de Agencias -->
+      <mat-tab label="Agencias Autorizadas">
+        <div class="py-4">
+          <!-- Selector de agencias (solo en modo edición) -->
+          <div *ngIf="!isReadonly" class="mb-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Seleccionar Agencias</mat-label>
+              <mat-select 
+                multiple 
+                [value]="selectedAgencies"
+                (selectionChange)="onAgencySelectionChange($event.value)">
+                <mat-option *ngFor="let agency of allAgencies" [value]="agency.id">
+                  {{ agency.name }}
+                </mat-option>
+              </mat-select>
+              <mat-hint>Selecciona las agencias a las que el usuario tendrá acceso</mat-hint>
+            </mat-form-field>
+            
+            <!-- Botones de acción masiva para agencias -->
+            <div class="flex gap-2 mt-3">
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="primary" 
+                (click)="assignAllAgencies()"
+                class="flex items-center gap-2"
+                [disabled]="selectedAgencies.length === allAgencies.length">
+                <mat-icon>add_circle</mat-icon>
+                Asignar Todas
+              </button>
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="warn" 
+                (click)="removeAllAgencies()"
+                class="flex items-center gap-2"
+                [disabled]="selectedAgencies.length === 0">
+                <mat-icon>remove_circle</mat-icon>
+                Quitar Todas
+              </button>
+            </div>
+          </div>
+
+          <!-- Lista de agencias seleccionadas -->
+          <div class="space-y-2">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">
+              Agencias Asignadas ({{ selectedAgencies.length }})
+            </h4>
+            
+            <div *ngIf="selectedAgencies.length === 0" class="text-center py-6 text-gray-500">
+              <mat-icon class="text-gray-400 text-3xl mb-2">business_center</mat-icon>
+              <p class="text-sm">No hay agencias asignadas</p>
+            </div>
+
+            <!-- Chips compactos para las agencias -->
+            <div *ngIf="selectedAgencies.length > 0" class="chips-container">
+              <mat-chip-set>
+                <mat-chip 
+                  *ngFor="let agencyId of selectedAgencies" 
+                  class="!text-xs !h-7 !px-2"
+                  [removable]="!isReadonly"
+                  (removed)="removeAgency(agencyId)">
+                  <mat-icon matChipAvatar class="!text-sm !w-4 !h-4">business</mat-icon>
+                  <span class="!text-xs">{{ getAgencyName(agencyId) }}</span>
+                  <mat-icon 
+                    *ngIf="!isReadonly"
+                    matChipRemove 
+                    class="!text-sm !w-4 !h-4">
+                    cancel
+                  </mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Tab de Procesos -->
+      <mat-tab label="Procesos Autorizados">
+        <div class="py-4">
+          <!-- Selector de procesos (solo en modo edición) -->
+          <div *ngIf="!isReadonly" class="mb-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Seleccionar Procesos</mat-label>
+              <mat-select 
+                multiple 
+                [value]="selectedProcesses"
+                (selectionChange)="onProcessSelectionChange($event.value)">
+                <mat-option *ngFor="let process of allProcesses" [value]="process.id">
+                  {{ process.name }}
+                </mat-option>
+              </mat-select>
+              <mat-hint>Selecciona los procesos que el usuario podrá gestionar</mat-hint>
+            </mat-form-field>
+            
+            <!-- Botones de acción masiva para procesos -->
+            <div class="flex gap-2 mt-3">
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="primary" 
+                (click)="assignAllProcesses()"
+                class="flex items-center gap-2"
+                [disabled]="selectedProcesses.length === allProcesses.length">
+                <mat-icon>add_circle</mat-icon>
+                Asignar Todos
+              </button>
+              <button 
+                type="button" 
+                mat-stroked-button 
+                color="warn" 
+                (click)="removeAllProcesses()"
+                class="flex items-center gap-2"
+                [disabled]="selectedProcesses.length === 0">
+                <mat-icon>remove_circle</mat-icon>
+                Quitar Todos
+              </button>
+            </div>
+          </div>
+
+          <!-- Lista de procesos seleccionados -->
+          <div class="space-y-2">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">
+              Procesos Asignados ({{ selectedProcesses.length }})
+            </h4>
+            
+            <div *ngIf="selectedProcesses.length === 0" class="text-center py-6 text-gray-500">
+              <mat-icon class="text-gray-400 text-3xl mb-2">settings</mat-icon>
+              <p class="text-sm">No hay procesos asignados</p>
+            </div>
+
+            <!-- Chips compactos para los procesos -->
+            <div *ngIf="selectedProcesses.length > 0" class="chips-container">
+              <mat-chip-set>
+                <mat-chip 
+                  *ngFor="let processId of selectedProcesses" 
+                  class="!text-xs !h-7 !px-2"
+                  [removable]="!isReadonly"
+                  (removed)="removeProcess(processId)">
+                  <mat-icon matChipAvatar class="!text-sm !w-4 !h-4">settings</mat-icon>
+                  <span class="!text-xs">{{ getProcessName(processId) }}</span>
+                  <mat-icon 
+                    *ngIf="!isReadonly"
+                    matChipRemove 
+                    class="!text-sm !w-4 !h-4">
+                    cancel
+                  </mat-icon>
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-end space-x-3 pt-6 border-t mt-6">
+      <button 
+        type="button" 
+        mat-button 
+        (click)="onCancel()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+      <button 
+        *ngIf="!isReadonly"
+        type="button" 
+        mat-raised-button 
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="loading">
+        <mat-spinner *ngIf="loading" diameter="20" class="mr-2"></mat-spinner>
+        <mat-icon *ngIf="!loading">save</mat-icon>
+        {{ submitButtonText }}
+      </button>
+    </div>
+  </div>
+</div>

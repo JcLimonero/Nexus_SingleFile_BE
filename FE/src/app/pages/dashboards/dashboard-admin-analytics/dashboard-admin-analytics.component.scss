@@ -1,0 +1,123 @@
+.admin-analytics-dashboard {
+  .admin-tabs {
+    .mat-tab-group {
+      .mat-tab-header {
+        border-bottom: 2px solid #e5e7eb;
+      }
+      
+      .mat-tab-label {
+        font-weight: 500;
+        color: #6b7280;
+        
+        &.mat-tab-label-active {
+          color: #3b82f6;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .system-health-card,
+  .security-metrics-card,
+  .performance-metrics-card,
+  .business-metrics-card {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .metric-value {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-weight: 600;
+  }
+
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    
+    &.healthy {
+      background-color: #10b981;
+      animation: pulse-green 2s infinite;
+    }
+    
+    &.warning {
+      background-color: #f59e0b;
+      animation: pulse-yellow 2s infinite;
+    }
+    
+    &.critical {
+      background-color: #ef4444;
+      animation: pulse-red 2s infinite;
+    }
+  }
+
+  @keyframes pulse-green {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes pulse-yellow {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes pulse-red {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.1);
+    }
+  }
+
+  .metric-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    
+    &:hover {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    }
+  }
+
+  .real-time-section {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .loading-state {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}

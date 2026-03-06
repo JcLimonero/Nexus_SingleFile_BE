@@ -1,0 +1,119 @@
+<div class="expedientes-corregir min-h-screen bg-gray-50 p-4">
+  <mat-card class="mb-4">
+    <mat-card-header>
+      <mat-card-title class="flex items-center gap-2">
+        <mat-icon class="text-amber-600">build</mat-icon>
+        Expedientes a Corregir
+      </mat-card-title>
+      <mat-card-subtitle>
+        Expedientes de la tabla expedientes_corregir. Corregir relación cliente vía API repair-client-relation. Ordenados por agencia.
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <p class="text-sm text-gray-600">
+          <strong>{{ totalGeneral }}</strong> expediente(s) requieren corrección en
+          <strong>{{ porAgencia.length }}</strong> agencia(s).
+        </p>
+        <div class="flex gap-2">
+          <button
+            mat-raised-button
+            color="accent"
+            (click)="repararSiguientes10()"
+            [disabled]="loading || reparandoSiguientes10 || reparandoTodos"
+            matTooltip="Reparar los siguientes 50 expedientes pendientes">
+            <mat-icon [class.animate-spin]="reparandoSiguientes10">build_circle</mat-icon>
+            Reparar siguientes 50
+          </button>
+          <button
+            mat-raised-button
+            color="warn"
+            (click)="repararTodosPendientes()"
+            [disabled]="loading || reparandoSiguientes10 || reparandoTodos"
+            matTooltip="Reparar todos los expedientes pendientes">
+            <mat-icon [class.animate-spin]="reparandoTodos">build</mat-icon>
+            Reparar todos
+          </button>
+          <button mat-raised-button color="primary" (click)="cargar()" [disabled]="loading">
+            <mat-icon [class.animate-spin]="loading">refresh</mat-icon>
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="flex justify-center p-12">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+
+      <mat-accordion *ngIf="!loading && porAgencia.length" class="grupos-agencias" multi="true">
+        <mat-expansion-panel *ngFor="let grupo of porAgencia" class="grupo-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon class="panel-icon">store</mat-icon>
+              <span class="panel-titulo">{{ grupo.nombreAgencia }}</span>
+            </mat-panel-title>
+            <mat-panel-description>
+              {{ grupo.total }} expediente(s)
+              <button
+                mat-icon-button
+                color="primary"
+                (click)="repararTodos(grupo); $event.stopPropagation()"
+                [disabled]="estaReparandoAgencia(grupo.idAgency)"
+                matTooltip="Reparar todos los expedientes de esta agencia">
+                <mat-icon [class.animate-spin]="estaReparandoAgencia(grupo.idAgency)">
+                  {{ estaReparandoAgencia(grupo.idAgency) ? 'hourglass_empty' : 'build_circle' }}
+                </mat-icon>
+              </button>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <div class="panel-content">
+            <table mat-table [dataSource]="grupo.expedientes" class="w-full tabla-expedientes">
+              <ng-container matColumnDef="idExpediente">
+                <th mat-header-cell *matHeaderCellDef>Expediente</th>
+                <td mat-cell *matCellDef="let row">{{ row.idFile }}</td>
+              </ng-container>
+              <ng-container matColumnDef="ndDMS">
+                <th mat-header-cell *matHeaderCellDef>ND DMS</th>
+                <td mat-cell *matCellDef="let row">{{ row.ndCliente || '-' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="api_result">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let row">
+                  <span *ngIf="!row.api_result" class="text-amber-600">Pendiente</span>
+                  <span *ngIf="row.api_result?.success" class="text-green-600">Corregido</span>
+                  <span *ngIf="row.api_result && !row.api_result?.success" class="text-red-600">Error</span>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="created_at">
+                <th mat-header-cell *matHeaderCellDef>Registro</th>
+                <td mat-cell *matCellDef="let row">{{ formatDate(row.created_at) }}</td>
+              </ng-container>
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let row">
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    (click)="repararUno(row, grupo.idAgency)"
+                    [disabled]="estaReparando(row.idFile) || row.api_result?.success"
+                    matTooltip="Corregir relación cliente">
+                    <mat-icon [class.animate-spin]="estaReparando(row.idFile)">
+                      {{ estaReparando(row.idFile) ? 'hourglass_empty' : 'build' }}
+                    </mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <div *ngIf="!loading && !porAgencia.length" class="empty-state">
+        <mat-icon>check_circle</mat-icon>
+        <p>No hay expedientes que requieran corrección</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

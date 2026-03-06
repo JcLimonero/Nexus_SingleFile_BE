@@ -1,0 +1,143 @@
+@import "~simplebar/dist/simplebar.css";
+@import "~highlight.js/styles/androidstudio.css";
+// Estilos base del layout (internos)
+@import "./@vex/styles/core";
+
+/*
+  Paleta de colores - NexFile One (toda la aplicación).
+  #1F3C72 Deep Navy, #274880 Dark Royal, #90B2D6 Light Sky,
+  #688EAF Steel Blue, #E0EDEF Light Cool Grey/Blue
+*/
+:root {
+  /* Paleta aplicación */
+  --app-palette-navy: #1F3C72;
+  --app-palette-royal: #274880;
+  --app-palette-sky: #90B2D6;
+  --app-palette-steel: #688EAF;
+  --app-palette-light: #E0EDEF;
+
+  --app-palette-navy-rgb: 31, 60, 114;
+  --app-palette-royal-rgb: 39, 72, 128;
+  --app-palette-sky-rgb: 144, 178, 214;
+  --app-palette-steel-rgb: 104, 142, 175;
+  --app-palette-light-rgb: 224, 237, 239;
+
+  /* Primary = royal/navy para toolbar, nav, botones, enlaces, Material */
+  --vex-color-primary-500: 39, 72, 128;
+  --vex-color-primary-600: 39, 72, 128;
+  --vex-color-primary-700: 31, 60, 114;
+
+  /* Layout: sidenav navy, toolbar royal */
+  --vex-sidenav-background: #1F3C72;
+  --vex-toolbar-background: #274880;
+  --vex-toolbar-height: 56px;
+  --vex-border-radius: 0.375rem;
+
+  /* Fondos de la aplicación con la paleta */
+  --vex-background-background: #E0EDEF;
+  --vex-background-card: #ffffff;
+  --vex-background-app-bar: #E0EDEF;
+  --vex-background-hover: rgba(144, 178, 214, 0.2);
+
+  /* Divisores y bordes */
+  --vex-foreground-divider: rgba(104, 142, 175, 0.35);
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Contenedores del layout (nombres app- para identidad propia) */
+.vex-base-layout-container,
+.app-layout-container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.vex-layout-sidenav-container,
+.app-layout-sidenav-container {
+  min-width: 0;
+  max-width: 100%;
+
+  /* Ancho del sidenav según estado colapsado/expandido */
+  .mat-drawer-side,
+  mat-sidenav {
+    width: var(--vex-sidenav-width) !important;
+    min-width: var(--vex-sidenav-width) !important;
+    max-width: var(--vex-sidenav-width) !important;
+    transition: width 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+  }
+}
+
+/* Sidenav colapsado: el contenedor padre tiene la clase */
+.app-layout-sidenav-collapsed .vex-layout-sidenav-container mat-sidenav:not(.vex-layout-quickpanel),
+.app-layout-sidenav-collapsed .vex-layout-sidenav-container .mat-drawer:not(.vex-layout-quickpanel) {
+  width: var(--vex-sidenav-collapsed-width) !important;
+  min-width: var(--vex-sidenav-collapsed-width) !important;
+  max-width: var(--vex-sidenav-collapsed-width) !important;
+}
+
+/* Contenido principal: margen según estado del sidenav para ajustarse al espacio disponible */
+@media (min-width: 1024px) {
+  body:not([dir="rtl"]) {
+    .app-layout-sidenav-collapsed .vex-layout-sidenav-content {
+      margin-left: var(--vex-sidenav-collapsed-width) !important;
+    }
+
+    .app-layout-container:not(.app-layout-sidenav-collapsed) .vex-layout-sidenav-content {
+      margin-left: var(--vex-sidenav-width) !important;
+    }
+  }
+
+  [dir="rtl"] {
+    .app-layout-sidenav-collapsed .vex-layout-sidenav-content {
+      margin-right: var(--vex-sidenav-collapsed-width) !important;
+    }
+
+    .app-layout-container:not(.app-layout-sidenav-collapsed) .vex-layout-sidenav-content {
+      margin-right: var(--vex-sidenav-width) !important;
+    }
+  }
+}
+
+.vex-layout-sidenav-content,
+.app-layout-content {
+  min-width: 0;
+  max-width: 100%;
+  transition: margin-left 0.3s ease, margin-right 0.3s ease;
+}
+
+.vex-layout-content.app-layout-main {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Footer siempre visible y fijo al fondo */
+.vex-layout-footer-fixed .vex-footer {
+  bottom: 0 !important;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+/* Diseño unificado de tablas con la paleta de la aplicación */
+@import "./app/styles/tables-palette";
+
+/* Estilo homologado para combos (como Período) */
+@import "./app/styles/form-fields";
+
+/* Toolbar user dropdown - mat-menu panel override */
+.mat-mdc-menu-panel.toolbar-user-menu {
+  border-radius: 12px !important;
+  overflow: visible !important;
+  max-height: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+
+  .mat-mdc-menu-content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}

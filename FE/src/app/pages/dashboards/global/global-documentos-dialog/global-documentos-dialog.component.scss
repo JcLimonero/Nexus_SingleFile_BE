@@ -1,0 +1,135 @@
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+
+  @media (max-width: 600px) {
+    max-width: 95vw;
+    width: 95vw;
+    padding: 12px;
+  }
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialog-header p {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.dialog-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  align-self: center;
+}
+
+.dialog-summary--ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.dialog-summary--warning {
+  background: #fef3c7;
+  color: #c2410c;
+}
+
+.dialog-loading,
+.dialog-error,
+.dialog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0;
+  color: #4b5563;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.dialog-error mat-icon {
+  color: #dc2626;
+}
+
+.dialog-empty mat-icon {
+  font-size: 40px;
+}
+
+.dialog-table-wrapper {
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.documents-table {
+  width: 100%;
+  max-width: 900px;
+  min-width: 720px;
+}
+
+.documents-table th,
+.documents-table td {
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+.documents-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.documents-table td {
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.documents-row:hover td {
+  background-color: #f9fafb;
+}
+
+.truncate {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+

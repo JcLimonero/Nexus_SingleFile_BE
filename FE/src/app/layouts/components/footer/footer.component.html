@@ -1,0 +1,10 @@
+<div style="display: flex; align-items: center; min-width: 0; max-width: 100%; min-width: 320px;">
+  <ng-container *ngIf="branding$ | async as branding">
+    <div class="font-medium ltr:ml-4 rtl:mr-4 hidden sm:block flex items-left min-w-0 max-w-full overflow-hidden">
+      <a [href]="branding.footerLink" target="_blank" rel="noopener noreferrer" class="flex items-center hover:opacity-80 transition-opacity min-w-0 max-w-full">
+        <img *ngIf="branding.logoFooter?.trim()" [src]="branding.logoFooter" [alt]="(branding.footerText?.trim() || branding.clientName)" class="h-6 w-auto mr-2 flex-shrink-0">
+        <span class="min-w-0 truncate">{{ branding.footerText?.trim() || branding.clientName }}</span>
+      </a>
+    </div>
+  </ng-container>
+</div>

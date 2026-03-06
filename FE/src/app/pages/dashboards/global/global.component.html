@@ -1,0 +1,270 @@
+<div class="config-container">
+  <!-- Card de filtros (mismo acomodo que Integración, catálogos, etc.) -->
+  <div class="filters-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Agencia</mat-label>
+            <mat-select
+              [(ngModel)]="selectedAgency"
+              [disabled]="loadingAgencias || agencias.length === 0"
+              (selectionChange)="onAgenciaChange()">
+              <mat-option *ngIf="loadingAgencias" [value]="null" disabled>
+                <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                Cargando agencias...
+              </mat-option>
+              <mat-option *ngIf="!loadingAgencias && agencias.length === 0" [value]="null" disabled>
+                No hay agencias disponibles
+              </mat-option>
+              <mat-option [value]="''">Todas las agencias</mat-option>
+              <mat-option *ngFor="let agencia of agencias" [value]="agencia.id ?? agencia.Id">
+                {{ agencia.name ?? agencia.Name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Proceso</mat-label>
+            <mat-select
+              [(ngModel)]="selectedProcess"
+              [disabled]="loadingProcesos || procesos.length === 0"
+              (selectionChange)="onProcesoChange()">
+              <mat-option *ngIf="loadingProcesos" [value]="null" disabled>
+                <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                Cargando procesos...
+              </mat-option>
+              <mat-option *ngIf="!loadingProcesos && procesos.length === 0" [value]="null" disabled>
+                No hay procesos disponibles
+              </mat-option>
+              <mat-option [value]="''">Todos los procesos</mat-option>
+              <mat-option *ngFor="let proceso of procesos" [value]="proceso.id ?? proceso.Id">
+                {{ proceso.name ?? proceso.Name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Fase</mat-label>
+            <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
+              <mat-option value="">Todas las fases</mat-option>
+              <mat-option *ngFor="let fase of fases" [value]="fase.value">
+                {{ fase.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Rango Fecha Registro</mat-label>
+            <mat-date-range-input [formGroup]="registrationDateRangeGroup" [rangePicker]="registrationDatePicker">
+              <input matStartDate formControlName="start" placeholder="Inicio" (click)="registrationDatePicker.open()">
+              <input matEndDate formControlName="end" placeholder="Fin" (click)="registrationDatePicker.open()">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="registrationDatePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #registrationDatePicker></mat-date-range-picker>
+            <button
+              *ngIf="hasRegistrationDateRange()"
+              mat-icon-button
+              matSuffix
+              color="warn"
+              size="small"
+              (click)="clearRegistrationDateRange(); $event.stopPropagation()"
+              matTooltip="Limpiar filtro de fecha de registro">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Rango Fecha Liberación</mat-label>
+            <mat-date-range-input [formGroup]="liberationDateRangeGroup" [rangePicker]="liberationDatePicker">
+              <input matStartDate formControlName="start" placeholder="Inicio" (click)="liberationDatePicker.open()">
+              <input matEndDate formControlName="end" placeholder="Fin" (click)="liberationDatePicker.open()">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="liberationDatePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #liberationDatePicker></mat-date-range-picker>
+            <button
+              *ngIf="hasLiberationDateRange()"
+              mat-icon-button
+              matSuffix
+              color="warn"
+              size="small"
+              (click)="clearLiberationDateRange(); $event.stopPropagation()"
+              matTooltip="Limpiar filtro de fecha de liberación">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48 flex-1">
+            <mat-label>Buscar</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchTerm"
+              (input)="onSearchChange()"
+              placeholder="Pedido, cliente o nombre" />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-slide-toggle
+            [(ngModel)]="showCancelledOrders"
+            (change)="onToggleCancelledOrders()"
+            class="flex-shrink-0">
+            <span class="ml-2 text-xs text-gray-600">Mostrar cancelados</span>
+          </mat-slide-toggle>
+
+          <div class="flex items-center gap-2">
+            <button
+              mat-stroked-button
+              (click)="limpiarFiltros()"
+              [disabled]="!selectedFase && !searchTerm && !hasRegistrationDateRange() && !hasLiberationDateRange()"
+              matTooltip="Limpiar todos los filtros"
+              class="flex items-center gap-2">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar
+            </button>
+            <button
+              mat-stroked-button
+              color="accent"
+              (click)="recargarDatos()"
+              [disabled]="loadingClientes || selectedAgency === null || selectedProcess === null"
+              matTooltip="Cargar datos"
+              class="flex items-center gap-2">
+              <mat-icon [class.animate-spin]="loadingClientes">refresh</mat-icon>
+              Cargar
+            </button>
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="exportarExcel()"
+              [disabled]="clientesDataSource.data.length === 0 || exportingExcel"
+              matTooltip="Exportar a Excel"
+              class="flex items-center gap-2">
+              <mat-icon *ngIf="!exportingExcel">download</mat-icon>
+              <mat-spinner *ngIf="exportingExcel" diameter="20"></mat-spinner>
+              Exportar
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card class="orders-card">
+    <div *ngIf="loadingClientes" class="orders-loading">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p class="text-sm text-gray-600 mt-2">Cargando pedidos...</p>
+    </div>
+
+    <div *ngIf="!loadingClientes && clientesDataSource.data.length === 0" class="orders-empty">
+      <mat-icon class="text-4xl text-gray-400 mb-2">inbox</mat-icon>
+      <p class="text-sm text-gray-600 text-center">No se encontraron pedidos con los filtros seleccionados.</p>
+    </div>
+
+    <div *ngIf="clientesDataSource.data.length > 0" class="orders-table-wrapper">
+      <table mat-table [dataSource]="clientesDataSource" class="orders-table">
+        <ng-container matColumnDef="ndCliente">
+          <th mat-header-cell *matHeaderCellDef> ND Cliente </th>
+          <td mat-cell *matCellDef="let cliente"> {{ cliente.ndCliente }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="ndPedido">
+          <th mat-header-cell *matHeaderCellDef> ND Pedido </th>
+          <td mat-cell *matCellDef="let cliente"> {{ cliente.ndPedido }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="cliente">
+          <th mat-header-cell *matHeaderCellDef> Cliente </th>
+          <td mat-cell *matCellDef="let cliente">
+            <span matTooltip="{{ cliente.cliente }}">{{ cliente.cliente }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="proceso">
+          <th mat-header-cell *matHeaderCellDef> Proceso </th>
+          <td mat-cell *matCellDef="let cliente"> {{ cliente.proceso }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="fase">
+          <th mat-header-cell *matHeaderCellDef> Fase </th>
+          <td mat-cell *matCellDef="let cliente"> {{ cliente.fase }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="operacion">
+          <th mat-header-cell *matHeaderCellDef> Operación </th>
+          <td mat-cell *matCellDef="let cliente"> {{ cliente.operacion }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="monto">
+          <th mat-header-cell *matHeaderCellDef> Monto </th>
+          <td mat-cell *matCellDef="let cliente"> {{ formatMonto(cliente.montoUnidad) }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="avisoConfidencialidad">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Aviso confid. </th>
+          <td mat-cell *matCellDef="let cliente" class="text-center">
+            <mat-icon
+              [ngClass]="cliente.avisoConfidencialidadAceptado ? 'text-green-600' : 'text-red-600'"
+              matTooltip="{{ cliente.avisoConfidencialidadAceptado ? 'Aprobado' : 'Pendiente' }}">
+              {{ cliente.avisoConfidencialidadAceptado ? 'check_circle' : 'radio_button_unchecked' }}
+            </mat-icon>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="beneficiarios">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Beneficiarios </th>
+          <td mat-cell *matCellDef="let cliente" class="text-center">
+            <span
+              [ngClass]="isBeneficiariosCompleto(cliente) ? 'text-green-600 font-semibold' : 'text-amber-600'">
+              {{ cliente.porcentajeBeneficiarios != null ? (cliente.porcentajeBeneficiarios | number:'1.0-0') + '%' : '—' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="registro">
+          <th mat-header-cell *matHeaderCellDef> Registro </th>
+          <td mat-cell *matCellDef="let cliente"> {{ cliente.registro | date: 'yyyy-MM-dd' }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="fechaLiberacion">
+          <th mat-header-cell *matHeaderCellDef> Fecha Liberación </th>
+          <td mat-cell *matCellDef="let cliente">
+            {{ cliente.fechaLiberacion ? (cliente.fechaLiberacion | date: 'yyyy-MM-dd') : '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="documentosNoAprobados">
+          <th mat-header-cell *matHeaderCellDef>
+            Documentos pendientes
+          </th>
+          <td mat-cell *matCellDef="let cliente">
+            <span [ngClass]="cliente.documentosNoAprobados ? 'text-red-600 font-semibold' : 'text-green-600'">
+              {{ cliente.documentosNoAprobados ?? 0 }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="documentos">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Documentos </th>
+          <td mat-cell *matCellDef="let cliente" class="text-center">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="openDocumentsDialog(cliente); $event.stopPropagation()"
+              matTooltip="Ver documentos del pedido">
+              <mat-icon>description</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" class="orders-row"></tr>
+      </table>
+      <mat-paginator
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageSize]="10"
+        showFirstLastButtons
+        aria-label="Seleccionar página de pedidos">
+      </mat-paginator>
+    </div>
+  </mat-card>
+</div>
+

@@ -1,0 +1,46 @@
+.analytics-filters {
+  .quick-filter-button {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+    
+    &.mat-primary {
+      background-color: #3b82f6;
+      color: white;
+    }
+  }
+
+  .filter-section {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .export-buttons {
+    .mat-stroked-button {
+      transition: all 0.2s ease-in-out;
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .form-field {
+    .mat-form-field-wrapper {
+      padding-bottom: 0;
+    }
+  }
+}

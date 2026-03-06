@@ -1,0 +1,85 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center mb-6">
+    <mat-icon class="text-blue-600 mr-3">swap_horiz</mat-icon>
+    <h2 class="text-xl font-semibold text-gray-800">Cambiar Estatus del Pedido</h2>
+  </div>
+
+  <!-- Información del cliente -->
+  <div class="bg-gray-50 rounded-lg p-4 mb-6">
+    <h3 class="text-sm font-medium text-gray-700 mb-2">Información del Pedido</h3>
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="font-medium text-gray-600">Cliente:</span>
+        <span class="ml-2">{{ data.cliente.cliente }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-600">No. Pedido:</span>
+        <span class="ml-2">{{ data.cliente.ndPedido }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-600">Proceso:</span>
+        <span class="ml-2">{{ data.cliente.proceso }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-600">Fase Actual:</span>
+        <span class="ml-2">{{ data.cliente.fase }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <form (ngSubmit)="onConfirmar()" #statusForm="ngForm">
+    <div class="space-y-4">
+      <!-- Selección de fase -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nueva Fase</mat-label>
+        <mat-select 
+          [(ngModel)]="faseSeleccionada" 
+          name="fase"
+          required>
+          
+          <mat-option *ngFor="let fase of fasesDisponibles" [value]="fase.id">
+            {{ fase.nombre }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Selecciona la nueva fase para el pedido</mat-hint>
+        <mat-error *ngIf="!faseSeleccionada">Debes seleccionar una fase</mat-error>
+        <mat-error *ngIf="faseSeleccionada === estadoActualId">Debes seleccionar una fase diferente a la actual</mat-error>
+      </mat-form-field>
+
+      <!-- Información de la fase actual -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 class="text-sm font-medium text-blue-700 mb-2">Información de Cambio</h4>
+        <div class="text-sm text-blue-600">
+          <p><strong>Fase actual:</strong> {{ data.cliente.fase }}</p>
+          <p *ngIf="faseSeleccionada">
+            <strong>Nueva fase:</strong> 
+            {{ nombreFaseSeleccionada }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
+      <button 
+        type="button" 
+        mat-button 
+        (click)="onCancelar()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+      
+      <button 
+        type="submit" 
+        mat-raised-button 
+        color="primary"
+        [disabled]="!isFormValid || loading">
+        <mat-spinner *ngIf="loading" diameter="16" class="mr-2"></mat-spinner>
+        <mat-icon *ngIf="!loading" class="mr-2">swap_horiz</mat-icon>
+        {{ loading ? 'Procesando...' : 'Confirmar Cambio' }}
+      </button>
+    </div>
+  </form>
+</div>

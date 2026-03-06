@@ -1,0 +1,24 @@
+
+venv-pillow/
+!FE/dist/*
+
+
+
+# BE/writable - ignorar todo excepto archivos de estructura (index.html, .htaccess)
+BE/writable/*
+!BE/writable/index.html
+!BE/writable/.htaccess
+!BE/writable/cache/
+BE/writable/cache/*
+!BE/writable/cache/index.html
+!BE/writable/logs/
+BE/writable/logs/*
+!BE/writable/logs/index.html
+!BE/writable/session/
+BE/writable/session/*
+!BE/writable/session/index.html
+!BE/writable/uploads/
+BE/writable/uploads/*
+!BE/writable/uploads/index.html
+BE/writable/debugbar/
+BE/writable/.DS_Store

@@ -1,0 +1,451 @@
+<div class="liberacion-container">
+
+  <!-- Filtros de Agencia y Cliente -->
+  <div class="filters-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+        <div class="flex items-start justify-start gap-6 flex-wrap">
+          <!-- Filtro de Agencia -->
+          <div class="flex items-center space-x-3">
+            <mat-form-field appearance="outline" class="min-w-48">
+              <mat-label>Agencia</mat-label>
+              <mat-select 
+                [value]="selectedAgencyId" 
+                (selectionChange)="onAgencyChange($event.value)"
+                [disabled]="agenciesLoading || !hasAgencies()">
+                <mat-option 
+                  *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
+                  [value]="getAgencyId(agency)">
+                  {{ agency.name ?? agency.Name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Filtro de Cliente y Botones -->
+          <div class="flex items-center space-x-3 w-[500px]">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Buscar Cliente</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="clientSearchTerm"
+                (keyup.enter)="searchClients()"
+                placeholder="Buscar por número de cliente o nombre completo"
+                autocomplete="off">
+            </mat-form-field>
+            
+            <!-- Contenedor de botones alineados -->
+            <div class="flex items-center space-x-2">
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="searchClients()"
+                [disabled]="clientsLoading || clientSearchTerm.trim().length < 1"
+                matTooltip="Buscar cliente"
+                style="height: 40px; min-height: 40px;">
+                <mat-icon>search</mat-icon>
+                Buscar
+              </button>
+              
+              <button 
+                *ngIf="clientSearchTerm"
+                mat-raised-button 
+                color="warn" 
+                (click)="clearClientSearch()"
+                matTooltip="Limpiar búsqueda"
+                style="height: 40px; min-height: 40px;">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin resultados -->
+        <div *ngIf="showClientResults && clients.length === 0 && !clientsLoading" class="mt-3 text-center py-6">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px; width: 40px; height: 40px;" svgIcon="mat:search_off"></mat-icon>
+          <p class="text-gray-500">No se encontraron clientes con el término de búsqueda</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Información del Cliente Seleccionado -->
+  <div *ngIf="selectedClient" class="client-info-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-header class="pb-1">
+        <mat-card-title class="flex items-center text-sm">
+          <mat-icon class="mr-1 text-blue-600" style="font-size: 18px;">person</mat-icon>
+          Información del Cliente
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div class="field-group">
+            <label class="field-label">N° Cliente</label>
+            <div class="field-value">{{ selectedClient.ndCliente || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Razón Social / Nombre</label>
+            <div class="field-value">{{ selectedClient.razonSocial || selectedClient.cliente || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">RFC</label>
+            <div class="field-value">{{ selectedClient.rfc || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Correo</label>
+            <div class="field-value">{{ selectedClient.email || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Teléfono</label>
+            <div class="field-value">{{ selectedClient.telefono || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Teléfono 2</label>
+            <div class="field-value">{{ selectedClient.telefono2 || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Tipo Cliente</label>
+            <div class="field-value">{{ ((selectedClient.tipo_cliente || selectedClient.tipoCliente) === 'fisica' ? 'Persona Física' : (selectedClient.tipo_cliente || selectedClient.tipoCliente) === 'moral' ? 'Persona Moral' : (selectedClient.tipo_cliente || selectedClient.tipoCliente)) || 'N/A' }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Tabla de Pedidos del Cliente -->
+  <div *ngIf="selectedClient" class="files-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-header class="pb-1">
+        <mat-card-title class="flex items-center justify-between text-sm">
+          <div class="flex items-center">
+            <mat-icon class="mr-1 text-purple-600" style="font-size: 18px;">verified</mat-icon>
+            Pedidos en Liberación
+          </div>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-2">
+        <!-- Loading spinner -->
+        <div *ngIf="filesLoading" class="flex justify-center py-8">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <!-- Tabla de pedidos -->
+        <div *ngIf="!filesLoading" class="overflow-x-auto">
+          <table mat-table [dataSource]="paginatedFiles" class="w-full files-table pointer-table">
+            <!-- Número de Pedido -->
+            <ng-container matColumnDef="numeroPedido">
+              <th mat-header-cell *matHeaderCellDef>N° Pedido</th>
+              <td mat-cell *matCellDef="let file">
+                <div class="flex items-center">
+                  <mat-icon class="mr-1 text-blue-600" style="font-size: 14px;">receipt</mat-icon>
+                  <span class="font-medium">{{ file.numeroPedido }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Número de Inventario -->
+            <ng-container matColumnDef="numeroInventario">
+              <th mat-header-cell *matHeaderCellDef>N° Inventario</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.numeroInventario; else noInventory" class="text-sm">{{ file.numeroInventario }}</span>
+                <ng-template #noInventory>
+                  <span class="text-gray-400 italic text-sm">Sin inventario</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Proceso -->
+            <ng-container matColumnDef="proceso">
+              <th mat-header-cell *matHeaderCellDef>Proceso</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.proceso; else noProcess" class="text-sm">{{ file.proceso }}</span>
+                <ng-template #noProcess>
+                  <span class="text-gray-400 italic text-sm">Sin proceso</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Operación -->
+            <ng-container matColumnDef="operacion">
+              <th mat-header-cell *matHeaderCellDef>Operación</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.operacion; else noOperation" class="text-sm">{{ file.operacion }}</span>
+                <ng-template #noOperation>
+                  <span class="text-gray-400 italic text-sm">Sin operación</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Tipo de cliente -->
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef>Tipo Cliente</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.tipoCliente; else noCustomerType" class="text-sm">{{ file.tipoCliente }}</span>
+                <ng-template #noCustomerType>
+                  <span class="text-gray-400 italic text-sm">Sin tipo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Vehículo -->
+            <ng-container matColumnDef="vehiculo">
+              <th mat-header-cell *matHeaderCellDef>Vehículo</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.vehiculo; else noVehicle" class="text-sm">{{ file.vehiculo }}</span>
+                <ng-template #noVehicle>
+                  <span class="text-gray-400 italic text-sm">Sin vehículo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Año -->
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef>Año</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.year; else noYear" class="text-sm">{{ file.year }}</span>
+                <ng-template #noYear>
+                  <span class="text-gray-400 italic text-sm">N/A</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Modelo -->
+            <ng-container matColumnDef="modelo">
+              <th mat-header-cell *matHeaderCellDef>Modelo</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.modelo; else noModel" class="text-sm">{{ file.modelo }}</span>
+                <ng-template #noModel>
+                  <span class="text-gray-400 italic text-sm">Sin modelo</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- VIN -->
+            <ng-container matColumnDef="vin">
+              <th mat-header-cell *matHeaderCellDef>VIN</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.vin; else noVin" class="text-sm">{{ file.vin }}</span>
+                <ng-template #noVin>
+                  <span class="text-gray-400 italic text-sm">Sin VIN</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Agencia -->
+            <ng-container matColumnDef="agencia">
+              <th mat-header-cell *matHeaderCellDef>Agencia</th>
+              <td mat-cell *matCellDef="let file">
+                <span *ngIf="file.agencia; else noAgency" class="text-sm">{{ file.agencia }}</span>
+                <ng-template #noAgency>
+                  <span class="text-gray-400 italic text-sm">Sin agencia</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Fechas -->
+            <ng-container matColumnDef="fechaRegistro">
+              <th mat-header-cell *matHeaderCellDef>Registro</th>
+              <td mat-cell *matCellDef="let file">
+                <span class="text-sm">{{ file.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Acciones -->
+            <tr mat-header-row *matHeaderRowDef="filesDisplayedColumns"></tr>
+            <tr mat-row 
+                *matRowDef="let row; columns: filesDisplayedColumns;"
+                (click)="selectFile(row)"
+                [class.row-selected]="selectedFile?.fileId === row.fileId">
+            </tr>
+          </table>
+        </div>
+
+        <!-- Sin pedidos -->
+        <div *ngIf="!filesLoading && files.length === 0" class="text-center py-8">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">folder_open</mat-icon>
+          <p class="text-gray-500">No se encontraron pedidos en Liberación para este cliente</p>
+        </div>
+        
+        <!-- Sin resultados de búsqueda -->
+        <div *ngIf="!filesLoading && files.length > 0 && filteredFiles.length === 0" class="text-center py-8">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px; width: 40px; height: 40px;" svgIcon="mat:search_off"></mat-icon>
+          <p class="text-gray-500">No se encontraron pedidos que coincidan con la búsqueda</p>
+          <button 
+            mat-button 
+            color="primary" 
+            (click)="clearOrderSearch()"
+            class="mt-2">
+            Limpiar búsqueda
+          </button>
+        </div>
+      </mat-card-content>
+
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        showFirstLastButtons
+        (page)="onPageChange($event)"
+        class="mt-2">
+      </mat-paginator>
+    </mat-card>
+  </div>
+
+  <!-- Sección de Documentos del Pedido Seleccionado -->
+  <div *ngIf="selectedFile" class="documents-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-header class="pb-1">
+        <mat-card-title class="flex flex-col text-sm w-full">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center">
+              <mat-icon class="mr-1 text-purple-600" style="font-size: 18px;">folder_shared</mat-icon>
+              <span class="font-semibold">Documentos Requeridos para Liberación</span>
+            </div>
+            <button 
+              mat-stroked-button 
+              color="primary"
+              (click)="openDocumentosNoConfiguradosDialog()"
+              class="text-xs"
+              matTooltip="Ver documentos de tipo Liberación que este pedido no tiene configurados">
+              <mat-icon class="mr-1" style="font-size: 14px;">folder_off</mat-icon>
+              Ver no configurados
+            </button>
+          </div>
+          <div class="text-xs text-gray-600 ml-6">
+            Pedido {{ selectedFile.numeroPedido }} • {{ selectedFile.proceso }} • {{ selectedFile.operacion }} • {{ selectedFile.tipoCliente }} • {{ selectedFile.modelo }} {{ selectedFile.vehiculo }} {{ selectedFile.year }} • VIN: {{ selectedFile.vin }}
+          </div>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="p-2" *ngIf="selectedFile; else noFileSelected">
+        <!-- Loading spinner -->
+        <div *ngIf="documentsLoading" class="flex justify-center py-8">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+
+        <!-- Lista de documentos agrupados por subproceso -->
+        <div *ngIf="!documentsLoading">
+          <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
+            <mat-tab *ngFor="let tab of documentTabs">
+              <ng-template mat-tab-label>
+                <mat-icon *ngIf="tab.hasRejected" class="tab-status-icon tab-status-icon--danger">cancel</mat-icon>
+                <mat-icon *ngIf="!tab.hasRejected && tab.hasPending" class="tab-status-icon tab-status-icon--warning">warning</mat-icon>
+                {{ tab.name }}
+              </ng-template>
+              <div class="space-y-2 pt-2">
+                <!-- Botón para cargar todos los documentos seleccionados - Posicionado a la derecha -->
+                <div *ngIf="hasDocumentsSelectedForBatch()" class="flex flex-col items-end mb-2">
+                  <button 
+                    mat-raised-button 
+                    color="primary"
+                    (click)="uploadMultipleDocuments()"
+                    [disabled]="uploadingDocuments.size > 0 || hasFilesExceedingSizeInBatch()"
+                    class="text-xs">
+                    <mat-icon class="mr-1" style="font-size: 14px;">cloud_upload</mat-icon>
+                    Cargar {{ getSelectedDocumentsCount() }} documento(s) seleccionado(s)
+                  </button>
+                  <!-- Mensaje de error de tamaño para carga masiva -->
+                  <span *ngIf="hasFilesExceedingSizeInBatch()" 
+                        class="text-xs text-red-600 mt-1">
+                    {{ getFilesExceedingSizeCount() }} archivo(s) exceden el tamaño máximo de {{ maxFileSizeMB }}MB
+                  </span>
+                </div>
+
+                <div *ngFor="let document of tab.documents; trackBy: trackByDocumentId" 
+                     class="document-item flex items-center justify-between p-2 border border-gray-200 rounded hover:bg-gray-50"
+                     [class.opacity-50]="isDocumentUploading(document.fileDocumentId?.toString())">
+                  
+                  <div class="flex items-center space-x-2 flex-1">
+                    <!-- Checkbox para selección en lote -->
+                    <mat-checkbox
+                      [checked]="isDocumentSelectedForBatch(document.fileDocumentId?.toString() || '')"
+                      (change)="toggleDocumentForBatch(document.fileDocumentId?.toString() || '')"
+                      [disabled]="!document.fileDocumentId || !selectedFiles[document.fileDocumentId?.toString()] || filesExceedingSize[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString() || '')"
+                      style="margin-right: 8px;">
+                    </mat-checkbox>
+                    
+                    <mat-icon [class]="getDocumentStatusColor(document.status, document.idCurrentStatus)" style="font-size: 16px;">
+                      {{ getDocumentStatusIcon(document.status, document.idCurrentStatus) }}
+                    </mat-icon>
+                    
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-900 text-sm">{{ document.fileName || document.documentName }}</div>
+                      <div *ngIf="document.hasExpiration === '1' && document.expirationDate" class="text-xs text-gray-500">
+                        Vencimiento: {{ document.expirationDate | date:'dd/MM/yyyy' }}
+                      </div>
+                      <div *ngIf="isDocumentUploading(document.fileDocumentId?.toString())" class="text-xs text-blue-600 flex items-center mt-1">
+                        <mat-spinner diameter="12" class="mr-1"></mat-spinner>
+                        Cargando...
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center space-x-1">
+                    <div class="file-input-container">
+                      <input 
+                        type="file" 
+                        #fileInput
+                        (change)="onFileSelected($event, document.fileDocumentId)"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        class="hidden"
+                        [id]="'file-' + document.fileDocumentId">
+                      <button 
+                        mat-stroked-button 
+                        (click)="fileInput.click()"
+                        [disabled]="document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
+                        class="text-xs">
+                        <mat-icon class="mr-1" style="font-size: 14px;">attach_file</mat-icon>
+                        {{ selectedFiles[document.fileDocumentId?.toString()] ? selectedFiles[document.fileDocumentId?.toString()].name : (document.idCurrentStatus === '2' ? 'Reemplazar archivo' : 'Seleccionar archivo') }}
+                      </button>
+                    </div>
+
+                    <div class="flex flex-col">
+                      <button 
+                        mat-raised-button 
+                        color="primary"
+                        (click)="uploadDocument(document)"
+                        [disabled]="!selectedFiles[document.fileDocumentId?.toString()] || filesExceedingSize[document.fileDocumentId?.toString()] || document.idCurrentStatus === '3' || document.idCurrentStatus === '4' || isDocumentUploading(document.fileDocumentId?.toString())"
+                        class="text-xs">
+                        <mat-icon class="mr-1" style="font-size: 14px;">upload</mat-icon>
+                        {{ document.idCurrentStatus === '2' ? 'REEMPLAZAR' : 'CARGAR' }}
+                      </button>
+                      <!-- Mensaje de error de tamaño -->
+                      <span *ngIf="filesExceedingSize[document.fileDocumentId?.toString()]" 
+                            class="text-xs text-red-600 mt-1">
+                        No se permiten archivos mayores a {{ maxFileSizeMB }}MB
+                      </span>
+                    </div>
+
+                    <button 
+                      mat-raised-button 
+                      color="accent"
+                      (click)="viewDocument(document)"
+                      [disabled]="!document.documentContainer"
+                      class="text-xs">
+                      <mat-icon class="mr-1" style="font-size: 14px;">visibility</mat-icon>
+                      VER
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+
+        <!-- Sin documentos -->
+        <div *ngIf="!documentsLoading && (!requiredDocuments.length || !documentTabs.length)" class="text-center py-8">
+          <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">folder_open</mat-icon>
+          <p class="text-gray-500">No se encontraron documentos requeridos para este pedido</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <ng-template #noFileSelected>
+    <div class="text-center py-8 text-sm text-gray-500">
+      Selecciona un pedido para visualizar sus documentos de Liberación.
+    </div>
+  </ng-template>
+</div>
+

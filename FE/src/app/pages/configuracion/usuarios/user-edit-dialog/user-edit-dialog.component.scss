@@ -1,0 +1,106 @@
+// Estilos específicos para el diálogo de edición de usuarios
+.user-edit-dialog {
+  .mat-mdc-dialog-content {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
+// Estilos para los campos de contraseña
+.password-field {
+  .mat-mdc-form-field-suffix {
+    button {
+      margin-right: -8px;
+    }
+  }
+}
+
+// Estilos para la información del sistema
+.system-info {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  
+  h3 {
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    
+    .info-item {
+      font-size: 14px;
+      
+      .label {
+        color: #6b7280;
+        font-weight: 400;
+      }
+      
+      .value {
+        color: #111827;
+        font-weight: 500;
+        margin-left: 8px;
+        
+        &.mono {
+          font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+          font-size: 13px;
+        }
+      }
+    }
+  }
+}
+
+// Estilos para los botones de acción
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  
+  button {
+    min-width: 120px;
+  }
+}
+
+// Estilos para el formulario
+.form-container {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .form-field {
+    width: 100%;
+  }
+}
+
+// Estilos para los errores de validación
+.validation-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-left: 16px;
+}
+
+// Estilos para los hints
+.mat-mdc-form-field-hint {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+// Estilos para los errores
+.mat-mdc-form-field-error {
+  font-size: 12px;
+  color: #dc2626;
+}

@@ -1,0 +1,351 @@
+            <div class="w-full p-6 space-y-4">
+              <!-- Filtros unificados -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 w-full">
+                <div class="flex items-center justify-between gap-4 w-full">
+                  <!-- Filtro por Agencia -->
+                  <div class="flex items-center space-x-4">
+                    <mat-form-field appearance="outline" class="min-w-48">
+                      <mat-label>Agencia</mat-label>
+                      <mat-select 
+                        [value]="selectedAgencyId" 
+                        (selectionChange)="onAgencyChange($event.value)"
+                        [disabled]="loading || !hasAgencies()">
+                        <mat-option [value]="null">Todas las agencias</mat-option>
+                        <mat-option 
+                          *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
+                          [value]="agency.Id">
+                          {{ agency.Name }}
+                        </mat-option>
+                      </mat-select>                      
+                      <mat-hint *ngIf="!loading && !hasAgencies()">Sin agencias</mat-hint>
+                    </mat-form-field>
+
+                    <!-- Filtro por Usuario -->
+                    <mat-form-field appearance="outline" class="min-w-96">
+                      <mat-label>Usuario</mat-label>
+                      <mat-select 
+                        #userSelect
+                        [value]="selectedUserId" 
+                        (selectionChange)="onUserChange($event.value)"
+                        [disabled]="loading || !hasUsers() || isUserFilterDisabled">
+                        <mat-option [value]="null">Todos los usuarios</mat-option>
+                        <mat-option 
+                          *ngFor="let user of users; trackBy: trackByUserId" 
+                          [value]="user.Id">
+                          {{ user.Name }}
+                        </mat-option>
+                      </mat-select>
+                      <mat-hint *ngIf="!loading && !hasUsers()">Sin usuarios</mat-hint>
+                      <mat-hint *ngIf="isUserFilterDisabled">Filtro deshabilitado para su rol</mat-hint>
+                    </mat-form-field>
+                  </div>
+                  
+                  <!-- Filtros de Fechas -->
+                  <div class="flex items-center space-x-2">
+                    <!-- Botones de rangos rápidos -->
+                    <div class="flex flex-wrap gap-1">
+                      <button 
+                        mat-stroked-button 
+                        size="small"
+                        class="text-xs px-2 py-1"
+                        [class.mat-primary]="activeDateRange === '7d'"
+                        (click)="setLast7Days()">
+                        7d
+                      </button>
+                      <button 
+                        mat-stroked-button 
+                        size="small"
+                        class="text-xs px-2 py-1"
+                        [class.mat-primary]="activeDateRange === '30d'"
+                        (click)="setLast30Days()">
+                        30d
+                      </button>
+                      <button 
+                        mat-stroked-button 
+                        size="small"
+                        class="text-xs px-2 py-1"
+                        [class.mat-primary]="activeDateRange === '90d'"
+                        (click)="setLast90Days()">
+                        90d
+                      </button>
+                      <button 
+                        mat-stroked-button 
+                        size="small"
+                        class="text-xs px-2 py-1"
+                        [class.mat-primary]="activeDateRange === 'thisMonth'"
+                        (click)="setThisMonth()">
+                        Este mes
+                      </button>
+                      <button 
+                        mat-stroked-button 
+                        size="small"
+                        class="text-xs px-2 py-1"
+                        [class.mat-primary]="activeDateRange === 'lastMonth'"
+                        (click)="setLastMonth()">
+                        Mes pasado
+                      </button>
+                      <button 
+                        mat-stroked-button 
+                        size="small"
+                        class="text-xs px-2 py-1"
+                        [class.mat-primary]="activeDateRange === 'thisYear'"
+                        (click)="setThisYear()">
+                        Este año
+                      </button>
+                    </div>
+                    
+                    <!-- Botón toggle para fechas manuales -->
+                    <button 
+                      mat-icon-button 
+                      size="small"
+                      class="toggle-button"
+                      (click)="toggleManualDateInputs()"
+                      [matTooltip]="showManualDateInputs ? 'Ocultar fechas manuales' : 'Mostrar fechas manuales'">
+                      <mat-icon class="arrow-icon" [class.expanded]="showManualDateInputs">
+                        {{ showManualDateInputs ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+                      </mat-icon>
+                    </button>
+                    
+                    <!-- Botón buscar -->
+                    <button 
+                      mat-icon-button 
+                      color="primary" 
+                      size="small"
+                      (click)="searchData()"
+                      matTooltip="Buscar con filtros actuales">
+                      <mat-icon>search</mat-icon>
+                    </button>
+                    
+                    <!-- Botón limpiar fechas -->
+                    <button 
+                      *ngIf="hasDateRange()"
+                      mat-icon-button 
+                      color="warn" 
+                      size="small"
+                      (click)="clearDateRange()"
+                      matTooltip="Limpiar filtro de fechas">
+                      <mat-icon>clear</mat-icon>
+                    </button>
+                    
+                    <!-- Botón limpiar agencia -->
+                    <button 
+                      *ngIf="selectedAgencyId"
+                      mat-icon-button 
+                      color="warn" 
+                      size="small"
+                      (click)="clearAgencyFilter()"
+                      matTooltip="Limpiar filtro de agencia">
+                      <mat-icon>clear</mat-icon>
+                    </button>
+                    
+                    <!-- Botón limpiar usuario -->
+                    <button 
+                      *ngIf="selectedUserId"
+                      mat-icon-button 
+                      color="warn" 
+                      size="small"
+                      (click)="clearUserFilter()"
+                      matTooltip="Limpiar filtro de usuario">
+                      <mat-icon>clear</mat-icon>
+                    </button>
+                    
+                    <!-- Botón limpiar todo -->
+                    <button 
+                      *ngIf="hasAnyFilter()"
+                      mat-icon-button 
+                      color="warn" 
+                      size="small"
+                      (click)="clearAllFilters()"
+                      matTooltip="Limpiar todos los filtros">
+                      <mat-icon>refresh</mat-icon>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Selectores de fecha manuales (se muestran cuando showManualDateInputs es true) -->
+                <div *ngIf="showManualDateInputs" class="grid grid-cols-2 gap-2 mt-4 manual-date-inputs">
+                  <mat-form-field appearance="outline" class="compact-field">
+                    <mat-label>Inicio</mat-label>
+                    <input 
+                      matInput 
+                      [matDatepicker]="startPicker"
+                      formControlName="startDate"
+                      placeholder="Fecha inicio">
+                    <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #startPicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="compact-field">
+                    <mat-label>Fin</mat-label>
+                    <input 
+                      matInput 
+                      [matDatepicker]="endPicker"
+                      formControlName="endDate"
+                      placeholder="Fecha fin">
+                    <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #endPicker></mat-datepicker>
+                  </mat-form-field>
+                </div>
+              </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="flex justify-center py-12">
+    <div class="text-center">
+      <mat-icon class="text-4xl text-gray-400 mb-4" svgIcon="mat:hourglass_empty"></mat-icon>
+      <p class="text-gray-600">Cargando datos de administración...</p>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+    <mat-icon class="text-red-500 mb-2">error</mat-icon>
+    <p class="text-red-600">{{ error }}</p>
+    <button mat-button color="primary" (click)="refreshData()">
+      Reintentar
+    </button>
+  </div>
+
+  <!-- Dashboard de administración -->
+  <div *ngIf="!loading && !error">
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="admin-tabs">
+      
+      <!-- Pestaña de Métricas del Sistema -->
+      <mat-tab label="Sistema">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          
+          <!-- Salud del Sistema -->
+          <mat-card class="system-health-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-green-600" svgIcon="mat:health_and_safety"></mat-icon>
+                <span>Salud del Sistema</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Uptime</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.uptime, {warning: 95, critical: 90})">
+                  {{ adminMetrics.systemHealth.uptime }}%
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Tiempo de Respuesta</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.responseTime, {warning: 200, critical: 500})">
+                  {{ adminMetrics.systemHealth.responseTime }}ms
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Uso de Memoria</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.memoryUsage, {warning: 80, critical: 90})">
+                  {{ adminMetrics.systemHealth.memoryUsage }}%
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Uso de CPU</span>
+                <span class="font-semibold" [class]="getHealthStatusColor(adminMetrics.systemHealth.cpuUsage, {warning: 70, critical: 85})">
+                  {{ adminMetrics.systemHealth.cpuUsage }}%
+                </span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Métricas de Seguridad -->
+          <mat-card class="security-metrics-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-red-600" svgIcon="mat:security"></mat-icon>
+                <span>Seguridad</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Logins Fallidos</span>
+                <span class="font-semibold text-red-600">{{ adminMetrics.securityMetrics.failedLogins }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Actividad Sospechosa</span>
+                <span class="font-semibold text-yellow-600">{{ adminMetrics.securityMetrics.suspiciousActivity }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">IPs Bloqueadas</span>
+                <span class="font-semibold text-red-600">{{ adminMetrics.securityMetrics.blockedIPs }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Último Escaneo</span>
+                <span class="text-xs text-gray-500">{{ adminMetrics.securityMetrics.lastSecurityScan | date:'short' }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Métricas de Rendimiento -->
+          <mat-card class="performance-metrics-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-blue-600" svgIcon="mat:speed"></mat-icon>
+                <span>Rendimiento</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Tiempo Promedio</span>
+                <span class="font-semibold">{{ adminMetrics.performanceMetrics.averageLoadTime }}s</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Usuarios Concurrentes</span>
+                <span class="font-semibold">{{ adminMetrics.performanceMetrics.peakConcurrentUsers }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Conexiones DB</span>
+                <span class="font-semibold">{{ adminMetrics.performanceMetrics.databaseConnections }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Cache Hit Rate</span>
+                <span class="font-semibold text-green-600">{{ adminMetrics.performanceMetrics.cacheHitRate }}%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Métricas de Negocio -->
+          <mat-card class="business-metrics-card">
+            <mat-card-header>
+              <mat-card-title class="flex items-center space-x-2">
+                <mat-icon class="text-purple-600" svgIcon="mat:trending_up"></mat-icon>
+                <span>Negocio</span>
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Ingresos Totales</span>
+                <span class="font-semibold text-green-600">{{ formatCurrency(adminMetrics.businessMetrics.totalRevenue) }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Crecimiento Mensual</span>
+                <span class="font-semibold text-green-600">+{{ adminMetrics.businessMetrics.monthlyGrowth }}%</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Satisfacción</span>
+                <span class="font-semibold text-blue-600">{{ adminMetrics.businessMetrics.customerSatisfaction }}/5</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Tickets Soporte</span>
+                <span class="font-semibold">{{ adminMetrics.businessMetrics.supportTickets }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </mat-tab>
+
+      <!-- Pestaña de Métricas Detalladas -->
+      <mat-tab label="Detalladas">
+        <!-- Métricas específicas de agencia (solo aplica filtro de agencia) -->
+        <div class="mt-6">
+          <vex-widget-agency-metrics 
+            [agencyId]="selectedAgencyId" 
+            [showDetails]="true"></vex-widget-agency-metrics>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+</div>

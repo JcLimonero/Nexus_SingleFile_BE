@@ -1,0 +1,151 @@
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: white;
+}
+
+.dialog-container {
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
+  margin: 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+:host ::ng-deep {
+  mat-table {
+    .mat-mdc-table {
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+      width: 100% !important;
+    }
+
+    .mat-mdc-row {
+      min-height: 32px !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+      display: table-row !important;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #f1f5f9 !important;
+      }
+    }
+
+    .mat-mdc-header-row {
+      min-height: 32px !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+      display: table-row !important;
+      background-color: #f8fafc !important;
+    }
+
+    .mat-mdc-cell {
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
+      font-size: 12px !important;
+      border: none !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      text-align: left !important;
+    }
+
+    .mat-mdc-header-cell {
+      padding: 4px 8px !important;
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      border: none !important;
+      height: 32px !important;
+      max-height: 32px !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      text-overflow: ellipsis !important;
+      text-align: left !important;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      margin: 0 !important;
+      border-spacing: 0 !important;
+    }
+
+    .mat-column-cliente {
+      min-width: 300px !important;
+      max-width: 400px !important;
+      width: 35% !important;
+    }
+
+    .mat-column-ndCliente {
+      min-width: 120px !important;
+      width: 15% !important;
+    }
+
+    .mat-column-rfc {
+      min-width: 150px !important;
+      width: 20% !important;
+    }
+
+    .mat-column-email {
+      min-width: 200px !important;
+      width: 30% !important;
+    }
+  }
+
+  .mat-mdc-table-container {
+    overflow: hidden !important;
+  }
+
+  .mat-mdc-table-wrapper {
+    overflow: hidden !important;
+  }
+
+  .mat-mdc-cell div,
+  .mat-mdc-cell span,
+  .mat-mdc-header-cell div,
+  .mat-mdc-header-cell span {
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+  }
+}
+
+.dialog-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.client-info {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.client-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.client-rfc {
+  color: #6b7280;
+  font-size: 11px;
+}

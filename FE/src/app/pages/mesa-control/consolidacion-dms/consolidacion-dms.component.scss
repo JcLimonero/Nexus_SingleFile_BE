@@ -1,0 +1,174 @@
+// Estilos del módulo Consolidación DMS (mismo tamaño y ubicación que Integración, Liquidación, Liberación)
+
+.consolidacion-dms {
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #f9fafb;
+}
+
+.filters-section {
+  mat-card.filtro-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+}
+
+$filtro-field-height: 56px;
+$filtro-control-height: calc(56px * 0.7);
+
+// Altura para inputs que deben igualar al selector de agencias
+$filtro-control-height-full: 56px;
+
+.filtro-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.filtro-field {
+  min-width: 200px;
+
+  &.filtro-mes {
+    width: 160px;
+    min-width: 160px;
+  }
+
+  &.filtro-anio {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  &.filtro-compania {
+    width: 220px;
+    min-width: 220px;
+  }
+
+  &.filtro-periodo-preset {
+    width: 220px;
+    min-width: 220px;
+  }
+
+  &.filtro-rango-fechas {
+    width: 260px;
+    min-width: 260px;
+  }
+
+  &.filtro-estatus {
+    width: 220px;
+    min-width: 220px;
+  }
+}
+
+// Altura uniforme para todos los mat-form-field (misma que agencia)
+:host ::ng-deep .filtro-field.mat-mdc-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  .mat-mdc-text-field-wrapper {
+    height: $filtro-control-height;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: $filtro-control-height;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.filtro-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+}
+
+.filtro-btn {
+  height: $filtro-control-height !important;
+  min-height: $filtro-control-height !important;
+  min-width: 160px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.periodo-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agencia-multi-select-menu {
+  min-width: 280px;
+}
+
+.agencia-select-wrapper {
+  display: inline-block;
+  min-width: 200px;
+  cursor: pointer;
+
+  &.agencia-disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .agencia-form-field {
+    width: 100%;
+    pointer-events: none;
+
+    input {
+      cursor: pointer;
+    }
+  }
+}
+
+// Penetrar encapsulación para igualar altura del agencia-form-field
+:host ::ng-deep .agencia-select-wrapper .agencia-form-field.mat-mdc-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  .mat-mdc-text-field-wrapper {
+    height: $filtro-control-height;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: $filtro-control-height;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+// Responsive design (igual que Integración, Liquidación, Liberación)
+@media (max-width: 768px) {
+  .consolidacion-dms {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    .filtro-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filtro-field,
+    .agencia-select-wrapper,
+    .periodo-select-wrapper,
+    .filtro-buttons {
+      width: 100%;
+      min-width: 100%;
+    }
+  }
+}

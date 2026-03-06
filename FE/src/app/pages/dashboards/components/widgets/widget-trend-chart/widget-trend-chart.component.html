@@ -1,0 +1,29 @@
+<div class="card h-full widget-trend-chart">
+  <div class="chart-header">
+    <h2 class="chart-title">Tendencia de Expedientes</h2>
+    
+    <!-- Filtro de año -->
+    <div class="year-filter-pill">
+      <mat-form-field appearance="outline" class="year-filter">
+        <mat-select [formControl]="yearControl">
+          <mat-option *ngFor="let year of availableYears" [value]="year">
+            {{ year }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="chart-body">
+    <div *ngIf="loading" class="loading-state">
+      <mat-spinner diameter="32"></mat-spinner>
+    </div>
+
+    <div *ngIf="error" class="error-state">
+      <mat-icon class="text-red-400">error_outline</mat-icon>
+      <p>{{ error }}</p>
+    </div>
+
+    <vex-chart *ngIf="!loading && !error" [options]="options" [series]="series"></vex-chart>
+  </div>
+</div>

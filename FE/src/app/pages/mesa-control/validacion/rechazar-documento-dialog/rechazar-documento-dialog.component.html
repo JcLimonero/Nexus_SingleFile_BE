@@ -1,0 +1,28 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">Rechazar Documento</h2>
+    <button mat-icon-button (click)="onNoClick()" class="text-gray-500 hover:text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <p class="mb-4 text-gray-700">
+    ¿Estás seguro de que deseas rechazar el documento <strong>{{ data.documento.documento }}</strong>?
+    Por favor, proporciona un motivo.
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="onConfirm()">
+    <mat-form-field appearance="outline" class="w-full mb-4">
+      <mat-label>Motivo del rechazo</mat-label>
+      <textarea matInput formControlName="comentario" rows="3" required></textarea>
+      <mat-error *ngIf="form.get('comentario')?.hasError('required')">
+        El motivo es obligatorio.
+      </mat-error>
+    </mat-form-field>
+
+    <div class="flex justify-end gap-2">
+      <button mat-button (click)="onNoClick()" type="button">Cancelar</button>
+      <button mat-flat-button color="warn" type="submit" [disabled]="form.invalid">Rechazar</button>
+    </div>
+  </form>
+</div>

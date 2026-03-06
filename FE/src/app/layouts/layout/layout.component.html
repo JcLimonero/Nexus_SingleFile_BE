@@ -1,0 +1,30 @@
+<vex-base-layout *ngIf="config$ | async as config">
+  <app-progress-bar></app-progress-bar>
+
+  <mat-sidenav-container class="vex-layout-sidenav-container app-layout-sidenav-container">
+    <mat-sidenav
+      [disableClose]="true"
+      [fixedInViewport]="false"
+      mode="side"
+      [opened]="true">
+      <vex-sidenav [collapsed]="!!(sidenavCollapsed$ | async)"></vex-sidenav>
+    </mat-sidenav>
+
+    <mat-sidenav
+      (closedStart)="onQuickpanelClosed()"
+      [opened]="!!(quickpanelOpen$ | async)"
+      class="vex-layout-quickpanel"
+      mode="over"
+      position="end">
+      <vex-quickpanel></vex-quickpanel>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="vex-layout-sidenav-content app-layout-content">
+      <vex-toolbar [class.dark]="config.layout === 'vertical'" class="vex-toolbar"></vex-toolbar>
+      <main class="vex-layout-content app-layout-main">
+        <router-outlet></router-outlet>
+      </main>
+      <vex-footer *ngIf="config.footer.visible" class="vex-footer" style="justify-content: right;"></vex-footer>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</vex-base-layout>

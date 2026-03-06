@@ -1,0 +1,40 @@
+// Estilos del módulo Clientes (mismo acomodo que Integración, Liquidación, Liberación, Consolidación DMS, Validación)
+
+.clientes {
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #f9fafb;
+}
+
+.filters-section {
+  mat-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .clientes {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    .flex {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .mat-form-field {
+      width: 100% !important;
+      min-width: 100% !important;
+    }
+  }
+}

@@ -1,0 +1,725 @@
+<div class="validacion-container">
+  <style>
+    /* Ocultar completamente los hints de los combos para que no ocupen espacio */
+    .mat-mdc-form-field-subscript-wrapper,
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-hint-spacer,
+    .mat-mdc-form-field-bottom-align {
+      display: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      position: absolute !important;
+      pointer-events: none !important;
+      display: none !important;
+    }
+
+    /* Asegurar que los campos no tengan espacio residual */
+    .mat-mdc-form-field {
+      margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+
+    /* Cambiar padding de todas las celdas de tabla de py-2 a py-0 */
+    .py-2 {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    /* Asegurar que todas las celdas de tabla no tengan padding vertical */
+    th.mat-header-cell,
+    td.mat-cell {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    /* Animación de spinner para el botón de recarga */
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Estilos para iconos de la sección de filtros de estado - reducidos a la mitad */
+    .filtros-estado .mat-icon {
+      font-size: 14px !important;
+      width: 14px !important;
+      height: 14px !important;
+      line-height: 14px !important;
+    }
+
+    .filtros-estado .mat-icon-button {
+      width: 24px !important;
+      height: 24px !important;
+      min-width: 24px !important;
+      min-height: 24px !important;
+      line-height: 24px !important;
+    }
+
+  </style>
+
+  <!-- Card de filtros (mismo tamaño y ubicación que Integración, Liquidación, Liberación, Consolidación DMS) -->
+  <div class="filters-section mb-2">
+    <mat-card class="filtro-card bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 flex-wrap">
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Agencia</mat-label>
+            <mat-select [(ngModel)]="selectedAgency" [disabled]="loadingAgencias || agencias.length === 0" (selectionChange)="onAgenciaChange()">
+              <mat-option *ngIf="loadingAgencias" value="" disabled>
+                <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                Cargando agencias...
+              </mat-option>
+              <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
+                No hay agencias disponibles (debugging)
+              </mat-option>
+              <mat-option *ngFor="let agencia of agencias; trackBy: trackByAgenciaId" [value]="agencia.id ?? agencia.Id">
+                {{ agencia.name ?? agencia.Name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Proceso</mat-label>
+            <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos" (selectionChange)="onProcesoChange()">
+              <mat-option *ngIf="loadingProcesos" value="" disabled>
+                <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+                Cargando procesos...
+              </mat-option>
+              <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
+                No hay procesos disponibles
+              </mat-option>
+              <mat-option [value]="0">Todos los procesos</mat-option>
+              <mat-option *ngFor="let proceso of procesos; trackBy: trackByProcesoId" [value]="proceso.id ?? proceso.Id">
+                {{ proceso.name ?? proceso.Name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="min-w-48">
+            <mat-label>Fase</mat-label>
+            <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
+              <mat-option value="">Todas las fases</mat-option>
+              <mat-option *ngFor="let fase of fases; trackBy: trackByFaseValue" [value]="fase.value">
+                {{ fase.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Buscador integrado -->
+           <div class="flex items-center align-center ">
+             <mat-form-field appearance="outline" class=" w-[500px]">
+               <mat-label>Buscar</mat-label>
+               <input matInput
+                      [(ngModel)]="searchTerm"
+                      (input)="onSearchChange()"
+                      placeholder="N° Cliente, pedido o nombre"
+                      class="text-sm">
+               <mat-icon matSuffix class="text-gray-400">search</mat-icon>
+             </mat-form-field>
+             <button mat-icon-button
+                       *ngIf="searchTerm"
+                       (click)="clearSearch()"
+                       class="text-gray-500 hover:text-red-600 !w-8 !h-8"
+                       matTooltip="Limpiar búsqueda">
+                 <mat-icon>clear</mat-icon>
+               </button>
+           </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-2">
+          <button
+            mat-stroked-button
+            color="accent"
+            (click)="recargarDatos()"
+            [disabled]="loading || loadingAgencias || loadingProcesos"
+            matTooltip="Cargar datos"
+            class="flex items-center gap-2">
+            <mat-icon [class.animate-spin]="loading || loadingAgencias || loadingProcesos">refresh</mat-icon>
+            Cargar
+          </button>
+
+          <!-- Toggle para mostrar pedidos cancelados -->
+          <div class="flex items-center mr-3">
+            <mat-slide-toggle
+              [(ngModel)]="showCancelledOrders"
+              (change)="onToggleCancelledOrders()"
+              class="text-sm">
+              <span class="ml-2 text-xs text-gray-600">Mostrar cancelados</span>
+            </mat-slide-toggle>
+          </div>
+
+        </div>
+      </div>
+
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+      <!-- Tabla de Clientes/Procesos -->
+      <mat-card class="mb-2 card-clientes bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-2">
+          <!-- Título de tabla removido -->
+
+
+          <div *ngIf="loading" class="flex justify-center items-center py-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+
+          <div class="overflow-x-auto" *ngIf="!loading">
+            <div matSort>
+              <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table">
+            <!-- Columna ND Cliente -->
+            <ng-container matColumnDef="ndCliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="ndCliente" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                ND Cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center cursor-pointer hover:bg-gray-100" (click)="copyToClipboard(item.ndCliente, $event)">
+                <div class="flex items-center">
+                  <span *ngIf="item.tieneDocumentosPendientes == 1" class="text-yellow-500 mr-1">★</span>
+                  {{ item.ndCliente }}
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna ND Pedido -->
+            <ng-container matColumnDef="ndPedido">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="ndPedido" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                ND Pedido
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                {{ item.ndPedido }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Tipo de cliente -->
+            <ng-container matColumnDef="tipoCliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="tipoCliente" class="w-36 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Tipo de cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                {{ item.tipoCliente || '—' }}
+              </td>
+            </ng-container>
+
+            <!-- Columna ID File (solo para roles 7 y 8, al inicio) -->
+            <ng-container matColumnDef="idFile">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="idFile" class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                ID File
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span class="text-blue-600 font-mono">{{ item.idFile }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Cliente -->
+            <ng-container matColumnDef="cliente">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="cliente" class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+                <span class="block truncate" [matTooltip]="item.cliente" matTooltipPosition="above">
+                  {{ item.cliente }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Proceso -->
+            <ng-container matColumnDef="proceso">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="proceso" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Proceso
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+                {{ item.proceso }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Operación -->
+            <ng-container matColumnDef="operacion">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="operacion" class="w-40 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Operación
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+                {{ item.operacion }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Monto de la unidad -->
+            <ng-container matColumnDef="montoUnidad">
+              <th mat-header-cell *matHeaderCellDef class="w-28 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Monto unidad
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-center">
+                {{ item.montoUnidad != null ? (item.montoUnidad | number:'1.2-2':'es-MX') : '-' }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Aviso confidencialidad -->
+            <ng-container matColumnDef="avisoConfidencialidad">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Aviso confid.
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <mat-icon
+                  [ngClass]="item.avisoConfidencialidadAceptado ? 'text-green-600' : 'text-red-600'"
+                  matTooltip="{{ item.avisoConfidencialidadAceptado ? 'Aprobado' : 'Pendiente' }}">
+                  {{ item.avisoConfidencialidadAceptado ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Columna Beneficiarios cargados -->
+            <ng-container matColumnDef="beneficiarios">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Beneficiarios
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <span class="px-2 py-0.5 rounded text-xs font-medium"
+                      [ngClass]="(item.cantidadBeneficiarios || 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
+                  {{ (item.cantidadBeneficiarios || 0) > 0 ? 'Sí' : 'No' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna % Beneficiarios -->
+            <ng-container matColumnDef="porcentajeBeneficiarios">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                % Benef.
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <span class="text-xs"
+                      [ngClass]="(item.porcentajeBeneficiarios || 0) >= 100 ? 'text-green-700 font-medium' : 'text-gray-600'">
+                  {{ item.porcentajeBeneficiarios != null ? (item.porcentajeBeneficiarios | number:'1.0-0') + '%' : '-' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Fase -->
+            <ng-container matColumnDef="fase">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="fase" class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Fase
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <span class="px-2 py-1 rounded-full text-xs font-medium"
+                      [ngClass]="{
+                        'bg-green-100 text-green-800': item.fase === 'Integración',
+                        'bg-blue-100 text-blue-800': item.fase === 'Liquidación',
+                        'bg-purple-100 text-purple-800': item.fase === 'Liberación',
+                        'bg-red-100 text-red-800': item.fase === 'Excepción',
+                        'bg-indigo-100 text-indigo-800': item.fase === 'Liberado'
+                      }">
+                  {{ item.fase }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Navegar -->
+            <ng-container matColumnDef="navegar">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Navegar
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <button
+                  *ngIf="puedeNavegarAFase(item.fase)"
+                  mat-icon-button
+                  color="primary"
+                  class="!w-8 !h-8 !min-h-8 !p-0"
+                  (click)="navegarAPantallaFase(item, $event)"
+                  [matTooltip]="'Ir a ' + item.fase"
+                  matTooltipPosition="above">
+                  <mat-icon class="!text-base">open_in_new</mat-icon>
+                </button>
+                <span *ngIf="!puedeNavegarAFase(item.fase)" class="text-xs text-gray-400">-</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Fecha de Liberación -->
+            <ng-container matColumnDef="fechaLiberacion">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="fechaLiberacion" class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                Fecha de Liberación
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+                {{ item.fechaLiberacion ? (item.fechaLiberacion | date:'yyyy-MM-dd HH:mm') : '-' }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Registro -->
+            <ng-container matColumnDef="registro">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header="registro" class="w-48 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-left">
+                Registro
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs text-gray-700 text-left">
+                {{ item.registro }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Acciones -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                <span class="flex items-center">Acciones</span>
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="text-gray-600 hover:text-blue-600" (click)="onActionsClick($event)">
+                  <mat-icon class="text-sm">more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item (click)="onDescargarArchivo(item); $event.stopPropagation()">
+                    <mat-icon>download</mat-icon>
+                    <span>Descargar archivo</span>
+                  </button>
+                  <button mat-menu-item (click)="onImprimirIdentificacion(item); $event.stopPropagation()">
+                    <mat-icon>badge</mat-icon>
+                    <span>Imprimir identificación de cliente</span>
+                  </button>
+                  <button mat-menu-item (click)="onCompartirWhatsApp(item); $event.stopPropagation()">
+                    <mat-icon>share</mat-icon>
+                    <span>Compartir por WhatsApp</span>
+                  </button>
+                  <button mat-menu-item (click)="onAgregarBeneficiarios(item); $event.stopPropagation()">
+                    <mat-icon>people</mat-icon>
+                    <span>Agregar beneficiarios</span>
+                  </button>
+                  <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onCancelar(item); $event.stopPropagation()">
+                    <mat-icon>cancel</mat-icon>
+                    <span>Cancelar pedido</span>
+                  </button>
+                  <button mat-menu-item *ngIf="isManagerOrAdmin && item.fase !== 'Liberado'" (click)="onExcepcion(item); $event.stopPropagation()">
+                    <mat-icon>warning</mat-icon>
+                    <span>Excepción en el pedido</span>
+                  </button>
+                  <button mat-menu-item *ngIf="isAdmin" [matMenuTriggerFor]="adminSubMenu">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    <span>Administrar</span>
+                    <mat-icon class="ml-auto">keyboard_arrow_right</mat-icon>
+                  </button>
+
+                  <mat-menu #adminSubMenu="matMenu">
+                    <button mat-menu-item (click)="onEliminar(item); $event.stopPropagation()">
+                      <mat-icon>delete</mat-icon>
+                      <span>Eliminar</span>
+                    </button>
+                    <button mat-menu-item (click)="onCambiarEstatus(item); $event.stopPropagation()">
+                      <mat-icon>swap_horiz</mat-icon>
+                      <span>Cambiar estatus</span>
+                    </button>
+                  </mat-menu>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+                              <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;"
+                      (click)="onClienteSelect(row)"
+                      [class.clientes-row-selected]="selectedCliente?.idFile === row.idFile"
+                      class="cursor-pointer clientes-row"></tr>
+                </table>
+            </div>
+          </div>
+
+                <!-- Paginador -->
+                <mat-paginator
+                  [length]="totalRecords"
+                  [pageSize]="pageSize"
+                  [pageSizeOptions]="pageSizeOptions"
+                  [pageIndex]="currentPage"
+                  (page)="onPageChange($event)"
+                  (pageSizeChange)="onPageSizeChange($event)"
+                  showFirstLastButtons
+                  aria-label="Seleccionar página de clientes">
+                </mat-paginator>
+        </div>
+      </mat-card>
+
+
+      <!-- Tabla de Documentos -->
+      <mat-card class="mb-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-2">
+          <!-- Título de tabla removido -->
+
+          <!-- Mensaje cuando no hay cliente seleccionado -->
+          <div *ngIf="!selectedCliente" class="validacion-placeholder-sin-cliente flex justify-center items-center py-8 text-gray-500">
+            <div class="text-center px-4">
+              <mat-icon class="validacion-placeholder-icon">info</mat-icon>
+              <p class="text-sm mt-2">Selecciona un cliente/pedido de la tabla superior para ver sus documentos</p>
+            </div>
+          </div>
+
+          <!-- Loading cuando se están cargando documentos -->
+          <div *ngIf="loadingDocumentos && selectedCliente" class="flex justify-center items-center py-8">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+
+          <!-- Tabla de documentos cuando hay cliente seleccionado -->
+          <div *ngIf="selectedCliente && !loadingDocumentos">
+            <!-- Información de documentos: cliente, pedido, VIN, modelo y año (OrderByCar) -->
+            <div class="mb-3 px-2 py-1 bg-gray-50 border-b text-sm text-gray-600 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span><strong>Cliente:</strong> {{ selectedCliente.cliente }}</span>
+              <span class="text-gray-500">|</span>
+              <span><strong>Pedido:</strong> {{ selectedCliente.ndPedido }}</span>
+              <span class="text-gray-700"><strong>VIN:</strong> {{ selectedCliente.vin || '—' }}</span>
+              <span class="text-gray-700"><strong>Modelo:</strong> {{ selectedCliente.modelo || '—' }}</span>
+              <span class="text-gray-700"><strong>Versión:</strong> {{ selectedCliente.version || '—' }}</span>
+              <span class="text-gray-700"><strong>Año:</strong> {{ selectedCliente.year ?? '—' }}</span>
+            </div>
+
+            <div class="overflow-x-auto" *ngIf="documentosDataSource.length > 0">
+              <table mat-table [dataSource]="documentosDataSource" class="w-full compact-table">
+            <!-- Columna Proceso -->
+            <ng-container matColumnDef="proceso">
+              <th mat-header-cell *matHeaderCellDef class="w-32 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Proceso
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                {{ item.proceso }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Fase -->
+            <ng-container matColumnDef="fase">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Fase
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                {{ item.fase }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Documento -->
+            <ng-container matColumnDef="documento">
+              <th mat-header-cell *matHeaderCellDef class="min-w-0 flex-1 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Documento
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span class="block truncate" [matTooltip]="item.documento" matTooltipPosition="above">
+                  {{ item.documento }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Disponible Cliente -->
+            <ng-container matColumnDef="disponibleCliente">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Cliente
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <div class="flex items-center justify-center">
+                  <mat-icon
+                    class="text-base"
+                    [ngClass]="item.DisponibleCliente == 1 ? 'text-green-600' : 'text-gray-400'"
+                    matTooltip="{{ item.DisponibleCliente == 1 ? 'El cliente puede cargar este documento' : 'Solo carga interna' }}"
+                    matTooltipPosition="above">
+                    {{ item.DisponibleCliente == 1 ? 'cloud_upload' : 'cloud_off' }}
+                  </mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Estatus -->
+            <ng-container matColumnDef="estatus">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Estatus
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <!-- Icono según el estatus del documento -->
+                <div *ngIf="isDocumentoStatus(item, 2)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento pendiente de validación"
+                     matTooltipPosition="above">
+                  <mat-icon class="text-orange-500" style="font-size: 20px; width: 20px; height: 20px;">pending_actions</mat-icon>
+                </div>
+                <div *ngIf="isDocumentoStatus(item, 4)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento validado y aprobado"
+                     matTooltipPosition="above">
+                  <mat-icon class="text-green-500" style="font-size: 20px; width: 20px; height: 20px;">verified</mat-icon>
+                </div>
+                <div *ngIf="isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento rechazado"
+                     matTooltipPosition="above">
+                  <mat-icon class="text-red-500" style="font-size: 20px; width: 20px; height: 20px;">cancel</mat-icon>
+                </div>
+                <div *ngIf="!isDocumentoStatus(item, 2) && !isDocumentoStatus(item, 4) && !isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help"
+                     matTooltip="Documento en proceso de revisión"
+                     matTooltipPosition="above">
+                  <mat-icon class="text-blue-500" style="font-size: 20px; width: 20px; height: 20px;">hourglass_empty</mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Ver -->
+            <ng-container matColumnDef="ver">
+              <th mat-header-cell *matHeaderCellDef class="w-16 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Ver
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <button mat-icon-button color="primary" class="!w-6 !h-6 !min-h-6 !p-0"
+                        *ngIf="item.documentContainer"
+                        (click)="onVerDocumento(item); $event.stopPropagation()"
+                        matTooltip="Ver documento">
+                  <mat-icon class="!text-sm">visibility</mat-icon>
+                </button>
+                <span *ngIf="!item.documentContainer" class="text-xs text-gray-400">-</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Validar -->
+            <!-- Solo mostrar cuando estatus 3 (En revisión): el documento ya fue visto/preparado y está listo para aprobar/rechazar -->
+            <ng-container matColumnDef="validar">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Validar
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <div class="relative" *ngIf="isDocumentoStatus(item, 3)">
+                  <button mat-icon-button class="!w-6 !h-6 !min-h-6 !p-0 text-gray-400"
+                          (click)="onValidarDocumento(item); $event.stopPropagation()"
+                          matTooltip="Validar documento">
+                    <mat-icon class="!text-sm">fact_check</mat-icon>
+                  </button>
+                  <mat-icon *ngIf="item.validado" class="absolute -top-1 -right-1 text-green-600 text-sm">check_circle</mat-icon>
+                </div>
+                <span *ngIf="!isDocumentoStatus(item, 3)" class="text-xs text-gray-400">-</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Rechazar -->
+            <ng-container matColumnDef="rechazar">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Rechazar
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <button *ngIf="isManagerOrAdmin && isDocumentoStatus(item, 4)"
+                        mat-icon-button
+                        color="warn"
+                        class="!w-6 !h-6 !min-h-6 !p-0"
+                        (click)="rechazarDocumento(item); $event.stopPropagation()"
+                        matTooltip="Rechazar documento">
+                  <mat-icon class="!text-sm">close</mat-icon>
+                </button>
+                <span *ngIf="!isManagerOrAdmin || !isDocumentoStatus(item, 4)" class="text-xs text-gray-400">-</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Eliminar -->
+            <ng-container matColumnDef="eliminar">
+              <th mat-header-cell *matHeaderCellDef class="w-20 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Eliminar
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <button *ngIf="isAdmin"
+                        mat-icon-button
+                        color="warn"
+                        class="!w-6 !h-6 !min-h-6 !p-0"
+                        (click)="eliminarDocumento(item); $event.stopPropagation()"
+                        matTooltip="Eliminar documento">
+                  <mat-icon class="!text-sm">delete_outline</mat-icon>
+                </button>
+                <span *ngIf="!isAdmin" class="text-xs text-gray-400">-</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Requerido -->
+            <ng-container matColumnDef="requerido">
+              <th mat-header-cell *matHeaderCellDef class="w-24 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Requerido
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <span class="text-xs font-medium" [ngClass]="item.requerido == 1 ? 'text-green-600' : 'text-gray-400'">
+                  {{ item.requerido == 1 ? 'Sí' : 'No' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Requiere Expiración -->
+            <ng-container matColumnDef="requiereExpiracion">
+              <th mat-header-cell *matHeaderCellDef class="w-28 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Requiere Expiración
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-center">
+                <span class="px-2 py-1 rounded-full text-xs font-medium"
+                      [class]="item.ReqExpiration == 1 || item.ReqExpiration === '1' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'">
+                  {{ item.ReqExpiration == 1 || item.ReqExpiration === '1' ? 'Sí' : 'No' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Fecha -->
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Fecha
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span class="truncate block" [matTooltip]="item.fecha" matTooltipPosition="above">
+                  {{ item.fecha }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Fecha de Expiración -->
+            <ng-container matColumnDef="fechaExpiracion">
+              <th mat-header-cell *matHeaderCellDef class="w-34 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Fecha Expiración
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span *ngIf="item.fechaExpiracion; else noFechaExpiracion" class="text-blue-600 font-medium truncate block" [matTooltip]="getFechaExpiracionTooltip(item.fechaExpiracion)" matTooltipPosition="above">
+                  {{ item.fechaExpiracion | date:'dd/MM/yyyy' }}
+                </span>
+                <ng-template #noFechaExpiracion>
+                  <span class="text-gray-400">-</span>
+                </ng-template>
+              </td>
+            </ng-container>
+
+            <!-- Columna Comentario -->
+            <ng-container matColumnDef="comentario">
+              <th mat-header-cell *matHeaderCellDef class="w-51 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Comentario
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span class="block truncate" [matTooltip]="item.comentario" matTooltipPosition="above">
+                  {{ item.comentario }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Columna Asignado -->
+            <ng-container matColumnDef="asignado">
+              <th mat-header-cell *matHeaderCellDef class="w-45 py-2 bg-gray-50 text-xs font-medium text-gray-700 text-center">
+                Asignado
+              </th>
+              <td mat-cell *matCellDef="let item" class="py-2 text-xs font-medium text-gray-700 text-center">
+                <span class="block truncate" [matTooltip]="item.asignado" matTooltipPosition="above">
+                  {{ item.asignado }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="documentosDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: documentosDisplayedColumns;" class="!min-h-0 !h-10"></tr>
+          </table>
+            </div>
+
+          <!-- Mensaje cuando no hay documentos -->
+          <div *ngIf="documentosDataSource.length === 0" class="validacion-placeholder-sin-cliente flex justify-center items-center py-8 text-gray-500">
+            <div class="text-center px-4">
+              <mat-icon class="validacion-placeholder-icon">folder_open</mat-icon>
+              <p class="text-sm mt-2">No hay documentos disponibles para este cliente y pedido</p>
+            </div>
+          </div>
+          </div>
+        </div>
+      </mat-card>
+
+                    <!-- Dashboard de estadísticas removido -->
+    </div>

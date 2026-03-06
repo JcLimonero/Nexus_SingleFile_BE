@@ -1,0 +1,54 @@
+<div class="widget-weekly-chart">
+  <div class="card h-full">
+    <div class="chart-header">
+      <h2 class="chart-title">Expedientes por Día - Semana Actual</h2>
+
+      <div class="chart-actions" *ngIf="showDetails">
+        <button mat-icon-button (click)="refresh()" [disabled]="loading" matTooltip="Cargar datos" class="refresh-btn">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="chart-body">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <p>Cargando datos semanales...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="!loading && error" class="error-state">
+        <mat-icon class="text-red-400">error_outline</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-button color="primary" (click)="refresh()" class="retry-btn">Reintentar</button>
+      </div>
+
+      <!-- No Data State -->
+      <div *ngIf="!loading && !error && weeklyData.length === 0" class="no-data-state">
+        <mat-icon>info_outline</mat-icon>
+        <p>No hay datos de expedientes para la semana actual.</p>
+      </div>
+
+      <!-- Summary Stats -->
+      <div *ngIf="!loading && !error && weeklyData.length > 0" class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-label">Total Semana</span>
+          <span class="stat-value">{{ totalCases }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Días con Datos</span>
+          <span class="stat-value">{{ totalAdvisors }}</span>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div *ngIf="weeklyData.length > 0" class="chart-wrapper">
+        <vex-chart
+          [series]="series"
+          [options]="options">
+        </vex-chart>
+      </div>
+    </div>
+  </div>
+</div>

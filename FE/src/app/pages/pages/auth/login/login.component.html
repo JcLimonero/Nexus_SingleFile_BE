@@ -1,0 +1,64 @@
+<div class="w-full h-full bg-pattern flex flex-col items-center justify-center">
+  <div @fadeInUp class="card overflow-hidden w-full max-w-md">
+    <div class="p-6 pb-0 flex flex-col items-center justify-center">
+      <div *ngIf="(logoLogin$ | async) as logoUrl" class="fill-current text-center">
+        <img *ngIf="logoUrl?.trim()" class="w-24" [src]="logoUrl" alt="Logo" />
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <h2 class="title m-0">Bienvenido de vuelta</h2>
+      <h4 class="body-2 text-secondary m-0">
+        Inicia sesión con tus credenciales.
+      </h4>
+    </div>
+
+    <form [formGroup]="form" class="p-6 flex flex-col gap-4" (ngSubmit)="send()">
+      <div class="flex flex-col">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Correo electrónico</mat-label>
+          <input formControlName="email" matInput required placeholder="email@ejemplo.com" />
+          <mat-error *ngIf="form.controls.email.hasError('required')"
+          >Necesitamos un correo electrónico para iniciar sesión
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Contraseña</mat-label>
+          <input
+            [type]="inputType"
+            formControlName="password"
+            matInput
+            required />
+          <button
+            (click)="toggleVisibility()"
+            mat-icon-button
+            matIconSuffix
+            matTooltip="Alternar visibilidad"
+            type="button">
+            <mat-icon *ngIf="visible" svgIcon="mat:visibility"></mat-icon>
+            <mat-icon *ngIf="!visible" svgIcon="mat:visibility_off"></mat-icon>
+          </button>          
+          <mat-error *ngIf="form.controls.password.hasError('required')"
+          >Necesitamos una contraseña para iniciar sesión
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <mat-checkbox class="caption" color="primary">Recordarme</mat-checkbox>
+        
+      </div>
+
+      <button 
+        color="primary" 
+        mat-raised-button 
+        type="submit"
+        [disabled]="loading || form.invalid">
+        <span *ngIf="!loading">INICIAR SESIÓN</span>
+        <span *ngIf="loading">INICIANDO...</span>
+      </button>
+
+
+    </form>
+  </div>
+</div>

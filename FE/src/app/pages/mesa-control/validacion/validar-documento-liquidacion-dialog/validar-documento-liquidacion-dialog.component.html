@@ -1,0 +1,124 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-semibold text-gray-800">Validar documento de liquidación</h2>
+    <button mat-icon-button (click)="onCancelar()" class="text-gray-500 hover:text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Información del documento -->
+  <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+    <h3 class="text-sm font-medium text-gray-600 mb-2">Documento a evaluar:</h3>
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="font-medium text-gray-700">Documento:</span>
+        <span class="ml-2 text-gray-600">{{ data.documento.documento }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-700">Proceso:</span>
+        <span class="ml-2 text-gray-600">{{ data.documento.proceso }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-700">Fase:</span>
+        <span class="ml-2 text-gray-600">{{ data.documento.fase }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-700">Fecha:</span>
+        <span class="ml-2 text-gray-600">{{ data.documento.fecha }}</span>
+      </div>
+      <!-- Monto, método de pago y fecha real cargados al crear el documento (solo lectura) -->
+      <ng-container *ngIf="tieneDatosCargados">
+        <div>
+          <span class="font-medium text-gray-700">Monto del comprobante:</span>
+          <span class="ml-2 font-semibold text-gray-800">{{ formatCurrency(monto ?? 0) }}</span>
+        </div>
+        <div>
+          <span class="font-medium text-gray-700">Método de pago:</span>
+          <span class="ml-2 font-semibold text-gray-800">{{ data.documento.paymentMethodName || data.documento.payment_method_name || '—' }}</span>
+        </div>
+        <div *ngIf="data.documento.paymentDate || data.documento.payment_date">
+          <span class="font-medium text-gray-700">Fecha real del pago:</span>
+          <span class="ml-2 font-semibold text-gray-800">{{ data.documento.paymentDate || data.documento.payment_date }}</span>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Montos del expediente (solo al aprobar) -->
+  <div *ngIf="estatusSeleccionado === 'aprobado'" class="mb-6 p-4 bg-gray-50 rounded-lg">
+    <h3 class="text-sm font-medium text-gray-600 mb-2">Información del expediente:</h3>
+    <div *ngIf="loadingAmounts" class="text-sm text-gray-500">Cargando montos...</div>
+    <div *ngIf="!loadingAmounts" class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="font-medium text-gray-700">Monto del expediente:</span>
+        <span class="ml-2 text-gray-600">{{ formatCurrency(expedientAmount) }}</span>
+      </div>
+      <div>
+        <span class="font-medium text-gray-700">Suma de comprobantes:</span>
+        <span class="ml-2 text-gray-600">{{ formatCurrency(totalReceiptAmount) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="space-y-4">
+    <!-- Estatus -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Estatus</mat-label>
+      <mat-select [(ngModel)]="estatusSeleccionado" required>
+        <mat-option *ngFor="let opcion of opcionesEstatus" [value]="opcion.value">
+          {{ opcion.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Monto y método de pago editables (solo si NO tiene datos cargados y está aprobando) -->
+    <ng-container *ngIf="estatusSeleccionado === 'aprobado' && !tieneDatosCargados">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Monto del comprobante</mat-label>
+        <input matInput type="number" [(ngModel)]="monto" min="0" step="0.01" placeholder="0.00" (ngModelChange)="onMontoChange()">
+        <mat-icon matSuffix>attach_money</mat-icon>
+        <mat-error *ngIf="montoError">{{ montoError }}</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tipo de pago</mat-label>
+        <mat-select [(ngModel)]="idPaymentMethod" placeholder="Seleccione el método de pago" required>
+          <mat-option *ngFor="let pm of paymentMethods" [value]="pm.id">{{ pm.name }}</mat-option>
+        </mat-select>
+        <mat-icon matSuffix>payment</mat-icon>
+      </mat-form-field>
+    </ng-container>
+
+    <!-- Fecha real del pago (siempre al aprobar) -->
+    <mat-form-field *ngIf="estatusSeleccionado === 'aprobado'" appearance="outline" class="w-full">
+      <mat-label>Fecha real del pago</mat-label>
+      <input matInput [matDatepicker]="pickerPago" [(ngModel)]="fechaPago" placeholder="Seleccionar fecha">
+      <mat-datepicker-toggle matIconSuffix [for]="pickerPago"></mat-datepicker-toggle>
+      <mat-datepicker #pickerPago></mat-datepicker>
+      <mat-hint>Fecha en que se realizó el pago (importante para PLD)</mat-hint>
+    </mat-form-field>
+
+    <!-- Fecha de expiración -->
+    <mat-form-field *ngIf="requiereExpiracion && estatusSeleccionado === 'aprobado'" appearance="outline" class="w-full">
+      <mat-label>Fecha de expiración</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="fechaExpiracion" placeholder="Seleccionar fecha" required>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <!-- Comentario (si rechazado) -->
+    <mat-form-field *ngIf="estatusSeleccionado === 'rechazado'" appearance="outline" class="w-full">
+      <mat-label>Comentario</mat-label>
+      <textarea matInput [(ngModel)]="comentario" rows="3" placeholder="Agregar comentario sobre el rechazo..." required></textarea>
+    </mat-form-field>
+  </div>
+
+  <!-- Botones -->
+  <div class="flex justify-end mt-6 pt-4 border-t border-gray-200 space-x-3">
+    <button mat-button (click)="onCancelar()" class="text-gray-600">Cancelar</button>
+    <button mat-raised-button color="primary" (click)="onConfirmar()" [disabled]="!puedeConfirmar">
+      Confirmar
+    </button>
+  </div>
+</div>

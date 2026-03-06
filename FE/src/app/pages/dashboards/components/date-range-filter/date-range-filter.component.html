@@ -1,0 +1,99 @@
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+  <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center space-x-2">
+      <button 
+        *ngIf="hasDateRange()"
+        mat-icon-button 
+        color="warn" 
+        size="small"
+        (click)="clearDateRange()"
+        matTooltip="Limpiar filtro de fechas">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+    
+    <div class="flex items-center space-x-2">
+      <button 
+        mat-icon-button 
+        size="small"
+        class="toggle-button"
+        (click)="toggleManualDateInputs()"
+        [matTooltip]="showManualDateInputs ? 'Ocultar fechas manuales' : 'Mostrar fechas manuales'">
+        <mat-icon class="arrow-icon" [class.expanded]="showManualDateInputs">
+          {{ showManualDateInputs ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+        </mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Botones de rangos rápidos -->
+  <div class="flex flex-wrap gap-1 mb-3">
+    <button 
+      mat-stroked-button 
+      size="small"
+      class="text-xs px-2 py-1"
+      (click)="setLast7Days()">
+      7d
+    </button>
+    <button 
+      mat-stroked-button 
+      size="small"
+      class="text-xs px-2 py-1"
+      (click)="setLast30Days()">
+      30d
+    </button>
+    <button 
+      mat-stroked-button 
+      size="small"
+      class="text-xs px-2 py-1"
+      (click)="setLast90Days()">
+      90d
+    </button>
+    <button 
+      mat-stroked-button 
+      size="small"
+      class="text-xs px-2 py-1"
+      (click)="setThisMonth()">
+      Este mes
+    </button>
+    <button 
+      mat-stroked-button 
+      size="small"
+      class="text-xs px-2 py-1"
+      (click)="setLastMonth()">
+      Mes pasado
+    </button>
+    <button 
+      mat-stroked-button 
+      size="small"
+      class="text-xs px-2 py-1"
+      (click)="setThisYear()">
+      Este año
+    </button>
+  </div>
+
+  <!-- Selectores de fecha compactos (solo se muestran cuando showManualDateInputs es true) -->
+  <div *ngIf="showManualDateInputs" class="grid grid-cols-2 gap-2 manual-date-inputs">
+    <mat-form-field appearance="outline" class="compact-field">
+      <mat-label>Inicio</mat-label>
+      <input 
+        matInput 
+        [matDatepicker]="startPicker"
+        formControlName="startDate"
+        placeholder="Fecha inicio">
+      <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+      <mat-datepicker #startPicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="compact-field">
+      <mat-label>Fin</mat-label>
+      <input 
+        matInput 
+        [matDatepicker]="endPicker"
+        formControlName="endDate"
+        placeholder="Fecha fin">
+      <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+      <mat-datepicker #endPicker></mat-datepicker>
+    </mat-form-field>
+  </div>
+</div>

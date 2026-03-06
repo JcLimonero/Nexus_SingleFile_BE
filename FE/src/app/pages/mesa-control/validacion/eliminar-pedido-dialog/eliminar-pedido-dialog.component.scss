@@ -1,0 +1,39 @@
+// Estilos específicos para el diálogo de eliminación
+.mat-mdc-dialog-container {
+  .mat-mdc-dialog-title {
+    color: #dc2626; // Color rojo para eliminación
+  }
+}
+
+// Estilos para el botón de confirmación
+.mat-mdc-raised-button.mat-warn {
+  background-color: #dc2626;
+  color: white;
+  
+  &:hover {
+    background-color: #b91c1c;
+  }
+  
+  &:disabled {
+    background-color: #9ca3af;
+    color: #6b7280;
+  }
+}
+
+// Estilos para el icono de eliminación
+.text-red-600 {
+  color: #dc2626;
+}
+
+// Estilos para el panel de advertencia
+.bg-red-50 {
+  background-color: #fef2f2;
+}
+
+.border-red-200 {
+  border-color: #fecaca;
+}
+
+.text-red-700 {
+  color: #b91c1c;
+}

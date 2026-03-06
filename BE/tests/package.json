@@ -1,0 +1,31 @@
+{
+  "name": "nexus-NexFile-api-tests",
+  "version": "1.0.0",
+  "description": "Pruebas de API con Playwright para Nexus NexFile Backend",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:auth": "playwright test api/auth",
+    "test:crud": "playwright test api/crud",
+    "test:analytics": "playwright test api/analytics",
+    "test:reports": "playwright test api/reports",
+    "test:files": "playwright test api/files",
+    "report": "playwright show-report",
+    "install:browsers": "playwright install chromium"
+  },
+  "keywords": [
+    "playwright",
+    "api-testing",
+    "e2e",
+    "codeigniter"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  }
+}

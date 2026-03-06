@@ -1,0 +1,21 @@
+// Contenedor homologado con Integración (mismo padding y ubicación)
+.catalogos-container {
+  padding: 0.5rem;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
+
+// Card de filtros homologado con Integración, Procesos, etc.
+.filters-section {
+  mat-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+  }
+}
+
+// Estilos específicos para el componente de tipos de operación

@@ -1,0 +1,39 @@
+<div
+  [class.container]="isVerticalLayout$ | async"
+  class="toolbar text-default w-full flex " style="max-width: 100% !important; flex-direction: row-reverese;">
+  <!-- Izquierda: menú móvil + usuario + navegación -->
+
+  <!-- Izquierda: solo título (el logo está en el sidebar) -->
+  <div class="toolbar__end flex items-center flex-shrink-0 min-w-0" >
+    <h1
+      class="toolbar__title text-xl font-semibold tracking-tight ltr:ml-2 rtl:mr-2 m-0 select-none truncate">
+      {{ dynamicTitle$ | async }}
+    </h1>
+  </div>
+
+  <span class="toolbar__spacer flex-1 min-w-4" aria-hidden="true"></span>
+
+  <div class="toolbar__start flex items-center gap-2 min-w-0 flex-shrink-0">
+
+
+    <div *ngIf="userVisible$ | async" class="toolbar__user flex-shrink-0">
+      <vex-toolbar-user></vex-toolbar-user>
+    </div>
+
+    <nav
+      *ngIf="(isVerticalLayout$ | async) && (isNavbarInToolbar$ | async)"
+      [class.hidden]="!(isDesktop$ | async)"
+      class="toolbar__nav flex items-center gap-1 flex-shrink-0"
+      role="navigation">
+      <vex-navigation-item
+        *ngFor="let item of navigationItems$ | async"
+        [item]="item"></vex-navigation-item>
+    </nav>
+  </div>
+
+  
+</div>
+
+<vex-navigation
+  *ngIf="(isVerticalLayout$ | async) && (isNavbarBelowToolbar$ | async)"
+  [class.hidden]="!(isDesktop$ | async)"></vex-navigation>

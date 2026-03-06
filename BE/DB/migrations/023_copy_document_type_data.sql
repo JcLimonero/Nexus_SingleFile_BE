@@ -1,0 +1,59 @@
+-- ============================================================================
+-- MIGRACIÓN 023: Copiar Datos de documenttype (single_file) a document_type (nexfile)
+-- ============================================================================
+-- Descripción: Copia todos los registros de documenttype en single_file 
+--              a document_type en nexfile, normalizando IdSubProcess
+-- Prioridad: ALTA
+-- Fecha: 2026-02-28
+-- ============================================================================
+
+-- Nota: Este script debe ejecutarse desde un script PHP que maneje
+--       la conexión a ambas bases de datos. Para ejecución directa SQL,
+--       usar el script: scripts/copy_document_type_data.php
+
+-- El script PHP realiza lo siguiente:
+-- 1. Obtiene todos los registros de single_file.documenttype
+-- 2. Normaliza IdSubProcess: si es NULL, vacío, > 1000000 o < 0, lo pone en 0
+-- 3. Inserta o actualiza en nexfile.document_type usando INSERT ... ON DUPLICATE KEY UPDATE
+-- 4. Maneja duplicados por ID o Name
+
+-- Ejemplo de lógica aplicada:
+-- INSERT INTO nexfile.document_type (
+--     Id, Name, RegistrationDate, UpdateDate, Enabled, 
+--     IdLastUserUpdate, ReqExpiration, IdProcessType, 
+--     Required, IdSubProcess, DocumentAutoUpload, AvailableToClient
+-- )
+-- SELECT 
+--     Id,
+--     Name,
+--     RegistrationDate,
+--     UpdateDate,
+--     Enabled,
+--     IdLastUserUpdate,
+--     ReqExpiration,
+--     IdProcessType,
+--     Required,
+--     CASE 
+--         WHEN IdSubProcess IS NULL THEN 0
+--         WHEN IdSubProcess = '' THEN 0
+--         WHEN IdSubProcess > 1000000 THEN 0
+--         WHEN IdSubProcess < 0 THEN 0
+--         ELSE IdSubProcess
+--     END AS IdSubProcess,
+--     DocumentAutoUpload,
+--     AvailableToClient
+-- FROM single_file.documenttype
+-- ON DUPLICATE KEY UPDATE
+--     Name = VALUES(Name),
+--     RegistrationDate = VALUES(RegistrationDate),
+--     UpdateDate = VALUES(UpdateDate),
+--     Enabled = VALUES(Enabled),
+--     IdLastUserUpdate = VALUES(IdLastUserUpdate),
+--     ReqExpiration = VALUES(ReqExpiration),
+--     IdProcessType = VALUES(IdProcessType),
+--     Required = VALUES(Required),
+--     IdSubProcess = VALUES(IdSubProcess),
+--     DocumentAutoUpload = VALUES(DocumentAutoUpload),
+--     AvailableToClient = VALUES(AvailableToClient);
+
+SELECT 'Migración 023: Usar script PHP copy_document_type_data.php para ejecutar' AS status;

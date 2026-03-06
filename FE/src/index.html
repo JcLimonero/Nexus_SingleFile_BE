@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Expediente Único</title>
+  <base href="/" />
+
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  
+  <!-- Favicon (se sobreescribe desde branding.json al cargar) -->
+  <link rel="icon" type="image/x-icon" href="assets/img/icons/logos/nexus/login.ico" />
+  
+  <meta name="msapplication-TileColor" content="#0ea5e9" />
+  <meta name="theme-color" content="#0ea5e9" />
+  
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+<body dir="ltr">
+<style>
+  #app-splash-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    z-index: 99999;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .app-splash-loader {
+    width: 160px;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .app-splash-loader::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    border-radius: inherit;
+    background: #274880;
+    animation: app-splash-loader-animation 1.2s ease-in-out infinite;
+  }
+
+  @keyframes app-splash-loader-animation {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(350%); }
+  }
+</style>
+
+<div id="app-splash-screen">
+  <img
+    id="app-splash-screen-logo"
+    height="120"
+    width="120"
+    loading="eager"
+    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
+    alt="" />
+  <div class="app-splash-loader"></div>
+</div>
+<script>
+  (function() {
+    var img = document.getElementById('app-splash-screen-logo');
+    if (!img) return;
+    var defaultLogo = 'assets/img/icons/logos/logo_loading_blue.svg';
+    fetch('assets/config/branding.json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(c) {
+        var url = (c && c.logoLoading && String(c.logoLoading).trim()) ? c.logoLoading : null;
+        if (url) { img.src = url; img.style.display = ''; } else { img.style.display = 'none'; }
+      })
+      .catch(function() { img.src = defaultLogo; });
+  })();
+</script>
+
+<app-root></app-root>
+</body>
+</html>

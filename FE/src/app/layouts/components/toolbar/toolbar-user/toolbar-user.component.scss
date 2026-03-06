@@ -1,0 +1,80 @@
+// Botón de usuario en toolbar (avatar + nombre + rol)
+.toolbar-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px 4px 4px;
+  border-radius: 24px;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  outline: none;
+
+  &:hover {
+    transform: scale(1.02);
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.toolbar-user-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #E5E2E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s ease;
+
+  .toolbar-user-btn:hover & {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.toolbar-user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.toolbar-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  text-align: left;
+
+  @media (max-width: 599px) {
+    display: none;
+  }
+}
+
+.toolbar-user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.toolbar-user-role {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}

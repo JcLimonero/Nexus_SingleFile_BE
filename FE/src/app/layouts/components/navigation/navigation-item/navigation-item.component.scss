@@ -1,0 +1,21 @@
+.navigation-item {
+  @apply rounded-md cursor-pointer text-sm font-medium px-3 py-2.5 relative select-none no-underline block;
+  @apply transition-all duration-200 ease-out;
+  margin-inline-end: 0.125rem; // evita que el último ítem quede pegado
+}
+
+.navigation-color {
+  color: var(--vex-navigation-color);
+}
+
+.navigation-menu-item {
+  @apply transition-all duration-400 ease-out-swift;
+
+  &:hover {
+    @apply text-primary-600;
+
+    .mat-icon {
+      @apply text-primary-600;
+    }
+  }
+}

@@ -1,0 +1,29 @@
+.documentos-dialog {
+  min-width: 480px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.documentos-table-container {
+  /* Altura para 10 filas (~52px) + cabecera + paginador, sin scroll vertical cuando hay 10 items por página */
+  min-height: 580px;
+  overflow-x: auto;
+  overflow-y: visible;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.documentos-table {
+  background: #fff;
+}
+
+.documentos-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.documentos-table tr[mat-row]:hover,
+.documentos-table .mat-mdc-row:hover {
+  background: #f9fafb;
+}

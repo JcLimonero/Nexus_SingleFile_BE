@@ -1,0 +1,28 @@
+.dialog-container {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.compact-table {
+  .mat-mdc-header-cell {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  
+  .mat-mdc-cell {
+    padding: 0 8px;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  
+  .mat-mdc-row {
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+  
+  .mat-mdc-header-row {
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+}

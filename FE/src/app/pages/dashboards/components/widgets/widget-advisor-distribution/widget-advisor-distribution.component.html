@@ -1,0 +1,80 @@
+<div class="vex-widget-advisor-distribution">
+  <mat-card class="vex-card">
+    <mat-card-header class="vex-card-header">
+      <mat-card-title class="vex-card-title">
+        <mat-icon class="vex-card-title-icon">bar_chart</mat-icon>
+        <span>Expedientes por Asesor - Septiembre</span>
+      </mat-card-title>
+      
+      <div class="vex-card-actions" *ngIf="showDetails">
+        <button mat-icon-button (click)="refresh()" [disabled]="loading">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content class="vex-card-content">
+      <div class="widget-content">
+        <!-- Loading State -->
+        <div *ngIf="loading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p class="loading-text">Cargando datos de asesores...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error && !loading" class="error-container">
+          <mat-icon class="error-icon">error</mat-icon>
+          <p class="error-text">{{ error }}</p>
+          <button mat-button color="primary" (click)="refresh()">
+            Reintentar
+          </button>
+        </div>
+
+        <!-- Chart Content -->
+        <div *ngIf="!loading && !error && advisorData.length > 0" class="chart-container">
+          <!-- Summary Stats -->
+          <div class="summary-stats">
+            <div class="stat-item">
+              <span class="stat-label">Total Asesores:</span>
+              <span class="stat-value">{{ advisorData.length }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Expedientes:</span>
+              <span class="stat-value">{{ totalCases }}</span>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="chart-wrapper">
+            <vex-chart
+              [series]="series"
+              [options]="options">
+            </vex-chart>
+          </div>
+
+          <!-- Legend -->
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-color approved"></div>
+              <span>Aprobadas</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color pending"></div>
+              <span>Pendientes</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color rejected"></div>
+              <span>Rechazadas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && !error && advisorData.length === 0" class="empty-container">
+          <mat-icon class="empty-icon">bar_chart</mat-icon>
+          <p class="empty-text">No hay datos de asesores disponibles</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

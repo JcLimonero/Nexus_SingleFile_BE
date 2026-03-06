@@ -1,0 +1,57 @@
+<div
+  [class.collapsed]="collapsed"
+  class="vex-sidenav flex flex-col">
+  <!-- Header: logo, search, collapse toggle -->
+  <div class="vex-sidenav-header">
+    <div class="vex-sidenav-header__top">
+      <button
+        *ngIf="imageUrl$ | async as img"
+        type="button"
+        class="vex-sidenav-logo"
+        [attr.aria-label]="collapsed ? 'Expandir menú' : 'Colapsar menú'"
+        (click)="toggleCollapse()">
+        <img [src]="img" [alt]="title$ | async" class="vex-sidenav-logo__img" [class.branding-logo-tint]="logoColor$ | async" />
+      </button>
+      <button
+        *ngIf="!(imageUrl$ | async)"
+        type="button"
+        class="vex-sidenav-logo vex-sidenav-logo--icon-only"
+        [attr.aria-label]="collapsed ? 'Expandir menú' : 'Colapsar menú'"
+        (click)="toggleCollapse()">
+        <mat-icon class="vex-sidenav-logo__icon">add</mat-icon>
+      </button>
+    </div>
+    <div class="vex-sidenav-search-wrapper" *ngIf="searchVisible$ | async">
+      <button
+        *ngIf="collapsed"
+        type="button"
+        class="vex-sidenav-search vex-sidenav-search--icon-only"
+        (click)="openSearch()"
+        aria-label="Buscar">
+        <mat-icon class="vex-sidenav-search__icon">search</mat-icon>
+      </button>
+      <button
+        *ngIf="!collapsed"
+        type="button"
+        class="vex-sidenav-search"
+        (click)="openSearch()">
+        <mat-icon class="vex-sidenav-search__icon">search</mat-icon>
+        <span class="vex-sidenav-search__placeholder">Buscar</span>
+        <span class="vex-sidenav-search__keybind">⌘</span>
+        <span class="vex-sidenav-search__keybind">S</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="vex-sidenav-toolbar__divider vex-sidenav-toolbar__divider--header"></div>
+
+  <div class="vex-sidenav-scroll">
+    <div class="vex-sidenav-nav">
+      <vex-sidenav-item
+        *ngFor="let item of items$ | async; trackBy: trackByRoute"
+        [item]="item"
+        [level]="0"
+        [collapsed]="collapsed"></vex-sidenav-item>
+    </div>
+  </div>
+</div>

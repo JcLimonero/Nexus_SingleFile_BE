@@ -1,0 +1,16 @@
+<button
+  #userMenuTrigger="matMenuTrigger"
+  [matMenuTriggerFor]="userMenu"
+  class="toolbar-user-btn"
+  matRipple>
+  <span class="toolbar-user-avatar">
+    <img src="assets/img/avatars/user-avatar-default.png" alt="Usuario" class="toolbar-user-avatar-img">
+  </span>
+  <span class="toolbar-user-info">
+    <span class="toolbar-user-name">{{ (currentUser$ | async)?.name || 'Usuario' }}</span>
+    <span class="toolbar-user-role">{{ (currentUser$ | async)?.role_name || 'Rol' }}</span>
+  </span>
+</button>
+<mat-menu #userMenu="matMenu" class="toolbar-user-menu" xPosition="before" yPosition="below">
+  <vex-toolbar-user-dropdown (closeMenu)="closeUserMenu(userMenuTrigger)"></vex-toolbar-user-dropdown>
+</mat-menu>

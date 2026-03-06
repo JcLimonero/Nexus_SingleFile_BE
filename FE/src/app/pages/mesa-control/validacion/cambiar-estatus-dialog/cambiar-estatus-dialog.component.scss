@@ -1,0 +1,43 @@
+// Estilos específicos para el diálogo de cambio de estatus
+.mat-mdc-dialog-container {
+  .mat-mdc-dialog-title {
+    color: #2563eb; // Color azul para cambio de estatus
+  }
+}
+
+// Estilos para el botón de confirmación
+.mat-mdc-raised-button.mat-primary {
+  background-color: #2563eb;
+  color: white;
+  
+  &:hover {
+    background-color: #1d4ed8;
+  }
+  
+  &:disabled {
+    background-color: #9ca3af;
+    color: #6b7280;
+  }
+}
+
+// Estilos para el icono de cambio
+.text-blue-600 {
+  color: #2563eb;
+}
+
+// Estilos para el panel de información
+.bg-blue-50 {
+  background-color: #eff6ff;
+}
+
+.border-blue-200 {
+  border-color: #bfdbfe;
+}
+
+.text-blue-700 {
+  color: #1d4ed8;
+}
+
+.text-blue-600 {
+  color: #2563eb;
+}
