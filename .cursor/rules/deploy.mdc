@@ -1,18 +1,21 @@
 ---
-description: Generar ZIPs de BE y DWH cuando el usuario pida "deploy" o "haz deploy"
+description: Generar ZIPs de BE, DWH y FE cuando el usuario pida "deploy" o "haz deploy"
 alwaysApply: true
 ---
 
 # Deploy NexFile
 
-Cuando el usuario diga **"deploy"**, **"haz deploy"** o similar, debes generar los ZIP de ambos proyectos en la raíz del repositorio.
+Cuando el usuario diga **"deploy"**, **"haz deploy"** o similar, debes generar los ZIP de los tres proyectos en la raíz del repositorio.
 
 ## Comandos
 
 ```bash
 cd /Users/jclimonero/Developer/NexFileOne
 
-# BE-deploy.zip
+# 1. Build FE para producción
+cd FE && npm run build -- --configuration=production && cd ..
+
+# 2. BE-deploy.zip
 zip -r BE-deploy.zip BE \
   -x "BE/vendor/*" \
   -x "BE/.env" \
@@ -23,7 +26,7 @@ zip -r BE-deploy.zip BE \
   -x "BE/scripts/*" \
   -x "*.DS_Store"
 
-# DWH-deploy.zip
+# 3. DWH-deploy.zip
 zip -r DWH-deploy.zip DWH \
   -x "DWH/vendor/*" \
   -x "DWH/.env" \
@@ -33,6 +36,9 @@ zip -r DWH-deploy.zip DWH \
   -x "DWH/writable/uploads/*" \
   -x "DWH/scripts/*" \
   -x "*.DS_Store"
+
+# 4. FE-deploy.zip (carpeta FE con el build dentro)
+mkdir -p deploy-temp/FE && cp -r FE/dist/vex/* deploy-temp/FE/ && cd deploy-temp && zip -r ../FE-deploy.zip FE -x "*.DS_Store" && cd .. && rm -rf deploy-temp
 ```
 
 ## Exclusiones
@@ -47,3 +53,8 @@ zip -r DWH-deploy.zip DWH \
 
 - `BE-deploy.zip` – Backend (incluye web.config)
 - `DWH-deploy.zip` – DWH API (incluye web.config)
+- `FE-deploy.zip` – Frontend Angular
+
+## Despliegue en servidor IIS
+
+- **FE**: Copiar `FE-deploy.zip` a `C:\inetpub\NexFile`, luego descomprimir en `C:\inetpub\NexFile\FE`

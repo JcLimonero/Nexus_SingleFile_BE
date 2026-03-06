@@ -188,7 +188,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
   openDetalle(row: ClienteMesa): void {
     const idHeaderClient = row.idHeaderClient ?? (row as any).idClientHeader;
     this.dialog.open(ClienteDetalleDialogComponent, {
-      width: '800px',
+      width: '1200px',
       maxWidth: '95vw',
       data: {
         idHeaderClient,

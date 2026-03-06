@@ -53,7 +53,7 @@
     <p>No hay expedientes para este cliente.</p>
   </div>
 
-  <div *ngIf="!loading && grupos.length > 0" class="space-y-6 max-h-[70vh] overflow-y-auto">
+  <div *ngIf="!loading && grupos.length > 0" class="space-y-6 max-h-[85vh] overflow-y-auto">
     <div *ngFor="let grupo of grupos" class="border rounded-lg overflow-hidden">
       <div class="bg-gray-100 px-4 py-2 font-medium text-gray-800">
         {{ grupo.compania }} / {{ grupo.agencia }}

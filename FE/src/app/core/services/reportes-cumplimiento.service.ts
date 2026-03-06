@@ -32,6 +32,9 @@ export interface ExpedienteSinBeneficiario {
 
 export interface ExpedienteAlertaPld {
   idCliente: number;
+  idClientHeader?: number;
+  /** id del header del cliente para abrir detalle de operaciones */
+  idHeaderClient?: number;
   ndCliente: string;
   cliente: string;
   totalMonto?: number;
@@ -72,7 +75,7 @@ export interface DocumentosPendientesGrupo {
   providedIn: 'root'
 })
 export class ReportesCumplimientoService {
-  private readonly API = 'reportes-cumplimiento';
+  private readonly API = 'compliance-reports';
 
   constructor(
     private http: HttpClient,
@@ -96,7 +99,7 @@ export class ReportesCumplimientoService {
     if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
-    const url = this.apiBase.buildApiUrl(`${this.API}/expedientes-alerta-pld`);
+    const url = this.apiBase.buildApiUrl(`${this.API}/cases-pld-alert`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
@@ -110,7 +113,7 @@ export class ReportesCumplimientoService {
     if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     if (params?.anio != null) httpParams = httpParams.set('anio', params.anio.toString());
     if (params?.mes != null) httpParams = httpParams.set('mes', params.mes.toString());
-    const url = this.apiBase.buildApiUrl(`${this.API}/resumen-por-agencia`);
+    const url = this.apiBase.buildApiUrl(`${this.API}/summary-by-agency`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
@@ -122,7 +125,7 @@ export class ReportesCumplimientoService {
       httpParams = httpParams.set('idAgency', params.idAgency.toString());
     }
     if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
-    const url = this.apiBase.buildApiUrl(`${this.API}/documentos-pendientes`);
+    const url = this.apiBase.buildApiUrl(`${this.API}/pending-documents`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
@@ -137,7 +140,7 @@ export class ReportesCumplimientoService {
     if (params?.anio != null) httpParams = httpParams.set('anio', params.anio.toString());
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
-    const url = this.apiBase.buildApiUrl(`${this.API}/expedientes-sin-beneficiario`);
+    const url = this.apiBase.buildApiUrl(`${this.API}/cases-without-beneficiary`);
     return this.http.get<any>(url, { params: httpParams });
   }
 
@@ -152,7 +155,7 @@ export class ReportesCumplimientoService {
     if (params?.anio != null && params?.anio !== undefined) httpParams = httpParams.set('anio', params.anio.toString());
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
-    const url = this.apiBase.buildApiUrl(`${this.API}/expedientes-sin-aviso`);
+    const url = this.apiBase.buildApiUrl(`${this.API}/cases-without-notice`);
     return this.http.get<any>(url, { params: httpParams });
   }
 }

@@ -15,9 +15,11 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 
 import { ReportesCumplimientoService, ReporteCumplimientoDashboard, ExpedienteAlertaPld, ResumenRazonSocialAgencia, DocumentosPendientesAgencia, DocumentosPendientesGrupo, ExpedienteSinBeneficiario } from '../../../core/services/reportes-cumplimiento.service';
+import { ClienteDetalleDialogComponent } from '../clientes/cliente-detalle-dialog/cliente-detalle-dialog.component';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { CompanyService, Company } from '../../../core/services/company.service';
 
@@ -40,7 +42,8 @@ import { CompanyService, Company } from '../../../core/services/company.service'
     MatExpansionModule,
     MatPaginatorModule,
     MatMenuModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatDialogModule
   ],
   templateUrl: './reportes-cumplimiento.component.html',
   styleUrls: ['./reportes-cumplimiento.component.scss']
@@ -72,6 +75,7 @@ export class ReportesCumplimientoComponent implements OnInit {
   totalSinBeneficiario = 0;
   pageSizeOptionsSinBeneficiario = [10, 25, 50, 100];
   loadingSinAviso = false;
+  errorSinAviso: string | null = null;
   expedientesSinAviso: ExpedienteSinBeneficiario[] = [];
   dataSourceSinAviso = new MatTableDataSource<ExpedienteSinBeneficiario>([]);
   pageSizeSinAviso = 10;
@@ -86,11 +90,12 @@ export class ReportesCumplimientoComponent implements OnInit {
   filterAnio: number | null = new Date().getFullYear();
   aniosDisponibles: number[] = [new Date().getFullYear() + 1, new Date().getFullYear(), new Date().getFullYear() - 1, new Date().getFullYear() - 2];
 
-  displayedColumnsExpedientes = ['ndCliente', 'cliente', 'totalMontoExpediente', 'totalMontoEfectivo', 'montoDevolver', 'requiereAtencion', 'reportarFinMes'];
+  displayedColumnsExpedientes = ['ndCliente', 'cliente', 'totalMontoExpediente', 'totalMontoEfectivo', 'montoDevolver', 'requiereAtencion', 'reportarFinMes', 'detalle'];
   dataSourceExpedientes = new MatTableDataSource<ExpedienteAlertaPld>([]);
 
   constructor(
     private reportesService: ReportesCumplimientoService,
+    private dialog: MatDialog,
     private defaultAgencyService: DefaultAgencyService,
     private companyService: CompanyService,
     private snackBar: MatSnackBar
@@ -269,6 +274,7 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   loadExpedientesSinAviso(): void {
     this.loadingSinAviso = true;
+    this.errorSinAviso = null;
     this.reportesService.getExpedientesSinAviso({
       idAgencies: this.selectedAgencyIds.length ? this.selectedAgencyIds : undefined,
       idCompany: this.filterCompania || undefined,
@@ -277,7 +283,7 @@ export class ReportesCumplimientoComponent implements OnInit {
       offset: this.pageIndexSinAviso * this.pageSizeSinAviso
     }).subscribe({
       next: (res) => {
-        if (res.success && res.data?.expedientes) {
+        if (res?.success && res.data?.expedientes) {
           this.expedientesSinAviso = res.data.expedientes;
           this.dataSourceSinAviso.data = res.data.expedientes;
           this.totalSinAviso = res.data.total ?? 0;
@@ -285,7 +291,8 @@ export class ReportesCumplimientoComponent implements OnInit {
           this.expedientesSinAviso = [];
           this.dataSourceSinAviso.data = [];
           this.totalSinAviso = 0;
-          if (res.message) {
+          this.errorSinAviso = res?.message || 'No se pudieron cargar los datos';
+          if (res?.message) {
             this.snackBar.open(res.message, 'Cerrar', { duration: 6000 });
           }
         }
@@ -296,7 +303,9 @@ export class ReportesCumplimientoComponent implements OnInit {
         this.dataSourceSinAviso.data = [];
         this.totalSinAviso = 0;
         this.loadingSinAviso = false;
-        this.snackBar.open(err?.error?.message || err?.message || 'Error al cargar expedientes sin aviso', 'Cerrar', { duration: 6000 });
+        const msg = err?.error?.message || err?.message || (typeof err?.error === 'string' ? err.error : 'Error al cargar expedientes sin aviso de privacidad');
+        this.errorSinAviso = msg;
+        this.snackBar.open(msg, 'Cerrar', { duration: 6000 });
       }
     });
   }
@@ -459,5 +468,25 @@ export class ReportesCumplimientoComponent implements OnInit {
 
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value);
+  }
+
+  /** Abre el diálogo de detalle de operaciones del cliente (igual que en módulo Clientes) */
+  openDetalle(row: ExpedienteAlertaPld): void {
+    const idHeaderClient = row.idHeaderClient ?? row.idClientHeader;
+    if (idHeaderClient == null || idHeaderClient === undefined) {
+      this.snackBar.open('No se puede abrir el detalle: falta información del cliente', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    this.dialog.open(ClienteDetalleDialogComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      data: {
+        idHeaderClient,
+        idClientHeader: idHeaderClient,
+        cliente: row.cliente,
+        ndCliente: row.ndCliente,
+        amlUmbral: this.dashboard?.umbralAml ?? undefined
+      }
+    });
   }
 }

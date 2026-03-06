@@ -51,7 +51,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * GET /api/reportes-cumplimiento/expedientes-alerta-pld
+     * GET /api/compliance-reports/cases-pld-alert
      * Expedientes/clientes con operaciones que superan el umbral AML anual.
      */
     public function expedientesAlertaPld()
@@ -79,6 +79,7 @@ class ReportesCumplimiento extends BaseController
             $sql = "
                 SELECT
                     c.id as idCliente,
+                    MIN(hc.id) as idClientHeader,
                     MIN(ctr.id_dms) as ndCliente,
                     ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     COALESCE(aml.totalMonto, 0) as totalMontoEfectivo,
@@ -126,6 +127,7 @@ class ReportesCumplimiento extends BaseController
                 $sql = "
                     SELECT
                         c.id as idCliente,
+                        MIN(hc.id) as idClientHeader,
                         MIN(ctr.id_dms) as ndCliente,
                         ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                         aml.totalMonto as totalMontoEfectivo,
@@ -188,7 +190,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * GET /api/reportes-cumplimiento/resumen-por-agencia
+     * GET /api/compliance-reports/summary-by-agency
      * Resumen de expedientes por agencia y estado.
      */
     public function resumenPorAgencia()
@@ -284,7 +286,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * GET /api/reportes-cumplimiento/documentos-pendientes
+     * GET /api/compliance-reports/pending-documents
      * Documentos pendientes de validación (estatus 1, 2, 3) por agencia.
      */
     public function documentosPendientes()
@@ -373,7 +375,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * GET /api/reportes-cumplimiento/expedientes-sin-beneficiario
+     * GET /api/compliance-reports/cases-without-beneficiary
      * Expedientes de persona moral (id_customer_type=2) sin beneficiarios finales capturados.
      */
     public function expedientesSinBeneficiario()
@@ -465,7 +467,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * GET /api/reportes-cumplimiento/expedientes-sin-aviso
+     * GET /api/compliance-reports/cases-without-notice
      * Expedientes sin aviso de privacidad aceptado.
      * Incluye: sin registro en file_pld, o con registro pero AvisoPrivacidadEntregado != 1.
      */
@@ -619,7 +621,7 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * GET /api/reportes-cumplimiento/dashboard
+     * GET /api/compliance-reports/dashboard
      * Resumen ejecutivo para el Oficial de Cumplimiento.
      */
     public function dashboard()

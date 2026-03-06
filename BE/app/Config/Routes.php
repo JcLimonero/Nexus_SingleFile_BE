@@ -180,13 +180,13 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     });
 
     // Rutas de reportes para Oficial de Cumplimiento (PLD/AML)
-    $routes->group('reportes-cumplimiento', function($routes) {
+    $routes->group('compliance-reports', function($routes) {
         $routes->get('dashboard', 'ReportesCumplimiento::dashboard');
-        $routes->get('expedientes-alerta-pld', 'ReportesCumplimiento::expedientesAlertaPld');
-        $routes->get('resumen-por-agencia', 'ReportesCumplimiento::resumenPorAgencia');
-        $routes->get('documentos-pendientes', 'ReportesCumplimiento::documentosPendientes');
-        $routes->get('expedientes-sin-beneficiario', 'ReportesCumplimiento::expedientesSinBeneficiario');
-        $routes->get('expedientes-sin-aviso', 'ReportesCumplimiento::expedientesSinAviso');
+        $routes->get('cases-pld-alert', 'ReportesCumplimiento::expedientesAlertaPld');
+        $routes->get('summary-by-agency', 'ReportesCumplimiento::resumenPorAgencia');
+        $routes->get('pending-documents', 'ReportesCumplimiento::documentosPendientes');
+        $routes->get('cases-without-beneficiary', 'ReportesCumplimiento::expedientesSinBeneficiario');
+        $routes->get('cases-without-notice', 'ReportesCumplimiento::expedientesSinAviso');
     });
 
     // Rutas de analytics
