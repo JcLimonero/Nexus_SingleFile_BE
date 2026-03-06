@@ -64,7 +64,7 @@ export class ApiConfigService {
   }
 
   private getFallbackVanguardia(): VanguardiaConfig {
-    const v = environment.dwh;
+    const v = environment.vanguardia;
     return {
       api_url: v?.apiUrl || '/vgd/NexFilecustomer',
       orders_api_url: v?.ordersApiUrl || '/vgd/NexFileorderslastest',

@@ -2665,7 +2665,8 @@ class Validacion extends BaseController
                         'id' => $templateId,
                         'data' => $templateData,
                     ],
-                    'output' => 'expedient',
+                    'format' => 'pdf',
+                    'output' => 'file',
                 ],
                 'http_errors' => false,
             ]);
