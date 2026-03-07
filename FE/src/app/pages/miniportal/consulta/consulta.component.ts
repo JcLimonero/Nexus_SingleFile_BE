@@ -51,6 +51,7 @@ export class ConsultaMiniportalComponent implements OnInit {
   loadingDocumentos = false;
   uploadingIds = new Set<number>();
   approvingIds = new Set<number>();
+  mostrarCamara = false; /* Ocultar funcionalidad de tomar foto con cámara */
   logoLogin$ = this.brandingService.getBranding$().pipe(map((b) => b.logoLogin));
 
   constructor(

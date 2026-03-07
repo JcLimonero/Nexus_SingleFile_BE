@@ -9,10 +9,12 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSliderModule } from '@angular/material/slider';
 
 export interface DocumentCameraDialogData {
   documentName: string;
@@ -37,10 +39,12 @@ declare global {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSliderModule
   ],
   templateUrl: './document-camera-dialog.component.html',
   styleUrl: './document-camera-dialog.component.scss',
@@ -54,7 +58,13 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
   status: 'loading' | 'camera' | 'error' | 'capturing' = 'loading';
   errorMessage = '';
   stream: MediaStream | null = null;
+  zoomLevel = 1;
+  readonly zoomMin = 1;
+  readonly zoomMax = 3;
+  hasOpticalZoom = false;
   highlightInterval: ReturnType<typeof setInterval> | null = null;
+  private pinchStartDistance = 0;
+  private pinchStartZoom = 1;
   scanner: InstanceType<NonNullable<typeof window.jscanify>> | null = null;
 
   private readonly OPENCV_URL = 'https://docs.opencv.org/4.7.0/opencv.js';
@@ -140,7 +150,6 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
       }
 
       const constraints: MediaStreamConstraints[] = [
-        { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } },
         { video: { facingMode: 'environment' } },
         { video: true }
       ];
@@ -160,6 +169,8 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
       }
 
       this.status = 'camera';
+      this.detectZoomCapability();
+      this.applyMinZoom();
       this.cdr.markForCheck();
 
       setTimeout(() => this.startHighlightLoop(), 300);
@@ -169,6 +180,69 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
       this.errorMessage = this.getSafariFriendlyMessage(msg);
       this.cdr.markForCheck();
     }
+  }
+
+  private detectZoomCapability(): void {
+    const videoTrack = this.stream?.getVideoTracks()[0];
+    if (!videoTrack?.getCapabilities) return;
+    const caps = videoTrack.getCapabilities() as { zoom?: { min?: number; max?: number } };
+    if (caps?.zoom?.min != null && caps?.zoom?.max != null && caps.zoom.max > caps.zoom.min) {
+      this.hasOpticalZoom = true;
+    }
+  }
+
+  private applyMinZoom(): void {
+    if (this.hasOpticalZoom && this.stream) {
+      const videoTrack = this.stream.getVideoTracks()[0];
+      const caps = videoTrack?.getCapabilities?.() as { zoom?: { min?: number } } | undefined;
+      const minZoom = caps?.zoom?.min ?? 1;
+      this.zoomLevel = minZoom;
+      videoTrack?.applyConstraints?.({ advanced: [{ zoom: minZoom } as MediaTrackConstraintSet] }).catch(() => {
+        this.hasOpticalZoom = false;
+      });
+    }
+  }
+
+  formatZoom = (v: number): string => `${Math.round(v * 100) / 100}x`;
+
+  onTouchStart(e: TouchEvent): void {
+    if (e.touches.length === 2) {
+      this.pinchStartDistance = this.getTouchDistance(e);
+      this.pinchStartZoom = this.zoomLevel;
+    }
+  }
+
+  onTouchMove(e: TouchEvent): void {
+    if (e.touches.length === 2 && this.pinchStartDistance > 0) {
+      e.preventDefault();
+      const dist = this.getTouchDistance(e);
+      const ratio = dist / this.pinchStartDistance;
+      const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.pinchStartZoom * ratio));
+      this.onZoomChange(newZoom);
+    }
+  }
+
+  onTouchEnd(): void {
+    this.pinchStartDistance = 0;
+  }
+
+  private getTouchDistance(e: TouchEvent): number {
+    if (e.touches.length < 2) return 0;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+
+  onZoomChange(value: number): void {
+    this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, value));
+    if (this.hasOpticalZoom && this.stream) {
+      const videoTrack = this.stream.getVideoTracks()[0];
+      videoTrack?.applyConstraints?.({ advanced: [{ zoom: this.zoomLevel } as MediaTrackConstraintSet] }).catch(() => {
+        this.hasOpticalZoom = false;
+        this.cdr.markForCheck();
+      });
+    }
+    this.cdr.markForCheck();
   }
 
   private getSafariFriendlyMessage(original: string): string {
@@ -193,14 +267,25 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
     const draw = () => {
       if (video.readyState !== video.HAVE_ENOUGH_DATA || this.status !== 'camera') return;
 
-      canvasSrc.width = video.videoWidth;
-      canvasSrc.height = video.videoHeight;
-      canvasRes.width = video.videoWidth;
-      canvasRes.height = video.videoHeight;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      canvasSrc.width = vw;
+      canvasSrc.height = vh;
+      canvasRes.width = vw;
+      canvasRes.height = vh;
 
-      ctxSrc.drawImage(video, 0, 0);
+      if (this.hasOpticalZoom || this.zoomLevel <= 1) {
+        ctxSrc.drawImage(video, 0, 0);
+      } else {
+        const z = this.zoomLevel;
+        const sx = (vw - vw / z) / 2;
+        const sy = (vh - vh / z) / 2;
+        const sw = vw / z;
+        const sh = vh / z;
+        ctxSrc.drawImage(video, sx, sy, sw, sh, 0, 0, vw, vh);
+      }
       try {
-        const highlighted = this.scanner!.highlightPaper(canvasSrc, { color: '#0ea5e9', thickness: 4 });
+        const highlighted = this.scanner!.highlightPaper(canvasSrc, { color: '#22c55e', thickness: 2 });
         ctxRes.drawImage(highlighted, 0, 0);
       } catch {
         ctxRes.drawImage(canvasSrc, 0, 0);
@@ -246,12 +331,24 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    canvasSrc.width = video.videoWidth;
-    canvasSrc.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    canvasSrc.width = vw;
+    canvasSrc.height = vh;
 
-    const resultWidth = 1200;
-    const resultHeight = Math.round(1200 * (video.videoHeight / video.videoWidth));
+    if (this.hasOpticalZoom || this.zoomLevel <= 1) {
+      ctx.drawImage(video, 0, 0);
+    } else {
+      const z = this.zoomLevel;
+      const sx = (vw - vw / z) / 2;
+      const sy = (vh - vh / z) / 2;
+      const sw = vw / z;
+      const sh = vh / z;
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, vw, vh);
+    }
+
+    const resultWidth = 2400;
+    const resultHeight = Math.round(2400 * (video.videoHeight / video.videoWidth));
 
     try {
       const resultCanvas = this.scanner.extractPaper(canvasSrc, resultWidth, resultHeight);
@@ -273,7 +370,7 @@ export class DocumentCameraDialogComponent implements OnInit, OnDestroy {
           this.dialogRef.close({ file } as DocumentCameraDialogResult);
         },
         'image/jpeg',
-        0.92
+        0.95
       );
     } catch {
       this.status = 'camera';

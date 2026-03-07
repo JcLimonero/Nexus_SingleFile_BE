@@ -78,6 +78,7 @@ mat-dialog-content {
   background: #000;
   border-radius: 8px;
   overflow: hidden;
+  touch-action: none; /* Permite pinch-to-zoom sin conflicto con el zoom del navegador */
 
   .camera-video,
   .camera-overlay {
@@ -86,11 +87,80 @@ mat-dialog-content {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* Muestra el frame completo sin recortar - más campo de visión para documentos */
   }
 
   .hidden-canvas {
     display: none;
+  }
+
+  /* Guía visual: zona donde colocar el documento */
+  .document-guide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Marco vertical: documentos suelen ser en formato retrato */
+  .document-guide-frame {
+    width: 58%;
+    height: 85%;
+    max-width: 220px;
+    border: 2px dashed rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .document-guide-frame::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .document-guide-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.55);
+    padding: 4px 8px;
+    border-radius: 4px;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+
+  button {
+    flex-shrink: 0;
+  }
+
+  mat-slider {
+    flex: 1;
+    min-width: 0;
   }
 }
 

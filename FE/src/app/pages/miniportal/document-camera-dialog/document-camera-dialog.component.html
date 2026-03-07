@@ -20,12 +20,28 @@
 
     <!-- Camera view with document detection overlay -->
     <div *ngIf="status === 'camera' || status === 'capturing'" class="camera-container">
-      <div class="camera-wrapper">
+      <div class="camera-wrapper" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd()">
         <video #videoEl playsinline webkit-playsinline autoplay muted class="camera-video"></video>
         <canvas #canvasSource class="hidden-canvas"></canvas>
         <canvas #canvasResult class="camera-overlay"></canvas>
+        <div class="document-guide" aria-hidden="true">
+          <div class="document-guide-frame">
+            <span class="document-guide-label">Coloca el documento aquí</span>
+          </div>
+        </div>
       </div>
-      <p class="camera-hint">Encuadra el documento. Los bordes se detectarán automáticamente.</p>
+      <div class="zoom-controls">
+        <button mat-icon-button type="button" (click)="onZoomChange(zoomLevel - 0.5)" [disabled]="zoomLevel <= zoomMin" aria-label="Reducir zoom">
+          <mat-icon>remove_circle_outline</mat-icon>
+        </button>
+        <mat-slider [min]="zoomMin" [max]="zoomMax" [step]="0.25" discrete [displayWith]="formatZoom">
+          <input matSliderThumb [ngModel]="zoomLevel" (ngModelChange)="onZoomChange($event)">
+        </mat-slider>
+        <button mat-icon-button type="button" (click)="onZoomChange(zoomLevel + 0.5)" [disabled]="zoomLevel >= zoomMax" aria-label="Aumentar zoom">
+          <mat-icon>add_circle_outline</mat-icon>
+        </button>
+      </div>
+      <p class="camera-hint">Coloca el documento dentro del marco, sobre una superficie con contraste (ej. mesa oscura).</p>
     </div>
   </mat-dialog-content>
 
