@@ -1,11 +1,12 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://74.208.78.55:8100',
+  apiBaseUrl: 'https://app-nexusqtech.com:8100',
   maxFileSizeMB: 10,  // Tamaño máximo de archivo en MB (configurable)
   active_debug: false,  // Habilitar logs de actividad de usuarios
   dwh: {
-    apiUrl: 'http://74.208.78.55:8101/nexfile/customers',
-    ordersApiUrl: 'http://74.208.78.55:8101/nexfile/orders',
-    invoicesApiUrl: 'http://74.208.78.55:8101/nexfile/invoices'
+    // Fallback: BE proxy (8100) reenvía al DWH con token; no llamar DWH directo (requiere X-Provider-Token)
+    apiUrl: 'https://app-nexusqtech.com:8100/api/vgd/NexFilecustomer',
+    ordersApiUrl: 'https://app-nexusqtech.com:8100/api/vgd/NexFileorderslastest',
+    invoicesApiUrl: 'https://app-nexusqtech.com:8100/api/vgd/NexFileinvoices'
   }
 };
