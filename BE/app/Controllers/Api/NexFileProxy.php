@@ -8,7 +8,7 @@ use App\Controllers\BaseController;
  * Proxy para APIs Nexfile (DWH).
  * Reenvía peticiones al DWH local o configurado (nexfile/customers, orders, invoices).
  */
-class VanguardiaProxy extends BaseController
+class NexFileProxy extends BaseController
 {
     /**
      * Proxy para búsqueda de clientes
@@ -80,7 +80,7 @@ class VanguardiaProxy extends BaseController
             $body = json_decode($response, true) ?? ['error' => 'Invalid response'];
             return $this->response->setJSON($body)->setStatusCode($httpCode);
         } catch (\Exception $e) {
-            error_log("Error en VanguardiaProxy::{$endpoint}: " . $e->getMessage());
+            error_log("Error en NexFileProxy::{$endpoint}: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al consultar Nexfile: ' . $e->getMessage()
@@ -125,4 +125,3 @@ class VanguardiaProxy extends BaseController
         return $val;
     }
 }
-

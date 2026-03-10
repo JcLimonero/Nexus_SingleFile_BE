@@ -151,10 +151,10 @@
               color="primary"
               (click)="agregarPedidoIntegracion()"
               matTooltip="Agregar nuevo pedido de integración"
-              [disabled]="loadingOrdersFromVanguardia"
+              [disabled]="loadingOrdersFromNexFile"
               *ngIf="isManagerOrAdmin">
-              <mat-spinner *ngIf="loadingOrdersFromVanguardia" diameter="18" style="display: inline-block;"></mat-spinner>
-              <mat-icon *ngIf="!loadingOrdersFromVanguardia" style="font-size: 18px;">add</mat-icon>
+              <mat-spinner *ngIf="loadingOrdersFromNexFile" diameter="18" style="display: inline-block;"></mat-spinner>
+              <mat-icon *ngIf="!loadingOrdersFromNexFile" style="font-size: 18px;">add</mat-icon>
             </button>
           </div>
         </mat-card-title>

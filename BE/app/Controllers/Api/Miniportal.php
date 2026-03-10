@@ -207,7 +207,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
-        // Usar subida directa a Backblaze (nuestra BD) en lugar de Vanguardia
+        // Usar subida directa a Backblaze (nuestra BD) en lugar de NexFile
         $uploader = new \App\Controllers\Api\BackblazeDirectUpload();
         $uploader->initController($this->request, $this->response, \Config\Services::logger());
         return $uploader->performUpload($file, (string) $idFile, (string) $idFileDocument);

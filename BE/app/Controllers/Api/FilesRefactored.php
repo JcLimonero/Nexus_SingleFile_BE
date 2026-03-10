@@ -32,12 +32,12 @@ class FilesRefactored extends BaseController
     }
 
     /**
-     * Redirigir a Files::createFromVanguardiaNew
+     * Redirigir a Files::createFromNexFileNew
      */
-    public function createFromVanguardiaNew()
+    public function createFromNexFileNew()
     {
         $filesController = new Files();
-        return $filesController->createFromVanguardiaNew();
+        return $filesController->createFromNexFileNew();
     }
 
     /**

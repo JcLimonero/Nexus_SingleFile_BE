@@ -103,7 +103,7 @@ export const AuthInterceptor: HttpInterceptorFn = (
       })
     );
   } else if (request.url.startsWith('http')) {
-    // Manejar errores 401 también en llamadas HTTP externas (como Vanguardia)
+    // Manejar errores 401 también en llamadas HTTP externas (como NexFile)
     return next(request).pipe(
       catchError((error: HttpErrorResponse) => {
         // Si es un error 401 de cualquier API, redirigir al login

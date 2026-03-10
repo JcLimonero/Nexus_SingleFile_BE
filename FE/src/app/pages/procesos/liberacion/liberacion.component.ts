@@ -962,13 +962,13 @@ export class LiberacionComponent implements OnInit, OnDestroy {
             file = new File([file], newFileName, { type: file.type });
           }
 
-          // Preparar datos para Vanguardia API
+          // Preparar datos para NexFile API
           const formData = new FormData();
           formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
           formData.append('idNexFile', this.selectedFile.fileId.toString());
           formData.append('idDocumentFile', document.fileDocumentId.toString());
 
-          // Usar API de Vanguardia
+          // Usar API de NexFile
           return this.http.post<any>(this.apiConfig.getUploadApiUrl(), formData);
         })
       )

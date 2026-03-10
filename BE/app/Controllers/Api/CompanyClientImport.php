@@ -209,9 +209,9 @@ class CompanyClientImport extends BaseController
         }
     }
 
-    private function checkExistingClient($ndDMS, $idAgencyVanguardia)
+    private function checkExistingClient($ndDMS, $idAgencyNexFile)
     {
-        $idAgencyInternal = $this->getAgencyIdFromIdAgency($idAgencyVanguardia);
+        $idAgencyInternal = $this->getAgencyIdFromIdAgency($idAgencyNexFile);
         $sql = "
             SELECT c.id as idCliente, ctr.id_dms as ndCliente,
                 TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,

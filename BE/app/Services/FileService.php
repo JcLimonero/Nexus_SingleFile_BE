@@ -19,12 +19,12 @@ class FileService
     }
 
     /**
-     * Crear file desde datos de Vanguardia
+     * Crear file desde datos de NexFile
      */
-    public function createFileFromVanguardia($data)
+    public function createFileFromNexFile($data)
     {
         try {
-            error_log("=== INICIO FileService::createFileFromVanguardia ===");
+            error_log("=== INICIO FileService::createFileFromNexFile ===");
             error_log("Datos recibidos: " . json_encode($data));
 
             // Validar datos requeridos
@@ -135,7 +135,7 @@ class FileService
             ];
 
         } catch (\Exception $e) {
-            error_log("❌ Error en FileService::createFileFromVanguardia: " . $e->getMessage());
+            error_log("❌ Error en FileService::createFileFromNexFile: " . $e->getMessage());
             
             if ($this->db->transStatus() !== false) {
                 $this->db->transRollback();

@@ -45,7 +45,7 @@ export interface BrandingConfig {
   clientName: string;
   /** Título en sidebar/menú (si no se define, se usa clientName) */
   appTitle?: string;
-  /** Título de la pestaña del navegador (ej: "Expediente Único by Grupo Vanguardia") */
+  /** Título de la pestaña del navegador (ej: "NexFile One by Nexus Q Tech") */
   pageTitle?: string;
   /** Estilo de layout/template: apollo, poseidon, hermes, ares, zeus, ikaros */
   layoutStyle?: LayoutStyleName;
@@ -77,8 +77,8 @@ const DEFAULT_BRANDING: BrandingConfig = {
   logoFooter: 'assets/img/icons/logos/nexusQtech.svg',
   logoLoading: 'assets/img/icons/logos/logo_loading_blue.svg',
   favicon: 'assets/img/icons/logos/nexus/login.ico',
-  footerText: 'Grupo Vanguardia',
-  footerLink: 'https://www.grupovanguardia.com'
+  footerText: 'Developed by Nexus Q Tech',
+  footerLink: 'https://www.nexusqtech.com'
 };
 
 const VALID_LAYOUT_STYLES: LayoutStyleName[] = ['apollo', 'poseidon', 'hermes', 'ares', 'zeus', 'ikaros'];

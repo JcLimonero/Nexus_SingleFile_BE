@@ -496,21 +496,21 @@ class Files extends BaseController
     }
 
     /**
-     * POST /api/files/create-from-vanguardia-new
-     * Crear file desde pedido de Vanguardia con documentos asociados
+     * POST /api/files/create-from-NexFile-new
+     * Crear file desde pedido de NexFile con documentos asociados
      */
-    public function createFromVanguardiaNew()
+    public function createFromNexFileNew()
     {
-        return $this->createFileFromVanguardia();
+        return $this->createFileFromNexFile();
     }
 
     /**
-     * Método interno para crear file desde Vanguardia
+     * Método interno para crear file desde NexFile
      */
-    private function createFileFromVanguardia()
+    private function createFileFromNexFile()
     {
         try {
-            error_log("=== INICIO createFromVanguardia - VERSION ACTUALIZADA ===");
+            error_log("=== INICIO createFromNexFile - VERSION ACTUALIZADA ===");
             error_log("=== SERVIDOR REINICIADO - CÓDIGO NUEVO EJECUTÁNDOSE ===");
             // Verificar autenticación
             $currentUser = $this->getAuthenticatedUser();
@@ -588,7 +588,7 @@ class Files extends BaseController
 
             // Obtener idCliente (Client.Id) desde view_client_relations por ndCliente e idAgency.
             // Priorizar la agencia seleccionada por el usuario para que el expediente aparezca en su lista.
-            // Fallback: agencia del pedido (order.idAgency mapea a id_agency_dms en la API Vanguardia).
+            // Fallback: agencia del pedido (order.idAgency mapea a id_agency_dms en la API NexFile).
             $ndDMS = trim((string) $clientId);
             $idClientResolved = $this->getClientIdFromViewClientRelations($ndDMS, $internalAgencyId);
             error_log("Buscando IdClient (agencia seleccionada): ndDMS={$ndDMS}, IdAgency={$internalAgencyId} => " . ($idClientResolved ?? 'null'));
@@ -724,7 +724,7 @@ class Files extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            error_log("❌ ERROR en Files::createFromVanguardia: " . $e->getMessage());
+            error_log("❌ ERROR en Files::createFromNexFile: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             
             // Si hay una transacción activa, hacer rollback
@@ -1164,7 +1164,7 @@ class Files extends BaseController
 
     /**
      * Obtener agency.id (interno) desde id_agency_dms (DMS).
-     * Usar cuando el valor viene de la API Vanguardia (ej. order.idAgency).
+     * Usar cuando el valor viene de la API NexFile (ej. order.idAgency).
      */
     private function getAgencyInternalIdFromDms($dmsAgencyId)
     {

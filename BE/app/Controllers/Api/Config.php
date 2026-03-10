@@ -7,7 +7,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * Config - Endpoint público para obtener configuración del frontend
- * GET /api/config/group_api_url - Retorna URLs Vanguardia/Backblaze desde la tabla config (sin auth)
+ * GET /api/config/group_api_url - Retorna URLs NexFile/Backblaze desde la tabla config (sin auth)
  */
 class Config extends BaseController
 {

@@ -1,6 +1,6 @@
 <?php
 
-// Script de prueba para el API de creación de files desde Vanguardia
+// Script de prueba para el API de creación de files desde NexFile
 
 // Datos de prueba para crear un file
 $testData = [
@@ -19,7 +19,7 @@ $testData = [
 ];
 
 // URL del API
-$url = 'http://localhost:8080/api/files/create-from-vanguardia-new';
+$url = 'http://localhost:8080/api/files/create-from-NexFile-new';
 
 // Configurar cURL
 $ch = curl_init();
@@ -33,7 +33,7 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
-echo "🚀 Probando creación de file desde Vanguardia (CORREGIDO)...\n";
+echo "🚀 Probando creación de file desde NexFile (CORREGIDO)...\n";
 echo "📋 Datos de prueba:\n";
 echo json_encode($testData, JSON_PRETTY_PRINT) . "\n\n";
 

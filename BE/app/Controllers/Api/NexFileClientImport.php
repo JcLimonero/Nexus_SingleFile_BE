@@ -5,7 +5,7 @@ namespace App\Controllers\Api;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class VanguardiaClientImport extends ResourceController
+class NexFileClientImport extends ResourceController
 {
     protected $db;
 
@@ -15,19 +15,19 @@ class VanguardiaClientImport extends ResourceController
     }
 
     /**
-     * Importar cliente de Vanguardia al sistema local
-     * POST /api/vanguardia-client-import/import
+     * Importar cliente de NexFile al sistema local
+     * POST /api/NexFile-client-import/import
      */
     public function import()
     {
         try {
-            // Obtener datos del cliente de Vanguardia
-            $vanguardiaData = $this->request->getJSON(true);
+            // Obtener datos del cliente de NexFile
+            $NexFileData = $this->request->getJSON(true);
             
-            if (!$vanguardiaData) {
+            if (!$NexFileData) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Datos de cliente de Vanguardia requeridos',
+                    'message' => 'Datos de cliente de NexFile requeridos',
                     'data' => null
                 ])->setStatusCode(400);
             }
@@ -35,7 +35,7 @@ class VanguardiaClientImport extends ResourceController
             // Validar datos requeridos básicos
             $requiredFields = ['idAgency', 'ndDMS'];
             foreach ($requiredFields as $field) {
-                if (!isset($vanguardiaData[$field]) || empty($vanguardiaData[$field])) {
+                if (!isset($NexFileData[$field]) || empty($NexFileData[$field])) {
                     return $this->response->setJSON([
                         'success' => false,
                         'message' => "Campo requerido faltante: {$field}",
@@ -45,23 +45,23 @@ class VanguardiaClientImport extends ResourceController
             }
 
             // Logging de datos recibidos
-            error_log("=== VanguardiaClientImport::import - Datos recibidos ===");
-            error_log("name: " . ($vanguardiaData['name'] ?? 'NULL'));
-            error_log("bussines_name: " . ($vanguardiaData['bussines_name'] ?? 'NULL'));
-            error_log("paternal_surname: " . ($vanguardiaData['paternal_surname'] ?? 'NULL'));
-            error_log("maternal_surname: " . ($vanguardiaData['maternal_surname'] ?? 'NULL'));
+            error_log("=== NexFileClientImport::import - Datos recibidos ===");
+            error_log("name: " . ($NexFileData['name'] ?? 'NULL'));
+            error_log("bussines_name: " . ($NexFileData['bussines_name'] ?? 'NULL'));
+            error_log("paternal_surname: " . ($NexFileData['paternal_surname'] ?? 'NULL'));
+            error_log("maternal_surname: " . ($NexFileData['maternal_surname'] ?? 'NULL'));
 
             // Si name viene vacío, usar bussines_name como fallback
-            if (empty($vanguardiaData['name']) && !empty($vanguardiaData['bussines_name'])) {
+            if (empty($NexFileData['name']) && !empty($NexFileData['bussines_name'])) {
                 error_log("⚠️ Campo 'name' vacío, usando 'bussines_name' como fallback");
-                $vanguardiaData['name'] = $vanguardiaData['bussines_name'];
-                $vanguardiaData['paternal_surname'] = $vanguardiaData['paternal_surname'] ?? '';
-                $vanguardiaData['maternal_surname'] = $vanguardiaData['maternal_surname'] ?? '';
-                error_log("✅ Nuevo valor de 'name': " . $vanguardiaData['name']);
+                $NexFileData['name'] = $NexFileData['bussines_name'];
+                $NexFileData['paternal_surname'] = $NexFileData['paternal_surname'] ?? '';
+                $NexFileData['maternal_surname'] = $NexFileData['maternal_surname'] ?? '';
+                error_log("✅ Nuevo valor de 'name': " . $NexFileData['name']);
             }
 
             // Validar que al menos tengamos un nombre (name o bussines_name)
-            if (empty($vanguardiaData['name']) && empty($vanguardiaData['bussines_name'])) {
+            if (empty($NexFileData['name']) && empty($NexFileData['bussines_name'])) {
                 error_log("❌ Error: No se proporcionó ni name ni bussines_name");
                 return $this->response->setJSON([
                     'success' => false,
@@ -71,7 +71,7 @@ class VanguardiaClientImport extends ResourceController
             }
 
             // Verificar si el cliente ya existe por ndDMS
-            $existingClient = $this->checkExistingClient($vanguardiaData['ndDMS'], $vanguardiaData['idAgency']);
+            $existingClient = $this->checkExistingClient($NexFileData['ndDMS'], $NexFileData['idAgency']);
             if ($existingClient) {
                 error_log("✅ Cliente encontrado por ndDMS, retornando datos existentes");
                 return $this->response->setJSON([
@@ -84,18 +84,18 @@ class VanguardiaClientImport extends ResourceController
             // No hay en client_dms_relation por ND: buscar en Client por RFC del API.
             // Si existe cliente con ese RFC, insertar ClientHeader + ClientTotalRelation
             // (usar el Client con RegistrationDate más reciente).
-            $rfcFromApi = trim($vanguardiaData['rfc'] ?? '');
+            $rfcFromApi = trim($NexFileData['rfc'] ?? '');
             if ($rfcFromApi !== '') {
                 $clientByRfc = $this->findClientByRfc($rfcFromApi);
                 if ($clientByRfc) {
-                    error_log("✅ Cliente existe por RFC; insertando ClientHeader + ClientDMSRelation para nd " . $vanguardiaData['ndDMS']);
+                    error_log("✅ Cliente existe por RFC; insertando ClientHeader + ClientDMSRelation para nd " . $NexFileData['ndDMS']);
                     $this->db->transStart();
                     try {
                         $headerClientId = $this->insertClientHeader($clientByRfc['Id']);
                         if (!$headerClientId) {
                             throw new \Exception('Error al insertar en tabla ClientHeader');
                         }
-                        $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+                        $relationId = $this->insertClientTotalRelation($headerClientId, $NexFileData);
                         if (!$relationId) {
                             throw new \Exception('Error al insertar en tabla ClientTotalRelation');
                         }
@@ -117,11 +117,11 @@ class VanguardiaClientImport extends ResourceController
             }
 
             // Verificar si existe cliente con la misma RazonSocial (para evitar duplicados)
-            $razonSocial = !empty($vanguardiaData['bussines_name']) 
-                ? $vanguardiaData['bussines_name'] 
-                : trim(($vanguardiaData['name'] ?? '') . ' ' . 
-                       ($vanguardiaData['paternal_surname'] ?? '') . ' ' . 
-                       ($vanguardiaData['maternal_surname'] ?? ''));
+            $razonSocial = !empty($NexFileData['bussines_name']) 
+                ? $NexFileData['bussines_name'] 
+                : trim(($NexFileData['name'] ?? '') . ' ' . 
+                       ($NexFileData['paternal_surname'] ?? '') . ' ' . 
+                       ($NexFileData['maternal_surname'] ?? ''));
             
             // Verificar si existe cliente con el RazonSocial original
             $existingByRazonSocial = $this->checkExistingClientByRazonSocial($razonSocial);
@@ -129,12 +129,12 @@ class VanguardiaClientImport extends ResourceController
                 error_log("⚠️ Ya existe cliente con RazonSocial '{$razonSocial}'");
                 
                 // Verificar si este cliente tiene la relación con el ndDMS y idAgency específicos
-                $idAgencyInternal = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
-                $hasRelation = $this->checkClientTotalRelation($existingByRazonSocial['idCliente'], $vanguardiaData['ndDMS'], $idAgencyInternal);
+                $idAgencyInternal = $this->getAgencyIdFromIdAgency($NexFileData['idAgency']);
+                $hasRelation = $this->checkClientTotalRelation($existingByRazonSocial['idCliente'], $NexFileData['ndDMS'], $idAgencyInternal);
                 
                 if ($hasRelation) {
                     // El cliente existe y tiene la relación, retornarlo
-                    error_log("✅ Cliente existe y tiene la relación con ndDMS {$vanguardiaData['ndDMS']} y idAgency {$idAgencyInternal}");
+                    error_log("✅ Cliente existe y tiene la relación con ndDMS {$NexFileData['ndDMS']} y idAgency {$idAgencyInternal}");
                     $existingClientFull = $this->getClientByRazonSocial($razonSocial);
                     if ($existingClientFull) {
                         return $this->response->setJSON([
@@ -145,7 +145,7 @@ class VanguardiaClientImport extends ResourceController
                     }
                 } else {
                     // El cliente existe pero NO tiene la relación, crear la relación
-                    error_log("⚠️ Cliente existe pero NO tiene relación con ndDMS {$vanguardiaData['ndDMS']} y idAgency {$idAgencyInternal}, creando relación");
+                    error_log("⚠️ Cliente existe pero NO tiene relación con ndDMS {$NexFileData['ndDMS']} y idAgency {$idAgencyInternal}, creando relación");
                     $this->db->transStart();
                     try {
                         // Obtener el ClientHeader del cliente existente
@@ -162,7 +162,7 @@ class VanguardiaClientImport extends ResourceController
                         }
                         
                         // Crear la relación ClientTotalRelation
-                        $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+                        $relationId = $this->insertClientTotalRelation($headerClientId, $NexFileData);
                         if (!$relationId) {
                             throw new \Exception('Error al insertar en tabla ClientTotalRelation');
                         }
@@ -187,14 +187,14 @@ class VanguardiaClientImport extends ResourceController
             }
             
             // Verificar también si el RazonSocial con el ndDMS ya existe
-            $razonSocialWithNdDMS = $razonSocial . ' (' . $vanguardiaData['ndDMS'] . ')';
+            $razonSocialWithNdDMS = $razonSocial . ' (' . $NexFileData['ndDMS'] . ')';
             $existingByRazonSocialModified = $this->checkExistingClientByRazonSocial($razonSocialWithNdDMS);
             if ($existingByRazonSocialModified) {
                 error_log("⚠️ Ya existe cliente con RazonSocial modificado '{$razonSocialWithNdDMS}'");
                 
                 // Verificar si tiene la relación
-                $idAgencyInternal = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
-                $hasRelation = $this->checkClientTotalRelation($existingByRazonSocialModified['idCliente'], $vanguardiaData['ndDMS'], $idAgencyInternal);
+                $idAgencyInternal = $this->getAgencyIdFromIdAgency($NexFileData['idAgency']);
+                $hasRelation = $this->checkClientTotalRelation($existingByRazonSocialModified['idCliente'], $NexFileData['ndDMS'], $idAgencyInternal);
                 
                 if ($hasRelation) {
                     error_log("✅ Cliente existe y tiene la relación");
@@ -222,7 +222,7 @@ class VanguardiaClientImport extends ResourceController
                             $headerClientId = $headerClient['id'] ?? $headerClient['Id'];
                         }
                         
-                        $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+                        $relationId = $this->insertClientTotalRelation($headerClientId, $NexFileData);
                         $this->db->transComplete();
                         
                         $created = $this->getCreatedClient($existingByRazonSocialModified['idCliente'], $headerClientId, $relationId);
@@ -241,7 +241,7 @@ class VanguardiaClientImport extends ResourceController
             // Si no existe ninguno, preparar el RazonSocial para la inserción
             if ($existingByRazonSocial) {
                 // Si el original existe pero el modificado no, usar el modificado
-                $vanguardiaData['razonSocial_modified'] = $razonSocialWithNdDMS;
+                $NexFileData['razonSocial_modified'] = $razonSocialWithNdDMS;
                 error_log("✅ Usando RazonSocial modificado: {$razonSocialWithNdDMS}");
             }
 
@@ -249,7 +249,7 @@ class VanguardiaClientImport extends ResourceController
             $this->db->transStart();
 
             // 1. Insertar en tabla Client
-            $clientId = $this->insertClient($vanguardiaData);
+            $clientId = $this->insertClient($NexFileData);
             if (!$clientId) {
                 throw new \Exception('Error al insertar cliente en tabla Client');
             }
@@ -261,14 +261,14 @@ class VanguardiaClientImport extends ResourceController
             }
 
             // 3. Insertar en tabla ClientTotalRelation
-            $relationId = $this->insertClientTotalRelation($headerClientId, $vanguardiaData);
+            $relationId = $this->insertClientTotalRelation($headerClientId, $NexFileData);
             if (!$relationId) {
                 throw new \Exception('Error al insertar cliente en tabla ClientTotalRelation');
             }
 
             // 4. Crear un archivo básico para que el cliente aparezca en la vista
             // Temporalmente comentado para debug
-            // $fileId = $this->createBasicFile($headerClientId, $vanguardiaData);
+            // $fileId = $this->createBasicFile($headerClientId, $NexFileData);
             // if (!$fileId) {
             //     throw new \Exception('Error al crear archivo básico para el cliente');
             // }
@@ -285,7 +285,7 @@ class VanguardiaClientImport extends ResourceController
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Cliente importado exitosamente desde Vanguardia',
+                'message' => 'Cliente importado exitosamente desde NexFile',
                 'data' => $createdClient
             ]);
 
@@ -293,7 +293,7 @@ class VanguardiaClientImport extends ResourceController
             // Rollback automático en caso de error
             $this->db->transRollback();
             
-            error_log("Error en VanguardiaClientImport::import: " . $e->getMessage());
+            error_log("Error en NexFileClientImport::import: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             error_log("Database error: " . json_encode($this->db->error()));
             
@@ -308,9 +308,9 @@ class VanguardiaClientImport extends ResourceController
     /**
      * Verificar si el cliente ya existe
      */
-    private function checkExistingClient($ndDMS, $idAgencyVanguardia)
+    private function checkExistingClient($ndDMS, $idAgencyNexFile)
     {
-        $idAgencyInternal = $this->getAgencyIdFromIdAgency($idAgencyVanguardia);
+        $idAgencyInternal = $this->getAgencyIdFromIdAgency($idAgencyNexFile);
         error_log("=== Verificando si cliente existe ===");
         error_log("ndDMS: {$ndDMS}, idAgency (internal): {$idAgencyInternal}");
         
@@ -492,16 +492,16 @@ class VanguardiaClientImport extends ResourceController
     /**
      * Insertar cliente en tabla Client
      */
-    private function insertClient($vanguardiaData)
+    private function insertClient($NexFileData)
     {
         // Determinar RazonSocial - usar el modificado si existe, sino construirlo
-        $razonSocial = isset($vanguardiaData['razonSocial_modified']) 
-            ? $vanguardiaData['razonSocial_modified']
-            : (!empty($vanguardiaData['bussines_name']) 
-                ? $vanguardiaData['bussines_name'] 
-                : trim(($vanguardiaData['name'] ?? '') . ' ' . 
-                       ($vanguardiaData['paternal_surname'] ?? '') . ' ' . 
-                       ($vanguardiaData['maternal_surname'] ?? '')));
+        $razonSocial = isset($NexFileData['razonSocial_modified']) 
+            ? $NexFileData['razonSocial_modified']
+            : (!empty($NexFileData['bussines_name']) 
+                ? $NexFileData['bussines_name'] 
+                : trim(($NexFileData['name'] ?? '') . ' ' . 
+                       ($NexFileData['paternal_surname'] ?? '') . ' ' . 
+                       ($NexFileData['maternal_surname'] ?? '')));
         
         // Verificar una última vez si el RazonSocial ya existe antes de insertar
         $existingClient = $this->checkExistingClientByRazonSocial($razonSocial);
@@ -515,18 +515,18 @@ class VanguardiaClientImport extends ResourceController
         
         $clientData = [
             'id' => $nextId,
-            'name' => $vanguardiaData['name'] ?? '',
-            'last_name' => $vanguardiaData['paternal_surname'] ?? '',
-            'mother_last_name' => $vanguardiaData['maternal_surname'] ?? '',
-            'RFC' => $vanguardiaData['rfc'] ?? '',
-            'CURP' => $vanguardiaData['curp'] ?? '',
-            'tel_number' => $vanguardiaData['phone'] ?? '',
-            'tel_number2' => $vanguardiaData['mobile_phone'] ?? '',
-            'email' => $vanguardiaData['mail'] ?? '',
+            'name' => $NexFileData['name'] ?? '',
+            'last_name' => $NexFileData['paternal_surname'] ?? '',
+            'mother_last_name' => $NexFileData['maternal_surname'] ?? '',
+            'RFC' => $NexFileData['rfc'] ?? '',
+            'CURP' => $NexFileData['curp'] ?? '',
+            'tel_number' => $NexFileData['phone'] ?? '',
+            'tel_number2' => $NexFileData['mobile_phone'] ?? '',
+            'email' => $NexFileData['mail'] ?? '',
             'razon_social' => $razonSocial,
-            'tipo_cliente' => $this->normalizeTipoClienteForDb($vanguardiaData['tipo_cliente'] ?? null),
+            'tipo_cliente' => $this->normalizeTipoClienteForDb($NexFileData['tipo_cliente'] ?? null),
             'adviser' => '', // Se puede asignar después
-            'agency_origin' => $vanguardiaData['idAgency'] ?? '',
+            'agency_origin' => $NexFileData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'),
             'update_date' => date('Y-m-d H:i:s'),
             'id_last_user_update' => 1 // Usuario sistema
@@ -586,18 +586,18 @@ class VanguardiaClientImport extends ResourceController
     /**
      * Insertar cliente en tabla ClientDMSRelation
      */
-    private function insertClientTotalRelation($headerClientId, $vanguardiaData)
+    private function insertClientTotalRelation($headerClientId, $NexFileData)
     {
         // Obtener el siguiente ID disponible
         $nextId = $this->getNextClientTotalRelationId();
         
         // Obtener el ID interno de la agencia
-        $agencyId = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
+        $agencyId = $this->getAgencyIdFromIdAgency($NexFileData['idAgency']);
         
         $relationData = [
             'id' => $nextId,
             'id_client_header' => $headerClientId,
-            'id_dms' => $vanguardiaData['ndDMS'],
+            'id_dms' => $NexFileData['ndDMS'],
             'id_agency' => $agencyId
         ];
 
@@ -631,13 +631,13 @@ class VanguardiaClientImport extends ResourceController
     /**
      * Crear un archivo básico para que el cliente aparezca en la vista
      */
-    private function createBasicFile($headerClientId, $vanguardiaData)
+    private function createBasicFile($headerClientId, $NexFileData)
     {
         // Obtener el siguiente ID disponible
         $nextId = $this->getNextFileId();
         
         // Obtener el IdAgency correcto (convertir de string a int)
-        $idAgency = $this->getAgencyIdFromIdAgency($vanguardiaData['idAgency']);
+        $idAgency = $this->getAgencyIdFromIdAgency($NexFileData['idAgency']);
         
         // Usar SQL directo para evitar problemas con la estructura de la tabla
         $sql = "
@@ -684,7 +684,7 @@ class VanguardiaClientImport extends ResourceController
      */
     private function getAgencyIdFromIdAgency($idAgency)
     {
-        error_log("=== CONVIRTIENDO ID AGENCIA EN VanguardiaClientImport ===");
+        error_log("=== CONVIRTIENDO ID AGENCIA EN NexFileClientImport ===");
         error_log("ID recibido: " . $idAgency . " (tipo: " . gettype($idAgency) . ")");
         
         // Convertir a string para comparación

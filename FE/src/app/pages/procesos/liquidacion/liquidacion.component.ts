@@ -1142,7 +1142,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
           formData.append('idNexFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
           formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (fileDocumentId)
 
-          // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
+          // Usar API de NexFile (el proxy agregará X-Provider-Token automáticamente)
           return this.http.post<any>(this.apiConfig.getUploadApiUrl(), formData);
         })
       )

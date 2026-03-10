@@ -1,8 +1,8 @@
 <?php
 
-// Script de prueba para el API de importación de clientes de Vanguardia
+// Script de prueba para el API de importación de clientes de NexFile
 
-// Datos de prueba basados en la respuesta de Vanguardia
+// Datos de prueba basados en la respuesta de NexFile
 $testData = [
     'idAgency' => '10017',
     'ndDMS' => '555',
@@ -14,11 +14,11 @@ $testData = [
     'curp' => ' ',
     'phone' => '5553333333',
     'mobile_phone' => '5553333334',
-    'mail' => 'final.honda@vanguardia.com'
+    'mail' => 'final.honda@NexFile.com'
 ];
 
 // URL del API
-$url = 'http://localhost:8080/api/vanguardia-client-import/import';
+$url = 'http://localhost:8080/api/NexFile-client-import/import';
 
 // Configurar cURL
 $ch = curl_init();
@@ -31,7 +31,7 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-echo "🚀 Probando importación de cliente de Vanguardia...\n";
+echo "🚀 Probando importación de cliente de NexFile...\n";
 echo "📋 Datos de prueba:\n";
 echo json_encode($testData, JSON_PRETTY_PRINT) . "\n\n";
 

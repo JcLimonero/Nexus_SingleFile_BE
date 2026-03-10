@@ -8,7 +8,7 @@ Para desplegar la aplicación en otro cliente **sin recompilar**, edita o reempl
 |------------|-------------|
 | `clientName` | Nombre del cliente (footer y referencias de texto). |
 | `appTitle`   | Título que aparece en el menú lateral (sidebar). Si no se define, se usa `clientName`. |
-| `pageTitle`  | Título de la pestaña del navegador (ej: `"Expediente Único by Grupo Vanguardia"`). Si no se define, se usa `appTitle + " by " + clientName`. |
+| `pageTitle`  | Título de la pestaña del navegador (ej: `"Expediente Único by Grupo NexFile"`). Si no se define, se usa `appTitle + " by " + clientName`. |
 | `layoutStyle` | Estilo de layout/template: `apollo`, `poseidon`, `hermes`, `ares`, `zeus`, `ikaros`. Define la disposición del menú, toolbar y footer. Por defecto `poseidon`. |
 | `logoLogin`  | Ruta del logo en la pantalla de **login** (ej: `assets/img/icons/logos/logo_login.svg`). |
 | `logoApp`    | Ruta del logo en el **toolbar** (barra superior) y en el **menú lateral** (sidebar). |
@@ -37,4 +37,4 @@ Para desplegar la aplicación en otro cliente **sin recompilar**, edita o reempl
 }
 ```
 
-La aplicación carga este JSON al iniciar; si el archivo no existe o falla la carga, se usan los valores por defecto (Grupo Vanguardia).
+La aplicación carga este JSON al iniciar; si el archivo no existe o falla la carga, se usan los valores por defecto (Grupo NexFile).

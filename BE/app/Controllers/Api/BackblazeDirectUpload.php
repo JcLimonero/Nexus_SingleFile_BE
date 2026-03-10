@@ -5,7 +5,7 @@ namespace App\Controllers\Api;
 use App\Controllers\BaseController;
 
 /**
- * Subida directa a Backblaze B2 sin pasar por la API de Vanguardia.
+ * Subida directa a Backblaze B2 sin pasar por la API de NexFile.
  * Usa la API nativa de Backblaze: b2_authorize_account -> b2_get_upload_url -> b2_upload_file
  */
 class BackblazeDirectUpload extends BaseController

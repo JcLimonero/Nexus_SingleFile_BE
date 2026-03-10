@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface VanguardiaClientImportRequest {
+export interface NexFileClientImportRequest {
   idAgency: string;
   ndDMS: string;
   bussines_name: string;
@@ -18,7 +18,7 @@ export interface VanguardiaClientImportRequest {
   tipo_cliente?: string;  // 'fisica' | 'moral'
 }
 
-export interface VanguardiaClientImportResponse {
+export interface NexFileClientImportResponse {
   success: boolean;
   message: string;
   data: {
@@ -49,43 +49,43 @@ export interface VanguardiaClientImportResponse {
 @Injectable({
   providedIn: 'root'
 })
-export class VanguardiaClientImportService {
+export class NexFileClientImportService {
 
   constructor(private http: HttpClient) { }
 
   /**
-   * Importar cliente de Vanguardia al sistema local
-   * @param clientData Datos del cliente de Vanguardia
+   * Importar cliente de NexFile al sistema local
+   * @param clientData Datos del cliente de NexFile
    * @returns Observable con el resultado de la importación
    */
-  importClient(clientData: VanguardiaClientImportRequest): Observable<VanguardiaClientImportResponse> {
-    return this.http.post<VanguardiaClientImportResponse>(
-      `${environment.apiBaseUrl}/api/vanguardia-client-import/import`,
+  importClient(clientData: NexFileClientImportRequest): Observable<NexFileClientImportResponse> {
+    return this.http.post<NexFileClientImportResponse>(
+      `${environment.apiBaseUrl}/api/NexFile-client-import/import`,
       clientData
     );
   }
 
   /**
-   * Convertir datos de Vanguardia al formato requerido para importación
-   * @param vanguardiaClient Datos del cliente de Vanguardia
+   * Convertir datos de NexFile al formato requerido para importación
+   * @param NexFileClient Datos del cliente de NexFile
    * @returns Datos en formato de importación
    */
-  convertVanguardiaDataForImport(vanguardiaClient: any): VanguardiaClientImportRequest {
-    const ndDMS = vanguardiaClient.ndDMS ?? vanguardiaClient.nd_cliente ?? '';
-    const idAgency = vanguardiaClient.idAgency ?? vanguardiaClient.id_agency ?? '';
+  convertNexFileDataForImport(NexFileClient: any): NexFileClientImportRequest {
+    const ndDMS = NexFileClient.ndDMS ?? NexFileClient.nd_cliente ?? '';
+    const idAgency = NexFileClient.idAgency ?? NexFileClient.id_agency ?? '';
     return {
       idAgency: String(idAgency),
       ndDMS: String(ndDMS),
-      bussines_name: vanguardiaClient.bussines_name || '',
-      name: vanguardiaClient.name || '',
-      paternal_surname: vanguardiaClient.paternal_surname || '',
-      maternal_surname: vanguardiaClient.maternal_surname || '',
-      rfc: vanguardiaClient.rfc || '',
-      curp: vanguardiaClient.curp || '',
-      phone: vanguardiaClient.phone || '',
-      mobile_phone: vanguardiaClient.mobile_phone || '',
-      mail: vanguardiaClient.mail || '',
-      tipo_cliente: vanguardiaClient.tipo_cliente || ''
+      bussines_name: NexFileClient.bussines_name || '',
+      name: NexFileClient.name || '',
+      paternal_surname: NexFileClient.paternal_surname || '',
+      maternal_surname: NexFileClient.maternal_surname || '',
+      rfc: NexFileClient.rfc || '',
+      curp: NexFileClient.curp || '',
+      phone: NexFileClient.phone || '',
+      mobile_phone: NexFileClient.mobile_phone || '',
+      mail: NexFileClient.mail || '',
+      tipo_cliente: NexFileClient.tipo_cliente || ''
     };
   }
 }

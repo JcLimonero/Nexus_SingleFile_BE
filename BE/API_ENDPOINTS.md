@@ -233,7 +233,7 @@ Base URL: `http://localhost:8080/api` (o el que uses en `php spark serve`).
 | GET | `/client/search` | Buscar cliente |
 | GET | `/files/by-client` | Archivos por cliente |
 | GET | `/files/by-agency-client` | Archivos por agencia/cliente |
-| POST | `/files/create-from-vanguardia-new` | Crear desde Vanguardia |
+| POST | `/files/create-from-NexFile-new` | Crear desde NexFile |
 | POST | `/files/check-existing-orders` | Comprobar pedidos existentes |
 | POST | `/files/repair-client-relation` | Reparar relación cliente |
 | POST | `/files/delete` | Eliminar archivo |
@@ -267,17 +267,17 @@ Base URL: `http://localhost:8080/api` (o el que uses en `php spark serve`).
 | POST | `/clients-validation/aprobar-documento` | Aprobar documento |
 | POST | `/clients-validation/preparar-documento` | Preparar documento |
 
-## Vanguardia e importación
+## NexFile e importación
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/vanguardia-client-import/import` | Importar clientes Vanguardia |
+| POST | `/NexFile-client-import/import` | Importar clientes NexFile |
 
 ## Backblaze / VGD
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | POST | `/backblaze/upload` | Subir a Backblaze |
 | GET | `/backblaze/get-private-url` | URL privada |
-| GET | `/vgd/NexFileinvoices` | Facturas Vanguardia |
+| GET | `/vgd/NexFileinvoices` | Facturas NexFile |
 
 ---
 

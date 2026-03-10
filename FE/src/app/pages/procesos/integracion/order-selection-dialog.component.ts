@@ -663,7 +663,7 @@ export class OrderSelectionDialogComponent implements OnInit {
             existingFiles = response.data.files;
           }
 
-          // Filtrar pedidos de Vanguardia que no existen en la tabla de file y eliminar duplicados
+          // Filtrar pedidos de NexFile que no existen en la tabla de file y eliminar duplicados
           const newOrders = this.filterNewOrders(existingFiles);
 
           this.filteredOrders = newOrders;
@@ -718,7 +718,7 @@ export class OrderSelectionDialogComponent implements OnInit {
       }).filter(Boolean)
     );
     
-    // Filtrar pedidos de Vanguardia que no existen en la tabla de file
+    // Filtrar pedidos de NexFile que no existen en la tabla de file
     const newOrders = this.originalOrders.filter(order => {
       const orderDms = (order.order_dms || '').toString().toLowerCase();
       return orderDms && !existingOrderDms.has(orderDms);
@@ -1181,11 +1181,11 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   onConfirm(): void {
     if (this.isFormValid()) {
-      this.createFileFromVanguardia();
+      this.createFileFromNexFile();
     }
   }
 
-  private createFileFromVanguardia(): void {
+  private createFileFromNexFile(): void {
 
     // Activar estado de loading
     this.creating = true;
@@ -1199,7 +1199,7 @@ export class OrderSelectionDialogComponent implements OnInit {
       agencyId: this.data.agencyId
     };
 
-    this.http.post<any>(`${environment.apiBaseUrl}/api/files/create-from-vanguardia-new`, requestData)
+    this.http.post<any>(`${environment.apiBaseUrl}/api/files/create-from-NexFile-new`, requestData)
       .subscribe({
         next: (response) => {
           this.creating = false; // Desactivar loading
@@ -1239,7 +1239,7 @@ export class OrderSelectionDialogComponent implements OnInit {
       return val != null && val !== '' ? val : null;
     }
     const val = order.amount ?? order.monto ?? order.Amount ?? order.Monto
-      ?? order.vanguardiaData?.amount ?? order.vanguardiaData?.monto;
+      ?? order.NexFileData?.amount ?? order.NexFileData?.monto;
     return val != null && val !== '' ? val : null;
   }
 

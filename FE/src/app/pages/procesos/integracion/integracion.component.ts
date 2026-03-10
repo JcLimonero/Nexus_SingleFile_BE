@@ -21,8 +21,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
-import { VanguardiaClientService, VanguardiaResponse } from '../../../core/services/vanguardia-client.service';
-import { VanguardiaClientImportService, VanguardiaClientImportResponse } from '../../../core/services/vanguardia-client-import.service';
+import { NexFileClientService, NexFileResponse } from '../../../core/services/nexfile-client.service';
+import { NexFileClientImportService, NexFileClientImportResponse } from '../../../core/services/nexfile-client-import.service';
 import { ApiConfigService } from '../../../core/services/api-config.service';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
@@ -68,7 +68,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   clientSearchTerm = '';
   clients: any[] = [];
   clientsLoading = false;
-  /** Fase de búsqueda: 'local' = BD local, 'grupo' = Grupo/Vanguardia */
+  /** Fase de búsqueda: 'local' = BD local, 'grupo' = Grupo/NexFile */
   clientSearchPhase: 'local' | 'grupo' | null = null;
   showClientResults = false;
   selectedClient: any = null;
@@ -76,7 +76,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   // Files/Pedidos properties
   files: any[] = [];
   filesLoading = false;
-  loadingOrdersFromVanguardia = false; // Loading para el botón de agregar pedidos
+  loadingOrdersFromNexFile = false; // Loading para el botón de agregar pedidos
   refreshingFiles = false; // Loading para el botón de refrescar pedidos
   filesDisplayedColumns: string[] = [
     'numeroPedido',
@@ -132,8 +132,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     return item?.idFile || item?.Id || index;
   }
 
-  // Headers para Vanguardia (ya no necesarios para upload directo)
-  private getVanguardiaHeaders() {
+  // Headers para NexFile (ya no necesarios para upload directo)
+  private getNexFileHeaders() {
     return {
       'Content-Type': 'multipart/form-data'
     };
@@ -145,8 +145,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private dialog: MatDialog,
     private clientSearchService: ClientSearchService,
-    private vanguardiaClientService: VanguardiaClientService,
-    private vanguardiaClientImportService: VanguardiaClientImportService,
+    private NexFileClientService: NexFileClientService,
+    private NexFileClientImportService: NexFileClientImportService,
     private apiConfig: ApiConfigService,
     private route: ActivatedRoute,
     private router: Router,
@@ -271,7 +271,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   // Agency filter methods
   private loadAgencies(): void {
     this.agenciesLoading = true;
-    // forceRefresh para asegurar agency_connection desde company (necesario para búsqueda en Vanguardia)
+    // forceRefresh para asegurar agency_connection desde company (necesario para búsqueda en NexFile)
     this.defaultAgencyService.obtenerAgencias(true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -468,12 +468,12 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             } else {
               // Sin resultados en el sistema local, buscar en el Grupo
               this.clientSearchPhase = 'grupo';
-              this.searchClientInVanguardia();
+              this.searchClientInNexFile();
             }
           } else {
             // Sin resultados en el sistema local, buscar en el Grupo
             this.clientSearchPhase = 'grupo';
-            this.searchClientInVanguardia();
+            this.searchClientInNexFile();
           }
           
           if (this.clientSearchPhase !== 'grupo') {
@@ -494,8 +494,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
-  private searchClientInVanguardia(): void {
-    // Obtener la agencia seleccionada para enviar el connectionstring a Vanguardia
+  private searchClientInNexFile(): void {
+    // Obtener la agencia seleccionada para enviar el connectionstring a NexFile
     const selectedAgency = this.agencies.find(agency => {
       const agId = agency.id ?? agency.Id ?? agency.IdAgency;
       return agId != null && Number(agId) === Number(this.selectedAgencyId);
@@ -510,7 +510,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Verificar que la agencia tenga AgencyConnection para buscar en Vanguardia
+    // Verificar que la agencia tenga AgencyConnection para buscar en NexFile
     const conn = selectedAgency.AgencyConnection ?? selectedAgency.agency_connection;
     if (!conn) {
       this.clientSearchPhase = null;
@@ -522,36 +522,36 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Realizar búsqueda en el API de Vanguardia usando connectionstring
+    // Realizar búsqueda en el API de NexFile usando connectionstring
     // connectionstring=xxx&ndDMS=10004
-    this.vanguardiaClientService.searchClients(conn, this.clientSearchTerm.trim())
+    this.NexFileClientService.searchClients(conn, this.clientSearchTerm.trim())
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: VanguardiaResponse) => {
+        next: (response: NexFileResponse) => {
           this.clientSearchPhase = null;
           this.clientsLoading = false;
           if (response && response.status === 200 && response.data && response.data.data) {
-            // Convertir los datos de Vanguardia al formato estándar
+            // Convertir los datos de NexFile al formato estándar
             this.clients = response.data.data.map(client => 
-              this.vanguardiaClientService.convertVanguardiaClient(client)
+              this.NexFileClientService.convertNexFileClient(client)
             );
             
             if (this.clients.length > 0) {
-              // Mostrar mensaje de que se encontraron en Vanguardia
+              // Mostrar mensaje de que se encontraron en NexFile
               this.snackBar.open(`Se encontraron ${this.clients.length} cliente(s) en el Grupo. Importando al sistema local...`, 'Cerrar', {
                 duration: 4000
               });
               
               // Importar el primer cliente encontrado al sistema local
-              this.importVanguardiaClient(this.clients[0]);
+              this.importNexFileClient(this.clients[0]);
             } else {
-              // Sin resultados en Vanguardia tampoco
+              // Sin resultados en NexFile tampoco
               this.snackBar.open('No se encontraron clientes en el sistema local ni en el Grupo', 'Cerrar', {
                 duration: 4000
               });
             }
           } else {
-            // Sin resultados en Vanguardia
+            // Sin resultados en NexFile
             this.snackBar.open('No se encontraron clientes en el sistema local ni en el Grupo', 'Cerrar', {
               duration: 4000
             });
@@ -589,11 +589,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     return 'No se pudieron buscar clientes en el Grupo. Por favor intente de nuevo.';
   }
 
-  private importVanguardiaClient(vanguardiaClient: any): void {
-    // Convertir datos de Vanguardia al formato de importación
-    const importData = this.vanguardiaClientImportService.convertVanguardiaDataForImport(vanguardiaClient);
+  private importNexFileClient(NexFileClient: any): void {
+    // Convertir datos de NexFile al formato de importación
+    const importData = this.NexFileClientImportService.convertNexFileDataForImport(NexFileClient);
     
-    // Usar el Id interno de la agencia seleccionada en lugar del idAgency del cliente de Vanguardia
+    // Usar el Id interno de la agencia seleccionada en lugar del idAgency del cliente de NexFile
     if (this.selectedAgency) {
       const agencyId = this.selectedAgency.id ?? this.selectedAgency.Id ?? this.selectedAgency.IdAgency;
       if (agencyId != null) {
@@ -602,10 +602,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
     
     // Importar cliente al sistema local
-    this.vanguardiaClientImportService.importClient(importData)
+    this.NexFileClientImportService.importClient(importData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: VanguardiaClientImportResponse) => {
+        next: (response: NexFileClientImportResponse) => {
           if (response.success && response.data) {
             // Convertir el cliente importado/existente al formato estándar
             // Usar el idAgency de la respuesta si está disponible, sino usar el de la agencia seleccionada
@@ -616,7 +616,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             const importedClient = {
               idCliente: response.data.idCliente,
-              ndCliente: response.data.ndCliente || vanguardiaClient.ndDMS,
+              ndCliente: response.data.ndCliente || NexFileClient.ndDMS,
               cliente: response.data.cliente || 
                       `${response.data.nombre || ''} ${response.data.apellidoPaterno || ''} ${response.data.apellidoMaterno || ''}`.trim() ||
                       response.data.razonSocial,
@@ -630,13 +630,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               razonSocial: response.data.razonSocial,
               curp: response.data.curp,
               tipoCliente: response.data.tipoCliente ?? response.data.tipo_cliente,
-              tipo_cliente: response.data.tipoCliente ?? response.data.tipo_cliente ?? vanguardiaClient?.tipo_cliente,
+              tipo_cliente: response.data.tipoCliente ?? response.data.tipo_cliente ?? NexFileClient?.tipo_cliente,
               asesor: response.data.asesor,
               agenciaOrigen: response.data.agenciaOrigen || String(clientIdAgency),
               fechaRegistro: response.data.fechaRegistro,
               fechaActualizacion: response.data.fechaActualizacion,
               idAgency: clientIdAgency,
-              isImportedFromVanguardia: true
+              isImportedFromNexFile: true
             };
             
             // Seleccionar el cliente (ya sea importado o existente)
@@ -969,7 +969,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     params = params.set('ndCliente', this.selectedClient.ndCliente);
     params = params.set('statusId', '1'); // ID para Integración
 
-    // Cargar solo pedidos que ya están en la tabla de file (no desde Vanguardia)
+    // Cargar solo pedidos que ya están en la tabla de file (no desde NexFile)
     this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1045,8 +1045,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Llamar al API de Vanguardia para obtener pedidos
-    this.loadOrdersFromVanguardia();
+    // Llamar al API de NexFile para obtener pedidos
+    this.loadOrdersFromNexFile();
   }
 
   // MÉTODO TEMPORAL PARA PRUEBAS
@@ -1065,7 +1065,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         agencia: 'Agencia Test',
         fechaRegistro: new Date(),
         fileId: 'file-test-1',
-        isVanguardiaOrder: true
+        isNexFileOrder: true
       },
       {
         numeroPedido: 'TEST-002',
@@ -1080,7 +1080,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         agencia: 'Agencia Test',
         fechaRegistro: new Date(),
         fileId: 'file-test-2',
-        isVanguardiaOrder: true
+        isNexFileOrder: true
       }
     ];
     
@@ -1088,14 +1088,14 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
 
-  private loadOrdersFromVanguardia(): void {
+  private loadOrdersFromNexFile(): void {
     // Activar loading
-    this.loadingOrdersFromVanguardia = true;
+    this.loadingOrdersFromNexFile = true;
     this.cdr.markForCheck();
     
     const conn = this.selectedAgency?.AgencyConnection ?? this.selectedAgency?.agency_connection;
     if (!conn) {
-      this.loadingOrdersFromVanguardia = false;
+      this.loadingOrdersFromNexFile = false;
       this.cdr.markForCheck();
       this.snackBar.open('Para cargar pedidos desde sistemas externos, configure el connection string de la compañía (razón social) asociada a la agencia.', 'Cerrar', {
         duration: 5000
@@ -1117,7 +1117,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           // Desactivar loading
-          this.loadingOrdersFromVanguardia = false;
+          this.loadingOrdersFromNexFile = false;
           this.cdr.markForCheck();
           
           // Verificar diferentes estructuras de respuesta posibles
@@ -1127,7 +1127,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             // Estructura estándar: { success: true, data: [...] }
             ordersData = response.data;
           } else if (response && response.status === 200 && response.data) {
-            // Estructura de Vanguardia: { status: 200, message: "...", data: [...] }
+            // Estructura de NexFile: { status: 200, message: "...", data: [...] }
             // Verificar si data contiene un array de pedidos
             if (Array.isArray(response.data)) {
               ordersData = response.data;
@@ -1163,7 +1163,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             });
           } else {
             // Desactivar loading
-            this.loadingOrdersFromVanguardia = false;
+            this.loadingOrdersFromNexFile = false;
             this.cdr.markForCheck();
             this.snackBar.open('No se encontraron pedidos en el Grupo para este cliente', 'Cerrar', {
               duration: 3000
@@ -1172,7 +1172,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           // Desactivar loading
-          this.loadingOrdersFromVanguardia = false;
+          this.loadingOrdersFromNexFile = false;
           this.cdr.markForCheck();
           
           let errorMessage = 'Error desconocido al cargar pedidos desde el Grupo';
@@ -1202,8 +1202,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
-  private processVanguardiaOrders(ordersData: any): void {
-    // Convertir los pedidos de Vanguardia al formato esperado por el sistema
+  private processNexFileOrders(ordersData: any): void {
+    // Convertir los pedidos de NexFile al formato esperado por el sistema
     let processedOrders: any[] = [];
     
     if (Array.isArray(ordersData)) {
@@ -1226,8 +1226,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           order_dms: order.numeroPedido || order.orderNumber || order.id,
           external_color: order.colorExterior || order.external_color || order.color_exterior,
           internal_color: order.colorInterior || order.internal_color || order.color_interior,
-          isVanguardiaOrder: true,
-          vanguardiaData: order
+          isNexFileOrder: true,
+          NexFileData: order
         };
       });
     } else if (ordersData && typeof ordersData === 'object') {
@@ -1250,8 +1250,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         order_dms: ordersData.numeroPedido || ordersData.orderNumber || ordersData.id,
         external_color: ordersData.colorExterior || ordersData.external_color || ordersData.color_exterior,
         internal_color: ordersData.colorInterior || ordersData.internal_color || ordersData.color_interior,
-        isVanguardiaOrder: true,
-        vanguardiaData: ordersData
+        isNexFileOrder: true,
+        NexFileData: ordersData
       }];
     } else {
       this.snackBar.open('Error: Formato de datos de pedidos no válido', 'Cerrar', {
@@ -1264,10 +1264,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     this.loadClientFilesForComparison(processedOrders);
   }
 
-  private loadClientFilesForComparison(vanguardiaOrders: any[]): void {
+  private loadClientFilesForComparison(NexFileOrders: any[]): void {
     if (!this.selectedClient || !this.selectedClient.ndCliente) {
-      // Si no hay cliente seleccionado, mostrar todos los pedidos de Vanguardia
-      this.showOrderSelectionDialog(vanguardiaOrders);
+      // Si no hay cliente seleccionado, mostrar todos los pedidos de NexFile
+      this.showOrderSelectionDialog(NexFileOrders);
       return;
     }
 
@@ -1286,8 +1286,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             existingFiles = response.data.files;
           }
           
-          // Filtrar pedidos de Vanguardia que no existen en la tabla de file
-          const newOrders = this.filterNewOrders(vanguardiaOrders, existingFiles);
+          // Filtrar pedidos de NexFile que no existen en la tabla de file
+          const newOrders = this.filterNewOrders(NexFileOrders, existingFiles);
           
           if (newOrders.length > 0) {
             this.showOrderSelectionDialog(newOrders);
@@ -1300,20 +1300,20 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          // Si hay error, mostrar todos los pedidos de Vanguardia
-          this.showOrderSelectionDialog(vanguardiaOrders);
+          // Si hay error, mostrar todos los pedidos de NexFile
+          this.showOrderSelectionDialog(NexFileOrders);
         }
       });
   }
 
-  private filterNewOrders(vanguardiaOrders: any[], existingFiles: any[]): any[] {
+  private filterNewOrders(NexFileOrders: any[], existingFiles: any[]): any[] {
     // Crear un Set con los números de pedido existentes para búsqueda rápida
     const existingOrderNumbers = new Set(
       existingFiles.map(file => file.numeroPedido?.toString().toLowerCase())
     );
     
-    // Filtrar pedidos de Vanguardia que no existen en la tabla de file
-    return vanguardiaOrders.filter(order => {
+    // Filtrar pedidos de NexFile que no existen en la tabla de file
+    return NexFileOrders.filter(order => {
       const orderNumber = order.numeroPedido?.toString().toLowerCase();
       return !existingOrderNumbers.has(orderNumber);
     });
@@ -1356,7 +1356,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             if (newOrders.length === 0 && existingCount > 0) {
               // Si no hay pedidos nuevos pero hay existentes, mostrar solo los existentes
               // Desactivar loading
-              this.loadingOrdersFromVanguardia = false;
+              this.loadingOrdersFromNexFile = false;
               this.cdr.markForCheck();
               // Abrir diálogo con solo pedidos existentes
               this.openOrderSelectionDialog([], existingOrders);
@@ -1365,7 +1365,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             
             if (newOrders.length === 0) {
               // Desactivar loading
-              this.loadingOrdersFromVanguardia = false;
+              this.loadingOrdersFromNexFile = false;
               this.cdr.markForCheck();
               this.snackBar.open('Todos los pedidos del Grupo ya existen en el sistema', 'Cerrar', {
                 duration: 3000
@@ -1377,7 +1377,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             this.openOrderSelectionDialog(newOrders, existingOrders);
           } else {
             // Desactivar loading
-            this.loadingOrdersFromVanguardia = false;
+            this.loadingOrdersFromNexFile = false;
             this.cdr.markForCheck();
             this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
               duration: 3000
@@ -1386,7 +1386,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           // Desactivar loading
-          this.loadingOrdersFromVanguardia = false;
+          this.loadingOrdersFromNexFile = false;
           this.cdr.markForCheck();
           this.snackBar.open('Error al verificar pedidos existentes', 'Cerrar', {
             duration: 3000
@@ -1397,7 +1397,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
   private openOrderSelectionDialog(orders: any[], existingOrders: any[] = []): void {
     // Desactivar loading cuando se abre el diálogo
-    this.loadingOrdersFromVanguardia = false;
+    this.loadingOrdersFromNexFile = false;
     this.cdr.markForCheck();
     
     try {
@@ -1430,7 +1430,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
     } catch (error) {
       // Desactivar loading en caso de error
-      this.loadingOrdersFromVanguardia = false;
+      this.loadingOrdersFromNexFile = false;
       this.cdr.markForCheck();
       this.snackBar.open('Error al abrir el diálogo de selección', 'Cerrar', {
         duration: 3000
@@ -1441,7 +1441,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   private showOrderSelectionDialog(orders: any[], existingOrders: any[] = []): void {
     if ((!orders || orders.length === 0) && (!existingOrders || existingOrders.length === 0)) {
       // Desactivar loading
-      this.loadingOrdersFromVanguardia = false;
+      this.loadingOrdersFromNexFile = false;
       this.cdr.markForCheck();
       this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
         duration: 3000
@@ -1450,7 +1450,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
 
     // Desactivar loading cuando se abre el diálogo
-    this.loadingOrdersFromVanguardia = false;
+    this.loadingOrdersFromNexFile = false;
     this.cdr.markForCheck();
 
     try {
@@ -1520,9 +1520,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         agencia: order.agencia || order.agency || this.selectedAgency?.Name || 'Sin agencia',
         fechaRegistro: order.fechaRegistro || order.registrationDate || new Date(),
         fileId: order.fileId || order.id || `file-${index + 1}`,
-        // Marcar como pedido de Vanguardia
-        isVanguardiaOrder: true,
-        vanguardiaData: order
+        // Marcar como pedido de NexFile
+        isNexFileOrder: true,
+        NexFileData: order
       };
     });
   }
@@ -1828,13 +1828,13 @@ export class IntegracionComponent implements OnInit, OnDestroy {
             file = new File([file], newFileName, { type: file.type });
           }
 
-          // Preparar datos para Vanguardia API según documentación
+          // Preparar datos para NexFile API según documentación
           const formData = new FormData();
           formData.append('file', file); // File: Archivo a subir (con nombre renombrado o original)
           formData.append('idNexFile', this.selectedFile.fileId.toString()); // Integer: ID del archivo en tabla (IdFile)
           formData.append('idDocumentFile', document.fileDocumentId.toString()); // Integer: ID del documento (IdDocumentByFile)
 
-          // Usar API de Vanguardia (el proxy agregará X-Provider-Token automáticamente)
+          // Usar API de NexFile (el proxy agregará X-Provider-Token automáticamente)
           return this.http.post<any>(this.apiConfig.getUploadApiUrl(), formData);
         })
       )

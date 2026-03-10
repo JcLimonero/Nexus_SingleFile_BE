@@ -55,7 +55,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->post('logout', 'Auth::logout');
     });
     
-    // Configuración pública (sin auth) - URLs de APIs Vanguardia desde BD
+    // Configuración pública (sin auth) - URLs de APIs NexFile desde BD
     $routes->get('config/group_api_url', 'Config::groupApiUrl');
     $routes->get('config/activity-log-enabled', 'Config::activityLogEnabled');
 
@@ -362,19 +362,19 @@ $routes->group('backblaze', function($routes) {
 // Consolidación DMS - una llamada, múltiples agencias, paginación
 $routes->get('consolidacion-dms/pedidos', 'ConsolidacionDms::pedidos');
 
-// Rutas de proxy a APIs Vanguardia (vgd) - evita 401 llamando directo desde el navegador
+// Rutas de proxy a APIs NexFile (vgd) - evita 401 llamando directo desde el navegador
 $routes->group('vgd', function($routes) {
-    $routes->get('NexFilecustomer', 'VanguardiaProxy::searchClients');
-    $routes->get('NexFileorderslastest', 'VanguardiaProxy::searchOrders');
-    $routes->get('NexFileinvoices', 'VanguardiaProxy::NexFileInvoices');
+    $routes->get('NexFilecustomer', 'NexFileProxy::searchClients');
+    $routes->get('NexFileorderslastest', 'NexFileProxy::searchOrders');
+    $routes->get('NexFileinvoices', 'NexFileProxy::NexFileInvoices');
 });
 
 // Rutas de files/pedidos (Principal)
 $routes->group('files', function($routes) {
     $routes->get('by-client', 'Files::getByClient');
     $routes->get('by-agency-client', 'Files::getByAgency');
-    $routes->post('create-from-vanguardia', 'Files::createFromVanguardiaNew');
-    $routes->post('create-from-vanguardia-new', 'Files::createFromVanguardiaNew');
+    $routes->post('create-from-NexFile', 'Files::createFromNexFileNew');
+    $routes->post('create-from-NexFile-new', 'Files::createFromNexFileNew');
     $routes->post('create-file-test', 'Files::createFileTest');
     $routes->post('check-existing-orders', 'Files::checkExistingOrders');
     $routes->post('repair-client-relation', 'Files::repairClientRelation');
@@ -439,8 +439,8 @@ $routes->group('documents', function($routes) {
     $routes->group('company-client-import', function($routes) {
         $routes->post('import', 'CompanyClientImport::import');
     });
-    // Compatibilidad: vanguardia-client-import redirige a CompanyClientImport
-    $routes->group('vanguardia-client-import', function($routes) {
+    // Compatibilidad: NexFile-client-import redirige a CompanyClientImport
+    $routes->group('NexFile-client-import', function($routes) {
         $routes->post('import', 'CompanyClientImport::import');
     });
 });
