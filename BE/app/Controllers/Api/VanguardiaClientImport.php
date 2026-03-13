@@ -84,8 +84,9 @@ class VanguardiaClientImport extends ResourceController
             // No hay en client_total_relation por ND: buscar en Client por RFC del API.
             // Si existe cliente con ese RFC, insertar HeaderClient + Client_Total_Relation
             // (usar el Client con RegistrationDate más reciente).
+            // Excluir RFC genéricos (XAXX010101000, XEXX010101000) para evitar agrupar clientes distintos.
             $rfcFromApi = trim($vanguardiaData['rfc'] ?? '');
-            if ($rfcFromApi !== '') {
+            if ($rfcFromApi !== '' && !$this->isRfcGenerico($rfcFromApi)) {
                 $clientByRfc = $this->findClientByRfc($rfcFromApi);
                 if ($clientByRfc) {
                     error_log("✅ Cliente existe por RFC; insertando HeaderClient + Client_Total_Relation para nd " . $vanguardiaData['ndDMS']);
@@ -381,6 +382,16 @@ class VanguardiaClientImport extends ResourceController
         
         error_log("ℹ️ Relación NO existe");
         return false;
+    }
+
+    /**
+     * Indica si el RFC es genérico (público en general, extranjeros sin residencia fiscal).
+     * Estos RFC no deben usarse para agrupar clientes porque muchos clientes distintos los comparten.
+     */
+    private function isRfcGenerico($rfc): bool
+    {
+        $genericos = ['XAXX010101000', 'XEXX010101000'];
+        return in_array(strtoupper(trim((string) ($rfc ?? ''))), $genericos);
     }
 
     /**
