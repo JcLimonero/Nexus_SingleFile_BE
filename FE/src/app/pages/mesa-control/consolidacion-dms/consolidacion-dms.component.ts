@@ -95,12 +95,12 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     'invoice_reference': 'Factura',
     'invoiceReference': 'Factura',
     'InvoiceReference': 'Factura',
-    'delivery_date': 'Fecha Liberación',
-    'deliveryDate': 'Fecha Liberación',
-    'DeliveryDate': 'Fecha Liberación',
-    'timestamp_dms': 'Fecha DMS',
-    'timestampDMS': 'Fecha DMS',
-    'TimestampDMS': 'Fecha DMS',
+    'delivery_date': 'Fecha Liberación DMS',
+    'deliveryDate': 'Fecha Liberación DMS',
+    'DeliveryDate': 'Fecha Liberación DMS',
+    'timestamp_dms': 'Fecha Liberacion Expediente Unico',
+    'timestampDMS': 'Fecha Liberacion Expediente Unico',
+    'TimestampDMS': 'Fecha Liberacion Expediente Unico',
   };
 
   constructor(
