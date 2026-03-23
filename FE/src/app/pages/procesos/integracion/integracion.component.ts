@@ -999,120 +999,23 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
 
   private loadOrdersFromVanguardia(): void {
-    // Activar loading
-    this.loadingOrdersFromVanguardia = true;
-    this.cdr.markForCheck();
-    
-    // Verificar que la agencia tenga AgencyConnection
-    if (!this.selectedAgency.AgencyConnection) {
-      this.loadingOrdersFromVanguardia = false;
-      this.cdr.markForCheck();
+    if (!this.selectedClient?.ndCliente) {
+      this.snackBar.open('Debe seleccionar un cliente primero', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    if (!this.selectedAgency?.AgencyConnection) {
       this.snackBar.open('La agencia seleccionada no tiene connectionstring configurado', 'Cerrar', {
         duration: 3000
       });
       return;
     }
-    
-    let params = new HttpParams();
-    params = params.set('customerDMS', this.selectedClient.ndCliente);
-    params = params.set('connectionstring', this.selectedAgency.AgencyConnection);
-    params = params.set('perpage', '1000'); // Traer todos los registros de una vez
 
-    const headers = {
-      'X-Provider-Token': 'b26e88c4-ddbe-4adb-a214-4667f454824a'
-    };
-
-    this.http.get<any>(environment.vanguardia.ordersApiUrl, { 
-      params,
-      headers
-    })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          // Desactivar loading
-          this.loadingOrdersFromVanguardia = false;
-          this.cdr.markForCheck();
-          
-          // Verificar diferentes estructuras de respuesta posibles
-          let ordersData = null;
-          
-          if (response && response.success && response.data) {
-            // Estructura estándar: { success: true, data: [...] }
-            ordersData = response.data;
-          } else if (response && response.status === 200 && response.data) {
-            // Estructura de Vanguardia: { status: 200, message: "...", data: [...] }
-            // Verificar si data contiene un array de pedidos
-            if (Array.isArray(response.data)) {
-              ordersData = response.data;
-            } else if (response.data && Array.isArray(response.data.orders)) {
-              ordersData = response.data.orders;
-            } else if (response.data && Array.isArray(response.data.data)) {
-              ordersData = response.data.data;
-            } else if (response.data && Array.isArray(response.data.results)) {
-              ordersData = response.data.results;
-            } else {
-              ordersData = [response.data];
-            }
-          } else if (response && Array.isArray(response)) {
-            // Estructura directa: [...]
-            ordersData = response;
-          } else if (response && response.data && Array.isArray(response.data)) {
-            // Estructura con data directa: { data: [...] }
-            ordersData = response.data;
-          } else if (response && response.orders && Array.isArray(response.orders)) {
-            // Estructura con orders: { orders: [...] }
-            ordersData = response.orders;
-          } else if (response && response.results && Array.isArray(response.results)) {
-            // Estructura con results: { results: [...] }
-            ordersData = response.results;
-          }
-          
-          if (ordersData && Array.isArray(ordersData) && ordersData.length > 0) {
-            // Mostrar directamente el diálogo con todos los datos
-            this.showOrderSelectionDialogDirectly(ordersData);
-            
-            this.snackBar.open(`${ordersData.length} pedidos encontrados en Vanguardia`, 'Cerrar', {
-              duration: 3000
-            });
-          } else {
-            // Desactivar loading
-            this.loadingOrdersFromVanguardia = false;
-            this.cdr.markForCheck();
-            this.snackBar.open('No se encontraron pedidos en Vanguardia para este cliente', 'Cerrar', {
-              duration: 3000
-            });
-          }
-        },
-        error: (error) => {
-          // Desactivar loading
-          this.loadingOrdersFromVanguardia = false;
-          this.cdr.markForCheck();
-          
-          let errorMessage = 'Error desconocido al cargar pedidos desde Vanguardia';
-          
-          if (error.status === 0) {
-            errorMessage = 'Error de CORS: No se puede conectar con el servidor de Vanguardia.';
-          } else if (error.status === 400) {
-            errorMessage = 'Error 400: Solicitud inválida a Vanguardia.';
-          } else if (error.status === 401) {
-            errorMessage = 'Error 401: Token de autenticación inválido para Vanguardia.';
-          } else if (error.status === 403) {
-            errorMessage = 'Error 403: Acceso denegado a Vanguardia.';
-          } else if (error.status === 404) {
-            errorMessage = 'Error 404: Endpoint de Vanguardia no encontrado.';
-          } else if (error.status === 500) {
-            errorMessage = 'Error 500: Error interno del servidor de Vanguardia.';
-          } else if (error.error && error.error.message) {
-            errorMessage = error.error.message;
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-          
-          this.snackBar.open(`Error cargando pedidos: ${errorMessage}`, 'Cerrar', {
-            duration: 5000
-          });
-        }
-      });
+    this.showOrderSelectionDialog([], [], {
+      vanguardiaContext: {
+        customerDMS: String(this.selectedClient.ndCliente).trim(),
+        connectionstring: String(this.selectedAgency.AgencyConnection).trim()
+      }
+    });
   }
 
   private processVanguardiaOrders(ordersData: any): void {
@@ -1301,7 +1204,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       });
   }
 
-  private openOrderSelectionDialog(orders: any[], existingOrders: any[] = []): void {
+  private openOrderSelectionDialog(
+    orders: any[],
+    existingOrders: any[] = [],
+    dialogExtras?: { vanguardiaContext?: { customerDMS: string; connectionstring: string } }
+  ): void {
     // Desactivar loading cuando se abre el diálogo
     this.loadingOrdersFromVanguardia = false;
     this.cdr.markForCheck();
@@ -1316,7 +1223,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           orders: orders, 
           agencyId: this.selectedAgencyId, 
           ndCliente: this.selectedClient?.ndCliente,
-          existingOrders: existingOrders // Pasar pedidos existentes al diálogo
+          existingOrders: existingOrders,
+          ...(dialogExtras?.vanguardiaContext
+            ? { vanguardiaContext: dialogExtras.vanguardiaContext }
+            : {})
         }
       });
 
@@ -1343,9 +1253,20 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     }
   }
 
-  private showOrderSelectionDialog(orders: any[], existingOrders: any[] = []): void {
-    if ((!orders || orders.length === 0) && (!existingOrders || existingOrders.length === 0)) {
-      // Desactivar loading
+  private showOrderSelectionDialog(
+    orders: any[],
+    existingOrders: any[] = [],
+    dialogExtras?: { vanguardiaContext?: { customerDMS: string; connectionstring: string } }
+  ): void {
+    const vanguardiaOk = !!(
+      dialogExtras?.vanguardiaContext?.customerDMS &&
+      dialogExtras?.vanguardiaContext?.connectionstring
+    );
+    if (
+      !vanguardiaOk &&
+      (!orders || orders.length === 0) &&
+      (!existingOrders || existingOrders.length === 0)
+    ) {
       this.loadingOrdersFromVanguardia = false;
       this.cdr.markForCheck();
       this.snackBar.open('No hay pedidos disponibles para mostrar', 'Cerrar', {
@@ -1354,7 +1275,6 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Desactivar loading cuando se abre el diálogo
     this.loadingOrdersFromVanguardia = false;
     this.cdr.markForCheck();
 
@@ -1369,7 +1289,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           orders: orders, 
           agencyId: this.selectedAgencyId, 
           ndCliente: this.selectedClient?.ndCliente,
-          existingOrders: existingOrders // Pasar pedidos existentes al diálogo
+          existingOrders: existingOrders,
+          ...(dialogExtras?.vanguardiaContext
+            ? { vanguardiaContext: dialogExtras.vanguardiaContext }
+            : {})
         }
       });
 

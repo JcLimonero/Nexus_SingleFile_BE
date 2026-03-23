@@ -165,3 +165,12 @@
 .tab-content {
   padding: 16px 0;
 }
+
+/* Alinear botones con el buscador outline (centro vertical respecto al mat-form-field) */
+:host ::ng-deep .vanguardia-search-field.mat-mdc-form-field {
+  margin-bottom: 0;
+}
+
+:host ::ng-deep .vanguardia-search-actions .mat-mdc-button-base {
+  margin: 0;
+}

@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -51,7 +51,7 @@ import { AuthService } from '../../../core/services/auth.service';
         <!-- Loading spinner -->
         <div *ngIf="loading" class="flex justify-center py-8">
           <mat-spinner diameter="40"></mat-spinner>
-          <p class="ml-4 text-gray-600">Verificando pedidos existentes...</p>
+          <p class="ml-4 text-gray-600">{{ loadingHint }}</p>
         </div>
 
         <!-- Contenido principal con tabs -->
@@ -65,8 +65,34 @@ import { AuthService } from '../../../core/services/auth.service';
               </ng-template>
               
               <div class="tab-content">
-                <!-- Buscador -->
-                <div class="mb-4">
+                <div *ngIf="vanguardiaMode" class="mb-4 flex flex-col gap-2">
+                  <div class="vanguardia-search-row flex flex-wrap gap-3 items-center">
+                    <mat-form-field appearance="outline" class="vanguardia-search-field flex-1 min-w-[200px]">
+                      <mat-label>Buscar pedido (número exacto)</mat-label>
+                      <input
+                        matInput
+                        [(ngModel)]="vanguardiaOrderDmsInput"
+                        (keyup.enter)="buscarPedidoVanguardia()"
+                        placeholder="Ej. 10154"
+                        autocomplete="off">
+                      <mat-icon matSuffix>manage_search</mat-icon>
+                    </mat-form-field>
+                    <div class="vanguardia-search-actions flex shrink-0 items-center gap-2">
+                      <button mat-flat-button color="primary" type="button" (click)="buscarPedidoVanguardia()">Buscar</button>
+                      <button mat-stroked-button type="button" (click)="limpiarBusquedaVanguardia()"
+                        [disabled]="!activeVanguardiaOrderDms && !(vanguardiaOrderDmsInput && vanguardiaOrderDmsInput.trim())">Limpiar</button>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600" *ngIf="!activeVanguardiaOrderDms">
+                    Total en Vanguardia: {{ vanguardiaTotalRows | number }} pedidos
+                    · Página {{ vanguardiaPageIndex + 1 }} de {{ vanguardiaTotalPages }}
+                  </p>
+                  <p class="text-sm text-gray-600" *ngIf="activeVanguardiaOrderDms">
+                    Búsqueda por pedido: <strong>{{ activeVanguardiaOrderDms }}</strong>
+                  </p>
+                </div>
+
+                <div class="mb-4" *ngIf="!vanguardiaMode">
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>Buscar por número de orden</mat-label>
                     <input 
@@ -186,8 +212,17 @@ import { AuthService } from '../../../core/services/auth.service';
             </tr>
           </table>
           
-                  <!-- Paginación -->
-                  <mat-paginator 
+                  <mat-paginator
+                    *ngIf="vanguardiaMode"
+                    [length]="vanguardiaTotalRows"
+                    [pageIndex]="vanguardiaPageIndex"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="[5, 10, 25]"
+                    (page)="onVanguardiaPaginatorPage($event)"
+                    showFirstLastButtons>
+                  </mat-paginator>
+                  <mat-paginator
+                    *ngIf="!vanguardiaMode"
                     [length]="filteredOrders.length"
                     [pageSize]="pageSize"
                     [pageSizeOptions]="[5, 10, 20, 50]"
@@ -572,13 +607,31 @@ export class OrderSelectionDialogComponent implements OnInit {
   availableCostumerTypes: any[] = [];
   availableOperationTypes: any[] = [];
 
+  private readonly vanguardiaProviderToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
+
+  /** Carga paginada desde singlefileorderslastest (Integración). */
+  vanguardiaMode = false;
+  vanguardiaTotalRows = 0;
+  vanguardiaTotalPages = 1;
+  vanguardiaPageIndex = 0;
+  vanguardiaOrderDmsInput = '';
+  /** Valor enviado a la API como order_dms (búsqueda puntual). */
+  activeVanguardiaOrderDms = '';
+
+  get loadingHint(): string {
+    return this.vanguardiaMode
+      ? 'Cargando pedidos desde Vanguardia...'
+      : 'Verificando pedidos existentes...';
+  }
+
   constructor(
     public dialogRef: MatDialogRef<OrderSelectionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { 
-      orders: any[], 
-      agencyId: number, 
-      ndCliente?: string,
-      existingOrders?: any[] // Pedidos existentes que se pasan desde el componente padre
+    @Inject(MAT_DIALOG_DATA) public data: {
+      orders: any[];
+      agencyId: number;
+      ndCliente?: string;
+      existingOrders?: any[];
+      vanguardiaContext?: { customerDMS: string; connectionstring: string };
     },
     private http: HttpClient,
     private snackBar: MatSnackBar,
@@ -586,67 +639,202 @@ export class OrderSelectionDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.originalOrders = [...this.data.orders];
-    this.loading = true;
-    
-    // Inicializar pedidos existentes si se pasaron desde el componente padre
+    this.vanguardiaMode = !!(
+      this.data.vanguardiaContext &&
+      String(this.data.vanguardiaContext.customerDMS || '').trim() &&
+      String(this.data.vanguardiaContext.connectionstring || '').trim()
+    );
+
     if (this.data.existingOrders && this.data.existingOrders.length > 0) {
       this.existingOrders = this.data.existingOrders;
       this.filteredExistingOrders = [...this.existingOrders];
       this.updatePaginatedExistingOrders();
     }
-    
-    // Cargar datos para los combos
+
     this.loadComboData();
-    
-    // Verificar pedidos existentes antes de mostrar la tabla
-    this.checkExistingOrders();
+
+    if (this.vanguardiaMode) {
+      this.pageSize = 5;
+      this.vanguardiaPageIndex = 0;
+      this.vanguardiaTotalRows = 0;
+      this.vanguardiaTotalPages = 1;
+      this.activeVanguardiaOrderDms = '';
+      this.vanguardiaOrderDmsInput = '';
+      this.refreshVanguardiaOrders();
+    } else {
+      this.originalOrders = [...this.data.orders];
+      this.loading = true;
+      this.checkExistingOrders();
+    }
   }
 
   private checkExistingOrders(): void {
-    // Si ya se pasaron pedidos existentes desde el componente padre, usarlos
     if (this.data.existingOrders && this.data.existingOrders.length > 0) {
       this.existingOrders = this.data.existingOrders;
       this.filteredExistingOrders = [...this.existingOrders];
       this.updatePaginatedExistingOrders();
     }
+    this.fetchExistingFilesAndApplyFilter();
+  }
 
-    // Obtener todos los pedidos existentes para la agencia
-    let params = new HttpParams();
-    params = params.set('agencyId', this.data.agencyId.toString());
-    params = params.set('statusId', '1'); // ID para Integración
-    params = params.set('ndCliente', this.data.ndCliente || '');
+  /**
+   * Respuesta Vanguardia: { status, data: { total_rows, page, per_page, total_pages, data: [...] } }
+   */
+  private parseVanguardiaOrdersEnvelope(response: any): {
+    rows: any[];
+    totalRows: number;
+    totalPages: number;
+    page: number;
+  } | null {
+    if (!response) {
+      return null;
+    }
+    if (response.status !== undefined && Number(response.status) !== 200) {
+      return null;
+    }
+    const payload = response.data;
+    if (!payload) {
+      return null;
+    }
+    if (Array.isArray(payload)) {
+      return {
+        rows: payload,
+        totalRows: payload.length,
+        totalPages: 1,
+        page: 1
+      };
+    }
+    if (Array.isArray(payload.data)) {
+      const rows = payload.data;
+      return {
+        rows,
+        totalRows: Number(payload.total_rows) || rows.length,
+        totalPages: Math.max(1, Number(payload.total_pages) || 1),
+        page: Number(payload.page) || 1
+      };
+    }
+    if (Array.isArray(payload.orders)) {
+      const rows = payload.orders;
+      return {
+        rows,
+        totalRows: rows.length,
+        totalPages: 1,
+        page: 1
+      };
+    }
+    return null;
+  }
 
-    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
+  private refreshVanguardiaOrders(): void {
+    const ctx = this.data.vanguardiaContext;
+    if (!ctx) {
+      return;
+    }
+    this.loading = true;
+    const page = this.vanguardiaPageIndex + 1;
+    let params = new HttpParams()
+      .set('customerDMS', String(ctx.customerDMS).trim())
+      .set('connectionstring', String(ctx.connectionstring).trim())
+      .set('perpage', String(this.pageSize))
+      .set('page', String(page));
+    const od = this.activeVanguardiaOrderDms?.trim();
+    if (od) {
+      params = params.set('order_dms', od);
+    }
+
+    this.http
+      .get<any>(environment.vanguardia.ordersApiUrl, {
+        params,
+        headers: { 'X-Provider-Token': this.vanguardiaProviderToken }
+      })
       .subscribe({
         next: (response) => {
-
-          let existingFiles: any[] = [];
-          if (response && response.success && response.data && response.data.files) {
-            existingFiles = response.data.files;
+          const parsed = this.parseVanguardiaOrdersEnvelope(response);
+          if (!parsed) {
+            this.loading = false;
+            this.originalOrders = [];
+            this.filteredOrders = [];
+            this.paginatedOrders = [];
+            this.snackBar.open('Respuesta inválida de la API de pedidos Vanguardia', 'Cerrar', {
+              duration: 4000
+            });
+            return;
           }
-
-          // Filtrar pedidos de Vanguardia que no existen en la tabla de file y eliminar duplicados
-          const newOrders = this.filterNewOrders(existingFiles);
-
-          this.filteredOrders = newOrders;
-          this.loading = false;
-          this.updatePaginatedOrders();
-          
-          // Si no se pasaron pedidos existentes desde el padre, pero hay pedidos que ya existen,
-          // verificar usando el endpoint de check-existing-orders
-          if (!this.data.existingOrders || this.data.existingOrders.length === 0) {
-            this.loadExistingOrdersFromCheck();
-          }
+          this.originalOrders = parsed.rows;
+          this.vanguardiaTotalRows = parsed.totalRows;
+          this.vanguardiaTotalPages = parsed.totalPages;
+          this.vanguardiaPageIndex = Math.max(0, Math.min(parsed.page - 1, parsed.totalPages - 1));
+          this.fetchExistingFilesAndApplyFilter();
         },
         error: (error) => {
-
-          // Si hay error, mostrar todos los pedidos
-          this.filteredOrders = [...this.originalOrders];
           this.loading = false;
-          this.updatePaginatedOrders();
+          this.originalOrders = [];
+          this.filteredOrders = [];
+          this.paginatedOrders = [];
+          const msg =
+            error?.error?.message ||
+            error?.message ||
+            'Error al consultar pedidos en Vanguardia';
+          this.snackBar.open(msg, 'Cerrar', { duration: 5000 });
         }
       });
+  }
+
+  buscarPedidoVanguardia(): void {
+    const q = (this.vanguardiaOrderDmsInput || '').trim();
+    if (!q) {
+      this.snackBar.open('Ingresa un número de pedido para buscar', 'Cerrar', { duration: 2500 });
+      return;
+    }
+    this.activeVanguardiaOrderDms = q;
+    this.vanguardiaPageIndex = 0;
+    this.refreshVanguardiaOrders();
+  }
+
+  limpiarBusquedaVanguardia(): void {
+    this.vanguardiaOrderDmsInput = '';
+    this.activeVanguardiaOrderDms = '';
+    this.vanguardiaPageIndex = 0;
+    this.refreshVanguardiaOrders();
+  }
+
+  onVanguardiaPaginatorPage(event: PageEvent): void {
+    const sizeChanged = event.pageSize !== this.pageSize;
+    this.pageSize = event.pageSize;
+    if (sizeChanged) {
+      this.vanguardiaPageIndex = 0;
+    } else {
+      this.vanguardiaPageIndex = event.pageIndex;
+    }
+    this.refreshVanguardiaOrders();
+  }
+
+  private fetchExistingFilesAndApplyFilter(): void {
+    let params = new HttpParams();
+    params = params.set('agencyId', this.data.agencyId.toString());
+    params = params.set('statusId', '1');
+    params = params.set('ndCliente', this.data.ndCliente || '');
+
+    this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params }).subscribe({
+      next: (response) => {
+        let existingFiles: any[] = [];
+        if (response && response.success && response.data && response.data.files) {
+          existingFiles = response.data.files;
+        }
+        const newOrders = this.filterNewOrders(existingFiles);
+        this.filteredOrders = newOrders;
+        this.loading = false;
+        this.updatePaginatedOrders();
+        if (!this.data.existingOrders || this.data.existingOrders.length === 0) {
+          this.loadExistingOrdersFromCheck();
+        }
+      },
+      error: () => {
+        this.filteredOrders = [...this.originalOrders];
+        this.loading = false;
+        this.updatePaginatedOrders();
+      }
+    });
   }
 
   private loadExistingOrdersFromCheck(): void {
@@ -710,6 +898,9 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   applyFilter(): void {
+    if (this.vanguardiaMode) {
+      return;
+    }
     // Obtener los pedidos base (ya deduplicados desde filterNewOrders)
     const baseOrders = this.filteredOrders.length > 0 ? this.filteredOrders : this.originalOrders;
     
@@ -754,15 +945,19 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   updatePaginatedOrders(): void {
-
+    if (this.vanguardiaMode) {
+      this.paginatedOrders = [...this.filteredOrders];
+      return;
+    }
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-
     this.paginatedOrders = this.filteredOrders.slice(startIndex, endIndex);
-
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: PageEvent): void {
+    if (this.vanguardiaMode) {
+      return;
+    }
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.updatePaginatedOrders();
@@ -834,8 +1029,10 @@ export class OrderSelectionDialogComponent implements OnInit {
       next: (response) => {
         this.repairingFileId = null;
         if (response?.success) {
-          this.snackBar.open('Relación de cliente reparada correctamente. El pedido debería aparecer en el listado del cliente.', 'Cerrar', { duration: 5000 });
-          this.dialogRef.close({ repaired: true, fileId: idExpediente, message: response.message });
+          this.snackBar.open('Relación reparada. Puedes continuar con otros registros si aplica.', 'Cerrar', {
+            duration: 4000
+          });
+          this.removeExistingOrderAfterRepair(idExpediente);
         } else {
           this.snackBar.open(response?.message || 'Error al reparar relación', 'Cerrar', { duration: 5000 });
         }
@@ -846,6 +1043,27 @@ export class OrderSelectionDialogComponent implements OnInit {
         this.snackBar.open(msg, 'Cerrar', { duration: 6000 });
       }
     });
+  }
+
+  /** Quita el expediente reparado del tab "Pedidos existentes" sin cerrar el diálogo. */
+  private removeExistingOrderAfterRepair(fileId: number | string): void {
+    const id = String(fileId);
+    this.existingOrders = this.existingOrders.filter((e) => String(e.fileId) !== id);
+    this.filteredExistingOrders = this.filteredExistingOrders.filter((e) => String(e.fileId) !== id);
+
+    const maxPage = Math.max(
+      0,
+      Math.ceil(this.filteredExistingOrders.length / this.existingPageSize) - 1
+    );
+    if (this.existingCurrentPage > maxPage) {
+      this.existingCurrentPage = maxPage;
+    }
+
+    this.updatePaginatedExistingOrders();
+
+    if (this.existingOrders.length === 0) {
+      this.selectedTabIndex = 0;
+    }
   }
 
   selectOrder(order: any): void {
