@@ -19,8 +19,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
-import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service';
+import {
+  ConsolidacionDmsService,
+  PedidoDms,
+  BulkStatusRow,
+  BulkStatusMode,
+} from './consolidacion-dms.service';
 
 @Component({
   selector: 'vex-consolidacion-dms',
@@ -36,9 +45,13 @@ import { ConsolidacionDmsService, PedidoDms } from './consolidacion-dms.service'
     MatProgressSpinnerModule,
     MatButtonModule,
   MatIconModule,
-  MatSnackBarModule,
-  MatTooltipModule,
-],
+    MatSnackBarModule,
+    MatTooltipModule,
+    MatTabsModule,
+    MatButtonToggleModule,
+    MatInputModule,
+    MatCheckboxModule,
+  ],
   templateUrl: './consolidacion-dms.component.html',
   styleUrl: './consolidacion-dms.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -71,6 +84,17 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   pageSizeOptions = [10, 25, 50, 100];
   exportingExcel = false;
+
+  /** Tab consulta masiva */
+  bulkMode: BulkStatusMode = 'vin';
+  bulkText = '';
+  bulkLoading = false;
+  bulkRows: BulkStatusRow[] = [];
+  bulkNotFound: string[] = [];
+  /** Si está activo y hay agencia, se envía agencyId al API */
+  bulkRestrictAgency = true;
+  bulkColumns: string[] = ['IdOrderTotal', 'VIN', 'Name', 'UpdateDate'];
+  bulkExporting = false;
 
   // Mapeo de estado (state) numérico a etiqueta
   private stateLabels: { [key: number]: string } = {
@@ -283,6 +307,111 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     }
     if (v == null) return '';
     if (typeof v === 'object') return JSON.stringify(v);
+    return String(v);
+  }
+
+  parseBulkLines(text: string): string[] {
+    const parts = text.split(/[\n,;\t]+/);
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const p of parts) {
+      const s = p.trim();
+      if (!s) continue;
+      const value = this.bulkMode === 'vin' ? s.toUpperCase() : s;
+      if (seen.has(value)) continue;
+      seen.add(value);
+      out.push(value);
+    }
+    return out;
+  }
+
+  consultarBulk(): void {
+    const items = this.parseBulkLines(this.bulkText);
+    if (items.length === 0) {
+      this.snackBar.open('Pegue al menos un VIN o número de pedido', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    if (items.length > 500) {
+      this.snackBar.open('Máximo 500 valores por consulta', 'Cerrar', { duration: 4000 });
+      return;
+    }
+
+    const agencyId =
+      this.bulkRestrictAgency && this.selectedAgencyId != null ? this.selectedAgencyId : null;
+
+    this.bulkLoading = true;
+    this.bulkRows = [];
+    this.bulkNotFound = [];
+    this.cdr.markForCheck();
+
+    this.consolidacionDmsService
+      .postBulkStatus(this.bulkMode, items, agencyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.bulkLoading = false;
+          if (res.success && res.data) {
+            this.bulkRows = res.data.rows || [];
+            this.bulkNotFound = res.data.notFound || [];
+            this.snackBar.open(
+              `${this.bulkRows.length} expediente(s) encontrado(s)${
+                this.bulkNotFound.length ? `, ${this.bulkNotFound.length} sin coincidencia` : ''
+              }`,
+              'Cerrar',
+              { duration: 3500 }
+            );
+          } else {
+            this.snackBar.open(res.message || 'Error en la consulta', 'Cerrar', { duration: 4000 });
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.bulkLoading = false;
+          this.cdr.markForCheck();
+          this.snackBar.open('Error al consultar estatus', 'Cerrar', { duration: 3000 });
+        },
+      });
+  }
+
+  exportarBulkCsv(): void {
+    if (this.bulkRows.length === 0) {
+      this.snackBar.open('No hay resultados para exportar', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    this.bulkExporting = true;
+    this.cdr.markForCheck();
+    try {
+      const headers = ['ND Pedido (IdOrderTotal)', 'VIN', 'Estatus', 'Fecha actualización'];
+      const rows = this.bulkRows.map((r) => [
+        this.cellBulk(r, 'IdOrderTotal'),
+        this.cellBulk(r, 'VIN'),
+        this.cellBulk(r, 'Name'),
+        this.cellBulk(r, 'UpdateDate'),
+      ]);
+      const esc = (v: string) =>
+        v.includes(',') || v.includes('"') || v.includes('\n') ? `"${v.replace(/"/g, '""')}"` : v;
+      const csvContent = [headers.join(','), ...rows.map((row) => row.map(esc).join(','))].join('\n');
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const nombreArchivo = `consulta_masiva_${new Date().toISOString().split('T')[0]}.csv`;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nombreArchivo;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      this.snackBar.open('CSV descargado', 'Cerrar', { duration: 2000 });
+    } finally {
+      this.bulkExporting = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  cellBulk(row: BulkStatusRow, col: keyof BulkStatusRow): string {
+    const v = row[col];
+    if (v == null) return '';
     return String(v);
   }
 

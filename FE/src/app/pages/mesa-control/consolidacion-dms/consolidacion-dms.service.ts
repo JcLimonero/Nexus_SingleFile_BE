@@ -15,10 +15,31 @@ export interface ConsolidacionDmsResponse {
   data?: PedidoDms[] | { orders?: PedidoDms[]; data?: PedidoDms[]; results?: PedidoDms[] };
 }
 
+export type BulkStatusMode = 'vin' | 'pedido';
+
+export interface BulkStatusRow {
+  IdOrderTotal?: string | number | null;
+  VIN?: string | null;
+  Name?: string | null;
+  UpdateDate?: string | null;
+}
+
+export interface BulkStatusResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    rows: BulkStatusRow[];
+    notFound: string[];
+    requested: number;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ConsolidacionDmsService {
+  private readonly localApi = environment.apiBaseUrl;
+
   private get apiUrl(): string {
     return environment.vanguardia.invoicesApiUrl;
   }
@@ -75,5 +96,24 @@ export class ConsolidacionDmsService {
       }),
       catchError(() => of({ data: [] }))
     );
+  }
+
+  /**
+   * Estatus en BD (File + OrderByCar + File_Status) por lista de VIN o pedidos (IdOrderTotal).
+   */
+  postBulkStatus(
+    mode: BulkStatusMode,
+    items: string[],
+    agencyId: number | null
+  ): Observable<BulkStatusResponse> {
+    const body: {
+      mode: BulkStatusMode;
+      items: string[];
+      agencyId?: number;
+    } = { mode, items };
+    if (agencyId != null && agencyId > 0) {
+      body.agencyId = agencyId;
+    }
+    return this.http.post<BulkStatusResponse>(`${this.localApi}/api/files/bulk-status`, body);
   }
 }

@@ -341,8 +341,10 @@ $routes->group('files', function($routes) {
     $routes->post('create-file-test', 'Files::createFileTest');
     $routes->post('check-existing-orders', 'Files::checkExistingOrders');
     $routes->post('repair-client-relation', 'Files::repairClientRelation');
+    $routes->post('repair-client-relations-bulk', 'Files::repairClientRelationsBulk');
     $routes->post('delete', 'Files::deleteFile');
     $routes->post('compare-dms-orders', 'Files::compareDmsOrders');
+    $routes->post('bulk-status', 'Files::bulkStatusByList');
 });
 
 

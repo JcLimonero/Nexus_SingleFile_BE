@@ -1,7 +1,6 @@
 <div class="consolidacion-dms min-h-screen bg-gray-50 p-4">
   <div class="mb-4">
     <h1 class="text-2xl font-bold text-gray-900 mb-1">Consolidaci&#243;n DMS</h1>
-   
   </div>
 
   <mat-card class="filtro-card mb-4">
@@ -26,68 +25,166 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="w-40">
-          <mat-label>Mes</mat-label>
-          <mat-select [(ngModel)]="selectedMonth">
-            <mat-option *ngFor="let m of meses" [value]="m.value">{{ m.label }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-32">
-          <mat-label>A&#241;o</mat-label>
-          <mat-select [(ngModel)]="selectedYear">
-            <mat-option *ngFor="let y of anios" [value]="y">{{ y }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button
-          mat-raised-button
-          color="primary"
-          [disabled]="loading || selectedAgencyId == null"
-          (click)="cargarPedidos()">
-          <mat-icon *ngIf="!loading">refresh</mat-icon>
-          <mat-spinner *ngIf="loading" diameter="20" class="inline-block align-middle"></mat-spinner>
-          <span class="ml-2">{{ loading ? 'Cargando...' : 'Cargar pedidos' }}</span>
-        </button>
-        <button
-          mat-stroked-button
-          color="primary"
-          [disabled]="dataSource.data.length === 0 || exportingExcel"
-          (click)="exportarExcel()"
-          matTooltip="Exportar a Excel"
-          class="flex items-center gap-2">
-          <mat-icon *ngIf="!exportingExcel">download</mat-icon>
-          <mat-spinner *ngIf="exportingExcel" diameter="20" class="inline-block"></mat-spinner>
-          <span>{{ exportingExcel ? 'Exportando...' : 'Exportar Excel' }}</span>
-        </button>
       </div>
     </mat-card-content>
   </mat-card>
 
-  <mat-card class="tabla-card">
-    <mat-card-content>
-      <div *ngIf="displayedColumns.length === 0" class="py-8 text-center text-gray-500">
-        <mat-icon class="block mx-auto mb-2 text-4xl">inbox</mat-icon>
-        Seleccione una agencia y pulse «Cargar pedidos» para ver los pedidos del DMS.
+  <mat-tab-group class="consolidacion-tabs" animationDuration="200ms">
+    <mat-tab label="Pedidos DMS">
+      <mat-card class="filtro-card mb-4 mt-4">
+        <mat-card-content>
+          <div class="flex flex-wrap items-center gap-4">
+            <mat-form-field appearance="outline" class="w-40">
+              <mat-label>Mes</mat-label>
+              <mat-select [(ngModel)]="selectedMonth">
+                <mat-option *ngFor="let m of meses" [value]="m.value">{{ m.label }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-32">
+              <mat-label>A&#241;o</mat-label>
+              <mat-select [(ngModel)]="selectedYear">
+                <mat-option *ngFor="let y of anios" [value]="y">{{ y }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="loading"
+              (click)="cargarPedidos()">
+              <mat-icon *ngIf="!loading">refresh</mat-icon>
+              <mat-spinner *ngIf="loading" diameter="20" class="inline-block align-middle"></mat-spinner>
+              <span class="ml-2">{{ loading ? 'Cargando...' : 'Cargar pedidos' }}</span>
+            </button>
+            <button
+              mat-stroked-button
+              color="primary"
+              [disabled]="dataSource.data.length === 0 || exportingExcel"
+              (click)="exportarExcel()"
+              matTooltip="Exportar a Excel"
+              class="flex items-center gap-2">
+              <mat-icon *ngIf="!exportingExcel">download</mat-icon>
+              <mat-spinner *ngIf="exportingExcel" diameter="20" class="inline-block"></mat-spinner>
+              <span>{{ exportingExcel ? 'Exportando...' : 'Exportar Excel' }}</span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="tabla-card">
+        <mat-card-content>
+          <div *ngIf="displayedColumns.length === 0" class="py-8 text-center text-gray-500">
+            <mat-icon class="block mx-auto mb-2 text-4xl">inbox</mat-icon>
+            Pulse «Cargar pedidos» para ver los pedidos del DMS (mes y año arriba).
+          </div>
+          <div *ngIf="displayedColumns.length > 0" class="table-container overflow-x-auto">
+            <table mat-table [dataSource]="dataSource" class="w-full">
+              <ng-container *ngFor="let col of displayedColumns" [matColumnDef]="col">
+                <th mat-header-cell *matHeaderCellDef>{{ getColumnDisplayName(col) }}</th>
+                <td mat-cell *matCellDef="let row">
+                  <span *ngIf="col === 'state' || col === 'State'"
+                        class="inline-block"
+                        [ngClass]="getStateCellClass(row, col)">{{ cellValue(row, col) }}</span>
+                  <ng-container *ngIf="col !== 'state' && col !== 'State'">{{ cellValue(row, col) }}</ng-container>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table>
+            <mat-paginator
+              [pageSizeOptions]="pageSizeOptions"
+              showFirstLastButtons
+              class="mt-2">
+            </mat-paginator>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <mat-tab label="Consulta masiva (VIN / pedido)">
+      <div class="mt-4 space-y-4">
+        <mat-card class="filtro-card">
+          <mat-card-content class="space-y-4">
+            <p class="text-sm text-gray-600">
+              Pegue un listado de VIN o de n&#250;meros de pedido (IdOrderTotal), separados por coma, punto y coma o salto de l&#237;nea.
+              Los resultados reflejan el estatus en expediente &#250;nico (File + OrderByCar + File_Status), como en la consulta SQL de referencia.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <mat-button-toggle-group [(ngModel)]="bulkMode" name="bulkMode">
+                <mat-button-toggle value="vin">Por VIN</mat-button-toggle>
+                <mat-button-toggle value="pedido">Por pedido</mat-button-toggle>
+              </mat-button-toggle-group>
+              <mat-checkbox [(ngModel)]="bulkRestrictAgency" [disabled]="selectedAgencyId == null">
+                Solo expedientes de la agencia seleccionada
+              </mat-checkbox>
+            </div>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Listado</mat-label>
+              <textarea
+                matInput
+                rows="10"
+                [(ngModel)]="bulkText"
+                placeholder="Ej. WBA21EM08T9107453 o 35348 (uno por l&#237;nea o separados por coma)"></textarea>
+            </mat-form-field>
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                mat-raised-button
+                color="primary"
+                [disabled]="bulkLoading"
+                (click)="consultarBulk()">
+                <mat-spinner *ngIf="bulkLoading" diameter="20" class="inline-block align-middle mr-2"></mat-spinner>
+                {{ bulkLoading ? 'Consultando...' : 'Consultar estatus' }}
+              </button>
+              <button
+                mat-stroked-button
+                [disabled]="bulkRows.length === 0 || bulkExporting"
+                (click)="exportarBulkCsv()">
+                <mat-icon *ngIf="!bulkExporting">download</mat-icon>
+                {{ bulkExporting ? 'Exportando...' : 'Exportar CSV' }}
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card *ngIf="bulkNotFound.length > 0" class="border-amber-200 bg-amber-50">
+          <mat-card-content>
+            <div class="text-sm font-medium text-amber-900 mb-2">
+              Sin coincidencia en BD ({{ bulkNotFound.length }})
+            </div>
+            <p class="text-xs text-amber-800 break-all max-h-32 overflow-y-auto">{{ bulkNotFound.join(', ') }}</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="tabla-card">
+          <mat-card-content>
+            <div *ngIf="!bulkLoading && bulkRows.length === 0" class="py-8 text-center text-gray-500">
+              <mat-icon class="block mx-auto mb-2 text-4xl">search</mat-icon>
+              Pegue valores y pulse «Consultar estatus».
+            </div>
+            <div *ngIf="bulkRows.length > 0" class="table-container overflow-x-auto">
+              <table mat-table [dataSource]="bulkRows" class="w-full">
+                <ng-container matColumnDef="IdOrderTotal">
+                  <th mat-header-cell *matHeaderCellDef>ND Pedido</th>
+                  <td mat-cell *matCellDef="let row">{{ cellBulk(row, 'IdOrderTotal') }}</td>
+                </ng-container>
+                <ng-container matColumnDef="VIN">
+                  <th mat-header-cell *matHeaderCellDef>VIN</th>
+                  <td mat-cell *matCellDef="let row">{{ cellBulk(row, 'VIN') }}</td>
+                </ng-container>
+                <ng-container matColumnDef="Name">
+                  <th mat-header-cell *matHeaderCellDef>Estatus</th>
+                  <td mat-cell *matCellDef="let row">{{ cellBulk(row, 'Name') }}</td>
+                </ng-container>
+                <ng-container matColumnDef="UpdateDate">
+                  <th mat-header-cell *matHeaderCellDef>Fecha actualizaci&#243;n</th>
+                  <td mat-cell *matCellDef="let row">{{ cellBulk(row, 'UpdateDate') }}</td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="bulkColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: bulkColumns"></tr>
+              </table>
+            </div>
+          </mat-card-content>
+        </mat-card>
       </div>
-      <div *ngIf="displayedColumns.length > 0" class="table-container overflow-x-auto">
-        <table mat-table [dataSource]="dataSource" class="w-full">
-          <ng-container *ngFor="let col of displayedColumns" [matColumnDef]="col">
-            <th mat-header-cell *matHeaderCellDef>{{ getColumnDisplayName(col) }}</th>
-            <td mat-cell *matCellDef="let row">
-              <span *ngIf="col === 'state' || col === 'State'"
-                    class="inline-block"
-                    [ngClass]="getStateCellClass(row, col)">{{ cellValue(row, col) }}</span>
-              <ng-container *ngIf="col !== 'state' && col !== 'State'">{{ cellValue(row, col) }}</ng-container>
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        </table>
-        <mat-paginator
-          [pageSizeOptions]="pageSizeOptions"
-          showFirstLastButtons
-          class="mt-2">
-        </mat-paginator>
-      </div>
-    </mat-card-content>
-  </mat-card>
+    </mat-tab>
+  </mat-tab-group>
 </div>

@@ -8,6 +8,9 @@ class Files extends BaseController
 {
     protected $db;
 
+    /** @var array<string, int> Cache idAgency solicitado → Id interno Agency (solo repair bulk) */
+    private $repairBulkAgencyCache = [];
+
     public function __construct()
     {
         $this->db = \Config\Database::connect();
@@ -846,16 +849,16 @@ class Files extends BaseController
         }
 
         $expected = $this->db->query("
-            SELECT idCliente FROM view_client_relations
+            SELECT IdHeaderClient FROM view_client_relations
             WHERE TRIM(ndCliente) = ? AND idAgency = ?
             LIMIT 1
         ", [$ndDMS, $idAgency])->getRowArray();
 
-        if (!$expected || empty($expected['idCliente'])) {
+        if (!$expected || empty($expected['IdHeaderClient'])) {
             return ['valid' => false, 'expectedIdClient' => null, 'actualIdClient' => (int) $file['IdClient'], 'message' => 'No existe relación en view_client_relations para ndCliente e idAgency'];
         }
 
-        $expectedIdClient = (int) $expected['idCliente'];
+        $expectedIdClient = (int) $expected['IdHeaderClient'];
         $actualIdClient = (int) $file['IdClient'];
         $valid = ($actualIdClient === $expectedIdClient);
 
@@ -947,24 +950,29 @@ class Files extends BaseController
         }
 
         $row = $this->db->query("
-            SELECT idCliente FROM view_client_relations
+            SELECT IdHeaderClient, idCliente FROM view_client_relations
             WHERE TRIM(ndCliente) = ? AND idAgency = ?
             LIMIT 1
         ", [$ndDMS, $idAgency])->getRowArray();
 
-        if (!$row || empty($row['idCliente'])) {
+        if (!$row || empty($row['IdHeaderClient'])) {
             return ['success' => false, 'message' => 'No se encontró relación en view_client_relations para ndCliente e idAgency'];
         }
 
-        $idClient = (int) $row['idCliente'];
-        $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
+        $idHeaderClient = (int) $row['IdHeaderClient'];
+        $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idHeaderClient]);
 
         if ($this->db->affectedRows() === 0) {
             return ['success' => false, 'message' => 'No se actualizó ningún expediente'];
         }
 
-        log_message('info', "executeRepairClientRelation: File.Id={$idExpediente} actualizado con IdClient={$idClient} (ndDMS={$ndDMS}, IdAgency={$idAgency})");
-        return ['success' => true, 'idClient' => $idClient, 'message' => 'Reparación exitosa'];
+        log_message('info', "executeRepairClientRelation: File.Id={$idExpediente} IdClient={$idHeaderClient} (HeaderClient.Id, ndDMS={$ndDMS}, IdAgency={$idAgency})");
+        return [
+            'success' => true,
+            'idClient' => isset($row['idCliente']) ? (int) $row['idCliente'] : $idHeaderClient,
+            'idHeaderClient' => $idHeaderClient,
+            'message' => 'Reparación exitosa'
+        ];
     }
 
     /**
@@ -1450,19 +1458,18 @@ class Files extends BaseController
                 ]);
             }
 
-            // idCliente esperado desde view_client_relations (ndCliente, idAgency).
-            // Solo se usa si ndCliente viene en la petición; en ese caso en existingOrders
-            // solo entran los pedidos cuyo File.IdClient != idClientFromView (relación incorrecta).
-            $idClientFromView = null;
+            // IdHeaderClient esperado (File.IdClient → FK headerclient.Id).
+            // Solo se usa si ndCliente viene en la petición; existingOrders = File.IdClient distinto al esperado.
+            $idHeaderClientFromView = null;
             if ($ndCliente !== null && $ndCliente !== '') {
                 try {
                     $rowView = $this->db->query("
-                        SELECT idCliente FROM view_client_relations
+                        SELECT IdHeaderClient FROM view_client_relations
                         WHERE TRIM(ndCliente) = ? AND idAgency = ?
                         LIMIT 1
                     ", [$ndCliente, (int) $agencyId])->getRowArray();
-                    if ($rowView && !empty($rowView['idCliente'])) {
-                        $idClientFromView = (int) $rowView['idCliente'];
+                    if ($rowView && !empty($rowView['IdHeaderClient'])) {
+                        $idHeaderClientFromView = (int) $rowView['IdHeaderClient'];
                     }
                 } catch (\Throwable $e) {
                     log_message('info', 'checkExistingOrders: view_client_relations no usada, ' . $e->getMessage());
@@ -1471,7 +1478,7 @@ class Files extends BaseController
 
             // Una sola consulta: todos los File existentes para esta agencia y estos IdOrderTotal (+ IdClient si filtraremos)
             $builder = $this->db->table('File');
-            $builder->select('Id, IdOrderTotal' . ($idClientFromView !== null ? ', IdClient' : ''));
+            $builder->select('Id, IdOrderTotal' . ($idHeaderClientFromView !== null ? ', IdClient' : ''));
             $builder->where('IdAgency', $agencyId);
             $builder->whereIn('IdOrderTotal', $orderDmsList);
             $existingRows = $builder->get()->getResultArray();
@@ -1494,16 +1501,16 @@ class Files extends BaseController
                 if ($info) {
                     $fileId = $info['fileId'];
                     $fileIdClient = $info['IdClient'];
-                    if ($idClientFromView !== null) {
-                        // Solo incluir en existingOrders los que no tienen el IdClient de la vista (relación incorrecta)
-                        if ($fileIdClient !== $idClientFromView) {
+                    if ($idHeaderClientFromView !== null) {
+                        // Solo incluir en existingOrders los que no tienen el IdHeaderClient de la vista (relación incorrecta)
+                        if ($fileIdClient !== $idHeaderClientFromView) {
                             $existingOrders[] = [
                                 'order_dms' => $orderDms,
                                 'fileId' => $fileId,
                                 'order' => $order
                             ];
                         }
-                        // Si File.IdClient == idClientFromView, no se incluye (ya tiene la relación correcta)
+                        // Si File.IdClient == IdHeaderClient esperado, no se incluye (ya correcto)
                     } else {
                         $existingOrders[] = [
                             'order_dms' => $orderDms,
@@ -1611,6 +1618,259 @@ class Files extends BaseController
                 'data' => null
             ])->setStatusCode(500);
         }
+    }
+
+    /**
+     * Reparar relación de cliente en varios expedientes (mismo ndCliente e idAgency).
+     * POST /api/files/repair-client-relations-bulk
+     *
+     * Un solo lote:
+     *   { "idAgency": "3", "ndCliente": "145383", "fileIds": [397, 398] }
+     *
+     * Varios lotes (arreglo raíz o "items" / "batches"):
+     *   [ { "idAgency":"3", "ndCliente":"352", "fileIds":[309] }, ... ]
+     *   { "items": [ ... ] }
+     */
+    public function repairClientRelationsBulk()
+    {
+        try {
+            set_time_limit(0);
+            ini_set('max_execution_time', '0');
+            $this->repairBulkAgencyCache = [];
+
+            $input = $this->request->getJSON(true);
+            if (!$input) {
+                $input = $this->request->getPost();
+            }
+
+            $batches = null;
+            if (is_array($input)) {
+                if (isset($input['items']) && is_array($input['items'])) {
+                    $batches = $input['items'];
+                } elseif (isset($input['batches']) && is_array($input['batches'])) {
+                    $batches = $input['batches'];
+                } elseif (isset($input[0]) && is_array($input[0])) {
+                    $batches = $input;
+                }
+            }
+
+            if ($batches !== null) {
+                $batchResults = [];
+                $grandOk = 0;
+                $grandFail = 0;
+                $anyBatchError = false;
+
+                foreach ($batches as $idx => $item) {
+                    if (!is_array($item)) {
+                        $anyBatchError = true;
+                        $batchResults[] = [
+                            'index' => $idx,
+                            'error' => 'Elemento no es un objeto',
+                            'repaired' => [],
+                            'failed' => [],
+                            'summary' => ['total' => 0, 'ok' => 0, 'fail' => 0]
+                        ];
+                        continue;
+                    }
+
+                    $run = $this->executeRepairClientRelationsBulkItem($item);
+                    if (!$run['valid']) {
+                        $anyBatchError = true;
+                        $batchResults[] = [
+                            'index' => $idx,
+                            'idAgency' => $item['idAgency'] ?? $item['agencyId'] ?? null,
+                            'ndCliente' => $item['ndCliente'] ?? $item['ndDMS'] ?? null,
+                            'error' => $run['errorMessage'] ?? 'Error de validación',
+                            'repaired' => $run['payload']['repaired'] ?? [],
+                            'failed' => $run['payload']['failed'] ?? [],
+                            'summary' => $run['payload']['summary'] ?? ['total' => 0, 'ok' => 0, 'fail' => 1]
+                        ];
+                        $grandFail += $run['payload']['summary']['fail'] ?? 1;
+                        continue;
+                    }
+
+                    $payload = $run['payload'];
+                    $batchResults[] = [
+                        'index' => $idx,
+                        'idAgency' => $item['idAgency'] ?? $item['agencyId'] ?? null,
+                        'ndCliente' => $payload['ndCliente'],
+                        'repaired' => $payload['repaired'],
+                        'failed' => $payload['failed'],
+                        'summary' => $payload['summary']
+                    ];
+                    $grandOk += $payload['summary']['ok'];
+                    $grandFail += $payload['summary']['fail'];
+                    if ($payload['summary']['fail'] > 0) {
+                        $anyBatchError = true;
+                    }
+                }
+
+                $allOk = !$anyBatchError && $grandFail === 0;
+
+                return $this->response->setJSON([
+                    'success' => $allOk,
+                    'message' => $allOk
+                        ? "Se procesaron " . count($batches) . " lote(s), {$grandOk} expediente(s) reparado(s)"
+                        : "Lotes: " . count($batches) . ", reparados: {$grandOk}, fallidos: {$grandFail}",
+                    'data' => [
+                        'batches' => $batchResults,
+                        'summary' => [
+                            'batchCount' => count($batches),
+                            'totalOk' => $grandOk,
+                            'totalFail' => $grandFail
+                        ]
+                    ]
+                ])->setStatusCode(200);
+            }
+
+            $run = $this->executeRepairClientRelationsBulkItem($input);
+            if (!$run['valid']) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => $run['errorMessage'],
+                    'data' => null
+                ])->setStatusCode(400);
+            }
+
+            $payload = $run['payload'];
+            $allOk = $payload['summary']['fail'] === 0;
+
+            return $this->response->setJSON([
+                'success' => $allOk,
+                'message' => $allOk
+                    ? "Se repararon {$payload['summary']['ok']} expediente(s)"
+                    : "Reparados: {$payload['summary']['ok']}, con error: {$payload['summary']['fail']}",
+                'data' => [
+                    'repaired' => $payload['repaired'],
+                    'failed' => $payload['failed'],
+                    'summary' => $payload['summary']
+                ]
+            ])->setStatusCode(200);
+        } catch (\Throwable $e) {
+            log_message('error', 'repairClientRelationsBulk: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al reparar relaciones: ' . $e->getMessage(),
+                'data' => null
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * @return array{valid: bool, errorMessage?: string, payload?: array}
+     */
+    private function executeRepairClientRelationsBulkItem(array $input): array
+    {
+        $ndDMS = $input['ndDMS'] ?? $input['ndCliente'] ?? null;
+        $idAgency = $input['idAgency'] ?? $input['agencyId'] ?? null;
+        $fileIds = $input['fileIds'] ?? $input['file_ids'] ?? null;
+
+        if (!$ndDMS || trim((string) $ndDMS) === '') {
+            return [
+                'valid' => false,
+                'errorMessage' => 'ndCliente o ndDMS es requerido',
+                'payload' => [
+                    'repaired' => [],
+                    'failed' => [],
+                    'summary' => ['total' => 0, 'ok' => 0, 'fail' => 1]
+                ]
+            ];
+        }
+        if ($idAgency === null || $idAgency === '') {
+            return [
+                'valid' => false,
+                'errorMessage' => 'idAgency es requerido',
+                'payload' => [
+                    'repaired' => [],
+                    'failed' => [],
+                    'summary' => ['total' => 0, 'ok' => 0, 'fail' => 1]
+                ]
+            ];
+        }
+        if (!is_array($fileIds) || count($fileIds) === 0) {
+            return [
+                'valid' => false,
+                'errorMessage' => 'fileIds debe ser un arreglo con al menos un id de expediente',
+                'payload' => [
+                    'repaired' => [],
+                    'failed' => [],
+                    'summary' => ['total' => 0, 'ok' => 0, 'fail' => 1]
+                ]
+            ];
+        }
+
+        $ndDMS = trim((string) $ndDMS);
+        $internalAgencyId = $this->getAgencyInternalIdForBulk($idAgency);
+
+        $uniqueIds = [];
+        foreach ($fileIds as $fid) {
+            if ($fid === null || $fid === '') {
+                continue;
+            }
+            $n = (int) $fid;
+            if ($n > 0) {
+                $uniqueIds[$n] = true;
+            }
+        }
+        $uniqueIds = array_keys($uniqueIds);
+
+        if (count($uniqueIds) === 0) {
+            return [
+                'valid' => false,
+                'errorMessage' => 'Ningún fileId válido (enteros > 0)',
+                'payload' => [
+                    'repaired' => [],
+                    'failed' => [],
+                    'summary' => ['total' => 0, 'ok' => 0, 'fail' => 1]
+                ]
+            ];
+        }
+
+        $repaired = [];
+        $failed = [];
+
+        foreach ($uniqueIds as $idExpediente) {
+            $repairResult = $this->executeRepairClientRelation($ndDMS, $internalAgencyId, $idExpediente);
+            if (!empty($repairResult['success'])) {
+                $repaired[] = [
+                    'fileId' => $idExpediente,
+                    'idClient' => $repairResult['idClient'] ?? null,
+                    'message' => $repairResult['message'] ?? 'OK'
+                ];
+            } else {
+                $failed[] = [
+                    'fileId' => $idExpediente,
+                    'message' => $repairResult['message'] ?? 'Error'
+                ];
+            }
+        }
+
+        return [
+            'valid' => true,
+            'payload' => [
+                'ndCliente' => $ndDMS,
+                'repaired' => $repaired,
+                'failed' => $failed,
+                'summary' => [
+                    'total' => count($uniqueIds),
+                    'ok' => count($repaired),
+                    'fail' => count($failed)
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Resuelve Id interno de agencia con cache (muchos lotes con el mismo idAgency).
+     */
+    private function getAgencyInternalIdForBulk($agencyId): int
+    {
+        $key = (string) $agencyId;
+        if (!isset($this->repairBulkAgencyCache[$key])) {
+            $this->repairBulkAgencyCache[$key] = (int) $this->getAgencyInternalId($agencyId);
+        }
+
+        return $this->repairBulkAgencyCache[$key];
     }
 
     /**
@@ -1960,6 +2220,168 @@ class Files extends BaseController
                 'success' => false,
                 'message' => 'Error al comparar pedidos: ' . $e->getMessage(),
                 'data' => []
+            ])->setStatusCode(500);
+        }
+    }
+
+    /**
+     * Estatus de expedientes por lista de VIN o de pedidos (IdOrderTotal), misma lógica que la consulta SQL de consolidación.
+     * POST /api/files/bulk-status
+     * Body: { "mode": "vin"|"pedido", "items": ["..."], "agencyId": 123|null }
+     */
+    public function bulkStatusByList()
+    {
+        try {
+            $input = $this->request->getJSON(true);
+            if (!is_array($input)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Cuerpo JSON inválido',
+                    'data' => null,
+                ])->setStatusCode(400);
+            }
+
+            $mode = $input['mode'] ?? null;
+            if (!in_array($mode, ['vin', 'pedido'], true)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'mode debe ser "vin" o "pedido"',
+                    'data' => null,
+                ])->setStatusCode(400);
+            }
+
+            $itemsRaw = $input['items'] ?? null;
+            if (!is_array($itemsRaw)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'items debe ser un arreglo de cadenas',
+                    'data' => null,
+                ])->setStatusCode(400);
+            }
+
+            $agencyId = isset($input['agencyId']) ? (int) $input['agencyId'] : 0;
+            if ($agencyId < 0) {
+                $agencyId = 0;
+            }
+
+            $items = [];
+            foreach ($itemsRaw as $raw) {
+                $s = trim((string) $raw);
+                if ($s === '') {
+                    continue;
+                }
+                if ($mode === 'vin') {
+                    $s = strtoupper($s);
+                }
+                $items[] = $s;
+            }
+
+            $items = array_values(array_unique($items));
+
+            if (count($items) > 500) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Máximo 500 valores por consulta',
+                    'data' => null,
+                ])->setStatusCode(400);
+            }
+
+            if ($items === []) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Sin valores para consultar',
+                    'data' => [
+                        'rows' => [],
+                        'notFound' => [],
+                        'requested' => 0,
+                    ],
+                ]);
+            }
+
+            $placeholders = implode(',', array_fill(0, count($items), '?'));
+            $params = $items;
+
+            $agencyClause = '';
+            if ($agencyId > 0) {
+                $agencyClause = ' AND f.IdAgency = ?';
+                $params[] = $agencyId;
+            }
+
+            if ($mode === 'vin') {
+                $sql = "
+                    SELECT f.IdOrderTotal, o.VIN, fs.Name AS statusName, f.UpdateDate
+                    FROM File f
+                    INNER JOIN OrderByCar o ON f.IdOrder = o.Id
+                    INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                    WHERE o.VIN IN ({$placeholders})
+                    {$agencyClause}
+                    ORDER BY f.IdOrderTotal DESC
+                ";
+            } else {
+                $sql = "
+                    SELECT f.IdOrderTotal, o.VIN, fs.Name AS statusName, f.UpdateDate
+                    FROM File f
+                    INNER JOIN OrderByCar o ON f.IdOrder = o.Id
+                    INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                    WHERE TRIM(CAST(f.IdOrderTotal AS CHAR)) IN ({$placeholders})
+                    {$agencyClause}
+                    ORDER BY f.IdOrderTotal DESC
+                ";
+            }
+
+            $query = $this->db->query($sql, $params);
+            $rows = $query->getResultArray();
+
+            $outRows = [];
+            foreach ($rows as $row) {
+                $outRows[] = [
+                    'IdOrderTotal' => $row['IdOrderTotal'] ?? null,
+                    'VIN' => $row['VIN'] ?? null,
+                    'Name' => $row['statusName'] ?? null,
+                    'UpdateDate' => $row['UpdateDate'] ?? null,
+                ];
+            }
+
+            $foundSet = [];
+            if ($mode === 'vin') {
+                foreach ($rows as $row) {
+                    $vin = strtoupper(trim((string) ($row['VIN'] ?? '')));
+                    if ($vin !== '') {
+                        $foundSet[$vin] = true;
+                    }
+                }
+            } else {
+                foreach ($rows as $row) {
+                    $k = trim((string) ($row['IdOrderTotal'] ?? ''));
+                    if ($k !== '') {
+                        $foundSet[$k] = true;
+                    }
+                }
+            }
+
+            $notFound = [];
+            foreach ($items as $item) {
+                $checkKey = $mode === 'vin' ? strtoupper($item) : trim((string) $item);
+                if (!isset($foundSet[$checkKey])) {
+                    $notFound[] = $item;
+                }
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Consulta completada',
+                'data' => [
+                    'rows' => $outRows,
+                    'notFound' => $notFound,
+                    'requested' => count($items),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            error_log('Error en Files::bulkStatusByList: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al consultar estatus: ' . $e->getMessage(),
+                'data' => null,
             ])->setStatusCode(500);
         }
     }

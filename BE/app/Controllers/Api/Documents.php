@@ -313,6 +313,29 @@ class Documents extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // #region agent log
+            $dbfRow = $this->db->query('SELECT IdFile FROM DocumentByFile WHERE Id = ? AND Enabled = 1', [$idDocumentByFile])->getRow();
+            $pairConsistent = $dbfRow && (int) $dbfRow->IdFile === (int) $idFile;
+            @file_put_contents(
+                '/Users/jclimonero/Developer/SingleFile/.cursor/debug-a6e663.log',
+                json_encode([
+                    'sessionId'   => 'a6e663',
+                    'runId'       => 'pre-fix',
+                    'hypothesisId'=> 'H2',
+                    'location'    => 'Documents.php:getFileName',
+                    'message'     => 'document row vs idFile',
+                    'data'        => [
+                        'idFile'           => (int) $idFile,
+                        'idDocumentByFile' => (int) $idDocumentByFile,
+                        'dbfIdFile'        => $dbfRow ? (int) $dbfRow->IdFile : null,
+                        'pairConsistent'   => $pairConsistent,
+                    ],
+                    'timestamp'   => (int) round(microtime(true) * 1000),
+                ], JSON_UNESCAPED_UNICODE) . "\n",
+                FILE_APPEND
+            );
+            // #endregion agent log
+
             // Consultar la vista view_document_name
             $query = $this->db->query(
                 "SELECT file_name_original FROM view_document_name WHERE IdDocumentByFile = ? AND IdFile = ?",

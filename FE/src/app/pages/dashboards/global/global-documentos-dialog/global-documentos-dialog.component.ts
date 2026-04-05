@@ -194,6 +194,29 @@ export class GlobalDocumentosDialogComponent implements OnInit, OnDestroy {
     formData.append('idSingleFile', this.data.cliente.idFile.toString());
     formData.append('idDocumentFile', clave);
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/4fda4534-200c-49eb-9c6a-d6d4cbdb2379', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': 'a6e663'
+      },
+      body: JSON.stringify({
+        sessionId: 'a6e663',
+        runId: 'pre-fix',
+        hypothesisId: 'H3',
+        location: 'global-documentos-dialog.component.ts:uploadDocument',
+        message: 'vanguardia upload payload',
+        data: {
+          idSingleFile: this.data?.cliente?.idFile,
+          idDocumentFile: clave,
+          ndCliente: this.data?.cliente?.ndCliente ?? null
+        },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion agent log
+
     this.http
       .post<any>(environment.vanguardia.uploadApiUrl, formData)
       .pipe(takeUntil(this.destroy$))
