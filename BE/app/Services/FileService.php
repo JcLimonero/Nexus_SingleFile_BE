@@ -97,6 +97,14 @@ class FileService
                 throw new \Exception('Error al crear o encontrar usuario asesor');
             }
 
+            $idOrderTotalRaw = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+            $existingId = $this->findExistingFileIdByAgencyAndOrder((int) $internalAgencyId, $idOrderTotalRaw);
+            if ($existingId !== null) {
+                throw new \Exception(
+                    'Ya existe un expediente para este número de pedido en esta agencia (ID: ' . $existingId . ').'
+                );
+            }
+
             // Iniciar transacción
             $this->db->transStart();
 
@@ -150,6 +158,26 @@ class FileService
     }
 
     /**
+     * @return int|null id File si ya existe para IdAgency + número de pedido
+     */
+    private function findExistingFileIdByAgencyAndOrder(int $internalAgencyId, $idOrderTotal): ?int
+    {
+        if ($idOrderTotal === null || $idOrderTotal === '') {
+            return null;
+        }
+        $norm = trim((string) $idOrderTotal);
+        if ($norm === '') {
+            return null;
+        }
+        $row = $this->db->query(
+            'SELECT Id FROM `File` WHERE IdAgency = ? AND TRIM(CAST(IdOrderTotal AS CHAR)) = ? LIMIT 1',
+            [$internalAgencyId, $norm]
+        )->getRowArray();
+
+        return $row && isset($row['Id']) ? (int) $row['Id'] : null;
+    }
+
+    /**
      * Crear file en la base de datos
      */
     private function createFile($order, $process, $costumerType, $operationType, $clientId, $internalAgencyId, $userId, $sellerId)
@@ -159,6 +187,11 @@ class FileService
         error_log("=== CREANDO FILE CON SELLER ID: " . $sellerId . " ===");
         
         $idOrderTotal = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+
+        if ($this->findExistingFileIdByAgencyAndOrder((int) $internalAgencyId, $idOrderTotal) !== null) {
+            error_log('❌ FileService::createFile: duplicado IdAgency + IdOrderTotal');
+            return false;
+        }
         
         $fileData = [
             'IdClient' => $clientId,

@@ -1081,10 +1081,11 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Sin filtro de estatus: un pedido ya dado de alta en cualquier fase debe contar como existente
+    // para no ofrecer de nuevo un alta duplicada (antes solo Integración y permitía duplicar).
     let params = new HttpParams();
     params = params.set('agencyId', this.selectedAgency.IdAgency);
     params = params.set('ndCliente', this.selectedClient.ndCliente);
-    params = params.set('statusId', '1'); // ID para Integración
 
     this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params })
       .pipe(takeUntil(this.destroy$))
@@ -1221,7 +1222,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         maxHeight: 'min(90vh, 100dvh)',
         data: { 
           orders: orders, 
-          agencyId: this.selectedAgencyId, 
+          agencyId: this.selectedAgencyId,
+          /** Id DMS (Agency.IdAgency); obligatorio para GET by-agency-client que filtra por a.IdAgency */
+          agencyIdAgency: this.selectedAgency?.IdAgency ?? null,
           ndCliente: this.selectedClient?.ndCliente,
           existingOrders: existingOrders,
           ...(dialogExtras?.vanguardiaContext
@@ -1287,7 +1290,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         disableClose: false, // Permitir cerrar normalmente, pero se controlará en el componente
         data: { 
           orders: orders, 
-          agencyId: this.selectedAgencyId, 
+          agencyId: this.selectedAgencyId,
+          agencyIdAgency: this.selectedAgency?.IdAgency ?? null,
           ndCliente: this.selectedClient?.ndCliente,
           existingOrders: existingOrders,
           ...(dialogExtras?.vanguardiaContext

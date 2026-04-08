@@ -225,6 +225,24 @@
   padding: 16px 0;
 }
 
+/**
+ * mat-icon por defecto es 24×24px; si solo se sube font-size el glifo se recorta.
+ */
+.empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  line-height: 48px;
+  overflow: visible;
+}
+
+.empty-state {
+  overflow: visible;
+}
+
 /* Alinear botones con el buscador outline (centro vertical respecto al mat-form-field) */
 :host ::ng-deep .vanguardia-search-field.mat-mdc-form-field {
   margin-bottom: 0;

@@ -49,3 +49,23 @@ html, body {
   min-width: 0;
   max-width: 100%;
 }
+
+/**
+ * Iconos en estados vacíos (búsqueda sin resultados, etc.):
+ * mat-icon usa 24×24px por defecto; si solo se aumenta font-size el glifo se recorta.
+ */
+mat-icon.empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  line-height: 48px;
+  overflow: visible;
+}
+
+.client-search-empty-state {
+  overflow: visible;
+  padding-top: 4px;
+}

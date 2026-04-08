@@ -232,8 +232,8 @@ import { AuthService } from '../../../core/services/auth.service';
                 </div>
 
                 <!-- Sin pedidos nuevos -->
-                <div *ngIf="filteredOrders.length === 0" class="text-center py-8">
-                  <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
+                <div *ngIf="filteredOrders.length === 0" class="text-center py-8 empty-state">
+                  <mat-icon class="empty-state-icon text-gray-400 mb-2">check_circle</mat-icon>
                   <p class="text-gray-500">Todos los pedidos de Vanguardia ya existen en el sistema</p>
                   <p class="text-sm text-gray-400 mt-2">No hay pedidos nuevos para agregar</p>
                 </div>
@@ -380,8 +380,8 @@ import { AuthService } from '../../../core/services/auth.service';
                 </div>
 
                 <!-- Sin pedidos existentes -->
-                <div *ngIf="filteredExistingOrders.length === 0" class="text-center py-8">
-                  <mat-icon class="text-gray-400 mb-2" style="font-size: 40px;">check_circle</mat-icon>
+                <div *ngIf="filteredExistingOrders.length === 0" class="text-center py-8 empty-state">
+                  <mat-icon class="empty-state-icon text-gray-400 mb-2">check_circle</mat-icon>
                   <p class="text-gray-500">No hay pedidos existentes para mostrar</p>
                 </div>
               </div>
@@ -628,7 +628,10 @@ export class OrderSelectionDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<OrderSelectionDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: {
       orders: any[];
+      /** Id interno Agency.Id (File.IdAgency, configuraciones, etc.) */
       agencyId: number;
+      /** Id DMS Agency.IdAgency — el GET /files/by-agency-client filtra por este valor */
+      agencyIdAgency?: number | string | null;
       ndCliente?: string;
       existingOrders?: any[];
       vanguardiaContext?: { customerDMS: string; connectionstring: string };
@@ -811,8 +814,11 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   private fetchExistingFilesAndApplyFilter(): void {
     let params = new HttpParams();
-    params = params.set('agencyId', this.data.agencyId.toString());
-    params = params.set('statusId', '1');
+    const agencyForListApi =
+      this.data.agencyIdAgency != null && String(this.data.agencyIdAgency).trim() !== ''
+        ? String(this.data.agencyIdAgency).trim()
+        : String(this.data.agencyId);
+    params = params.set('agencyId', agencyForListApi);
     params = params.set('ndCliente', this.data.ndCliente || '');
 
     this.http.get<any>(`${environment.apiBaseUrl}/api/files/by-agency-client`, { params }).subscribe({
@@ -861,19 +867,26 @@ export class OrderSelectionDialogComponent implements OnInit {
       });
   }
 
+  private normalizeOrderDms(value: unknown): string {
+    return (value ?? '').toString().trim().toLowerCase();
+  }
+
   private filterNewOrders(existingFiles: any[]): any[] {
     // Crear un Set con los order_dms existentes para búsqueda rápida
     const existingOrderDms = new Set(
-      existingFiles.map(file => {
-        const orderDms = file.order_dms || file.numeroPedido || '';
-        return orderDms?.toString().toLowerCase();
-      }).filter(Boolean)
+      existingFiles.map((file) => {
+        const orderDms = file.order_dms ?? file.numeroPedido ?? '';
+        const key = this.normalizeOrderDms(orderDms);
+        return key || null;
+      }).filter((k): k is string => !!k)
     );
-    
+
     // Filtrar pedidos de Vanguardia que no existen en la tabla de file
-    const newOrders = this.originalOrders.filter(order => {
-      const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
-      return orderDms && !existingOrderDms.has(orderDms);
+    const newOrders = this.originalOrders.filter((order) => {
+      const orderDms = this.normalizeOrderDms(
+        order.order_dms ?? order.orderDMS ?? order.numeroPedido
+      );
+      return orderDms.length > 0 && !existingOrderDms.has(orderDms);
     });
     
     // Eliminar duplicados basándose en order_dms (o order_dms + vin si ambos están presentes)
@@ -882,7 +895,9 @@ export class OrderSelectionDialogComponent implements OnInit {
     const deduplicatedOrders: any[] = [];
     
     for (const order of newOrders) {
-      const orderDms = (order.order_dms || order.orderDMS || order.numeroPedido || '').toString().toLowerCase();
+      const orderDms = this.normalizeOrderDms(
+        order.order_dms ?? order.orderDMS ?? order.numeroPedido
+      );
       const vin = (order.vin || order.VIN || order.Vin || '').toString().toLowerCase();
       
       // Crear una clave única: order_dms + vin (si ambos existen) o solo order_dms
@@ -1321,6 +1336,9 @@ export class OrderSelectionDialogComponent implements OnInit {
   }
 
   private createFileFromVanguardia(): void {
+    if (this.creating) {
+      return;
+    }
 
     // Activar estado de loading
     this.creating = true;
@@ -1356,11 +1374,19 @@ export class OrderSelectionDialogComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.creating = false; // Desactivar loading en caso de error
-
+          this.creating = false;
+          const body = error.error;
+          const msg =
+            body?.message ||
+            (error.status === 409
+              ? 'Ya existe un expediente para este pedido en la agencia.'
+              : 'Error de conexión al crear el expediente');
+          const existingFileId = body?.data?.existingFileId ?? body?.existingFileId;
           this.dialogRef.close({
             success: false,
-            message: error.error?.message || 'Error de conexión al crear el expediente'
+            message: existingFileId ? `${msg} (Expediente: ${existingFileId})` : msg,
+            existingFileId: existingFileId ?? undefined,
+            duplicate: body?.data?.duplicate === true || error.status === 409
           });
         }
       });

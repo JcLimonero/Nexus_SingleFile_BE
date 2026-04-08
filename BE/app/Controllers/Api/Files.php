@@ -602,6 +602,19 @@ class Files extends BaseController
                 ])->setStatusCode(500);
             }
 
+            $idOrderTotalRaw = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+            $existingFileId = $this->findExistingFileIdByAgencyAndOrder($internalAgencyId, $idOrderTotalRaw);
+            if ($existingFileId !== null) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Ya existe un expediente para este número de pedido en esta agencia. No se puede crear otro.',
+                    'data' => [
+                        'existingFileId' => $existingFileId,
+                        'duplicate' => true,
+                    ],
+                ])->setStatusCode(409);
+            }
+
             // Iniciar transacción
             $this->db->transStart();
 
@@ -623,9 +636,20 @@ class Files extends BaseController
 
             if (!$fileId) {
                 $this->db->transRollback();
+                $dupAfterRace = $this->findExistingFileIdByAgencyAndOrder($internalAgencyId, $idOrderTotalRaw);
+                if ($dupAfterRace !== null) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Ya existe un expediente para este número de pedido en esta agencia. No se puede crear otro.',
+                        'data' => [
+                            'existingFileId' => $dupAfterRace,
+                            'duplicate' => true,
+                        ],
+                    ])->setStatusCode(409);
+                }
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Error al crear el file'
+                    'message' => 'Error al crear el file',
                 ])->setStatusCode(500);
             }
 
@@ -995,6 +1019,30 @@ class Files extends BaseController
     }
 
     /**
+     * Evita duplicar expedientes: un mismo pedido DMS (IdOrderTotal) no debe repetirse por agencia.
+     *
+     * @param int         $internalAgencyId Agency.Id
+     * @param mixed       $idOrderTotal     Número de pedido tal como viene del DMS
+     * @return int|null id de File si ya existe
+     */
+    private function findExistingFileIdByAgencyAndOrder(int $internalAgencyId, $idOrderTotal): ?int
+    {
+        if ($idOrderTotal === null || $idOrderTotal === '') {
+            return null;
+        }
+        $norm = trim((string) $idOrderTotal);
+        if ($norm === '') {
+            return null;
+        }
+        $row = $this->db->query(
+            'SELECT Id FROM `File` WHERE IdAgency = ? AND TRIM(CAST(IdOrderTotal AS CHAR)) = ? LIMIT 1',
+            [$internalAgencyId, $norm]
+        )->getRowArray();
+
+        return $row && isset($row['Id']) ? (int) $row['Id'] : null;
+    }
+
+    /**
      * Crear file en la base de datos
      */
     private function createFile($order, $process, $costumerType, $operationType, $clientId, $internalAgencyId, $userId, $sellerId, $orderByCarId = null)
@@ -1011,6 +1059,12 @@ class Files extends BaseController
         error_log("Siguiente ID disponible: " . $nextId);
         
         $idOrderTotal = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+
+        $dupId = $this->findExistingFileIdByAgencyAndOrder((int) $internalAgencyId, $idOrderTotal);
+        if ($dupId !== null) {
+            error_log("❌ Duplicado bloqueado en createFile: ya existe File.Id={$dupId} para IdAgency={$internalAgencyId} pedido={$idOrderTotal}");
+            return false;
+        }
         
         $fileData = [
             'Id' => $nextId, // Especificar el ID explícitamente
