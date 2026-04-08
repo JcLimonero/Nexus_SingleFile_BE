@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 import { PanelSoporteService } from './panel-soporte.service';
 import { ValidacionService } from '../validacion/validacion.service';
@@ -53,7 +54,8 @@ import {
     MatInputModule,
     MatDividerModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatExpansionModule
   ],
   templateUrl: './panel-soporte.component.html',
   styleUrl: './panel-soporte.component.scss',
@@ -120,6 +122,9 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     nombreAgencia: string;
     ds: MatTableDataSource<Record<string, unknown>>;
   }[] = [];
+
+  /** Reparación File.IdClient desde nd de factura Vanguardia */
+  loadingRelacionCliente = false;
 
   constructor(
     private panelSoporte: PanelSoporteService,
@@ -304,6 +309,33 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     return v === true || v === 1 || v === '1';
   }
 
+  /**
+   * Incidencias en un bloque de diagnóstico (validación, Vanguardia o acción de reparación).
+   * Usado en cabeceras colapsadas multi-agencia.
+   */
+  diagBloqueTieneProblemas(d: unknown): boolean {
+    if (!d || typeof d !== 'object') {
+      return false;
+    }
+    const p = d as Record<string, unknown>;
+    const val = p['validacion'] as Record<string, unknown> | undefined;
+    if (val && val['apareceriaEnListadoValidacion'] === false) {
+      return true;
+    }
+    const vgd = p['vanguardia'] as Record<string, unknown> | undefined;
+    if (vgd && vgd['ok'] === false) {
+      return true;
+    }
+    if (this.puedeRelacionarClienteFactura(d)) {
+      return true;
+    }
+    return false;
+  }
+
+  diagGrupoTieneProblemas(grp: { expedientes: Record<string, unknown>[] }): boolean {
+    return grp.expedientes.some((e) => this.diagBloqueTieneProblemas(e));
+  }
+
   /** Objeto `factura` de Vanguardia para la plantilla de diagnóstico */
   vanguardiaFactura(d: unknown): Record<string, unknown> | null {
     if (!d || typeof d !== 'object') {
@@ -315,6 +347,90 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     }
     const f = vgd['factura'];
     return f && typeof f === 'object' ? (f as Record<string, unknown>) : null;
+  }
+
+  /**
+   * Expediente en portal sin fila en Client, pero la factura DMS ya trae el nd correcto:
+   * se puede reparar con repair-client-relation (view_client_relations).
+   */
+  puedeRelacionarClienteFactura(d: unknown): boolean {
+    if (!d || typeof d !== 'object') {
+      return false;
+    }
+    const p = d as Record<string, unknown>;
+    const val = p['validacion'] as Record<string, unknown> | undefined;
+    if (!val || val['existeClient'] !== false) {
+      return false;
+    }
+    const motivos = (val['motivosSiNoAparece'] as string[] | undefined) ?? [];
+    const motivoCliente = motivos.some((m) =>
+      m.includes('No existe registro en Client para File.IdClient')
+    );
+    if (!motivoCliente) {
+      return false;
+    }
+    const vf = this.vanguardiaFactura(d);
+    const nd = vf?.['clienteDms'];
+    if (nd === null || nd === undefined || String(nd).trim() === '') {
+      return false;
+    }
+    const exp = p['expediente'] as Record<string, unknown> | undefined;
+    return exp != null && exp['id'] != null && exp['idAgency'] != null;
+  }
+
+  ndClienteFacturaVanguardia(d: unknown): string {
+    const vf = this.vanguardiaFactura(d);
+    if (!vf) {
+      return '';
+    }
+    const nd = vf['clienteDms'];
+    return nd !== null && nd !== undefined ? String(nd).trim() : '';
+  }
+
+  relacionarPedidoConClienteFactura(d: Record<string, unknown>): void {
+    const nd = this.ndClienteFacturaVanguardia(d);
+    const exp = d['expediente'] as Record<string, unknown> | undefined;
+    const idFile = exp != null ? Number(exp['id']) : 0;
+    const idAg = exp != null ? Number(exp['idAgency']) : 0;
+    if (!nd || !idFile || !idAg) {
+      return;
+    }
+    const ok = confirm(
+      `¿Relacionar el expediente #${idFile} con el cliente DMS ${nd}?\n\n` +
+        'Se usará la misma lógica que «reparar relación»: se buscará el Client.Id en view_client_relations ' +
+        'para este nd y agencia, y se actualizará File.IdClient.'
+    );
+    if (!ok) {
+      return;
+    }
+    this.loadingRelacionCliente = true;
+    this.cdr.markForCheck();
+    this.panelSoporte
+      .repairClientRelation({ ndDMS: nd, idAgency: idAg, idExpediente: idFile })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.loadingRelacionCliente = false;
+          if (res?.success) {
+            this.snack.open(res?.message || 'Relación de cliente actualizada', 'Cerrar', { duration: 5000 });
+            if (this.diagPedidoStr.trim() !== '') {
+              this.ejecutarDiagnostico();
+            } else {
+              this.refrescarDiagnosticoPorIdFile(idFile);
+            }
+          } else {
+            this.snack.open(res?.message || 'No se pudo reparar la relación', 'Cerrar', { duration: 7000 });
+            this.cdr.markForCheck();
+          }
+        },
+        error: (err) => {
+          this.loadingRelacionCliente = false;
+          const msg =
+            err?.error?.message || err?.message || 'Error al reparar la relación (¿permisos o sesión?)';
+          this.snack.open(msg, 'Cerrar', { duration: 8000 });
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   /** Abre el mismo flujo que Validación: confirmar y DELETE clients-validation/eliminar-pedido */

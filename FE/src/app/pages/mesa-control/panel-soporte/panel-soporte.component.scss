@@ -465,6 +465,36 @@
   margin: 0;
 }
 
+.ps-divider-spaced {
+  margin: 1rem 0 !important;
+}
+
+.ps-repair-from-vgd {
+  margin-top: 0.5rem;
+}
+
+.ps-repair-intro,
+.ps-repair-hint {
+  font-size: clamp(0.85rem, 2.5vw, 0.92rem);
+  line-height: 1.5;
+  color: #334155;
+  margin: 0 0 0.5rem;
+}
+
+.ps-repair-hint {
+  color: #64748b;
+  font-size: clamp(0.8rem, 2.3vw, 0.88rem);
+  margin-bottom: 0.75rem;
+}
+
+.ps-repair-btn {
+  min-height: 44px;
+  mat-icon,
+  mat-spinner {
+    margin-right: 0.35rem;
+  }
+}
+
 /* —— Lista clave-valor —— */
 .ps-kv {
   margin: 0;
@@ -715,23 +745,69 @@
   margin: 0 0 0.75rem;
 }
 
-.ps-diag-agency-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+.ps-diag-agency-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
-  &:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
+.ps-diag-agency-panel {
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+.panel-soporte ::ng-deep .ps-diag-agency-header--warn.mat-expansion-panel-header,
+.panel-soporte ::ng-deep .ps-diag-agency-header--warn.mat-mdc-expansion-panel-header {
+  border-inline-start: 3px solid #f59e0b;
+}
+
+.ps-diag-agency-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.ps-diag-agency-warn-icon {
+  flex-shrink: 0;
+  font-size: 1.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  color: #d97706;
+}
+
+.ps-diag-grupo-warn-tag {
+  display: inline-block;
+  margin-right: 0.45rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9a3412;
+  background: #ffedd5;
+  border: 1px solid #fdba74;
+  vertical-align: middle;
+}
+
+.panel-soporte ::ng-deep .ps-diag-agency-panel .mat-expansion-panel-content .mat-expansion-panel-body {
+  padding: 0 1rem 1rem;
+}
+
+.ps-diag-agency-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .ps-diag-agency-title {
-  font-size: clamp(1rem, 2.8vw, 1.15rem);
+  font-size: clamp(0.95rem, 2.6vw, 1.05rem);
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 0.75rem;
+  margin: 0;
   font-family: inherit;
 }
 

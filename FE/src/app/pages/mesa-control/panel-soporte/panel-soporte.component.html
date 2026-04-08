@@ -349,6 +349,30 @@
                   <ul *ngIf="$any(d).validacion?.recomendaciones?.length" class="ps-rec-list">
                     <li *ngFor="let rec of $any(d).validacion?.recomendaciones">{{ rec }}</li>
                   </ul>
+
+                  <div *ngIf="puedeRelacionarClienteFactura(d)" class="ps-repair-from-vgd">
+                    <mat-divider class="ps-divider-spaced"></mat-divider>
+                    <p class="ps-repair-intro">
+                      El pedido existe en el portal pero <strong>no hay fila en Client</strong> para el
+                      <code>File.IdClient</code> actual. La factura DMS ya indica el cliente correcto:
+                      <strong class="ps-mono">nd {{ ndClienteFacturaVanguardia(d) }}</strong>.
+                    </p>
+                    <p class="ps-repair-hint">
+                      Puede enlazar este expediente al <code>Client.Id</code> que corresponde a ese nd en esta agencia
+                      (según <code>view_client_relations</code>), igual que la reparación manual de integración.
+                    </p>
+                    <button
+                      mat-flat-button
+                      color="accent"
+                      type="button"
+                      class="ps-repair-btn"
+                      [disabled]="loadingRelacionCliente"
+                      (click)="relacionarPedidoConClienteFactura($any(d))">
+                      <mat-icon *ngIf="!loadingRelacionCliente">link</mat-icon>
+                      <mat-spinner *ngIf="loadingRelacionCliente" diameter="20" class="inline-block align-middle"></mat-spinner>
+                      <span>{{ loadingRelacionCliente ? 'Actualizando…' : 'Relacionar pedido con cliente (nd factura)' }}</span>
+                    </button>
+                  </div>
                 </mat-card-content>
               </mat-card>
             </div>
@@ -359,16 +383,43 @@
           </ng-container>
 
           <div *ngIf="diagAgrupado?.length" class="ps-diag-multi">
-            <p class="ps-diag-multi-hint">Un bloque por expediente, agrupado por agencia.</p>
-            <section *ngFor="let grp of diagAgrupado" class="ps-diag-agency-section">
-              <h2 class="ps-diag-agency-title">
-                {{ grp.nombreAgencia }}
-                <span class="ps-diag-agency-id">({{ grp.idAgencia }})</span>
-              </h2>
-              <ng-container *ngFor="let bloque of grp.expedientes">
-                <ng-container *ngTemplateOutlet="diagPanel; context: { $implicit: bloque }"></ng-container>
-              </ng-container>
-            </section>
+            <p class="ps-diag-multi-hint">
+              Un bloque por expediente, agrupado por agencia. Las tarjetas empiezan plegadas; ábralas para ver el
+              detalle.
+            </p>
+            <mat-accordion class="ps-diag-agency-accordion" multi>
+              <mat-expansion-panel *ngFor="let grp of diagAgrupado" class="ps-diag-agency-panel">
+                <mat-expansion-panel-header
+                  [class.ps-diag-agency-header--warn]="diagGrupoTieneProblemas(grp)">
+                  <mat-panel-title>
+                    <span class="ps-diag-agency-title-row">
+                      <mat-icon
+                        *ngIf="diagGrupoTieneProblemas(grp)"
+                        class="ps-diag-agency-warn-icon"
+                        matTooltip="Hay incidencias en uno o más expedientes de este grupo (validación, facturación o relación cliente)."
+                        matTooltipShowDelay="200"
+                        >warning</mat-icon
+                      >
+                      <span class="ps-diag-agency-title">
+                        {{ grp.nombreAgencia }}
+                        <span class="ps-diag-agency-id">({{ grp.idAgencia }})</span>
+                      </span>
+                    </span>
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    <span *ngIf="diagGrupoTieneProblemas(grp)" class="ps-diag-grupo-warn-tag"
+                      >Incidencias</span
+                    >
+                    <span>{{ grp.expedientes.length }} expediente(s)</span>
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                <div class="ps-diag-agency-panel-body">
+                  <ng-container *ngFor="let bloque of grp.expedientes">
+                    <ng-container *ngTemplateOutlet="diagPanel; context: { $implicit: bloque }"></ng-container>
+                  </ng-container>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
           </div>
         </div>
       </mat-tab>

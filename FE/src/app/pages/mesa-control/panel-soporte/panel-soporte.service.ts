@@ -72,4 +72,20 @@ export class PanelSoporteService {
     }
     return this.http.get(`${this.base}/analisis-cliente-dms`, { params });
   }
+
+  /**
+   * POST /api/files/repair-client-relation — enlaza File.IdClient según view_client_relations (nd + agencia).
+   */
+  repairClientRelation(body: {
+    ndDMS: string;
+    idAgency: number;
+    idExpediente: number;
+  }): Observable<unknown> {
+    const url = `${environment.apiBaseUrl}/api/files/repair-client-relation`;
+    return this.http.post(url, {
+      ndDMS: body.ndDMS.trim(),
+      idAgency: body.idAgency,
+      idExpediente: body.idExpediente
+    });
+  }
 }
