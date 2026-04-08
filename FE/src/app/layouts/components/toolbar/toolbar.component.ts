@@ -171,6 +171,8 @@ export class ToolbarComponent implements OnInit {
     if (url.includes('/mesa-control')) {
       if (url.includes('/validacion')) {
         return 'Validación';
+      } else if (url.includes('/panel-soporte')) {
+        return 'Panel de soporte';
       } else if (url.includes('/consolidacion-dms')) {
         return 'Consolidación DMS';
       } else if (url.includes('/dashboard')) {

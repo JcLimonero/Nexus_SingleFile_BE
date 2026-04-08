@@ -1,0 +1,676 @@
+<div class="panel-soporte">
+  <div class="ps-container">
+    <header class="ps-header">
+      <h1 class="ps-title">Panel de soporte</h1>
+      <p class="ps-subtitle">
+       
+      </p>
+    </header>
+
+    <mat-card class="ps-card ps-filters" appearance="outlined">
+      <mat-card-content>
+        <span class="ps-label">Filtro global (listados, diagnóstico de pedido y análisis cliente)</span>
+        <mat-form-field appearance="outline" class="ps-field" subscriptSizing="dynamic">
+          <mat-label>Agencia (opcional)</mat-label>
+          <mat-select
+            [(ngModel)]="selectedAgencyId"
+            [disabled]="loadingAgencias || agencias.length === 0">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option *ngIf="loadingAgencias" [value]="null" disabled>
+              <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+              Cargando agencias...
+            </mat-option>
+            <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
+              {{ agencia.Name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-tab-group
+      [(selectedIndex)]="tabSoporteIndex"
+      animationDuration="200ms"
+      class="ps-tab-group"
+      mat-stretch-tabs="false">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="ps-tab-label">Diagnóstico de Pedidos</span>
+        </ng-template>
+        <div class="ps-tab-body ps-tab-body--diag">
+          <p class="ps-intro">
+            Consulta por <strong>pedido DMS (IdOrderTotal)</strong>. Con agencia <strong>«Todas»</strong> en el filtro
+            global se busca en <strong>todas las agencias</strong> y el resultado se muestra agrupado. Si eliges una
+            agencia, se acota a esa sola.
+          </p>
+
+          <div class="ps-diag-fields">
+            <mat-form-field appearance="outline" class="ps-field" subscriptSizing="dynamic">
+              <mat-label>Pedido (IdOrderTotal)</mat-label>
+              <input matInput inputmode="numeric" [(ngModel)]="diagPedidoStr" placeholder="Número de pedido DMS" />
+            </mat-form-field>
+          </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            class="ps-btn-primary ps-btn-primary--diag"
+            [disabled]="loadingDiag"
+            (click)="ejecutarDiagnostico()">
+            <mat-icon *ngIf="!loadingDiag">travel_explore</mat-icon>
+            <mat-spinner *ngIf="loadingDiag" diameter="22" class="inline-block align-middle"></mat-spinner>
+            <span>{{ loadingDiag ? 'Consultando…' : 'Consultar' }}</span>
+          </button>
+
+          <mat-card *ngIf="diagAmbiguo?.candidatos?.length" class="ps-card ps-ambiguo" appearance="outlined">
+            <mat-card-header>
+              <mat-card-title class="ps-card-title-sm">Varios expedientes coinciden</mat-card-title>
+              <mat-card-subtitle>Elige uno para ver el diagnóstico completo</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="ps-ambiguo-list">
+                <div *ngFor="let c of diagAmbiguo!.candidatos" class="ps-ambiguo-item">
+                  <div class="ps-ambiguo-meta">
+                    <span class="ps-ambiguo-id">#{{ c.id_file }}</span>
+                    <span class="ps-ambiguo-estado">{{ c.estado }}</span>
+                  </div>
+                  <button mat-stroked-button color="primary" class="ps-ambiguo-btn" (click)="usarCandidato(c.id_file)">
+                    Diagnosticar
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <ng-template #diagPanel let-d>
+            <div class="ps-diag-actions">
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                class="ps-action-btn"
+                (click)="abrirCambiarFase(d)">
+                <mat-icon>swap_horiz</mat-icon>
+                Cambiar fase
+              </button>
+              <button
+                mat-stroked-button
+                color="warn"
+                type="button"
+                class="ps-action-btn"
+                (click)="abrirEliminarPedido(d)">
+                <mat-icon>delete_forever</mat-icon>
+                Eliminar pedido
+              </button>
+            </div>
+            <div class="ps-diag-grid">
+              <mat-card class="ps-card ps-diag-card" appearance="outlined">
+                <mat-card-header class="ps-diag-card-head">
+                  <div mat-card-avatar class="ps-avatar ps-avatar--exp">
+                    <mat-icon>folder_open</mat-icon>
+                  </div>
+                  <mat-card-title>Expediente</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <dl class="ps-kv">
+                    <div class="ps-kv-row">
+                      <dt>Id</dt>
+                      <dd>{{ $any(d).expediente?.id }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Pedido (IdOrderTotal)</dt>
+                      <dd>{{ $any(d).expediente?.idOrderTotal }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Agencia</dt>
+                      <dd>{{ $any(d).expediente?.agencia }} ({{ $any(d).expediente?.idAgency }})</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Proceso</dt>
+                      <dd>
+                        {{ $any(d).expediente?.proceso }}
+                        <span class="ps-badge" [class.ps-badge--ok]="$any(d).expediente?.procesoHabilitado" [class.ps-badge--no]="!$any(d).expediente?.procesoHabilitado">
+                          {{ $any(d).expediente?.procesoHabilitado ? 'Habilitado' : 'No habilitado' }}
+                        </span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Estado</dt>
+                      <dd>{{ $any(d).expediente?.estado }} ({{ $any(d).expediente?.idEstado }})</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Alta</dt>
+                      <dd>{{ $any(d).expediente?.registrationDate || '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Actualización</dt>
+                      <dd>{{ $any(d).expediente?.updateDate || '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Agenda</dt>
+                      <dd>{{ $any(d).expediente?.agendDate || '—' }}</dd>
+                    </div>
+                  </dl>
+                  <h3 class="ps-subheading">Mismo pedido + agencia</h3>
+                  <ul class="ps-bullets">
+                    <li *ngFor="let dup of $any(d).expediente?.duplicadosMismoPedidoAgencia">
+                      Id {{ dup.id_file }} — {{ dup.estado }} (estado {{ dup.IdCurrentState }})
+                    </li>
+                  </ul>
+                  <p *ngIf="!$any(d).expediente?.duplicadosMismoPedidoAgencia?.length" class="ps-muted">
+                    Solo este expediente.
+                  </p>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card
+                *ngIf="$any(d).vanguardia"
+                class="ps-card ps-diag-card ps-diag-card--wide"
+                appearance="outlined">
+                <mat-card-header class="ps-diag-card-head">
+                  <div mat-card-avatar class="ps-avatar ps-avatar--vgd">
+                    <mat-icon>receipt_long</mat-icon>
+                  </div>
+                  <mat-card-title>Facturación DMS (Vanguardia)</mat-card-title>
+                  <mat-card-subtitle>API invoice por pedido</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p *ngIf="!$any(d).vanguardia?.ok" class="ps-warn-text ps-line-tight">
+                    {{ $any(d).vanguardia?.error || 'No se pudo consultar Vanguardia.' }}
+                  </p>
+                  <ul
+                    *ngIf="!$any(d).vanguardia?.ok && $any($any(d).vanguardia?.recomendaciones)?.length"
+                    class="ps-rec-list">
+                    <li *ngFor="let rv of $any(d).vanguardia?.recomendaciones">{{ rv }}</li>
+                  </ul>
+                  <dl *ngIf="vanguardiaFactura(d) as vf" class="ps-kv">
+                    <div class="ps-kv-row">
+                      <dt>Agencia</dt>
+                      <dd>
+                        {{ vf['agencia'] || '—' }}
+                        <span class="ps-muted" *ngIf="vf['idAgencia'] != null">(id {{ vf['idAgencia'] }})</span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>N.º orden (DMS)</dt>
+                      <dd class="ps-mono">{{ vf['numeroOrden'] ?? '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Cliente DMS (nd)</dt>
+                      <dd class="ps-mono">{{ vf['clienteDms'] ?? '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>VIN</dt>
+                      <dd class="ps-mono">{{ vf['vin'] ?? '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row" *ngIf="vf['estadoFactura'] || vf['billingDate']">
+                      <dt>Estado / facturación</dt>
+                      <dd>
+                        {{ vf['estadoFactura'] || '—' }}
+                        <span *ngIf="vf['billingDate']" class="ps-muted"> — {{ vf['billingDate'] }}</span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row" *ngIf="vf['invoiceReference']">
+                      <dt>Referencia factura</dt>
+                      <dd class="ps-mono">{{ vf['invoiceReference'] }}</dd>
+                    </div>
+                  </dl>
+                  <p
+                    *ngIf="$any(d).vanguardia?.ok && !vanguardiaFactura(d)"
+                    class="ps-muted ps-line-tight">
+                    No hay factura en Vanguardia para este pedido y agencia (o la API no devolvió coincidencia).
+                  </p>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="ps-card ps-diag-card" appearance="outlined">
+                <mat-card-header class="ps-diag-card-head">
+                  <div mat-card-avatar class="ps-avatar ps-avatar--cli">
+                    <mat-icon>person</mat-icon>
+                  </div>
+                  <mat-card-title>Cliente</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <dl class="ps-kv">
+                    <div class="ps-kv-row">
+                      <dt>File.IdClient</dt>
+                      <dd>{{ $any(d).cliente?.idClient }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Existe en Client</dt>
+                      <dd>
+                        <span class="ps-badge" [class.ps-badge--ok]="$any(d).cliente?.existeClient" [class.ps-badge--no]="!$any(d).cliente?.existeClient">
+                          {{ $any(d).cliente?.existeClient ? 'Sí' : 'No' }}
+                        </span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Nombre</dt>
+                      <dd>{{ $any(d).cliente?.nombre || '—' }}</dd>
+                    </div>
+                  </dl>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card class="ps-card ps-diag-card ps-diag-card--wide" appearance="outlined">
+                <mat-card-header class="ps-diag-card-head">
+                  <div mat-card-avatar class="ps-avatar ps-avatar--rel">
+                    <mat-icon>link</mat-icon>
+                  </div>
+                  <mat-card-title>Relación cliente–agencia</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <dl class="ps-kv">
+                    <div class="ps-kv-row">
+                      <dt>HeaderClient</dt>
+                      <dd>
+                        {{
+                          $any(d).relacion?.existeHeaderClient
+                            ? 'Sí (id ' + $any(d).relacion?.idHeaderClient + ')'
+                            : 'No'
+                        }}
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>CTR para agencia del expediente</dt>
+                      <dd>
+                        <span class="ps-badge" [class.ps-badge--ok]="$any(d).relacion?.existeClientTotalRelationAgencia" [class.ps-badge--no]="!$any(d).relacion?.existeClientTotalRelationAgencia">
+                          {{ $any(d).relacion?.existeClientTotalRelationAgencia ? 'Sí' : 'No' }}
+                        </span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row" *ngIf="$any(d).relacion?.ndEnRelacionAgencia != null">
+                      <dt>Nd (IdTotalDealer)</dt>
+                      <dd class="ps-mono">{{ $any(d).relacion?.ndEnRelacionAgencia }}</dd>
+                    </div>
+                  </dl>
+                  <h3 class="ps-subheading">Todas las relaciones CTR (HeaderClient)</h3>
+                  <div class="ps-mini-table-wrap">
+                    <table class="ps-mini-table" *ngIf="$any(d).relacion?.todasRelacionesCliente?.length">
+                      <thead>
+                        <tr>
+                          <th>Agencia</th>
+                          <th>IdTotalDealer (nd)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let r of $any(d).relacion?.todasRelacionesCliente">
+                          <td>{{ r.nombre_agencia }} ({{ r.IdAgency }})</td>
+                          <td class="ps-mono">{{ r.IdTotalDealer }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <p *ngIf="!$any(d).relacion?.todasRelacionesCliente?.length" class="ps-muted">Ninguna.</p>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+
+              <mat-card
+                class="ps-card ps-diag-card ps-diag-card--wide ps-diag-card--valid"
+                [class.ps-diag-card--valid-ok]="$any(d).validacion?.apareceriaEnListadoValidacion"
+                [class.ps-diag-card--valid-warn]="!$any(d).validacion?.apareceriaEnListadoValidacion"
+                appearance="outlined">
+                <mat-card-header class="ps-diag-card-head">
+                  <div mat-card-avatar class="ps-avatar" [class.ps-avatar--ok]="$any(d).validacion?.apareceriaEnListadoValidacion" [class.ps-avatar--warn]="!$any(d).validacion?.apareceriaEnListadoValidacion">
+                    <mat-icon>{{ $any(d).validacion?.apareceriaEnListadoValidacion ? 'check_circle' : 'warning' }}</mat-icon>
+                  </div>
+                  <mat-card-title>Validación</mat-card-title>
+                  <mat-card-subtitle>¿Aparecería en el listado?</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="ps-chip-row">
+                    <span class="diag-chip" [class.ok]="diagBool($any(d).validacion?.procesoHabilitado)" [class.no]="!diagBool($any(d).validacion?.procesoHabilitado)">
+                      Proceso habilitado
+                    </span>
+                    <span class="diag-chip" [class.ok]="diagBool($any(d).validacion?.noCancelado)" [class.no]="!diagBool($any(d).validacion?.noCancelado)">
+                      No cancelado
+                    </span>
+                    <span class="diag-chip" [class.ok]="diagBool($any(d).validacion?.existeClient)" [class.no]="!diagBool($any(d).validacion?.existeClient)">
+                      Existe Client
+                    </span>
+                    <span class="diag-chip" [class.ok]="diagBool($any(d).validacion?.joinHeaderClientOk)" [class.no]="!diagBool($any(d).validacion?.joinHeaderClientOk)">
+                      HeaderClient
+                    </span>
+                    <span class="diag-chip" [class.ok]="diagBool($any(d).validacion?.existeRelacionClienteAgencia)" [class.no]="!diagBool($any(d).validacion?.existeRelacionClienteAgencia)">
+                      CTR agencia
+                    </span>
+                  </div>
+                  <p class="ps-valid-summary" [class.ps-valid-summary--ok]="$any(d).validacion?.apareceriaEnListadoValidacion" [class.ps-valid-summary--warn]="!$any(d).validacion?.apareceriaEnListadoValidacion">
+                    {{
+                      $any(d).validacion?.apareceriaEnListadoValidacion
+                        ? 'Sí: cumple el listado de validación (proceso activo, no cancelado, cadena Client → HeaderClient → CTR en agencia).'
+                        : 'No aparecería en el listado con los filtros habituales (sin cancelados).'
+                    }}
+                  </p>
+                  <ul *ngIf="$any(d).validacion?.motivosSiNoAparece?.length" class="ps-warn-list">
+                    <li *ngFor="let m of $any(d).validacion?.motivosSiNoAparece">{{ m }}</li>
+                  </ul>
+                  <h4 *ngIf="$any(d).validacion?.recomendaciones?.length" class="ps-rec-title">Recomendaciones para corregir</h4>
+                  <ul *ngIf="$any(d).validacion?.recomendaciones?.length" class="ps-rec-list">
+                    <li *ngFor="let rec of $any(d).validacion?.recomendaciones">{{ rec }}</li>
+                  </ul>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </ng-template>
+
+          <ng-container *ngIf="diagPayload as d">
+            <ng-container *ngTemplateOutlet="diagPanel; context: { $implicit: d }"></ng-container>
+          </ng-container>
+
+          <div *ngIf="diagAgrupado?.length" class="ps-diag-multi">
+            <p class="ps-diag-multi-hint">Un bloque por expediente, agrupado por agencia.</p>
+            <section *ngFor="let grp of diagAgrupado" class="ps-diag-agency-section">
+              <h2 class="ps-diag-agency-title">
+                {{ grp.nombreAgencia }}
+                <span class="ps-diag-agency-id">({{ grp.idAgencia }})</span>
+              </h2>
+              <ng-container *ngFor="let bloque of grp.expedientes">
+                <ng-container *ngTemplateOutlet="diagPanel; context: { $implicit: bloque }"></ng-container>
+              </ng-container>
+            </section>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="ps-tab-label">Análisis cliente</span>
+        </ng-template>
+        <div class="ps-tab-body">
+          <p class="ps-intro">
+            Busca por <strong>número de cliente DMS</strong> (IdTotalDealer / nd en CTR). Si necesitas acotar por
+            agencia o resolver ambigüedad, usa el <strong>filtro global</strong> de arriba. Luego puedes abrir el
+            diagnóstico detallado de cada pedido.
+          </p>
+          <div class="ps-diag-fields">
+            <mat-form-field appearance="outline" class="ps-field" subscriptSizing="dynamic">
+              <mat-label>N.º cliente DMS (IdTotalDealer)</mat-label>
+              <input matInput inputmode="numeric" [(ngModel)]="analisisNdStr" placeholder="Ej. 45221" />
+            </mat-form-field>
+          </div>
+          <button
+            mat-flat-button
+            color="primary"
+            class="ps-btn-primary"
+            [disabled]="loadingAnalisis"
+            (click)="ejecutarAnalisisCliente()">
+            <mat-icon *ngIf="!loadingAnalisis">person_search</mat-icon>
+            <mat-spinner *ngIf="loadingAnalisis" diameter="22" class="inline-block align-middle"></mat-spinner>
+            <span>{{ loadingAnalisis ? 'Analizando…' : 'Analizar' }}</span>
+          </button>
+
+          <mat-card *ngIf="analisisResult?.['ambiguo']" class="ps-card ps-ambiguo ps-analisis-section" appearance="outlined">
+            <mat-card-header>
+              <mat-card-title class="ps-card-title-sm">Varios HeaderClient con ese nd en CTR</mat-card-title>
+              <mat-card-subtitle>Indique agencia en el filtro o revise datos duplicados</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <ul class="ps-bullets ps-bullets--flat">
+                <li *ngFor="let c of $any(analisisResult)?.candidatos">
+                  HeaderClient {{ c.idHeaderClient }} — Client.Id {{ c.idClient }}
+                  <span *ngIf="c.nombre">— {{ c.nombre }}</span>
+                </li>
+              </ul>
+            </mat-card-content>
+          </mat-card>
+
+          <ng-container *ngIf="analisisResult && !analisisResult['ambiguo']">
+            <mat-card class="ps-card ps-analisis-section" appearance="outlined">
+              <mat-card-header>
+                <mat-card-title class="ps-card-title-sm">Resumen</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p *ngIf="analisisResult['encontradoEnCtr'] === false" class="ps-warn-text">
+                  No hay filas en Client_Total_Relation con ese IdTotalDealer.
+                  <span *ngIf="$any(analisisResult['notas'])?.[0]">{{ $any(analisisResult['notas'])[0] }}</span>
+                </p>
+                <ul
+                  *ngIf="$any(analisisResult['notas'])?.length && analisisResult['encontradoEnCtr']"
+                  class="ps-bullets ps-bullets--flat">
+                  <li *ngFor="let n of $any(analisisResult['notas'])">{{ n }}</li>
+                </ul>
+                <ng-container *ngIf="analisisResult['encontradoEnCtr']">
+                  <p class="ps-analisis-line">
+                    <span class="ps-label-inline">Client.Id:</span> {{ analisisResult['idClient'] ?? '—' }}
+                  </p>
+                  <p class="ps-analisis-line">
+                    <span class="ps-label-inline">Nombre:</span> {{ analisisResult['nombreCliente'] ?? '—' }}
+                  </p>
+                  <p class="ps-analisis-line">
+                    <span class="ps-label-inline">HeaderClient:</span>
+                    {{ analisisResult['existeHeaderClient'] ? 'Sí (id ' + analisisResult['idHeaderClient'] + ')' : 'No' }}
+                  </p>
+                  <p class="ps-analisis-line" *ngIf="analisisResult['ndCoherenteEnTodasCtr'] === false">
+                    <span class="ps-warn-text">Aviso: el nd en alguna CTR no coincide con el buscado.</span>
+                  </p>
+                </ng-container>
+              </mat-card-content>
+            </mat-card>
+
+            <div
+              *ngIf="analisisResult['encontradoEnCtr'] && $any(analisisResult['relacionesCtr'])?.length"
+              class="ps-analisis-section">
+              <h3 class="ps-subheading ps-subheading--tight">Relaciones CTR (nd por agencia)</h3>
+              <div class="ps-mini-table-wrap">
+                <table class="ps-mini-table ps-mini-table--full">
+                  <thead>
+                    <tr>
+                      <th>Agencia</th>
+                      <th>IdTotalDealer</th>
+                      <th>idHeaderClient</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let ctr of $any(analisisResult['relacionesCtr'])">
+                      <td>{{ ctr.nombre_agencia }} ({{ ctr.IdAgency }})</td>
+                      <td class="ps-mono">{{ ctr.IdTotalDealer }}</td>
+                      <td>{{ ctr.idHeaderClient }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div *ngIf="analisisResult['encontradoEnCtr']" class="ps-analisis-section">
+              <h3 class="ps-subheading ps-subheading--tight">Pedidos (expedientes) del cliente</h3>
+              <p class="ps-analisis-hint">
+                Resultados <strong>agrupados por agencia</strong>. «CTR agencia» indica si existe relación para la
+                agencia de ese expediente. Si falta, revisa las recomendaciones. Usa
+                <strong>Diagnosticar</strong> para el detalle en la pestaña Diagnóstico.
+              </p>
+              <div *ngFor="let g of analisisGrupos" class="ps-analisis-agency-block">
+                <h4 class="ps-analisis-agency-title">
+                  {{ g.nombreAgencia }}
+                  <span class="ps-analisis-agency-id">({{ g.idAgencia }})</span>
+                </h4>
+                <div class="ps-table-shell">
+                  <table mat-table [dataSource]="g.ds" class="w-full soporte-table soporte-table--analisis">
+                    <ng-container matColumnDef="id_file">
+                      <th mat-header-cell *matHeaderCellDef>Expediente</th>
+                      <td mat-cell *matCellDef="let r">{{ r['id_file'] }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="idOrderTotal">
+                      <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                      <td mat-cell *matCellDef="let r">{{ r['idOrderTotal'] }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="estado">
+                      <th mat-header-cell *matHeaderCellDef>Estado</th>
+                      <td mat-cell *matCellDef="let r">{{ r['estado'] }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="relacionAgenciaOk">
+                      <th mat-header-cell *matHeaderCellDef>CTR agencia</th>
+                      <td mat-cell *matCellDef="let r">
+                        <span
+                          class="ps-badge"
+                          [class.ps-badge--ok]="r['relacionAgenciaOk']"
+                          [class.ps-badge--no]="!r['relacionAgenciaOk']"
+                          [matTooltip]="$any(r['motivoSiRelacionMal']) || ''"
+                          [matTooltipDisabled]="r['relacionAgenciaOk'] || !r['motivoSiRelacionMal']"
+                          matTooltipPosition="above">
+                          {{ r['relacionAgenciaOk'] ? 'OK' : 'Falta' }}
+                        </span>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="recomendaciones">
+                      <th mat-header-cell *matHeaderCellDef>Recomendaciones</th>
+                      <td mat-cell *matCellDef="let r">
+                        <ul *ngIf="$any(r['recomendaciones'])?.length" class="ps-ana-rec">
+                          <li *ngFor="let rec of $any(r['recomendaciones'])">{{ rec }}</li>
+                        </ul>
+                        <span *ngIf="!$any(r['recomendaciones'])?.length && r['relacionAgenciaOk']" class="ps-muted">—</span>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="accion">
+                      <th mat-header-cell *matHeaderCellDef></th>
+                      <td mat-cell *matCellDef="let r">
+                        <button
+                          mat-stroked-button
+                          color="primary"
+                          type="button"
+                          (click)="irADiagnosticoDesdeAnalisis(r)">
+                          Diagnosticar
+                        </button>
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="analisisPedidosColumns; sticky: true"></tr>
+                    <tr mat-row *matRowDef="let row; columns: analisisPedidosColumns"></tr>
+                  </table>
+                  <p *ngIf="g.ds.data.length === 0" class="ps-empty">Sin filas.</p>
+                </div>
+              </div>
+              <p *ngIf="analisisGrupos.length === 0 && analisisPedidosData.data.length === 0" class="ps-empty">
+                Sin expedientes en File para este Client.Id.
+              </p>
+            </div>
+          </ng-container>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="ps-tab-label">Mal relacionados</span>
+        </ng-template>
+        <div class="ps-tab-body">
+          <div class="ps-actions">
+            <mat-checkbox [(ngModel)]="excluirCancelados" class="ps-checkbox">
+              Excluir cancelados (estado 5)
+            </mat-checkbox>
+            <button
+              mat-flat-button
+              color="primary"
+              class="ps-btn-primary"
+              [disabled]="loadingMal"
+              (click)="cargarMalRelacionados()">
+              <mat-icon *ngIf="!loadingMal">refresh</mat-icon>
+              <mat-spinner *ngIf="loadingMal" diameter="22" class="inline-block align-middle"></mat-spinner>
+              <span>{{ loadingMal ? 'Cargando…' : 'Actualizar listado' }}</span>
+            </button>
+          </div>
+          <p class="ps-table-hint">
+            <mat-icon inline class="ps-hint-icon">swipe</mat-icon>
+            En pantallas pequeñas, desliza la tabla hacia los lados para ver todas las columnas.
+          </p>
+          <div class="ps-table-shell">
+            <table mat-table [dataSource]="malData" class="w-full soporte-table">
+              <ng-container matColumnDef="id_file">
+                <th mat-header-cell *matHeaderCellDef>Id expediente</th>
+                <td mat-cell *matCellDef="let r">{{ r['id_file'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="pedido">
+                <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                <td mat-cell *matCellDef="let r">{{ r['pedido'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="agencia">
+                <th mat-header-cell *matHeaderCellDef>Agencia</th>
+                <td mat-cell *matCellDef="let r">{{ r['agencia'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="motivo">
+                <th mat-header-cell *matHeaderCellDef>Motivo</th>
+                <td mat-cell *matCellDef="let r">{{ r['motivo'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let r">{{ r['estado'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="id_client_file">
+                <th mat-header-cell *matHeaderCellDef>IdClient</th>
+                <td mat-cell *matCellDef="let r">{{ r['id_client_file'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="id_cliente_sugerido">
+                <th mat-header-cell *matHeaderCellDef>Cliente sug.</th>
+                <td mat-cell *matCellDef="let r">{{ r['id_cliente_sugerido'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="nombre_cliente_sugerido">
+                <th mat-header-cell *matHeaderCellDef>Nombre sug.</th>
+                <td mat-cell *matCellDef="let r">{{ r['nombre_cliente_sugerido'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="fuente_sugerencia">
+                <th mat-header-cell *matHeaderCellDef>Fuente</th>
+                <td mat-cell *matCellDef="let r">{{ r['fuente_sugerencia'] }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="malColumns; sticky: true"></tr>
+              <tr mat-row *matRowDef="let row; columns: malColumns"></tr>
+            </table>
+            <p *ngIf="!loadingMal && malData.data.length === 0" class="ps-empty">
+              Sin datos. Pulsa «Actualizar listado».
+            </p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="ps-tab-label">Duplicados</span>
+        </ng-template>
+        <div class="ps-tab-body">
+          <div class="ps-actions">
+            <button
+              mat-flat-button
+              color="primary"
+              class="ps-btn-primary"
+              [disabled]="loadingDup"
+              (click)="cargarDuplicados()">
+              <mat-icon *ngIf="!loadingDup">find_in_page</mat-icon>
+              <mat-spinner *ngIf="loadingDup" diameter="22" class="inline-block align-middle"></mat-spinner>
+              <span>{{ loadingDup ? 'Cargando…' : 'Actualizar listado' }}</span>
+            </button>
+          </div>
+          <p class="ps-table-hint">
+            <mat-icon inline class="ps-hint-icon">swipe</mat-icon>
+            Desliza horizontalmente para ver ids de expediente y estados.
+          </p>
+          <div class="ps-table-shell">
+            <table mat-table [dataSource]="dupData" class="w-full soporte-table soporte-table--dup">
+              <ng-container matColumnDef="pedido">
+                <th mat-header-cell *matHeaderCellDef>Pedido</th>
+                <td mat-cell *matCellDef="let r">{{ r['pedido'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="agencia">
+                <th mat-header-cell *matHeaderCellDef>Agencia</th>
+                <td mat-cell *matCellDef="let r">{{ r['agencia'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="copias">
+                <th mat-header-cell *matHeaderCellDef>Copias</th>
+                <td mat-cell *matCellDef="let r">{{ r['copias'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="ids_file">
+                <th mat-header-cell *matHeaderCellDef>Ids expediente</th>
+                <td mat-cell *matCellDef="let r" class="cell-mono">{{ r['ids_file'] }}</td>
+              </ng-container>
+              <ng-container matColumnDef="ids_estado">
+                <th mat-header-cell *matHeaderCellDef>Ids estado</th>
+                <td mat-cell *matCellDef="let r" class="cell-mono">{{ r['ids_estado'] }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="dupColumns; sticky: true"></tr>
+              <tr mat-row *matRowDef="let row; columns: dupColumns"></tr>
+            </table>
+            <p *ngIf="!loadingDup && dupData.data.length === 0" class="ps-empty">
+              Sin datos. Pulsa «Actualizar listado».
+            </p>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

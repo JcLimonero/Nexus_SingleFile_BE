@@ -386,6 +386,14 @@ $routes->group('documents', function($routes) {
     $routes->group('vanguardia-client-import', function($routes) {
         $routes->post('import', 'VanguardiaClientImport::import');
     });
+
+    // Panel de soporte (roles 7 y 8 verificados en controlador)
+    $routes->group('support', function($routes) {
+        $routes->get('mal-relacionados', 'Support::malRelacionados');
+        $routes->get('duplicados-pedido', 'Support::duplicadosPedido');
+        $routes->get('diagnostico-expediente', 'Support::diagnosticoExpediente');
+        $routes->get('analisis-cliente-dms', 'Support::analisisClienteDms');
+    });
 });
 
 // Ruta por defecto

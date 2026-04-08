@@ -90,6 +90,12 @@ export class NavigationLoaderService {
             label: 'Validación',
             route: '/mesa-control/validacion',
             icon: 'mat:verified'
+          },
+          {
+            type: 'link',
+            label: 'Panel de soporte',
+            route: '/mesa-control/panel-soporte',
+            icon: 'mat:support_agent'
           }
         ]
       },

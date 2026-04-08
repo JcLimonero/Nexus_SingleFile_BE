@@ -11,6 +11,8 @@ export const ROUTE_ACCESS: Record<string, number[] | 'all'> = {
   '/procesos/liberacion': [1, 4, 5, 6, 7, 8, 14],
   '/mesa-control/consolidacion-dms': [6, 7, 8],
   '/mesa-control/validacion': [5, 6, 7, 8, 14],
+  /** Administrador (7) y Soporte (8) */
+  '/mesa-control/panel-soporte': [7, 8],
 };
 
 /** Rutas bajo /configuracion requieren roles 6, 7 y 8 (8 = mismo acceso que 7). */

@@ -336,6 +336,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/mesa-control/consolidacion-dms/consolidacion-dms.component').then(
                 (m) => m.ConsolidacionDmsComponent
               )
+          },
+          {
+            path: 'panel-soporte',
+            loadComponent: () =>
+              import('./pages/mesa-control/panel-soporte/panel-soporte.component').then(
+                (m) => m.PanelSoporteComponent
+              )
           }
         ]
       },
