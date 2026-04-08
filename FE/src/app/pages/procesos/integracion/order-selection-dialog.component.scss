@@ -3,12 +3,23 @@
 }
 
 .dialog-container {
+  box-sizing: border-box;
   width: 100%;
-  min-width: 800px;
+  min-width: 0;
   max-width: 1200px;
   padding: 0;
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .dialog-container {
+    min-width: min(800px, 100%);
+  }
+}
+
+.dialog-title {
+  padding-right: 8px;
 }
 
 .dialog-content {
@@ -16,15 +27,36 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 60vh;
-  min-height: 400px;
+  max-height: min(60vh, 720px);
+  min-height: min(400px, 50vh);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 599px) {
+  .dialog-content {
+    max-height: min(70vh, calc(100dvh - 200px));
+    min-height: 200px;
+  }
 }
 
 .table-container {
   flex: 1;
   overflow: auto;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dialog-footer {
+  flex-shrink: 0;
+  padding-top: 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.dialog-footer-actions button {
+  justify-content: center;
 }
 
 :host ::ng-deep {
@@ -132,12 +164,11 @@
     }
   }
 
-  .mat-mdc-table-container {
-    overflow: hidden !important;
-  }
-
-  .mat-mdc-table-wrapper {
-    overflow: hidden !important;
+  .table-container .mat-mdc-table-container,
+  .table-container .mat-mdc-table-wrapper {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    max-width: 100%;
   }
 
   .mat-mdc-cell div,
@@ -152,7 +183,35 @@
 
   .mat-mdc-tab-group {
     .mat-mdc-tab-label {
+      min-width: 0;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  @media (min-width: 600px) {
+    .mat-mdc-tab-group .mat-mdc-tab-label {
+      min-width: 160px;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .mat-mdc-tab-group .mat-mdc-tab-label {
       min-width: 200px;
+    }
+  }
+
+  .mat-mdc-paginator {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 4px;
+  }
+
+  @media (max-width: 599px) {
+    .mat-mdc-paginator-container {
+      justify-content: center;
+      flex-wrap: wrap;
     }
   }
 }

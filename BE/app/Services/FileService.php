@@ -261,10 +261,12 @@ class FileService
         error_log("=== BUSCANDO CLIENTE POR ID EXTERNO ===");
         error_log("ID externo: " . $externalClientId);
         
-        $sql = "SELECT hc.Id 
+        // File.IdClient debe ser Client.Id (mismo criterio que view_client_relations / Files::createFileFromVanguardia).
+        $sql = "SELECT hc.IdClient AS Id
                 FROM HeaderClient hc
                 INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                WHERE ctr.IdTotalDealer = ?";
+                WHERE ctr.IdTotalDealer = ?
+                LIMIT 1";
         
         error_log("SQL: " . $sql);
         error_log("Parámetros: " . json_encode([$externalClientId]));

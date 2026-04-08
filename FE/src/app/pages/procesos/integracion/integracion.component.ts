@@ -1217,8 +1217,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
         width: 'auto',
         height: 'auto',
-        maxWidth: '90vw',
-        maxHeight: '80vh',
+        maxWidth: 'min(1200px, calc(100vw - 16px))',
+        maxHeight: 'min(90vh, 100dvh)',
         data: { 
           orders: orders, 
           agencyId: this.selectedAgencyId, 
@@ -1282,8 +1282,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       const dialogRef = this.dialog.open(OrderSelectionDialogComponent, {
         width: 'auto',
         height: 'auto',
-        maxWidth: '90vw',
-        maxHeight: '80vh',
+        maxWidth: 'min(1200px, calc(100vw - 16px))',
+        maxHeight: 'min(90vh, 100dvh)',
         disableClose: false, // Permitir cerrar normalmente, pero se controlará en el componente
         data: { 
           orders: orders, 

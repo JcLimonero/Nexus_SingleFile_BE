@@ -406,3 +406,11 @@
     padding: 8px !important;
   }
 }
+
+// Estado vacío documentos: mat-icon usa 24×24px por defecto; text-4xl agranda el glifo y queda recortado
+:host ::ng-deep .validacion-empty-docs-hint mat-icon {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  line-height: 2.25rem !important;
+  overflow: visible !important;
+}

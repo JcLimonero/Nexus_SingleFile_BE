@@ -517,8 +517,8 @@
 
           <!-- Mensaje cuando no hay cliente seleccionado -->
           <div *ngIf="!selectedCliente" class="flex justify-center items-center py-8 text-gray-500">
-            <div class="text-center">
-              <mat-icon class="text-gray-400 text-4xl mb-2">info</mat-icon>
+            <div class="text-center validacion-empty-docs-hint">
+              <mat-icon class="!block !mx-auto text-gray-400 text-4xl mb-2 !w-9 !h-9 !leading-none overflow-visible">info</mat-icon>
               <p class="text-sm">Selecciona un cliente/pedido de la tabla superior para ver sus documentos</p>
             </div>
           </div>

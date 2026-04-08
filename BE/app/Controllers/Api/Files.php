@@ -848,17 +848,18 @@ class Files extends BaseController
             return ['valid' => false, 'expectedIdClient' => null, 'actualIdClient' => null, 'message' => 'Expediente no encontrado'];
         }
 
+        // idCliente en la vista = Client.Id. File.IdClient debe ser Client.Id (join validación: HeaderClient.IdClient = f.IdClient).
         $expected = $this->db->query("
-            SELECT IdHeaderClient FROM view_client_relations
+            SELECT idCliente FROM view_client_relations
             WHERE TRIM(ndCliente) = ? AND idAgency = ?
             LIMIT 1
         ", [$ndDMS, $idAgency])->getRowArray();
 
-        if (!$expected || empty($expected['IdHeaderClient'])) {
+        if (!$expected || !isset($expected['idCliente']) || $expected['idCliente'] === '' || $expected['idCliente'] === null) {
             return ['valid' => false, 'expectedIdClient' => null, 'actualIdClient' => (int) $file['IdClient'], 'message' => 'No existe relación en view_client_relations para ndCliente e idAgency'];
         }
 
-        $expectedIdClient = (int) $expected['IdHeaderClient'];
+        $expectedIdClient = (int) $expected['idCliente'];
         $actualIdClient = (int) $file['IdClient'];
         $valid = ($actualIdClient === $expectedIdClient);
 
@@ -866,7 +867,7 @@ class Files extends BaseController
             'valid' => $valid,
             'expectedIdClient' => $expectedIdClient,
             'actualIdClient' => $actualIdClient,
-            'message' => $valid ? 'Relación correcta' : "Relación incorrecta: File.IdClient={$actualIdClient}, esperado={$expectedIdClient}"
+            'message' => $valid ? 'Relación correcta' : "Relación incorrecta: File.IdClient={$actualIdClient}, esperado Client.Id={$expectedIdClient}"
         ];
     }
 
@@ -950,41 +951,45 @@ class Files extends BaseController
         }
 
         $row = $this->db->query("
-            SELECT IdHeaderClient, idCliente FROM view_client_relations
+            SELECT idCliente, IdHeaderClient FROM view_client_relations
             WHERE TRIM(ndCliente) = ? AND idAgency = ?
             LIMIT 1
         ", [$ndDMS, $idAgency])->getRowArray();
 
-        if (!$row || empty($row['IdHeaderClient'])) {
+        if (!$row || !isset($row['idCliente']) || $row['idCliente'] === '' || $row['idCliente'] === null) {
             return ['success' => false, 'message' => 'No se encontró relación en view_client_relations para ndCliente e idAgency'];
         }
 
-        $idHeaderClient = (int) $row['IdHeaderClient'];
-        $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idHeaderClient]);
+        $idClient = (int) $row['idCliente'];
+        $idHeaderClient = isset($row['IdHeaderClient']) ? (int) $row['IdHeaderClient'] : null;
+
+        $this->db->table('File')->where('Id', $idExpediente)->update(['IdClient' => $idClient]);
 
         if ($this->db->affectedRows() === 0) {
             return ['success' => false, 'message' => 'No se actualizó ningún expediente'];
         }
 
-        log_message('info', "executeRepairClientRelation: File.Id={$idExpediente} IdClient={$idHeaderClient} (HeaderClient.Id, ndDMS={$ndDMS}, IdAgency={$idAgency})");
+        $hcLog = $idHeaderClient !== null ? ", IdHeaderClient={$idHeaderClient}" : '';
+        log_message('info', "executeRepairClientRelation: File.Id={$idExpediente} IdClient={$idClient} (Client.Id, ndDMS={$ndDMS}, IdAgency={$idAgency}{$hcLog})");
         return [
             'success' => true,
-            'idClient' => isset($row['idCliente']) ? (int) $row['idCliente'] : $idHeaderClient,
+            'idClient' => $idClient,
             'idHeaderClient' => $idHeaderClient,
             'message' => 'Reparación exitosa'
         ];
     }
 
     /**
-     * Buscar cliente por ndCliente externo (HeaderClient.Id).
-     * @deprecated Preferir getClientIdFromViewClientRelations(ndDMS, idAgency) para obtener IdClient (Client.Id).
+     * Buscar Client.Id por nd DMS (IdTotalDealer en Client_Total_Relation).
+     * @deprecated Preferir getClientIdFromViewClientRelations(ndDMS, idAgency) para filtrar por agencia.
      */
     private function getClientByExternalId($externalClientId)
     {
-        $sql = "SELECT hc.Id 
+        $sql = "SELECT hc.IdClient AS Id
                 FROM HeaderClient hc
                 INNER JOIN Client_Total_Relation ctr ON hc.Id = ctr.idHeaderClient
-                WHERE ctr.IdTotalDealer = ?";
+                WHERE ctr.IdTotalDealer = ?
+                LIMIT 1";
         $query = $this->db->query($sql, [$externalClientId]);
         return $query->getRow();
     }
@@ -1458,18 +1463,18 @@ class Files extends BaseController
                 ]);
             }
 
-            // IdHeaderClient esperado (File.IdClient → FK headerclient.Id).
-            // Solo se usa si ndCliente viene en la petición; existingOrders = File.IdClient distinto al esperado.
-            $idHeaderClientFromView = null;
+            // idCliente en la vista = Client.Id. File.IdClient debe coincidir para que validación y joins funcionen.
+            // Solo se usa si ndCliente viene en la petición; existingOrders = pedidos con File.IdClient distinto al esperado.
+            $idClienteFromView = null;
             if ($ndCliente !== null && $ndCliente !== '') {
                 try {
                     $rowView = $this->db->query("
-                        SELECT IdHeaderClient FROM view_client_relations
+                        SELECT idCliente FROM view_client_relations
                         WHERE TRIM(ndCliente) = ? AND idAgency = ?
                         LIMIT 1
                     ", [$ndCliente, (int) $agencyId])->getRowArray();
-                    if ($rowView && !empty($rowView['IdHeaderClient'])) {
-                        $idHeaderClientFromView = (int) $rowView['IdHeaderClient'];
+                    if ($rowView && isset($rowView['idCliente']) && $rowView['idCliente'] !== '' && $rowView['idCliente'] !== null) {
+                        $idClienteFromView = (int) $rowView['idCliente'];
                     }
                 } catch (\Throwable $e) {
                     log_message('info', 'checkExistingOrders: view_client_relations no usada, ' . $e->getMessage());
@@ -1478,7 +1483,7 @@ class Files extends BaseController
 
             // Una sola consulta: todos los File existentes para esta agencia y estos IdOrderTotal (+ IdClient si filtraremos)
             $builder = $this->db->table('File');
-            $builder->select('Id, IdOrderTotal' . ($idHeaderClientFromView !== null ? ', IdClient' : ''));
+            $builder->select('Id, IdOrderTotal' . ($idClienteFromView !== null ? ', IdClient' : ''));
             $builder->where('IdAgency', $agencyId);
             $builder->whereIn('IdOrderTotal', $orderDmsList);
             $existingRows = $builder->get()->getResultArray();
@@ -1501,16 +1506,16 @@ class Files extends BaseController
                 if ($info) {
                     $fileId = $info['fileId'];
                     $fileIdClient = $info['IdClient'];
-                    if ($idHeaderClientFromView !== null) {
-                        // Solo incluir en existingOrders los que no tienen el IdHeaderClient de la vista (relación incorrecta)
-                        if ($fileIdClient !== $idHeaderClientFromView) {
+                    if ($idClienteFromView !== null) {
+                        // Solo incluir en existingOrders los que no tienen el Client.Id esperado (relación incorrecta)
+                        if ($fileIdClient !== $idClienteFromView) {
                             $existingOrders[] = [
                                 'order_dms' => $orderDms,
                                 'fileId' => $fileId,
                                 'order' => $order
                             ];
                         }
-                        // Si File.IdClient == IdHeaderClient esperado, no se incluye (ya correcto)
+                        // Si File.IdClient == idCliente esperado, no se incluye (ya correcto)
                     } else {
                         $existingOrders[] = [
                             'order_dms' => $orderDms,

@@ -42,9 +42,9 @@ import { AuthService } from '../../../core/services/auth.service';
   ],
   template: `
     <div class="dialog-container">
-      <h2 mat-dialog-title class="text-xl font-semibold mb-4">
-        <mat-icon class="mr-2">receipt</mat-icon>
-        Seleccionar Pedido
+      <h2 mat-dialog-title class="dialog-title text-xl font-semibold mb-4 flex flex-wrap items-center gap-2">
+        <mat-icon class="shrink-0">receipt</mat-icon>
+        <span>Seleccionar Pedido</span>
       </h2>
       
       <div mat-dialog-content class="mb-6 dialog-content">
@@ -66,8 +66,8 @@ import { AuthService } from '../../../core/services/auth.service';
               
               <div class="tab-content">
                 <div *ngIf="vanguardiaMode" class="mb-4 flex flex-col gap-2">
-                  <div class="vanguardia-search-row flex flex-wrap gap-3 items-center">
-                    <mat-form-field appearance="outline" class="vanguardia-search-field flex-1 min-w-[200px]">
+                  <div class="vanguardia-search-row flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                    <mat-form-field appearance="outline" class="vanguardia-search-field w-full min-w-0 sm:flex-1 sm:min-w-[200px]">
                       <mat-label>Buscar pedido (número exacto)</mat-label>
                       <input
                         matInput
@@ -77,9 +77,9 @@ import { AuthService } from '../../../core/services/auth.service';
                         autocomplete="off">
                       <mat-icon matSuffix>manage_search</mat-icon>
                     </mat-form-field>
-                    <div class="vanguardia-search-actions flex shrink-0 items-center gap-2">
-                      <button mat-flat-button color="primary" type="button" (click)="buscarPedidoVanguardia()">Buscar</button>
-                      <button mat-stroked-button type="button" (click)="limpiarBusquedaVanguardia()"
+                    <div class="vanguardia-search-actions flex w-full shrink-0 flex-row gap-2 sm:w-auto">
+                      <button mat-flat-button color="primary" type="button" class="flex-1 sm:flex-initial" (click)="buscarPedidoVanguardia()">Buscar</button>
+                      <button mat-stroked-button type="button" class="flex-1 sm:flex-initial" (click)="limpiarBusquedaVanguardia()"
                         [disabled]="!activeVanguardiaOrderDms && !(vanguardiaOrderDmsInput && vanguardiaOrderDmsInput.trim())">Limpiar</button>
                     </div>
                   </div>
@@ -517,12 +517,12 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
       </div>
 
-      <div mat-dialog-actions class="flex justify-between items-center">
+      <div mat-dialog-actions class="dialog-footer flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="text-sm text-gray-600">
           {{ selectedOrder ? '1 pedido seleccionado' : 'Ningún pedido seleccionado' }}
         </div>
-        <div class="flex gap-2">
-          <button mat-button (click)="onCancel()" [disabled]="creating" class="text-sm">
+        <div class="dialog-footer-actions flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+          <button mat-button (click)="onCancel()" [disabled]="creating" class="text-sm w-full sm:w-auto">
             <mat-icon class="mr-1" style="font-size: 16px;">close</mat-icon>
             Cancelar
           </button>
@@ -531,7 +531,7 @@ import { AuthService } from '../../../core/services/auth.service';
             color="primary" 
             (click)="onConfirm()" 
             [disabled]="!isFormValid() || creating"
-            class="text-sm">
+            class="text-sm w-full sm:w-auto">
             <mat-spinner *ngIf="creating" diameter="16" style="display: inline-block; margin-right: 8px;"></mat-spinner>
             <mat-icon *ngIf="!creating" class="mr-1" style="font-size: 16px;">add</mat-icon>
             {{ creating ? 'Creando...' : 'Crear Expediente' }}
