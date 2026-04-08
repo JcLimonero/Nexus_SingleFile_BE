@@ -94,6 +94,15 @@
                 Cambiar fase
               </button>
               <button
+                *ngIf="puedeCancelarPedidoDiag($any(d))"
+                mat-stroked-button
+                type="button"
+                class="ps-action-btn ps-action-btn--cancel"
+                (click)="abrirCancelarPedido($any(d))">
+                <mat-icon>cancel</mat-icon>
+                Cancelar pedido
+              </button>
+              <button
                 mat-stroked-button
                 color="warn"
                 type="button"
@@ -371,6 +380,39 @@
                       <mat-icon *ngIf="!loadingRelacionCliente">link</mat-icon>
                       <mat-spinner *ngIf="loadingRelacionCliente" diameter="20" class="inline-block align-middle"></mat-spinner>
                       <span>{{ loadingRelacionCliente ? 'Actualizando…' : 'Relacionar pedido con cliente (nd factura)' }}</span>
+                    </button>
+                  </div>
+
+                  <div *ngIf="puedeRelacionarClienteManual(d)" class="ps-repair-from-vgd ps-repair-manual">
+                    <mat-divider class="ps-divider-spaced"></mat-divider>
+                    <p class="ps-repair-intro">
+                      El pedido existe en el portal pero <strong>no hay fila en Client</strong> para el
+                      <code>File.IdClient</code> actual. La consulta de facturación DMS <strong>no devolvió el número de
+                      cliente (nd)</strong>; indíquelo para enlazar el expediente con el
+                      <code>Client.Id</code> correcto en esta agencia (<code>view_client_relations</code>).
+                    </p>
+                    <div class="ps-repair-manual-field">
+                      <mat-form-field appearance="outline" class="ps-field ps-repair-nd-field" subscriptSizing="dynamic">
+                        <mat-label>N.º cliente DMS (nd / IdTotalDealer)</mat-label>
+                        <input
+                          matInput
+                          inputmode="numeric"
+                          [ngModel]="getNdManual(idExpedienteDiag($any(d)))"
+                          (ngModelChange)="setNdManual(idExpedienteDiag($any(d)), $event)"
+                          [disabled]="loadingRelacionCliente"
+                          placeholder="Ej. 62215" />
+                      </mat-form-field>
+                    </div>
+                    <button
+                      mat-flat-button
+                      color="accent"
+                      type="button"
+                      class="ps-repair-btn"
+                      [disabled]="loadingRelacionCliente || !getNdManual(idExpedienteDiag($any(d))).trim()"
+                      (click)="relacionarPedidoConClienteNdManual($any(d))">
+                      <mat-icon *ngIf="!loadingRelacionCliente">link</mat-icon>
+                      <mat-spinner *ngIf="loadingRelacionCliente" diameter="20" class="inline-block align-middle"></mat-spinner>
+                      <span>{{ loadingRelacionCliente ? 'Actualizando…' : 'Relacionar con el nd indicado' }}</span>
                     </button>
                   </div>
                 </mat-card-content>

@@ -34,6 +34,11 @@ import {
   CambiarEstatusDialogComponent,
   CambiarEstatusResult
 } from '../validacion/cambiar-estatus-dialog/cambiar-estatus-dialog.component';
+import {
+  CancelarPedidoDialogComponent,
+  CancelarPedidoData,
+  CancelarPedidoResult
+} from '../validacion/cancelar-pedido-dialog/cancelar-pedido-dialog.component';
 
 @Component({
   selector: 'vex-panel-soporte',
@@ -125,6 +130,8 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
 
   /** Reparación File.IdClient desde nd de factura Vanguardia */
   loadingRelacionCliente = false;
+  /** nd capturado a mano cuando la API no devuelve clienteDMS (clave = Id expediente / file) */
+  reparacionNdManual: Record<number, string> = {};
 
   constructor(
     private panelSoporte: PanelSoporteService,
@@ -326,7 +333,7 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     if (vgd && vgd['ok'] === false) {
       return true;
     }
-    if (this.puedeRelacionarClienteFactura(d)) {
+    if (this.puedeRelacionarClienteFactura(d) || this.puedeRelacionarClienteManual(d)) {
       return true;
     }
     return false;
@@ -350,10 +357,10 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Expediente en portal sin fila en Client, pero la factura DMS ya trae el nd correcto:
-   * se puede reparar con repair-client-relation (view_client_relations).
+   * Falta fila en Client con el motivo habitual; expediente con id y agencia.
+   * Base para reparar con nd de factura o con nd manual.
    */
-  puedeRelacionarClienteFactura(d: unknown): boolean {
+  sinClientFilaMotivoReparacion(d: unknown): boolean {
     if (!d || typeof d !== 'object') {
       return false;
     }
@@ -363,19 +370,51 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
       return false;
     }
     const motivos = (val['motivosSiNoAparece'] as string[] | undefined) ?? [];
-    const motivoCliente = motivos.some((m) =>
-      m.includes('No existe registro en Client para File.IdClient')
-    );
-    if (!motivoCliente) {
-      return false;
-    }
-    const vf = this.vanguardiaFactura(d);
-    const nd = vf?.['clienteDms'];
-    if (nd === null || nd === undefined || String(nd).trim() === '') {
+    if (
+      !motivos.some((m) => m.includes('No existe registro en Client para File.IdClient'))
+    ) {
       return false;
     }
     const exp = p['expediente'] as Record<string, unknown> | undefined;
     return exp != null && exp['id'] != null && exp['idAgency'] != null;
+  }
+
+  /**
+   * Reparación posible con nd devuelto por Vanguardia (factura DMS).
+   */
+  puedeRelacionarClienteFactura(d: unknown): boolean {
+    return (
+      this.sinClientFilaMotivoReparacion(d) &&
+      String(this.ndClienteFacturaVanguardia(d)).trim() !== ''
+    );
+  }
+
+  /**
+   * Mismo escenario de reparación, pero la API no devolvió nd en factura: el usuario lo indica.
+   */
+  puedeRelacionarClienteManual(d: unknown): boolean {
+    return (
+      this.sinClientFilaMotivoReparacion(d) &&
+      String(this.ndClienteFacturaVanguardia(d)).trim() === ''
+    );
+  }
+
+  /** Id expediente (file) en un bloque de diagnóstico — para inputs por expediente. */
+  idExpedienteDiag(d: Record<string, unknown>): number {
+    const exp = d['expediente'] as Record<string, unknown> | undefined;
+    return exp != null && exp['id'] != null ? Number(exp['id']) : 0;
+  }
+
+  getNdManual(idFile: number): string {
+    return this.reparacionNdManual[idFile] ?? '';
+  }
+
+  setNdManual(idFile: number, value: string): void {
+    if (!idFile) {
+      return;
+    }
+    this.reparacionNdManual[idFile] = value;
+    this.cdr.markForCheck();
   }
 
   ndClienteFacturaVanguardia(d: unknown): string {
@@ -387,12 +426,22 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     return nd !== null && nd !== undefined ? String(nd).trim() : '';
   }
 
-  relacionarPedidoConClienteFactura(d: Record<string, unknown>): void {
-    const nd = this.ndClienteFacturaVanguardia(d);
+  /**
+   * @param ndManual si viene definido (incluso cadena vacía), se usa en lugar del nd de factura Vanguardia.
+   */
+  relacionarPedidoConCliente(d: Record<string, unknown>, ndManual?: string): void {
     const exp = d['expediente'] as Record<string, unknown> | undefined;
     const idFile = exp != null ? Number(exp['id']) : 0;
     const idAg = exp != null ? Number(exp['idAgency']) : 0;
-    if (!nd || !idFile || !idAg) {
+    const ndFactura = this.ndClienteFacturaVanguardia(d);
+    const nd =
+      ndManual !== undefined ? String(ndManual).trim() : ndFactura;
+    if (!idFile || !idAg) {
+      return;
+    }
+    if (!nd) {
+      this.snack.open('Indique el número de cliente DMS (nd)', 'Cerrar', { duration: 4000 });
+      this.cdr.markForCheck();
       return;
     }
     const ok = confirm(
@@ -412,6 +461,7 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
         next: (res: any) => {
           this.loadingRelacionCliente = false;
           if (res?.success) {
+            delete this.reparacionNdManual[idFile];
             this.snack.open(res?.message || 'Relación de cliente actualizada', 'Cerrar', { duration: 5000 });
             if (this.diagPedidoStr.trim() !== '') {
               this.ejecutarDiagnostico();
@@ -431,6 +481,84 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  relacionarPedidoConClienteFactura(d: Record<string, unknown>): void {
+    this.relacionarPedidoConCliente(d);
+  }
+
+  relacionarPedidoConClienteNdManual(d: Record<string, unknown>): void {
+    const exp = d['expediente'] as Record<string, unknown> | undefined;
+    const idFile = exp != null ? Number(exp['id']) : 0;
+    this.relacionarPedidoConCliente(d, this.getNdManual(idFile));
+  }
+
+  /**
+   * No mostrar cancelar si ya está liberado o cancelado (alineado con listado de validación).
+   */
+  puedeCancelarPedidoDiag(d: Record<string, unknown>): boolean {
+    const exp = d['expediente'] as Record<string, unknown> | undefined;
+    if (!exp || exp['id'] == null) {
+      return false;
+    }
+    const est = String(exp['estado'] ?? '').toLowerCase();
+    if (est.includes('liberado')) {
+      return false;
+    }
+    if (est.includes('cancel')) {
+      return false;
+    }
+    const idEst = Number(exp['idEstado']);
+    if (idEst === 5) {
+      return false;
+    }
+    return true;
+  }
+
+  /** Mismo flujo que Validación: motivo + comentario y POST clients-validation/cancelar-pedido */
+  abrirCancelarPedido(d: Record<string, unknown>): void {
+    const exp = d['expediente'] as Record<string, unknown> | undefined;
+    const cli = d['cliente'] as Record<string, unknown> | undefined;
+    if (!exp || exp['id'] == null) {
+      return;
+    }
+    const idFile = Number(exp['id']);
+    const clienteLike = {
+      cliente: (cli?.['nombre'] as string) || '—',
+      ndPedido: exp['idOrderTotal'],
+      proceso: exp['proceso'] ?? '—',
+      fase: exp['estado'] ?? '—'
+    };
+    const dialogData: CancelarPedidoData = { cliente: clienteLike };
+    const ref = this.dialog.open(CancelarPedidoDialogComponent, {
+      width: 'min(600px, 100vw)',
+      maxWidth: '95vw',
+      data: dialogData,
+      disableClose: true
+    });
+    ref.afterClosed().subscribe((result: CancelarPedidoResult | undefined) => {
+      if (!result) {
+        return;
+      }
+      this.validacionService.cancelarPedido(idFile, result.motivoId, result.comentario).subscribe({
+        next: () => {
+          this.snack.open('Pedido cancelado correctamente', 'Cerrar', { duration: 5000 });
+          if (this.diagPedidoStr.trim() !== '') {
+            this.ejecutarDiagnostico();
+          } else {
+            this.refrescarDiagnosticoPorIdFile(idFile);
+          }
+        },
+        error: (err: Error & { error?: { message?: string } }) => {
+          const msg =
+            err?.message ||
+            err?.error?.message ||
+            'No se pudo cancelar el pedido';
+          this.snack.open(msg, 'Cerrar', { duration: 7000 });
+          this.cdr.markForCheck();
+        }
+      });
+    });
   }
 
   /** Abre el mismo flujo que Validación: confirmar y DELETE clients-validation/eliminar-pedido */

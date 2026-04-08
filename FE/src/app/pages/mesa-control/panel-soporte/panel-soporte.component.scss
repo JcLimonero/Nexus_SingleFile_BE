@@ -372,6 +372,11 @@
   }
 }
 
+.ps-action-btn--cancel {
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
 .ps-diag-grid {
   display: grid;
   gap: 1rem;
@@ -493,6 +498,15 @@
   mat-spinner {
     margin-right: 0.35rem;
   }
+}
+
+.ps-repair-manual-field {
+  max-width: 22rem;
+  margin-bottom: 0.75rem;
+}
+
+.ps-repair-nd-field {
+  width: 100%;
 }
 
 /* —— Lista clave-valor —— */
