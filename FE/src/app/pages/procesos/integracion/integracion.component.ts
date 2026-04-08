@@ -1917,13 +1917,34 @@ export class IntegracionComponent implements OnInit, OnDestroy {
   }
 
   private filterAndPaginateFiles(): void {
-    // Eliminar duplicados basándose en fileId (ID único) antes de filtrar
-    // No usar numeroPedido porque puede haber múltiples registros con el mismo número de pedido pero diferentes fileId
-    const uniqueFiles = this.files.filter((file, index, self) => {
+    // Un expediente por fila del API; primero por fileId (por si el backend repitiera el mismo id)
+    const uniqueByFileId = this.files.filter((file, index, self) => {
       const fileId = file.fileId || file.Id;
       const foundIndex = self.findIndex(f => (f.fileId || f.Id) === fileId);
       return index === foundIndex;
     });
+
+    // Mismo número de pedido DMS puede tener varios expedientes (altas duplicadas). En listado mostrar uno:
+    // el de fechaRegistro más reciente (misma lógica que liquidación por numeroPedido, pero priorizando vigencia).
+    const sortedByDate = [...uniqueByFileId].sort((a, b) => {
+      const ta = new Date(a.fechaRegistro || 0).getTime();
+      const tb = new Date(b.fechaRegistro || 0).getTime();
+      return tb - ta;
+    });
+    const seenPedido = new Set<string>();
+    const uniqueFiles: typeof uniqueByFileId = [];
+    for (const file of sortedByDate) {
+      const key = String(file.numeroPedido ?? '').trim();
+      if (!key) {
+        uniqueFiles.push(file);
+        continue;
+      }
+      if (seenPedido.has(key)) {
+        continue;
+      }
+      seenPedido.add(key);
+      uniqueFiles.push(file);
+    }
 
     // Filtrar archivos por término de búsqueda
     if (this.orderSearchTerm && this.orderSearchTerm.trim()) {

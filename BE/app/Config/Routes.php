@@ -343,6 +343,7 @@ $routes->group('files', function($routes) {
     $routes->post('repair-client-relation', 'Files::repairClientRelation');
     $routes->post('repair-client-relations-bulk', 'Files::repairClientRelationsBulk');
     $routes->post('delete', 'Files::deleteFile');
+    $routes->post('merge-duplicates', 'Files::mergeDuplicateFiles');
     $routes->post('compare-dms-orders', 'Files::compareDmsOrders');
     $routes->post('bulk-status', 'Files::bulkStatusByList');
 });

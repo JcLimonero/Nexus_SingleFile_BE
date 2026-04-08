@@ -2444,4 +2444,90 @@ class Files extends BaseController
             ])->setStatusCode(500);
         }
     }
+
+    /**
+     * Unificar expedientes duplicados (misma agencia + mismo IdOrderTotal).
+     * El principal es el de fase más avanzada (4 Liberado > 6 > 3 > 2 > 1 > 5).
+     * Los no principales: migración de documentos al principal si faltan datos; luego IdCurrentState = 5 (Cancelado).
+     * POST /api/files/merge-duplicates
+     * Body JSON: { "agencyName": "HONDA GALERIAS", "idOrderTotal": "35851", "dryRun": false }
+     * O: { "agencyInternalId": 123, "idOrderTotal": "35851" }
+     */
+    public function mergeDuplicateFiles()
+    {
+        try {
+            $currentUser = $this->getAuthenticatedUser();
+            if (!$currentUser) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado',
+                ])->setStatusCode(401);
+            }
+
+            $userRole = $currentUser['role_id'] ?? null;
+            $allowedRoles = [5, 6, 7];
+            if (!in_array($userRole, $allowedRoles, true)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No tienes permisos para unificar expedientes',
+                ])->setStatusCode(403);
+            }
+
+            $input = $this->request->getJSON(true) ?? [];
+            $agencyName = isset($input['agencyName']) ? trim((string) $input['agencyName']) : '';
+            $agencyInternalId = $input['agencyInternalId'] ?? null;
+            $idOrderTotal = isset($input['idOrderTotal']) ? trim((string) $input['idOrderTotal']) : '';
+            $dryRun = !empty($input['dryRun']);
+
+            if ($idOrderTotal === '') {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El parámetro idOrderTotal es requerido',
+                    'data' => null,
+                ])->setStatusCode(400);
+            }
+
+            if ($agencyInternalId !== null && $agencyInternalId !== '') {
+                $agency = $this->db->query(
+                    'SELECT Id, Name, IdAgency FROM Agency WHERE Id = ?',
+                    [(int) $agencyInternalId]
+                )->getRowArray();
+            } elseif ($agencyName !== '') {
+                $agency = $this->db->query(
+                    'SELECT Id, Name, IdAgency FROM Agency WHERE LOWER(TRIM(Name)) = LOWER(TRIM(?)) LIMIT 1',
+                    [$agencyName]
+                )->getRowArray();
+            } else {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'agencyName o agencyInternalId es requerido',
+                    'data' => null,
+                ])->setStatusCode(400);
+            }
+
+            if (!$agency) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Agencia no encontrada',
+                    'data' => null,
+                ])->setStatusCode(404);
+            }
+
+            $userId = (int) ($currentUser['user_id'] ?? 0);
+            $mergeService = new \App\Services\FileMergeService($this->db);
+            $result = $mergeService->mergeForAgencyOrder((int) $agency['Id'], $idOrderTotal, $dryRun, $userId);
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/json; charset=UTF-8')
+                ->setJSON($result, JSON_UNESCAPED_UNICODE)
+                ->setStatusCode($result['success'] ? 200 : 400);
+        } catch (\Throwable $e) {
+            log_message('error', 'mergeDuplicateFiles: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al unificar: ' . $e->getMessage(),
+                'data' => null,
+            ])->setStatusCode(500);
+        }
+    }
 }
