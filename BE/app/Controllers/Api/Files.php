@@ -981,6 +981,10 @@ class Files extends BaseController
         ", [$ndDMS, $idAgency])->getRowArray();
 
         if (!$row || !isset($row['idCliente']) || $row['idCliente'] === '' || $row['idCliente'] === null) {
+            $ctrFallback = $this->tryCreateClientTotalRelationForExpediente($ndDMS, $idAgency, $idExpediente);
+            if ($ctrFallback['success']) {
+                return $ctrFallback;
+            }
             return ['success' => false, 'message' => 'No se encontró relación en view_client_relations para ndCliente e idAgency'];
         }
 
@@ -1001,6 +1005,70 @@ class Files extends BaseController
             'idHeaderClient' => $idHeaderClient,
             'message' => 'Reparación exitosa'
         ];
+    }
+
+    /**
+     * Si no hay fila en view_client_relations (p. ej. falta Client_Total_Relation para esa agencia),
+     * crea la fila en Client_Total_Relation para el HeaderClient del File y el nd (IdTotalDealer) indicado.
+     *
+     * @return array{success: bool, idClient?: int, idHeaderClient?: int, message: string}
+     */
+    private function tryCreateClientTotalRelationForExpediente(string $ndDMS, int $idAgency, int $idExpediente): array
+    {
+        $fileRow = $this->db->query(
+            'SELECT Id, IdClient, IdAgency FROM `File` WHERE Id = ? LIMIT 1',
+            [$idExpediente]
+        )->getRowArray();
+        if (!$fileRow) {
+            return ['success' => false, 'message' => 'Expediente no encontrado'];
+        }
+        if ((int) $fileRow['IdAgency'] !== $idAgency) {
+            return ['success' => false, 'message' => 'La agencia no coincide con el expediente'];
+        }
+        $idClient = (int) $fileRow['IdClient'];
+        $hcRow = $this->db->query(
+            'SELECT Id FROM HeaderClient WHERE IdClient = ? LIMIT 1',
+            [$idClient]
+        )->getRowArray();
+        if (!$hcRow) {
+            return ['success' => false, 'message' => 'No hay HeaderClient para File.IdClient'];
+        }
+        $idHeaderClient = (int) $hcRow['Id'];
+        $existing = $this->db->query(
+            'SELECT Id FROM Client_Total_Relation WHERE idHeaderClient = ? AND IdAgency = ? LIMIT 1',
+            [$idHeaderClient, $idAgency]
+        )->getRowArray();
+        if ($existing) {
+            return ['success' => false, 'message' => 'Ya existe Client_Total_Relation para este cliente y agencia'];
+        }
+        $nextId = $this->getNextClientTotalRelationId();
+        $insert = [
+            'Id' => $nextId,
+            'idHeaderClient' => $idHeaderClient,
+            'IdAgency' => $idAgency,
+            'IdTotalDealer' => $ndDMS,
+        ];
+        if (!$this->db->table('Client_Total_Relation')->insert($insert)) {
+            return ['success' => false, 'message' => 'No se pudo crear Client_Total_Relation'];
+        }
+        log_message(
+            'info',
+            "tryCreateClientTotalRelationForExpediente: CTR Id={$nextId} HC={$idHeaderClient} Agency={$idAgency} nd={$ndDMS} File={$idExpediente}"
+        );
+
+        return [
+            'success' => true,
+            'idClient' => $idClient,
+            'idHeaderClient' => $idHeaderClient,
+            'message' => 'Client_Total_Relation registrada correctamente',
+        ];
+    }
+
+    private function getNextClientTotalRelationId(): int
+    {
+        $q = $this->db->query('SELECT COALESCE(MAX(Id), 0) + 1 AS n FROM Client_Total_Relation')->getRowArray();
+
+        return (int) ($q['n'] ?? 1);
     }
 
     /**
@@ -1663,7 +1731,7 @@ class Files extends BaseController
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Relación de cliente reparada correctamente',
+                'message' => $repairResult['message'] ?? 'Relación de cliente reparada correctamente',
                 'data' => [
                     'idExpediente' => (int) $idExpediente,
                     'idClient' => $repairResult['idClient']

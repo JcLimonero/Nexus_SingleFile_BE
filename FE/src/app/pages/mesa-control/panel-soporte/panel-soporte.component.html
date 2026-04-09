@@ -232,6 +232,87 @@
                 </mat-card-content>
               </mat-card>
 
+              <mat-card
+                *ngIf="$any(d).expediente?.id"
+                class="ps-card ps-diag-card ps-diag-card--wide"
+                appearance="outlined">
+                <mat-card-header class="ps-diag-card-head">
+                  <div mat-card-avatar class="ps-avatar ps-avatar--vgd">
+                    <mat-icon>shopping_cart</mat-icon>
+                  </div>
+                  <mat-card-title>Pedidos DMS (Vanguardia)</mat-card-title>
+                  <mat-card-subtitle>API singlefileorderslastest — pedido y agencia del expediente</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div *ngIf="ordersLastestLoading($any(d))" class="ps-orders-lastest-loading">
+                    <mat-spinner diameter="28"></mat-spinner>
+                    <span>Consultando pedidos…</span>
+                  </div>
+                  <p
+                    *ngIf="!ordersLastestLoading($any(d)) && ordersLastestError($any(d))"
+                    class="ps-warn-text ps-line-tight">
+                    {{ ordersLastestError($any(d)) }}
+                  </p>
+                  <dl *ngIf="ordersLastestRow($any(d)) as orow" class="ps-kv">
+                    <div class="ps-kv-row">
+                      <dt>Agencia</dt>
+                      <dd>
+                        {{ orow['agencyName'] ?? '—' }}
+                        <span class="ps-muted" *ngIf="orow['idAgency'] != null">(id {{ orow['idAgency'] }})</span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>N.º orden (DMS)</dt>
+                      <dd class="ps-mono">{{ orow['order_dms'] ?? orow['orderDMS'] ?? orow['numeroPedido'] ?? '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>Cliente DMS (nd)</dt>
+                      <dd class="ps-mono">{{ ordersLastestNdFromRow(orow) || '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row">
+                      <dt>VIN</dt>
+                      <dd class="ps-mono">{{ orow['vin'] ?? '—' }}</dd>
+                    </div>
+                    <div class="ps-kv-row" *ngIf="orow['state'] || orow['billing_date']">
+                      <dt>Estado / facturación</dt>
+                      <dd>
+                        {{ orow['state'] || '—' }}
+                        <span *ngIf="orow['billing_date']" class="ps-muted"> — {{ orow['billing_date'] }}</span>
+                      </dd>
+                    </div>
+                    <div class="ps-kv-row" *ngIf="orow['invoice_reference']">
+                      <dt>Referencia factura</dt>
+                      <dd class="ps-mono">{{ orow['invoice_reference'] }}</dd>
+                    </div>
+                  </dl>
+                  <p
+                    *ngIf="
+                      !ordersLastestLoading($any(d)) &&
+                      !ordersLastestError($any(d)) &&
+                      ordersLastestState($any(d))?.ok &&
+                      !ordersLastestRow($any(d))
+                    "
+                    class="ps-muted ps-line-tight">
+                    La API respondió pero no hubo fila que coincida con el pedido y la agencia DMS en los resultados.
+                  </p>
+                  <p *ngIf="ordersLastestQuery($any(d)) as q" class="ps-muted ps-line-tight ps-orders-lastest-params">
+                    Enviado (sin <code>customerDMS</code> — el nd se lee de la respuesta):
+                    <code class="ps-mono">idAgency={{ q.idAgency }}</code>,
+                    <code class="ps-mono">order_dms={{ q.order_dms }}</code>
+                    <span *ngIf="q.connectionstring">, <code class="ps-mono">connectionstring</code> (sí)</span>
+                  </p>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="ps-orders-lastest-btn"
+                    [disabled]="ordersLastestLoading($any(d))"
+                    (click)="reconsultarOrdersLastest($any(d))">
+                    <mat-icon>refresh</mat-icon>
+                    Reconsultar pedidos DMS
+                  </button>
+                </mat-card-content>
+              </mat-card>
+
               <mat-card class="ps-card ps-diag-card" appearance="outlined">
                 <mat-card-header class="ps-diag-card-head">
                   <div mat-card-avatar class="ps-avatar ps-avatar--cli">
@@ -361,15 +442,28 @@
 
                   <div *ngIf="puedeRelacionarClienteFactura(d)" class="ps-repair-from-vgd">
                     <mat-divider class="ps-divider-spaced"></mat-divider>
-                    <p class="ps-repair-intro">
-                      El pedido existe en el portal pero <strong>no hay fila en Client</strong> para el
-                      <code>File.IdClient</code> actual. La factura DMS ya indica el cliente correcto:
-                      <strong class="ps-mono">nd {{ ndClienteFacturaVanguardia(d) }}</strong>.
-                    </p>
-                    <p class="ps-repair-hint">
-                      Puede enlazar este expediente al <code>Client.Id</code> que corresponde a ese nd en esta agencia
-                      (según <code>view_client_relations</code>), igual que la reparación manual de integración.
-                    </p>
+                    <ng-container *ngIf="esReparacionSoloCtr($any(d)); else repairIntroFaltaClientFactura">
+                      <p class="ps-repair-intro">
+                        Falta la fila en <strong>Client_Total_Relation</strong> para el <code>HeaderClient</code> de este
+                        cliente y la agencia del expediente. La factura DMS indica el nd:
+                        <strong class="ps-mono">{{ ndClienteFacturaVanguardia(d) }}</strong>.
+                      </p>
+                      <p class="ps-repair-hint">
+                        Se registrará ese <code>IdTotalDealer</code> (nd) en <code>Client_Total_Relation</code> para esta
+                        agencia, de modo que el expediente pueda aparecer en validación.
+                      </p>
+                    </ng-container>
+                    <ng-template #repairIntroFaltaClientFactura>
+                      <p class="ps-repair-intro">
+                        El pedido existe en el portal pero <strong>no hay fila en Client</strong> para el
+                        <code>File.IdClient</code> actual. La factura DMS ya indica el cliente correcto:
+                        <strong class="ps-mono">nd {{ ndClienteFacturaVanguardia(d) }}</strong>.
+                      </p>
+                      <p class="ps-repair-hint">
+                        Puede enlazar este expediente al <code>Client.Id</code> que corresponde a ese nd en esta agencia
+                        (según <code>view_client_relations</code>), igual que la reparación manual de integración.
+                      </p>
+                    </ng-template>
                     <button
                       mat-flat-button
                       color="accent"
@@ -385,12 +479,25 @@
 
                   <div *ngIf="puedeRelacionarClienteManual(d)" class="ps-repair-from-vgd ps-repair-manual">
                     <mat-divider class="ps-divider-spaced"></mat-divider>
-                    <p class="ps-repair-intro">
-                      El pedido existe en el portal pero <strong>no hay fila en Client</strong> para el
-                      <code>File.IdClient</code> actual. La consulta de facturación DMS <strong>no devolvió el número de
-                      cliente (nd)</strong>; indíquelo para enlazar el expediente con el
-                      <code>Client.Id</code> correcto en esta agencia (<code>view_client_relations</code>).
-                    </p>
+                    <ng-container *ngIf="esReparacionSoloCtr($any(d)); else repairIntroFaltaClientManual">
+                      <p class="ps-repair-intro">
+                        Falta la fila en <strong>Client_Total_Relation</strong> para este cliente y la agencia del
+                        expediente. La facturación DMS <strong>no devolvió el nd</strong>; indique el
+                        <strong>IdTotalDealer</strong> (número de cliente DMS) que debe quedar en CTR para esta agencia.
+                      </p>
+                      <p class="ps-repair-hint">
+                        Se creará la relación en <code>Client_Total_Relation</code> con ese nd; el cliente y
+                        <code>HeaderClient</code> ya existen.
+                      </p>
+                    </ng-container>
+                    <ng-template #repairIntroFaltaClientManual>
+                      <p class="ps-repair-intro">
+                        El pedido existe en el portal pero <strong>no hay fila en Client</strong> para el
+                        <code>File.IdClient</code> actual. La consulta de facturación DMS <strong>no devolvió el número de
+                        cliente (nd)</strong>; indíquelo para enlazar el expediente con el
+                        <code>Client.Id</code> correcto en esta agencia (<code>view_client_relations</code>).
+                      </p>
+                    </ng-template>
                     <div class="ps-repair-manual-field">
                       <mat-form-field appearance="outline" class="ps-field ps-repair-nd-field" subscriptSizing="dynamic">
                         <mat-label>N.º cliente DMS (nd / IdTotalDealer)</mat-label>
@@ -401,6 +508,10 @@
                           (ngModelChange)="setNdManual(idExpedienteDiag($any(d)), $event)"
                           [disabled]="loadingRelacionCliente"
                           placeholder="Ej. 62215" />
+                        <mat-hint *ngIf="ndSugeridoDesdeRelacion($any(d))" align="start" class="ps-repair-nd-hint">
+                          Nd sugerido desde CTR (IdTotalDealer); se copia al campo si estaba vacío al cargar el
+                          diagnóstico.
+                        </mat-hint>
                       </mat-form-field>
                     </div>
                     <button

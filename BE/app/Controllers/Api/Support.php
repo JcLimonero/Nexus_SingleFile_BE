@@ -443,6 +443,7 @@ LIMIT ' . $limite;
             'SELECT '
             . 'f.Id AS id_file, f.IdClient, f.IdAgency, f.IdProcess, f.IdCurrentState, '
             . 'f.IdOrderTotal, f.RegistrationDate, f.UpdateDate, f.AgendDate, '
+            . 'a.IdAgency AS idAgencyDms, a.AgencyConnection AS agencyConnection, '
             . 'a.Name AS agencia, p.Name AS proceso, p.Enabled AS proceso_habilitado, '
             . 'fs.Name AS estado '
             . 'FROM File f '
@@ -548,13 +549,22 @@ LIMIT ' . $limite;
         }
 
         $orderDms = trim((string) ($fileRow['IdOrderTotal'] ?? ''));
-        $vanguardia = $this->fetchVanguardiaInvoiceResumen($orderDms, $idAgencyFile);
+        $idAgencyDms = isset($fileRow['idAgencyDms']) ? trim((string) $fileRow['idAgencyDms']) : '';
+        $agencyConnection = isset($fileRow['agencyConnection']) ? trim((string) $fileRow['agencyConnection']) : '';
+        $vanguardia = $this->fetchVanguardiaInvoiceResumen(
+            $orderDms,
+            $idAgencyFile,
+            $idAgencyDms !== '' ? $idAgencyDms : null,
+            $agencyConnection !== '' ? $agencyConnection : null
+        );
 
         return [
             'expediente' => [
                 'id' => (int) $fileRow['id_file'],
                 'idOrderTotal' => $fileRow['IdOrderTotal'],
                 'idAgency' => $idAgencyFile,
+                'idAgencyDms' => $idAgencyDms !== '' ? $idAgencyDms : null,
+                'agencyConnection' => $agencyConnection !== '' ? $agencyConnection : null,
                 'agencia' => $fileRow['agencia'],
                 'proceso' => $fileRow['proceso'],
                 'idProcess' => (int) $fileRow['IdProcess'],
@@ -657,10 +667,14 @@ LIMIT ' . $limite;
 
     /**
      * Consulta facturas en API Vanguardia por order_dms y prioriza fila de la misma idAgency (DMS).
+     * Si la factura no trae nd de cliente, intenta singlefileorderslastest con idAgency DMS y order_dms (sin customerDMS).
      *
-     * @return array{ok: bool, error: ?string, factura: ?array, filas: array, httpStatus?: int, recomendaciones?: list<string>}
+     * @param string|null $idAgencyDms IdAgency de DMS (Agency.IdAgency), no el Id interno
+     * @param string|null $agencyConnection Agency.AgencyConnection (mismo filtro que integración en singlefileorderslastest)
+     *
+     * @return array{ok: bool, error: ?string, factura: ?array, filas: array, httpStatus?: int, recomendaciones?: list<string>, ordersFallback?: bool}
      */
-    private function fetchVanguardiaInvoiceResumen(string $orderDms, int $idAgencyFile): array
+    private function fetchVanguardiaInvoiceResumen(string $orderDms, int $idAgencyFile, ?string $idAgencyDms = null, ?string $agencyConnection = null): array
     {
         $token = env('VANGUARDIA_PROVIDER_TOKEN') ?: '';
         $base = env('VANGUARDIA_INVOICE_URL') ?: 'https://apisvanguardia.com:400/vgd/invoice';
@@ -736,13 +750,16 @@ LIMIT ' . $limite;
                 $rows = $inner['data'];
             }
 
-            $idAgStr = (string) $idAgencyFile;
+            // Vanguardia devuelve idAgency en clave DMS (Agency.IdAgency), no el Id interno
+            $agencyKeyForMatch = ($idAgencyDms !== null && trim((string) $idAgencyDms) !== '')
+                ? trim((string) $idAgencyDms)
+                : (string) $idAgencyFile;
             $matched = null;
             foreach ($rows as $row) {
                 if (!is_array($row)) {
                     continue;
                 }
-                if (isset($row['idAgency']) && (string) $row['idAgency'] === $idAgStr) {
+                if (isset($row['idAgency']) && (string) $row['idAgency'] === $agencyKeyForMatch) {
                     $matched = $row;
                     break;
                 }
@@ -765,12 +782,44 @@ LIMIT ' . $limite;
                 ];
             }
 
+            $ordersFallback = false;
+            $ndFactura = $factura !== null && isset($factura['clienteDms'])
+                ? trim((string) $factura['clienteDms'])
+                : '';
+            if (
+                $ndFactura === ''
+                && $orderDms !== ''
+                && $idAgencyDms !== null
+                && trim($idAgencyDms) !== ''
+            ) {
+                $fromOrders = $this->fetchClienteNdFromVanguardiaOrdersLastest($orderDms, trim($idAgencyDms), $agencyConnection);
+                if ($fromOrders !== null && $fromOrders['nd'] !== '') {
+                    $ordersFallback = true;
+                    $row = $fromOrders['row'];
+                    if ($factura === null) {
+                        $factura = [
+                            'agencia' => $row['agencyName'] ?? null,
+                            'idAgencia' => $row['idAgency'] ?? $idAgencyDms,
+                            'numeroOrden' => $row['order_dms'] ?? $row['orderDMS'] ?? $orderDms,
+                            'clienteDms' => $fromOrders['nd'],
+                            'vin' => $row['vin'] ?? null,
+                            'estadoFactura' => $row['state'] ?? null,
+                            'billingDate' => $row['billing_date'] ?? null,
+                            'invoiceReference' => $row['invoice_reference'] ?? null,
+                        ];
+                    } else {
+                        $factura['clienteDms'] = $fromOrders['nd'];
+                    }
+                }
+            }
+
             return [
                 'ok' => true,
                 'error' => null,
                 'factura' => $factura,
                 'filas' => $rows,
                 'httpStatus' => $code,
+                'ordersFallback' => $ordersFallback,
             ];
         } catch (\Throwable $e) {
             log_message('error', 'Support::fetchVanguardiaInvoiceResumen: ' . $e->getMessage());
@@ -782,6 +831,130 @@ LIMIT ' . $limite;
                 'filas' => [],
             ];
         }
+    }
+
+    /**
+     * GET singlefileorderslastest: idAgency DMS, order_dms y opcional connectionstring (no se envía customerDMS).
+     *
+     * @return array{nd: string, row: array<string, mixed>}|null
+     */
+    private function fetchClienteNdFromVanguardiaOrdersLastest(string $orderDms, string $idAgencyDms, ?string $agencyConnection = null): ?array
+    {
+        $token = env('VANGUARDIA_PROVIDER_TOKEN') ?: '';
+        $token = is_string($token) ? trim($token) : '';
+        if ($token === '' || $orderDms === '' || trim($idAgencyDms) === '') {
+            return null;
+        }
+
+        $base = env('VANGUARDIA_ORDERS_URL') ?: 'https://apisvanguardia.com:400/vgd/singlefileorderslastest';
+        $query = [
+            'idAgency' => $idAgencyDms,
+            'order_dms' => $orderDms,
+            'perpage' => 50,
+        ];
+        if ($agencyConnection !== null && trim($agencyConnection) !== '') {
+            $query['connectionstring'] = trim($agencyConnection);
+        }
+        $url = rtrim((string) $base, '?&') . '?' . http_build_query($query);
+
+        try {
+            $client = service('curlrequest');
+            $resp = $client->get($url, [
+                'headers' => [
+                    'X-Provider-Token' => $token,
+                    'Accept' => 'application/json',
+                    'Accept-Encoding' => 'identity',
+                    'User-Agent' => 'SingleFile-Support/1.0',
+                ],
+                'timeout' => 25,
+                'http_errors' => false,
+            ]);
+
+            $code = (int) $resp->getStatusCode();
+            $body = (string) $resp->getBody();
+            $json = $this->decodeJsonResponseBody($body);
+            if (!is_array($json)) {
+                log_message('warning', 'Vanguardia singlefileorderslastest: JSON inválido HTTP ' . $code);
+
+                return null;
+            }
+
+            $orders = [];
+            $inner = $json['data'] ?? null;
+            if (is_array($inner) && isset($inner['data']) && is_array($inner['data'])) {
+                $orders = $inner['data'];
+            } elseif (is_array($inner) && $inner !== [] && isset($inner[0])) {
+                $orders = $inner;
+            } elseif (isset($json['data']) && is_array($json['data'])) {
+                $orders = $json['data'];
+            }
+
+            $idAgNorm = trim($idAgencyDms);
+            $hasAnyIdAgency = false;
+            $ordersSameAgency = [];
+            foreach ($orders as $ord) {
+                if (!is_array($ord)) {
+                    continue;
+                }
+                $ia = $ord['idAgency'] ?? null;
+                if ($ia !== null && trim((string) $ia) !== '') {
+                    $hasAnyIdAgency = true;
+                    if (trim((string) $ia) === $idAgNorm) {
+                        $ordersSameAgency[] = $ord;
+                    }
+                }
+            }
+            if ($hasAnyIdAgency) {
+                $orders = $ordersSameAgency;
+            }
+
+            $orderDmsNorm = trim($orderDms);
+            $candidates = [];
+            foreach ($orders as $order) {
+                if (!is_array($order)) {
+                    continue;
+                }
+                $od = $order['order_dms'] ?? $order['orderDMS'] ?? $order['numeroPedido'] ?? null;
+                if ($od !== null && trim((string) $od) === $orderDmsNorm) {
+                    $candidates[] = $order;
+                }
+            }
+            $toScan = $candidates !== [] ? $candidates : $orders;
+
+            foreach ($toScan as $order) {
+                if (!is_array($order)) {
+                    continue;
+                }
+                $nd = $this->extractNdFromVanguardiaOrderRow($order);
+                if ($nd !== null && $nd !== '') {
+                    log_message(
+                        'info',
+                        'Support: clienteDms obtenido desde singlefileorderslastest (nd=' . $nd . ', order_dms=' . $orderDmsNorm . ')'
+                    );
+
+                    return ['nd' => $nd, 'row' => $order];
+                }
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Support::fetchClienteNdFromVanguardiaOrdersLastest: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function extractNdFromVanguardiaOrderRow(array $row): ?string
+    {
+        $keys = ['ndClientDMS', 'ndCliente', 'customerDMS', 'IdTotalDealer', 'nd_dms', 'nd'];
+        foreach ($keys as $k) {
+            if (isset($row[$k]) && trim((string) $row[$k]) !== '') {
+                return trim((string) $row[$k]);
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -7,7 +7,9 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -133,7 +135,27 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
   /** nd capturado a mano cuando la API no devuelve clienteDMS (clave = Id expediente / file) */
   reparacionNdManual: Record<number, string> = {};
 
+  /** Respuesta singlefileorderslastest por expediente (misma llamada que integración / soporte BE) */
+  private readonly vanguardiaProviderToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
+  ordersLastestByFileId: Record<
+    number,
+    {
+      loading: boolean;
+      ok?: boolean;
+      error?: string;
+      httpStatus?: number;
+      row?: Record<string, unknown> | null;
+      totalRows?: number;
+      queryEcho?: {
+        idAgency: string;
+        order_dms: string;
+        connectionstring?: string;
+      };
+    }
+  > = {};
+
   constructor(
+    private http: HttpClient,
     private panelSoporte: PanelSoporteService,
     private defaultAgency: DefaultAgencyService,
     private validacionService: ValidacionService,
@@ -225,6 +247,7 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
   }
 
   ejecutarDiagnostico(): void {
+    this.ordersLastestByFileId = {};
     this.diagPayload = null;
     this.diagAgrupado = null;
     this.diagAmbiguo = null;
@@ -248,6 +271,7 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
   }
 
   usarCandidato(idFile: number): void {
+    this.ordersLastestByFileId = {};
     this.diagAmbiguo = null;
     this.diagPayload = null;
     this.diagAgrupado = null;
@@ -289,12 +313,16 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
           duration: 5000
         });
       }
+      this.aplicarSeedNdManualEnRespuesta();
+      this.prefetchOrdersLastestForDiagnostico();
       this.cdr.markForCheck();
       return;
     }
     if (res?.success && res?.data && res?.data?.expediente) {
       this.diagAgrupado = null;
       this.diagPayload = res.data as Record<string, unknown>;
+      this.aplicarSeedNdManualEnRespuesta();
+      this.prefetchOrdersLastestForDiagnostico();
       this.cdr.markForCheck();
       return;
     }
@@ -304,6 +332,7 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
 
   private onDiagnosticoError(err: any): void {
     this.loadingDiag = false;
+    this.ordersLastestByFileId = {};
     this.diagPayload = null;
     this.diagAgrupado = null;
     const msg =
@@ -333,7 +362,10 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     if (vgd && vgd['ok'] === false) {
       return true;
     }
-    if (this.puedeRelacionarClienteFactura(d) || this.puedeRelacionarClienteManual(d)) {
+    if (
+      this.puedeRelacionarClienteFactura(d) ||
+      this.puedeRelacionarClienteManual(d)
+    ) {
       return true;
     }
     return false;
@@ -380,11 +412,40 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Falta Client_Total_Relation para el HeaderClient del expediente y la agencia (CTR en diagnóstico).
+   * Requiere Client y HeaderClient; el nd registra IdTotalDealer en CTR.
+   */
+  ctrFaltanteReparacion(d: unknown): boolean {
+    if (!d || typeof d !== 'object') {
+      return false;
+    }
+    const p = d as Record<string, unknown>;
+    const val = p['validacion'] as Record<string, unknown> | undefined;
+    if (!val || val['existeRelacionClienteAgencia'] !== false) {
+      return false;
+    }
+    if (val['existeClient'] === false || val['joinHeaderClientOk'] !== true) {
+      return false;
+    }
+    const motivos = (val['motivosSiNoAparece'] as string[] | undefined) ?? [];
+    if (!motivos.some((m) => m.includes('Client_Total_Relation'))) {
+      return false;
+    }
+    const exp = p['expediente'] as Record<string, unknown> | undefined;
+    return exp != null && exp['id'] != null && exp['idAgency'] != null;
+  }
+
+  /** Solo CTR (sin el caso «no existe Client»). */
+  esReparacionSoloCtr(d: unknown): boolean {
+    return this.ctrFaltanteReparacion(d) && !this.sinClientFilaMotivoReparacion(d);
+  }
+
+  /**
    * Reparación posible con nd devuelto por Vanguardia (factura DMS).
    */
   puedeRelacionarClienteFactura(d: unknown): boolean {
     return (
-      this.sinClientFilaMotivoReparacion(d) &&
+      (this.sinClientFilaMotivoReparacion(d) || this.ctrFaltanteReparacion(d)) &&
       String(this.ndClienteFacturaVanguardia(d)).trim() !== ''
     );
   }
@@ -394,7 +455,7 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
    */
   puedeRelacionarClienteManual(d: unknown): boolean {
     return (
-      this.sinClientFilaMotivoReparacion(d) &&
+      (this.sinClientFilaMotivoReparacion(d) || this.ctrFaltanteReparacion(d)) &&
       String(this.ndClienteFacturaVanguardia(d)).trim() === ''
     );
   }
@@ -417,6 +478,60 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /**
+   * Nd sugerido para reparación: CTR de la agencia del expediente, o primer IdTotalDealer en CTR del cliente.
+   */
+  ndSugeridoDesdeRelacion(d: Record<string, unknown>): string {
+    const rel = d['relacion'] as Record<string, unknown> | undefined;
+    if (!rel) {
+      return '';
+    }
+    const nd = rel['ndEnRelacionAgencia'];
+    if (nd !== null && nd !== undefined && String(nd).trim() !== '') {
+      return String(nd).trim();
+    }
+    const todas = rel['todasRelacionesCliente'] as Record<string, unknown>[] | undefined;
+    if (!Array.isArray(todas)) {
+      return '';
+    }
+    for (const r of todas) {
+      if (!r || typeof r !== 'object') {
+        continue;
+      }
+      const row = r as Record<string, unknown>;
+      const idT = row['IdTotalDealer'];
+      if (idT !== null && idT !== undefined && String(idT).trim() !== '') {
+        return String(idT).trim();
+      }
+    }
+    return '';
+  }
+
+  private aplicarSeedNdManualEnRespuesta(): void {
+    if (this.diagPayload) {
+      this.seedNdManualDesdeRelacion(this.diagPayload);
+    }
+    if (this.diagAgrupado) {
+      for (const g of this.diagAgrupado) {
+        for (const bloque of g.expedientes) {
+          this.seedNdManualDesdeRelacion(bloque);
+        }
+      }
+    }
+  }
+
+  /** Rellena el input de nd manual si sigue vacío. */
+  private seedNdManualDesdeRelacion(d: Record<string, unknown>): void {
+    const id = this.idExpedienteDiag(d);
+    if (!id || this.getNdManual(id).trim() !== '') {
+      return;
+    }
+    const sug = this.ndSugeridoDesdeRelacion(d);
+    if (sug !== '') {
+      this.reparacionNdManual[id] = sug;
+    }
+  }
+
   ndClienteFacturaVanguardia(d: unknown): string {
     const vf = this.vanguardiaFactura(d);
     if (!vf) {
@@ -424,6 +539,267 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     }
     const nd = vf['clienteDms'];
     return nd !== null && nd !== undefined ? String(nd).trim() : '';
+  }
+
+  private prefetchOrdersLastestForDiagnostico(): void {
+    if (this.diagPayload) {
+      this.loadOrdersLastestForBloque(this.diagPayload);
+    }
+    if (this.diagAgrupado) {
+      for (const g of this.diagAgrupado) {
+        for (const bloque of g.expedientes) {
+          this.loadOrdersLastestForBloque(bloque);
+        }
+      }
+    }
+  }
+
+  /**
+   * GET singlefileorderslastest con idAgency DMS, order_dms y opcional connectionstring (sin customerDMS).
+   */
+  loadOrdersLastestForBloque(d: Record<string, unknown>, force = false): void {
+    const idFile = this.idExpedienteDiag(d);
+    if (!idFile) {
+      return;
+    }
+    const exp = d['expediente'] as Record<string, unknown> | undefined;
+    if (!exp) {
+      return;
+    }
+    const idAgencyDms =
+      exp['idAgencyDms'] != null && String(exp['idAgencyDms']).trim() !== ''
+        ? String(exp['idAgencyDms']).trim()
+        : '';
+    const orderDms =
+      exp['idOrderTotal'] != null && String(exp['idOrderTotal']).trim() !== ''
+        ? String(exp['idOrderTotal']).trim()
+        : '';
+    const agencyConnection =
+      exp['agencyConnection'] != null && String(exp['agencyConnection']).trim() !== ''
+        ? String(exp['agencyConnection']).trim()
+        : '';
+
+    const prev = this.ordersLastestByFileId[idFile];
+    if (prev?.loading) {
+      return;
+    }
+
+    if (!idAgencyDms || !orderDms) {
+      this.ordersLastestByFileId[idFile] = {
+        loading: false,
+        ok: false,
+        error: 'Falta idAgency DMS (catálogo) o pedido (IdOrderTotal) en el expediente.'
+      };
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const echo = {
+      idAgency: idAgencyDms,
+      order_dms: orderDms,
+      ...(agencyConnection ? { connectionstring: agencyConnection } : {})
+    };
+    if (
+      !force &&
+      prev?.ok &&
+      prev.queryEcho &&
+      prev.queryEcho.idAgency === echo.idAgency &&
+      prev.queryEcho.order_dms === echo.order_dms &&
+      (prev.queryEcho.connectionstring || '') === (echo.connectionstring || '')
+    ) {
+      return;
+    }
+
+    this.ordersLastestByFileId[idFile] = { loading: true, queryEcho: echo };
+    this.cdr.markForCheck();
+
+    let params = new HttpParams()
+      .set('idAgency', idAgencyDms)
+      .set('order_dms', orderDms)
+      .set('perpage', '50');
+    if (agencyConnection) {
+      params = params.set('connectionstring', agencyConnection);
+    }
+
+    this.http
+      .get<unknown>(environment.vanguardia.ordersApiUrl, {
+        params,
+        headers: {
+          'X-Provider-Token': this.vanguardiaProviderToken,
+          Accept: 'application/json',
+          'Accept-Encoding': 'identity'
+        }
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const parsed = this.parseVanguardiaOrdersEnvelope(response);
+          if (!parsed) {
+            this.ordersLastestByFileId[idFile] = {
+              loading: false,
+              ok: false,
+              error: 'Respuesta inválida de singlefileorderslastest.',
+              queryEcho: echo
+            };
+            this.cdr.markForCheck();
+            return;
+          }
+          const row = this.pickOrderRowFromParsed(parsed.rows, orderDms, idAgencyDms);
+          this.ordersLastestByFileId[idFile] = {
+            loading: false,
+            ok: true,
+            row: row ?? null,
+            totalRows: parsed.totalRows,
+            queryEcho: echo
+          };
+          this.cdr.markForCheck();
+        },
+        error: (err: unknown) => {
+          const httpErr = err as { status?: number; message?: string; error?: { message?: string } };
+          const msg =
+            httpErr?.error?.message ||
+            httpErr?.message ||
+            'Error al consultar singlefileorderslastest';
+          this.ordersLastestByFileId[idFile] = {
+            loading: false,
+            ok: false,
+            error: msg,
+            httpStatus: typeof httpErr?.status === 'number' ? httpErr.status : undefined,
+            queryEcho: echo
+          };
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  reconsultarOrdersLastest(d: Record<string, unknown>): void {
+    this.loadOrdersLastestForBloque(d, true);
+  }
+
+  ordersLastestState(d: Record<string, unknown>): (typeof this.ordersLastestByFileId)[number] | undefined {
+    const id = this.idExpedienteDiag(d);
+    return id ? this.ordersLastestByFileId[id] : undefined;
+  }
+
+  ordersLastestLoading(d: Record<string, unknown>): boolean {
+    return this.ordersLastestState(d)?.loading === true;
+  }
+
+  ordersLastestError(d: Record<string, unknown>): string {
+    const e = this.ordersLastestState(d)?.error;
+    return e ? String(e) : '';
+  }
+
+  ordersLastestRow(d: Record<string, unknown>): Record<string, unknown> | null {
+    const r = this.ordersLastestState(d)?.row;
+    return r && typeof r === 'object' ? r : null;
+  }
+
+  ordersLastestQuery(d: Record<string, unknown>): {
+    idAgency: string;
+    order_dms: string;
+    connectionstring?: string;
+  } | null {
+    const q = this.ordersLastestState(d)?.queryEcho;
+    return q ?? null;
+  }
+
+  ordersLastestNdFromRow(row: Record<string, unknown>): string {
+    const keys = ['ndClientDMS', 'ndCliente', 'customerDMS', 'IdTotalDealer', 'nd_dms', 'nd'];
+    for (const k of keys) {
+      const v = row[k];
+      if (v !== null && v !== undefined && String(v).trim() !== '') {
+        return String(v).trim();
+      }
+    }
+    return '';
+  }
+
+  private parseVanguardiaOrdersEnvelope(response: unknown): {
+    rows: Record<string, unknown>[];
+    totalRows: number;
+    totalPages: number;
+    page: number;
+  } | null {
+    if (Array.isArray(response)) {
+      return {
+        rows: response as Record<string, unknown>[],
+        totalRows: response.length,
+        totalPages: 1,
+        page: 1
+      };
+    }
+    if (!response || typeof response !== 'object') {
+      return null;
+    }
+    const r = response as Record<string, unknown>;
+    if (r['status'] !== undefined && Number(r['status']) !== 200) {
+      return null;
+    }
+    const payload = r['data'];
+    if (!payload) {
+      return null;
+    }
+    if (Array.isArray(payload)) {
+      return {
+        rows: payload as Record<string, unknown>[],
+        totalRows: payload.length,
+        totalPages: 1,
+        page: 1
+      };
+    }
+    if (typeof payload === 'object' && payload !== null) {
+      const p = payload as Record<string, unknown>;
+      if (Array.isArray(p['data'])) {
+        const rows = p['data'] as Record<string, unknown>[];
+        return {
+          rows,
+          totalRows: Number(p['total_rows']) || rows.length,
+          totalPages: Math.max(1, Number(p['total_pages']) || 1),
+          page: Number(p['page']) || 1
+        };
+      }
+      if (Array.isArray(p['orders'])) {
+        const rows = p['orders'] as Record<string, unknown>[];
+        return {
+          rows,
+          totalRows: rows.length,
+          totalPages: 1,
+          page: 1
+        };
+      }
+    }
+    return null;
+  }
+
+  private pickOrderRowFromParsed(
+    rows: Record<string, unknown>[],
+    orderDms: string,
+    idAgencyDms: string
+  ): Record<string, unknown> | null {
+    const idNorm = idAgencyDms.trim();
+    const odNorm = orderDms.trim();
+    let hasAgency = false;
+    const sameAg: Record<string, unknown>[] = [];
+    for (const r of rows) {
+      const ia = r['idAgency'];
+      if (ia !== null && ia !== undefined && String(ia).trim() !== '') {
+        hasAgency = true;
+        if (String(ia).trim() === idNorm) {
+          sameAg.push(r);
+        }
+      }
+    }
+    const pool = hasAgency && sameAg.length ? sameAg : rows;
+    const candidates: Record<string, unknown>[] = [];
+    for (const r of pool) {
+      const od = r['order_dms'] ?? r['orderDMS'] ?? r['numeroPedido'];
+      if (od !== null && od !== undefined && String(od).trim() === odNorm) {
+        candidates.push(r);
+      }
+    }
+    const pick = candidates.length ? candidates[0] : pool[0];
+    return pick ?? null;
   }
 
   /**

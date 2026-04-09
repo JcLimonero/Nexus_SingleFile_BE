@@ -858,6 +858,21 @@
   max-width: 42ch;
 }
 
+.ps-orders-lastest-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.ps-orders-lastest-btn {
+  margin-top: 0.75rem;
+}
+
+.ps-orders-lastest-params code {
+  font-size: 0.8em;
+}
+
 /* Material: densidad cómoda en móvil */
 .panel-soporte ::ng-deep .mat-mdc-form-field-infix {
   min-height: 48px;
