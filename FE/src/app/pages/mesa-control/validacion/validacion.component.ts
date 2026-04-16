@@ -115,8 +115,6 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   pageSizeOptions = [5, 7, 10, 25, 50];
   currentPage = 0;
   totalRecords = 0;
-  allClientes: any[] = []; // Todos los clientes para paginación local
-  clientesOriginales: any[] = []; // Copia de respaldo de todos los clientes originales
 
   // Tabla de documentos: columnas visibles según rol (Rechazar solo rol 7, Eliminar solo roles 6 y 7)
   get documentosDisplayedColumns(): string[] {
@@ -385,8 +383,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Método para manejar el toggle de pedidos cancelados
   onToggleCancelledOrders(): void {
-
-    this.cargarClientes();
+    this.cargarClientes({ resetPage: true });
   }
 
   onCancelar(cliente: any): void {
@@ -637,7 +634,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
         // Si hay proceso seleccionado (incl. "Todos los procesos"), cargar clientes
         if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
-          this.cargarClientes();
+          this.cargarClientes({ resetPage: true });
         }
       }
     });
@@ -660,21 +657,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   private connectSort(): void {
     if (!this.sort) return;
     if (this.sortChangeSub) this.sortChangeSub.unsubscribe();
-    this.sortChangeSub = this.sort.sortChange.subscribe(() => this.aplicarOrdenamiento());
-    this.clientesDataSource.sort = this.sort;
-    this.clientesDataSource.sortingDataAccessor = (item, property) => {
-      switch (property) {
-        case 'ndCliente': return item.idFile;
-        case 'ndPedido': return item.ndPedido;
-        case 'cliente': return item.cliente;
-        case 'proceso': return item.proceso;
-        case 'operacion': return item.operacion;
-        case 'fase': return item.fase;
-        case 'registro': return this.getDateSortValue(item.registro);
-        case 'fechaLiberacion': return this.getDateSortValue(item.fechaLiberacion);
-        default: return item[property];
-      }
-    };
+    this.sortChangeSub = this.sort.sortChange.subscribe(() => {
+      this.cargarClientes({ resetPage: true });
+    });
   }
 
   /**
@@ -1292,8 +1277,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
           // Si ya hay agencia seleccionada, cargar clientes automáticamente
           if (this.selectedAgency !== null) {
-
-            this.cargarClientes();
+            this.cargarClientes({ resetPage: true });
           }
 
           this.loadingProcesos = false;
@@ -1387,8 +1371,6 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingProcesos = true;
 
     // Limpiar datos existentes
-    this.allClientes = [];
-    this.clientesOriginales = [];
     this.clientesDataSource.data = [];
     this.procesos = [];
     this.selectedAgency = null;
@@ -1617,7 +1599,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     // Si ya hay un proceso seleccionado (incl. "Todos los procesos"), cargar clientes
     if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
-      this.cargarClientes();
+      this.cargarClientes({ resetPage: true });
     }
     // Limpiar selección de cliente y documentos
     this.clearSelection();
@@ -1633,7 +1615,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.searchTerm = '';
 
     if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
-      this.cargarClientes();
+      this.cargarClientes({ resetPage: true });
     }
     // Limpiar selección de cliente y documentos
     this.clearSelection();
@@ -1643,138 +1625,22 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    * Manejar cambio en la selección de fase
    */
   onFaseChange(): void {
-
-    // Si hay búsqueda activa, aplicar búsqueda (que incluye filtro de fase)
-    if (this.searchTerm && this.searchTerm.trim() !== '') {
-
-      this.aplicarBusqueda();
-    } else {
-      // Solo aplicar filtro de fase
-
-      this.aplicarFiltroFase();
-    }
-
-    // Si hay un cliente seleccionado, recargar sus documentos
-    if (this.selectedCliente) {
-      this.cargarDocumentosCliente(this.selectedCliente.idFile);
-    }
+    this.cargarClientes({ resetPage: true });
   }
 
   /**
-   * Aplicar filtro de fase a la tabla de clientes
+   * Cargar clientes desde la API (paginación y orden en servidor)
    */
-  private aplicarFiltroFase(): void {
-
-    if (!this.selectedFase || this.selectedFase === '') {
-
-      // Sin filtro, restaurar todos los clientes originales
-      let clientesRestaurados = [...this.clientesOriginales];
-
-      // Aplicar filtro de cancelados
-      if (this.showCancelledOrders) {
-        // Solo mostrar cancelados
-        clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) === '5');
-        
-      } else {
-        // Excluir cancelados
-        clientesRestaurados = clientesRestaurados.filter(cliente => String(cliente.IdCurrentState) !== '5');
-        
-      }
-
-      this.allClientes = clientesRestaurados;
-      this.totalRecords = this.allClientes.length;
-      this.currentPage = 0;
-      this.updatePaginatedData();
-
-      // Seleccionar automáticamente el primer registro si hay clientes
-      if (this.allClientes.length > 0) {
-        this.seleccionarCliente(this.allClientes[0]);
-      } else {
-        this.selectedCliente = null;
-      }
-      this.cdr.markForCheck();
-      return;
-    }
-
-    // Filtrar clientes por fase desde los datos originales usando ID
-    const clientesFiltrados = this.clientesOriginales.filter(cliente => {
-      
-
-      // Aplicar filtro de cancelados
-      if (this.showCancelledOrders) {
-        // Solo mostrar cancelados
-        if (String(cliente.IdCurrentState) !== '5') {
-          
-          return false;
-        }
-      } else {
-        // Excluir cancelados
-        if (String(cliente.IdCurrentState) === '5') {
-          
-          return false;
-        }
-      }
-
-      let resultado = false;
-      switch (this.selectedFase) {
-        case '1':
-          resultado = String(cliente.IdCurrentState) === '1'; // Integración
-
-          break;
-        case '2':
-          resultado = String(cliente.IdCurrentState) === '2'; // Liquidación
-
-          break;
-        case '3':
-          resultado = String(cliente.IdCurrentState) === '3'; // Liberación
-
-          break;
-        case '4':
-          resultado = String(cliente.IdCurrentState) === '4'; // Liberado
-
-          break;
-        case '5':
-          resultado = String(cliente.IdCurrentState) === '5'; // Cancelado
-
-          break;
-        case '6':
-          resultado = String(cliente.IdCurrentState) === '6'; // Liberado por Excepción
-
-          break;
-        default:
-          resultado = true;
-
-          break;
-      }
-      return resultado;
-    });
-
-    // Actualizar los datos filtrados y aplicar paginación
-    this.allClientes = [...clientesFiltrados];
-    this.totalRecords = clientesFiltrados.length;
-    this.currentPage = 0; // Volver a la primera página
-    this.updatePaginatedData(); // Aplicar paginación con el tamaño de página configurado
-
-    // Seleccionar automáticamente el primer registro filtrado si hay resultados
-    if (clientesFiltrados.length > 0) {
-      this.seleccionarCliente(clientesFiltrados[0]);
-    } else {
-      this.selectedCliente = null;
-    }
-    this.cdr.markForCheck();
-  }
-
-  /**
-   * Cargar clientes desde la API
-   */
-  private cargarClientes() {
+  private cargarClientes(options?: { resetPage?: boolean }) {
     if (this.selectedAgency === null) {
-
       return;
     }
     if (this.selectedProcess === null || this.selectedProcess === undefined) {
-
       return;
+    }
+
+    if (options?.resetPage) {
+      this.currentPage = 0;
     }
 
     const esTodosProcesos = this.selectedProcess === this.ALL_PROCESSES_VALUE;
@@ -1786,68 +1652,68 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       proceso: esTodosProcesos ? null : this.selectedProcess,
       showCancelled: this.showCancelledOrders
     };
+    if (this.selectedFase && this.selectedFase !== '') {
+      filtros.idCurrentState = parseInt(this.selectedFase, 10);
+    }
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      filtros.q = this.searchTerm.trim();
+    }
+    if (this.sort?.active && this.sort.direction) {
+      filtros.sort = this.sort.active;
+      filtros.dir = this.sort.direction as 'asc' | 'desc';
+    }
 
-    this.validacionService.cargarClientes(filtros)
+    this.validacionService
+      .cargarClientes(filtros, this.currentPage + 1, this.pageSize)
       .pipe(
         takeUntil(this.destroy$),
-        timeout(10000),
-        catchError(error => {
-
+        timeout(60000),
+        catchError(() => {
           this.mostrarError('Error cargando clientes');
           this.clientesDataSource.data = [];
+          this.totalRecords = 0;
           this.loadingClientes = false;
-          return of([]);
+          return of({ clientes: [] as Cliente[], totalRecords: 0 });
         })
       )
       .subscribe({
-        next: (clientes) => {
-
-          
-          
-
-          // Verificar específicamente el campo IdCurrentState
-          if (clientes.length > 0) {
-
-            // Mostrar todos los IdCurrentState únicos
-            const estadosUnicos = [...new Set(clientes.map(c => c.IdCurrentState))];
-
+        next: ({ clientes, totalRecords }) => {
+          if (clientes.length === 0 && totalRecords > 0 && this.currentPage > 0) {
+            this.currentPage--;
+            this.cargarClientes();
+            return;
           }
 
-          this.clientesOriginales = [...clientes]; // Guardar copia de respaldo
-          this.allClientes = [...clientes]; // Guardar todos los clientes
-          this.currentPage = 0; // Volver a la primera página
+          this.totalRecords = totalRecords;
+          this.clientesDataSource.data = clientes;
 
-          // Aplicar filtro de fase si está seleccionado
-          if (this.selectedFase && this.selectedFase !== '') {
-            this.aplicarFiltroFase();
-          } else {
-            // Aplicar filtro de cancelados
-            if (this.showCancelledOrders) {
-              // Solo mostrar cancelados
-              this.allClientes = this.allClientes.filter(cliente => String(cliente.IdCurrentState) === '5');
-
+          const resetSelection = !!options?.resetPage;
+          if (resetSelection) {
+            if (clientes.length > 0) {
+              this.seleccionarCliente(clientes[0]);
             } else {
-              // Excluir cancelados
-              this.allClientes = this.allClientes.filter(cliente => String(cliente.IdCurrentState) !== '5');
-
+              this.selectedCliente = null;
+              this.documentosDataSource = [];
             }
-            this.updatePaginatedData(); // Aplicar paginación normal
-          }
-
-          // Seleccionar automáticamente el primer registro si hay clientes (usar datos filtrados)
-          if (this.allClientes.length > 0) {
-            this.seleccionarCliente(this.allClientes[0]);
           } else {
-            this.selectedCliente = null;
+            const stillThere =
+              this.selectedCliente &&
+              clientes.some(c => c.idFile === this.selectedCliente.idFile);
+            if (!stillThere) {
+              if (clientes.length > 0) {
+                this.seleccionarCliente(clientes[0]);
+              } else {
+                this.selectedCliente = null;
+                this.documentosDataSource = [];
+              }
+            }
           }
 
           this.loadingClientes = false;
           this.cdr.markForCheck();
-          // Conectar MatSort cuando la tabla ya esté en el DOM (*ngIf="!loadingClientes")
           setTimeout(() => this.connectSort(), 0);
         },
-        error: (error) => {
-
+        error: () => {
           this.clientesDataSource.data = [];
           this.loadingClientes = false;
           this.cdr.markForCheck();
@@ -1868,193 +1734,19 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Manejar cambio de página
+   * Manejar cambio de página o tamaño de página (paginación en servidor)
    */
-  onPageChange(event: any) {
-
+  onPageChange(event: { pageIndex: number; pageSize: number; previousPageIndex?: number }) {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
-
-    this.updatePaginatedData();
-  }
-
-  /**
-   * Actualizar datos paginados
-   */
-  private updatePaginatedData() {
-    const startIndex = this.currentPage * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.clientesDataSource.data = this.allClientes.slice(startIndex, endIndex);
-    this.totalRecords = this.allClientes.length;
-
-    // Aplicar ordenamiento si está configurado
-    if (this.sort) {
-      this.clientesDataSource.sort = this.sort;
-    }
-    this.cdr.markForCheck();
-  }
-
-  /**
-   * Cambiar tamaño de página
-   */
-  onPageSizeChange(event: any) {
-    this.pageSize = event.value;
-    this.currentPage = 0; // Volver a la primera página
-    this.updatePaginatedData();
-  }
-
-  /**
-   * Aplicar ordenamiento a los datos
-   */
-  private aplicarOrdenamiento() {
-
-    if (!this.sort || !this.allClientes.length) {
-
-      return;
-    }
-
-    const direction = this.sort.direction;
-    const active = this.sort.active;
-
-    if (direction === '') {
-
-      this.updatePaginatedData();
-      return;
-    }
-
-    // Ordenar todos los datos (fechas ya vienen como timestamp numérico)
-    this.allClientes.sort((a, b) => {
-      let aValue = this.getSortValue(a, active);
-      let bValue = this.getSortValue(b, active);
-
-      const isNumeric = active === 'registro' || active === 'fechaLiberacion' || active === 'ndCliente' || active === 'ndPedido';
-      if (isNumeric && (typeof aValue === 'number' || typeof bValue === 'number')) {
-        const numA = typeof aValue === 'number' ? aValue : Number(aValue) || 0;
-        const numB = typeof bValue === 'number' ? bValue : Number(bValue) || 0;
-        if (numA < numB) return direction === 'asc' ? -1 : 1;
-        if (numA > numB) return direction === 'asc' ? 1 : -1;
-        return 0;
-      }
-
-      if (aValue === null || aValue === undefined) aValue = '';
-      if (bValue === null || bValue === undefined) bValue = '';
-
-      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-
-      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    // Actualizar datos paginados
-    this.currentPage = 0;
-    this.updatePaginatedData();
-  }
-
-  /**
-   * Valor numérico para ordenar por fecha (timestamp; inválidos = 0)
-   */
-  private getDateSortValue(value: string | null | undefined): number {
-    if (value == null || value === '') return 0;
-    const t = new Date(value).getTime();
-    return Number.isNaN(t) ? 0 : t;
-  }
-
-  /**
-   * Obtener valor para ordenamiento de una columna específica
-   */
-  private getSortValue(item: any, column: string): any {
-    switch (column) {
-      case 'ndCliente':
-        return item.idFile;
-      case 'ndPedido':
-        return item.ndPedido;
-      case 'cliente':
-        return item.cliente;
-      case 'proceso':
-        return item.proceso;
-      case 'operacion':
-        return item.operacion;
-      case 'fase':
-        return item.fase;
-      case 'registro':
-        return this.getDateSortValue(item.registro);
-      case 'fechaLiberacion':
-        return this.getDateSortValue(item.fechaLiberacion);
-      default:
-        return item[column];
-    }
-  }
-
-  /**
-   * Método de prueba para verificar que el ordenamiento funciona
-   */
-  probarOrdenamiento() {
-
-    if (this.sort) {
-      // Simular un evento de ordenamiento
-
-      // Opción 1: Intentar con el método sort
-      try {
-        this.sort.sort({
-          id: 'ndCliente',
-          start: 'asc',
-          disableClear: false
-        });
-        
-      } catch (error) {
-        
-      }
-
-      // Opción 2: Llamar directamente al método de ordenamiento
-      
-      this.aplicarOrdenamiento();
-
-    } else {
-
-    }
-
-    // Mostrar información sobre la selección actual
-    if (this.selectedCliente) {
-
-    } else {
-
-    }
+    this.cargarClientes();
   }
 
   /**
    * Manejar cambio en el término de búsqueda
    */
   onSearchChange(): void {
-
-    this.aplicarBusqueda();
-  }
-
-  /**
-   * Limpiar búsqueda
-   */
-  clearSearch(): void {
-
-    this.searchTerm = '';
-    // Limpiar también la selección y documentos cuando se limpia la búsqueda
-    this.selectedCliente = null;
-    this.documentosDataSource = [];
-    this.advertenciaLiquidacionMostrada = false;
-    this.advertenciaLiberacionMostrada = false;
-    this.advertenciaLiberadoMostrada = false;
-    this.cdr.markForCheck();
-    this.aplicarBusqueda();
-  }
-
-  /**
-   * Aplicar búsqueda a los datos
-   */
-  private aplicarBusqueda(): void {
-
-    // Limpiar la selección y los documentos cuando se hace una búsqueda
     if (this.searchTerm && this.searchTerm.trim() !== '') {
-
       this.selectedCliente = null;
       this.documentosDataSource = [];
       this.advertenciaLiquidacionMostrada = false;
@@ -2062,117 +1754,20 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       this.advertenciaLiberadoMostrada = false;
       this.cdr.markForCheck();
     }
+    this.cargarClientes({ resetPage: true });
+  }
 
-    if (!this.searchTerm || this.searchTerm.trim() === '') {
-      // Sin búsqueda, aplicar solo filtro de fase si existe
-      if (this.selectedFase && this.selectedFase !== '') {
-        this.aplicarFiltroFase();
-      } else {
-        this.updatePaginatedData();
-      }
-      return;
-    }
-
-    const terminoBusqueda = this.searchTerm.toLowerCase().trim();
-
-    // Filtrar clientes por término de búsqueda
-    let clientesFiltrados = this.clientesOriginales.filter(cliente => {
-      // Buscar en número de cliente (ND Cliente)
-      const ndCliente = String(cliente.ndCliente || '').toLowerCase();
-      if (ndCliente.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      // Buscar en ID de archivo
-      const idFile = String(cliente.idFile).toLowerCase();
-      if (idFile.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      // Buscar en número de pedido
-      const ndPedido = String(cliente.ndPedido).toLowerCase();
-      if (ndPedido.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      // Buscar en nombre del cliente
-      const nombreCliente = cliente.cliente.toLowerCase();
-      if (nombreCliente.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      // Buscar en nombre de la agencia
-      const nombreAgencia = String(cliente.agencia || '').toLowerCase();
-      if (nombreAgencia.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      // Buscar en nombre del proceso
-      const nombreProceso = String(cliente.proceso || '').toLowerCase();
-      if (nombreProceso.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      // Buscar en nombre de la operación
-      const nombreOperacion = String(cliente.operacion || '').toLowerCase();
-      if (nombreOperacion.includes(terminoBusqueda)) {
-        return true;
-      }
-
-      return false;
-    });
-
-    // Si hay filtro de fase, aplicarlo también
-    if (this.selectedFase && this.selectedFase !== '') {
-      clientesFiltrados = clientesFiltrados.filter(cliente => {
-        // Aplicar filtro de cancelados
-        if (this.showCancelledOrders) {
-          // Solo mostrar cancelados
-          if (String(cliente.IdCurrentState) !== '5') {
-            return false;
-          }
-        } else {
-          // Excluir cancelados
-          if (String(cliente.IdCurrentState) === '5') {
-            return false;
-          }
-        }
-
-        switch (this.selectedFase) {
-          case '1':
-            return String(cliente.IdCurrentState) === '1'; // Integración
-          case '2':
-            return String(cliente.IdCurrentState) === '2'; // Liquidación
-          case '3':
-            return String(cliente.IdCurrentState) === '3'; // Liberación
-          case '4':
-            return String(cliente.IdCurrentState) === '4'; // Liberado
-          case '5':
-            return String(cliente.IdCurrentState) === '5'; // Cancelado
-          case '6':
-            return String(cliente.IdCurrentState) === '6'; // Liberado por Excepción
-          default:
-            return true;
-        }
-      });
-
-    } else {
-      // Si no hay filtro de fase, aplicar filtro de cancelados
-      if (this.showCancelledOrders) {
-        // Solo mostrar cancelados
-        clientesFiltrados = clientesFiltrados.filter(cliente => String(cliente.IdCurrentState) === '5');
-        
-      } else {
-        // Excluir cancelados
-        clientesFiltrados = clientesFiltrados.filter(cliente => String(cliente.IdCurrentState) !== '5');
-        
-      }
-    }
-
-    // Actualizar datos paginados con los resultados de búsqueda
-    this.allClientes = [...clientesFiltrados];
-    this.totalRecords = clientesFiltrados.length;
-    this.currentPage = 0; // Volver a la primera página
-    this.updatePaginatedData();
+  /**
+   * Limpiar búsqueda
+   */
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.selectedCliente = null;
+    this.documentosDataSource = [];
+    this.advertenciaLiquidacionMostrada = false;
+    this.advertenciaLiberacionMostrada = false;
+    this.advertenciaLiberadoMostrada = false;
+    this.cdr.markForCheck();
+    this.cargarClientes({ resetPage: true });
   }
 }

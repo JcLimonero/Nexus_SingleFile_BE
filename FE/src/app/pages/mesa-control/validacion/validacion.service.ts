@@ -55,6 +55,22 @@ export interface FiltrosValidacion {
   fase?: string;
   estado?: string;
   showCancelled?: boolean;
+  /** Filtro por IdCurrentState (1–6); prioridad sobre showCancelled en el API */
+  idCurrentState?: number | null;
+  /** Búsqueda en servidor (id, pedido, nd cliente, nombre, proceso, etc.) */
+  q?: string;
+  sort?: string;
+  dir?: 'asc' | 'desc';
+  /** Filtros de fecha (YYYY-MM-DD) para el API */
+  registroDesde?: string;
+  registroHasta?: string;
+  liberacionDesde?: string;
+  liberacionHasta?: string;
+}
+
+export interface CargarClientesResult {
+  clientes: Cliente[];
+  totalRecords: number;
 }
 
 @Injectable({
@@ -103,32 +119,60 @@ export class ValidacionService {
   }
 
   /**
-   * Cargar clientes/procesos con filtros
+   * Cargar clientes/procesos con filtros y paginación en servidor
    */
-  cargarClientes(filtros: FiltrosValidacion = {}): Observable<Cliente[]> {
+  cargarClientes(
+    filtros: FiltrosValidacion = {},
+    page: number = 1,
+    limit: number = 10
+  ): Observable<CargarClientesResult> {
     this.loadingSubject.next(true);
 
     let params = new HttpParams();
-    if (filtros.agencia) params = params.set('id', filtros.agencia);
+    if (filtros.agencia) params = params.set('id', filtros.agencia.toString());
     // Solo enviar idProcess cuando hay proceso concreto; "Todos los procesos" no envía idProcess
     if (filtros.proceso != null && filtros.proceso !== undefined) {
       params = params.set('idProcess', filtros.proceso.toString());
     }
     if (filtros.showCancelled !== undefined) params = params.set('showCancelled', filtros.showCancelled.toString());
-    params = params.set('page', '1');
-    params = params.set('limit', '10000'); // Obtener más registros para paginación local
+    if (filtros.idCurrentState != null && filtros.idCurrentState > 0) {
+      params = params.set('idCurrentState', filtros.idCurrentState.toString());
+    }
+    if (filtros.q && filtros.q.trim() !== '') {
+      params = params.set('q', filtros.q.trim());
+    }
+    if (filtros.sort && filtros.sort.trim() !== '') {
+      params = params.set('sort', filtros.sort.trim());
+    }
+    if (filtros.dir) {
+      params = params.set('dir', filtros.dir);
+    }
+    if (filtros.registroDesde) {
+      params = params.set('registroDesde', filtros.registroDesde);
+    }
+    if (filtros.registroHasta) {
+      params = params.set('registroHasta', filtros.registroHasta);
+    }
+    if (filtros.liberacionDesde) {
+      params = params.set('liberacionDesde', filtros.liberacionDesde);
+    }
+    if (filtros.liberacionHasta) {
+      params = params.set('liberacionHasta', filtros.liberacionHasta);
+    }
+    params = params.set('page', String(Math.max(1, page)));
+    params = params.set('limit', String(Math.max(1, limit)));
 
     return this.http.get<any>(`${this.apiUrl}/api/clients-validation/clientes`, { params }).pipe(
       map(response => {
-
-        
-
-        if (response && response.success && response.data && response.data.clientes) {
-
-          return response.data.clientes;
-        }
-
-        return [];
+        const clientes =
+          response && response.success && response.data && response.data.clientes
+            ? response.data.clientes
+            : [];
+        const totalRecords =
+          response?.data?.pagination?.totalRecords != null
+            ? Number(response.data.pagination.totalRecords)
+            : clientes.length;
+        return { clientes, totalRecords };
       })
     );
   }

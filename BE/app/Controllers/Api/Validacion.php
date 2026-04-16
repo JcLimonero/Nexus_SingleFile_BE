@@ -569,10 +569,23 @@ class Validacion extends BaseController
             $idProcess = $this->request->getGet('idProcess');
             $showCancelledParam = $this->request->getGet('showCancelled');
             $showCancelled = ($showCancelledParam === 'true');
-            
-            
+
+            $idCurrentStateParam = $this->request->getGet('idCurrentState');
+            $idCurrentState = ($idCurrentStateParam !== null && $idCurrentStateParam !== '')
+                ? (int) $idCurrentStateParam
+                : null;
+
             $page = (int) $this->request->getGet('page') ?: 1;
+            if ($page < 1) {
+                $page = 1;
+            }
             $limit = (int) $this->request->getGet('limit') ?: 10;
+            if ($limit < 1) {
+                $limit = 10;
+            }
+            if ($limit > 10000) {
+                $limit = 10000;
+            }
             $offset = ($page - 1) * $limit;
 
             // Validar parámetros requeridos (idProcess opcional: si no viene, "Todos los procesos")
@@ -684,15 +697,92 @@ class Validacion extends BaseController
                 $sql .= " AND f.IdProcess = ?";
                 $params[] = $idProcess;
             }
-            
-            // Aplicar filtro de pedidos cancelados 
-            if ($showCancelled) {
-                $sql .= " AND f.IdCurrentState = 5";
+
+            // Filtro por fase (IdCurrentState) desde UI: tiene prioridad sobre showCancelled
+            if ($idCurrentState !== null && $idCurrentState > 0) {
+                $sql .= " AND f.IdCurrentState = ?";
+                $params[] = $idCurrentState;
             } else {
-                $sql .= " AND f.IdCurrentState != 5";
+                // Aplicar filtro de pedidos cancelados
+                if ($showCancelled) {
+                    $sql .= " AND f.IdCurrentState = 5";
+                } else {
+                    $sql .= " AND f.IdCurrentState != 5";
+                }
             }
-            
-            $sql .= " ORDER BY tieneDocumentosPendientes DESC, ndCliente ASC, ndPedido ASC LIMIT ? OFFSET ?";
+
+            $search = trim((string) ($this->request->getGet('q') ?? ''));
+            if ($search !== '') {
+                $like = '%' . $this->db->escapeLikeString($search) . '%';
+                $sql .= " AND (
+                    CAST(f.Id AS CHAR) LIKE ?
+                    OR CAST(f.IdOrderTotal AS CHAR) LIKE ?
+                    OR EXISTS (
+                        SELECT 1 FROM Client_Total_Relation ctr_s
+                        WHERE ctr_s.idHeaderClient = hc.Id
+                        AND ctr_s.IdAgency = f.IdAgency
+                        AND CAST(ctr_s.IdTotalDealer AS CHAR) LIKE ?
+                    )
+                    OR COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))) LIKE ?
+                    OR p.Name LIKE ?
+                    OR ot.Name LIKE ?
+                    OR a.Name LIKE ?
+                )";
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+            }
+
+            // Filtros por rango de fechas (dashboard global / reportes)
+            $registroDesde = trim((string) ($this->request->getGet('registroDesde') ?? ''));
+            $registroHasta = trim((string) ($this->request->getGet('registroHasta') ?? ''));
+            $liberacionDesde = trim((string) ($this->request->getGet('liberacionDesde') ?? ''));
+            $liberacionHasta = trim((string) ($this->request->getGet('liberacionHasta') ?? ''));
+            $datePattern = '/^\d{4}-\d{2}-\d{2}$/';
+            if ($registroDesde !== '' && preg_match($datePattern, $registroDesde)) {
+                $sql .= ' AND DATE(f.RegistrationDate) >= ?';
+                $params[] = $registroDesde;
+            }
+            if ($registroHasta !== '' && preg_match($datePattern, $registroHasta)) {
+                $sql .= ' AND DATE(f.RegistrationDate) <= ?';
+                $params[] = $registroHasta;
+            }
+            if ($liberacionDesde !== '' && preg_match($datePattern, $liberacionDesde)) {
+                $sql .= ' AND DATE(CASE WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate ELSE f.AgendDate END) >= ?';
+                $params[] = $liberacionDesde;
+            }
+            if ($liberacionHasta !== '' && preg_match($datePattern, $liberacionHasta)) {
+                $sql .= ' AND DATE(CASE WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate ELSE f.AgendDate END) <= ?';
+                $params[] = $liberacionHasta;
+            }
+
+            $sortKey = (string) ($this->request->getGet('sort') ?? '');
+            $sortDir = strtoupper((string) ($this->request->getGet('dir') ?? 'ASC'));
+            if (! in_array($sortDir, ['ASC', 'DESC'], true)) {
+                $sortDir = 'ASC';
+            }
+            $allowedSort = [
+                'ndCliente' => 'ndCliente',
+                'ndPedido' => 'ndPedido',
+                'tipoCliente' => 'tipoCliente',
+                'idFile' => 'idFile',
+                'cliente' => 'cliente',
+                'proceso' => 'proceso',
+                'operacion' => 'operacion',
+                'fase' => 'fase',
+                'fechaLiberacion' => 'fechaLiberacion',
+                'registro' => 'registro',
+            ];
+            if ($sortKey !== '' && isset($allowedSort[$sortKey])) {
+                $orderCol = $allowedSort[$sortKey];
+                $sql .= " ORDER BY {$orderCol} {$sortDir} LIMIT ? OFFSET ?";
+            } else {
+                $sql .= " ORDER BY tieneDocumentosPendientes DESC, ndCliente ASC, ndPedido ASC LIMIT ? OFFSET ?";
+            }
             $params[] = $limit;
             $params[] = $offset;
 
@@ -700,7 +790,7 @@ class Validacion extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 
-            // Query para contar total de registros
+            // Query para contar total de registros (mismos filtros que la consulta principal)
             $countSql = "
                 SELECT COUNT(*) as total
                 FROM File f
@@ -709,6 +799,7 @@ class Validacion extends BaseController
                 INNER JOIN Process p ON f.IdProcess = p.Id
                 INNER JOIN OperationType ot ON f.IdOperation = ot.Id
                 INNER JOIN File_Status fs ON f.IdCurrentState = fs.Id
+                INNER JOIN Agency a ON f.IdAgency = a.Id
                 WHERE f.IdAgency = ?
                 AND p.Enabled = 1
                 AND EXISTS (
@@ -723,10 +814,56 @@ class Validacion extends BaseController
                 $countSql .= " AND f.IdProcess = ?";
                 $countParams[] = $idProcess;
             }
-            if ($showCancelled) {
-                $countSql .= " AND f.IdCurrentState = 5";
+            if ($idCurrentState !== null && $idCurrentState > 0) {
+                $countSql .= " AND f.IdCurrentState = ?";
+                $countParams[] = $idCurrentState;
             } else {
-                $countSql .= " AND f.IdCurrentState != 5";
+                if ($showCancelled) {
+                    $countSql .= " AND f.IdCurrentState = 5";
+                } else {
+                    $countSql .= " AND f.IdCurrentState != 5";
+                }
+            }
+            if ($search !== '') {
+                $likeCount = '%' . $this->db->escapeLikeString($search) . '%';
+                $countSql .= " AND (
+                    CAST(f.Id AS CHAR) LIKE ?
+                    OR CAST(f.IdOrderTotal AS CHAR) LIKE ?
+                    OR EXISTS (
+                        SELECT 1 FROM Client_Total_Relation ctr_s
+                        WHERE ctr_s.idHeaderClient = hc.Id
+                        AND ctr_s.IdAgency = f.IdAgency
+                        AND CAST(ctr_s.IdTotalDealer AS CHAR) LIKE ?
+                    )
+                    OR COALESCE(NULLIF(TRIM(c.RazonSocial), ''), TRIM(CONCAT(COALESCE(c.Name, ''), ' ', COALESCE(c.LastName, ''), ' ', COALESCE(c.MotherLastName, '')))) LIKE ?
+                    OR p.Name LIKE ?
+                    OR ot.Name LIKE ?
+                    OR a.Name LIKE ?
+                )";
+                $countParams[] = $likeCount;
+                $countParams[] = $likeCount;
+                $countParams[] = $likeCount;
+                $countParams[] = $likeCount;
+                $countParams[] = $likeCount;
+                $countParams[] = $likeCount;
+                $countParams[] = $likeCount;
+            }
+
+            if ($registroDesde !== '' && preg_match($datePattern, $registroDesde)) {
+                $countSql .= ' AND DATE(f.RegistrationDate) >= ?';
+                $countParams[] = $registroDesde;
+            }
+            if ($registroHasta !== '' && preg_match($datePattern, $registroHasta)) {
+                $countSql .= ' AND DATE(f.RegistrationDate) <= ?';
+                $countParams[] = $registroHasta;
+            }
+            if ($liberacionDesde !== '' && preg_match($datePattern, $liberacionDesde)) {
+                $countSql .= ' AND DATE(CASE WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate ELSE f.AgendDate END) >= ?';
+                $countParams[] = $liberacionDesde;
+            }
+            if ($liberacionHasta !== '' && preg_match($datePattern, $liberacionHasta)) {
+                $countSql .= ' AND DATE(CASE WHEN f.IdCurrentState IN (4, 6) THEN f.UpdateDate ELSE f.AgendDate END) <= ?';
+                $countParams[] = $liberacionHasta;
             }
 
             $countQuery = $this->db->query($countSql, $countParams);

@@ -57,6 +57,11 @@
   overflow-x: auto;
 }
 
+.orders-table-wrapper mat-paginator {
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
 .orders-table {
   width: 100%;
   min-width: 960px;

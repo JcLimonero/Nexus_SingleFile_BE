@@ -13,7 +13,7 @@
         mat-stroked-button
         color="primary"
         (click)="exportarExcel()"
-        [disabled]="clientesFiltrados.length === 0 || exportingExcel"
+        [disabled]="totalRecords === 0 || exportingExcel"
         matTooltip="Exportar a Excel"
         class="flex items-center gap-2">
         <mat-icon *ngIf="!exportingExcel">download</mat-icon>
@@ -145,12 +145,12 @@
       <p class="text-sm text-gray-600 mt-2">Cargando pedidos...</p>
     </div>
 
-    <div *ngIf="!loadingClientes && clientesFiltrados.length === 0" class="orders-empty">
+    <div *ngIf="!loadingClientes && totalRecords === 0" class="orders-empty">
       <mat-icon class="text-4xl text-gray-400 mb-2">inbox</mat-icon>
       <p class="text-sm text-gray-600 text-center">No se encontraron pedidos con los filtros seleccionados.</p>
     </div>
 
-    <div *ngIf="clientesFiltrados.length > 0" class="orders-table-wrapper">
+    <div *ngIf="totalRecords > 0" class="orders-table-wrapper">
       <table mat-table [dataSource]="clientesFiltrados" class="orders-table">
         <ng-container matColumnDef="ndCliente">
           <th mat-header-cell *matHeaderCellDef> ND Cliente </th>
@@ -223,6 +223,16 @@
         <tr mat-header-row *matHeaderRowDef="clientesDisplayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: clientesDisplayedColumns;" class="orders-row"></tr>
       </table>
+
+      <mat-paginator
+        [length]="totalRecords"
+        [pageSize]="pageSize"
+        [pageIndex]="currentPage"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+        aria-label="Paginación de pedidos del dashboard">
+      </mat-paginator>
     </div>
   </mat-card>
 </div>

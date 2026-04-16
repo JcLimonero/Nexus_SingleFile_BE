@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -41,6 +42,7 @@ import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/glob
     MatCardModule,
     MatSnackBarModule,
     MatTableModule,
+    MatPaginatorModule,
     MatDatepickerModule,
     MatNativeDateModule
   ],
@@ -76,7 +78,12 @@ export class GlobalComponent implements OnInit, OnDestroy {
   procesosCargados = false;
   exportingExcel = false;
 
-  clientesOriginales: Cliente[] = [];
+  /** Página actual del listado (servidor) */
+  currentPage = 0;
+  pageSize = 25;
+  pageSizeOptions = [10, 25, 50, 100];
+  totalRecords = 0;
+
   clientesFiltrados: Cliente[] = [];
 
   clientesDisplayedColumns: string[] = [];
@@ -96,13 +103,13 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.registrationDateRangeGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        this.aplicarFiltros();
+        this.cargarClientesLista({ resetPage: true });
       });
 
     this.liberationDateRangeGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        this.aplicarFiltros();
+        this.cargarClientesLista({ resetPage: true });
       });
   }
 
@@ -167,28 +174,28 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   onFaseChange(): void {
-    this.aplicarFiltros();
+    this.cargarClientesLista({ resetPage: true });
   }
 
   onSearchChange(): void {
-    this.aplicarFiltros();
+    this.cargarClientesLista({ resetPage: true });
   }
 
   onToggleCancelledOrders(): void {
-    this.aplicarFiltros();
+    this.cargarClientesLista({ resetPage: true });
   }
 
   clearSearch(): void {
     this.searchTerm = '';
-    this.aplicarFiltros();
+    this.cargarClientesLista({ resetPage: true });
   }
 
   limpiarFiltros(): void {
     this.selectedFase = '';
     this.searchTerm = '';
-    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
-    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
-    this.aplicarFiltros();
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null }, { emitEvent: false });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null }, { emitEvent: false });
+    this.cargarClientesLista({ resetPage: true });
   }
 
   recargarFiltros(): void {
@@ -198,16 +205,17 @@ export class GlobalComponent implements OnInit, OnDestroy {
     this.selectedFase = '';
     this.searchTerm = '';
     this.showCancelledOrders = false;
-    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
-    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null }, { emitEvent: false });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null }, { emitEvent: false });
 
     this.cargarAgencias(true);
     this.cargarProcesos(true);
 
     setTimeout(() => {
       this.refreshing = false;
-      this.clientesOriginales = [];
       this.clientesFiltrados = [];
+      this.totalRecords = 0;
+      this.currentPage = 0;
     }, 300);
   }
 
@@ -336,128 +344,111 @@ export class GlobalComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.cargarClientes();
+    this.cargarClientesLista({ resetPage: true });
   }
 
-  private cargarClientes(): void {
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.cargarClientesLista();
+  }
+
+  /**
+   * Construye filtros para el API (incluye fase, búsqueda y rangos de fecha).
+   */
+  private buildFiltrosApi(): FiltrosValidacion {
     const filtros: FiltrosValidacion = {
       agencia: this.selectedAgency ?? undefined,
       proceso: this.selectedProcess ?? undefined,
       showCancelled: this.showCancelledOrders
     };
+    if (this.selectedFase) {
+      filtros.idCurrentState = parseInt(this.selectedFase, 10);
+    }
+    if (this.searchTerm?.trim()) {
+      filtros.q = this.searchTerm.trim();
+    }
+    const reg = this.registrationDateRangeGroup.value;
+    if (reg.start) {
+      filtros.registroDesde = this.toYmd(reg.start);
+    }
+    if (reg.end) {
+      filtros.registroHasta = this.toYmd(reg.end);
+    }
+    const lib = this.liberationDateRangeGroup.value;
+    if (lib.start) {
+      filtros.liberacionDesde = this.toYmd(lib.start);
+    }
+    if (lib.end) {
+      filtros.liberacionHasta = this.toYmd(lib.end);
+    }
+    return filtros;
+  }
+
+  private toYmd(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  /**
+   * Carga la página actual de pedidos desde el servidor.
+   */
+  private cargarClientesLista(options?: { resetPage?: boolean }): void {
+    if (
+      this.selectedAgency === null ||
+      this.selectedProcess === null ||
+      !this.agenciasCargadas ||
+      !this.procesosCargados
+    ) {
+      return;
+    }
+
+    if (options?.resetPage) {
+      this.currentPage = 0;
+    }
 
     this.loadingClientes = true;
+    const filtros = this.buildFiltrosApi();
+
     this.validacionService
-      .cargarClientes(filtros)
+      .cargarClientes(filtros, this.currentPage + 1, this.pageSize)
       .pipe(
         takeUntil(this.destroy$),
-        timeout(10000),
-        catchError((error) => {
-
+        timeout(60000),
+        catchError(() => {
           this.snackBar.open('Error al cargar pedidos', 'Cerrar', { duration: 3000 });
           this.loadingClientes = false;
-          this.clientesOriginales = [];
           this.clientesFiltrados = [];
-          return of([]);
+          this.totalRecords = 0;
+          return of({ clientes: [], totalRecords: 0 });
         })
       )
-      .subscribe((clientes) => {
-        this.loadingClientes = false;
+      .subscribe((result) => {
+        if (result.clientes.length === 0 && result.totalRecords > 0 && this.currentPage > 0) {
+          this.currentPage--;
+          this.cargarClientesLista();
+          return;
+        }
 
-        this.clientesOriginales = Array.isArray(clientes)
+        this.totalRecords = result.totalRecords;
+        const clientes = result.clientes;
+        this.clientesFiltrados = Array.isArray(clientes)
           ? clientes.map((cliente) => ({
               ...cliente,
               documentosNoAprobados: Number(cliente.documentosNoAprobados ?? 0)
             }))
           : [];
 
-        this.aplicarFiltros();
+        this.loadingClientes = false;
 
-        if (this.clientesOriginales.length === 0) {
+        if (result.totalRecords === 0) {
           this.snackBar.open('No se encontraron pedidos con los filtros seleccionados', 'Cerrar', {
             duration: 2500
           });
         }
       });
-  }
-
-  private aplicarFiltros(): void {
-    let data = [...this.clientesOriginales];
-
-    if (!this.showCancelledOrders) {
-      data = data.filter((cliente) => String(cliente.IdCurrentState) !== '5');
-    } else {
-      data = data.filter((cliente) => String(cliente.IdCurrentState) === '5');
-    }
-
-    if (this.selectedFase) {
-      // Comparar IdCurrentState con el valor de la fase seleccionada
-      data = data.filter((cliente) => String(cliente.IdCurrentState) === this.selectedFase);
-    }
-
-    if (this.searchTerm) {
-      const termino = this.searchTerm.toLowerCase();
-      data = data.filter((cliente) => {
-        const clienteNombre = cliente.cliente?.toLowerCase() ?? '';
-        const ndCliente = String(cliente.ndCliente ?? '');
-        const ndPedido = String(cliente.ndPedido ?? '');
-        return (
-          clienteNombre.includes(termino) ||
-          ndCliente.includes(termino) ||
-          ndPedido.includes(termino)
-        );
-      });
-    }
-
-    // Filtro por fecha de registro
-    const registrationRange = this.registrationDateRangeGroup.value;
-    if (registrationRange.start || registrationRange.end) {
-      data = data.filter((cliente) => {
-        if (!cliente.registro) return false;
-        const registroDate = new Date(cliente.registro);
-        registroDate.setHours(0, 0, 0, 0);
-        
-        if (registrationRange.start) {
-          const startDate = new Date(registrationRange.start);
-          startDate.setHours(0, 0, 0, 0);
-          if (registroDate < startDate) return false;
-        }
-        
-        if (registrationRange.end) {
-          const endDate = new Date(registrationRange.end);
-          endDate.setHours(23, 59, 59, 999);
-          if (registroDate > endDate) return false;
-        }
-        
-        return true;
-      });
-    }
-
-    // Filtro por fecha de liberación
-    const liberationRange = this.liberationDateRangeGroup.value;
-    if (liberationRange.start || liberationRange.end) {
-      data = data.filter((cliente) => {
-        if (!cliente.fechaLiberacion) return false;
-        const liberationDate = new Date(cliente.fechaLiberacion);
-        liberationDate.setHours(0, 0, 0, 0);
-        
-        if (liberationRange.start) {
-          const startDate = new Date(liberationRange.start);
-          startDate.setHours(0, 0, 0, 0);
-          if (liberationDate < startDate) return false;
-        }
-        
-        if (liberationRange.end) {
-          const endDate = new Date(liberationRange.end);
-          endDate.setHours(23, 59, 59, 999);
-          if (liberationDate > endDate) return false;
-        }
-        
-        return true;
-      });
-    }
-
-    this.clientesFiltrados = data;
   }
 
   hasRegistrationDateRange(): boolean {
@@ -469,11 +460,13 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   clearRegistrationDateRange(): void {
-    this.registrationDateRangeGroup.patchValue({ start: null, end: null });
+    this.registrationDateRangeGroup.patchValue({ start: null, end: null }, { emitEvent: false });
+    this.cargarClientesLista({ resetPage: true });
   }
 
   clearLiberationDateRange(): void {
-    this.liberationDateRangeGroup.patchValue({ start: null, end: null });
+    this.liberationDateRangeGroup.patchValue({ start: null, end: null }, { emitEvent: false });
+    this.cargarClientesLista({ resetPage: true });
   }
 
   openDocumentsDialog(cliente: Cliente): void {
@@ -494,80 +487,97 @@ export class GlobalComponent implements OnInit, OnDestroy {
   }
 
   exportarExcel(): void {
-    if (this.clientesFiltrados.length === 0) {
+    if (this.totalRecords === 0) {
       this.snackBar.open('No hay datos para exportar', 'Cerrar', { duration: 3000 });
       return;
     }
 
     this.exportingExcel = true;
 
-    try {
-      // Preparar datos para Excel (sin la columna de documentos)
-      const datos = this.clientesFiltrados.map(cliente => ({
-        'ND Cliente': cliente.ndCliente || '',
-        'ND Pedido': cliente.ndPedido || '',
-        'Cliente': cliente.cliente || '',
-        'Proceso': cliente.proceso || '',
-        'Fase': cliente.fase || '',
-        'Operación': cliente.operacion || '',
-        'Registro': cliente.registro ? new Date(cliente.registro).toLocaleDateString('es-MX') : '',
-        'Fecha Liberación': cliente.fechaLiberacion ? new Date(cliente.fechaLiberacion).toLocaleDateString('es-MX') : '—',
-        'Documentos Pendientes': cliente.documentosNoAprobados ?? 0
-      }));
+    this.validacionService
+      .cargarClientes(this.buildFiltrosApi(), 1, 10000)
+      .pipe(
+        takeUntil(this.destroy$),
+        timeout(120000),
+        catchError(() => {
+          this.exportingExcel = false;
+          this.snackBar.open('Error al exportar datos', 'Cerrar', { duration: 3000 });
+          return of({ clientes: [] as Cliente[], totalRecords: 0 });
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          this.exportingExcel = false;
 
-      // Crear CSV (compatible con Excel)
-      const headers = Object.keys(datos[0]);
-      const csvContent = [
-        headers.join(','),
-        ...datos.map(row => 
-          headers.map(header => {
-            const value = (row as any)[header];
-            // Escapar comillas y envolver en comillas si contiene comas
-            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
-              return `"${value.replace(/"/g, '""')}"`;
+          const filas = (result.clientes || []).map((cliente) => ({
+            'ND Cliente': cliente.ndCliente || '',
+            'ND Pedido': cliente.ndPedido || '',
+            Cliente: cliente.cliente || '',
+            Proceso: cliente.proceso || '',
+            Fase: cliente.fase || '',
+            Operación: cliente.operacion || '',
+            Registro: cliente.registro ? new Date(cliente.registro).toLocaleDateString('es-MX') : '',
+            'Fecha Liberación': cliente.fechaLiberacion
+              ? new Date(cliente.fechaLiberacion).toLocaleDateString('es-MX')
+              : '—',
+            'Documentos Pendientes': Number(cliente.documentosNoAprobados ?? 0)
+          }));
+
+          if (filas.length === 0) {
+            this.snackBar.open('No hay datos para exportar', 'Cerrar', { duration: 3000 });
+            return;
+          }
+
+          try {
+            const headers = Object.keys(filas[0]);
+            const csvContent = [
+              headers.join(','),
+              ...filas.map((row) =>
+                headers.map((header) => {
+                  const value = (row as Record<string, string | number>)[header];
+                  if (
+                    typeof value === 'string' &&
+                    (value.includes(',') || value.includes('"') || value.includes('\n'))
+                  ) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                  }
+                  return value;
+                }).join(',')
+              )
+            ].join('\n');
+
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+            let nombreAgencia = 'Todas';
+            if (this.selectedAgency !== null) {
+              const agenciaSeleccionada = this.agencias.find((a) => a.Id === this.selectedAgency);
+              if (agenciaSeleccionada?.Name) {
+                nombreAgencia = agenciaSeleccionada.Name.replace(/[^a-zA-Z0-9]/g, '_');
+              }
             }
-            return value;
-          }).join(',')
-        )
-      ].join('\n');
 
-      // Agregar BOM para UTF-8 (para que Excel reconozca caracteres especiales)
-      const BOM = '\uFEFF';
-      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-      
-      // Obtener nombre de la agencia seleccionada
-      let nombreAgencia = 'Todas';
-      if (this.selectedAgency !== null) {
-        const agenciaSeleccionada = this.agencias.find(a => a.Id === this.selectedAgency);
-        if (agenciaSeleccionada && agenciaSeleccionada.Name) {
-          // Limpiar el nombre de la agencia para usar en el nombre del archivo (remover caracteres especiales)
-          nombreAgencia = agenciaSeleccionada.Name.replace(/[^a-zA-Z0-9]/g, '_');
+            const fechaDescarga = new Date().toISOString().split('T')[0];
+            const nombreArchivo = `${nombreAgencia}ordenes_${fechaDescarga}.csv`;
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nombreArchivo;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            this.snackBar.open('Datos exportados exitosamente', 'Cerrar', { duration: 3000 });
+          } catch {
+            this.snackBar.open('Error al exportar datos', 'Cerrar', { duration: 3000 });
+          }
+        },
+        error: () => {
+          this.exportingExcel = false;
         }
-      }
-
-      // Formatear fecha de descarga (YYYY-MM-DD)
-      const fechaDescarga = new Date().toISOString().split('T')[0];
-      
-      // Crear nombre del archivo: {nombreAgencia}ordenes_{fecha}.csv
-      const nombreArchivo = `${nombreAgencia}ordenes_${fechaDescarga}.csv`;
-      
-      // Crear URL y descargar
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = nombreArchivo;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      this.snackBar.open('Datos exportados exitosamente', 'Cerrar', { duration: 3000 });
-    } catch (error) {
-
-      this.snackBar.open('Error al exportar datos', 'Cerrar', { duration: 3000 });
-    } finally {
-      this.exportingExcel = false;
-    }
+      });
   }
 }
 
