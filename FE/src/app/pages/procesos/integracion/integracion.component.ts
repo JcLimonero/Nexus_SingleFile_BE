@@ -24,6 +24,7 @@ import { ClientSearchService, ClientSearchResponse } from '../../../core/service
 import { VanguardiaClientService, VanguardiaResponse } from '../../../core/services/vanguardia-client.service';
 import { VanguardiaClientImportService, VanguardiaClientImportResponse } from '../../../core/services/vanguardia-client-import.service';
 import { environment } from '../../../../environments/environment';
+import { normalizeClientSearchQuery } from '../../../core/utils/client-search-normalize';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
 
@@ -473,7 +474,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
 
     // Realizar búsqueda en el API de Vanguardia usando connectionstring
     // connectionstring=xxx&ndDMS=10004
-    this.vanguardiaClientService.searchClients(selectedAgency.AgencyConnection, this.clientSearchTerm.trim())
+    this.vanguardiaClientService.searchClients(
+      selectedAgency.AgencyConnection,
+      normalizeClientSearchQuery(this.clientSearchTerm)
+    )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: VanguardiaResponse) => {

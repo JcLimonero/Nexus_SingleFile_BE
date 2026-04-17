@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { normalizeClientSearchQuery } from '../utils/client-search-normalize';
 
 export interface ClientSearchResult {
   idCliente: number;
@@ -50,7 +51,7 @@ export class ClientSearchService {
   searchClients(idAgency: number, searchTerm: string, limit: number = 50, statusId?: number): Observable<ClientSearchResponse> {
     let params = new HttpParams();
     params = params.set('idAgency', idAgency.toString());
-    params = params.set('search', searchTerm);
+    params = params.set('search', normalizeClientSearchQuery(searchTerm));
     params = params.set('limit', limit.toString());
     if (typeof statusId === 'number') {
       params = params.set('statusId', statusId.toString());
@@ -97,7 +98,7 @@ export class ClientSearchService {
     limit: number = 50,
     statusId?: number
   ): Observable<ClientSearchResponse> {
-    const trimmed = searchTerm.trim();
+    const trimmed = normalizeClientSearchQuery(searchTerm);
     if (/^\d+$/.test(trimmed)) {
       const id = parseInt(trimmed, 10);
       return this.getClientById(id, idAgency).pipe(

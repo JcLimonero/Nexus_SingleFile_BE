@@ -23,6 +23,7 @@ import { DefaultAgencyService } from '../../../core/services/default-agency.serv
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { AuthService } from '../../../core/services/auth.service';
 import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/global-documentos-dialog.component';
+import { normalizeClientSearchQuery } from '../../../core/utils/client-search-normalize';
 
 @Component({
   selector: 'app-dashboard-global',
@@ -366,7 +367,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
       filtros.idCurrentState = parseInt(this.selectedFase, 10);
     }
     if (this.searchTerm?.trim()) {
-      filtros.q = this.searchTerm.trim();
+      filtros.q = normalizeClientSearchQuery(this.searchTerm);
     }
     const reg = this.registrationDateRangeGroup.value;
     if (reg.start) {

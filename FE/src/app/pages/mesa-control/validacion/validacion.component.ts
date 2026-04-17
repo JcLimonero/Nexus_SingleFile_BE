@@ -36,6 +36,7 @@ import { DefaultAgencyService, Agencia } from '../../../core/services/default-ag
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { normalizeClientSearchQuery } from '../../../core/utils/client-search-normalize';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
 import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialog/advertencia-liberado-dialog.component';
@@ -1656,7 +1657,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       filtros.idCurrentState = parseInt(this.selectedFase, 10);
     }
     if (this.searchTerm && this.searchTerm.trim() !== '') {
-      filtros.q = this.searchTerm.trim();
+      filtros.q = normalizeClientSearchQuery(this.searchTerm);
     }
     if (this.sort?.active && this.sort.direction) {
       filtros.sort = this.sort.active;
