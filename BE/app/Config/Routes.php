@@ -31,7 +31,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
             $response->setHeader('Access-Control-Allow-Origin', '*');
         }
         $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Api-Key, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
         $response->setHeader('Access-Control-Max-Age', '7200');
         return $response->setStatusCode(200);
     };
@@ -39,6 +39,10 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     $routes->options('(:any)/(:any)', $corsOptions);
     $routes->options('(:any)/(:any)/(:any)', $corsOptions);
     $routes->options('(:any)/(:any)/(:any)/(:any)', $corsOptions);
+
+    $routes->group('integrations/liquidacion', ['filter' => 'integrationApiKey'], static function ($routes) {
+        $routes->post('upload', 'LiquidacionIntegration::upload');
+    });
     
     // Rutas de autenticación
     $routes->group('auth', function($routes) {
