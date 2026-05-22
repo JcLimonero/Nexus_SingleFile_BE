@@ -79,6 +79,8 @@ export class IconsFaComponent implements OnInit {
     private renderer: Renderer2
   ) {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit() {
     if (!IconsFaComponent.fontLoaded) {
       this.loadFont();

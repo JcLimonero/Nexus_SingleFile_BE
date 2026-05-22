@@ -90,6 +90,8 @@ export class ChatComponent implements OnInit {
     private chatService: ChatService
   ) {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit() {
     this.router.events
       .pipe(

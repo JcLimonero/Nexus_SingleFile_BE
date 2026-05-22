@@ -74,7 +74,7 @@
         <mat-label>Fase</mat-label>
         <mat-select [(ngModel)]="phaseFilter" (ngModelChange)="applyFilter()">
           <mat-option value="">Todas las fases</mat-option>
-          <mat-option *ngFor="let phase of availablePhases" [value]="phase.value">
+          <mat-option *ngFor="let phase of availablePhases; trackBy: trackByPhaseValue" [value]="phase.value">
             {{ phase.name }}
           </mat-option>
         </mat-select>

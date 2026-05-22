@@ -76,6 +76,8 @@ export class ContactsDataTableComponent<T>
 
   constructor() {}
 
+  trackByColumnProperty = (_: number, col: { property: string | number | symbol }): string => String(col.property);
+
   ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges): void {

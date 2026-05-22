@@ -51,7 +51,7 @@
             No hay motivos disponibles
           </mat-option>
           
-          <mat-option *ngFor="let motivo of motivos" [value]="motivo.Id">
+          <mat-option *ngFor="let motivo of motivos; trackBy: trackById" [value]="motivo.Id">
             {{ motivo.Name }}
           </mat-option>
         </mat-select>

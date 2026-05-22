@@ -13,7 +13,7 @@
       class="sticky top-20 flex-col flex-none w-[200px] hidden sm:flex">
       <div
         (click)="scrollTo(item.fragment)"
-        *ngFor="let item of navigationItems"
+        *ngFor="let item of navigationItems; trackBy: trackByLabel"
         class="px-4 py-3 rounded-xl hover:bg-hover transition cursor-pointer relative"
         matRipple>
         {{ item.label }}

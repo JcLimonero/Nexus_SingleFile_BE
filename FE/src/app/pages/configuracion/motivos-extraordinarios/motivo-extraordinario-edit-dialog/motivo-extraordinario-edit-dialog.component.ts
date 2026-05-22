@@ -65,6 +65,8 @@ export class MotivoExtraordinarioEditDialogComponent implements OnInit {
     }
   }
 
+  trackByValue = (_: number, item: { value: string | number }): string | number => item.value;
+
   ngOnInit(): void {
     if (!this.isEdit) {
       this.motivo = {

@@ -85,7 +85,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Rol de Usuario</mat-label>
         <mat-select formControlName="IdUserRol">
-          <mat-option *ngFor="let role of rolesForSelect" [value]="role.Id">
+          <mat-option *ngFor="let role of rolesForSelect; trackBy: trackById" [value]="role.Id">
             {{ role.Name }}
           </mat-option>
         </mat-select>
@@ -107,7 +107,7 @@
             <mat-option *ngIf="!loadingAgencies && agencies.length === 0" value="" disabled>
               No hay agencias disponibles
             </mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+            <mat-option *ngFor="let agency of agencies; trackBy: trackById" [value]="agency.Id">
               {{ agency.Name }}
             </mat-option>
           </mat-select>

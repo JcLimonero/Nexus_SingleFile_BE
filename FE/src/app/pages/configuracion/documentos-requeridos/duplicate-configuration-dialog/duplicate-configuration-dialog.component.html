@@ -93,7 +93,7 @@
 
       <div *ngIf="!loading && filteredAgencies.length > 0" class="divide-y divide-gray-100">
         <div 
-          *ngFor="let agency of filteredAgencies" 
+          *ngFor="let agency of filteredAgencies; trackBy: trackById"
           class="flex items-center p-2 hover:bg-gray-50 transition-colors">
           <mat-checkbox
             [checked]="isAgencySelected(agency.Id)"
@@ -115,8 +115,8 @@
         <span class="font-medium">{{ selectedAgencies.length }}</span> de {{ availableAgencies.length }} agencias seleccionadas
       </div>
       <div *ngIf="selectedAgencies.length > 0" class="flex items-center gap-1">
-        <mat-chip 
-          *ngFor="let agencyId of selectedAgencies.slice(0, 4)" 
+        <mat-chip
+          *ngFor="let agencyId of selectedAgencies.slice(0, 4); trackBy: trackByValue"
           class="text-xs scale-90">
           {{ getAgencyName(agencyId) }}
         </mat-chip>

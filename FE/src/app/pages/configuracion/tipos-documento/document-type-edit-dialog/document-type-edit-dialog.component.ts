@@ -51,6 +51,8 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) { }
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+
   ngOnInit(): void {
     this.initializeForm();
     this.loadCatalogs();

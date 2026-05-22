@@ -93,6 +93,9 @@ export class GlobalComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+  trackById = (_: number, item: any): string | number => item.Id;
+  trackByFaseValue = (_: number, fase: any): string | number => fase.value;
+
   constructor(
     private validacionService: ValidacionService,
     private defaultAgencyService: DefaultAgencyService,
@@ -229,7 +232,7 @@ export class GlobalComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         timeout(10000),
         catchError((error) => {
-          console.error('Error cargando agencias:', error);
+          
           this.snackBar.open('Error al cargar agencias', 'Cerrar', { duration: 3000 });
           this.agencias = [];
           this.loadingAgencias = false;

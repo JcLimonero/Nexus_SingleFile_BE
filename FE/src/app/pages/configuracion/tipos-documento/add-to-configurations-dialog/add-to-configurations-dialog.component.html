@@ -45,28 +45,28 @@
             <mat-label>Agencia</mat-label>
             <mat-select [(ngModel)]="selectedAgency" (selectionChange)="applyFilters()">
               <mat-option value="">Todas</mat-option>
-              <mat-option *ngFor="let a of agencias" [value]="a.Id">{{ a.Name }}</mat-option>
+              <mat-option *ngFor="let a of agencias; trackBy: trackById" [value]="a.Id">{{ a.Name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Proceso</mat-label>
             <mat-select [(ngModel)]="selectedProcess" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let p of procesos" [value]="p.Id">{{ p.Name }}</mat-option>
+              <mat-option *ngFor="let p of procesos; trackBy: trackById" [value]="p.Id">{{ p.Name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Tipo Cliente</mat-label>
             <mat-select [(ngModel)]="selectedCostumerType" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let t of tiposCliente" [value]="t.Id">{{ t.Name }}</mat-option>
+              <mat-option *ngFor="let t of tiposCliente; trackBy: trackById" [value]="t.Id">{{ t.Name }}</mat-option>
             </mat-select>
           </mat-form-field>
           <mat-form-field appearance="outline" class="text-sm">
             <mat-label>Tipo Operación</mat-label>
             <mat-select [(ngModel)]="selectedOperationType" (selectionChange)="applyFilters()">
               <mat-option value="">Todos</mat-option>
-              <mat-option *ngFor="let o of tiposOperacion" [value]="o.Id">{{ o.Name }}</mat-option>
+              <mat-option *ngFor="let o of tiposOperacion; trackBy: trackById" [value]="o.Id">{{ o.Name }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>

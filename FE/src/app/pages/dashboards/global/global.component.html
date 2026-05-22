@@ -36,7 +36,7 @@
           <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
             No hay agencias disponibles
           </mat-option>
-          <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
+          <mat-option *ngFor="let agencia of agencias; trackBy: trackById" [value]="agencia.Id">
             {{ agencia.Name }}
           </mat-option>
         </mat-select>
@@ -55,7 +55,7 @@
           <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
             No hay procesos disponibles
           </mat-option>
-          <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
+          <mat-option *ngFor="let proceso of procesos; trackBy: trackById" [value]="proceso.Id">
             {{ proceso.Name }}
           </mat-option>
         </mat-select>
@@ -65,7 +65,7 @@
         <mat-label>Fase</mat-label>
         <mat-select [(ngModel)]="selectedFase" (selectionChange)="onFaseChange()">
           <mat-option value="">Todas las fases</mat-option>
-          <mat-option *ngFor="let fase of fases" [value]="fase.value">
+          <mat-option *ngFor="let fase of fases; trackBy: trackByFaseValue" [value]="fase.value">
             {{ fase.name }}
           </mat-option>
         </mat-select>

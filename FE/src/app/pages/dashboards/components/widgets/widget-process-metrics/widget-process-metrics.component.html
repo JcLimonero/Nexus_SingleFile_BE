@@ -53,7 +53,7 @@
       <h4 class="text-sm font-medium text-gray-700 mb-3">Por Estado</h4>
       <div class="space-y-2">
         <div 
-          *ngFor="let status of processStats.processesByStatus" 
+          *ngFor="let status of processStats.processesByStatus; trackBy: trackByStatus"
           class="flex items-center justify-between p-2 bg-gray-50 rounded">
           <div class="flex items-center space-x-2">
             <mat-icon 
@@ -72,7 +72,7 @@
       <h4 class="text-sm font-medium text-gray-700 mb-3">Por Agencia</h4>
       <div class="space-y-2">
         <div 
-          *ngFor="let agency of processStats.processesByAgency.slice(0, compact ? 3 : 10)" 
+          *ngFor="let agency of processStats.processesByAgency.slice(0, compact ? 3 : 10); trackBy: trackByAgencyName"
           class="flex items-center justify-between p-2 bg-gray-50 rounded">
           <div class="flex items-center space-x-2">
             <mat-icon class="text-gray-600" svgIcon="mat:business"></mat-icon>
@@ -93,7 +93,7 @@
       <h4 class="text-sm font-medium text-gray-700 mb-3">Tendencia Mensual</h4>
       <div class="space-y-1">
         <div 
-          *ngFor="let month of processStats.monthlyTrend.slice(-6)" 
+          *ngFor="let month of processStats.monthlyTrend.slice(-6); trackBy: trackByMonth"
           class="flex items-center justify-between text-sm">
           <span class="text-gray-600">{{ month.month }}</span>
           <span class="font-medium text-gray-900">{{ month.count | number }}</span>

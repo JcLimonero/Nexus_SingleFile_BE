@@ -104,6 +104,8 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     private documentoRequeridoService: DocumentoRequeridoService
   ) {}
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+
   ngOnInit(): void {
     this.loadCatalogs();
     this.loadData();

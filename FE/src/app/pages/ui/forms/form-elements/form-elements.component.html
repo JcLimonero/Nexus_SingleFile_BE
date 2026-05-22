@@ -86,7 +86,7 @@
           <input [formControl]="stateCtrl" [matAutocomplete]="auto" matInput placeholder="Select your state&hellip;" />
           <mat-autocomplete #auto="matAutocomplete">
             <mat-option
-              *ngFor="let state of filteredStates$ | async"
+              *ngFor="let state of filteredStates$ | async; trackBy: trackByName"
               [value]="state.name">
               <span class="flex items-center">
                 <img

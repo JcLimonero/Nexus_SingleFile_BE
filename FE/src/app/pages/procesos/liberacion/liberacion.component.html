@@ -323,7 +323,7 @@
         <!-- Lista de documentos agrupados por subproceso -->
         <div *ngIf="!documentsLoading">
           <mat-tab-group [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
-            <mat-tab *ngFor="let tab of documentTabs">
+            <mat-tab *ngFor="let tab of documentTabs; trackBy: trackByTabLabel">
               <ng-template mat-tab-label>
                 <mat-icon *ngIf="tab.hasRejected" class="tab-status-icon tab-status-icon--danger">cancel</mat-icon>
                 <mat-icon *ngIf="!tab.hasRejected && tab.hasPending" class="tab-status-icon tab-status-icon--warning">warning</mat-icon>

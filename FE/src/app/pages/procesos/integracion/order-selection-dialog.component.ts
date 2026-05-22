@@ -862,7 +862,7 @@ export class OrderSelectionDialogComponent implements OnInit {
         },
         error: (error) => {
           // Si falla, simplemente no mostrar pedidos existentes
-          console.error('Error al cargar pedidos existentes:', error);
+          
         }
       });
   }

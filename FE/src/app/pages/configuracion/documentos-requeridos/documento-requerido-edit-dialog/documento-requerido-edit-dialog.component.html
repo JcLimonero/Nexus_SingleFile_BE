@@ -70,7 +70,7 @@
           <mat-label>Agencia *</mat-label>
           <mat-select formControlName="IdAgency" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar agencia</mat-option>
-            <mat-option *ngFor="let agency of agencias" [value]="agency.Id">
+            <mat-option *ngFor="let agency of agencias; trackBy: trackById" [value]="agency.Id">
               {{ agency.Name }}
             </mat-option>
           </mat-select>
@@ -84,7 +84,7 @@
           <mat-label>Proceso *</mat-label>
           <mat-select formControlName="IdProcess" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar proceso</mat-option>
-            <mat-option *ngFor="let proceso of procesos" [value]="proceso.Id">
+            <mat-option *ngFor="let proceso of procesos; trackBy: trackById" [value]="proceso.Id">
               {{ proceso.Name }}
             </mat-option>
           </mat-select>
@@ -98,7 +98,7 @@
           <mat-label>Tipo de Cliente *</mat-label>
           <mat-select formControlName="IdCostumerType" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar tipo de cliente</mat-option>
-            <mat-option *ngFor="let tipoCliente of tiposCliente" [value]="tipoCliente.Id">
+            <mat-option *ngFor="let tipoCliente of tiposCliente; trackBy: trackById" [value]="tipoCliente.Id">
               {{ tipoCliente.Name }}
             </mat-option>
           </mat-select>
@@ -112,7 +112,7 @@
           <mat-label>Tipo de Operación *</mat-label>
           <mat-select formControlName="IdOperationType" [disabled]="loadingCatalogs">
             <mat-option value="">Seleccionar tipo de operación</mat-option>
-            <mat-option *ngFor="let tipoOperacion of tiposOperacion" [value]="tipoOperacion.Id">
+            <mat-option *ngFor="let tipoOperacion of tiposOperacion; trackBy: trackById" [value]="tipoOperacion.Id">
               {{ tipoOperacion.Name }}
             </mat-option>
           </mat-select>
@@ -194,7 +194,7 @@
               <mat-label>Fase</mat-label>
               <mat-select [(ngModel)]="selectedPhase" [ngModelOptions]="{standalone: true}" (ngModelChange)="onPhaseChange($event)">
                 <mat-option value="">Todas</mat-option>
-                <mat-option *ngFor="let phase of availablePhases" [value]="phase">
+                <mat-option *ngFor="let phase of availablePhases; trackBy: trackByValue" [value]="phase">
                   {{ phase }}
                 </mat-option>
               </mat-select>
@@ -204,7 +204,7 @@
               <mat-label>Subfase</mat-label>
               <mat-select [(ngModel)]="selectedSubPhase" [ngModelOptions]="{standalone: true}" (ngModelChange)="onSubPhaseChange($event)" [disabled]="!selectedPhase">
                 <mat-option value="">Todas</mat-option>
-                <mat-option *ngFor="let subPhase of availableSubPhases" [value]="subPhase">
+                <mat-option *ngFor="let subPhase of availableSubPhases; trackBy: trackByValue" [value]="subPhase">
                   {{ subPhase }}
                 </mat-option>
               </mat-select>
@@ -252,7 +252,7 @@
         <!-- Lista de checkboxes cuando hay tipos disponibles -->
         <div *ngIf="filteredTiposDocumento.length > 0" class="max-h-48 overflow-y-auto">
           <div class="grid grid-cols-1 gap-1">
-            <div *ngFor="let tipo of filteredTiposDocumento" class="flex items-center space-x-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50">
+            <div *ngFor="let tipo of filteredTiposDocumento; trackBy: trackById" class="flex items-center space-x-2 p-2 bg-white rounded border border-gray-200 hover:bg-gray-50">
               <mat-checkbox 
                 [value]="tipo.Id"
                 (change)="onDocumentTypeChange($event, tipo.Id)"

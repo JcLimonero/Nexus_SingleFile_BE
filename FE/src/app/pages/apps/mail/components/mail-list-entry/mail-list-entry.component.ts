@@ -50,6 +50,8 @@ export class MailListEntryComponent implements OnInit {
     private mailService: MailService
   ) {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit(): void {}
 
   isCheckboxVisible() {

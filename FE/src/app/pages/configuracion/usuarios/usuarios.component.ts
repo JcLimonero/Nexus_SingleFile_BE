@@ -69,6 +69,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar
   ) { }
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+
   /** Roles 7 (Administrador) y 8 (Soporte) no se muestran en listados, excepto si quien está logueado es Administrador (7). */
   private readonly restrictedRoleIds = new Set(['7', '8']);
 
@@ -230,7 +232,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
         this.checkCatalogsLoaded();
       },
       error: (error) => {
-        console.error('Error cargando agencias:', error);
+        
         this.snackBar.open('Error al cargar agencias', 'Error', {
           duration: 3000
         });

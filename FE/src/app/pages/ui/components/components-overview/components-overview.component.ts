@@ -214,6 +214,8 @@ export class ComponentsOverviewComponent {
 
   constructor(private scrollDispatcher: ScrollDispatcher) {}
 
+  trackByLabel = (_: number, item: { label?: string }): string => item?.label ?? '';
+
   scrollTo(elementName: string) {
     const elem = this[
       elementName as keyof ComponentsOverviewComponent

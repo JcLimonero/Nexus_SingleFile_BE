@@ -66,6 +66,8 @@ export class MailSidenavComponent implements OnInit {
 
   constructor(private layoutService: VexLayoutService) {}
 
+  trackByLabel = (_: number, link: { label?: string }): string => link?.label ?? '';
+
   ngOnInit(): void {}
 
   closeDrawer() {

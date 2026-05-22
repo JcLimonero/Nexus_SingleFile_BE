@@ -86,6 +86,8 @@ export class AprobarDocumentoDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: AprobarDocumentoData
   ) {}
 
+  trackByValue = (_: number, item: { value: string | number }): string | number => item.value;
+
   onCancelar(): void {
     this.dialogRef.close();
   }

@@ -62,7 +62,7 @@
                   <mat-label>Code</mat-label>
                   <mat-select formControlName="phonePrefix">
                     <mat-option
-                      *ngFor="let option of phonePrefixOptions"
+                      *ngFor="let option of phonePrefixOptions; trackBy: trackByIndex"
                       [value]="option"
                     >{{ option }}</mat-option
                     >
@@ -265,7 +265,7 @@
                   <mat-label>Code</mat-label>
                   <mat-select formControlName="phonePrefix">
                     <mat-option
-                      *ngFor="let option of phonePrefixOptions"
+                      *ngFor="let option of phonePrefixOptions; trackBy: trackByIndex"
                       [value]="option"
                     >{{ option }}</mat-option
                     >

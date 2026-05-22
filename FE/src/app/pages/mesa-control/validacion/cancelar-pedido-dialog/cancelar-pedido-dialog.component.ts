@@ -52,6 +52,8 @@ export class CancelarPedidoDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+
   ngOnInit(): void {
     this.cargarMotivos();
   }

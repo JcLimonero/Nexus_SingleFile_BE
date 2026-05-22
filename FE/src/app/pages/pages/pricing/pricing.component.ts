@@ -86,5 +86,7 @@ export class PricingComponent implements OnInit {
 
   constructor() {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit() {}
 }

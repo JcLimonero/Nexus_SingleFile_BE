@@ -104,7 +104,7 @@ export class ValidacionService {
         return agencias.filter(ag => this.defaultAgencyService.esAgenciaHabilitada(ag));
       }),
       catchError((error) => {
-        console.error('Error cargando agencias:', error);
+        
         return of([]);
       })
     );

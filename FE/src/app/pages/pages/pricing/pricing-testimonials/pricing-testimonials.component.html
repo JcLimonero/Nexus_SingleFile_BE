@@ -7,10 +7,10 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-    <div *ngFor="let item of items">
+    <div *ngFor="let item of items; trackBy: trackByName">
       <div class="flex items-center gap-0.5">
         <div
-          *ngFor="let star of getStarsArray(item)"
+          *ngFor="let star of getStarsArray(item); trackBy: trackByIndex"
           class="rounded-lg bg-green-500 text-white inline-flex items-center justify-center p-0.5">
           <mat-icon class="flex-none icon-xs" svgIcon="mat:star"></mat-icon>
         </div>

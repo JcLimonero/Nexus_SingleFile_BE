@@ -35,7 +35,7 @@
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Fase</mat-label>
         <mat-select formControlName="IdProcessType" [disabled]="loadingCatalogs">
-          <mat-option *ngFor="let fileStatus of fileStatuses" [value]="fileStatus.Id">
+          <mat-option *ngFor="let fileStatus of fileStatuses; trackBy: trackById" [value]="fileStatus.Id">
             {{ fileStatus.Name }}
           </mat-option>
         </mat-select>
@@ -51,7 +51,7 @@
         <mat-label>Sub Fase</mat-label>
         <mat-select formControlName="IdSubProcess" [disabled]="loadingCatalogs || !isSubPhaseEnabled">
           <mat-option [value]="'0'">Sin sub fase</mat-option>
-          <mat-option *ngFor="let subProcess of subProcesses" [value]="subProcess.Id">
+          <mat-option *ngFor="let subProcess of subProcesses; trackBy: trackById" [value]="subProcess.Id">
             {{ subProcess.Name }}
           </mat-option>
         </mat-select>

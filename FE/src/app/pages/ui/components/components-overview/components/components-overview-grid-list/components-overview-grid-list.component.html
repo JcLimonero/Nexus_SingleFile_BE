@@ -2,7 +2,7 @@
   <div class="p-6 md:min-w-[300px]">
     <mat-grid-list class="w-64 max-w-full flex-1" cols="4" rowHeight="100px">
       <mat-grid-tile
-        *ngFor="let tile of tiles"
+        *ngFor="let tile of tiles; trackBy: trackByIndex"
         [colspan]="tile.cols"
         [rowspan]="tile.rows"
         [style.background]="tile.color">

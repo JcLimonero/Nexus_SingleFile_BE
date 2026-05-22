@@ -37,5 +37,7 @@ export class ComponentsButtonsComponent implements OnInit {
 
   constructor() {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit() {}
 }

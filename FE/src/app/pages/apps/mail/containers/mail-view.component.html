@@ -11,7 +11,7 @@
       <p class="text-lg leading-normal">
         <span>{{ mail?.subject }}</span>
         <vex-mail-label
-          *ngFor="let label of mail?.labels"
+          *ngFor="let label of mail?.labels; trackBy: trackByIndex"
           [label]="label.label"
           [ngClass]="label.classes"
           class="ml-2"></vex-mail-label>
@@ -96,7 +96,7 @@
     <div class="border-b">
       <div *ngIf="(mail?.attachments?.length ?? 0) > 0" class="py-4 flex">
         <vex-mail-attachment
-          *ngFor="let attachment of mail?.attachments; let first = first"
+          *ngFor="let attachment of mail?.attachments; trackBy: trackByIndex; let first = first"
           [attachment]="attachment"
           [class.ml-4]="!first"></vex-mail-attachment>
       </div>

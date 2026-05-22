@@ -46,6 +46,8 @@ export class WidgetAttentionPeriodComponent implements OnInit, OnDestroy, OnChan
 
   constructor(private analyticsService: AnalyticsService, private dialog: MatDialog) {}
 
+  trackByRange = (_: number, item: any): string => item.range;
+
   ngOnInit(): void {
     this.loadData();
   }

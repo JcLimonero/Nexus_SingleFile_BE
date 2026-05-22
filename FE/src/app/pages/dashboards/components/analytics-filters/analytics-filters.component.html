@@ -102,7 +102,7 @@
           <mat-label>Usuario</mat-label>
           <mat-select formControlName="userId">
             <mat-option value="">Todos los usuarios</mat-option>
-            <mat-option *ngFor="let user of users" [value]="user.id">
+            <mat-option *ngFor="let user of users; trackBy: trackById" [value]="user.id">
               {{ user.username }} ({{ user.email }})
             </mat-option>
           </mat-select>
@@ -112,7 +112,7 @@
           <mat-label>Agencia</mat-label>
           <mat-select formControlName="agencyId">
             <mat-option value="">Todas las agencias</mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+            <mat-option *ngFor="let agency of agencies; trackBy: trackById" [value]="agency.id">
               {{ agency.name }}
             </mat-option>
           </mat-select>
@@ -124,7 +124,7 @@
           <mat-label>Proceso</mat-label>
           <mat-select formControlName="processId">
             <mat-option value="">Todos los procesos</mat-option>
-            <mat-option *ngFor="let process of processes" [value]="process.id">
+            <mat-option *ngFor="let process of processes; trackBy: trackById" [value]="process.id">
               {{ process.name }}
             </mat-option>
           </mat-select>
@@ -134,7 +134,7 @@
           <mat-label>Tipo de Documento</mat-label>
           <mat-select formControlName="documentTypeId">
             <mat-option value="">Todos los tipos</mat-option>
-            <mat-option *ngFor="let docType of documentTypes" [value]="docType.id">
+            <mat-option *ngFor="let docType of documentTypes; trackBy: trackById" [value]="docType.id">
               {{ docType.name }}
             </mat-option>
           </mat-select>

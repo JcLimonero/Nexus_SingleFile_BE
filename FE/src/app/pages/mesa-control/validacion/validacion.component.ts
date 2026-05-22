@@ -209,12 +209,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       data: dialogData
     });
 
-    dialogRef.afterClosed().subscribe((result: AprobarDocumentoResult) => {
-      if (result) {
-
-        this.procesarAprobacionDocumento(documento, result);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: AprobarDocumentoResult) => {
+        if (result) {
+          this.procesarAprobacionDocumento(documento, result);
+        }
+      });
   }
 
   /**
@@ -399,12 +400,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       disableClose: true
     });
 
-    dialogRef.afterClosed().subscribe((result: CancelarPedidoResult) => {
-      if (result) {
-
-        this.procesarCancelacion(cliente, result);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: CancelarPedidoResult) => {
+        if (result) {
+          this.procesarCancelacion(cliente, result);
+        }
+      });
   }
 
   private procesarCancelacion(cliente: any, result: CancelarPedidoResult): void {
@@ -414,27 +416,27 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       cliente.idFile,
       result.motivoId,
       result.comentario
-    ).subscribe({
-      next: (response) => {
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.snackBar.open(
+            `Pedido ${cliente.ndPedido} cancelado exitosamente`,
+            'Cerrar',
+            { duration: 5000 }
+          );
 
-        this.snackBar.open(
-          `Pedido ${cliente.ndPedido} cancelado exitosamente`,
-          'Cerrar',
-          { duration: 5000 }
-        );
-
-        // Recargar los datos para reflejar el cambio
-        this.cargarClientes();
-      },
-      error: (error) => {
-
-        this.snackBar.open(
-          `Error al cancelar el pedido: ${error.message || 'Error desconocido'}`,
-          'Cerrar',
-          { duration: 5000 }
-        );
-      }
-    });
+          // Recargar los datos para reflejar el cambio
+          this.cargarClientes();
+        },
+        error: (error) => {
+          this.snackBar.open(
+            `Error al cancelar el pedido: ${error.message || 'Error desconocido'}`,
+            'Cerrar',
+            { duration: 5000 }
+          );
+        },
+      });
   }
 
   onExcepcion(cliente: any): void {
@@ -449,12 +451,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       disableClose: true
     });
 
-    dialogRef.afterClosed().subscribe((result: ExcepcionPedidoResult) => {
-      if (result) {
-
-        this.procesarExcepcion(cliente, result);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: ExcepcionPedidoResult) => {
+        if (result) {
+          this.procesarExcepcion(cliente, result);
+        }
+      });
   }
 
   private procesarExcepcion(cliente: any, result: ExcepcionPedidoResult): void {
@@ -464,14 +467,16 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       cliente.idFile,
       result.motivoId,
       result.comentario
-    ).subscribe({
-      next: (response) => {
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
 
-        this.snackBar.open(
-          `Excepción creada para el pedido ${cliente.ndPedido}`,
-          'Cerrar',
-          { duration: 5000 }
-        );
+          this.snackBar.open(
+            `Excepción creada para el pedido ${cliente.ndPedido}`,
+            'Cerrar',
+            { duration: 5000 }
+          );
 
         // Recargar los datos para reflejar el cambio
         this.cargarClientes();
@@ -504,38 +509,39 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       disableClose: true
     });
 
-    dialogRef.afterClosed().subscribe((result: EliminarPedidoResult) => {
-      if (result && result.confirmado) {
-
-        this.procesarEliminacion(cliente);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: EliminarPedidoResult) => {
+        if (result && result.confirmado) {
+          this.procesarEliminacion(cliente);
+        }
+      });
   }
 
   private procesarEliminacion(cliente: any): void {
 
     // Llamar al servicio para eliminar el pedido
-    this.validacionService.eliminarPedido(cliente.idFile).subscribe({
-      next: (response) => {
+    this.validacionService.eliminarPedido(cliente.idFile)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.snackBar.open(
+            `Pedido ${cliente.ndPedido} eliminado exitosamente`,
+            'Cerrar',
+            { duration: 5000 }
+          );
 
-        this.snackBar.open(
-          `Pedido ${cliente.ndPedido} eliminado exitosamente`,
-          'Cerrar',
-          { duration: 5000 }
-        );
-
-        // Recargar los datos para reflejar el cambio
-        this.cargarClientes();
-      },
-      error: (error) => {
-
-        this.snackBar.open(
-          `Error al eliminar el pedido: ${error.message || 'Error desconocido'}`,
-          'Cerrar',
-          { duration: 5000 }
-        );
-      }
-    });
+          // Recargar los datos para reflejar el cambio
+          this.cargarClientes();
+        },
+        error: (error) => {
+          this.snackBar.open(
+            `Error al eliminar el pedido: ${error.message || 'Error desconocido'}`,
+            'Cerrar',
+            { duration: 5000 }
+          );
+        },
+      });
   }
 
   onCambiarEstatus(cliente: any): void {
@@ -550,12 +556,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       disableClose: true
     });
 
-    dialogRef.afterClosed().subscribe((result: CambiarEstatusResult) => {
-      if (result) {
-
-        this.procesarCambioEstatus(cliente, result);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: CambiarEstatusResult) => {
+        if (result) {
+          this.procesarCambioEstatus(cliente, result);
+        }
+      });
   }
 
   private procesarCambioEstatus(cliente: any, result: CambiarEstatusResult): void {
@@ -563,18 +570,20 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.validacionService.cambiarEstatus(
       cliente.idFile,
       result.nuevoIdCurrentState
-    ).subscribe({
-      next: (response) => {
-        this.snackBar.open(
-          `Estatus del pedido ${cliente.ndPedido} cambiado a ${result.nuevoEstatus}`,
-          'Cerrar',
-          { duration: 5000 }
-        );
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.snackBar.open(
+            `Estatus del pedido ${cliente.ndPedido} cambiado a ${result.nuevoEstatus}`,
+            'Cerrar',
+            { duration: 5000 }
+          );
 
-        // Recargar los datos para reflejar el cambio
-        this.cargarClientes();
-      },
-      error: (error) => {
+          // Recargar los datos para reflejar el cambio
+          this.cargarClientes();
+        },
+        error: (error) => {
         let errorMessage = 'Error desconocido';
         
         if (error?.error?.message) {
@@ -629,16 +638,18 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadData();
 
     // Suscribirse a los cambios de agencia del servicio compartido
-    this.defaultAgencyService.selectedAgency$.subscribe(agenciaId => {
-      if (agenciaId !== null) {
-        this.selectedAgency = agenciaId;
+    this.defaultAgencyService.selectedAgency$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(agenciaId => {
+        if (agenciaId !== null) {
+          this.selectedAgency = agenciaId;
 
-        // Si hay proceso seleccionado (incl. "Todos los procesos"), cargar clientes
-        if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
-          this.cargarClientes({ resetPage: true });
+          // Si hay proceso seleccionado (incl. "Todos los procesos"), cargar clientes
+          if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
+            this.cargarClientes({ resetPage: true });
+          }
         }
-      }
-    });
+      });
   }
 
   ngOnDestroy() {
@@ -1043,14 +1054,16 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         cliente: this.selectedCliente.cliente,
         ndPedido: this.selectedCliente.ndPedido
       }
-    }).afterClosed().subscribe((confirmado) => {
-      if (confirmado) {
-        this.avanzarPedidoALiquidacion();
-      } else {
-        this.advertenciaLiquidacionMostrada = false;
-        this.snackBar.open('El pedido se mantiene en Integración', 'Cerrar', { duration: 3000 });
-      }
-    });
+    }).afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmado) => {
+        if (confirmado) {
+          this.avanzarPedidoALiquidacion();
+        } else {
+          this.advertenciaLiquidacionMostrada = false;
+          this.snackBar.open('El pedido se mantiene en Integración', 'Cerrar', { duration: 3000 });
+        }
+      });
   }
 
   private mostrarAdvertenciaLiberacion(): void {
@@ -1065,14 +1078,16 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         cliente: this.selectedCliente.cliente,
         ndPedido: this.selectedCliente.ndPedido
       }
-    }).afterClosed().subscribe((confirmado) => {
-      if (confirmado) {
-        this.avanzarPedidoALiberacion();
-      } else {
-        this.advertenciaLiberacionMostrada = false;
-        this.snackBar.open('El pedido se mantiene en Liquidación', 'Cerrar', { duration: 3000 });
-      }
-    });
+    }).afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmado) => {
+        if (confirmado) {
+          this.avanzarPedidoALiberacion();
+        } else {
+          this.advertenciaLiberacionMostrada = false;
+          this.snackBar.open('El pedido se mantiene en Liquidación', 'Cerrar', { duration: 3000 });
+        }
+      });
   }
 
   private avanzarPedidoALiquidacion(): void {
@@ -1187,13 +1202,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         ndPedido: this.selectedCliente.ndPedido,
         tieneDocumentosPorValidar
       }
-    }).afterClosed().subscribe((confirmado) => {
-      if (confirmado) {
-        this.avanzarPedidoALiberado();
-      } else {
-        this.advertenciaLiberadoMostrada = false;
-      }
-    });
+    }).afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((confirmado) => {
+        if (confirmado) {
+          this.avanzarPedidoALiberado();
+        } else {
+          this.advertenciaLiberadoMostrada = false;
+        }
+      });
   }
 
   private avanzarPedidoALiberado(): void {
@@ -1323,7 +1340,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
               this.cdr.markForCheck();
             } else {
               // Si no hay agencia guardada válida, establecer la predeterminada
-              this.defaultAgencyService.establecerAgenciaPredeterminada(true).subscribe({
+              this.defaultAgencyService.establecerAgenciaPredeterminada(true)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
                 next: (agenciaId) => {
                   if (agenciaId && this.agencias.some(ag => ag.Id === agenciaId)) {
                     this.selectedAgency = agenciaId;
@@ -1337,7 +1356,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
                   }
                 },
                 error: (error) => {
-                  console.error('Error estableciendo agencia predeterminada:', error);
+                  
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencias.length > 0) {
                     const primeraAgencia = this.agencias[0];
@@ -1351,7 +1370,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
+          
           this.mostrarError('Error cargando agencias');
           this.agencias = [];
           this.selectedAgency = null;
@@ -1432,12 +1451,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && result.rechazado) {
-
-        this.procesarRechazoDocumento(documento, result);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        if (result && result.rechazado) {
+          this.procesarRechazoDocumento(documento, result);
+        }
+      });
   }
 
   private procesarRechazoDocumento(documento: any, resultado: any): void {
@@ -1446,12 +1466,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       documento.idDocumentByFile,
       5, // 5 = Rechazado
       resultado.comentario || undefined
-    ).subscribe({
-      next: (response) => {
+    )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
 
-        this.snackBar.open(`Documento ${documento.documento} rechazado exitosamente`, 'Cerrar', {
-          duration: 3000
-        });
+          this.snackBar.open(`Documento ${documento.documento} rechazado exitosamente`, 'Cerrar', {
+            duration: 3000
+          });
 
         // Recargar documentos para mostrar el estado actualizado
         this.cargarDocumentosCliente(this.selectedCliente.idFile);
@@ -1488,12 +1510,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
-    dialogRef.afterClosed().subscribe((result: EliminarDocumentoResult) => {
-      if (result && result.confirmado) {
-
-        this.procesarEliminacionDocumento(documento);
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result: EliminarDocumentoResult) => {
+        if (result && result.confirmado) {
+          this.procesarEliminacionDocumento(documento);
+        }
+      });
   }
 
   /**

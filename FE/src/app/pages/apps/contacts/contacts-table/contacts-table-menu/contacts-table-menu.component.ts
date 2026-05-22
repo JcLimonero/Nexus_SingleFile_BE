@@ -108,6 +108,8 @@ export class ContactsTableMenuComponent implements OnInit {
 
   constructor() {}
 
+  trackByItemId = (_: number, item: any): string | number => item.id;
+
   ngOnInit() {}
 
   setFilter(category: ContactsTableMenu['id']) {

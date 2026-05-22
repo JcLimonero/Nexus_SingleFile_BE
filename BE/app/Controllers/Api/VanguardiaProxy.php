@@ -11,6 +11,10 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class VanguardiaProxy extends BaseController
 {
+    private const CURL_TIMEOUT     = 30;   // segundos
+    private const CONNECT_TIMEOUT  = 10;   // segundos
+    private const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB
+
     private $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
     private $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
 
@@ -102,54 +106,60 @@ class VanguardiaProxy extends BaseController
     public function upload()
     {
         try {
-            $url = "https://apisvanguardia.com:400/backblaze/upload";
-            
-            // Obtener el archivo
-            $file = $this->request->getFile('file');
-            $idSingleFile = $this->request->getPost('idSingleFile');
+            $url = "{$this->vanguardiaBaseUrl}/backblaze/upload";
+
+            $file           = $this->request->getFile('file');
+            $idSingleFile   = $this->request->getPost('idSingleFile');
             $idDocumentFile = $this->request->getPost('idDocumentFile');
 
             if (!$file || !$file->isValid()) {
-                return $this->response->setJSON([ 
+                return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Archivo no válido o no proporcionado'
+                    'message' => 'Archivo no válido o no proporcionado',
                 ])->setStatusCode(400);
             }
 
-            // Obtener el nombre del archivo desde la vista view_document_name
+            if ($file->getSize() > self::MAX_UPLOAD_BYTES) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => sprintf(
+                        'El archivo excede el tamaño máximo permitido (%d MB).',
+                        self::MAX_UPLOAD_BYTES / (1024 * 1024)
+                    ),
+                ])->setStatusCode(413);
+            }
+
             $fileName = $this->getFileNameFromView($idDocumentFile, $idSingleFile, $file);
-            
-            // Preparar datos multipart
-            $boundary = uniqid();
-            $delimiter = '-------------' . $boundary;
-            
-            $postData = $this->buildMultipartData([
-                'file' => [
-                    'filename' => $fileName,
-                    'content' => file_get_contents($file->getTempName()),
-                    'mimetype' => $file->getClientMimeType()
-                ],
-                'idSingleFile' => $idSingleFile,
-                'idDocumentFile' => $idDocumentFile
-            ], $delimiter);
+
+            // CURLFile streamea desde disco — evita cargar el archivo entero
+            // en memoria (file_get_contents) y deja que cURL maneje el multipart.
+            $postFields = [
+                'file'           => new \CURLFile(
+                    $file->getTempName(),
+                    $file->getClientMimeType(),
+                    $fileName
+                ),
+                'idSingleFile'   => $idSingleFile,
+                'idDocumentFile' => $idDocumentFile,
+            ];
 
             $ch = curl_init($url);
             curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $postData,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $postFields,
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => [
+                CURLOPT_HTTPHEADER     => [
                     'X-Provider-Token: ' . $this->vanguardiaToken,
-                    'Content-Type: multipart/form-data; boundary=' . $delimiter,
-                    'Content-Length: ' . strlen($postData)
                 ],
                 CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => false
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+                CURLOPT_TIMEOUT        => self::CURL_TIMEOUT,
             ]);
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
+            $error    = curl_error($ch);
             curl_close($ch);
 
             if ($error) {
@@ -157,7 +167,7 @@ class VanguardiaProxy extends BaseController
             }
 
             $responseData = json_decode($response, true);
-            
+
             return $this->response
                 ->setJSON($responseData ?? ['error' => 'Invalid response'])
                 ->setStatusCode($httpCode);
@@ -166,7 +176,7 @@ class VanguardiaProxy extends BaseController
             error_log("Error en VanguardiaProxy::upload: " . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al subir archivo: ' . $e->getMessage()
+                'message' => 'Error al subir archivo: ' . $e->getMessage(),
             ])->setStatusCode(500);
         }
     }
@@ -211,11 +221,13 @@ class VanguardiaProxy extends BaseController
         ];
 
         curl_setopt_array($ch, [
-            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_CUSTOMREQUEST  => $method,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+            CURLOPT_TIMEOUT        => self::CURL_TIMEOUT,
         ]);
 
         if ($data && in_array($method, ['POST', 'PUT', 'PATCH'])) {
@@ -235,33 +247,6 @@ class VanguardiaProxy extends BaseController
             'body' => json_decode($response, true) ?? ['error' => 'Invalid response'],
             'status' => $httpCode
         ];
-    }
-
-    /**
-     * Construir datos multipart para subida de archivos
-     */
-    private function buildMultipartData($fields, $delimiter)
-    {
-        $data = '';
-        
-        foreach ($fields as $name => $value) {
-            if (is_array($value)) {
-                // Campo de archivo
-                $data .= "--{$delimiter}\r\n";
-                $data .= "Content-Disposition: form-data; name=\"{$name}\"; filename=\"{$value['filename']}\"\r\n";
-                $data .= "Content-Type: {$value['mimetype']}\r\n\r\n";
-                $data .= $value['content'] . "\r\n";
-            } else {
-                // Campo de texto
-                $data .= "--{$delimiter}\r\n";
-                $data .= "Content-Disposition: form-data; name=\"{$name}\"\r\n\r\n";
-                $data .= $value . "\r\n";
-            }
-        }
-        
-        $data .= "--{$delimiter}--\r\n";
-        
-        return $data;
     }
 
     /**

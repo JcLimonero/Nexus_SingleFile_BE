@@ -1,6 +1,6 @@
 <cdk-virtual-scroll-viewport class="flex-auto" itemSize="96">
   <div *cdkVirtualFor="let group of filteredIcons$ | async">
-    <div *ngFor="let icon of group" class="icon-container">
+    <div *ngFor="let icon of group; trackBy: trackByIndex" class="icon-container">
       <mat-icon class="icon material-icons-two-tone">{{ icon }}</mat-icon>
       <div class="body-2 text-secondary text-center">{{ icon }}</div>
     </div>

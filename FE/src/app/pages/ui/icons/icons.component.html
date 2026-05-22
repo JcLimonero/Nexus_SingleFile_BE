@@ -14,7 +14,7 @@
         <nav [tabPanel]="tabPanel" class="border-0 flex-auto" mat-tab-nav-bar>
           <a
             #rla="routerLinkActive"
-            *ngFor="let link of links"
+            *ngFor="let link of links; trackBy: trackByLabel"
             [active]="rla.isActive"
             [disabled]="link.disabled ?? false"
             [routerLink]="link.route"

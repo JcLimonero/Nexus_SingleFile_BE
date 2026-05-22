@@ -145,7 +145,7 @@
         <mat-label>Acción</mat-label>
         <mat-select [(ngModel)]="filters.action" (ngModelChange)="applyFilters()">
           <mat-option value="">Todas las acciones</mat-option>
-          <mat-option *ngFor="let action of actionOptions" [value]="action">
+          <mat-option *ngFor="let action of actionOptions; trackBy: trackByAction" [value]="action">
             {{ action }}
           </mat-option>
         </mat-select>

@@ -60,6 +60,8 @@ export class MailViewComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef
   ) {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit(): void {}
 
   toggleDropdown() {

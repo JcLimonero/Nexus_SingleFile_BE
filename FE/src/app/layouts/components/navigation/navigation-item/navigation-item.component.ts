@@ -54,6 +54,8 @@ export class NavigationItemComponent implements OnInit {
     private router: Router
   ) {}
 
+  trackByLabel = (_: number, item: { label?: string }): string => item?.label ?? '';
+
   ngOnInit() {}
 
   hasActiveChilds(parent: NavigationItem): boolean {

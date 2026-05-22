@@ -1,12 +1,35 @@
+# OS
+.DS_Store
+**/.DS_Store
+
+# Python venv
 venv-pillow/*
+
+# Frontend build artifacts
 FE/dist/*
+FE/node_modules/*
+FE/.angular/*
+FE/*.zip
+
+# CodeIgniter runtime
 BE/writable/logs/*
 BE/writable/cache/*
 BE/writable/session/*
 BE/writable/uploads/*
 BE/writable/debugbar/*
-BE/writable/debugbar/*
-DWD/*   
+
+# Secrets / environment
+BE/.env
+BE/.env.*
+!BE/.env.example
+BE/env
+BE/env.*
+
+# Generated reports / data dumps
+BE/reporte.csv
+
+# Legacy / external folders
+DWD/*
 DWH/*
 DWD-API/*
 DWD-API-docs/*
@@ -14,21 +37,8 @@ DWD-API-docs-v2/*
 DWD-API-docs-v3/*
 DWD-API-docs-v4/*
 DWD-API-docs-v5/*
-DWD-API-docs-v6/*       
+DWD-API-docs-v6/*
 DWD-API-docs-v7/*
 DWD-API-docs-v8/*
 DWD-API-docs-v9/*
 DWD-API-docs-v10/*
-BE/writable/.DS_Store
-DWD/.DS_Store
-DWD-API/.DS_Store
-DWD-API-docs/.DS_Store
-DWD-API-docs-v2/.DS_Store
-DWD-API-docs-v3/.DS_Store
-DWD-API-docs-v4/.DS_Store
-DWD-API-docs-v5/.DS_Store
-DWD-API-docs-v6/.DS_Store
-DWD-API-docs-v7/.DS_Store
-DWD-API-docs-v8/.DS_Store
-DWD-API-docs-v9/.DS_Store
-DWD-API-docs-v10/.DS_Store

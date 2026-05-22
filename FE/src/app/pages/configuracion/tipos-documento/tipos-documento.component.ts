@@ -76,6 +76,8 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar
   ) { }
 
+  trackByPhaseValue = (_: number, phase: { value: string | number }): string | number => phase.value;
+
   ngOnInit(): void {
     this.loadTiposDocumento();
   }

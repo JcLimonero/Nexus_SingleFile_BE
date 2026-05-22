@@ -30,6 +30,11 @@ export class WidgetDocumentMetricsComponent implements OnInit, OnDestroy {
 
   constructor(private analyticsService: AnalyticsService) {}
 
+  trackByType = (_: number, item: { type: string }): string => item.type;
+  trackByStatus = (_: number, item: { status: string | number }): string | number => item.status;
+  trackByAgencyName = (_: number, item: { agency: string }): string => item.agency;
+  trackByMonth = (_: number, item: { month: string }): string => item.month;
+
   ngOnInit(): void {
     this.loadDocumentStats();
   }

@@ -87,6 +87,8 @@ export class ContactsGridComponent implements OnInit {
     private route: ActivatedRoute
   ) {}
 
+  trackByLabel = (_: number, link: { label?: string }): string => link?.label ?? '';
+
   ngOnInit() {}
 
   openContact(id?: Contact['id']) {

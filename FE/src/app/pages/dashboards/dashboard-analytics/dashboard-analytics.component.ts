@@ -86,10 +86,10 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
   ]
 })
 export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
-  // Datos del dashboard
-  dashboardData: any = null;
-  loading = true;
+  // Estado a nivel de página (los widgets gestionan su propio loading)
+  loading = false;
   error: string | null = null;
+  refreshKey = 0;
   currentFilters: AnalyticsFilters = {};
   selectedAgencyId: number | null = null;
   selectedDateRange: DateRange | null = null;
@@ -177,24 +177,18 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /**
+   * Dispara la recarga de los widgets. Cada widget se suscribe a sus propios
+   * filtros vía @Input (`agencyId`, `userId`) y se refresca individualmente
+   * mediante `ngOnChanges`. Aquí solo se actualiza el contador `refreshKey`
+   * para forzar una nueva detección en widgets que no reaccionan a cambios
+   * de los mismos valores (p.ej. "Reintentar" con los mismos filtros).
+   */
   loadDashboardData(): void {
-    this.loading = true;
+    this.loading = false;
     this.error = null;
-
-    this.analyticsService.getDashboardData(this.currentFilters)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data) => {
-          this.dashboardData = data;
-          this.loading = false;
-          this.changeDetector.markForCheck();
-        },
-        error: (error) => {
-          this.error = 'Error al cargar datos del dashboard';
-          this.loading = false;
-          this.changeDetector.markForCheck();
-        }
-      });
+    this.refreshKey++;
+    this.changeDetector.markForCheck();
   }
 
   onAgencyChange(agencyId: number | null, skipReload: boolean = false): void {
@@ -313,7 +307,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
                   }
                 },
                 error: (error) => {
-                  console.error('Error estableciendo agencia predeterminada:', error);
+                  
                   // Si falla, cargar dashboard sin filtros
                   if (this.isInitializing) {
                     this.isInitializing = false;
@@ -325,7 +319,7 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
+          
           this.agencies = [];
           this.changeDetector.markForCheck();
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', {

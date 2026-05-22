@@ -97,6 +97,8 @@ export class FormElementsComponent implements OnInit {
 
   constructor(private cd: ChangeDetectorRef) {}
 
+  trackByName = (_: number, item: { name: string }): string => item.name;
+
   ngOnInit() {}
 
   togglePassword() {

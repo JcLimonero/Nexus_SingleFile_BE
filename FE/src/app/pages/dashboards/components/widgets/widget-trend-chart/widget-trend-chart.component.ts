@@ -146,6 +146,8 @@ export class WidgetTrendChartComponent implements OnInit, OnDestroy, OnChanges {
     private cdr: ChangeDetectorRef
   ) {}
 
+  trackByYear = (_: number, year: number): number => year;
+
   ngOnInit(): void {
     this.initializeYears();
     this.setupYearFilter();

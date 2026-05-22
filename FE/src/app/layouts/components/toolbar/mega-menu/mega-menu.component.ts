@@ -101,6 +101,8 @@ export class MegaMenuComponent implements OnInit {
 
   constructor(private popoverRef: VexPopoverRef<MegaMenuComponent>) {}
 
+  trackByLabel = (_: number, item: { label?: string }): string => item?.label ?? '';
+
   ngOnInit() {}
 
   close() {

@@ -57,7 +57,7 @@ export class AgencyFilterComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
+          
           this.agencies = [];
           this.loading = false;
         }

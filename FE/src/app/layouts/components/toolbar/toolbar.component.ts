@@ -94,6 +94,8 @@ export class ToolbarComponent implements OnInit {
   megaMenuOpen$: Observable<boolean> = of(false);
   private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
+  trackByLabel = (_: number, item: { label?: string }): string => item?.label ?? '';
+
   constructor(
     private readonly layoutService: VexLayoutService,
     private readonly configService: VexConfigService,

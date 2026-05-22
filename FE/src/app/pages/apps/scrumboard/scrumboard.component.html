@@ -18,7 +18,7 @@
       *ngIf="(scrumboardUsers?.length ?? 0) > 0"
       class="flex-auto flex items-center justify-end">
       <img
-        *ngFor="let user of scrumboardUsers"
+        *ngFor="let user of scrumboardUsers; trackBy: trackByName"
         [matTooltip]="user.name"
         [src]="user.imageSrc"
         class="avatar overlapping" />
@@ -69,7 +69,7 @@
                 *ngIf="(card.labels?.length ?? 0) > 0"
                 class="mb-2 flex gap-2">
                 <div
-                  *ngFor="let label of card.labels"
+                  *ngFor="let label of card.labels; trackBy: trackByLabel"
                   [ngClass]="label.bgClass"
                   class="label flex-1"></div>
               </div>
@@ -121,7 +121,7 @@
                   *ngIf="(card.users?.length ?? 0) > 0"
                   class="flex-1 flex items-center justify-end">
                   <img
-                    *ngFor="let user of card.users"
+                    *ngFor="let user of card.users; trackBy: trackByName"
                     [matTooltip]="user.name"
                     [src]="user.imageSrc"
                     class="avatar overlapping" />

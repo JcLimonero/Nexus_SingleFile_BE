@@ -85,4 +85,6 @@ export class ComponentsOverviewAutocompleteComponent {
       (state) => state.name.toLowerCase().indexOf(name.toLowerCase()) === 0
     );
   }
+
+  trackByName = (_: number, item: { name: string }): string => item.name;
 }

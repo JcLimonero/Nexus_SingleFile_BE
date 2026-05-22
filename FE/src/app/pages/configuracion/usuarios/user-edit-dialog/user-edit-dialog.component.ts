@@ -68,6 +68,8 @@ export class UserEditDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) { }
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+
   ngOnInit(): void {
     this.initializeForm();
     this.loadRoles();
@@ -303,7 +305,7 @@ export class UserEditDialogComponent implements OnInit {
         this.loadingAgencies = false;
       },
       error: (error) => {
-        console.error('Error cargando agencias:', error);
+        
         this.snackBar.open('Error al cargar agencias. Intenta recargar.', 'Error', {
           duration: 3000
         });

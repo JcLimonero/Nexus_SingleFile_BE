@@ -37,7 +37,7 @@
   </div>
 
   <mat-menu #menu="matMenu" yPosition="below">
-    <ng-container *ngFor="let child of item.children">
+    <ng-container *ngFor="let child of item.children; trackBy: trackByLabel">
       <a
         *ngIf="isLink(child) && !isFunction(child.route)"
         [ngClass]="{ 'text-primary-600': (isActive$ | async)?.(child) }"
@@ -77,7 +77,7 @@
         </button>
 
         <mat-menu #level1="matMenu" yPosition="below">
-          <ng-container *ngFor="let item of child.children">
+          <ng-container *ngFor="let item of child.children; trackBy: trackByLabel">
             <ng-container
               [ngTemplateOutletContext]="{ item: item }"
               [ngTemplateOutlet]="linkTemplate"></ng-container>
@@ -92,7 +92,7 @@
               </button>
 
               <mat-menu #level2="matMenu" yPosition="below">
-                <ng-container *ngFor="let child of item.children">
+                <ng-container *ngFor="let child of item.children; trackBy: trackByLabel">
                   <ng-container
                     [ngTemplateOutletContext]="{ item: child }"
                     [ngTemplateOutlet]="linkTemplate"></ng-container>
@@ -109,7 +109,7 @@
                     </button>
 
                     <mat-menu #level3="matMenu" yPosition="below">
-                      <ng-container *ngFor="let item of child.children">
+                      <ng-container *ngFor="let item of child.children; trackBy: trackByLabel">
                         <ng-container
                           [ngTemplateOutletContext]="{ item: item }"
                           [ngTemplateOutlet]="linkTemplate"></ng-container>
@@ -126,7 +126,7 @@
                           </button>
 
                           <mat-menu #level4="matMenu" yPosition="below">
-                            <ng-container *ngFor="let child of item.children">
+                            <ng-container *ngFor="let child of item.children; trackBy: trackByLabel">
                               <ng-container
                                 [ngTemplateOutletContext]="{ item: child }"
                                 [ngTemplateOutlet]="
@@ -148,7 +148,7 @@
 
                                 <mat-menu #level5="matMenu" yPosition="below">
                                   <ng-container
-                                    *ngFor="let item of child.children">
+                                    *ngFor="let item of child.children; trackBy: trackByLabel">
                                     <ng-container
                                       [ngTemplateOutletContext]="{ item: item }"
                                       [ngTemplateOutlet]="

@@ -45,7 +45,7 @@
         <!-- Attention Period Blocks -->
         <div *ngIf="!loading && !error && attentionData.length > 0" class="attention-blocks">
           <div 
-            *ngFor="let item of attentionData" 
+            *ngFor="let item of attentionData; trackBy: trackByRange"
             class="attention-block"
             [style.background-color]="item.color"
             [class.disabled]="item.count === 0"

@@ -48,7 +48,7 @@
                 multiple 
                 [value]="selectedAgencies"
                 (selectionChange)="onAgencySelectionChange($event.value)">
-                <mat-option *ngFor="let agency of allAgencies" [value]="agency.Id">
+                <mat-option *ngFor="let agency of allAgencies; trackBy: trackById" [value]="agency.Id">
                   {{ agency.Name }}
                 </mat-option>
               </mat-select>
@@ -94,8 +94,8 @@
             <!-- Chips compactos para las agencias -->
             <div *ngIf="selectedAgencies.length > 0" class="chips-container">
               <mat-chip-set>
-                <mat-chip 
-                  *ngFor="let agencyId of selectedAgencies" 
+                <mat-chip
+                  *ngFor="let agencyId of selectedAgencies; trackBy: trackByValue"
                   class="!text-xs !h-7 !px-2"
                   [removable]="!isReadonly"
                   (removed)="removeAgency(agencyId)">
@@ -125,7 +125,7 @@
                 multiple 
                 [value]="selectedProcesses"
                 (selectionChange)="onProcessSelectionChange($event.value)">
-                <mat-option *ngFor="let process of allProcesses" [value]="process.Id">
+                <mat-option *ngFor="let process of allProcesses; trackBy: trackById" [value]="process.Id">
                   {{ process.Name }}
                 </mat-option>
               </mat-select>
@@ -171,8 +171,8 @@
             <!-- Chips compactos para los procesos -->
             <div *ngIf="selectedProcesses.length > 0" class="chips-container">
               <mat-chip-set>
-                <mat-chip 
-                  *ngFor="let processId of selectedProcesses" 
+                <mat-chip
+                  *ngFor="let processId of selectedProcesses; trackBy: trackByValue"
                   class="!text-xs !h-7 !px-2"
                   [removable]="!isReadonly"
                   (removed)="removeProcess(processId)">

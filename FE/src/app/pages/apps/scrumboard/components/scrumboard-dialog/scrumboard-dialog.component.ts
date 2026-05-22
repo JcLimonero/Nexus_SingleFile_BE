@@ -94,6 +94,9 @@ export class ScrumboardDialogComponent implements OnInit {
     private fb: FormBuilder
   ) {}
 
+  trackByIndex = (index: number): number => index;
+  trackByName = (_: number, item: { name?: string }): string => item?.name ?? '';
+
   ngOnInit() {
     this.list = this.data.list;
     this.board = this.data.board;

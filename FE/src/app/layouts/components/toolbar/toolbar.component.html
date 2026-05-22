@@ -38,7 +38,7 @@
     [class.hidden]="!(isDesktop$ | async)"
     class="px-6 flex-none flex items-center">
     <vex-navigation-item
-      *ngFor="let item of navigationItems$ | async"
+      *ngFor="let item of navigationItems$ | async; trackBy: trackByLabel"
       [item]="item"></vex-navigation-item>
   </div>
 

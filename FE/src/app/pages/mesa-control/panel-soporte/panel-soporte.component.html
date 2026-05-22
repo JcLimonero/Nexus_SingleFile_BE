@@ -20,7 +20,7 @@
               <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
               Cargando agencias...
             </mat-option>
-            <mat-option *ngFor="let agencia of agencias" [value]="agencia.Id">
+            <mat-option *ngFor="let agencia of agencias; trackBy: trackByAgenciaId" [value]="agencia.Id">
               {{ agencia.Name }}
             </mat-option>
           </mat-select>
@@ -69,7 +69,7 @@
             </mat-card-header>
             <mat-card-content>
               <div class="ps-ambiguo-list">
-                <div *ngFor="let c of diagAmbiguo!.candidatos" class="ps-ambiguo-item">
+                <div *ngFor="let c of diagAmbiguo!.candidatos; trackBy: trackByCandidatoFile" class="ps-ambiguo-item">
                   <div class="ps-ambiguo-meta">
                     <span class="ps-ambiguo-id">#{{ c.id_file }}</span>
                     <span class="ps-ambiguo-estado">{{ c.estado }}</span>
@@ -162,7 +162,7 @@
                   </dl>
                   <h3 class="ps-subheading">Mismo pedido + agencia</h3>
                   <ul class="ps-bullets">
-                    <li *ngFor="let dup of $any(d).expediente?.duplicadosMismoPedidoAgencia">
+                    <li *ngFor="let dup of $any(d).expediente?.duplicadosMismoPedidoAgencia; trackBy: trackByIndex">
                       Id {{ dup.id_file }} — {{ dup.estado }} (estado {{ dup.IdCurrentState }})
                     </li>
                   </ul>
@@ -190,7 +190,7 @@
                   <ul
                     *ngIf="!$any(d).vanguardia?.ok && $any($any(d).vanguardia?.recomendaciones)?.length"
                     class="ps-rec-list">
-                    <li *ngFor="let rv of $any(d).vanguardia?.recomendaciones">{{ rv }}</li>
+                    <li *ngFor="let rv of $any(d).vanguardia?.recomendaciones; trackBy: trackByIndex">{{ rv }}</li>
                   </ul>
                   <dl *ngIf="vanguardiaFactura(d) as vf" class="ps-kv">
                     <div class="ps-kv-row">
@@ -384,7 +384,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let r of $any(d).relacion?.todasRelacionesCliente">
+                        <tr *ngFor="let r of $any(d).relacion?.todasRelacionesCliente; trackBy: trackByIndex">
                           <td>{{ r.nombre_agencia }} ({{ r.IdAgency }})</td>
                           <td class="ps-mono">{{ r.IdTotalDealer }}</td>
                         </tr>
@@ -433,11 +433,11 @@
                     }}
                   </p>
                   <ul *ngIf="$any(d).validacion?.motivosSiNoAparece?.length" class="ps-warn-list">
-                    <li *ngFor="let m of $any(d).validacion?.motivosSiNoAparece">{{ m }}</li>
+                    <li *ngFor="let m of $any(d).validacion?.motivosSiNoAparece; trackBy: trackByIndex">{{ m }}</li>
                   </ul>
                   <h4 *ngIf="$any(d).validacion?.recomendaciones?.length" class="ps-rec-title">Recomendaciones para corregir</h4>
                   <ul *ngIf="$any(d).validacion?.recomendaciones?.length" class="ps-rec-list">
-                    <li *ngFor="let rec of $any(d).validacion?.recomendaciones">{{ rec }}</li>
+                    <li *ngFor="let rec of $any(d).validacion?.recomendaciones; trackBy: trackByIndex">{{ rec }}</li>
                   </ul>
 
                   <div *ngIf="puedeRelacionarClienteFactura(d)" class="ps-repair-from-vgd">
@@ -541,7 +541,7 @@
               detalle.
             </p>
             <mat-accordion class="ps-diag-agency-accordion" multi>
-              <mat-expansion-panel *ngFor="let grp of diagAgrupado" class="ps-diag-agency-panel">
+              <mat-expansion-panel *ngFor="let grp of diagAgrupado; trackBy: trackByGrupoAgencia" class="ps-diag-agency-panel">
                 <mat-expansion-panel-header
                   [class.ps-diag-agency-header--warn]="diagGrupoTieneProblemas(grp)">
                   <mat-panel-title>
@@ -567,7 +567,7 @@
                   </mat-panel-description>
                 </mat-expansion-panel-header>
                 <div class="ps-diag-agency-panel-body">
-                  <ng-container *ngFor="let bloque of grp.expedientes">
+                  <ng-container *ngFor="let bloque of grp.expedientes; trackBy: trackByIndex">
                     <ng-container *ngTemplateOutlet="diagPanel; context: { $implicit: bloque }"></ng-container>
                   </ng-container>
                 </div>
@@ -611,7 +611,7 @@
             </mat-card-header>
             <mat-card-content>
               <ul class="ps-bullets ps-bullets--flat">
-                <li *ngFor="let c of $any(analisisResult)?.candidatos">
+                <li *ngFor="let c of $any(analisisResult)?.candidatos; trackBy: trackByIndex">
                   HeaderClient {{ c.idHeaderClient }} — Client.Id {{ c.idClient }}
                   <span *ngIf="c.nombre">— {{ c.nombre }}</span>
                 </li>
@@ -632,7 +632,7 @@
                 <ul
                   *ngIf="$any(analisisResult['notas'])?.length && analisisResult['encontradoEnCtr']"
                   class="ps-bullets ps-bullets--flat">
-                  <li *ngFor="let n of $any(analisisResult['notas'])">{{ n }}</li>
+                  <li *ngFor="let n of $any(analisisResult['notas']); trackBy: trackByIndex">{{ n }}</li>
                 </ul>
                 <ng-container *ngIf="analisisResult['encontradoEnCtr']">
                   <p class="ps-analisis-line">
@@ -666,7 +666,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let ctr of $any(analisisResult['relacionesCtr'])">
+                    <tr *ngFor="let ctr of $any(analisisResult['relacionesCtr']); trackBy: trackByIndex">
                       <td>{{ ctr.nombre_agencia }} ({{ ctr.IdAgency }})</td>
                       <td class="ps-mono">{{ ctr.IdTotalDealer }}</td>
                       <td>{{ ctr.idHeaderClient }}</td>
@@ -683,7 +683,7 @@
                 agencia de ese expediente. Si falta, revisa las recomendaciones. Usa
                 <strong>Diagnosticar</strong> para el detalle en la pestaña Diagnóstico.
               </p>
-              <div *ngFor="let g of analisisGrupos" class="ps-analisis-agency-block">
+              <div *ngFor="let g of analisisGrupos; trackBy: trackByGrupoAgencia" class="ps-analisis-agency-block">
                 <h4 class="ps-analisis-agency-title">
                   {{ g.nombreAgencia }}
                   <span class="ps-analisis-agency-id">({{ g.idAgencia }})</span>
@@ -720,7 +720,7 @@
                       <th mat-header-cell *matHeaderCellDef>Recomendaciones</th>
                       <td mat-cell *matCellDef="let r">
                         <ul *ngIf="$any(r['recomendaciones'])?.length" class="ps-ana-rec">
-                          <li *ngFor="let rec of $any(r['recomendaciones'])">{{ rec }}</li>
+                          <li *ngFor="let rec of $any(r['recomendaciones']); trackBy: trackByIndex">{{ rec }}</li>
                         </ul>
                         <span *ngIf="!$any(r['recomendaciones'])?.length && r['relacionAgenciaOk']" class="ps-muted">—</span>
                       </td>

@@ -23,7 +23,7 @@
     <div class="mt-4 grid grid-cols-3">
       <a
         (click)="close()"
-        *ngFor="let feature of features"
+        *ngFor="let feature of features; trackBy: trackByLabel"
         [routerLink]="feature.route"
         class="text-dark p-3 text-center hover:bg-primary-600/10 hover:text-primary-600 transition duration-400 ease-out-swift rounded block no-underline">
         <mat-icon
@@ -41,7 +41,7 @@
     <div class="mt-6 grid grid-cols-2 gap-x-12 gap-y-4">
       <a
         (click)="close()"
-        *ngFor="let page of pages"
+        *ngFor="let page of pages; trackBy: trackByLabel"
         [routerLink]="page.route"
         class="text-dark body-1 no-underline hover:text-primary-600 transition duration-400 ease-out-swift"
       >{{ page.label }}</a

@@ -220,7 +220,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
                   }
                 },
                 error: (error) => {
-                  console.error('Error estableciendo agencia predeterminada:', error);
+                  
                   // Si falla y hay agencias, seleccionar la primera
                   if (this.agencies.length > 0) {
                     const primeraAgencia = this.agencies[0];
@@ -233,7 +233,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
           }, 150); // Aumentar el timeout para asegurar que las opciones se rendericen
         },
         error: (error) => {
-          console.error('Error cargando agencias:', error);
+          
           this.agencies = [];
           this.agenciesLoading = false;
           this.snackBar.open('Error al cargar las agencias', 'Cerrar', { duration: 3000 });
@@ -284,6 +284,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
   trackByAgencyId(index: number, agency: any): number {
     return agency.Id;
   }
+
+  trackByTabLabel = (_: number, tab: any): string => tab?.label ?? tab?.id ?? String(_);
 
   // ====================================
   //         Búsqueda de clientes
@@ -916,7 +918,7 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       .pipe(
         catchError((error) => {
           // Si falla la consulta, usar el nombre del documento requerido (documentName)
-          console.warn('No se pudo obtener el nombre desde la vista, usando nombre del documento requerido:', error);
+          
           return of({ success: false, useDocumentName: true }); // Retornar un objeto para que continue el flujo
         }),
         switchMap((response) => {
@@ -929,13 +931,13 @@ export class LiberacionComponent implements OnInit, OnDestroy {
             const originalExtension = file.name.split('.').pop();
             const fileNameBase = fileNameFromView.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
             newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
-            console.log('Archivo renombrado desde vista:', newFileName);
+            
           } else if (response.useDocumentName && document.documentName) {
             // Usar el nombre del documento requerido como fallback
             const originalExtension = file.name.split('.').pop();
             const fileNameBase = document.documentName.replace(/\.[^/.]+$/, ''); // Remover extensión si tiene
             newFileName = fileNameBase + (originalExtension ? '.' + originalExtension : '');
-            console.log('Archivo renombrado usando documentName:', newFileName);
+            
           }
 
           // Si se obtuvo un nuevo nombre, crear un nuevo File

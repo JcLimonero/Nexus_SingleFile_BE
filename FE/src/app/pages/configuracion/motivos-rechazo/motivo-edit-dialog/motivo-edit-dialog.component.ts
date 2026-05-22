@@ -67,6 +67,8 @@ export class MotivoEditDialogComponent implements OnInit {
     }
   }
 
+  trackByValue = (_: number, item: { value: string | number }): string | number => item.value;
+
   ngOnInit(): void {
     // Si es creación, establecer valores por defecto
     if (!this.isEdit) {

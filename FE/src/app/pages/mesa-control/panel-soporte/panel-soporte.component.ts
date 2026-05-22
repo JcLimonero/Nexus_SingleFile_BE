@@ -164,6 +164,11 @@ export class PanelSoporteComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {}
 
+  trackByIndex = (index: number): number => index;
+  trackByAgenciaId = (_: number, ag: Agencia): number => ag.Id;
+  trackByGrupoAgencia = (_: number, g: { idAgencia: number }): number => g.idAgencia;
+  trackByCandidatoFile = (_: number, c: { id_file: number }): number => c.id_file;
+
   ngOnInit(): void {
     this.loadingAgencias = true;
     this.cdr.markForCheck();

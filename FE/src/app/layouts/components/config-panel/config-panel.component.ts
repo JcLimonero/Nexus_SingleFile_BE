@@ -115,6 +115,9 @@ export class ConfigPanelComponent {
     @Inject(VEX_THEMES) public readonly themes: VexThemeProvider[]
   ) {}
 
+  trackByIndex = (index: number): number => index;
+  trackByThemeId = (_: number, theme: any): string => theme.id;
+
   setConfig(layout: VexConfigName, colorScheme: VexColorScheme): void {
     this.configService.setConfig(layout);
     this.configService.updateConfig({

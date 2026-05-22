@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
@@ -39,12 +39,12 @@ export interface RealTimeStats {
 @Injectable({
   providedIn: 'root'
 })
-export class RealTimeAnalyticsService {
+export class RealTimeAnalyticsService implements OnDestroy {
   private socket: WebSocket | null = null;
   private connectionStatus = new BehaviorSubject<boolean>(false);
   private metricsSubject = new Subject<RealTimeMetric>();
   private statsSubject = new BehaviorSubject<RealTimeStats | null>(null);
-  
+
   public connectionStatus$ = this.connectionStatus.asObservable();
   public metrics$ = this.metricsSubject.asObservable();
   public stats$ = this.statsSubject.asObservable();
@@ -52,6 +52,8 @@ export class RealTimeAnalyticsService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private simulationIntervalId: ReturnType<typeof setInterval> | null = null;
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.initializeConnection();
@@ -76,13 +78,20 @@ export class RealTimeAnalyticsService {
   }
 
   private startSimulation(): void {
-    // Simulamos eventos cada 5-10 segundos
-    setInterval(() => {
+    this.stopSimulation();
+    this.simulationIntervalId = setInterval(() => {
       if (this.connectionStatus.value) {
         this.simulateRandomMetric();
         this.updateStats();
       }
     }, Math.random() * 5000 + 5000);
+  }
+
+  private stopSimulation(): void {
+    if (this.simulationIntervalId !== null) {
+      clearInterval(this.simulationIntervalId);
+      this.simulationIntervalId = null;
+    }
   }
 
   private simulateRandomMetric(): void {
@@ -173,7 +182,11 @@ export class RealTimeAnalyticsService {
   private scheduleReconnect(): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      setTimeout(() => {
+      if (this.reconnectTimeoutId !== null) {
+        clearTimeout(this.reconnectTimeoutId);
+      }
+      this.reconnectTimeoutId = setTimeout(() => {
+        this.reconnectTimeoutId = null;
         this.initializeConnection();
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
@@ -190,11 +203,20 @@ export class RealTimeAnalyticsService {
   }
 
   disconnect(): void {
+    this.stopSimulation();
+    if (this.reconnectTimeoutId !== null) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
     this.connectionStatus.next(false);
+  }
+
+  ngOnDestroy(): void {
+    this.disconnect();
   }
 
   sendMessage(message: any): void {

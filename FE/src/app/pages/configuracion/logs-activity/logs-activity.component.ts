@@ -88,6 +88,8 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog
   ) {}
 
+  trackByAction = (_: number, action: string): string => action;
+
   ngOnInit(): void {
     this.loadLogs();
     this.loadStats();

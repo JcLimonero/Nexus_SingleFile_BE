@@ -602,12 +602,4 @@ export class AnalyticsService {
       observer.next({});
     });
   }
-
-  // Método para obtener métricas de rendimiento
-  getPerformanceMetrics(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/analytics/performance`)
-      .pipe(
-        map(response => response.data || response),
-      );
-  }
 }

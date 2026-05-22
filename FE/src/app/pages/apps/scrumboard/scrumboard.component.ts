@@ -105,6 +105,9 @@ export class ScrumboardComponent implements OnInit {
     private readonly configService: VexConfigService
   ) {}
 
+  trackByName = (_: number, item: any): string => item?.name ?? '';
+  trackByLabel = (_: number, label: any): string => typeof label === 'string' ? label : (label?.name ?? '');
+
   ngOnInit() {}
 
   open(board: Scrumboard, list: ScrumboardList, card: ScrumboardCard) {

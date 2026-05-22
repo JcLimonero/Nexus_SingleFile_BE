@@ -51,4 +51,7 @@ export class PricingTestimonialsComponent {
   getStarsArray(testimonial: Testimonial): number[] {
     return testimonial.starCount ? Array(testimonial.starCount) : [];
   }
+
+  trackByIndex = (index: number): number => index;
+  trackByName = (_: number, item: { name: string }): string => item.name;
 }

@@ -32,7 +32,7 @@
     <mat-form-field class="w-full">
       <mat-label>Tipo de Razón</mat-label>
       <mat-select [(ngModel)]="motivo.IdTypeReason" name="idTypeReason" required>
-        <mat-option *ngFor="let option of tipoRazonOptions" [value]="option.value">
+        <mat-option *ngFor="let option of tipoRazonOptions; trackBy: trackByValue" [value]="option.value">
           {{ option.label }}
         </mat-option>
       </mat-select>

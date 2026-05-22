@@ -52,6 +52,8 @@ export class CambiarEstatusDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
+  trackByFaseId = (_: number, fase: { id: string | number }): string | number => fase.id;
+
   ngOnInit(): void {
     // Establecer la fase actual como seleccionada por defecto
     this.faseSeleccionada = parseInt(this.data.cliente.IdCurrentState);

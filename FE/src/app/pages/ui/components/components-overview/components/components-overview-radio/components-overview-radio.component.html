@@ -7,7 +7,7 @@
         class="radio"
         color="primary">
         <mat-radio-button
-          *ngFor="let season of seasons"
+          *ngFor="let season of seasons; trackBy: trackByIndex"
           [value]="season"
           class="example-radio-button">
           {{ season }}

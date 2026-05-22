@@ -25,7 +25,7 @@
 
     <div
       (click)="selectTheme(theme)"
-      *ngFor="let theme of themes"
+      *ngFor="let theme of themes; trackBy: trackByThemeId"
       [ngClass]="{
         'bg-primary-600/10 dark:bg-primary-500/20 text-primary-600 dark:text-primary-500':
           !(isSelectedTheme$ | async)?.(theme.className),
@@ -50,7 +50,7 @@
     <h5 class="subheading">PRE-BUILT LAYOUTS</h5>
 
     <div
-      *ngFor="let config of configs; let first = first"
+      *ngFor="let config of configs; trackBy: trackByIndex; let first = first"
       [class.mt-6]="!first"
       class="rounded">
       <div
@@ -84,7 +84,7 @@
     <div class="grid grid-cols-4 gap-4">
       <div
         (click)="selectBorderRadius(borderRadius)"
-        *ngFor="let borderRadius of roundedCornerValues"
+        *ngFor="let borderRadius of roundedCornerValues; trackBy: trackByIndex"
         [class.border-gray-300]=""
         [ngClass]="{
           'border-gray-300': isSelectedBorderRadius(borderRadius, setting),

@@ -47,6 +47,8 @@ export class WidgetTableComponent<T>
 
   constructor() {}
 
+  trackByColumnProperty = (_: number, col: TableColumn<T>): string => String(col.property);
+
   ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges): void {

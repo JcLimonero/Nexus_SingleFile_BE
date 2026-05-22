@@ -159,15 +159,7 @@
                 -->
               </div>
 
-  <!-- Estado de carga -->
-  <div *ngIf="loading" class="flex justify-center py-12">
-    <div class="text-center">
-      <mat-icon class="text-4xl text-gray-400 mb-4" svgIcon="mat:hourglass_empty"></mat-icon>
-      <p class="text-gray-600">Cargando datos de analytics...</p>
-    </div>
-  </div>
-
-  <!-- Error -->
+  <!-- Error a nivel de página (los widgets manejan sus propios errores) -->
   <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
     <mat-icon class="text-red-500 mb-2">error</mat-icon>
     <p class="text-red-600">{{ error }}</p>
@@ -176,8 +168,8 @@
     </button>
   </div>
 
-  <!-- Dashboard principal -->
-  <div *ngIf="!loading && !error">
+  <!-- Dashboard principal: cada widget se carga independiente -->
+  <div>
 
     <!-- ===== SECCIÓN 1: MÉTRICAS PRINCIPALES ===== -->
     <div class="dashboard-section">

@@ -65,6 +65,8 @@ export class SidenavItemComponent implements OnInit, OnChanges {
     private navigationService: NavigationService
   ) {}
 
+  trackByLabel = (_: number, item: { label?: string }): string => item?.label ?? '';
+
   @HostBinding('class')
   get levelClass() {
     return `item-level-${this.level}`;

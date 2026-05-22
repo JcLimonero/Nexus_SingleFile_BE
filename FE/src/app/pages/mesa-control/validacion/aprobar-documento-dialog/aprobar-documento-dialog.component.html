@@ -44,7 +44,7 @@
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Estatus</mat-label>
       <mat-select [(ngModel)]="estatusSeleccionado" required>
-        <mat-option *ngFor="let opcion of opcionesEstatus" [value]="opcion.value">
+        <mat-option *ngFor="let opcion of opcionesEstatus; trackBy: trackByValue" [value]="opcion.value">
           {{ opcion.label }}
         </mat-option>
       </mat-select>

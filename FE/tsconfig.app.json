@@ -34,6 +34,7 @@
     "src/app/pages/mesa-control/monitoreo/**",
     "src/app/pages/mesa-control/reportes/**",
     "src/app/pages/procesos/gestion/**",
-    "src/environments/environment.example.ts"
+    "src/environments/environment.example.ts",
+    "src/environments/environment.prod.ts"
   ]
 }

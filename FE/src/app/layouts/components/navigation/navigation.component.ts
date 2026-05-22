@@ -16,4 +16,6 @@ export class NavigationComponent {
   items$: Observable<NavigationItem[]> = this.navigationService.items$;
 
   constructor(private navigationService: NavigationService) {}
+
+  trackByLabel = (_: number, item: { label?: string }): string => item?.label ?? '';
 }

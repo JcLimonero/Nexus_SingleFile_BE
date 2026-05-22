@@ -107,6 +107,8 @@ export class FormWizardComponent {
     private snackbar: MatSnackBar
   ) {}
 
+  trackByIndex = (index: number): number => index;
+
   showPassword() {
     this.passwordInputType = 'text';
     this.cd.markForCheck();

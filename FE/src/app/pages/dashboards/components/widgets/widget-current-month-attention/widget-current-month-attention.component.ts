@@ -47,6 +47,8 @@ export class WidgetCurrentMonthAttentionComponent implements OnInit, OnDestroy, 
 
   constructor(private analyticsService: AnalyticsService, private dialog: MatDialog) {}
 
+  trackByRange = (_: number, item: any): string => item.range;
+
   ngOnInit(): void {
     this.setCurrentMonth();
     this.loadData();

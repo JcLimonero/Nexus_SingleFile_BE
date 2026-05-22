@@ -65,7 +65,7 @@
   </div>
   <div [@dropdown]="isOpen" class="vex-sidenav-item__dropdown">
     <vex-sidenav-item
-      *ngFor="let subItem of item.children"
+      *ngFor="let subItem of item.children; trackBy: trackByLabel"
       [item]="subItem"
       [level]="level + 1"></vex-sidenav-item>
   </div>
@@ -74,7 +74,7 @@
 <ng-container *ngIf="isSubheading(item)">
   <div class="vex-sidenav-subheading">{{ item.label }}</div>
   <vex-sidenav-item
-    *ngFor="let subItem of item.children"
+    *ngFor="let subItem of item.children; trackBy: trackByLabel"
     [item]="subItem"
     [level]="0"></vex-sidenav-item>
 </ng-container>

@@ -189,7 +189,7 @@
               (click)="$event.stopPropagation()"
               class="flex items-center gap-1">
               <div
-                *ngFor="let label of row.labels"
+                *ngFor="let label of row.labels; trackBy: trackByIndex"
                 [ngClass]="[label.textClass, label.bgClass]"
                 class="rounded px-2 py-1 font-medium text-xs flex-none">
                 {{ label.text }}
@@ -237,7 +237,7 @@
 <mat-menu #columnFilterMenu="matMenu" xPosition="before" yPosition="below">
   <button
     (click)="toggleColumnVisibility(column, $event)"
-    *ngFor="let column of columns"
+    *ngFor="let column of columns; trackBy: trackByProperty"
     class="mat-menu-item block">
     <mat-checkbox
       (click)="$event.stopPropagation()"

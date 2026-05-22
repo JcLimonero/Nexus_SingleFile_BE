@@ -39,7 +39,7 @@
           name="fase"
           required>
           
-          <mat-option *ngFor="let fase of fasesDisponibles" [value]="fase.id">
+          <mat-option *ngFor="let fase of fasesDisponibles; trackBy: trackByFaseId" [value]="fase.id">
             {{ fase.nombre }}
           </mat-option>
         </mat-select>

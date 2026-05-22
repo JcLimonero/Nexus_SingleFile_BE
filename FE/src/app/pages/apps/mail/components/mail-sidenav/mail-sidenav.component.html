@@ -2,7 +2,7 @@
   <p @fadeInUp class="text-secondary text-xs font-medium px-6 mb-2">Browse</p>
   <vex-mail-sidenav-link
     (click)="closeDrawer()"
-    *ngFor="let link of links"
+    *ngFor="let link of links; trackBy: trackByLabel"
     @fadeInUp
     [link]="link"></vex-mail-sidenav-link>
 
@@ -11,7 +11,7 @@
   </p>
   <vex-mail-sidenav-link
     (click)="closeDrawer()"
-    *ngFor="let link of labelLinks"
+    *ngFor="let link of labelLinks; trackBy: trackByLabel"
     @fadeInUp
     [link]="link"></vex-mail-sidenav-link>
 </div>

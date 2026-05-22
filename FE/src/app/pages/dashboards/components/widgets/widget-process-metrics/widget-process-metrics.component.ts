@@ -30,6 +30,10 @@ export class WidgetProcessMetricsComponent implements OnInit, OnDestroy {
 
   constructor(private analyticsService: AnalyticsService) {}
 
+  trackByStatus = (_: number, item: { status: string | number }): string | number => item.status;
+  trackByAgencyName = (_: number, item: { agency: string }): string => item.agency;
+  trackByMonth = (_: number, item: { month: string }): string => item.month;
+
   ngOnInit(): void {
     this.loadProcessStats();
   }

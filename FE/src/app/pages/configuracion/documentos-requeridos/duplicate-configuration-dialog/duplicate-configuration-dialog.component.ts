@@ -64,6 +64,9 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {}
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+  trackByValue = (_: number, value: string | number): string | number => value;
+
   ngOnInit(): void {
     this.loadAgencies();
   }

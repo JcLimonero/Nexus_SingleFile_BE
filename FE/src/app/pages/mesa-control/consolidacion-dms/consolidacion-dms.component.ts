@@ -134,6 +134,10 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar
   ) {}
 
+  trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+  trackByValue = (_: number, value: string | number): string | number => value;
+  trackByMes = (_: number, mes: { value: string | number }): string | number => mes.value;
+
   ngOnInit(): void {
     // Años disponibles: actual y 5 años atrás
     const currentYear = this.now.getFullYear();

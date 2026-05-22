@@ -54,6 +54,8 @@ export class AnalyticsFiltersComponent implements OnInit, OnDestroy {
     this.filtersForm = this.createForm();
   }
 
+  trackById = (_: number, item: { id: string | number }): string | number => item.id;
+
   ngOnInit(): void {
     this.loadInitialData();
     this.setupFormSubscriptions();

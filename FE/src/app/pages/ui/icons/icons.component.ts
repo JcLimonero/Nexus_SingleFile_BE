@@ -53,6 +53,8 @@ export class IconsComponent implements OnInit {
 
   constructor(private router: Router) {}
 
+  trackByLabel = (_: number, link: { label?: string }): string => link?.label ?? '';
+
   ngOnInit() {
     this.searchCtrl.valueChanges
       .pipe(debounceTime(20), takeUntilDestroyed(this.destroyRef))

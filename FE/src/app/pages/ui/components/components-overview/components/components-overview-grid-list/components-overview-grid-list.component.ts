@@ -28,5 +28,7 @@ export class ComponentsOverviewGridListComponent implements OnInit {
 
   constructor() {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit() {}
 }

@@ -160,6 +160,8 @@ export class AioTableComponent implements OnInit, AfterViewInit {
 
   constructor(private dialog: MatDialog) {}
 
+  trackByIndex = (index: number): number => index;
+
   get visibleColumns() {
     return this.columns
       .filter((column) => column.visible)
@@ -175,16 +177,23 @@ export class AioTableComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.getData().subscribe((customers) => {
-      this.subject$.next(customers);
-    });
+    this.getData()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((customers) => {
+        this.subject$.next(customers);
+      });
 
     this.dataSource = new MatTableDataSource();
 
-    this.data$.pipe(filter<Customer[]>(Boolean)).subscribe((customers) => {
-      this.customers = customers;
-      this.dataSource.data = customers;
-    });
+    this.data$
+      .pipe(
+        filter<Customer[]>(Boolean),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((customers) => {
+        this.customers = customers;
+        this.dataSource.data = customers;
+      });
 
     this.searchCtrl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -205,6 +214,7 @@ export class AioTableComponent implements OnInit, AfterViewInit {
     this.dialog
       .open(CustomerCreateUpdateComponent)
       .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((customer: Customer) => {
         /**
          * Customer is the updated customer (if the user pressed Save - otherwise it's null)
@@ -226,6 +236,7 @@ export class AioTableComponent implements OnInit, AfterViewInit {
         data: customer
       })
       .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((updatedCustomer) => {
         /**
          * Customer is the updated customer (if the user pressed Save - otherwise it's null)

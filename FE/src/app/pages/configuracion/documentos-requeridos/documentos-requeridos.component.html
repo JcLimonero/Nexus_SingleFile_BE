@@ -51,7 +51,7 @@
               <mat-label>Agencia</mat-label>
               <mat-select [(ngModel)]="selectedAgencyForConfiguraciones" (ngModelChange)="onAgencyFilterChange()" [disabled]="loadingCatalogs">
                 <mat-option value="">Todas las agencias</mat-option>
-                <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+                <mat-option *ngFor="let agency of agencies; trackBy: trackById" [value]="agency.Id">
                   {{ agency.Name }}
                 </mat-option>
               </mat-select>
@@ -258,7 +258,7 @@
               <mat-label>Agencia</mat-label>
               <mat-select [(ngModel)]="selectedAgency" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                 <mat-option value="">Seleccionar todas las agencias</mat-option>
-                <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+                <mat-option *ngFor="let agency of agencies; trackBy: trackById" [value]="agency.Id">
                   {{ agency.Name }}
                 </mat-option>
               </mat-select>
@@ -270,7 +270,7 @@
               <mat-label>Proceso</mat-label>
               <mat-select [(ngModel)]="selectedProcess" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                 <mat-option value="">Seleccionar todos los procesos</mat-option>
-                <mat-option *ngFor="let process of processes" [value]="process.Id">
+                <mat-option *ngFor="let process of processes; trackBy: trackById" [value]="process.Id">
                   {{ process.Name }}
                 </mat-option>
               </mat-select>
@@ -282,7 +282,7 @@
               <mat-label>Tipo de Cliente</mat-label>
               <mat-select [(ngModel)]="selectedCustomerType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                 <mat-option value="">Seleccionar todos los tipos de cliente</mat-option>
-                <mat-option *ngFor="let customerType of customerTypes" [value]="customerType.Id">
+                <mat-option *ngFor="let customerType of customerTypes; trackBy: trackById" [value]="customerType.Id">
                   {{ customerType.Name }}
                 </mat-option>
               </mat-select>
@@ -294,7 +294,7 @@
               <mat-label>Tipo Operación</mat-label>
               <mat-select [(ngModel)]="selectedOperationType" (ngModelChange)="onConfigurationChange()" [disabled]="loadingCatalogs">
                 <mat-option value="">Seleccionar todos los tipos de operación</mat-option>
-                <mat-option *ngFor="let operationType of operationTypes" [value]="operationType.Id">
+                <mat-option *ngFor="let operationType of operationTypes; trackBy: trackById" [value]="operationType.Id">
                   {{ operationType.Name }}
                 </mat-option>
               </mat-select>

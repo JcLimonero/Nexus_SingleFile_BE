@@ -14,7 +14,7 @@
   </div>
 
   <div class="px-6 sm:px-0">
-    <ng-container *ngFor="let item of items">
+    <ng-container *ngFor="let item of items; trackBy: trackByItemId">
       <a
         (click)="setFilter(item.id)"
         *ngIf="item.type === 'link'"

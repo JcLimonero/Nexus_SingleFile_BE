@@ -58,7 +58,7 @@
 
           <h4 class="body-2 text-secondary mt-8 mb-0">Colors:</h4>
 
-          <ng-container *ngFor="let color of colors">
+          <ng-container *ngFor="let color of colors; trackBy: trackByIndex">
             <div
               class="bg-base rounded-tr rounded-br border-l-3 p-4 pt-1 flex flex-wrap items-start justify-center sm:justify-start gap-3">
               <button

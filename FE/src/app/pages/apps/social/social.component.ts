@@ -32,5 +32,7 @@ export class SocialComponent implements OnInit {
 
   constructor() {}
 
+  trackByLabel = (_: number, link: { label?: string }): string => link?.label ?? '';
+
   ngOnInit() {}
 }

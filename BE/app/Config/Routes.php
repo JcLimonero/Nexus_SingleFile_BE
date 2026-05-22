@@ -189,14 +189,6 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
             $routes->get('current-month-liberated', 'Analytics::getCurrentMonthLiberated');
             $routes->get('total-liberated', 'Analytics::getTotalLiberated');
             $routes->get('orders-by-attention-period', 'Analytics::getOrdersByAttentionPeriod');
-            $routes->get('debug-file-structure', 'Analytics::debugFileStructure');
-            $routes->get('debug-file-status', 'Analytics::debugFileStatus');
-            $routes->get('debug-trend-january-2025', 'Analytics::debugTrendJanuary2025');
-            $routes->get('debug-sql-queries', 'Analytics::debugSqlQueries');
-            $routes->get('debug-server-date', 'Analytics::debugServerDate');
-            $routes->get('debug-today-files', 'Analytics::debugTodayFiles');
-            $routes->get('debug-agency-users', 'Analytics::debugAgencyUsers');
-            $routes->get('debug-file-dates', 'Analytics::debugFileDates');
             $routes->get('widget-system-overview-metrics', 'Analytics::getSystemMetrics');
             $routes->get('export', 'Analytics::exportAnalytics');
         });

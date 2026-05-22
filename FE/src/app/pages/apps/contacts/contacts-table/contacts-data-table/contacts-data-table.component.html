@@ -10,7 +10,7 @@
             The actual rendered columns are set as a property on the row definition" -->
 
       <!-- Model Properties Column -->
-      <ng-container *ngFor="let column of columns">
+      <ng-container *ngFor="let column of columns; trackBy: trackByColumnProperty">
         <ng-container
           *ngIf="column.type === 'text'"
           [matColumnDef]="column.property">

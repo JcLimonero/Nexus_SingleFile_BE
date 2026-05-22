@@ -9,6 +9,8 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./pricing-faq.component.scss']
 })
 export class PricingFaqComponent {
+  trackByLabel = (_: number, item: { label: string }): string => item.label;
+
   items = [
     {
       label: 'Is there a free trial available?',

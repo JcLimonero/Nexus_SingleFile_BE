@@ -32,5 +32,7 @@ export class ComponentsOverviewRadioComponent implements OnInit {
 
   constructor() {}
 
+  trackByIndex = (index: number): number => index;
+
   ngOnInit() {}
 }

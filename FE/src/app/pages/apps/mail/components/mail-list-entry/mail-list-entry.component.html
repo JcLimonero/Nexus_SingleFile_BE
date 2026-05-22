@@ -61,7 +61,7 @@
         {{ mail.body | vexStripHtml }}
       </p>
       <vex-mail-label
-        *ngFor="let label of mail.labels"
+        *ngFor="let label of mail.labels; trackBy: trackByIndex"
         [label]="label.label"
         [ngClass]="label.classes"
         class="ml-2 text-2xs"></vex-mail-label>

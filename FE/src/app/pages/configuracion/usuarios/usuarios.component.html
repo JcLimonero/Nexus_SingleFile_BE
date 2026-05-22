@@ -68,7 +68,7 @@
         <mat-label>Rol</mat-label>
         <mat-select [(ngModel)]="roleFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todos los roles</mat-option>
-          <mat-option *ngFor="let role of rolesForFilter" [value]="role.Id">
+          <mat-option *ngFor="let role of rolesForFilter; trackBy: trackById" [value]="role.Id">
             {{ role.Name }}
           </mat-option>
         </mat-select>
@@ -80,7 +80,7 @@
         <mat-label>Agencia Predeterminada</mat-label>
         <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todas las agencias</mat-option>
-          <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+          <mat-option *ngFor="let agency of agencies; trackBy: trackById" [value]="agency.Id">
             {{ agency.Name }}
           </mat-option>
         </mat-select>
@@ -92,7 +92,7 @@
         <mat-label>Agencias Asignadas</mat-label>
         <mat-select [(ngModel)]="assignedAgencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
           <mat-option value="">Todas las agencias asignadas</mat-option>
-          <mat-option *ngFor="let agency of agencies" [value]="agency.Id">
+          <mat-option *ngFor="let agency of agencies; trackBy: trackById" [value]="agency.Id">
             {{ agency.Name }}
           </mat-option>
         </mat-select>
