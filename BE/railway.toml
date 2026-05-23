@@ -1,0 +1,31 @@
+# Railway config for BE. Set "Root Directory" = BE in the Railway service.
+# Required env vars to set in Railway dashboard (do NOT commit them):
+#   CI_ENVIRONMENT             = production
+#   app.baseURL                = https://<your-railway-domain>/
+#   database.default.hostname  = <db host>
+#   database.default.database  = <db name>
+#   database.default.username  = <db user>
+#   database.default.password  = <db pass>
+#   database.default.port      = 3306
+#   database.default.DBDriver  = MySQLi
+#   JWT_SECRET                 = <96-char hex; generate fresh, do not reuse leaked one>
+#   JWT_ACCESS_TTL             = 10800
+#   JWT_REFRESH_TTL            = 2592000
+#   NEXFILE_BASE_URL           = <DWH url>
+#   NEXFILE_PROVIDER_TOKEN     = <rotated token>
+#   pdfGenerator.apiKey        = <rotated>
+#   pdfGenerator.apiSecret     = <rotated>
+#   pdfGenerator.workspaceEmail = <email>
+#   pdfGenerator.templateIdIdentificacionMoral  = 1606181
+#   pdfGenerator.templateIdIdentificacionFisico = 1606176
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+healthcheckPath = "/"
+healthcheckTimeout = 30
+numReplicas = 1

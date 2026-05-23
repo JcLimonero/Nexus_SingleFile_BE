@@ -1,0 +1,46 @@
+.git
+.gitignore
+.gitattributes
+
+# Local env / dev configs (set via Railway env vars instead)
+.env
+env
+env.backup
+env.port402
+env.production
+
+# Composer dev deps + lock-only artifacts handled by multi-stage build
+vendor
+
+# Build artifacts and packed deploys
+*-deploy.zip
+DWH-deploy.zip
+
+# Runtime state — re-created in container by entrypoint
+writable/cache/*
+writable/logs/*
+writable/session/*
+writable/uploads/*
+writable/debugbar
+!writable/.htaccess
+!writable/**/index.html
+
+# Tests + sample / debug endpoints
+tests
+public/test.php
+public/test_db.php
+
+# Docs and notes — keep image lean
+*.md
+
+# Sibling repos / data dumps not needed at runtime
+DB
+QUERY_*.sql
+DB_SCHEMA_ACTUAL.txt
+
+# Tooling outputs / OS noise
+.DS_Store
+.vscode
+.idea
+node_modules
+*.log
