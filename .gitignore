@@ -1,5 +1,37 @@
 
 venv-pillow/
+
+# Dependencias
+node_modules/
+BE/vendor/
+FE/node_modules/
+
+# Entornos y secretos
+BE/.env
+BE/env
+BE/env.backup
+BE/env.port402
+BE/env.production
+.env
+.env.local
+.env.*.local
+*.env.bak
+
+# Builds y deploy
+FE/dist/
+!FE/dist/
+*-deploy.zip
+DWH-deploy.zip
+FE-DEPLOY-CONFIGURABLE.zip
+
+# OS / IDE
+.DS_Store
+**/.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
 !FE/dist/
 !FE/dist/*
 !FE/dist/favicon.ico
