@@ -400,7 +400,6 @@ class Analytics extends BaseController
                 $db = \Config\Database::connect();
                 
                 // Configurar zona horaria de Guadalajara (GMT-6)
-                date_default_timezone_set('America/Mexico_City');
                 
                 // Calcular rangos de fechas para usar índices
                 $today = date('Y-m-d');
@@ -481,7 +480,6 @@ class Analytics extends BaseController
             $idSeller = $filters['idSeller'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -561,7 +559,6 @@ class Analytics extends BaseController
             // Usar cache con TTL de 30 segundos
             $data = $this->getCached($cacheKey, function() use ($agencyId) {
                 // Configurar zona horaria de Guadalajara (GMT-6)
-                date_default_timezone_set('America/Mexico_City');
 
                 $db = \Config\Database::connect();
 
@@ -689,7 +686,6 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
             
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             // Consulta base para enero 2025
             $baseQuery = $db->table('expedient')
@@ -761,7 +757,6 @@ class Analytics extends BaseController
             $db = \Config\Database::connect();
             
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             // Consulta para expedientes entregados en enero 2025
             $entregados = $db->table('expedient')
@@ -863,7 +858,6 @@ class Analytics extends BaseController
     {
         try {
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
             
             $result = [
                 'server_date_Y_m_d' => date('Y-m-d'),
@@ -1294,7 +1288,6 @@ class Analytics extends BaseController
             $idSeller = $filters['idSeller'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -1369,7 +1362,6 @@ class Analytics extends BaseController
             $monthsToShow = $filters['months_to_show'] ?? 6;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -1466,7 +1458,6 @@ class Analytics extends BaseController
             $idSeller = $filters['idSeller'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -1549,7 +1540,6 @@ class Analytics extends BaseController
             $userId = $filters['user_id'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -1624,7 +1614,6 @@ class Analytics extends BaseController
             $userId = $filters['user_id'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -1719,7 +1708,6 @@ class Analytics extends BaseController
             $userId = $filters['user_id'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -1862,7 +1850,6 @@ class Analytics extends BaseController
             $userId = $filters['user_id'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -2018,7 +2005,6 @@ class Analytics extends BaseController
             $userId = $filters['user_id'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -2090,7 +2076,6 @@ class Analytics extends BaseController
             $userId = $filters['user_id'] ?? null;
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 
@@ -2153,7 +2138,6 @@ class Analytics extends BaseController
             }
 
             // Configurar zona horaria de Guadalajara (GMT-6)
-            date_default_timezone_set('America/Mexico_City');
 
             $db = \Config\Database::connect();
 

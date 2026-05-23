@@ -14,10 +14,22 @@ class AuthModel extends Model
     protected $allowedFields = ['name', 'user', 'pass', 'mail', 'enabled', 'id_user_rol'];
     protected bool $updateOnlyChanged = false;
     
-    // Configuración de JWT
-    private $jwtSecret = 'NexFile-secret-key-2025';
-    private $jwtExpiration = 10800; // 3 horas
-    private $refreshTokenExpiration = 2592000; // 30 días
+    private string $jwtSecret;
+    private int $jwtExpiration;
+    private int $refreshTokenExpiration;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $secret = env('JWT_SECRET', '');
+        if (strlen($secret) < 32) {
+            throw new \RuntimeException('JWT_SECRET no configurado o demasiado corto (mínimo 32 bytes). Genera uno con: php -r "echo bin2hex(random_bytes(48));" y agrégalo a BE/.env');
+        }
+        $this->jwtSecret = $secret;
+        $this->jwtExpiration = (int) env('JWT_ACCESS_TTL', 10800);
+        $this->refreshTokenExpiration = (int) env('JWT_REFRESH_TTL', 2592000);
+    }
     
     /**
      * Autenticar usuario por email/username y contraseña
