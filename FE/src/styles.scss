@@ -4,6 +4,71 @@
 // Vex Core
 @import "./@vex/styles/core";
 
+// ---------------------------------------------------------------------------
+// CRÍTICO — Detener animación buffer-dots de mat-progress-bar.
+//
+// Bug conocido de Angular Material (MDC): el .mdc-linear-progress__buffer-dots
+// tiene `animation: mdc-linear-progress-buffering 0.25s infinite` que corre
+// SIEMPRE que el componente está en el DOM, incluso en mode="determinate"
+// con value=0 e invisible.
+//
+// Con 3 instancias activas (toolbar progress bars del layout) provoca
+// ~12 paints/segundo → ~60% CPU sostenida → click en cualquier menú se
+// siente lento porque pelea por main thread.
+//
+// Como usamos `mode="determinate"`, los buffer dots NUNCA se ven. Apagarlos
+// es seguro y reduce el repaint constante a 0.
+// ---------------------------------------------------------------------------
+.mdc-linear-progress__buffer-dots {
+  animation: none !important;
+  background-image: none !important;
+}
+
+// ---------------------------------------------------------------------------
+// Override agresivo: mat-menu y submenús aparecen casi instantáneamente.
+//
+// Default Material:
+//  - transformMenu (panel)    : ~120-150ms scale + opacity
+//  - fadeInItems (cada item)  : 400ms cubic-bezier — CADA item del menú
+//    se desvanece en entrada cascada. Con 7 items en "Catálogos" se acumula
+//    visiblemente y es lo que el usuario percibe como "tarda en desplegarse".
+//
+// Reducimos a:
+//  - Panel: 60ms (debajo del umbral de 100ms = "instantáneo" para humanos)
+//  - Items: 0ms (instantáneo, sin cascada)
+//
+// Respeta prefers-reduced-motion (sistema → 0ms).
+// ---------------------------------------------------------------------------
+
+// Panel del menú (scale + opacity al abrir)
+.mat-mdc-menu-panel.mat-mdc-menu-panel.mat-mdc-menu-panel {
+  animation-duration: 60ms !important;
+  transition-duration: 60ms !important;
+
+  .mat-mdc-menu-content {
+    transition-duration: 60ms !important;
+  }
+}
+
+// Items individuales — Angular Material aplica fadeInItems con delay
+// escalonado de ~400ms por item. La sobreescribimos a 0ms para que aparezcan
+// todos juntos al abrir el panel.
+.mat-mdc-menu-item.mat-mdc-menu-item {
+  animation-duration: 0ms !important;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: background-color 100ms ease-out !important;
+}
+
+// Reduce-motion (preferencia del SO)
+@media (prefers-reduced-motion: reduce) {
+  .mat-mdc-menu-panel.mat-mdc-menu-panel,
+  .mat-mdc-menu-item.mat-mdc-menu-item {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}
+
 /*
   You can override any CSS Variable or style here
   Example:

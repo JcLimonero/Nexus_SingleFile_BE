@@ -20,9 +20,25 @@
     </button>
   </div>
 
-  <!-- Formulario -->
-  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-6 p-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Formulario — agrupado en mat-expansion-panels para reducir scroll en
+       móvil y dar contexto visual claro a cada bloque (datos / contraseña /
+       sistema). -->
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="space-y-4 p-6">
+    <mat-accordion multi class="user-edit-accordion">
+
+      <!-- Sección 1: Información del usuario y acceso -->
+      <mat-expansion-panel expanded>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="mr-2 text-primary-600" aria-hidden="true">person</mat-icon>
+            Información del usuario
+          </mat-panel-title>
+          <mat-panel-description>
+            Nombre, credenciales, rol y agencia
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
       <!-- Nombre -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Nombre Completo</mat-label>
@@ -184,9 +200,22 @@
 
 
     </div>
+      </mat-expansion-panel>
+
+      <!-- Sección 2: Contraseñas / Seguridad -->
+      <mat-expansion-panel [expanded]="data.mode === 'create'">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="mr-2 text-primary-600" aria-hidden="true">lock</mat-icon>
+            Contraseña
+          </mat-panel-title>
+          <mat-panel-description>
+            {{ data.mode === 'edit' ? 'Opcional — deja en blanco para mantener la actual' : 'Mínimo 6 caracteres' }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
     <!-- Contraseñas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
       <!-- Contraseña -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>{{ data.mode === 'edit' ? 'Nueva Contraseña (opcional)' : 'Contraseña' }}</mat-label>
@@ -240,12 +269,25 @@
     </div>
 
     <!-- Error de contraseñas no coinciden -->
-    <div *ngIf="userForm.hasError('passwordMismatch')" class="text-red-600 text-sm">
+    <div *ngIf="userForm.hasError('passwordMismatch')" class="text-red-600 text-sm mt-2">
       Las contraseñas no coinciden
     </div>
+      </mat-expansion-panel>
+
+      <!-- Sección 3: Información del sistema (sólo lectura, modo edit) -->
+      <mat-expansion-panel *ngIf="data.mode === 'edit' && data.user.Id">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="mr-2 text-gray-500" aria-hidden="true">info</mat-icon>
+            Información del sistema
+          </mat-panel-title>
+          <mat-panel-description>
+            ID, fechas y metadatos (solo lectura)
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
     <!-- Información adicional (solo lectura en modo edición) -->
-    <div *ngIf="data.mode === 'edit' && data.user.Id" class="bg-gray-50 p-4 rounded-lg mt-6">
+    <div *ngIf="data.mode === 'edit' && data.user.Id" class="bg-gray-50 p-4 rounded-lg">
       <h3 class="text-sm font-medium text-gray-700 mb-3">Información del Sistema</h3>
       <div class="grid grid-cols-2 gap-6 text-sm">
         <div class="space-y-2">
@@ -270,6 +312,9 @@
         </div>
       </div>
     </div>
+      </mat-expansion-panel>
+
+    </mat-accordion>
 
     <!-- Botones de Acción -->
     <div class="flex justify-end space-x-3 pt-6 mt-6 border-t">

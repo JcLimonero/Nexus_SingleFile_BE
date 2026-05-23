@@ -130,13 +130,15 @@
         <div class="flex items-center space-x-2">
           <mat-form-field appearance="outline" class="flex-1">
             <mat-label>Buscar pedido</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               [(ngModel)]="orderSearchTerm"
-              (input)="onOrderSearchChange()"
+              (input)="onOrderSearchInput()"
               placeholder="Buscar por número de pedido, inventario, proceso, operación, vehículo, modelo, VIN o agencia"
-              autocomplete="off">
-            <mat-icon matSuffix>search</mat-icon>
+              autocomplete="off"
+              aria-label="Buscar pedido">
+            <mat-icon matSuffix *ngIf="!searchingOrders" aria-hidden="true">search</mat-icon>
+            <mat-spinner matSuffix *ngIf="searchingOrders" diameter="16" aria-label="Buscando"></mat-spinner>
           </mat-form-field>
           
           <button 

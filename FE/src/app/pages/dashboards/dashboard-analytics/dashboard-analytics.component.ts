@@ -41,6 +41,13 @@ import { DefaultAgencyService } from '../../../core/services/default-agency.serv
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  readFilter,
+  writeFiltersToUrl,
+  parseNumber,
+  parseString,
+} from '../../../core/utils/filter-url-sync';
 
 @Component({
   selector: 'vex-dashboard-analytics',
@@ -115,7 +122,9 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    private changeDetector: ChangeDetectorRef
+    private changeDetector: ChangeDetectorRef,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.dateRangeForm = new FormGroup({
       startDate: new FormControl(null),
@@ -126,6 +135,46 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     this.setupFiltersDebounce();
   }
 
+  /** Hidrata filtros desde queryParams al cargar la pantalla. */
+  private hydrateFiltersFromUrl(): void {
+    const p = this.route.snapshot.queryParams;
+    const agency = readFilter(p, 'agencia', parseNumber, null);
+    if (agency !== null) this.selectedAgencyId = agency;
+    const user = readFilter(p, 'usuario', parseNumber, null);
+    if (user !== null) this.selectedUserId = user;
+
+    const start = readFilter(p, 'desde', parseString, '');
+    const end = readFilter(p, 'hasta', parseString, '');
+    if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        this.selectedDateRange = { startDate, endDate };
+        this.dateRangeForm.patchValue({ startDate, endDate });
+        this.activeDateRange = null; // custom range, no preset
+      }
+    } else {
+      const preset = readFilter(p, 'rango', parseString, '');
+      if (preset) this.activeDateRange = preset;
+    }
+  }
+
+  /** Persiste los filtros como queryParams. */
+  private syncFiltersToUrl(): void {
+    const d = this.selectedDateRange;
+    writeFiltersToUrl(this.router, this.route, {
+      agencia: this.selectedAgencyId,
+      usuario: this.selectedUserId,
+      rango: this.activeDateRange || null,
+      desde: d?.startDate ? this.toIsoDate(d.startDate) : null,
+      hasta: d?.endDate ? this.toIsoDate(d.endDate) : null,
+    });
+  }
+
+  private toIsoDate(d: Date): string {
+    return d.toISOString().slice(0, 10);
+  }
+
   private setupFiltersDebounce(): void {
     this.filtersChange$
       .pipe(
@@ -134,15 +183,23 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
+        this.syncFiltersToUrl();
         this.loadDashboardData();
       });
   }
 
   ngOnInit(): void {
-    // Obtener la agencia guardada inmediatamente al inicializar
-    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-    if (savedAgencyId !== null) {
-      this.selectedAgencyId = savedAgencyId;
+    // URL como source-of-truth — hidrata ANTES de leer la cookie/default
+    // para que un share-link/refresh use los filtros de la URL.
+    this.hydrateFiltersFromUrl();
+
+    // Obtener la agencia guardada inmediatamente al inicializar (solo si
+    // la URL no especificó una agencia).
+    if (this.selectedAgencyId === null) {
+      const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+      if (savedAgencyId !== null) {
+        this.selectedAgencyId = savedAgencyId;
+      }
     }
 
     // Suscribirse a los cambios de agencia del servicio compartido
@@ -161,8 +218,14 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     // Cargar agencias (esto establecerá la agencia predeterminada y cargará el dashboard)
     this.loadAgencies();
 
-    // Establecer "Este mes" como período por defecto
-    this.setThisMonth();
+    // Establecer "Este mes" como período por defecto SOLO si la URL no
+    // trajo un rango de fechas (hidrateFiltersFromUrl ya seteó dateRange).
+    if (!this.selectedDateRange && !this.activeDateRange) {
+      this.setThisMonth();
+    } else if (this.activeDateRange) {
+      // Si la URL trajo un preset, aplicarlo via el método setter
+      this.applyPresetByName(this.activeDateRange);
+    }
 
     // Suscribirse a cambios en el formulario de fechas
     this.dateRangeForm.valueChanges
@@ -565,6 +628,19 @@ export class DashboardAnalyticsComponent implements OnInit, OnDestroy {
     const endDate = new Date(now.getFullYear(), 11, 31);
     this.dateRangeForm.patchValue({ startDate, endDate });
     this.activeDateRange = 'thisYear';
+  }
+
+  /** Aplica un preset por su nombre — usado al hidratar desde URL. */
+  private applyPresetByName(name: string): void {
+    switch (name) {
+      case '7d':        this.setLast7Days(); break;
+      case '30d':       this.setLast30Days(); break;
+      case '90d':       this.setLast90Days(); break;
+      case 'thisMonth': this.setThisMonth(); break;
+      case 'lastMonth': this.setLastMonth(); break;
+      case 'thisYear':  this.setThisYear(); break;
+      default:          this.setThisMonth();
+    }
   }
 
   searchData(): void {

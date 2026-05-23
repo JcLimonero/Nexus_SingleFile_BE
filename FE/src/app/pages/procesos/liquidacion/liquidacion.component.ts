@@ -15,10 +15,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { Subject, takeUntil, Observable, throwError, of } from 'rxjs';
+import { Subject, takeUntil, Observable, throwError, of, debounceTime, distinctUntilChanged } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { readFilter, writeFiltersToUrl, parseNumber, parseString } from '../../../core/utils/filter-url-sync';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
@@ -113,6 +114,10 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   private readonly LIQUIDACION_STATE_ID = 2;
   
   private destroy$ = new Subject<void>();
+  /** Debounce de búsqueda de pedidos — 300ms tras el último keystroke. */
+  private orderSearchInput$ = new Subject<void>();
+  /** Spinner inline mientras el debounce está activo. */
+  searchingOrders = false;
 
   constructor(
     private snackBar: MatSnackBar,
@@ -125,11 +130,45 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {}
 
+  /** Hidrata desde URL antes del fetch inicial. */
+  private hydrateFiltersFromUrl(): void {
+    const p = this.route.snapshot.queryParams;
+    const agencia = readFilter(p, 'agencia', parseNumber, null);
+    if (agencia !== null) this.selectedAgencyId = agencia;
+    this.orderSearchTerm = readFilter(p, 'q', parseString, '');
+  }
+
+  /** Persiste los filtros como queryParams. */
+  private syncFiltersToUrl(): void {
+    writeFiltersToUrl(this.router, this.route, {
+      agencia: this.selectedAgencyId,
+      q: this.orderSearchTerm?.trim() || null,
+    });
+  }
+
   ngOnInit(): void {
-    // Obtener la agencia guardada inmediatamente al inicializar
-    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-    if (savedAgencyId !== null) {
-      this.selectedAgencyId = savedAgencyId;
+    this.hydrateFiltersFromUrl();
+
+    // Debounce búsqueda de pedidos (filter local, pero costoso con muchos)
+    this.orderSearchInput$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged((_a: void, _b: void) => false),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.searchingOrders = false;
+        this.syncFiltersToUrl();
+        this.onOrderSearchChange();
+        this.cdr.markForCheck();
+      });
+
+    // Obtener la agencia guardada inmediatamente al inicializar (sólo si URL no la trajo)
+    if (this.selectedAgencyId === null) {
+      const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+      if (savedAgencyId !== null) {
+        this.selectedAgencyId = savedAgencyId;
+      }
     }
 
     // Suscribirse a los cambios de agencia del servicio compartido
@@ -303,12 +342,14 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
     this.selectedAgencyId = agencyId;
     // Encontrar y guardar el objeto agencia completo
     this.selectedAgency = this.agencies.find(agency => agency.Id === agencyId) || null;
-    
+
     // Actualizar el caché usando seleccionarAgencia (ya actualiza localStorage y BehaviorSubject)
     if (agencyId !== null) {
       this.defaultAgencyService.seleccionarAgencia(agencyId);
     }
-    
+
+    this.syncFiltersToUrl();
+
     // Forzar actualización de la vista con OnPush
     this.cdr.markForCheck();
     
@@ -1304,6 +1345,13 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para paginación y búsqueda de pedidos
+  /** Llamado por (input) en el template — sólo encola al Subject debounced. */
+  onOrderSearchInput(): void {
+    this.searchingOrders = true;
+    this.cdr.markForCheck();
+    this.orderSearchInput$.next();
+  }
+
   onOrderSearchChange(): void {
     this.currentPage = 0; // Resetear a la primera página
     this.filterAndPaginateFiles();
@@ -1312,6 +1360,7 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
   clearOrderSearch(): void {
     this.orderSearchTerm = '';
     this.currentPage = 0;
+    this.syncFiltersToUrl();
     this.filterAndPaginateFiles();
   }
 

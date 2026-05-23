@@ -1,4 +1,7 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { readFilter, writeFiltersToUrl, parseString } from '../../../core/utils/filter-url-sync';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -44,7 +47,7 @@ import { UserAccessDialogComponent } from './user-access-dialog/user-access-dial
     MatChipsModule
   ]
 })
-export class UsuariosComponent implements OnInit, AfterViewInit {
+export class UsuariosComponent implements OnInit, OnDestroy, AfterViewInit {
   users: User[] = [];
   roles: UserRole[] = [];
   agencies: Agency[] = [];
@@ -58,6 +61,12 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   assignedAgencyFilter = '';
   statusFilter = '';
 
+  private destroy$ = new Subject<void>();
+  /** Debounce 300ms para la búsqueda — evita filtrar el array entero
+   *  en cada keystroke. */
+  private searchInput$ = new Subject<void>();
+  searching = false;
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -66,10 +75,46 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     private defaultAgencyService: DefaultAgencyService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef,
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   trackById = (_: number, item: { Id: string | number }): string | number => item.Id;
+
+  /** Hidrata búsqueda y filtros desde queryParams. */
+  private hydrateFiltersFromUrl(): void {
+    const p = this.route.snapshot.queryParams;
+    this.searchTerm = readFilter(p, 'q', parseString, '');
+    this.roleFilter = readFilter(p, 'rol', parseString, '');
+    this.agencyFilter = readFilter(p, 'agencia', parseString, '');
+    this.assignedAgencyFilter = readFilter(p, 'asignada', parseString, '');
+    this.statusFilter = readFilter(p, 'estado', parseString, '');
+  }
+
+  /** Persiste filtros a la URL. */
+  private syncFiltersToUrl(): void {
+    writeFiltersToUrl(this.router, this.route, {
+      q:        this.searchTerm?.trim() || null,
+      rol:      this.roleFilter || null,
+      agencia:  this.agencyFilter || null,
+      asignada: this.assignedAgencyFilter || null,
+      estado:   this.statusFilter || null,
+    });
+  }
+
+  /** Llamado por (ngModelChange) en el input de búsqueda — sólo encola el
+   *  Subject con debounce. NO filtra hasta los 300ms. */
+  onSearchInput(): void {
+    this.searching = true;
+    this.searchInput$.next();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   /** Roles 7 (Administrador) y 8 (Soporte) no se muestran en listados, excepto si quien está logueado es Administrador (7). */
   private readonly restrictedRoleIds = new Set(['7', '8']);
@@ -93,6 +138,22 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.hydrateFiltersFromUrl();
+
+    // Debounce 300ms para búsqueda local — evita re-filtrar el array en cada keystroke.
+    this.searchInput$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged((_a, _b) => false),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.searching = false;
+        this.syncFiltersToUrl();
+        this.applyFilter();
+        this.cdr.markForCheck();
+      });
+
     this.loadUsers();
     this.loadRoles();
     this.loadAgencies();
@@ -258,8 +319,11 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(): void {
+    // Sincronizar URL en cada cambio de filtro (idempotente con replaceUrl).
+    this.syncFiltersToUrl();
+
     const filterValue = this.searchTerm.trim();
-    
+
     // Aplicar filtros
     let filteredData = this.users;
     

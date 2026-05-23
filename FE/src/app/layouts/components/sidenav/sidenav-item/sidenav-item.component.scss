@@ -1,3 +1,27 @@
+// ---------------------------------------------------------------------------
+// FIX CRÍTICO — display:block en el host <vex-sidenav-item>
+//
+// Los custom elements de Angular (sin shadow DOM) heredan `display: inline`
+// del browser por default. Eso significa que cada <vex-sidenav-item> dentro
+// del dropdown se renderiza como inline, y su contenido (un <a> flex con
+// min-height: 48px) flota como anonymous block dentro de un inline container.
+//
+// Consecuencia: el contenedor padre `.vex-sidenav-item__dropdown` MIDE altura 0
+// porque sus hijos directos (los <vex-sidenav-item>) son inline y no
+// contribuyen a la altura del bloque. La animación `[@dropdown]` interpola
+// `height: 0 → *`, y `*` mide 0 → el dropdown nunca aparece visible.
+//
+// Síntoma: al hacer click en Catálogos los items "no aparecen" aunque el
+// código y el filtrado por rol son correctos (todos los hijos están en el DOM
+// con su altura individual de 40px cada uno, pero su contenedor mide 0).
+//
+// Fix: forzar el host a block para que sus hijos apilen verticalmente y
+// contribuyan a la altura del contenedor padre.
+// ---------------------------------------------------------------------------
+:host {
+  display: block;
+}
+
 .vex-sidenav-item {
   align-items: center;
   box-sizing: border-box;

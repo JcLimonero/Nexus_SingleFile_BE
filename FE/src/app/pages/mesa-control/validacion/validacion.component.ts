@@ -29,15 +29,26 @@ import { EliminarDocumentoDialogComponent, EliminarDocumentoData, EliminarDocume
 import { FASES_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { Subject, Subscription, takeUntil, catchError, of, timeout } from 'rxjs';
+import { Subject, Subscription, takeUntil, catchError, of, timeout, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ValidacionService, Cliente, Documento, FiltrosValidacion } from './validacion.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultAgencyService, Agencia } from '../../../core/services/default-agency.service';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  readFilter,
+  writeFiltersToUrl,
+  parseString,
+  parseNumber,
+  parseBool,
+} from '../../../core/utils/filter-url-sync';
 import { environment } from '../../../../environments/environment';
 import { normalizeClientSearchQuery } from '../../../core/utils/client-search-normalize';
 import { AdvertenciaLiquidacionDialogComponent } from './advertencia-liquidacion-dialog/advertencia-liquidacion-dialog.component';
+import { ErrorBannerComponent } from '../../../shared/error-banner/error-banner.component';
+import { EmptyStateComponent } from '../../../shared/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/skeleton/skeleton.component';
+import { FilterChipsComponent, FilterChip } from '../../../shared/filter-chips/filter-chips.component';
 import { AdvertenciaLiberacionDialogComponent } from './advertencia-liberacion-dialog/advertencia-liberacion-dialog.component';
 import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialog/advertencia-liberado-dialog.component';
 
@@ -66,6 +77,10 @@ import { AdvertenciaLiberadoDialogComponent } from './advertencia-liberado-dialo
     MatMenuModule,
     MatSlideToggleModule,
     ScrollingModule,
+    ErrorBannerComponent,
+    EmptyStateComponent,
+    SkeletonComponent,
+    FilterChipsComponent,
     AprobarDocumentoDialogComponent,
     AdvertenciaLiquidacionDialogComponent,
     AdvertenciaLiberacionDialogComponent,
@@ -81,6 +96,9 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Estado del componente
   loadingClientes = false;   // Tabla superior (clientes)
+  /** Error persistente de la última carga de clientes — se muestra como
+   *  banner inline con botón "Reintentar" en lugar de un snackbar efímero. */
+  errorClientes: string | null = null;
   loadingDocumentos = false; // Tabla inferior (documentos)
   loadingAgencias = false;
   loadingProcesos = false;   // Specific loading state for processes
@@ -138,6 +156,12 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Búsqueda
   searchTerm: string = '';
+  /** Subject que recibe cada keystroke y se debounce 300ms antes de disparar
+   *  cargarClientes(). Evita una request HTTP por tecla. */
+  private searchInput$ = new Subject<void>();
+  /** true mientras el usuario está tecleando dentro del debounce — UI muestra
+   *  un spinner inline para evitar la sensación de "no pasa nada". */
+  searching = false;
 
   // Verificar si el usuario es gerente o administrador
   get isManagerOrAdmin(): boolean {
@@ -385,6 +409,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Método para manejar el toggle de pedidos cancelados
   onToggleCancelledOrders(): void {
+    this.syncFiltersToUrl();
     this.cargarClientes({ resetPage: true });
   }
 
@@ -626,16 +651,66 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     private authService: AuthService,
     private http: HttpClient,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {
 
   }
 
+  /**
+   * Hidrata filtros desde queryParams. Llamado al inicio de ngOnInit ANTES
+   * de cargarAgencias/cargarProcesos para que el flujo de carga ya tenga
+   * los valores correctos (en vez de aplicar defaults y después sobrescribir).
+   */
+  private hydrateFiltersFromUrl(): void {
+    const p = this.route.snapshot.queryParams;
+    const agencia = readFilter(p, 'agencia', parseNumber, null);
+    if (agencia !== null) this.selectedAgency = agencia;
+    const proceso = readFilter(p, 'proceso', parseNumber, this.selectedProcess);
+    if (proceso !== null) this.selectedProcess = proceso;
+    this.selectedFase = readFilter(p, 'fase', parseString, '');
+    this.searchTerm = readFilter(p, 'q', parseString, '');
+    this.showCancelledOrders = readFilter(p, 'cancel', parseBool, false);
+  }
+
+  /**
+   * Persiste los filtros actuales como queryParams para que F5 / share-link
+   * / bookmark conserven la vista. `null` o '' eliminan el param de la URL.
+   */
+  private syncFiltersToUrl(): void {
+    writeFiltersToUrl(this.router, this.route, {
+      agencia: this.selectedAgency,
+      proceso: this.selectedProcess,
+      fase:    this.selectedFase || null,
+      q:       this.searchTerm?.trim() || null,
+      cancel:  this.showCancelledOrders || null,
+    });
+  }
+
   ngOnInit() {
+    // Hidratar filtros desde URL antes de disparar cargas — así las APIs
+    // se llaman con los filtros correctos desde el primer fetch.
+    this.hydrateFiltersFromUrl();
 
     this.cargarAgencias();
     this.cargarProcesos();
     this.loadData();
+
+    // Debounce de búsqueda: en cada keystroke marcamos `searching = true`
+    // (spinner inline en el input) y esperamos 300ms de inactividad antes
+    // de disparar la consulta real al backend.
+    this.searchInput$
+      .pipe(
+        debounceTime(300),
+        // El valor real está en this.searchTerm; el Subject solo señaliza.
+        distinctUntilChanged((_a: void, _b: void) => false),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.searching = false;
+        this.onSearchChange();
+        this.cdr.markForCheck();
+      });
 
     // Suscribirse a los cambios de agencia del servicio compartido
     this.defaultAgencyService.selectedAgency$
@@ -1596,6 +1671,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Limpiar filtros y búsqueda cuando se cambia la agencia
     this.selectedFase = '';
     this.searchTerm = '';
+    this.syncFiltersToUrl();
 
     // Actualizar la agencia en el servicio compartido
     // seleccionarAgencia() ya actualiza el caché (cookie y BehaviorSubject)
@@ -1637,6 +1713,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     // Limpiar filtros y búsqueda cuando se cambia el proceso
     this.selectedFase = '';
     this.searchTerm = '';
+    this.syncFiltersToUrl();
 
     if (this.selectedProcess !== null && this.selectedProcess !== undefined) {
       this.cargarClientes({ resetPage: true });
@@ -1649,13 +1726,15 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
    * Manejar cambio en la selección de fase
    */
   onFaseChange(): void {
+    this.syncFiltersToUrl();
     this.cargarClientes({ resetPage: true });
   }
 
   /**
    * Cargar clientes desde la API (paginación y orden en servidor)
    */
-  private cargarClientes(options?: { resetPage?: boolean }) {
+  /** Llamable desde el template (botón "Reintentar" del error-banner). */
+  cargarClientes(options?: { resetPage?: boolean }) {
     if (this.selectedAgency === null) {
       return;
     }
@@ -1670,6 +1749,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     const esTodosProcesos = this.selectedProcess === this.ALL_PROCESSES_VALUE;
 
     this.loadingClientes = true;
+    this.errorClientes = null;
 
     const filtros: FiltrosValidacion = {
       agencia: this.selectedAgency,
@@ -1693,10 +1773,13 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
         takeUntil(this.destroy$),
         timeout(60000),
         catchError(() => {
-          this.mostrarError('Error cargando clientes');
+          // Banner persistente con retry — antes era snackBar de 3s que el
+          // usuario perdía si no lo veía a tiempo.
+          this.errorClientes = 'No se pudieron cargar los expedientes. Revisa tu conexión e intenta de nuevo.';
           this.clientesDataSource.data = [];
           this.totalRecords = 0;
           this.loadingClientes = false;
+          this.cdr.markForCheck();
           return of({ clientes: [] as Cliente[], totalRecords: 0 });
         })
       )
@@ -1769,6 +1852,14 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Manejar cambio en el término de búsqueda
    */
+  /** Llamado por (input) en el template — sólo encola el evento al
+   *  Subject con debounce; NO dispara HTTP hasta que pasen 300ms. */
+  onSearchInput(): void {
+    this.searching = true;
+    this.cdr.markForCheck();
+    this.searchInput$.next();
+  }
+
   onSearchChange(): void {
     if (this.searchTerm && this.searchTerm.trim() !== '') {
       this.selectedCliente = null;
@@ -1778,6 +1869,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       this.advertenciaLiberadoMostrada = false;
       this.cdr.markForCheck();
     }
+    this.syncFiltersToUrl();
     this.cargarClientes({ resetPage: true });
   }
 
@@ -1792,6 +1884,58 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
     this.advertenciaLiberacionMostrada = false;
     this.advertenciaLiberadoMostrada = false;
     this.cdr.markForCheck();
+    this.syncFiltersToUrl();
     this.cargarClientes({ resetPage: true });
+  }
+
+  /**
+   * Reset completo de filtros — invocado por el botón "Limpiar todo" del
+   * filter-chips. Equivale a quitar todos los queryParams de la URL.
+   */
+  clearAllFilters(): void {
+    this.selectedFase = '';
+    this.searchTerm = '';
+    this.showCancelledOrders = false;
+    this.selectedProcess = this.ALL_PROCESSES_VALUE;
+    this.syncFiltersToUrl();
+    this.cargarClientes({ resetPage: true });
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Lista de filtros activos para mostrar como chips arriba de la tabla.
+   * Excluye la agencia (siempre presente) y "Todos los procesos" (default).
+   */
+  get activeFilters(): FilterChip[] {
+    const chips: FilterChip[] = [];
+    if (this.selectedProcess !== null && this.selectedProcess !== undefined
+        && this.selectedProcess !== this.ALL_PROCESSES_VALUE) {
+      const proceso = this.procesos.find(p => p.Id === this.selectedProcess);
+      chips.push({ key: 'proceso', label: 'Proceso', value: proceso?.Name ?? String(this.selectedProcess) });
+    }
+    if (this.selectedFase) {
+      const fase = this.fases.find(f => String(f.value) === String(this.selectedFase));
+      chips.push({ key: 'fase', label: 'Fase', value: fase?.name ?? String(this.selectedFase) });
+    }
+    if (this.searchTerm?.trim()) {
+      chips.push({ key: 'q', label: 'Búsqueda', value: this.searchTerm.trim() });
+    }
+    if (this.showCancelledOrders) {
+      chips.push({ key: 'cancel', label: 'Estado', value: 'Incluye cancelados' });
+    }
+    return chips;
+  }
+
+  /** Quita un chip individual y recarga. */
+  onRemoveFilter(key: string): void {
+    switch (key) {
+      case 'proceso': this.selectedProcess = this.ALL_PROCESSES_VALUE; break;
+      case 'fase':    this.selectedFase = ''; break;
+      case 'q':       this.searchTerm = ''; break;
+      case 'cancel':  this.showCancelledOrders = false; break;
+    }
+    this.syncFiltersToUrl();
+    this.cargarClientes({ resetPage: true });
+    this.cdr.markForCheck();
   }
 }

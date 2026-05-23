@@ -18,6 +18,10 @@
 @import "partials/plugins/@angular/material/index";
 @import "partials/plugins/apexcharts/apexcharts";
 
+// Sistema oficial de densidad (.density-compact / -default / -comfortable).
+// Aplicar como clase al contenedor raíz de cada página/sección.
+@import "density";
+
 // Layouts
 @import "partials/layouts/layout-apollo";
 @import "partials/layouts/layout-ares";

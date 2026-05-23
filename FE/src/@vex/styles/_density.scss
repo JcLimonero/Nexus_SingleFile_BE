@@ -1,0 +1,88 @@
+// Sistema oficial de densidad para tablas y forms.
+//
+// 3 niveles:
+//
+//  .density-comfortable  →  rows altas (44px), forms espaciados
+//                           (default Material — ideal para usuarios casuales)
+//  .density-default      →  rows medianas (36px), forms compactos
+//                           (recomendado para gerentes / vistas con
+//                            poca info por pantalla)
+//  .density-compact      →  rows pequeñas (28px), forms muy ajustados
+//                           (operadores / Mesa Control con mucha info)
+//
+// Uso: aplicar la clase al contenedor raíz de la página o sección.
+// Las clases cascadean a mat-table, mat-form-field, mat-button,
+// mat-checkbox, etc. dentro de su scope.
+//
+// Ejemplo:
+//   <div class="density-compact">
+//     <table mat-table ...>     ← rows de 28px
+//     <mat-form-field>...        ← altura reducida
+//   </div>
+
+.density-compact {
+  // Tabla
+  .mat-mdc-row,
+  .mat-mdc-header-row,
+  .mat-mdc-footer-row {
+    min-height: 28px;
+    height: 28px;
+  }
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    padding: 2px 8px;
+    font-size: 0.75rem;     // text-xs
+    line-height: 1rem;
+  }
+  // Form fields
+  .mat-mdc-form-field {
+    font-size: 0.75rem;
+    .mat-mdc-form-field-infix {
+      min-height: 32px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;          // ocultar mat-hint para máxima compactación
+    }
+  }
+  // Botones
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-stroked-button,
+  .mat-mdc-flat-button {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.75rem;
+  }
+  // Chip
+  .mat-mdc-chip {
+    min-height: 22px;
+    font-size: 0.7rem;
+  }
+}
+
+.density-default {
+  .mat-mdc-row,
+  .mat-mdc-header-row,
+  .mat-mdc-footer-row {
+    min-height: 36px;
+    height: 36px;
+  }
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    padding: 4px 10px;
+    font-size: 0.8125rem;     // ~13px
+  }
+  .mat-mdc-form-field {
+    font-size: 0.875rem;     // text-sm
+    .mat-mdc-form-field-infix {
+      min-height: 40px;
+    }
+  }
+}
+
+.density-comfortable {
+  // No override — usa los defaults de Material (44px rows, etc).
+  // Existe sólo para consistencia: poder declarar explícitamente la densidad.
+}

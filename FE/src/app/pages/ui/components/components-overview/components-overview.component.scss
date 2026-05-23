@@ -1,8 +1,14 @@
 // highlight.js theme — sólo cargado cuando se navega a /ui/components
 // (lazy chunk). Antes estaba en src/styles.scss y se servía siempre (~15 KB).
-//
-// Necesita ::ng-deep porque vex-highlight inyecta el HTML highlighted via
-// [innerHTML], y esos nodos no reciben el atributo _ngcontent de Angular.
+// Sass exige que @import esté al top-level, por eso no va dentro de
+// :host {...}. ::ng-deep en una regla aparte abajo penetra la encapsulación
+// para que los nodos inyectados por highlight.js via [innerHTML] (que no
+// reciben el atributo _ngcontent de Angular) reciban estos estilos.
+@import 'highlight.js/styles/androidstudio.css';
+
 :host ::ng-deep {
-  @import 'highlight.js/styles/androidstudio.css';
+  // Re-aplicamos las clases dentro del scope del host por defensividad — el
+  // import de arriba ya es global, pero esto deja un anclaje claro de scope
+  // si en el futuro se cambia a ViewEncapsulation.None.
+  .hljs { display: block; overflow-x: auto; }
 }

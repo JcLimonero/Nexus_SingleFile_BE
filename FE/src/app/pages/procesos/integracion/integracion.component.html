@@ -37,27 +37,30 @@
             
             <!-- Contenedor de botones alineados -->
             <div class="flex items-center space-x-2">
-              <!-- Botón de buscar -->
-              <button 
-                mat-raised-button 
-                color="primary" 
+              <!-- Acción primaria — mat-flat-button color="primary" según
+                   BUTTON_HIERARCHY.md -->
+              <button
+                mat-flat-button
+                color="primary"
                 (click)="searchClients()"
                 [disabled]="clientsLoading || clientSearchTerm.trim().length < 1"
                 matTooltip="Buscar cliente"
-                style="height: 40px; min-height: 40px;">
-                <mat-icon>search</mat-icon>
+                aria-label="Buscar cliente"
+                class="!h-10">
+                <mat-icon aria-hidden="true">search</mat-icon>
                 Buscar
               </button>
-              
-              <!-- Botón de limpiar búsqueda -->
-              <button 
+
+              <!-- Acción secundaria (limpiar no es destructivo) — stroked, sin color warn -->
+              <button
                 *ngIf="clientSearchTerm"
-                mat-raised-button 
-                color="warn" 
+                mat-stroked-button
+                color="primary"
                 (click)="clearClientSearch()"
                 matTooltip="Limpiar búsqueda"
-                style="height: 40px; min-height: 40px;">
-                <mat-icon>clear</mat-icon>
+                aria-label="Limpiar búsqueda"
+                class="!h-10">
+                <mat-icon aria-hidden="true">clear</mat-icon>
                 Limpiar
               </button>
             </div>

@@ -208,13 +208,13 @@
     </div>
 
         <!-- Filtros Principales -->
-    <div class="bg-white rounded-lg shadow-sm border mb-1 filtro-container" style="padding: 20px !important; min-height: 80px;">
+    <div class="bg-white rounded-lg shadow-sm border mb-1 filtro-container p-5 min-h-20">
       <div class="flex flex-wrap items-center justify-between gap-3 filtro-grid">
         <mat-form-field appearance="outline" class="min-w-0 mr-2.5 compact-field" style="width: 250px;">
           <mat-label>Agencia</mat-label>
           <mat-select [(ngModel)]="selectedAgency" [disabled]="loadingAgencias || agencias.length === 0" (selectionChange)="onAgenciaChange()">
             <mat-option *ngIf="loadingAgencias" value="" disabled>
-              <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+              <mat-spinner diameter="16" class="inline mr-2" aria-label="Cargando"></mat-spinner>
               Cargando agencias...
             </mat-option>
             <mat-option *ngIf="!loadingAgencias && agencias.length === 0" value="" disabled>
@@ -230,7 +230,7 @@
           <mat-label>Proceso</mat-label>
           <mat-select [(ngModel)]="selectedProcess" [disabled]="loadingProcesos" (selectionChange)="onProcesoChange()">
             <mat-option *ngIf="loadingProcesos" value="" disabled>
-              <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
+              <mat-spinner diameter="16" class="inline mr-2" aria-label="Cargando"></mat-spinner>
               Cargando procesos...
             </mat-option>
             <mat-option *ngIf="!loadingProcesos && procesos.length === 0" value="" disabled>
@@ -253,15 +253,23 @@
           </mat-select>
         </mat-form-field>
 
-        <!-- Buscador integrado -->
+        <!-- Buscador integrado con debounce 300ms -->
         <mat-form-field appearance="outline" class="flex-1 min-w-0 mr-2.5 compact-field">
           <mat-label>Buscar</mat-label>
           <input matInput
                  [(ngModel)]="searchTerm"
-                 (input)="onSearchChange()"
+                 (input)="onSearchInput()"
                  placeholder="N° Cliente, pedido o nombre"
-                 class="text-sm">
-          <mat-icon matSuffix class="text-gray-400">search</mat-icon>
+                 class="text-sm"
+                 aria-label="Buscar por número de cliente, pedido o nombre">
+          <mat-icon matSuffix
+                    *ngIf="!searching"
+                    class="text-gray-500"
+                    aria-hidden="true">search</mat-icon>
+          <mat-spinner matSuffix
+                       *ngIf="searching"
+                       diameter="16"
+                       aria-label="Buscando"></mat-spinner>
         </mat-form-field>
 
         <div class="flex items-center justify-center gap-2">
@@ -269,8 +277,9 @@
                   *ngIf="searchTerm"
                   (click)="clearSearch()"
                   class="text-gray-500 hover:text-red-600 !w-8 !h-8"
-                  matTooltip="Limpiar búsqueda">
-            <mat-icon>clear</mat-icon>
+                  matTooltip="Limpiar búsqueda"
+                  aria-label="Limpiar búsqueda">
+            <mat-icon aria-hidden="true">clear</mat-icon>
           </button>
           <!-- Toggle para mostrar pedidos cancelados -->
           <div class="flex items-center mr-3">
@@ -286,14 +295,18 @@
                   class="text-gray-600 hover:text-blue-600 transition-colors"
                   (click)="recargarDatos()"
                   [disabled]="loadingClientes || loadingAgencias || loadingProcesos"
-                  matTooltip="Recargar datos">
-            <mat-icon [class.animate-spin]="loadingClientes || loadingAgencias || loadingProcesos">refresh</mat-icon>
+                  matTooltip="Recargar datos"
+                  aria-label="Recargar datos">
+            <mat-icon [class.animate-spin]="loadingClientes || loadingAgencias || loadingProcesos"
+                      aria-hidden="true">refresh</mat-icon>
           </button>
         </div>
       </div>
 
       <!-- Contador de resultados de búsqueda -->
-      <div class="text-xs text-gray-500 mt-1 px-1" *ngIf="searchTerm">
+      <div class="text-xs text-gray-600 mt-1 px-1"
+           *ngIf="searchTerm"
+           aria-live="polite">
         Mostrando {{ clientesDataSource.data.length }} de {{ totalRecords }} registros
       </div>
     </div>
@@ -301,14 +314,44 @@
       <!-- Tabla de Clientes/Procesos -->
       <mat-card class="mb-2">
         <div class="p-2">
-          <!-- Título de tabla removido -->
+          <!-- Chips de filtros activos (proceso, fase, búsqueda, cancelados) -->
+          <vex-filter-chips
+            *ngIf="activeFilters.length > 0"
+            class="mb-2"
+            [chips]="activeFilters"
+            (remove)="onRemoveFilter($event)"
+            (clearAll)="clearAllFilters()">
+          </vex-filter-chips>
 
+          <!-- Banner de error persistente con "Reintentar" (antes era snackbar de 3 s) -->
+          <vex-error-banner
+            *ngIf="errorClientes"
+            class="mb-3"
+            [message]="errorClientes"
+            (retry)="cargarClientes({ resetPage: true })"
+            (dismiss)="errorClientes = null">
+          </vex-error-banner>
 
-          <div *ngIf="loadingClientes" class="flex justify-center items-center py-8">
-            <mat-spinner diameter="40"></mat-spinner>
+          <!-- Carga inicial: skeleton rows en lugar de spinner que bloquea toda la UI -->
+          <div *ngIf="loadingClientes && clientesDataSource.data.length === 0 && !errorClientes"
+               class="space-y-1 py-2">
+            <vex-skeleton variant="table-row"></vex-skeleton>
+            <vex-skeleton variant="table-row"></vex-skeleton>
+            <vex-skeleton variant="table-row"></vex-skeleton>
+            <vex-skeleton variant="table-row"></vex-skeleton>
+            <vex-skeleton variant="table-row"></vex-skeleton>
           </div>
 
-          <div class="overflow-x-auto" *ngIf="!loadingClientes">
+          <!-- Tabla siempre renderizada cuando hay datos (incluso si recargando filtros) -->
+          <div class="overflow-x-auto" *ngIf="clientesDataSource.data.length > 0 || (!loadingClientes && !errorClientes)">
+            <!-- Spinner sutil arriba cuando se está re-cargando con datos previos visibles -->
+            <div *ngIf="loadingClientes && clientesDataSource.data.length > 0"
+                 class="absolute top-2 right-2 z-10"
+                 role="status"
+                 aria-live="polite"
+                 aria-label="Actualizando">
+              <mat-spinner diameter="20"></mat-spinner>
+            </div>
             <div matSort>
               <table mat-table [dataSource]="clientesDataSource" class="w-full compact-table">
             <!-- Columna ND Cliente -->
@@ -421,7 +464,7 @@
                   matTooltipPosition="above">
                   <mat-icon class="!text-base">open_in_new</mat-icon>
                 </button>
-                <span *ngIf="!puedeNavegarAFase(item.fase)" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!puedeNavegarAFase(item.fase)" class="text-xs text-gray-500">-</span>
               </td>
             </ng-container>
 
@@ -451,8 +494,12 @@
                 <span class="flex items-center">Acciones</span>
               </th>
               <td mat-cell *matCellDef="let item" class="py-2 text-center">
-                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="text-gray-600 hover:text-blue-600" (click)="onActionsClick($event)">
-                  <mat-icon class="text-sm">more_vert</mat-icon>
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu"
+                        class="text-gray-600 hover:text-blue-600"
+                        (click)="onActionsClick($event)"
+                        matTooltip="Acciones"
+                        aria-label="Abrir menú de acciones del expediente">
+                  <mat-icon class="text-sm" aria-hidden="true">more_vert</mat-icon>
                 </button>
                 <mat-menu #actionsMenu="matMenu">
                   <button mat-menu-item (click)="onDescargarArchivo(item); $event.stopPropagation()">
@@ -495,6 +542,19 @@
             </div>
           </div>
 
+          <!-- Empty state cuando la búsqueda/filtro no produce resultados -->
+          <vex-empty-state
+            *ngIf="!loadingClientes && !errorClientes && clientesDataSource.data.length === 0"
+            icon="search_off"
+            title="No hay expedientes para mostrar"
+            [description]="searchTerm
+              ? 'Ningún expediente coincide con la búsqueda actual. Ajusta los filtros o limpia la búsqueda.'
+              : 'Selecciona una agencia y un proceso para ver los expedientes asignados.'"
+            [ctaLabel]="searchTerm ? 'Limpiar búsqueda' : ''"
+            ctaIcon="clear"
+            (ctaClick)="clearSearch()">
+          </vex-empty-state>
+
                 <!-- Paginador -->
                 <mat-paginator
                   [length]="totalRecords"
@@ -523,8 +583,12 @@
           </div>
 
           <!-- Loading cuando se están cargando documentos -->
-          <div *ngIf="loadingDocumentos && selectedCliente" class="flex justify-center items-center py-8">
-            <mat-spinner diameter="40"></mat-spinner>
+          <div *ngIf="loadingDocumentos && selectedCliente"
+               class="flex justify-center items-center py-8"
+               role="status"
+               aria-live="polite"
+               aria-label="Cargando documentos del cliente">
+            <mat-spinner diameter="40" aria-hidden="true"></mat-spinner>
           </div>
 
           <!-- Tabla de documentos cuando hay cliente seleccionado -->
@@ -602,22 +666,22 @@
                 <div *ngIf="isDocumentoStatus(item, 2)" class="flex items-center justify-center mx-auto cursor-help"
                      matTooltip="Documento pendiente de validación"
                      matTooltipPosition="above">
-                  <mat-icon class="text-orange-500" style="font-size: 20px; width: 20px; height: 20px;">pending_actions</mat-icon>
+                  <mat-icon class="text-orange-500 !text-xl !w-5 !h-5" aria-hidden="true">pending_actions</mat-icon>
                 </div>
                 <div *ngIf="isDocumentoStatus(item, 4)" class="flex items-center justify-center mx-auto cursor-help"
                      matTooltip="Documento validado y aprobado"
                      matTooltipPosition="above">
-                  <mat-icon class="text-green-500" style="font-size: 20px; width: 20px; height: 20px;">verified</mat-icon>
+                  <mat-icon class="text-green-500 !text-xl !w-5 !h-5" aria-hidden="true">verified</mat-icon>
                 </div>
                 <div *ngIf="isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help"
                      matTooltip="Documento rechazado"
                      matTooltipPosition="above">
-                  <mat-icon class="text-red-500" style="font-size: 20px; width: 20px; height: 20px;">cancel</mat-icon>
+                  <mat-icon class="text-red-500 !text-xl !w-5 !h-5" aria-hidden="true">cancel</mat-icon>
                 </div>
                 <div *ngIf="!isDocumentoStatus(item, 2) && !isDocumentoStatus(item, 4) && !isDocumentoStatus(item, 5)" class="flex items-center justify-center mx-auto cursor-help"
                      matTooltip="Documento en proceso de revisión"
                      matTooltipPosition="above">
-                  <mat-icon class="text-blue-500" style="font-size: 20px; width: 20px; height: 20px;">hourglass_empty</mat-icon>
+                  <mat-icon class="text-blue-500 !text-xl !w-5 !h-5" aria-hidden="true">hourglass_empty</mat-icon>
                 </div>
               </td>
             </ng-container>
@@ -634,7 +698,7 @@
                         matTooltip="Ver documento">
                   <mat-icon class="!text-sm">visibility</mat-icon>
                 </button>
-                <span *ngIf="!item.documentContainer" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!item.documentContainer" class="text-xs text-gray-500">-</span>
               </td>
             </ng-container>
 
@@ -652,7 +716,7 @@
                   </button>
                   <mat-icon *ngIf="item.validado" class="absolute -top-1 -right-1 text-green-600 text-sm">check_circle</mat-icon>
                 </div>
-                <span *ngIf="!isDocumentoStatus(item, 3)" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!isDocumentoStatus(item, 3)" class="text-xs text-gray-500">-</span>
               </td>
             </ng-container>
 
@@ -670,7 +734,7 @@
                         matTooltip="Rechazar documento">
                   <mat-icon class="!text-sm">close</mat-icon>
                 </button>
-                <span *ngIf="!isManagerOrAdmin || !isDocumentoStatus(item, 4)" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!isManagerOrAdmin || !isDocumentoStatus(item, 4)" class="text-xs text-gray-500">-</span>
               </td>
             </ng-container>
 
@@ -688,7 +752,7 @@
                         matTooltip="Eliminar documento">
                   <mat-icon class="!text-sm">delete_outline</mat-icon>
                 </button>
-                <span *ngIf="!isAdmin" class="text-xs text-gray-400">-</span>
+                <span *ngIf="!isAdmin" class="text-xs text-gray-500">-</span>
               </td>
             </ng-container>
 
@@ -773,13 +837,14 @@
           </table>
             </div>
 
-          <!-- Mensaje cuando no hay documentos -->
-          <div *ngIf="documentosDataSource.length === 0" class="flex justify-center items-center py-8 text-gray-500">
-            <div class="text-center">
-              <mat-icon class="text-gray-400 text-4xl mb-2">folder_open</mat-icon>
-              <p class="text-sm">No hay documentos disponibles para este cliente y pedido</p>
-            </div>
-          </div>
+          <!-- Empty state — reemplaza el div ad-hoc anterior con el componente reusable -->
+          <vex-empty-state
+            *ngIf="documentosDataSource.length === 0"
+            icon="folder_open"
+            title="Sin documentos"
+            description="No hay documentos disponibles para este cliente y pedido."
+            density="compact">
+          </vex-empty-state>
           </div>
         </div>
       </mat-card>

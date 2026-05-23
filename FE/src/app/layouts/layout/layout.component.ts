@@ -19,6 +19,7 @@ import { MatDrawerMode, MatSidenavModule } from '@angular/material/sidenav';
 import { SearchComponent } from '../components/toolbar/search/search.component';
 import { VexProgressBarComponent } from '@vex/components/vex-progress-bar/vex-progress-bar.component';
 import { VexConfig } from '@vex/config/vex-config.interface';
+import { BreadcrumbsComponent } from '../../shared/breadcrumbs/breadcrumbs.component';
 
 @Component({
   selector: 'vex-layout',
@@ -40,7 +41,8 @@ import { VexConfig } from '@vex/config/vex-config.interface';
     NgTemplateOutlet,
     RouterOutlet,
     SearchComponent,
-    VexProgressBarComponent
+    VexProgressBarComponent,
+    BreadcrumbsComponent
   ],
   standalone: true
 })

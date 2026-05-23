@@ -52,14 +52,16 @@
       <!-- Búsqueda por texto -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Buscar usuarios</mat-label>
-        <input 
-          matInput 
-          [(ngModel)]="searchTerm" 
-          (ngModelChange)="applyFilter()"
+        <input
+          matInput
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchInput()"
           placeholder="Buscar por nombre, usuario o email..."
           maxlength="100"
+          aria-label="Buscar usuarios por nombre, usuario o email"
           [disabled]="loadingCatalogs">
-        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
+        <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin" aria-hidden="true">refresh</mat-icon>
+        <mat-spinner *ngIf="!loadingCatalogs && searching" matSuffix diameter="16" aria-label="Buscando"></mat-spinner>
         <mat-icon *ngIf="!loadingCatalogs" matSuffix>🔍</mat-icon>
       </mat-form-field>
 
@@ -254,24 +256,27 @@
               mat-icon-button
               color="primary"
               matTooltip="Editar"
+              [attr.aria-label]="'Editar usuario ' + (user.Name || user.User)"
               class="!w-6 !h-6 !min-h-6 !p-0">
-              <mat-icon class="!text-sm">edit</mat-icon>
+              <mat-icon class="!text-sm" aria-hidden="true">edit</mat-icon>
             </button>
             <button
               (click)="openAccessDialog(user)"
               mat-icon-button
               color="accent"
               matTooltip="Gestionar Accesos"
+              [attr.aria-label]="'Gestionar accesos del usuario ' + (user.Name || user.User)"
               class="!w-6 !h-6 !min-h-6 !p-0">
-              <mat-icon class="!text-sm">security</mat-icon>
+              <mat-icon class="!text-sm" aria-hidden="true">security</mat-icon>
             </button>
             <button
               (click)="deleteUser(user)"
               mat-icon-button
               color="warn"
               matTooltip="Eliminar"
+              [attr.aria-label]="'Eliminar usuario ' + (user.Name || user.User)"
               class="!w-6 !h-6 !min-h-6 !p-0">
-              <mat-icon class="!text-sm">delete</mat-icon>
+              <mat-icon class="!text-sm" aria-hidden="true">delete</mat-icon>
             </button>
           </div>
         </td>
