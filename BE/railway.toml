@@ -29,3 +29,11 @@ restartPolicyMaxRetries = 3
 healthcheckPath = "/"
 healthcheckTimeout = 30
 numReplicas = 1
+
+# Cron jobs (configurar como Railway Cron Services apuntando a este mismo Dockerfile).
+# Sintaxis crontab; Railway corre el comando definido en startCommand del cron job.
+#
+# Diario 03:00 UTC — purgar user_activity_log >90 días para que no crezca sin límite:
+#   schedule:  0 3 * * *
+#   command:   php spark activity-log:prune
+

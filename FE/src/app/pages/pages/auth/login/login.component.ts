@@ -4,7 +4,7 @@ import {
   Component
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { fadeInUp400ms } from '@vex/animations/fade-in-up.animation';
@@ -59,6 +59,7 @@ export class LoginComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly authService: AuthService,
     private readonly snackBar: MatSnackBar,
     private readonly cdr: ChangeDetectorRef,
@@ -92,25 +93,10 @@ export class LoginComponent {
               duration: 3000
             });
             
-            // Esperar un momento para asegurar que los datos de autenticación estén guardados
-            // antes de navegar (evita problemas de timing con el interceptor)
-            setTimeout(() => {
-              // Verificar que el token esté disponible antes de navegar
-              const token = this.authService.getToken();
-              if (token && this.authService.isAuthenticated()) {
-                this.router.navigate(['/']).then(() => {
-
-                }).catch(error => {
-
-                });
-              } else {
-
-                // Si el token no está disponible aún, esperar un poco más
-                setTimeout(() => {
-                  this.router.navigate(['/']);
-                }, 200);
-              }
-            }, 100);
+            const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+            // setAuthData en AuthService ya guarda el token sync antes de emitir éxito;
+            // no necesitamos setTimeout.
+            this.router.navigateByUrl(returnUrl);
           } else {
             this.snackBar.open(response.message || 'Error en el inicio de sesión', 'Error', {
               duration: 5000

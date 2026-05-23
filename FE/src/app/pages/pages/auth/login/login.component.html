@@ -17,7 +17,13 @@
       <div class="flex flex-col">
         <mat-form-field appearance="outline" class="flex-1">
           <mat-label>Correo electrónico</mat-label>
-          <input formControlName="email" matInput required placeholder="email@ejemplo.com" />
+          <input
+            formControlName="email"
+            matInput
+            required
+            autocomplete="username"
+            inputmode="email"
+            placeholder="email@ejemplo.com" />
           <mat-error *ngIf="form.controls.email.hasError('required')"
           >Necesitamos un correo electrónico para iniciar sesión
           </mat-error>
@@ -28,16 +34,18 @@
             [type]="inputType"
             formControlName="password"
             matInput
-            required />
+            required
+            autocomplete="current-password" />
           <button
             (click)="toggleVisibility()"
             mat-icon-button
             matIconSuffix
             matTooltip="Alternar visibilidad"
-            type="button">
+            type="button"
+            aria-label="Mostrar u ocultar contraseña">
             <mat-icon *ngIf="visible" svgIcon="mat:visibility"></mat-icon>
             <mat-icon *ngIf="!visible" svgIcon="mat:visibility_off"></mat-icon>
-          </button>          
+          </button>
           <mat-error *ngIf="form.controls.password.hasError('required')"
           >Necesitamos una contraseña para iniciar sesión
           </mat-error>

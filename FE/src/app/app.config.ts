@@ -8,7 +8,7 @@ import {
   withInterceptors
 } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig, MatDialogModule } from '@angular/material/dialog';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatNativeDateModule } from '@angular/material/core';
 import { provideIcons } from './core/icons/icons.provider';
@@ -56,6 +56,16 @@ export const appConfig: ApplicationConfig = {
       withInterceptorsFromDi(),
       withInterceptors([TimeoutRetryInterceptor, AuthInterceptor, ActivityLogInterceptor])
     ),
+    {
+      // Default global: previene que dialogs con muchos campos se corten en laptops 13" / DPI alto
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: {
+        maxHeight: '90vh',
+        maxWidth: '95vw',
+        autoFocus: 'first-tabbable',
+        restoreFocus: true
+      } as MatDialogConfig
+    },
 
     provideVex({
       config: vexConfigs.poseidon,

@@ -13,20 +13,10 @@ export const appRoutes: VexRoutes = [
       ),
     canActivate: [LoginGuard]
   },
-  {
-    path: 'register',
-    loadComponent: () =>
-      import('./pages/pages/auth/register/register.component').then(
-        (m) => m.RegisterComponent
-      )
-  },
-  {
-    path: 'forgot-password',
-    loadComponent: () =>
-      import(
-        './pages/pages/auth/forgot-password/forgot-password.component'
-      ).then((m) => m.ForgotPasswordComponent)
-  },
+  // register y forgot-password redirigen a login: ambos componentes no llaman API
+  // (sólo router.navigate(['/'])). Si se reactivan en el futuro, restaurar las rutas.
+  { path: 'register', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'forgot-password', redirectTo: 'login', pathMatch: 'full' },
   {
     path: 'consulta/:token',
     loadComponent: () =>
