@@ -6,6 +6,64 @@
   min-height: 100vh;
   margin: 0;
   background-color: #f9fafb;
+
+  // Migrado desde el bloque <style> inline. Scopeado al container para no
+  // sangrar al resto de la app (antes los overrides de .py-2 y mat-header-cell
+  // afectaban TODA la página por el orden de carga).
+  ::ng-deep {
+    .mat-mdc-form-field-subscript-wrapper,
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-hint-spacer,
+    .mat-mdc-form-field-bottom-align {
+      display: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .mat-mdc-form-field {
+      margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    // Cells: usar selector específico de la tabla de validación para no
+    // contaminar otras tablas con .py-2.
+    th.mat-header-cell,
+    td.mat-cell {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    // Iconos del filtro de estado: tamaño compacto
+    .filtros-estado {
+      .mat-icon {
+        font-size: 14px !important;
+        width: 14px !important;
+        height: 14px !important;
+        line-height: 14px !important;
+      }
+      .mat-icon-button {
+        width: 24px !important;
+        height: 24px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+        line-height: 24px !important;
+      }
+    }
+  }
+
+  // Animación de spinner del botón de recarga
+  .animate-spin {
+    animation: validacion-spin 1s linear infinite;
+  }
+}
+
+@keyframes validacion-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .filters-section {
