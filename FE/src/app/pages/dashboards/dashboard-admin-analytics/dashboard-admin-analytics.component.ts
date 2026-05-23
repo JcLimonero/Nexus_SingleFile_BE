@@ -23,6 +23,7 @@ import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { RealTimeAnalyticsService } from '../../../core/services/real-time-analytics.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ErrorBannerComponent } from '../../../shared/error-banner/error-banner.component';
 
 @Component({
   selector: 'vex-dashboard-admin-analytics',
@@ -45,7 +46,8 @@ import { Subject, takeUntil } from 'rxjs';
                 MatInputModule,
                 MatNativeDateModule,
                 MatTooltipModule,
-                ReactiveFormsModule
+                ReactiveFormsModule,
+                ErrorBannerComponent
   ]
 })
 export class DashboardAdminAnalyticsComponent implements OnInit, OnDestroy {

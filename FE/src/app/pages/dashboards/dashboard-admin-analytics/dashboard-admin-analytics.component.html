@@ -189,21 +189,26 @@
               </div>
 
   <!-- Estado de carga -->
-  <div *ngIf="loading" class="flex justify-center py-12">
+  <div
+    *ngIf="loading"
+    class="flex justify-center py-12"
+    role="status"
+    aria-live="polite"
+    aria-label="Cargando datos de administración"
+  >
     <div class="text-center">
-      <mat-icon class="text-4xl text-gray-400 mb-4" svgIcon="mat:hourglass_empty"></mat-icon>
+      <mat-icon class="text-4xl text-gray-500 mb-4" svgIcon="mat:hourglass_empty" aria-hidden="true"></mat-icon>
       <p class="text-gray-600">Cargando datos de administración...</p>
     </div>
   </div>
 
   <!-- Error -->
-  <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-    <mat-icon class="text-red-500 mb-2">error</mat-icon>
-    <p class="text-red-600">{{ error }}</p>
-    <button mat-button color="primary" (click)="refreshData()">
-      Reintentar
-    </button>
-  </div>
+  <app-error-banner
+    *ngIf="error"
+    [message]="error"
+    [showRetry]="true"
+    (retry)="refreshData()"
+  ></app-error-banner>
 
   <!-- Dashboard de administración -->
   <div *ngIf="!loading && !error">

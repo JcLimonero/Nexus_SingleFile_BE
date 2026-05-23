@@ -24,6 +24,8 @@ import { CompanyService } from '../../../core/services/company.service';
 import { FASES_FILTER_CATALOG, CatalogItem } from '../../../core/constants/catalogs';
 import { AuthService } from '../../../core/services/auth.service';
 import { GlobalDocumentosDialogComponent } from './global-documentos-dialog/global-documentos-dialog.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { readFiltersFromUrl, writeFiltersToUrl } from '../../../core/utils/filter-url-sync';
 
 @Component({
   selector: 'app-dashboard-global',
@@ -99,7 +101,9 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
     private companyService: CompanyService,
     private snackBar: MatSnackBar,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     // Suscribirse a cambios en los grupos de rango de fecha
     this.registrationDateRangeGroup.valueChanges
@@ -116,10 +120,24 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    // Obtener la agencia guardada inmediatamente al inicializar
-    const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
-    if (savedAgencyId !== null) {
-      this.selectedAgency = savedAgencyId;
+    // Restaurar filtros desde URL (sobrescribe defaults). F5 conserva contexto.
+    const fromUrl = readFiltersFromUrl<{
+      company?: number | string;
+      agency?: number | string;
+      process?: number | string;
+      q?: string;
+    }>(this.route);
+    if (fromUrl.company !== undefined) this.selectedCompany = fromUrl.company;
+    if (fromUrl.agency !== undefined) this.selectedAgency = fromUrl.agency as any;
+    if (fromUrl.process !== undefined) this.selectedProcess = fromUrl.process as any;
+    if (fromUrl.q !== undefined) this.searchTerm = String(fromUrl.q);
+
+    // Obtener la agencia guardada inmediatamente al inicializar (solo si URL no la trajo)
+    if (fromUrl.agency === undefined) {
+      const savedAgencyId = this.defaultAgencyService.getAgenciaSeleccionada();
+      if (savedAgencyId !== null) {
+        this.selectedAgency = savedAgencyId;
+      }
     }
 
     // Suscribirse a los cambios de agencia del servicio compartido
@@ -135,6 +153,16 @@ export class GlobalComponent implements OnInit, OnDestroy, AfterViewInit {
     this.cargarCompanies();
     this.cargarAgencias();
     this.cargarProcesos();
+  }
+
+  /** Persiste los filtros actuales en la URL (?company=...&agency=...&process=...&q=...) */
+  private syncFiltersToUrl(): void {
+    writeFiltersToUrl(this.router, this.route, {
+      company: this.selectedCompany,
+      agency: this.selectedAgency,
+      process: this.selectedProcess,
+      q: this.searchTerm
+    });
   }
 
   get agenciesFiltradas(): any[] {
