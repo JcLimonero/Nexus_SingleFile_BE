@@ -103,12 +103,34 @@ export class VexChartComponent implements OnInit, OnChanges {
         return;
       }
 
-      this.chart = new ApexCharts(
-        this.chartElement.nativeElement,
-        this.options
-      );
+      const el: HTMLElement = this.chartElement.nativeElement;
+      const rect = el.getBoundingClientRect();
 
-      this.render();
+      if (rect.width === 0 || rect.height === 0) {
+        if (typeof ResizeObserver === 'undefined') {
+          this._instantiateChart(el);
+          return;
+        }
+        const ro = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const cr = entry.contentRect;
+            if (cr.width > 0 && cr.height > 0) {
+              ro.disconnect();
+              this._instantiateChart(el);
+              return;
+            }
+          }
+        });
+        ro.observe(el);
+        return;
+      }
+
+      this._instantiateChart(el);
     });
+  }
+
+  private _instantiateChart(el: HTMLElement) {
+    this.chart = new ApexCharts(el, this.options);
+    this.render();
   }
 }

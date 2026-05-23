@@ -1,7 +1,23 @@
 @import "~simplebar/dist/simplebar.css";
-@import "~highlight.js/styles/androidstudio.css";
 // Estilos base del layout (internos)
 @import "./@vex/styles/core";
+
+// Performance — apagar animación interna infinita del buffer-dots de mat-progress-bar
+.mdc-linear-progress__buffer-dots {
+  animation: none !important;
+  background-image: none !important;
+}
+
+// Performance — acelerar apertura de menús de navegación
+.mat-mdc-menu-panel.mat-mdc-menu-panel.mat-mdc-menu-panel {
+  animation-duration: 60ms !important;
+  transition-duration: 60ms !important;
+}
+.mat-mdc-menu-item.mat-mdc-menu-item {
+  animation-duration: 0ms !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
 
 /*
   Paleta de colores - NexFile One (toda la aplicación).
