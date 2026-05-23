@@ -3,10 +3,11 @@
 
   <mat-sidenav-container class="vex-layout-sidenav-container app-layout-sidenav-container">
     <mat-sidenav
-      [disableClose]="true"
+      #sidenav
+      [disableClose]="!!(sidenavDisableClose$ | async)"
       [fixedInViewport]="false"
-      mode="side"
-      [opened]="true">
+      [mode]="(sidenavMode$ | async) || 'side'"
+      [opened]="!!(sidenavOpen$ | async)">
       <vex-sidenav [collapsed]="!!(sidenavCollapsed$ | async)"></vex-sidenav>
     </mat-sidenav>
 

@@ -3,8 +3,18 @@
   class="toolbar text-default w-full flex " style="max-width: 100% !important; flex-direction: row-reverese;">
   <!-- Izquierda: menú móvil + usuario + navegación -->
 
-  <!-- Izquierda: solo título (el logo está en el sidebar) -->
+  <!-- Izquierda: menú hamburguesa (móvil) + título -->
   <div class="toolbar__end flex items-center flex-shrink-0 min-w-0" >
+    <button
+      *ngIf="!(isDesktop$ | async)"
+      mat-icon-button
+      type="button"
+      class="toolbar__menu-toggle ltr:mr-1 rtl:ml-1"
+      aria-label="Abrir menú de navegación"
+      (click)="openSidenav()"
+    >
+      <mat-icon svgIcon="mat:menu"></mat-icon>
+    </button>
     <h1
       class="toolbar__title text-xl font-semibold tracking-tight ltr:ml-2 rtl:mr-2 m-0 select-none truncate">
       {{ dynamicTitle$ | async }}
