@@ -398,6 +398,7 @@ class Documents extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
 
             // Consultar la vista view_document_name
             $query = $this->db->query(

@@ -1120,7 +1120,7 @@ class Analytics extends BaseController
      */
     private function getFiltersFromRequest()
     {
-        return [
+        $filters = [
             'start_date' => $this->request->getGet('start_date'),
             'end_date' => $this->request->getGet('end_date'),
             'user_id' => $this->request->getGet('user_id'),
@@ -1137,6 +1137,25 @@ class Analytics extends BaseController
             'liberation_start_date' => $this->request->getGet('liberation_start_date'),
             'liberation_end_date' => $this->request->getGet('liberation_end_date')
         ];
+
+        // Multi-tenant guard. Si NO es admin:
+        //   - Y pidió agency_id que NO le pertenece → borrar (queries serán vacías).
+        //   - Y NO pidió agency_id → forzar a la primera de sus agencias permitidas
+        //     para evitar enumeración cross-agencia. Si no tiene ninguna → -1 (no rows).
+        $allowed = $this->getAllowedAgencyIds();
+        $filters['allowed_agency_ids'] = $allowed; // null = admin (sin restricción)
+        if ($allowed !== null) {
+            if (!empty($filters['agency_id'])) {
+                if (!in_array((int) $filters['agency_id'], $allowed, true)) {
+                    $filters['agency_id'] = empty($allowed) ? -1 : $allowed[0];
+                    $filters['_access_denied'] = true;
+                }
+            } else {
+                $filters['agency_id'] = empty($allowed) ? -1 : $allowed[0];
+            }
+        }
+
+        return $filters;
     }
 
     /**

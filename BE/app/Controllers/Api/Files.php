@@ -108,6 +108,15 @@ class Files extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // Multi-tenant: solo agencias del usuario (admin sin restricción)
+            $allowed = $this->getAllowedAgencyIds();
+            if ($allowed !== null && !in_array((int) $agencyId, $allowed, true)) {
+                return $this->response->setStatusCode(403)->setJSON([
+                    'success' => false,
+                    'message' => 'No tienes acceso a esa agencia'
+                ]);
+            }
+
             // Validar y limpiar parámetros
             $agencyId = trim($agencyId);
             $statusId = ($statusId !== null && $statusId !== '') ? trim($statusId) : null;
@@ -400,6 +409,7 @@ class Files extends BaseController
      */
     public function debugJoinOrder()
     {
+        if ($r = $this->requireAdmin()) return $r;
         try {
             $agencyId = $this->request->getGet('agencyId');
             $statusId = $this->request->getGet('statusId');

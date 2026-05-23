@@ -91,6 +91,7 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
 
             // Obtener información básica del pedido
             $fileInfo = $this->db->query("
@@ -772,6 +773,7 @@ class Validacion extends BaseController
                 ])->setStatusCode(400);
             }
             $idFile = (int) $idFile;
+            if ($r = $this->requireFileAccess($idFile)) return $r;
 
             $file = $this->db->query("
                 SELECT f.id, f.id_client, f.id_agency
@@ -1165,7 +1167,8 @@ class Validacion extends BaseController
             $clienteId = $data['clienteId'];
             $motivoId = $data['motivoId'];
             $comentario = $data['comentario'];
-            
+            if ($r = $this->requireFileAccess($clienteId)) return $r;
+
             // Actualizar el registro en la tabla File
             $updateData = [
                 'id_current_state' => 5, // Estado cancelado
@@ -1243,7 +1246,8 @@ class Validacion extends BaseController
             $clienteId = $data['clienteId'];
             $motivoId = $data['motivoId'];
             $comentario = $data['comentario'];
-            
+            if ($r = $this->requireFileAccess($clienteId)) return $r;
+
             // Actualizar el registro en la tabla File
             $updateData = [
                 'id_current_state' => 6, // Estado excepción
@@ -1324,7 +1328,8 @@ class Validacion extends BaseController
             }
             
             $clienteId = (int) $data['clienteId'];
-            
+            if ($r = $this->requireFileAccess($clienteId)) return $r;
+
             // Verificar que el expediente exista
             $existe = $this->db->table('expedient')->where('id', $clienteId)->countAllResults();
             if ($existe === 0) {
@@ -1432,6 +1437,7 @@ class Validacion extends BaseController
             
             $clienteId = (int) $data['clienteId'];
             $nuevoIdCurrentState = (int) $data['nuevoIdCurrentState'];
+            if ($r = $this->requireFileAccess($clienteId)) return $r;
             
             error_log("=== DEBUG cambiarEstatus ===");
             error_log("clienteId: {$clienteId}, nuevoIdCurrentState: {$nuevoIdCurrentState}");
@@ -1589,6 +1595,7 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
 
             // requerido: si el documento está en configuration_process_document_type para este expediente, es requerido (1).
             // Si no, usar dt.required del document_type (por defecto 1).
@@ -1747,6 +1754,7 @@ class Validacion extends BaseController
 
             $idPaymentMethod = (int) $data['id_payment_method'];
             $idFile = (int) $data['idFile'];
+            if ($r = $this->requireFileAccess($idFile)) return $r;
             $documentTypeId = $this->getConfigDocumentTypeLiquidacion();
             if ($documentTypeId === null) {
                 return $this->response->setJSON([
@@ -1994,14 +2002,14 @@ class Validacion extends BaseController
             }
             
             $idFileDocument = $data['idFileDocument'];
-            
+
             // Verificar que el documento existe y tiene estatus "3"
             $documento = $this->db->table('file_document')
                 ->where('id', $idFileDocument)
                 ->where('id_current_status', 3)
                 ->get()
                 ->getRowArray();
-            
+
             if (!$documento) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -2009,6 +2017,7 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess((int) ($documento['id_file'] ?? 0))) return $r;
             
             // Actualizar el estatus del documento a "4" (Validado y aprobado)
             $updateData = [
@@ -2114,7 +2123,7 @@ class Validacion extends BaseController
                 ->where('id', $idFileDocument)
                 ->get()
                 ->getRowArray();
-            
+
             if (!$documento) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -2122,7 +2131,9 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
-            
+            if ($r = $this->requireFileAccess((int) ($documento['id_file'] ?? 0))) return $r;
+
+
             // Verificar permisos según el rol del usuario
             $userRoleId = $currentUser['role_id'];
             $currentStatus = $documento['id_current_status'];
@@ -2347,7 +2358,7 @@ class Validacion extends BaseController
                 ->where('id_current_status', 2)
                 ->get()
                 ->getRowArray();
-            
+
             if (!$documento) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -2355,6 +2366,7 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess((int) ($documento['id_file'] ?? 0))) return $r;
             
             // Actualizar el estatus del documento a "3" (Listo para validar)
             $updateData = [
@@ -2426,6 +2438,7 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
 
             $config = config('PdfGenerator');
             if (empty($config->apiKey) || empty($config->apiSecret) || empty($config->workspaceEmail)) {
@@ -2763,6 +2776,7 @@ class Validacion extends BaseController
 
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
             $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            if ($idFile && ($r = $this->requireFileAccess($idFile))) return $r;
             if (!$idFile) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -2926,6 +2940,7 @@ class Validacion extends BaseController
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
             $idClient = (int) ($data['idClient'] ?? $data['id_client'] ?? 0);
             $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            if ($idFile && ($r = $this->requireFileAccess($idFile))) return $r;
             if (!$idClient && $idFile) {
                 $row = $this->db->table('expedient')->select('id_client')->where('id', $idFile)->get()->getRowArray();
                 $idClient = (int) ($row['id_client'] ?? 0);
@@ -2993,6 +3008,7 @@ class Validacion extends BaseController
             if (!$idFile) {
                 return $this->response->setJSON(['success' => false, 'message' => 'idFile es requerido'])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
             $row = $this->db->query("
                 SELECT
                     COALESCE(NULLIF(TRIM(c.razon_social), ''),
@@ -3036,6 +3052,7 @@ class Validacion extends BaseController
             if (!$idFile) {
                 return $this->response->setJSON(['success' => false, 'message' => 'idFile es requerido'])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
             $model = new \App\Models\FilePldBeneficiarioFinalModel();
             $beneficiarios = $model->getByFile($idFile);
             return $this->response->setJSON(['success' => true, 'data' => $beneficiarios]);
@@ -3061,6 +3078,7 @@ class Validacion extends BaseController
             if (!$idFile || !$nombre) {
                 return $this->response->setJSON(['success' => false, 'message' => 'idFile y nombre son requeridos'])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
             $rfc = trim($data['rfc'] ?? $data['RFC'] ?? '') ?: null;
             $curp = trim($data['curp'] ?? $data['CURP'] ?? '') ?: null;
             $porcentaje = isset($data['porcentajeParticipacion']) ? (float) $data['porcentajeParticipacion'] : null;
@@ -3131,6 +3149,7 @@ class Validacion extends BaseController
             if (!$idFile) {
                 return $this->response->setJSON(['success' => false, 'message' => 'ID de expediente inválido'])->setStatusCode(400);
             }
+            if ($r = $this->requireFileAccess($idFile)) return $r;
 
             $docs = $this->db->table('file_document dbf')
                 ->select('dbf.id_document_container as documentContainer, p.name as proceso, fs.name as fase, dt.name as tipoDocumento, dbf.name as documento')
