@@ -80,7 +80,7 @@ class Files extends BaseController
                 'success' => true,
                 'message' => 'Files obtenidos exitosamente',
                 'data' => [
-                    'files' => $results,
+                    'files' => $this->snakeKeys($results),
                     'total' => count($results)
                 ]
             ]);

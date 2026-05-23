@@ -48,3 +48,41 @@ export function mapFilesResponse(r: any): any {
     }
   };
 }
+
+/**
+ * Cliente row devuelto por `Validacion::getClientes` (mesa-control).
+ * Mantiene aliases camelCase para no reescribir todo validacion.component.ts.
+ */
+export function snakeClienteToCliente(c: any): any {
+  if (!c) return c;
+  return {
+    ...c,
+    idFile:           pick(c, 'id_file', 'idFile'),
+    ndCliente:        pick(c, 'nd_cliente', 'ndCliente'),
+    ndPedido:         pick(c, 'nd_pedido', 'ndPedido'),
+    tipoCliente:      pick(c, 'tipo_cliente', 'tipoCliente'),
+    idCustomerType:   pick(c, 'id_customer_type', 'idCustomerType'),
+    idAgency:         pick(c, 'id_agency', 'idAgency')
+  };
+}
+
+/**
+ * Documento row devuelto por `Validacion::getDocumentos`.
+ */
+export function snakeDocumentoToDocumento(d: any): any {
+  if (!d) return d;
+  return {
+    ...d,
+    idDocumentByFile:        pick(d, 'id_document_by_file', 'idDocumentByFile'),
+    idFileDocument:          pick(d, 'id_file_document', 'idFileDocument'),
+    idFile:                  pick(d, 'id_file', 'idFile'),
+    idDocumentType:          pick(d, 'id_document_type', 'idDocumentType'),
+    documentTypeName:        pick(d, 'document_type_name', 'documentTypeName'),
+    nombreDocumento:         pick(d, 'nombre_documento', 'nombreDocumento'),
+    idCurrentStatus:         pick(d, 'id_current_status', 'idCurrentStatus'),
+    fechaCarga:              pick(d, 'fecha_carga', 'fechaCarga'),
+    fechaExpiracion:         pick(d, 'fecha_expiracion', 'fechaExpiracion'),
+    idDocumentContainer:     pick(d, 'id_document_container', 'idDocumentContainer'),
+    fileNameOriginal:        pick(d, 'file_name_original', 'fileNameOriginal')
+  };
+}

@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Traits\DeletesFileDependents;
+use App\Traits\SnakeKeys;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\UserActivityLogModel;
@@ -12,6 +13,7 @@ use App\Models\DocumentModel;
 class Validacion extends BaseController
 {
     use DeletesFileDependents;
+    use SnakeKeys;
 
     protected $db;
     protected $userActivityLogModel;
@@ -1120,7 +1122,7 @@ class Validacion extends BaseController
                 'success' => true,
                 'message' => 'Datos obtenidos exitosamente',
                 'data' => [
-                    'clientes' => $results,
+                    'clientes' => $this->snakeKeys($results),
                     'pagination' => [
                         'currentPage' => $page,
                         'totalPages' => $totalPages,
@@ -1696,7 +1698,7 @@ class Validacion extends BaseController
             $responseData['expedientAmount'] = $expedientAmount;
             $responseData['totalReceiptAmount'] = $totalReceiptAmount;
 
-            return $this->response->setJSON($responseData);
+            return $this->response->setJSON($this->snakeKeys($responseData));
 
         } catch (\Exception $e) {
             error_log("Error en Validacion::getDocumentos: " . $e->getMessage());

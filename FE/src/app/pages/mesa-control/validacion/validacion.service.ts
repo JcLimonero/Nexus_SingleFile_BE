@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
+import { snakeClienteToCliente, snakeDocumentoToDocumento } from '../../../core/utils/api-mappers';
 
 export interface Cliente {
   idFile: number;
@@ -168,8 +169,9 @@ export class ValidacionService {
         
 
         if (response && response.success && response.data && response.data.clientes) {
-
-          return response.data.clientes;
+          // BE devuelve snake_case desde la migración. Mapper agrega aliases
+          // camelCase para no reescribir todo el componente.
+          return (response.data.clientes as any[]).map(snakeClienteToCliente);
         }
 
         return [];
@@ -195,11 +197,15 @@ export class ValidacionService {
     return this.http.get<any>(`${environment.apiBaseUrl.replace(/\/$/, '')}/api/clients-validation/documentos`, { params }).pipe(
       map(response => {
         if (response && response.success && response.data) {
-          const idLiq = response.idDocumentTypeLiquidacion != null ? Number(response.idDocumentTypeLiquidacion) : null;
-          const expedientAmount = response.expedientAmount != null ? Number(response.expedientAmount) : 0;
-          const totalReceiptAmount = response.totalReceiptAmount != null ? Number(response.totalReceiptAmount) : 0;
+          // BE serializa el top-level como snake (id_document_type_liquidacion,
+          // expedient_amount, total_receipt_amount); acepto ambos por seguridad.
+          const idLiq = (response.id_document_type_liquidacion ?? response.idDocumentTypeLiquidacion) != null
+            ? Number(response.id_document_type_liquidacion ?? response.idDocumentTypeLiquidacion)
+            : null;
+          const expedientAmount = Number(response.expedient_amount ?? response.expedientAmount ?? 0);
+          const totalReceiptAmount = Number(response.total_receipt_amount ?? response.totalReceiptAmount ?? 0);
           return {
-            documentos: response.data,
+            documentos: (response.data as any[]).map(snakeDocumentoToDocumento),
             idDocumentTypeLiquidacion: idLiq,
             expedientAmount,
             totalReceiptAmount
