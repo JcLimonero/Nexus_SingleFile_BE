@@ -48,8 +48,13 @@ class Cors extends BaseConfig
          *   - ['https://www.example.com']
          */
         // Whitelist explícita — sobrescrita en __construct desde CORS_ALLOWED_ORIGINS env.
-        // Si el env está vacío, se queda con este default seguro para dev local.
-        'allowedOrigins' => ['http://localhost:4200'],
+        // Si el env está vacío, se queda con estos defaults seguros para dev local
+        // (Angular suele asignar 4200, sube a 4201/4202 si está ocupado).
+        'allowedOrigins' => [
+            'http://localhost:4200',
+            'http://localhost:4201',
+            'http://localhost:4202',
+        ],
 
         /**
          * Origin regex patterns for the `Access-Control-Allow-Origin` header.

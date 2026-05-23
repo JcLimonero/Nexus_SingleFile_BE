@@ -44,7 +44,11 @@ class JwtAuthFilter implements FilterInterface
             return;
         }
 
+        // Normaliza: quita "/" inicial y el "index.php/" si está activo (app.indexPage)
         $path = ltrim($request->getUri()->getPath(), '/');
+        if (str_starts_with($path, 'index.php/')) {
+            $path = substr($path, 10);
+        }
 
         if ($this->isPublic($path)) {
             return;
