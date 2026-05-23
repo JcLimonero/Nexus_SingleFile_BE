@@ -17,16 +17,29 @@ class PasswordManager extends BaseController
     
     /**
      * POST /api/password/change
-     * Cambiar contraseña de usuario
+     * Cambiar contraseña de usuario.
+     * Solo el dueño de la cuenta o un admin pueden hacerlo.
      */
     public function changePassword()
     {
         try {
-            // Obtener datos del request
+            $authUserId = $this->getCurrentUserId();
+            if (!$authUserId) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'No autenticado']);
+            }
+
             $data = $this->request->getJSON();
-            
+
             $userId = $data->user_id ?? null;
             $currentPassword = $data->current_password ?? null;
+
+            // Solo dueño o admin pueden cambiar contraseña ajena
+            if ((int) $userId !== (int) $authUserId && !$this->isCurrentUserAdmin()) {
+                return $this->response->setStatusCode(403)->setJSON([
+                    'success' => false,
+                    'message' => 'No puedes cambiar la contraseña de otro usuario'
+                ]);
+            }
             $newPassword = $data->new_password ?? null;
             $confirmPassword = $data->confirm_password ?? null;
             
@@ -104,26 +117,22 @@ class PasswordManager extends BaseController
      */
     public function resetPassword()
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
-            // Obtener datos del request
             $data = $this->request->getJSON();
-            
+
             $userId = $data->user_id ?? null;
             $newPassword = $data->new_password ?? null;
-            $adminUserId = $data->admin_user_id ?? null;
-            
-            // Validar datos requeridos
-            if (empty($userId) || empty($newPassword) || empty($adminUserId)) {
+
+            if (empty($userId) || empty($newPassword)) {
                 return $this->response
                     ->setStatusCode(400)
                     ->setJSON([
                         'success' => false,
-                        'message' => 'Todos los campos son requeridos'
+                        'message' => 'user_id y new_password son requeridos'
                     ]);
             }
-            
-            // Aquí deberías verificar que el adminUserId tenga permisos de administrador
-            // Por ahora solo validamos que exista
             
             // Validar fortaleza de la nueva contraseña
             if (strlen($newPassword) < 8) {
@@ -203,8 +212,9 @@ class PasswordManager extends BaseController
      */
     public function forceMigration()
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
-            // Obtener datos del request
             $data = $this->request->getJSON();
             
             $userId = $data->user_id ?? null;

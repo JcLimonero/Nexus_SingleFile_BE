@@ -132,10 +132,12 @@ class User extends BaseController
     }
 
     /**
-     * Crear un nuevo usuario
+     * Crear un nuevo usuario (solo admin).
      */
     public function create()
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
             $data = $this->request->getJSON(true);
 
@@ -284,11 +286,18 @@ class User extends BaseController
     }
 
     /**
-     * Actualizar un usuario
+     * Actualizar un usuario.
+     * Cualquier usuario puede actualizar SUS propios datos básicos (name, mail).
+     * Solo admin puede tocar role_id / enabled / default_agency de otros usuarios.
      */
     public function update($id = null)
     {
         try {
+            $authUserId = $this->getCurrentUserId();
+            if (!$authUserId) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'No autenticado']);
+            }
+
             if (!$id) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -296,7 +305,22 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
+            $isSelfUpdate = ((int) $authUserId === (int) $id);
+            if (!$isSelfUpdate && !$this->isCurrentUserAdmin()) {
+                return $this->response->setStatusCode(403)->setJSON([
+                    'success' => false,
+                    'message' => 'Solo admin puede modificar a otros usuarios'
+                ]);
+            }
+
             $data = $this->request->getJSON(true);
+
+            // Si no es admin, sanitiza campos sensibles que NO puede tocar en su propio perfil
+            if (!$this->isCurrentUserAdmin()) {
+                foreach (['id_user_rol', 'IdUserRol', 'enabled', 'Enabled', 'default_agency', 'DefaultAgency'] as $k) {
+                    unset($data[$k]);
+                }
+            }
 
             // Verificar si el usuario existe (asegurar que incluye id)
             $existingUser = $this->userModel->select('id, name, user, mail, pass, enabled, id_user_rol, default_agency, registration_date, update_date')->find($id);
@@ -495,11 +519,13 @@ class User extends BaseController
     }
 
     /**
-     * Deshabilitar un usuario (enabled = 0)
+     * Deshabilitar un usuario (enabled = 0) — solo admin.
      * PATCH /api/user/{id}/disable
      */
     public function disable($id = null)
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
             if (!$id) {
                 return $this->response->setJSON([
@@ -544,10 +570,12 @@ class User extends BaseController
     }
 
     /**
-     * Eliminar un usuario
+     * Eliminar un usuario (solo admin).
      */
     public function delete($id = null)
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
             if (!$id) {
                 return $this->response->setJSON([

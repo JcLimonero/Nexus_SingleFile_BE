@@ -274,6 +274,10 @@ class Documents extends BaseController
     public function uploadDocument()
     {
         try {
+            if (!$this->getCurrentUserId()) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'No autenticado']);
+            }
+
             $fileId = $this->request->getPost('fileId');
             $documentTypeId = $this->request->getPost('documentTypeId');
             $file = $this->request->getFile('document');
@@ -286,7 +290,8 @@ class Documents extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Validar que el archivo se subió correctamente
+            if ($r = $this->requireFileAccess($fileId)) return $r;
+
             if (!$file->isValid()) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -295,12 +300,32 @@ class Documents extends BaseController
                 ])->setStatusCode(400);
             }
 
-            // Generar nombre único para el archivo
-            $fileName = $file->getRandomName();
-            $filePath = 'uploads/documents/' . $fileName;
+            // Whitelist de tipos permitidos (mime + extensión + magic bytes)
+            $allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+            $allowedExts  = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+            $maxBytes     = 20 * 1024 * 1024; // 20 MB
 
-            // Mover el archivo a la carpeta de uploads
-            if ($file->move(WRITEPATH . '../public/' . $filePath)) {
+            $ext  = strtolower($file->getExtension() ?: '');
+            $mime = $file->getMimeType();
+            if (!in_array($ext, $allowedExts, true) || !in_array($mime, $allowedMimes, true)) {
+                return $this->response->setStatusCode(415)->setJSON([
+                    'success' => false,
+                    'message' => "Tipo de archivo no permitido (recibido: $mime / .$ext)"
+                ]);
+            }
+            if ($file->getSize() > $maxBytes) {
+                return $this->response->setStatusCode(413)->setJSON([
+                    'success' => false,
+                    'message' => 'Archivo excede tamaño máximo (20 MB)'
+                ]);
+            }
+
+            // Guardar FUERA de public/ — se sirve vía endpoint controlado
+            $fileName  = $file->getRandomName();
+            $targetDir = WRITEPATH . 'uploads/documents/';
+            $filePath  = 'uploads/documents/' . $fileName;
+
+            if ($file->move($targetDir, $fileName)) {
                 // Calcular fecha de expiración si es necesario
                 $expirationDate = null;
                 $documentType = $this->db->query("SELECT * FROM document_type WHERE Id = ?", [$documentTypeId])->getRow();

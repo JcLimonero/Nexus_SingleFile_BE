@@ -13,6 +13,7 @@ use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\CustomCors;
+use App\Filters\JwtAuthFilter;
 
 class Filters extends BaseFilters
 {
@@ -33,6 +34,7 @@ class Filters extends BaseFilters
         'secureheaders' => SecureHeaders::class,
         'cors'          => Cors::class,
         'customcors'    => CustomCors::class,
+        'jwt'           => JwtAuthFilter::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
@@ -111,5 +113,9 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'jwt' => [
+            'before' => ['api/*'],
+        ],
+    ];
 }

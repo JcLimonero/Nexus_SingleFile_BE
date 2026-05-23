@@ -77,6 +77,8 @@ class UserAccess extends BaseController
      */
     public function updateUserAccess($userId = null)
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
             if (!$userId) {
                 return $this->response->setJSON([
@@ -185,6 +187,8 @@ class UserAccess extends BaseController
      */
     public function clearUserAccess($userId = null)
     {
+        if ($r = $this->requireAdmin()) return $r;
+
         try {
             if (!$userId) {
                 return $this->response->setJSON([

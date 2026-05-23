@@ -58,12 +58,22 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * Obtener información del usuario autenticado desde el token JWT
+     * Obtener información del usuario autenticado desde el token JWT.
+     * Si JwtAuthFilter ya validó el token, reusa el payload sin reverificar.
      */
     protected function getAuthenticatedUser()
     {
         try {
-            // Obtener token del header Authorization
+            // Fast path: JwtAuthFilter ya validó
+            if (!empty($_REQUEST['_auth_user'])) {
+                $payload = $_REQUEST['_auth_user'];
+                return [
+                    'user_id' => $payload->user_id ?? null,
+                    'email'   => $payload->email ?? null,
+                    'role_id' => $payload->role_id ?? null,
+                ];
+            }
+
             $authHeader = $this->request->getHeader('Authorization');
             if (!$authHeader) {
                 return null;
@@ -74,7 +84,6 @@ abstract class BaseController extends Controller
                 return null;
             }
 
-            // Verificar token
             $authModel = new AuthModel();
             $result = $authModel->verifyJWT($token);
             
@@ -143,5 +152,101 @@ abstract class BaseController extends Controller
     {
         $user = $this->getAuthenticatedUser();
         return $user ? $user['role_id'] : null;
+    }
+
+    /**
+     * Devuelve un response 403 si el usuario actual no es admin, null si todo OK.
+     * Uso:   if ($r = $this->requireAdmin()) return $r;
+     */
+    protected function requireAdmin()
+    {
+        if (!$this->isCurrentUserAdmin()) {
+            return $this->response
+                ->setStatusCode(403)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Requiere permisos de administrador'
+                ]);
+        }
+        return null;
+    }
+
+    /**
+     * IDs de agencias a las que el usuario tiene acceso (incluye su default_agency
+     * + las asignadas en agency_user). Admin = null (sin filtro).
+     *
+     * @return int[]|null  array vacío si no tiene ninguna, null si es admin
+     */
+    protected function getAllowedAgencyIds(): ?array
+    {
+        if ($this->isCurrentUserAdmin()) {
+            return null;
+        }
+        $userId = $this->getCurrentUserId();
+        if (!$userId) {
+            return [];
+        }
+
+        $db = \Config\Database::connect();
+
+        $rows = $db->table('agency_user')
+            ->select('id_agency')
+            ->where('id_user', $userId)
+            ->get()
+            ->getResultArray();
+        $ids = array_map('intval', array_column($rows, 'id_agency'));
+
+        $defaultRow = $db->table('user')
+            ->select('default_agency')
+            ->where('id', $userId)
+            ->get()
+            ->getRowArray();
+        if (!empty($defaultRow['default_agency'])) {
+            $ids[] = (int) $defaultRow['default_agency'];
+        }
+
+        return array_values(array_unique(array_filter($ids)));
+    }
+
+    /**
+     * Verifica que el expediente pertenezca a una agencia accesible para el usuario.
+     */
+    protected function userCanAccessFile($fileId): bool
+    {
+        if ($this->isCurrentUserAdmin()) {
+            return true;
+        }
+        $allowed = $this->getAllowedAgencyIds();
+        if ($allowed === null) {
+            return true; // admin
+        }
+        if (empty($allowed)) {
+            return false;
+        }
+
+        $row = \Config\Database::connect()
+            ->table('expedient')
+            ->select('id_agency')
+            ->where('id', (int) $fileId)
+            ->get()
+            ->getRowArray();
+
+        return $row && in_array((int) $row['id_agency'], $allowed, true);
+    }
+
+    /**
+     * Devuelve 403 si el user no puede acceder al expediente. null si OK.
+     */
+    protected function requireFileAccess($fileId)
+    {
+        if (!$this->userCanAccessFile($fileId)) {
+            return $this->response
+                ->setStatusCode(403)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'No tienes acceso a este expediente'
+                ]);
+        }
+        return null;
     }
 }

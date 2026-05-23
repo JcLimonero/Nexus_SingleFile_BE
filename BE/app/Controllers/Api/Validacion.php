@@ -3,6 +3,7 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Traits\DeletesFileDependents;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\UserActivityLogModel;
@@ -10,6 +11,8 @@ use App\Models\DocumentModel;
 
 class Validacion extends BaseController
 {
+    use DeletesFileDependents;
+
     protected $db;
     protected $userActivityLogModel;
 
@@ -1332,27 +1335,17 @@ class Validacion extends BaseController
                 ])->setStatusCode(404);
             }
             
-            // Iniciar transacción para asegurar consistencia
             $this->db->transStart();
-            
-            // Deshabilitar FK checks temporalmente (permite eliminar con referencias en file_pld, file_share_token, etc.)
-            $this->db->query("SET FOREIGN_KEY_CHECKS = 0");
-            
-            // 1. Eliminar documentos relacionados (FileDocument)
+
+            $this->deleteFileDependents($clienteId);
+
             $this->db->query("DELETE FROM file_document WHERE id_file = ?", [$clienteId]);
-            
-            // 2. Eliminar el registro principal (expedient)
+
             $this->db->query("DELETE FROM expedient WHERE id = ?", [$clienteId]);
             $fileDeleted = $this->db->affectedRows();
-            
-            // Rehabilitar verificaciones de clave foránea
-            $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
-            
-            // Verificar si la eliminación fue exitosa
+
             if ($this->db->transStatus() === false || $fileDeleted === 0) {
-                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
                 $this->db->transRollback();
-                error_log("eliminarPedido falló: clienteId={$clienteId}, transStatus=" . ($this->db->transStatus() ? 'ok' : 'fail') . ", fileDeleted={$fileDeleted}");
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se pudo eliminar el pedido',
@@ -1386,11 +1379,6 @@ class Validacion extends BaseController
             ]);
             
         } catch (\Exception $e) {
-            try {
-                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
-            } catch (\Exception $fkEx) {
-                error_log("Error restaurando FOREIGN_KEY_CHECKS: " . $fkEx->getMessage());
-            }
             $this->db->transRollback();
             error_log("Error en Validacion::eliminarPedido: " . $e->getMessage());
             return $this->response->setJSON([

@@ -2,10 +2,13 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Traits\DeletesFileDependents;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class Files extends BaseController
 {
+    use DeletesFileDependents;
+
     protected $db;
 
     public function __construct()
@@ -746,35 +749,18 @@ class Files extends BaseController
      */
     private function validateConfigurationExists($processId, $customerTypeId, $operationTypeId, $agencyId)
     {
-        error_log("=== VALIDANDO CONFIGURACIÓN (TEMPORAL - SIEMPRE TRUE) ===");
-        error_log("IdProcess: " . $processId);
-        error_log("IdCustomerType: " . $customerTypeId);
-        error_log("IdOperationType: " . $operationTypeId);
-        error_log("IdAgency: " . $agencyId);
-        
-        // TEMPORAL: Siempre retornar true para confirmar que el problema está en la validación
-        error_log("TEMPORAL: Retornando TRUE para bypass de validación");
-        return true;
-        
-        $sql = "SELECT COUNT(*) as count 
-                FROM configuration_process 
-                WHERE id_process = ? 
-                AND id_customer_type = ? 
-                AND id_operation_type = ? 
-                AND id_agency = ? 
+        $sql = "SELECT COUNT(*) as count
+                FROM configuration_process
+                WHERE id_process = ?
+                AND id_customer_type = ?
+                AND id_operation_type = ?
+                AND id_agency = ?
                 AND enabled = 1";
-
-        error_log("Query SQL: " . $sql);
-        error_log("Parámetros: " . json_encode([$processId, $customerTypeId, $operationTypeId, $agencyId]));
 
         $query = $this->db->query($sql, [$processId, $customerTypeId, $operationTypeId, $agencyId]);
         $result = $query->getRow();
 
-        error_log("Resultado del query: " . json_encode($result));
-        error_log("Count encontrado: " . $result->count);
-        error_log("Configuración válida: " . ($result->count > 0 ? 'SÍ' : 'NO'));
-
-        return $result->count > 0;
+        return ((int) ($result->count ?? 0)) > 0;
     }
 
     /**
@@ -1786,44 +1772,25 @@ class Files extends BaseController
                 }
             }
 
-            // Iniciar transacción
             $this->db->transStart();
 
-            // Deshabilitar temporalmente las verificaciones de clave foránea
-            // Esto es necesario para poder eliminar en el orden correcto
-            $this->db->query("SET FOREIGN_KEY_CHECKS = 0");
+            $this->deleteFileDependents($fileId);
 
-            // ORDEN CORRECTO DE ELIMINACIÓN:
-            // 1. FileDocument (depende de File)
-            $documentsDeleted = $this->db->query("DELETE FROM file_document WHERE id_file = ?", [$fileId]);
+            $this->db->query("DELETE FROM file_document WHERE id_file = ?", [$fileId]);
             $documentsDeleted = $this->db->affectedRows();
-            error_log("1️⃣ Documentos eliminados de FileDocument: $documentsDeleted");
 
-            // 2. File (depende de Order a través de IdOrder)
-            $fileDeleted = $this->db->query("DELETE FROM expedient WHERE id = ?", [$fileId]);
+            $this->db->query("DELETE FROM expedient WHERE id = ?", [$fileId]);
             $fileDeleted = $this->db->affectedRows();
-            error_log("2️⃣ File eliminado: $fileDeleted");
 
-            // 3. Order (solo si no hay más Files que lo referencien)
             $orderByCarDeleted = 0;
             if ($shouldDeleteOrder && $orderByCarId) {
-                $orderByCarDeleted = $this->db->query("DELETE FROM `order` WHERE id = ?", [$orderByCarId]);
+                $this->db->query("DELETE FROM `order` WHERE id = ?", [$orderByCarId]);
                 $orderByCarDeleted = $this->db->affectedRows();
-                error_log("3️⃣ Registros Order eliminados: $orderByCarDeleted");
-            } else if ($orderByCarId) {
-                error_log("3️⃣ Order NO eliminado (hay otros Files que lo referencian)");
-            } else {
-                error_log("3️⃣ Order NO eliminado (IdOrder era NULL)");
             }
-
-            // Rehabilitar las verificaciones de clave foránea
-            $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
 
             if ($fileDeleted) {
                 $this->db->transComplete();
-                
-                error_log("=== ELIMINACIÓN COMPLETADA EXITOSAMENTE ===");
-                
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'File eliminado exitosamente',
@@ -1834,12 +1801,8 @@ class Files extends BaseController
                     ]
                 ]);
             } else {
-                // Rehabilitar las verificaciones de clave foránea antes del rollback
-                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
                 $this->db->transRollback();
-                
-                error_log("ERROR: No se pudo eliminar el file");
-                
+
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se pudo eliminar el file'
@@ -1847,12 +1810,6 @@ class Files extends BaseController
             }
 
         } catch (Exception $e) {
-            // Asegurar que las verificaciones de clave foránea se restauren en caso de error
-            try {
-                $this->db->query("SET FOREIGN_KEY_CHECKS = 1");
-            } catch (Exception $fkException) {
-                error_log("Error restaurando FOREIGN_KEY_CHECKS: " . $fkException->getMessage());
-            }
             $this->db->transRollback();
             
             error_log("ERROR en deleteFile: " . $e->getMessage());
