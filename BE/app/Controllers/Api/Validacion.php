@@ -2650,30 +2650,44 @@ class Validacion extends BaseController
                 ];
             }
 
-            // Generar JWT para PDF Generator API
-            $jwt = $this->generatePdfGeneratorJwt($config->apiKey, $config->apiSecret, $config->workspaceEmail);
+            // Cache de 1h por (idFile, templateId, hash(datos)) — PDF Generator API es paid.
+            $cache = \Config\Services::cache();
+            $cacheKey = 'pdfgen_' . $templateId . '_' . md5(json_encode($templateData));
+            $cachedBody = $cache->get($cacheKey);
+            $body = null;
+            $statusCode = 200;
 
-            // Llamar a PDF Generator API - merge con template
-            $client = \Config\Services::curlrequest();
-            $response = $client->request('POST', $config->baseUrl . '/documents/generate', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $jwt,
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/pdf',
-                ],
-                'json' => [
-                    'template' => [
-                        'id' => $templateId,
-                        'data' => $templateData,
+            if ($cachedBody !== null) {
+                $body = $cachedBody;
+            } else {
+                // Generar JWT para PDF Generator API
+                $jwt = $this->generatePdfGeneratorJwt($config->apiKey, $config->apiSecret, $config->workspaceEmail);
+
+                $client = \Config\Services::curlrequest();
+                $response = $client->request('POST', $config->baseUrl . '/documents/generate', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $jwt,
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/pdf',
                     ],
-                    'format' => 'pdf',
-                    'output' => 'file',
-                ],
-                'http_errors' => false,
-            ]);
+                    'json' => [
+                        'template' => [
+                            'id' => $templateId,
+                            'data' => $templateData,
+                        ],
+                        'format' => 'pdf',
+                        'output' => 'file',
+                    ],
+                    'http_errors' => false,
+                ]);
 
-            $statusCode = $response->getStatusCode();
-            $body = $response->getBody();
+                $statusCode = $response->getStatusCode();
+                $body = $response->getBody();
+
+                if ($statusCode === 200 || $statusCode === 201) {
+                    $cache->save($cacheKey, $body, 3600);
+                }
+            }
 
             if ($statusCode !== 200 && $statusCode !== 201) {
                 $errorBody = $response->getBody();

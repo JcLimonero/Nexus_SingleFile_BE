@@ -249,4 +249,32 @@ abstract class BaseController extends Controller
         }
         return null;
     }
+
+    /**
+     * Wrap exceptions: en production devuelve mensaje genérico al cliente
+     * (sin getMessage / trace) y loggea el detalle real al stderr / writable/logs.
+     *
+     * Uso:  catch (\Throwable $e) { return $this->serverError($e, 'No se pudo guardar'); }
+     */
+    protected function serverError(\Throwable $e, string $userMessage = 'Error interno del servidor'): ResponseInterface
+    {
+        $correlationId = bin2hex(random_bytes(6));
+        log_message('error', "[corr:{$correlationId}] {$e->getMessage()}\n{$e->getTraceAsString()}");
+
+        $body = [
+            'success' => false,
+            'message' => $userMessage,
+            'correlation_id' => $correlationId,
+        ];
+
+        if (ENVIRONMENT !== 'production') {
+            $body['debug'] = [
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'file'      => $e->getFile() . ':' . $e->getLine(),
+            ];
+        }
+
+        return $this->response->setStatusCode(500)->setJSON($body);
+    }
 }

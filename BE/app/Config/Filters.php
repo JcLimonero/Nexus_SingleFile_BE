@@ -14,6 +14,7 @@ use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\CustomCors;
 use App\Filters\JwtAuthFilter;
+use App\Filters\ThrottleAuthFilter;
 
 class Filters extends BaseFilters
 {
@@ -35,6 +36,7 @@ class Filters extends BaseFilters
         'cors'          => Cors::class,
         'customcors'    => CustomCors::class,
         'jwt'           => JwtAuthFilter::class,
+        'throttle_auth' => ThrottleAuthFilter::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
@@ -116,6 +118,9 @@ class Filters extends BaseFilters
     public array $filters = [
         'jwt' => [
             'before' => ['api/*'],
+        ],
+        'throttle_auth' => [
+            'before' => ['api/auth/login', 'api/auth/refresh', 'api/password/*'],
         ],
     ];
 }

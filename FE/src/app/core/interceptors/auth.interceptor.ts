@@ -1,10 +1,41 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, switchMap, filter, take } from 'rxjs/operators';
+import { Observable, throwError, ReplaySubject } from 'rxjs';
+import { catchError, switchMap, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../../environments/environment';
+
+// --- Refresh-token coordination (module-level shared state) ---
+// Una sola llamada a refresh por vez. Si N requests reciben 401 al mismo tiempo,
+// solo una dispara el refresh; las otras esperan el resultado y reintentan con
+// el access_token nuevo. Esto evita gastar el refresh_token rotado en la 2da call.
+let isRefreshing = false;
+let refreshResult$: ReplaySubject<string | null> | null = null;
+
+function startOrJoinRefresh(authService: AuthService): Observable<string | null> {
+  if (isRefreshing && refreshResult$) {
+    return refreshResult$.pipe(take(1));
+  }
+  isRefreshing = true;
+  refreshResult$ = new ReplaySubject<string | null>(1);
+
+  authService.refreshAccessToken().subscribe({
+    next: (response) => {
+      const newToken = response?.success ? authService.getToken() : null;
+      refreshResult$!.next(newToken);
+      refreshResult$!.complete();
+      isRefreshing = false;
+    },
+    error: () => {
+      refreshResult$!.next(null);
+      refreshResult$!.complete();
+      isRefreshing = false;
+    }
+  });
+
+  return refreshResult$.pipe(take(1));
+}
 
 export const AuthInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
@@ -141,7 +172,8 @@ function redirectToLogin(router: Router, authService: AuthService): void {
 }
 
 /**
- * Manejar renovación automática del token
+ * Manejar renovación automática del token. Reutiliza la promesa compartida
+ * cuando múltiples requests reciben 401 al mismo tiempo (race-safe).
  */
 function handleTokenRefresh(
   request: HttpRequest<unknown>,
@@ -149,46 +181,17 @@ function handleTokenRefresh(
   authService: AuthService,
   router: Router
 ): Observable<HttpEvent<unknown>> {
-
-  // Crear un subject para manejar la renovación del token
-  const tokenRefreshed$ = new BehaviorSubject<boolean>(false);
-
-  // Intentar renovar el token
-  authService.refreshAccessToken().subscribe({
-    next: (response) => {
-      if (response.success) {
-        tokenRefreshed$.next(true);
-      } else {
-        tokenRefreshed$.next(false);
+  return startOrJoinRefresh(authService).pipe(
+    switchMap(newToken => {
+      if (!newToken) {
+        redirectToLogin(router, authService);
+        return throwError(() => new Error('Token refresh failed'));
       }
-    },
-    error: (error) => {
-      tokenRefreshed$.next(false);
-    }
-  });
-
-  // Esperar a que se complete la renovación del token
-  return tokenRefreshed$.pipe(
-    filter(refreshed => refreshed !== null),
-    take(1),
-    switchMap(refreshed => {
-      if (refreshed) {
-        // Token renovado, clonar la request con el nuevo token
-        const newToken = authService.getToken();
-        if (newToken) {
-          const headers: Record<string, string> = { 'Authorization': `Bearer ${newToken}` };
-          if (!(request.body instanceof FormData)) {
-            headers['Content-Type'] = 'application/json';
-          }
-          const newRequest = request.clone({ setHeaders: headers });
-          return next(newRequest);
-        }
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${newToken}` };
+      if (!(request.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
       }
-
-      // Si no se pudo renovar el token, redirigir al login
-      redirectToLogin(router, authService);
-
-      return throwError(() => new Error('Token refresh failed'));
+      return next(request.clone({ setHeaders: headers }));
     })
   );
 }

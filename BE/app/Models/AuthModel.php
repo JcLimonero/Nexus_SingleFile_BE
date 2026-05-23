@@ -296,21 +296,27 @@ class AuthModel extends Model
                 ];
             }
             
-            // Generar nuevo access token
+            // Rotación: emitir nuevos access y refresh tokens, e invalidar el viejo
             $newAccessToken = $this->generateAccessToken($user);
-            
+            $newRefreshToken = $this->generateRefreshToken($user);
+
+            // El UPDATE en saveRefreshToken reemplaza el row del usuario,
+            // descartando el refresh viejo (defensa contra replay si se filtra).
+            $this->saveRefreshToken($userId, $newRefreshToken);
+
             return [
                 'success' => true,
                 'message' => 'Token renovado exitosamente',
                 'access_token' => $newAccessToken,
+                'refresh_token' => $newRefreshToken,
                 'expires_in' => $this->jwtExpiration
             ];
-            
+
         } catch (\Exception $e) {
 
             return [
                 'success' => false,
-                'message' => 'Error renovando token: ' . $e->getMessage()
+                'message' => 'Error renovando token'
             ];
         }
     }
