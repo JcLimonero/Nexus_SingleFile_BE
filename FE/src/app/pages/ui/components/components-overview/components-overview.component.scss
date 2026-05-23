@@ -1,0 +1,8 @@
+// highlight.js theme — sólo cargado cuando se navega a /ui/components
+// (lazy chunk). Antes estaba en src/styles.scss y se servía siempre (~15 KB).
+//
+// Necesita ::ng-deep porque vex-highlight inyecta el HTML highlighted via
+// [innerHTML], y esos nodos no reciben el atributo _ngcontent de Angular.
+:host ::ng-deep {
+  @import 'highlight.js/styles/androidstudio.css';
+}

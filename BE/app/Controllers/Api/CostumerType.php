@@ -4,10 +4,13 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Models\CostumerTypeModel;
+use App\Traits\CacheableCatalog;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class CostumerType extends BaseController
 {
+    use CacheableCatalog;
+
     protected $costumerTypeModel;
     
     public function __construct()
@@ -441,12 +444,15 @@ class CostumerType extends BaseController
     public function active()
     {
         try {
-            $costumerTypes = $this->costumerTypeModel->getActiveCostumerTypes();
+            $costumerTypes = $this->cachedOrCompute(
+                'costumertype.active',
+                fn() => $this->costumerTypeModel->getActiveCostumerTypes()
+            );
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Tipos de cliente activos obtenidos exitosamente',
-                'data' => $costumerTypes
+                'data'    => $costumerTypes,
             ]);
 
         } catch (\Exception $e) {

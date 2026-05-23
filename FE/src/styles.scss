@@ -1,5 +1,6 @@
 @import "~simplebar/dist/simplebar.css";
-@import "~highlight.js/styles/androidstudio.css";
+// highlight.js CSS se carga sólo bajo /ui/components (lazy) vía
+// components-overview.component.scss — no afecta al bundle inicial.
 // Vex Core
 @import "./@vex/styles/core";
 

@@ -904,8 +904,8 @@ class Files extends BaseController
      */
     private function validateFileWithSingleFileOrdersLatest($idAgency, $customerDMS, $order_dms)
     {
-        $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
-        $token = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
+        $vanguardiaBaseUrl = rtrim(env('VANGUARDIA_BASE_URL', 'https://apisvanguardia.com:400'), '/');
+        $token = env('VANGUARDIA_PROVIDER_TOKEN', '');
 
         $params = http_build_query([
             'idAgency' => $idAgency,

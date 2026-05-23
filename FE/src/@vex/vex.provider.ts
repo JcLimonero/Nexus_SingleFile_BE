@@ -16,14 +16,17 @@ import { VexDemoService } from '@vex/services/vex-demo.service';
 import { VexPlatformService } from '@vex/services/vex-platform.service';
 import { VexConfig, VexThemeProvider } from '@vex/config/vex-config.interface';
 import { VEX_CONFIG, VEX_THEMES } from '@vex/config/config.token';
-import { VexHighlightModule } from '@vex/components/vex-highlight/vex-highlight.module';
+
+// VexHighlightModule SE QUITÓ del provider root — sólo se usa en componentes
+// demo bajo /ui/components (lazy). Movido a components-overview.component.ts
+// donde ya está importado individualmente. Esto saca highlight.js (~42 KB)
+// del main bundle.
 
 export function provideVex(options: {
   config: VexConfig;
   availableThemes: VexThemeProvider[];
 }): (Provider | EnvironmentProviders)[] {
   return [
-    importProvidersFrom(VexHighlightModule),
     {
       provide: VEX_CONFIG,
       useValue: options.config

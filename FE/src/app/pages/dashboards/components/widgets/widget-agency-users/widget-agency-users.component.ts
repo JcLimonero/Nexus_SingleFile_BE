@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AnalyticsService } from '../../../../../core/services/analytics.service';
 import { Subject, takeUntil } from 'rxjs';
+import { SkeletonComponent } from '../../../../../shared/skeleton/skeleton.component';
 
 @Component({
   selector: 'vex-widget-agency-users',
@@ -15,7 +16,8 @@ import { Subject, takeUntil } from 'rxjs';
     CommonModule,
     MatCardModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    SkeletonComponent
   ]
 })
 export class WidgetAgencyUsersComponent implements OnInit, OnDestroy, OnChanges {

@@ -12,10 +12,23 @@ class AuthModel extends Model
     protected $primaryKey = 'Id';
     protected $allowedFields = ['Name', 'User', 'Pass', 'Mail', 'Enabled', 'IdUserRol'];
     
-    // Configuración de JWT
-    private $jwtSecret = 'singlefile-secret-key-2025';
+    // Configuración de JWT — secret se lee de .env (mínimo 32 bytes para HS256 en php-jwt v7)
+    private $jwtSecret;
     private $jwtExpiration = 10800; // 3 horas
     private $refreshTokenExpiration = 2592000; // 30 días
+
+    public function __construct()
+    {
+        parent::__construct();
+        $secret = (string) env('JWT_SECRET', '');
+        if (strlen($secret) < 32) {
+            // php-jwt v7+ rechaza claves <256 bits con "Provided key is too short".
+            // Fallback solo para no romper en dev; en prod hay que setear JWT_SECRET.
+            log_message('warning', 'JWT_SECRET ausente o muy corto en .env — usando fallback derivado. Configurar al menos 32 caracteres aleatorios.');
+            $secret = hash('sha256', 'singlefile-fallback-' . ($secret ?: 'unset'));
+        }
+        $this->jwtSecret = $secret;
+    }
     
     /**
      * Autenticar usuario por email/username y contraseña

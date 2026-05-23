@@ -4,10 +4,13 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Models\DocumentTypeModel;
+use App\Traits\CacheableCatalog;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class DocumentType extends BaseController
 {
+    use CacheableCatalog;
+
     protected $documentTypeModel;
     
     public function __construct()
@@ -429,15 +432,15 @@ class DocumentType extends BaseController
     public function active()
     {
         try {
-            $documentTypes = $this->documentTypeModel->getActiveDocumentTypes();
+            $payload = $this->cachedOrCompute('documenttype.active', function () {
+                $rows = $this->documentTypeModel->getActiveDocumentTypes();
+                return ['document_types' => $rows, 'count' => count($rows)];
+            });
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Tipos de documento activos obtenidos exitosamente',
-                'data' => [
-                    'document_types' => $documentTypes,
-                    'count' => count($documentTypes)
-                ]
+                'data'    => $payload,
             ]);
 
         } catch (\Exception $e) {

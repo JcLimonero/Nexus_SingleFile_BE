@@ -3,10 +3,13 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Traits\CacheableCatalog;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class FileStatus extends BaseController
 {
+    use CacheableCatalog;
+
     protected $db;
     
     public function __construct()
@@ -76,7 +79,6 @@ class FileStatus extends BaseController
     public function active()
     {
         try {
-            // Verificar autenticación
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
                 return $this->response->setJSON([
@@ -85,21 +87,23 @@ class FileStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('File_Status fs');
-            $builder->select('fs.*');
-            // Filtrar solo las fases específicas requeridas
-            $builder->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación']);
-            $builder->orderBy('fs.Name', 'ASC');
+            $payload = $this->cachedOrCompute('filestatus.active', function () {
+                $rows = $this->db->table('File_Status fs')
+                    ->select('fs.*')
+                    ->whereIn('fs.Name', ['Integración', 'Liquidación', 'Liberación'])
+                    ->orderBy('fs.Name', 'ASC')
+                    ->get()->getResultArray();
 
-            $results = $builder->get()->getResultArray();
+                return [
+                    'file_statuses' => $rows,
+                    'count'         => count($rows),
+                ];
+            });
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Fases específicas obtenidas exitosamente',
-                'data' => [
-                    'file_statuses' => $results,
-                    'count' => count($results)
-                ]
+                'data'    => $payload,
             ]);
 
         } catch (\Exception $e) {

@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, takeUntil } from 'rxjs';
 import { AnalyticsService, AnalyticsFilters } from '../../../../../core/services/analytics.service';
+import { SkeletonComponent } from '../../../../../shared/skeleton/skeleton.component';
 
 export interface AgencyMetrics {
   todayCases: number;
@@ -26,7 +27,8 @@ export interface AgencyMetrics {
     CommonModule,
     MatIconModule,
     MatCardModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    SkeletonComponent
   ]
 })
 export class WidgetAgencyMetricsComponent implements OnInit, OnDestroy, OnChanges {

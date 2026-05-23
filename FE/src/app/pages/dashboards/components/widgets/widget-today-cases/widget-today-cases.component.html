@@ -1,7 +1,5 @@
 <div class="widget-today-cases">
-  <div *ngIf="loading" class="flex justify-center items-center h-32">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
+  <vex-skeleton variant="metric-card" *ngIf="loading"></vex-skeleton>
 
   <div *ngIf="error" class="text-center text-red-600 p-4">
     <mat-icon class="text-red-500 mb-2">error</mat-icon>

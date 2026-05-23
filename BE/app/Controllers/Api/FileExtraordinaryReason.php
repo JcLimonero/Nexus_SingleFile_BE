@@ -4,9 +4,12 @@ namespace App\Controllers\Api;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\FileExtraordinaryReasonModel;
+use App\Traits\CacheableCatalog;
 
 class FileExtraordinaryReason extends ResourceController
 {
+    use CacheableCatalog;
+
     protected $fileExtraordinaryReasonModel;
 
     public function __construct()
@@ -398,12 +401,15 @@ class FileExtraordinaryReason extends ResourceController
     public function active()
     {
         try {
-            $activeReasons = $this->fileExtraordinaryReasonModel->getActiveFileExtraordinaryReasons();
+            $activeReasons = $this->cachedOrCompute(
+                'fileextraordinaryreason.active',
+                fn() => $this->fileExtraordinaryReasonModel->getActiveFileExtraordinaryReasons()
+            );
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Motivos extraordinarios activos obtenidos exitosamente',
-                'data' => $activeReasons
+                'data'    => $activeReasons,
             ]);
 
         } catch (\Exception $e) {

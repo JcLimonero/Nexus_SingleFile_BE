@@ -19,6 +19,7 @@ import { vexConfigs } from '@vex/config/vex-configs';
 import { provideQuillConfig } from 'ngx-quill';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { ActivityLogInterceptor } from './core/interceptors/activity-log.interceptor';
+import { TimeoutRetryInterceptor } from './core/interceptors/timeout-retry.interceptor';
 import { BrandingService } from './core/services/branding.service';
 import { VexConfigService } from '@vex/config/vex-config.service';
 import { VexConfigName } from '@vex/config/vex-config.interface';
@@ -56,7 +57,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withInterceptorsFromDi(),
-      withInterceptors([AuthInterceptor, ActivityLogInterceptor])
+      // Orden importa: TimeoutRetry envuelve la request más externa para
+      // capturar timeouts antes de que Auth maneje refresh de tokens.
+      withInterceptors([TimeoutRetryInterceptor, AuthInterceptor, ActivityLogInterceptor])
     ),
 
     provideVex({

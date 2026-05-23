@@ -25,16 +25,19 @@ class Validacion extends BaseController
     private function logActivity($action, $description, $changeDetails = null, $entityId = null)
     {
         try {
-            // Obtener información del usuario desde el token JWT
-            $userId = 1; // TODO: Obtener del token JWT
-            $username = 'admin'; // TODO: Obtener del token JWT
-            
+            $authUser = $this->getAuthenticatedUser();
+            if ($authUser === null) {
+                // Sin JWT válido: registrar al log de archivo en lugar de tabla
+                log_message('warning', "logActivity sin contexto JWT: {$action} - {$description}");
+                return;
+            }
+
             $logData = [
-                'user_id' => $userId,
-                'username' => $username,
-                'action' => $action,
-                'description' => $description,
-                'change_details' => $changeDetails ? json_encode($changeDetails) : null
+                'user_id'        => $authUser['user_id'],
+                'username'       => $authUser['email'],
+                'action'         => $action,
+                'description'    => $description,
+                'change_details' => $changeDetails ? json_encode($changeDetails) : null,
             ];
 
             $this->userActivityLogModel->createLog($logData);

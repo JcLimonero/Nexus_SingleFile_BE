@@ -115,39 +115,11 @@ $typography-config: mat.define-typography-config(
     @include mat.all-component-colors($light-theme);
   }
 
-  $angularMaterialColorsDark: map.get($angularMaterialColors, dark);
-  $dark-theme: mat.define-dark-theme(
-      (
-        color: (
-          primary: mat.define-palette($primary),
-          accent: mat.define-palette($accent),
-          warn: mat.define-palette($warn),
-          is-dark: true
-        )
-      )
-  );
-
-  /**
-   * Override the theme foreground/background colors with the Angular Material colors
-   */
-  $dark-theme: map.merge(
-      $dark-theme,
-      (
-        color:
-        map.merge(
-            map.get($dark-theme, color),
-            (
-              foreground: map.get($angularMaterialColorsDark, foreground),
-              background: map.get($angularMaterialColorsDark, background)
-            )
-        )
-      )
-  );
-
-  #{map.get($theme, selector)}.dark,
-  #{map.get($theme, selector)} .dark {
-    @include mat.all-component-colors($dark-theme);
-  }
+  // Dark mode de Material desactivado — feature no expuesta al usuario.
+  // El config-panel de Vex (donde estaba el toggle LIGHT/DARK) está comentado
+  // en layout.component.html. Activarlo requiere descomentar ese panel Y
+  // restaurar este bloque (`mat.define-dark-theme` + `mat.all-component-colors`).
+  // Ahorra ~300 KB en styles.css inicial.
 }
 
 // TODO: Move this somewhere or remove entirely

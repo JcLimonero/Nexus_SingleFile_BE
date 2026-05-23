@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, takeUntil } from 'rxjs';
 import { AnalyticsService } from '../../../../../core/services/analytics.service';
+import { SkeletonComponent } from '../../../../../shared/skeleton/skeleton.component';
 
 export interface CurrentMonthLiberatedData {
   total: number;
@@ -21,7 +22,8 @@ export interface CurrentMonthLiberatedData {
     CommonModule,
     MatCardModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    SkeletonComponent
   ]
 })
 export class WidgetCurrentMonthLiberatedComponent implements OnInit, OnDestroy, OnChanges {

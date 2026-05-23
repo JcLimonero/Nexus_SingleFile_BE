@@ -4,10 +4,13 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Models\FileReasonModel;
+use App\Traits\CacheableCatalog;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class FileReason extends BaseController
 {
+    use CacheableCatalog;
+
     protected $fileReasonModel;
     
     public function __construct()
@@ -117,6 +120,7 @@ class FileReason extends BaseController
             $result = $this->fileReasonModel->insert($data);
             
             if ($result) {
+                $this->invalidateCatalogCache('filereason');
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Motivo creado exitosamente',
@@ -231,9 +235,10 @@ class FileReason extends BaseController
             $result = $this->fileReasonModel->update($id, $data);
             
             if ($result) {
+                $this->invalidateCatalogCache('filereason');
                 // Obtener el motivo actualizado para devolver todos los campos
                 $updatedReason = $this->fileReasonModel->find($id);
-                
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Motivo actualizado exitosamente',
@@ -282,6 +287,7 @@ class FileReason extends BaseController
             $result = $this->fileReasonModel->delete($id);
             
             if ($result) {
+                $this->invalidateCatalogCache('filereason');
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Motivo eliminado exitosamente',
@@ -375,15 +381,15 @@ class FileReason extends BaseController
     public function active()
     {
         try {
-            $activeReasons = $this->fileReasonModel->getActiveFileReasons();
+            $payload = $this->cachedOrCompute('filereason.active', function () {
+                $rows = $this->fileReasonModel->getActiveFileReasons();
+                return ['file_reasons' => $rows, 'total' => count($rows)];
+            });
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Motivos activos obtenidos exitosamente',
-                'data' => [
-                    'file_reasons' => $activeReasons,
-                    'total' => count($activeReasons)
-                ]
+                'data'    => $payload,
             ]);
 
         } catch (\Exception $e) {
@@ -424,6 +430,7 @@ class FileReason extends BaseController
             $result = $this->fileReasonModel->toggleStatus($id);
             
             if ($result) {
+                $this->invalidateCatalogCache('filereason');
                 $newStatus = $existingReason['Enabled'] == 1 ? 0 : 1;
                 return $this->response->setJSON([
                     'success' => true,

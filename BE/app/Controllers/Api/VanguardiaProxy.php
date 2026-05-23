@@ -15,8 +15,14 @@ class VanguardiaProxy extends BaseController
     private const CONNECT_TIMEOUT  = 10;   // segundos
     private const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MB
 
-    private $vanguardiaToken = 'b26e88c4-ddbe-4adb-a214-4667f454824a';
-    private $vanguardiaBaseUrl = 'https://apisvanguardia.com:400';
+    private $vanguardiaToken;
+    private $vanguardiaBaseUrl;
+
+    public function __construct()
+    {
+        $this->vanguardiaToken = env('VANGUARDIA_PROVIDER_TOKEN', '');
+        $this->vanguardiaBaseUrl = rtrim(env('VANGUARDIA_BASE_URL', 'https://apisvanguardia.com:400'), '/');
+    }
 
     /**
      * Proxy para búsqueda de clientes

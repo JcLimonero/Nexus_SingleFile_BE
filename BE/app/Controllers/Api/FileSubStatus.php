@@ -3,10 +3,13 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Traits\CacheableCatalog;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class FileSubStatus extends BaseController
 {
+    use CacheableCatalog;
+
     protected $db;
     
     public function __construct()
@@ -74,7 +77,6 @@ class FileSubStatus extends BaseController
     public function active()
     {
         try {
-            // Verificar autenticación
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
                 return $this->response->setJSON([
@@ -83,20 +85,19 @@ class FileSubStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('File_SubStatus fss');
-            $builder->select('fss.*');
-            // No filtrar por Enabled ya que la tabla no tiene esa columna
-            $builder->orderBy('fss.Name', 'ASC');
+            $payload = $this->cachedOrCompute('filesubstatus.active', function () {
+                $rows = $this->db->table('File_SubStatus fss')
+                    ->select('fss.*')
+                    ->orderBy('fss.Name', 'ASC')
+                    ->get()->getResultArray();
 
-            $results = $builder->get()->getResultArray();
+                return ['file_sub_statuses' => $rows, 'count' => count($rows)];
+            });
 
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Subestados de archivo obtenidos exitosamente',
-                'data' => [
-                    'file_sub_statuses' => $results,
-                    'count' => count($results)
-                ]
+                'data'    => $payload,
             ]);
 
         } catch (\Exception $e) {
