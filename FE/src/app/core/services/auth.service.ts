@@ -28,6 +28,10 @@ export interface AuthResponse {
   message: string;
   user?: User;
   access_token?: string;
+  /**
+   * @deprecated El backend ya no devuelve refresh_token en el body desde el refactor
+   * a cookie httpOnly. La propiedad queda solo para retrocompatibilidad de tipos.
+   */
   refresh_token?: string;
   expires_in?: number;
   requires_email?: boolean;
@@ -44,18 +48,22 @@ export interface RefreshResponse {
   expires_in: number;
 }
 
+// Constantes de persistencia. access_token vive en sessionStorage (más corto que
+// localStorage frente a XSS persistente). refresh_token NO se guarda — vive en cookie httpOnly.
+const ACCESS_TOKEN_KEY = 'access_token';
+const TOKEN_EXPIRATION_KEY = 'token_expiration';
+const CURRENT_USER_KEY = 'current_user';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private accessTokenSubject = new BehaviorSubject<string | null>(null);
-  private refreshTokenSubject = new BehaviorSubject<string | null>(null);
   private tokenExpirationSubject = new BehaviorSubject<number | null>(null);
 
   public currentUser$ = this.currentUserSubject.asObservable();
   public accessToken$ = this.accessTokenSubject.asObservable();
-  public refreshToken$ = this.refreshTokenSubject.asObservable();
   public tokenExpiration$ = this.tokenExpirationSubject.asObservable();
 
   private isRefreshing = false;
@@ -75,28 +83,35 @@ export class AuthService {
   }
 
   /**
-   * Cargar autenticación almacenada
+   * Cargar autenticación almacenada al bootstrap.
+   *
+   * access_token vive en sessionStorage (se pierde al cerrar tab/browser).
+   * refresh_token vive en cookie httpOnly — inaccesible desde JS pero el browser
+   * la manda automáticamente en /api/auth/refresh.
+   *
+   * Estrategia:
+   *   - Si hay access_token válido en sessionStorage → usar.
+   *   - Si está expirado → intentar refresh (browser envía la cookie).
+   *   - Si no hay nada en sessionStorage tampoco intentamos refresh
+   *     (current_user que necesitamos persistir aparte si quisiéramos auto-login
+   *     en tab nueva — por ahora forzamos login en F5 sin access_token).
    */
   private loadStoredAuth(): void {
-    const accessToken = localStorage.getItem('access_token');
-    const refreshToken = localStorage.getItem('refresh_token');
-    const userStr = localStorage.getItem('current_user');
-    const expirationStr = localStorage.getItem('token_expiration');
+    const accessToken = sessionStorage.getItem(ACCESS_TOKEN_KEY);
+    const userStr = sessionStorage.getItem(CURRENT_USER_KEY);
+    const expirationStr = sessionStorage.getItem(TOKEN_EXPIRATION_KEY);
 
-    if (accessToken && refreshToken && userStr && expirationStr) {
+    if (accessToken && userStr && expirationStr) {
       const user = JSON.parse(userStr);
       const expiration = parseInt(expirationStr);
 
-      // Verificar si el token no ha expirado
       if (Date.now() < expiration) {
         this.accessTokenSubject.next(accessToken);
-        this.refreshTokenSubject.next(refreshToken);
         this.currentUserSubject.next(user);
         this.tokenExpirationSubject.next(expiration);
         this.apiConfigService.load();
       } else {
-        // Token expirado, intentar renovar
-        this.refreshAccessToken();
+        this.refreshAccessToken().subscribe({ error: () => this.clearLocalSession() });
       }
     }
   }
@@ -111,7 +126,7 @@ export class AuthService {
     // Enviar como email o username según corresponda
     const payload = { email: identifier, password };
 
-    return this.http.post<AuthResponse>(url, payload).pipe(
+    return this.http.post<AuthResponse>(url, payload, { withCredentials: true }).pipe(
       switchMap(response => {
         if (!response.success || !response.user || !response.access_token) {
           return of(response);
@@ -165,48 +180,28 @@ export class AuthService {
   }
 
   /**
-   * Renovar access token
+   * Renovar access token usando el refresh cookie httpOnly.
+   * El body va vacío; el browser adjunta la cookie automáticamente vía withCredentials.
+   * El interceptor (auth.interceptor.ts) ya serializa llamadas concurrentes con su
+   * propio ReplaySubject, por lo que aquí dejamos solo la lógica básica.
    */
   refreshAccessToken(): Observable<RefreshResponse> {
-    if (this.isRefreshing) {
-      // Si ya se está renovando, esperar
-      return this.refreshTokenSubject$.pipe(
-        switchMap(token => {
-          if (token) {
-            return this.http.post<RefreshResponse>(
-              this.apiBaseService.buildAuthUrl('/refresh'),
-              { refresh_token: token }
-            );
-          } else {
-            return throwError(() => new Error('No refresh token available'));
-          }
-        })
-      );
-    }
-
     this.isRefreshing = true;
-    const refreshToken = this.getRefreshToken();
-
-    if (!refreshToken) {
-      this.isRefreshing = false;
-      return throwError(() => new Error('No refresh token available'));
-    }
 
     return this.http.post<RefreshResponse>(
       this.apiBaseService.buildAuthUrl('/refresh'),
-      { refresh_token: refreshToken }
+      {},
+      { withCredentials: true }
     ).pipe(
       tap(response => {
         if (response.success) {
           this.updateAccessToken(response.access_token, response.expires_in);
         }
         this.isRefreshing = false;
-        this.refreshTokenSubject$.next(response.success ? response.access_token : null);
       }),
       catchError(error => {
         this.isRefreshing = false;
-        this.refreshTokenSubject$.next(null);
-        this.logout(); // Si falla el refresh, hacer logout
+        this.clearLocalSession();
         return throwError(() => error);
       })
     );
@@ -218,7 +213,7 @@ export class AuthService {
   logout(): Observable<any> {
     const url = this.apiBaseService.buildAuthUrl('/logout');
 
-    return this.http.post(url, {}).pipe(
+    return this.http.post(url, {}, { withCredentials: true }).pipe(
       tap(() => {
         // Log de logout antes de limpiar datos
         const currentUser = this.currentUserSubject.value;
@@ -238,58 +233,60 @@ export class AuthService {
   }
 
   /**
-   * Establecer datos de autenticación
+   * Persiste datos de autenticación en sessionStorage (más restringido que localStorage).
+   * El refresh_token NO se persiste — vive solo en cookie httpOnly que el browser maneja.
    */
-  private setAuthData(response: AuthResponse & { user: User; access_token: string; refresh_token: string; expires_in: number }): void {
+  private setAuthData(response: AuthResponse & { user: User; access_token: string; expires_in: number }): void {
     const expiration = Date.now() + (response.expires_in * 1000);
 
-    localStorage.setItem('access_token', response.access_token);
-    localStorage.setItem('refresh_token', response.refresh_token);
-    localStorage.setItem('current_user', JSON.stringify(response.user));
-    localStorage.setItem('token_expiration', expiration.toString());
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
+    sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(response.user));
+    sessionStorage.setItem(TOKEN_EXPIRATION_KEY, expiration.toString());
 
     this.accessTokenSubject.next(response.access_token);
-    this.refreshTokenSubject.next(response.refresh_token);
     this.currentUserSubject.next(response.user);
     this.tokenExpirationSubject.next(expiration);
   }
 
   /**
-   * Actualizar access token
+   * Refresh exitoso: actualiza access_token sin tocar user/refresh.
    */
   private updateAccessToken(accessToken: string, expiresIn: number): void {
     const expiration = Date.now() + (expiresIn * 1000);
 
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('token_expiration', expiration.toString());
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    sessionStorage.setItem(TOKEN_EXPIRATION_KEY, expiration.toString());
 
     this.accessTokenSubject.next(accessToken);
     this.tokenExpirationSubject.next(expiration);
   }
 
-  /**
-   * Limpiar datos de autenticación
-   */
   private clearAuthData(): void {
     this.clearLocalSession();
   }
 
   /**
-   * Limpiar sesión local (auth, agencias, compañías). Usado en logout y cuando el interceptor redirige al login (401).
+   * Limpia sesión local (auth, agencias, compañías). Usado en logout y por el
+   * interceptor cuando el refresh con cookie falla.
+   * La cookie httpOnly del refresh_token se limpia BE-side en /auth/logout y
+   * /auth/refresh (cuando fallan); el browser no la expone para borrarla desde JS.
    */
   clearLocalSession(): void {
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(CURRENT_USER_KEY);
+    sessionStorage.removeItem(TOKEN_EXPIRATION_KEY);
+    // Migración: limpiamos también las claves viejas en localStorage para evitar
+    // que residuos confundan la sesión nueva.
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('current_user');
     localStorage.removeItem('token_expiration');
 
-    // Limpiar agencias, compañías y config del localStorage en logout
     this.defaultAgencyService.limpiarTodoEnLogout();
     this.companyService.limpiarCacheEnLogout();
     this.apiConfigService.clearCache();
 
     this.accessTokenSubject.next(null);
-    this.refreshTokenSubject.next(null);
     this.currentUserSubject.next(null);
     this.tokenExpirationSubject.next(null);
   }
@@ -302,10 +299,11 @@ export class AuthService {
   }
 
   /**
-   * Obtener refresh token actual
+   * @deprecated El refresh_token vive en cookie httpOnly, inaccesible desde JS.
+   * Mantenemos el método para no romper callers viejos, pero retorna null.
    */
   getRefreshToken(): string | null {
-    return this.refreshTokenSubject.value;
+    return null;
   }
 
   /**

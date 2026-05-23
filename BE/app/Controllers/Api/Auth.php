@@ -8,11 +8,44 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 class Auth extends BaseController
 {
+    private const REFRESH_COOKIE_NAME = 'refresh_token';
+    private const REFRESH_COOKIE_PATH = '/api/auth';
+
     protected $authModel;
-    
+
     public function __construct()
     {
         $this->authModel = new AuthModel();
+    }
+
+    /**
+     * Set-Cookie httpOnly Secure SameSite=Strict para el refresh_token.
+     * Acceso JS bloqueado → mitiga robo vía XSS.
+     */
+    private function setRefreshCookie(string $token, int $ttlSeconds): void
+    {
+        $this->response->setCookie([
+            'name'     => self::REFRESH_COOKIE_NAME,
+            'value'    => $token,
+            'expire'   => $ttlSeconds,
+            'path'     => self::REFRESH_COOKIE_PATH,
+            'secure'   => ENVIRONMENT === 'production',
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+
+    private function clearRefreshCookie(): void
+    {
+        $this->response->setCookie([
+            'name'     => self::REFRESH_COOKIE_NAME,
+            'value'    => '',
+            'expire'   => -3600,
+            'path'     => self::REFRESH_COOKIE_PATH,
+            'secure'   => ENVIRONMENT === 'production',
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
     }
     
     /**
@@ -41,7 +74,9 @@ class Auth extends BaseController
             $result = $this->authModel->authenticate($identifier, $password);
             
             if ($result['success']) {
-                // Login exitoso
+                // refresh_token va SOLO en cookie httpOnly — nunca al body.
+                $this->setRefreshCookie($result['refresh_token'], (int) ($result['expires_in_refresh'] ?? 2592000));
+
                 return $this->response
                     ->setStatusCode(200)
                     ->setJSON([
@@ -50,7 +85,6 @@ class Auth extends BaseController
                         'login_method' => $result['login_method'] ?? 'email',
                         'user' => $result['user'],
                         'access_token' => $result['access_token'],
-                        'refresh_token' => $result['refresh_token'],
                         'expires_in' => $result['expires_in']
                     ]);
             } else {
@@ -215,27 +249,37 @@ class Auth extends BaseController
     public function refresh()
     {
         try {
-            $data = $this->request->getJSON(true) ?? $this->request->getPost();
-            $refreshToken = $data['refresh_token'] ?? null;
-            
+            // Primario: cookie httpOnly. Fallback temporal: body (clientes viejos).
+            $refreshToken = $this->request->getCookie(self::REFRESH_COOKIE_NAME);
+            if (!$refreshToken) {
+                $data = $this->request->getJSON(true) ?? $this->request->getPost();
+                $refreshToken = $data['refresh_token'] ?? null;
+            }
+
             if (!$refreshToken || !is_string($refreshToken)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Refresh token requerido'
                 ])->setStatusCode(400);
             }
-            
+
             $authModel = new AuthModel();
             $result = $authModel->refreshAccessToken($refreshToken);
-            
+
             if ($result['success']) {
+                // Rotación: emitir el nuevo refresh como cookie nueva (NO en body).
+                if (!empty($result['refresh_token'])) {
+                    $this->setRefreshCookie($result['refresh_token'], 2592000);
+                    unset($result['refresh_token']);
+                }
                 return $this->response->setJSON($result);
             } else {
+                // Refresh fallido → limpia cookie corrupta/vieja
+                $this->clearRefreshCookie();
                 return $this->response->setJSON($result)->setStatusCode(401);
             }
-            
-        } catch (\Exception $e) {
 
+        } catch (\Exception $e) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error interno del servidor'
@@ -259,10 +303,11 @@ class Auth extends BaseController
                 ])->setStatusCode(401);
             }
             
-            // Revocar refresh token
+            // Revocar refresh token y limpiar cookie del browser
             $authModel = new AuthModel();
             $authModel->revokeRefreshToken($currentUser['user_id']);
-            
+            $this->clearRefreshCookie();
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Logout exitoso'

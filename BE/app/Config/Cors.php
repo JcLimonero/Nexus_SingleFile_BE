@@ -11,6 +11,19 @@ use CodeIgniter\Config\BaseConfig;
  */
 class Cors extends BaseConfig
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Reemplaza allowedOrigins con la whitelist desde CORS_ALLOWED_ORIGINS (CSV).
+        // Required: con cookies httpOnly NO se puede usar '*' (browsers lo rechazan
+        // cuando supportsCredentials=true).
+        $env = env('CORS_ALLOWED_ORIGINS', '');
+        if ($env !== '') {
+            $this->default['allowedOrigins'] = array_values(array_filter(array_map('trim', explode(',', (string) $env))));
+        }
+    }
+
     /**
      * The default CORS configuration.
      *
@@ -34,7 +47,9 @@ class Cors extends BaseConfig
          *   - ['http://localhost:8080']
          *   - ['https://www.example.com']
          */
-        'allowedOrigins' => ['*'],
+        // Whitelist explícita — sobrescrita en __construct desde CORS_ALLOWED_ORIGINS env.
+        // Si el env está vacío, se queda con este default seguro para dev local.
+        'allowedOrigins' => ['http://localhost:4200'],
 
         /**
          * Origin regex patterns for the `Access-Control-Allow-Origin` header.
@@ -57,7 +72,7 @@ class Cors extends BaseConfig
          *
          * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
          */
-        'supportsCredentials' => false,
+        'supportsCredentials' => true,
 
         /**
          * Set headers to allow.

@@ -18,6 +18,10 @@
 #   pdfGenerator.workspaceEmail = <email>
 #   pdfGenerator.templateIdIdentificacionMoral  = 1606181
 #   pdfGenerator.templateIdIdentificacionFisico = 1606176
+#   CORS_ALLOWED_ORIGINS       = https://<vercel-domain>.vercel.app
+#       (CSV. Required since auth migró a cookies httpOnly: browsers
+#        rechazan '*' con supportsCredentials=true. Incluir todos los
+#        FE deployments: prod, staging, dev.)
 
 [build]
 builder = "dockerfile"
