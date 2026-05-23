@@ -58,6 +58,35 @@
 
   /* Divisores y bordes */
   --vex-foreground-divider: rgba(104, 142, 175, 0.35);
+
+  // Tokens semánticos — usar en lugar de text-red-*/bg-green-* hardcoded.
+  // Cada uno tiene: fondo suave (-bg), borde (-border), texto fuerte (-fg),
+  // ícono (-icon). Pensados para banners, chips, alerts y estados de
+  // formulario. Mapeo de referencia (emerald-/orange-/red-/blue-/gray- de Tailwind).
+  --app-success-bg:      #ECFDF5;
+  --app-success-border:  #A7F3D0;
+  --app-success-fg:      #065F46;
+  --app-success-icon:    #059669;
+
+  --app-warning-bg:      #FFF7ED;
+  --app-warning-border:  #FED7AA;
+  --app-warning-fg:      #9A3412;
+  --app-warning-icon:    #D97706;
+
+  --app-danger-bg:       #FEF2F2;
+  --app-danger-border:   #FECACA;
+  --app-danger-fg:       #991B1B;
+  --app-danger-icon:     #DC2626;
+
+  --app-info-bg:         #EFF6FF;
+  --app-info-border:     #BFDBFE;
+  --app-info-fg:         #1E40AF;
+  --app-info-icon:       #2563EB;
+
+  --app-neutral-bg:      #F3F4F6;
+  --app-neutral-border:  #E5E7EB;
+  --app-neutral-fg:      #1F2937;
+  --app-neutral-icon:    #6B7280;
 }
 
 html, body {
