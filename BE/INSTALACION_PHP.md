@@ -1,7 +1,11 @@
 # Instalación de PHP para el Backend
 
+## Versiones soportadas
+CodeIgniter 4.7 (versión actual del proyecto, ver `composer.lock`) requiere **PHP 8.1, 8.2, 8.3, 8.4 o 8.5**.
+Recomendado para producción: **PHP 8.3 LTS** o **PHP 8.4**.
+
 ## Problema
-PHP no está instalado o no está en el PATH del sistema. El backend de CodeIgniter 4 requiere PHP 8.1 o superior.
+PHP no está instalado o no está en el PATH del sistema.
 
 ## Soluciones
 
