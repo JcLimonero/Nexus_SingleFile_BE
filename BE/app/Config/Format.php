@@ -61,4 +61,10 @@ class Format extends BaseConfig
         'application/xml'  => 0,
         'text/xml'         => 0,
     ];
+
+    /**
+     * Profundidad máxima de json_encode (PHP default 512). Requerido por CI4 4.7+
+     * JSONFormatter::format().
+     */
+    public int $jsonEncodeDepth = 512;
 }

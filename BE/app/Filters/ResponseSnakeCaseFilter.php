@@ -27,7 +27,10 @@ class ResponseSnakeCaseFilter implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        if (env('RESPONSE_SNAKE_CASE', 'false') !== 'true') {
+        // CI4 env() convierte 'true'/'false' a boolean automáticamente; aceptamos
+        // tanto el bool como el string por seguridad.
+        $flag = env('RESPONSE_SNAKE_CASE', false);
+        if ($flag !== true && $flag !== 'true') {
             return;
         }
 

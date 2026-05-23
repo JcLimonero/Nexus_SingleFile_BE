@@ -17,7 +17,8 @@ import { MatButtonModule } from '@angular/material/button';
       [class.error-banner--warn]="severity === 'warn'"
     >
       <mat-icon
-        svgIcon="mat:error_outline"
+        *ngIf="icon"
+        [svgIcon]="icon"
         class="error-banner__icon"
         aria-hidden="true"
       ></mat-icon>
@@ -75,6 +76,7 @@ import { MatButtonModule } from '@angular/material/button';
   ]
 })
 export class ErrorBannerComponent {
+  @Input() icon = 'mat:error_outline';
   @Input() title = '';
   @Input() message = '';
   @Input() severity: 'error' | 'warn' = 'error';
