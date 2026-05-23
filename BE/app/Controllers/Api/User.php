@@ -4,11 +4,14 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Models\UserModel;
+use App\Traits\SnakeKeys;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 
 class User extends BaseController
 {
+    use SnakeKeys;
+
     protected $userModel;
 
     public function __construct()
@@ -107,7 +110,7 @@ class User extends BaseController
                 $users = $builder->get()->getResultArray();
             }
 
-            return $this->response->setJSON([
+            return $this->response->setJSON($this->snakeKeys([
                 'success' => true,
                 'message' => 'Usuarios obtenidos exitosamente',
                 'data' => [
@@ -120,7 +123,7 @@ class User extends BaseController
                     'sort_order' => $sortOrder,
                     'filter_enabled' => $enabled
                 ]
-            ]);
+            ]));
 
         } catch (\Exception $e) {
 
@@ -270,11 +273,11 @@ class User extends BaseController
                 ])->setStatusCode(404);
             }
 
-            return $this->response->setJSON([
+            return $this->response->setJSON($this->snakeKeys([
                 'success' => true,
                 'message' => 'Usuario obtenido exitosamente',
                 'data' => $user
-            ]);
+            ]));
 
         } catch (\Exception $e) {
 
