@@ -25,6 +25,7 @@ import { NexFileClientService, NexFileResponse } from '../../../core/services/ne
 import { NexFileClientImportService, NexFileClientImportResponse } from '../../../core/services/nexfile-client-import.service';
 import { ApiConfigService } from '../../../core/services/api-config.service';
 import { snakeFileToFile } from '../../../core/utils/api-mappers';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
@@ -151,7 +152,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
     private apiConfig: ApiConfigService,
     private route: ActivatedRoute,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -2107,12 +2109,15 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Confirmar eliminación
-    const confirmMessage = `¿Estás seguro de que deseas eliminar el pedido ${file.numeroPedido}?\n\nEsta acción eliminará:\n- El expediente completo\n- Todos los documentos asociados\n\nEsta acción no se puede deshacer.`;
-    
-    if (confirm(confirmMessage)) {
-      this.deleteFileFromServer(file.fileId);
-    }
+    this.confirmDialog.confirm({
+      title: 'Eliminar pedido permanentemente',
+      message: `¿Eliminar el pedido ${file.numeroPedido}?`,
+      details: 'Esta acción eliminará el expediente completo y todos los documentos asociados. No se puede deshacer.',
+      variant: 'danger',
+      confirmText: 'Eliminar permanentemente'
+    }).subscribe(ok => {
+      if (ok) this.deleteFileFromServer(file.fileId);
+    });
   }
 
   private deleteFileFromServer(fileId: string): void {

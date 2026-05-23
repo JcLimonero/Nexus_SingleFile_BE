@@ -17,6 +17,7 @@ import { ProcesoService } from '../../../../core/services/proceso.service';
 import { AgencyService } from '../../../../core/services/agency.service';
 import { CostumerTypeService } from '../../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { AddToConfigurationsDialogComponent } from '../add-to-configurations-dialog/add-to-configurations-dialog.component';
 
 export interface DocumentTypeConfigurationsDialogData {
@@ -276,7 +277,8 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
     private costumerTypeService: CostumerTypeService,
     private tipoOperacionService: TipoOperacionService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private confirmDialog: ConfirmDialogService
   ) {
     this.allConfigurations = data.configurations || [];
     this.filteredConfigurations = [...this.allConfigurations];
@@ -391,32 +393,37 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
   }
 
   deleteConfiguration(config: DocumentTypeConfiguration): void {
-    if (!confirm(`¿Estás seguro de que quieres eliminar este tipo de documento de la configuración?\n\nAgencia: ${config.agencia_name}\nProceso: ${config.proceso_name}\nTipo Cliente: ${config.tipo_cliente_name}\nTipo Operación: ${config.tipo_operacion_name}`)) {
-      return;
-    }
+    const details = `Agencia: ${config.agencia_name}\nProceso: ${config.proceso_name}\nTipo Cliente: ${config.tipo_cliente_name}\nTipo Operación: ${config.tipo_operacion_name}`;
 
-    const configurationId = config.id_configuration_process_document_type;
-    if (!configurationId) {
-      this.snackBar.open('Error: No se pudo identificar la configuración', 'Error', { duration: 3000 });
-      return;
-    }
+    this.confirmDialog.confirm({
+      title: 'Eliminar de la configuración',
+      message: '¿Eliminar este tipo de documento de la configuración?',
+      details,
+      variant: 'danger',
+      confirmText: 'Eliminar'
+    }).subscribe(ok => {
+      if (!ok) return;
 
-    this.documentTypeService.deleteConfiguration(this.data.documentType.id!, configurationId).subscribe({
-      next: (response: any) => {
-        if (response?.success) {
-          // Eliminar de las listas locales
-          this.allConfigurations = this.allConfigurations.filter(c => c.id_configuration_process_document_type !== configurationId);
-          this.applyFilters(); // Reaplicar filtros para actualizar la vista
-          
-          this.snackBar.open('Tipo de documento eliminado de la configuración exitosamente', 'Éxito', { duration: 3000 });
-        } else {
-          this.snackBar.open(response?.message || 'Error al eliminar la configuración', 'Error', { duration: 3000 });
-        }
-      },
-      error: (error: any) => {
-
-        this.snackBar.open('Error al eliminar la configuración', 'Error', { duration: 3000 });
+      const configurationId = config.id_configuration_process_document_type;
+      if (!configurationId) {
+        this.snackBar.open('Error: No se pudo identificar la configuración', 'Error', { duration: 3000 });
+        return;
       }
+
+      this.documentTypeService.deleteConfiguration(this.data.documentType.id!, configurationId).subscribe({
+        next: (response: any) => {
+          if (response?.success) {
+            this.allConfigurations = this.allConfigurations.filter(c => c.id_configuration_process_document_type !== configurationId);
+            this.applyFilters();
+            this.snackBar.open('Tipo de documento eliminado de la configuración exitosamente', 'Éxito', { duration: 3000 });
+          } else {
+            this.snackBar.open(response?.message || 'Error al eliminar la configuración', 'Error', { duration: 3000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Error al eliminar la configuración', 'Error', { duration: 3000 });
+        }
+      });
     });
   }
 

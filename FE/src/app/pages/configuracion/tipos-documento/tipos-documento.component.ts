@@ -18,6 +18,7 @@ import { DocumentType, DocumentTypeResponse } from '../../../core/interfaces/doc
 import { FASES_OCULTAS } from '../../../core/constants/catalogs';
 import { DocumentTypeService } from '../../../core/services/document-type.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { DocumentTypeEditDialogComponent } from './document-type-edit-dialog/document-type-edit-dialog.component';
 import { DocumentTypeConfigurationsDialogComponent } from './document-type-configurations-dialog/document-type-configurations-dialog.component';
 import { AddToConfigurationsDialogComponent } from './add-to-configurations-dialog/add-to-configurations-dialog.component';
@@ -83,7 +84,8 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
     private documentTypeService: DocumentTypeService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirmDialog: ConfirmDialogService
   ) { }
 
   ngOnInit(): void {
@@ -268,28 +270,26 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
       this.snackBar.open('El tipo de documento de Liquidación no puede eliminarse', 'Info', { duration: 3000 });
       return;
     }
-    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de documento "${documentType.name}"?`)) {
+    this.confirmDialog.confirmDelete(
+      `¿Eliminar el tipo de documento "${documentType.name}"?`,
+      'Eliminar tipo de documento'
+    ).subscribe(ok => {
+      if (!ok) return;
       this.documentTypeService.deleteDocumentType(documentType.id!).subscribe({
         next: (response) => {
           if (response.success) {
             this.tiposDocumento = this.tiposDocumento.filter(t => t.id !== documentType.id);
             this.applyFilter();
-            this.snackBar.open('Tipo de documento eliminado exitosamente', 'Éxito', {
-              duration: 2000
-            });
+            this.snackBar.open('Tipo de documento eliminado exitosamente', 'Éxito', { duration: 2000 });
           } else {
-            this.snackBar.open(response.message || 'Error al eliminar tipo de documento', 'Error', {
-              duration: 3000
-            });
+            this.snackBar.open(response.message || 'Error al eliminar tipo de documento', 'Error', { duration: 3000 });
           }
         },
-        error: (error) => {
-          this.snackBar.open('Error al eliminar tipo de documento', 'Error', {
-            duration: 3000
-          });
+        error: () => {
+          this.snackBar.open('Error al eliminar tipo de documento', 'Error', { duration: 3000 });
         }
       });
-    }
+    });
   }
 
   toggleStatus(documentType: DocumentType): void {

@@ -21,6 +21,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 
 import { ActivityLogService, ActivityLog, ActivityLogFilters, ActivityLogStats } from '../../../core/services/activity-log.service';
 import { ExportService } from '../../../core/services/export.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-logs-activity',
@@ -86,7 +87,8 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
     private activityLogService: ActivityLogService,
     private exportService: ExportService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -258,14 +260,24 @@ export class LogsActivityComponent implements OnInit, AfterViewInit {
    * Exportar todos los logs (no solo los de la página actual)
    */
   exportAllLogs(): void {
-    // Confirmar antes de exportar todos los logs
-    const confirmMessage = `¿Estás seguro de que quieres exportar TODOS los logs?\n\n` +
-                          `• Total de logs: ${this.totalLogs}\n` +
-                          `• Filtros aplicados: ${this.getActiveFiltersText()}\n` +
-                          `• El archivo puede ser muy grande\n\n` +
-                          `¿Continuar con la exportación?`;
+    const details = `• Total de logs: ${this.totalLogs}\n` +
+                    `• Filtros aplicados: ${this.getActiveFiltersText()}\n` +
+                    `• El archivo puede ser muy grande`;
 
-    if (confirm(confirmMessage)) {
+    this.confirmDialog.confirm({
+      title: 'Exportar todos los logs',
+      message: '¿Exportar TODOS los logs a Excel?',
+      details,
+      variant: 'warning',
+      confirmText: 'Exportar'
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.runExportAllLogs();
+    });
+  }
+
+  private runExportAllLogs(): void {
+    {
       try {
         this.loading = true;
         

@@ -15,6 +15,7 @@ import { User, UserCreateRequest, UserUpdateRequest, UserRole, Agency } from '..
 import { UserService } from '../../../../core/services/user.service';
 import { DefaultAgencyService } from '../../../../core/services/default-agency.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-user-edit-dialog',
@@ -66,7 +67,8 @@ export class UserEditDialogComponent implements OnInit {
     private authService: AuthService,
     private dialogRef: MatDialogRef<UserEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { user: User; mode: 'create' | 'edit' },
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirmDialog: ConfirmDialogService
   ) { }
 
   ngOnInit(): void {
@@ -249,10 +251,16 @@ export class UserEditDialogComponent implements OnInit {
     const currentStatus = this.userForm.get('enabled')?.value === '1';
     const newStatus = !currentStatus;
     const actionText = newStatus ? 'habilitar' : 'deshabilitar';
-    
-    if (confirm(`¿Estás seguro de que quieres ${actionText} al usuario "${this.userForm.get('name')?.value}"?`)) {
-      this.onStatusChange(newStatus);
-    }
+    const userName = this.userForm.get('name')?.value;
+
+    this.confirmDialog.confirm({
+      title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} usuario`,
+      message: `¿${actionText.charAt(0).toUpperCase() + actionText.slice(1)} al usuario "${userName}"?`,
+      variant: newStatus ? 'info' : 'warning',
+      confirmText: actionText.charAt(0).toUpperCase() + actionText.slice(1)
+    }).subscribe(ok => {
+      if (ok) this.onStatusChange(newStatus);
+    });
   }
 
   private loadRoles(): void {

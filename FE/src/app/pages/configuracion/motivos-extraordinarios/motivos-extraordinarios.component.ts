@@ -17,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { FileExtraordinaryReason, FileExtraordinaryReasonService, FileExtraordinaryReasonFilters } from 'src/app/core/services/file-extraordinary-reason.service';
 import { MotivoExtraordinarioEditDialogComponent } from './motivo-extraordinario-edit-dialog/motivo-extraordinario-edit-dialog.component';
 
@@ -64,7 +65,8 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
     private fileExtraordinaryReasonService: FileExtraordinaryReasonService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -245,18 +247,21 @@ export class MotivosExtraordinariosComponent implements OnInit, AfterViewInit {
    * Eliminar motivo extraordinario
    */
   deleteFileExtraordinaryReason(fileExtraordinaryReason: FileExtraordinaryReason): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el motivo "${fileExtraordinaryReason.Name}"?`)) {
+    this.confirmDialog.confirmDelete(
+      `¿Eliminar el motivo "${fileExtraordinaryReason.Name}"?`,
+      'Eliminar motivo extraordinario'
+    ).subscribe(ok => {
+      if (!ok) return;
       this.fileExtraordinaryReasonService.deleteFileExtraordinaryReason(fileExtraordinaryReason.Id).subscribe({
         next: (response: any) => {
           this.snackBar.open('Motivo extraordinario eliminado exitosamente', 'Éxito', { duration: 2000 });
           this.loadData();
         },
         error: (error: any) => {
-
           this.snackBar.open('Error al eliminar el motivo extraordinario', 'Error', { duration: 3000 });
         }
       });
-    }
+    });
   }
 
   /**

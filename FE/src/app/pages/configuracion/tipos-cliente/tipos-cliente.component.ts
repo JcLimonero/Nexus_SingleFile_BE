@@ -17,6 +17,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CostumerType, CostumerTypeResponse } from '../../../core/interfaces/costumer-type.interface';
 import { AuthService } from '../../../core/services/auth.service';
 import { CostumerTypeService } from '../../../core/services/costumer-type.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { CostumerTypeEditDialogComponent } from './costumer-type-edit-dialog/costumer-type-edit-dialog.component';
 
 @Component({
@@ -58,6 +59,7 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
     private costumerTypeService: CostumerTypeService,
     private authService: AuthService,
     private dialog: MatDialog,
+    private confirmDialog: ConfirmDialogService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) { }
@@ -228,7 +230,11 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
   }
 
   deleteCostumerType(costumerType: CostumerType): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de cliente "${costumerType.name}"?`)) {
+    this.confirmDialog.confirmDelete(
+      `¿Eliminar el tipo de cliente "${costumerType.name}"?`,
+      'Eliminar tipo de cliente'
+    ).subscribe(ok => {
+      if (!ok) return;
       this.costumerTypeService.deleteCostumerType(costumerType.id!).subscribe({
         next: (response) => {
           if (response.success) {
@@ -249,7 +255,7 @@ export class TiposClienteComponent implements OnInit, AfterViewInit {
           });
         }
       });
-    }
+    });
   }
 
   toggleStatus(costumerType: CostumerType): void {

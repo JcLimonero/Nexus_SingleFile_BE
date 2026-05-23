@@ -18,6 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MotivoEditDialogComponent, MotivoEditData } from './motivo-edit-dialog/motivo-edit-dialog.component';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { FileReasonService, FileReason, FileReasonFilters, FileReasonStats } from '../../../core/services/file-reason.service';
 
 @Component({
@@ -69,7 +70,8 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private confirmDialog: ConfirmDialogService
   ) { }
 
   ngOnInit(): void {
@@ -235,18 +237,21 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
    * Eliminar motivo
    */
   deleteFileReason(fileReason: FileReason): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el motivo "${fileReason.name}"?`)) {
+    this.confirmDialog.confirmDelete(
+      `¿Eliminar el motivo "${fileReason.name}"?`,
+      'Eliminar motivo de rechazo'
+    ).subscribe(ok => {
+      if (!ok) return;
       this.fileReasonService.deleteFileReason(fileReason.id).subscribe({
         next: (response) => {
           this.snackBar.open('Motivo eliminado exitosamente', 'Éxito', { duration: 2000 });
           this.loadData();
         },
         error: (error) => {
-
           this.snackBar.open('Error al eliminar el motivo', 'Error', { duration: 3000 });
         }
       });
-    }
+    });
   }
 
   /**

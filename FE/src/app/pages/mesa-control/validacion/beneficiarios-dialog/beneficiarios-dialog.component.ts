@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ValidacionService } from '../validacion.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 
 export interface BeneficiariosDialogData {
   cliente: any;
@@ -88,7 +89,8 @@ export class BeneficiariosDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<BeneficiariosDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: BeneficiariosDialogData,
     private validacionService: ValidacionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -167,16 +169,19 @@ export class BeneficiariosDialogComponent implements OnInit {
   }
 
   eliminar(b: Beneficiario): void {
-    if (!confirm(`¿Eliminar a ${b.Nombre}?`)) return;
-    this.validacionService.deleteBeneficiario(b.Id).subscribe({
-      next: () => {
-        this.cargarBeneficiarios();
-        this.snackBar.open('Beneficiario eliminado', 'Cerrar', { duration: 2000 });
-      },
-      error: (err) => {
-        this.snackBar.open(err?.message || 'Error al eliminar', 'Cerrar', { duration: 3000 });
-      }
-    });
+    this.confirmDialog.confirmDelete(`¿Eliminar al beneficiario "${b.Nombre}"?`, 'Eliminar beneficiario')
+      .subscribe(ok => {
+        if (!ok) return;
+        this.validacionService.deleteBeneficiario(b.Id).subscribe({
+          next: () => {
+            this.cargarBeneficiarios();
+            this.snackBar.open('Beneficiario eliminado', 'Cerrar', { duration: 2000 });
+          },
+          error: (err) => {
+            this.snackBar.open(err?.message || 'Error al eliminar', 'Cerrar', { duration: 3000 });
+          }
+        });
+      });
   }
 
   cerrar(): void {

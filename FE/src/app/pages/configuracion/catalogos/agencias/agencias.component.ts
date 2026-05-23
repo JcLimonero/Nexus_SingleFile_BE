@@ -21,6 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Agency } from '../../../../core/services/agency.service';
 import { AgencyService } from '../../../../core/services/agency.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { AgenciaEditDialogComponent, AgenciaEditDialogData } from './agencia-edit-dialog/agencia-edit-dialog.component';
 
 @Component({
@@ -70,7 +71,8 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -299,9 +301,13 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
    * Recargar datos con confirmación
    */
   refreshDataWithConfirmation(): void {
-    if (confirm('¿Estás seguro de que quieres recargar los datos? Esto sobrescribirá cualquier cambio no guardado.')) {
-      this.refreshData();
-    }
+    this.confirmDialog.confirmAction(
+      'Recargar sobrescribirá cualquier cambio no guardado.',
+      'Recargar datos',
+      'warning'
+    ).subscribe(ok => {
+      if (ok) this.refreshData();
+    });
   }
 
   /**
@@ -352,33 +358,29 @@ export class AgenciasComponent implements OnInit, AfterViewInit {
   deleteAgencia(agencia: Agency): void {
     const id = agencia.id ?? (agencia as any).Id;
     const name = agencia.name ?? (agencia as any).Name;
-    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE la agencia "${name}"?\n\nEsta acción no se puede deshacer.`)) {
-
+    this.confirmDialog.confirm({
+      title: 'Eliminar agencia permanentemente',
+      message: `¿Eliminar la agencia "${name}"?`,
+      details: 'Esta acción no se puede deshacer.',
+      variant: 'danger',
+      confirmText: 'Eliminar permanentemente'
+    }).subscribe(ok => {
+      if (!ok) return;
       this.agencyService.deleteAgency(Number(id), true).subscribe({
         next: (response: any) => {
-
           if (response.success) {
-
             this.agencias = this.agencias.filter(a => (a.id ?? (a as any).Id) !== id);
             this.applyFilter();
-            this.snackBar.open('Agencia eliminada exitosamente', 'Éxito', {
-              duration: 2000
-            });
+            this.snackBar.open('Agencia eliminada exitosamente', 'Éxito', { duration: 2000 });
           } else {
-
-            this.snackBar.open(response.message || 'Error al eliminar agencia', 'Error', {
-              duration: 3000
-            });
+            this.snackBar.open(response.message || 'Error al eliminar agencia', 'Error', { duration: 3000 });
           }
         },
-        error: (error: any) => {
-
-          this.snackBar.open('Error al eliminar agencia', 'Error', {
-            duration: 3000
-          });
+        error: () => {
+          this.snackBar.open('Error al eliminar agencia', 'Error', { duration: 3000 });
         }
       });
-    }
+    });
   }
 
 }

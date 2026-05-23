@@ -20,6 +20,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Proceso, ProcesoCreateRequest, ProcesoUpdateRequest } from '../../../../core/interfaces/proceso.interface';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { ProcesoService } from '../../../../core/services/proceso.service';
 import { ProcesoEditDialogComponent, ProcesoEditDialogData } from './proceso-edit-dialog/proceso-edit-dialog.component';
 
@@ -69,7 +70,8 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -264,33 +266,29 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
   }
 
   deleteProceso(proceso: Proceso): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar PERMANENTEMENTE el proceso "${proceso.name}"?\n\nEsta acción no se puede deshacer.`)) {
-
+    this.confirmDialog.confirm({
+      title: 'Eliminar proceso permanentemente',
+      message: `¿Eliminar el proceso "${proceso.name}"?`,
+      details: 'Esta acción no se puede deshacer.',
+      variant: 'danger',
+      confirmText: 'Eliminar permanentemente'
+    }).subscribe(ok => {
+      if (!ok) return;
       this.procesoService.deleteProceso(proceso.id!, true).subscribe({
         next: (response) => {
-
           if (response.success) {
-
             this.procesos = this.procesos.filter(p => p.id !== proceso.id);
             this.applyFilter();
-            this.snackBar.open('Proceso eliminado exitosamente', 'Éxito', {
-              duration: 2000
-            });
+            this.snackBar.open('Proceso eliminado exitosamente', 'Éxito', { duration: 2000 });
           } else {
-
-            this.snackBar.open(response.message || 'Error al eliminar proceso', 'Error', {
-              duration: 3000
-            });
+            this.snackBar.open(response.message || 'Error al eliminar proceso', 'Error', { duration: 3000 });
           }
         },
-        error: (error) => {
-
-          this.snackBar.open('Error al eliminar proceso', 'Error', {
-            duration: 3000
-          });
+        error: () => {
+          this.snackBar.open('Error al eliminar proceso', 'Error', { duration: 3000 });
         }
       });
-    }
+    });
   }
 
   getPageRange(): string {

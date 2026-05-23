@@ -19,6 +19,7 @@ import { User, UserResponse, UserRole, UserRoleResponse, Agency, AgencyResponse 
 import { UserService } from '../../../core/services/user.service';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
 import { UserAccessDialogComponent } from './user-access-dialog/user-access-dialog.component';
 
@@ -78,7 +79,8 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     private defaultAgencyService: DefaultAgencyService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirmDialog: ConfirmDialogService
   ) { }
 
   /** Roles 7 (Administrador) y 8 (Soporte) no se muestran en listados, excepto si quien está logueado es Administrador (7). */
@@ -407,13 +409,13 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     this.userService.checkUserCanDelete(user.id).subscribe({
       next: (response) => {
         if (response.canDelete) {
-          // Sin relaciones: permitir eliminación
-          const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el usuario "${userName}"?`);
-          if (confirmDelete) {
-            this.ejecutarEliminacion(user);
-          }
+          this.confirmDialog.confirmDelete(
+            `¿Eliminar el usuario "${userName}"?`,
+            'Eliminar usuario'
+          ).subscribe(ok => {
+            if (ok) this.ejecutarEliminacion(user);
+          });
         } else {
-          // Tiene relaciones: si ya está deshabilitado, solo avisar; si no, ofrecer deshabilitar
           const yaDeshabilitado = String(user.enabled) === '0';
           if (yaDeshabilitado) {
             this.snackBar.open('Este usuario ya está deshabilitado y no puede eliminarse por tener registros relacionados.', 'Cerrar', {
@@ -423,11 +425,15 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
             const relationsText = response.relations?.length
               ? response.relations.join(', ')
               : 'registros relacionados';
-            const msg = `Este usuario no puede eliminarse debido a que tiene ${relationsText} relacionados.\n\n¿Deseas deshabilitarlo en su lugar?`;
-            const confirmDisable = confirm(msg);
-            if (confirmDisable) {
-              this.ejecutarDeshabilitacion(user);
-            }
+            this.confirmDialog.confirm({
+              title: 'No se puede eliminar',
+              message: `Este usuario tiene ${relationsText} relacionados. ¿Deshabilitarlo en su lugar?`,
+              variant: 'warning',
+              confirmText: 'Deshabilitar',
+              cancelText: 'Cancelar'
+            }).subscribe(ok => {
+              if (ok) this.ejecutarDeshabilitacion(user);
+            });
           }
         }
       },

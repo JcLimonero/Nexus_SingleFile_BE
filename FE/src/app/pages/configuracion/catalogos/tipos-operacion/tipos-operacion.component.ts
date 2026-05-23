@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 import { TipoOperacion, TipoOperacionResponse } from '../../../../core/interfaces/tipo-operacion.interface';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
 import { TipoOperacionEditDialogComponent } from './tipo-operacion-edit-dialog/tipo-operacion-edit-dialog.component';
 
@@ -58,7 +59,8 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
     private tipoOperacionService: TipoOperacionService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private confirmDialog: ConfirmDialogService
   ) { }
 
   ngOnInit(): void {
@@ -193,7 +195,11 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
   }
 
   deleteTipoOperacion(tipoOperacion: TipoOperacion): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el tipo de operación "${tipoOperacion.name}"?`)) {
+    this.confirmDialog.confirmDelete(
+      `¿Eliminar el tipo de operación "${tipoOperacion.name}"?`,
+      'Eliminar tipo de operación'
+    ).subscribe(ok => {
+      if (!ok) return;
       this.tipoOperacionService.deleteTipoOperacion(tipoOperacion.id!).subscribe({
         next: (response) => {
           if (response.success) {
@@ -214,7 +220,7 @@ export class TiposOperacionComponent implements OnInit, AfterViewInit {
           });
         }
       });
-    }
+    });
   }
 
 }
