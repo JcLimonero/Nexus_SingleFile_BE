@@ -24,6 +24,7 @@ import { WidgetTodayCasesComponent } from '../components/widgets/widget-today-ca
 import { WidgetMonthlyCasesComponent } from '../components/widgets/widget-monthly-cases/widget-monthly-cases.component';
 import { WidgetTotalCasesComponent } from '../components/widgets/widget-total-cases/widget-total-cases.component';
 import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
+import { ErrorBannerComponent } from '../../../shared/error-banner/error-banner.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -54,6 +55,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    ErrorBannerComponent,
                 WidgetAssistantComponent,
                 WidgetQuickLineChartComponent,
                 WidgetLargeGoalChartComponent,
