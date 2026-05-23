@@ -1,6 +1,7 @@
 @import "~simplebar/dist/simplebar.css";
 // Estilos base del layout (internos)
 @import "./@vex/styles/core";
+@import "./@vex/styles/density";
 
 // Performance — apagar animación interna infinita del buffer-dots de mat-progress-bar
 .mdc-linear-progress__buffer-dots {

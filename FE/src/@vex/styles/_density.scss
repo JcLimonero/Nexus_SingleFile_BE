@@ -1,0 +1,39 @@
+// Sistema de densidad — apply at section/page level
+// Usage: <div class="density-compact">...</div>
+
+.density-compact {
+  .mat-mdc-form-field {
+    .mdc-text-field {
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+  }
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    padding: 4px 12px !important;
+  }
+  .mat-mdc-row,
+  .mat-mdc-header-row {
+    height: 36px !important;
+  }
+  .mat-mdc-button-base {
+    --mdc-text-button-container-height: 32px;
+    --mdc-filled-button-container-height: 32px;
+    --mdc-outlined-button-container-height: 32px;
+  }
+}
+
+.density-default {
+  // Hereda defaults de Material
+}
+
+.density-comfortable {
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    padding: 12px 20px !important;
+  }
+  .mat-mdc-row,
+  .mat-mdc-header-row {
+    height: 56px !important;
+  }
+}
