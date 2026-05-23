@@ -24,6 +24,7 @@ import { ClientSearchService, ClientSearchResponse } from '../../../core/service
 import { NexFileClientService, NexFileResponse } from '../../../core/services/nexfile-client.service';
 import { NexFileClientImportService, NexFileClientImportResponse } from '../../../core/services/nexfile-client-import.service';
 import { ApiConfigService } from '../../../core/services/api-config.service';
+import { snakeFileToFile } from '../../../core/utils/api-mappers';
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
@@ -975,10 +976,10 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data && response.data.files) {
-            // Normalizar nombres de propiedades a minúsculas para asegurar consistencia
-            this.files = response.data.files.map((file: any) => ({
+            // BE devuelve snake_case (file_id, numero_pedido, tipo_cliente...).
+            // snakeFileToFile crea aliases camelCase para no tener que reescribir el resto del componente.
+            this.files = response.data.files.map((file: any) => snakeFileToFile({
               ...file,
-              // Asegurar que los campos estén en minúsculas (por si vienen en mayúsculas)
               year: file.year || file.Year || null,
               modelo: file.modelo || file.Modelo || null,
               version: file.version || file.Version || null,
@@ -1283,9 +1284,9 @@ export class IntegracionComponent implements OnInit, OnDestroy {
         next: (response) => {
           let existingFiles: any[] = [];
           if (response && response.success && response.data && response.data.files) {
-            existingFiles = response.data.files;
+            existingFiles = (response.data.files as any[]).map(snakeFileToFile);
           }
-          
+
           // Filtrar pedidos de NexFile que no existen en la tabla de file
           const newOrders = this.filterNewOrders(NexFileOrders, existingFiles);
           

@@ -14,6 +14,7 @@ use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\CustomCors;
 use App\Filters\JwtAuthFilter;
+use App\Filters\ResponseSnakeCaseFilter;
 use App\Filters\ThrottleAuthFilter;
 
 class Filters extends BaseFilters
@@ -37,6 +38,7 @@ class Filters extends BaseFilters
         'customcors'    => CustomCors::class,
         'jwt'           => JwtAuthFilter::class,
         'throttle_auth' => ThrottleAuthFilter::class,
+        'snake_resp'    => ResponseSnakeCaseFilter::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
@@ -121,6 +123,11 @@ class Filters extends BaseFilters
         ],
         'throttle_auth' => [
             'before' => ['api/auth/login', 'api/auth/refresh', 'api/password/*'],
+        ],
+        // No-op a menos que RESPONSE_SNAKE_CASE=true en .env. Cuando se active,
+        // normaliza claves JSON de TODAS las responses /api/* a snake_case.
+        'snake_resp' => [
+            'after' => ['api/*'],
         ],
     ];
 }

@@ -20,6 +20,7 @@ import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { ApiConfigService } from '../../../core/services/api-config.service';
+import { snakeFileToFile } from '../../../core/utils/api-mappers';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
@@ -694,10 +695,9 @@ export class LiquidacionComponent implements OnInit, OnDestroy {
         next: (response) => {
 
           if (response && response.success && response.data && response.data.files) {
-            // Normalizar nombres de propiedades a minúsculas para asegurar consistencia (igual que en integración)
-            this.files = response.data.files.map((file: any) => ({
+            // BE devuelve snake_case; snakeFileToFile crea aliases camelCase para el resto del código.
+            this.files = response.data.files.map((file: any) => snakeFileToFile({
               ...file,
-              // Asegurar que los campos estén en minúsculas (por si vienen en mayúsculas)
               year: file.year || file.Year || null,
               modelo: file.modelo || file.Modelo || null,
               version: file.version || file.Version || null,

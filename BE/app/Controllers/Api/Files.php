@@ -3,11 +3,13 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Traits\DeletesFileDependents;
+use App\Traits\SnakeKeys;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class Files extends BaseController
 {
     use DeletesFileDependents;
+    use SnakeKeys;
 
     protected $db;
 
@@ -382,7 +384,7 @@ class Files extends BaseController
                 'success' => true,
                 'message' => 'Files obtenidos exitosamente',
                 'data' => [
-                    'files' => $results,
+                    'files' => $this->snakeKeys($results),
                     'total' => count($results)
                 ]
             ];

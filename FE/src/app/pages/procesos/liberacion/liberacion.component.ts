@@ -21,6 +21,7 @@ import { tap, catchError, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DefaultAgencyService } from '../../../core/services/default-agency.service';
 import { ApiConfigService } from '../../../core/services/api-config.service';
+import { snakeFileToFile } from '../../../core/utils/api-mappers';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
@@ -583,7 +584,8 @@ export class LiberacionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data && response.data.files) {
-            this.files = response.data.files;
+            // BE serializa snake_case → mapeo a aliases camelCase para el resto del componente.
+            this.files = (response.data.files as any[]).map(snakeFileToFile);
           } else {
             this.files = [];
           }

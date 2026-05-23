@@ -18,6 +18,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { snakeFileToFile } from '../../../core/utils/api-mappers';
 
 @Component({
   selector: 'app-order-selection-dialog',
@@ -660,7 +661,7 @@ export class OrderSelectionDialogComponent implements OnInit {
 
           let existingFiles: any[] = [];
           if (response && response.success && response.data && response.data.files) {
-            existingFiles = response.data.files;
+            existingFiles = (response.data.files as any[]).map(snakeFileToFile);
           }
 
           // Filtrar pedidos de NexFile que no existen en la tabla de file y eliminar duplicados
