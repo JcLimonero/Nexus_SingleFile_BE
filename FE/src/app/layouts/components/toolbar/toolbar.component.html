@@ -25,6 +25,8 @@
 
   <div class="toolbar__start flex items-center gap-2 min-w-0 flex-shrink-0">
 
+    <!-- Contexto: agencia activa (multi-agencia) -->
+    <app-toolbar-agency-context class="flex-shrink-0"></app-toolbar-agency-context>
 
     <div *ngIf="userVisible$ | async" class="toolbar__user flex-shrink-0">
       <vex-toolbar-user></vex-toolbar-user>
