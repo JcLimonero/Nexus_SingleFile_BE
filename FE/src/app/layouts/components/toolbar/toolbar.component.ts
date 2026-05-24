@@ -23,7 +23,6 @@ import { NavigationItem } from '../../../core/navigation/navigation-item.interfa
 import { checkRouterChildsData } from '../../../core/utils/check-router-childs-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BrandingService } from '../../../core/services/branding.service';
-import { ToolbarAgencyContextComponent } from './toolbar-agency-context/toolbar-agency-context.component';
 
 @Component({
   selector: 'vex-toolbar',
@@ -41,7 +40,6 @@ import { ToolbarAgencyContextComponent } from './toolbar-agency-context/toolbar-
     NavigationItemComponent,
     ToolbarNotificationsComponent,
     ToolbarUserComponent,
-    ToolbarAgencyContextComponent,
     NavigationComponent,
     AsyncPipe
   ]
