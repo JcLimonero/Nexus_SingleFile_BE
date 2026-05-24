@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
+class ComposerStaticInit8247f1cc0a96df9c2ede1b7960e7534a
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
@@ -106,10 +106,10 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
 
     public static $classMap = array (
         'App\\Commands\\Expedientes\\AutoReparar' => __DIR__ . '/../..' . '/app/Commands/Expedientes/AutoReparar.php',
+        'App\\Commands\\PruneActivityLog' => __DIR__ . '/../..' . '/app/Commands/PruneActivityLog.php',
         'App\\Controllers\\Api\\Agency' => __DIR__ . '/../..' . '/app/Controllers/Api/Agency.php',
         'App\\Controllers\\Api\\Analytics' => __DIR__ . '/../..' . '/app/Controllers/Api/Analytics.php',
         'App\\Controllers\\Api\\Auth' => __DIR__ . '/../..' . '/app/Controllers/Api/Auth.php',
-        'App\\Controllers\\Api\\BackblazeController' => __DIR__ . '/../..' . '/app/Controllers/Api/BackblazeController.php',
         'App\\Controllers\\Api\\BackblazeDirectUpload' => __DIR__ . '/../..' . '/app/Controllers/Api/BackblazeDirectUpload.php',
         'App\\Controllers\\Api\\Client' => __DIR__ . '/../..' . '/app/Controllers/Api/Client.php',
         'App\\Controllers\\Api\\ClientSearch' => __DIR__ . '/../..' . '/app/Controllers/Api/ClientSearch.php',
@@ -123,13 +123,11 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Controllers\\Api\\DocumentType' => __DIR__ . '/../..' . '/app/Controllers/Api/DocumentType.php',
         'App\\Controllers\\Api\\DocumentoRequerido' => __DIR__ . '/../..' . '/app/Controllers/Api/DocumentoRequerido.php',
         'App\\Controllers\\Api\\Documents' => __DIR__ . '/../..' . '/app/Controllers/Api/Documents.php',
-        'App\\Controllers\\Api\\File' => __DIR__ . '/../..' . '/app/Controllers/Api/File.php',
         'App\\Controllers\\Api\\FileExtraordinaryReason' => __DIR__ . '/../..' . '/app/Controllers/Api/FileExtraordinaryReason.php',
         'App\\Controllers\\Api\\FileReason' => __DIR__ . '/../..' . '/app/Controllers/Api/FileReason.php',
         'App\\Controllers\\Api\\FileStatus' => __DIR__ . '/../..' . '/app/Controllers/Api/FileStatus.php',
         'App\\Controllers\\Api\\FileSubStatus' => __DIR__ . '/../..' . '/app/Controllers/Api/FileSubStatus.php',
         'App\\Controllers\\Api\\Files' => __DIR__ . '/../..' . '/app/Controllers/Api/Files.php',
-        'App\\Controllers\\Api\\FilesRefactored' => __DIR__ . '/../..' . '/app/Controllers/Api/FilesRefactored.php',
         'App\\Controllers\\Api\\Miniportal' => __DIR__ . '/../..' . '/app/Controllers/Api/Miniportal.php',
         'App\\Controllers\\Api\\NexFileClientImport' => __DIR__ . '/../..' . '/app/Controllers/Api/NexFileClientImport.php',
         'App\\Controllers\\Api\\NexFileProxy' => __DIR__ . '/../..' . '/app/Controllers/Api/NexFileProxy.php',
@@ -151,6 +149,9 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Controllers\\Home' => __DIR__ . '/../..' . '/app/Controllers/Home.php',
         'App\\Database\\Seeds\\ProcessSeeder' => __DIR__ . '/../..' . '/app/Database/Seeds/ProcessSeeder.php',
         'App\\Filters\\CustomCors' => __DIR__ . '/../..' . '/app/Filters/CustomCors.php',
+        'App\\Filters\\JwtAuthFilter' => __DIR__ . '/../..' . '/app/Filters/JwtAuthFilter.php',
+        'App\\Filters\\ResponseSnakeCaseFilter' => __DIR__ . '/../..' . '/app/Filters/ResponseSnakeCaseFilter.php',
+        'App\\Filters\\ThrottleAuthFilter' => __DIR__ . '/../..' . '/app/Filters/ThrottleAuthFilter.php',
         'App\\Libraries\\ConfigLoader' => __DIR__ . '/../..' . '/app/Libraries/ConfigLoader.php',
         'App\\Models\\AgencyModel' => __DIR__ . '/../..' . '/app/Models/AgencyModel.php',
         'App\\Models\\AuthModel' => __DIR__ . '/../..' . '/app/Models/AuthModel.php',
@@ -177,6 +178,8 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Services\\ConfigurationService' => __DIR__ . '/../..' . '/app/Services/ConfigurationService.php',
         'App\\Services\\FileService' => __DIR__ . '/../..' . '/app/Services/FileService.php',
         'App\\Services\\UserService' => __DIR__ . '/../..' . '/app/Services/UserService.php',
+        'App\\Traits\\DeletesFileDependents' => __DIR__ . '/../..' . '/app/Traits/DeletesFileDependents.php',
+        'App\\Traits\\SnakeKeys' => __DIR__ . '/../..' . '/app/Traits/SnakeKeys.php',
         'CodeIgniter\\API\\ApiException' => __DIR__ . '/..' . '/codeigniter4/framework/system/API/ApiException.php',
         'CodeIgniter\\API\\BaseTransformer' => __DIR__ . '/..' . '/codeigniter4/framework/system/API/BaseTransformer.php',
         'CodeIgniter\\API\\ResponseTrait' => __DIR__ . '/..' . '/codeigniter4/framework/system/API/ResponseTrait.php',
@@ -2666,10 +2669,10 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit8247f1cc0a96df9c2ede1b7960e7534a::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit8247f1cc0a96df9c2ede1b7960e7534a::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit8247f1cc0a96df9c2ede1b7960e7534a::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit8247f1cc0a96df9c2ede1b7960e7534a::$classMap;
 
         }, null, ClassLoader::class);
     }
