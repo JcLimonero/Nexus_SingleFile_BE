@@ -12,6 +12,7 @@ BE/env
 BE/env.backup
 BE/env.port402
 BE/env.production
+BE/config/database-config.json
 .env
 .env.local
 .env.*.local
