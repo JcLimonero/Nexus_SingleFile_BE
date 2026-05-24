@@ -2442,15 +2442,6 @@ class Validacion extends BaseController
             }
             if ($r = $this->requireFileAccess($idFile)) return $r;
 
-            $config = config('PdfGenerator');
-            if (empty($config->apiKey) || empty($config->apiSecret) || empty($config->workspaceEmail)) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'PDF Generator no está configurado. Verifique pdfGenerator.apiKey, pdfGenerator.apiSecret y pdfGenerator.workspaceEmail en .env',
-                    'data' => null
-                ])->setStatusCode(500);
-            }
-
             // Obtener datos del cliente (incluye campos de Client para template identificación)
             $cliente = $this->db->query("
                 SELECT 
@@ -2590,9 +2581,9 @@ class Validacion extends BaseController
             $companyName = trim((string) ($cliente['company_name'] ?? ''));
 
             if ($isClienteMoral) {
-                // Template 1606181 - Cliente moral: nombre del cliente = denominación o razón social
+                // Cliente moral: nombre del cliente = denominación o razón social
                 $nombreClienteMoral = trim($razonSocial) !== '' ? $razonSocial : trim("{$nombre} {$apellidoPaterno} {$apellidoMaterno}");
-                $templateId = (int) $config->templateIdIdentificacionMoral;
+                $templateName = 'moral';
                 $templateData = [
                     'actividad_giro_mercantil_u_objeto_social_row_1' => $actividadGiro,
                     'apellido_materno_row_1' => $apellidoMaterno,
@@ -2628,8 +2619,8 @@ class Validacion extends BaseController
                     'r_f_c_row_1' => $rfc,
                 ];
             } else {
-                // Template 1606176 - Cliente físico (id_customer_type = 1)
-                $templateId = (int) $config->templateIdIdentificacionFisico;
+                // Cliente físico (id_customer_type = 1)
+                $templateName = 'fisica';
                 $templateData = [
                     'apellido_materno_row_1' => $apellidoMaterno,
                     'apellido_paterno_row_1' => $apellidoPaterno,
@@ -2665,62 +2656,15 @@ class Validacion extends BaseController
                 ];
             }
 
-            // Cache de 1h por (idFile, templateId, hash(datos)) — PDF Generator API es paid.
+            // Cache de 1h por (templateName, hash(datos)) — evita re-render al reabrir el PDF.
             $cache = \Config\Services::cache();
-            $cacheKey = 'pdfgen_' . $templateId . '_' . md5(json_encode($templateData));
-            $cachedBody = $cache->get($cacheKey);
-            $body = null;
-            $statusCode = 200;
+            $cacheKey = 'pdfgen_' . $templateName . '_' . md5(json_encode($templateData));
+            $body = $cache->get($cacheKey);
 
-            if ($cachedBody !== null) {
-                $body = $cachedBody;
-            } else {
-                // Generar JWT para PDF Generator API
-                $jwt = $this->generatePdfGeneratorJwt($config->apiKey, $config->apiSecret, $config->workspaceEmail);
-
-                $client = \Config\Services::curlrequest();
-                $response = $client->request('POST', $config->baseUrl . '/documents/generate', [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $jwt,
-                        'Content-Type' => 'application/json',
-                        'Accept' => 'application/pdf',
-                    ],
-                    'json' => [
-                        'template' => [
-                            'id' => $templateId,
-                            'data' => $templateData,
-                        ],
-                        'format' => 'pdf',
-                        'output' => 'file',
-                    ],
-                    'http_errors' => false,
-                ]);
-
-                $statusCode = $response->getStatusCode();
-                $body = $response->getBody();
-
-                if ($statusCode === 200 || $statusCode === 201) {
-                    $cache->save($cacheKey, $body, 3600);
-                }
-            }
-
-            if ($statusCode !== 200 && $statusCode !== 201) {
-                $errorBody = $response->getBody();
-                error_log("PDF Generator API error ($statusCode): " . $errorBody);
-                $apiMessage = 'Error al generar el PDF';
-                $decoded = json_decode($errorBody, true);
-                if (!empty($decoded['message'])) {
-                    $apiMessage = $decoded['message'];
-                } elseif ($statusCode === 401) {
-                    $apiMessage = 'Credenciales inválidas. Verifique API Key y Secret en .env';
-                } elseif ($statusCode === 404) {
-                    $apiMessage = 'Template no accesible. Verifique que el workspace (email en .env) tenga acceso al template ' . $templateId . ' en PDF Generator API.';
-                }
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => $apiMessage,
-                    'data' => null
-                ])->setStatusCode(500);
+            if ($body === null) {
+                $renderer = new \App\Libraries\PdfTemplateRenderer();
+                $body = $renderer->render($templateName, $templateData);
+                $cache->save($cacheKey, $body, 3600);
             }
 
             $filename = 'identificacion_cliente_' . ($clienteNombre ?: $idFile) . '_' . date('Y-m-d') . '.pdf';
@@ -2739,26 +2683,6 @@ class Validacion extends BaseController
                 'data' => null
             ])->setStatusCode(500);
         }
-    }
-
-    private function generatePdfGeneratorJwt(string $apiKey, string $apiSecret, string $workspaceEmail): string
-    {
-        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
-        $payload = [
-            'iss' => $apiKey,
-            'sub' => $workspaceEmail,
-            'exp' => time() + 60,
-        ];
-        $headerB64 = $this->base64UrlEncode(json_encode($header));
-        $payloadB64 = $this->base64UrlEncode(json_encode($payload));
-        $signature = hash_hmac('sha256', $headerB64 . '.' . $payloadB64, $apiSecret, true);
-        $signatureB64 = $this->base64UrlEncode($signature);
-        return $headerB64 . '.' . $payloadB64 . '.' . $signatureB64;
-    }
-
-    private function base64UrlEncode(string $data): string
-    {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
     /**
