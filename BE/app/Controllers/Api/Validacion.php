@@ -2658,7 +2658,7 @@ class Validacion extends BaseController
 
             // Cache de 1h por (templateName, hash(datos)) — evita re-render al reabrir el PDF.
             $cache = \Config\Services::cache();
-            $cacheKey = 'pdfgen_' . $templateName . '_' . md5(json_encode($templateData));
+            $cacheKey = 'pdfgen_v2_' . $templateName . '_' . md5(json_encode($templateData));
             $body = $cache->get($cacheKey);
 
             if ($body === null) {

@@ -70,10 +70,8 @@ class PdfTemplateRenderer
             'tempDir'        => $tempDir,
         ]);
 
-        foreach ($template['pages'] as $i => $page) {
-            if ($i > 0) {
-                $mpdf->AddPage();
-            }
+        foreach ($template['pages'] as $page) {
+            $mpdf->AddPage();
 
             $bgRel = $page['backgroundImagePath'] ?? null;
             if ($bgRel) {
