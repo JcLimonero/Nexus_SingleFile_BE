@@ -14,7 +14,7 @@ export class AppLayoutService {
   private _sidenavOpenSubject = new BehaviorSubject<boolean>(false);
   sidenavOpen$ = this._sidenavOpenSubject.asObservable();
 
-  private _sidenavCollapsedSubject = new BehaviorSubject<boolean>(true);
+  private _sidenavCollapsedSubject = new BehaviorSubject<boolean>(false);
   sidenavCollapsed$ = this._sidenavCollapsedSubject.asObservable();
 
   private _sidenavCollapsedOpenSubject = new BehaviorSubject<boolean>(false);

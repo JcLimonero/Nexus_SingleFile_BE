@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiBaseService } from './api-base.service';
+import { camelizeKeys } from '../utils/api-mappers';
 
 export interface ReporteCumplimientoDashboard {
   clientesAlertaAml: number;
@@ -86,7 +88,7 @@ export class ReportesCumplimientoService {
     let httpParams = new HttpParams();
     if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/dashboard`);
-    return this.http.get<{ success: boolean; data: ReporteCumplimientoDashboard }>(url, { params: httpParams });
+    return this.http.get<{ success: boolean; data: ReporteCumplimientoDashboard }>(url, { params: httpParams }).pipe(map(camelizeKeys));
   }
 
   getExpedientesAlertaPld(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; limit?: number; offset?: number }): Observable<any> {
@@ -100,7 +102,7 @@ export class ReportesCumplimientoService {
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/cases-pld-alert`);
-    return this.http.get<any>(url, { params: httpParams });
+    return this.http.get<any>(url, { params: httpParams }).pipe(map(camelizeKeys));
   }
 
   getResumenPorAgencia(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; anio?: number; mes?: number }): Observable<any> {
@@ -114,7 +116,7 @@ export class ReportesCumplimientoService {
     if (params?.anio != null) httpParams = httpParams.set('anio', params.anio.toString());
     if (params?.mes != null) httpParams = httpParams.set('mes', params.mes.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/summary-by-agency`);
-    return this.http.get<any>(url, { params: httpParams });
+    return this.http.get<any>(url, { params: httpParams }).pipe(map(camelizeKeys));
   }
 
   getDocumentosPendientes(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number }): Observable<any> {
@@ -126,7 +128,7 @@ export class ReportesCumplimientoService {
     }
     if (params?.idCompany != null) httpParams = httpParams.set('idCompany', params.idCompany.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/pending-documents`);
-    return this.http.get<any>(url, { params: httpParams });
+    return this.http.get<any>(url, { params: httpParams }).pipe(map(camelizeKeys));
   }
 
   getExpedientesSinBeneficiario(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; anio?: number; limit?: number; offset?: number }): Observable<any> {
@@ -141,7 +143,7 @@ export class ReportesCumplimientoService {
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/cases-without-beneficiary`);
-    return this.http.get<any>(url, { params: httpParams });
+    return this.http.get<any>(url, { params: httpParams }).pipe(map(camelizeKeys));
   }
 
   getExpedientesSinAviso(params?: { idAgency?: number; idAgencies?: number[]; idCompany?: number; anio?: number; limit?: number; offset?: number }): Observable<any> {
@@ -156,6 +158,6 @@ export class ReportesCumplimientoService {
     if (params?.limit != null) httpParams = httpParams.set('limit', params.limit.toString());
     if (params?.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
     const url = this.apiBase.buildApiUrl(`${this.API}/cases-without-notice`);
-    return this.http.get<any>(url, { params: httpParams });
+    return this.http.get<any>(url, { params: httpParams }).pipe(map(camelizeKeys));
   }
 }

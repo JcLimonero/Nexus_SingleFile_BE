@@ -5,6 +5,7 @@ import { map, tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ActivityLogService } from './activity-log.service';
+import { camelizeKeys } from '../utils/api-mappers';
 
 export interface AnalyticsFilters {
   startDate?: string;
@@ -191,7 +192,7 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/user-activity-logs/stats`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
@@ -206,7 +207,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/user-activity-logs`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
@@ -215,7 +216,7 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-document-statistics`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
@@ -224,7 +225,7 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-process-statistics`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
@@ -233,7 +234,7 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-statistics`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
@@ -243,6 +244,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-agency-specific-metrics`, { params })
       .pipe(
+        map(camelizeKeys),
         map(response => response.data || response)
       );
   }
@@ -251,7 +253,7 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-distribution-metrics`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
@@ -260,7 +262,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-process-distribution`, { params })
       .pipe(
-        map(response => response.data || response)
+        map(camelizeKeys),        map(response => response.data || response)
       );
   }
 
@@ -269,7 +271,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-status-distribution`, { params })
       .pipe(
-        map(response => response.data || response)
+        map(camelizeKeys),        map(response => response.data || response)
       );
   }
 
@@ -278,7 +280,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-current-month-status`, { params })
       .pipe(
-        map(response => response.data || response)
+        map(camelizeKeys),        map(response => response.data || response)
       );
   }
 
@@ -287,7 +289,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-previous-months`, { params })
       .pipe(
-        map(response => response.data || response)
+        map(camelizeKeys),        map(response => response.data || response)
       );
   }
 
@@ -296,7 +298,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-historical-status`, { params })
       .pipe(
-        map(response => response.data || response)
+        map(camelizeKeys),        map(response => response.data || response)
       );
   }
 
@@ -304,13 +306,15 @@ export class AnalyticsService {
     const params = this.buildParams(filters);
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-file-trend-chart`, { params })
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 
   // Métodos para obtener métricas del sistema (una sola llamada al backend)
   getSystemMetrics(): Observable<SystemMetrics> {
     return this.http.get<any>(`${this.baseUrl}/analytics/widget-system-overview-metrics`).pipe(
+      // BE devuelve snake_case (total_users, etc) — camelize antes de leer camelCase.
+      map(camelizeKeys),
       map((res) => ({
         totalUsers: res.data?.totalUsers || 0,
         activeUsers: res.data?.activeUsers || 0,
@@ -424,6 +428,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/advisor-distribution`, { params })
       .pipe(
+        map(camelizeKeys),        map(camelizeKeys),
         map(response => {
           if (response && response.success && Array.isArray(response.data)) {
             return response.data;
@@ -449,7 +454,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/weekly-data`, { params })
       .pipe(
-        map(response => {
+        map(camelizeKeys),        map(response => {
           if (response && response.success && Array.isArray(response.data)) {
             return response.data;
           }
@@ -474,7 +479,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/attention-period`, { params })
       .pipe(
-        map(response => {
+        map(camelizeKeys),        map(response => {
           if (response && response.success && Array.isArray(response.data)) {
             return response.data;
           }
@@ -499,7 +504,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/current-month-attention`, { params })
       .pipe(
-        map(response => {
+        map(camelizeKeys),        map(response => {
           if (response && response.success && Array.isArray(response.data)) {
             return response.data;
           }
@@ -527,7 +532,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/current-month-liberated`, { params })
       .pipe(
-        map(response => {
+        map(camelizeKeys),        map(response => {
           if (response && response.success && response.data) {
             return response.data;
           }
@@ -555,7 +560,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/total-liberated`, { params })
       .pipe(
-        map(response => {
+        map(camelizeKeys),        map(response => {
           if (response && response.success && response.data) {
             return response.data;
           }
@@ -590,6 +595,7 @@ export class AnalyticsService {
 
     return this.http.get<any>(`${this.baseUrl}/analytics/orders-by-attention-period`, { params })
       .pipe(
+        map(camelizeKeys),        map(camelizeKeys),
         map(response => {
           if (response && response.success && Array.isArray(response.data)) {
             return response.data;
@@ -615,7 +621,7 @@ export class AnalyticsService {
   getPerformanceMetrics(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/analytics/performance`)
       .pipe(
-        map(response => response.data || response),
+        map(camelizeKeys),        map(response => response.data || response),
       );
   }
 }

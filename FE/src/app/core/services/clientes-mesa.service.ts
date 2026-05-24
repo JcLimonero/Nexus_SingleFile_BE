@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiBaseService } from './api-base.service';
+import { mapClientesMesaResponse } from '../utils/api-mappers';
 
 export interface ClienteMesa {
   idCliente: number;
@@ -85,7 +87,11 @@ export class ClientesMesaService {
     if (params.offset != null) httpParams = httpParams.set('offset', params.offset.toString());
 
     const url = this.apiBase.buildApiUrl(`${this.API}/list`);
-    return this.http.get<ClientesListResponse>(url, { params: httpParams });
+    return this.http.get<ClientesListResponse>(url, { params: httpParams }).pipe(
+      // BE devuelve snake_case (id_cliente, nd_cliente, aml_umbral, ...).
+      // El mapper crea aliases camelCase para que el componente no se reescriba.
+      map(r => mapClientesMesaResponse(r) as ClientesListResponse)
+    );
   }
 
   getExpedientes(idHeaderClient: number): Observable<ExpedientesResponse> {

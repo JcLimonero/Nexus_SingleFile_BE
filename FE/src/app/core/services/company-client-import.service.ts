@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { camelizeKeys } from '../utils/api-mappers';
 
 export interface CompanyClientImportRequest {
   idAgency: string;
@@ -62,6 +64,8 @@ export class CompanyClientImportService {
     return this.http.post<CompanyClientImportResponse>(
       `${environment.apiBaseUrl}/api/company-client-import/import`,
       clientData
+    ).pipe(
+      map(r => camelizeKeys(r) as CompanyClientImportResponse)
     );
   }
 

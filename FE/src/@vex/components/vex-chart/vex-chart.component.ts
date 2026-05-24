@@ -104,28 +104,45 @@ export class VexChartComponent implements OnInit, OnChanges {
       }
 
       const el: HTMLElement = this.chartElement.nativeElement;
-      const rect = el.getBoundingClientRect();
 
-      if (rect.width === 0 || rect.height === 0) {
-        if (typeof ResizeObserver === 'undefined') {
+      // NaN guard: si al instanciar el container tiene size 0 (común cuando el
+      // chart vive dentro de un *ngIf que acaba de transicionar a true antes
+      // de que flex compute layout), esperamos un frame de animación. Si
+      // sigue en 0, instalamos ResizeObserver como backstop pero también
+      // intentamos render — Apex puede manejar resize después.
+      const tryRender = () => {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
           this._instantiateChart(el);
-          return;
+          return true;
         }
-        const ro = new ResizeObserver((entries) => {
-          for (const entry of entries) {
-            const cr = entry.contentRect;
-            if (cr.width > 0 && cr.height > 0) {
-              ro.disconnect();
-              this._instantiateChart(el);
-              return;
-            }
-          }
-        });
-        ro.observe(el);
-        return;
-      }
+        return false;
+      };
 
-      this._instantiateChart(el);
+      if (tryRender()) return;
+
+      // Esperar al siguiente frame para que layout flex compute
+      requestAnimationFrame(() => {
+        if (tryRender()) return;
+
+        // Último recurso: render forzado + ResizeObserver para redibujar
+        // si el container cambia de tamaño después.
+        this._instantiateChart(el);
+        if (typeof ResizeObserver !== 'undefined') {
+          const ro = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              const cr = entry.contentRect;
+              if (cr.width > 0 && cr.height > 0) {
+                ro.disconnect();
+                // Re-render por si el primer intento dibujó vacío
+                this.chart?.render();
+                return;
+              }
+            }
+          });
+          ro.observe(el);
+        }
+      });
     });
   }
 

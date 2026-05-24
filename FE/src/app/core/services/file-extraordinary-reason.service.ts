@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { mapFileExtraordinaryReasonResponse, snakeFileExtraordinaryReason } from '../utils/api-mappers';
 
 export interface FileExtraordinaryReason {
   Id: number;
@@ -77,7 +79,9 @@ export class FileExtraordinaryReasonService {
       params = params.set('offset', filters.offset.toString());
     }
 
-    return this.http.get<FileExtraordinaryReasonResponse>(this.apiUrl, { params });
+    return this.http.get<FileExtraordinaryReasonResponse>(this.apiUrl, { params }).pipe(
+      map(r => mapFileExtraordinaryReasonResponse(r) as FileExtraordinaryReasonResponse)
+    );
   }
 
   /**

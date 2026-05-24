@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiBaseService } from './api-base.service';
+import { camelizeKeys } from '../utils/api-mappers';
 
 export interface ExpedienteMiniportal {
   idFile: number;
@@ -71,7 +73,9 @@ export class MiniportalService {
 
   getExpediente(token: string): Observable<MiniportalExpedienteResponse> {
     const url = this.apiBase.buildApiUrl(`miniportal/${token}`);
-    return this.http.get<MiniportalExpedienteResponse>(url);
+    return this.http.get<MiniportalExpedienteResponse>(url).pipe(
+      map(r => camelizeKeys(r) as MiniportalExpedienteResponse)
+    );
   }
 
   acceptAviso(token: string, payload: {
@@ -94,14 +98,18 @@ export class MiniportalService {
 
   getDocumentos(token: string): Observable<MiniportalDocumentsResponse> {
     const url = this.apiBase.buildApiUrl(`miniportal/${token}/documents`);
-    return this.http.get<MiniportalDocumentsResponse>(url);
+    return this.http.get<MiniportalDocumentsResponse>(url).pipe(
+      map(r => camelizeKeys(r) as MiniportalDocumentsResponse)
+    );
   }
 
   getDocumentUrl(token: string, documentContainer: string): Observable<MiniportalDocumentUrlResponse> {
     const url = this.apiBase.buildApiUrl(`miniportal/${token}/document-url`);
     return this.http.get<MiniportalDocumentUrlResponse>(url, {
       params: { file: documentContainer, duration: '3600' }
-    });
+    }).pipe(
+      map(r => camelizeKeys(r) as MiniportalDocumentUrlResponse)
+    );
   }
 
   uploadDocument(token: string, idDocumentByFile: number, file: File): Observable<{ success: boolean; message?: string }> {

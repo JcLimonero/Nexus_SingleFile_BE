@@ -18,28 +18,18 @@ use CodeIgniter\Router\RouteCollection;
 
 // Rutas de la API
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) {
-    
-    // Preflight OPTIONS para TODA la API (agency, auth/login, agency/1, etc.): debe ir primero
-    $corsOptions = static function () {
-        $request = service('request');
-        $response = service('response');
-        $origin = $request->getHeaderLine('Origin');
-        $allowed = ['http://localhost:3600', 'http://localhost:4200', 'http://localhost:402'];
-        if ($origin && (in_array($origin, $allowed, true) || preg_match('#\Ahttp://(localhost|127\.0\.0\.1):\d+\z#', $origin))) {
-            $response->setHeader('Access-Control-Allow-Origin', $origin);
-        } else {
-            $response->setHeader('Access-Control-Allow-Origin', '*');
-        }
-        $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
-        $response->setHeader('Access-Control-Max-Age', '7200');
-        return $response->setStatusCode(200);
-    };
-    $routes->options('(:any)', $corsOptions);
-    $routes->options('(:any)/(:any)', $corsOptions);
-    $routes->options('(:any)/(:any)/(:any)', $corsOptions);
-    $routes->options('(:any)/(:any)/(:any)/(:any)', $corsOptions);
-    
+
+    // OPTIONS preflight: el router necesita una ruta registrada para que el
+    // request no termine en 404 antes de que los filtros corran. El handler
+    // solo devuelve 200; los headers CORS los pone el filter `cors` de CI4
+    // (Config/Filters.php → globals.before), que respeta
+    // CORS_ALLOWED_ORIGINS env y supportsCredentials=true.
+    $preflight = static fn () => service('response')->setStatusCode(200);
+    $routes->options('(:any)', $preflight);
+    $routes->options('(:any)/(:any)', $preflight);
+    $routes->options('(:any)/(:any)/(:any)', $preflight);
+    $routes->options('(:any)/(:any)/(:any)/(:any)', $preflight);
+
     // Rutas de autenticación
     $routes->group('auth', function($routes) {
         $routes->get('login', static function () {
