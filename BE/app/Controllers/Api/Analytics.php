@@ -624,16 +624,16 @@ class Analytics extends BaseController
     }
 
     /**
-     * GET /api/analytics/debug-file-status
+     * GET /api/analytics/debug-file-state
      * Endpoint de debug para verificar los estados de los archivos
      */
-    public function debugFileStatus()
+    public function debugFileState()
     {
         try {
             $db = \Config\Database::connect();
 
-            // Verificar si existe la tabla file_status
-            $fileStatusExists = $db->tableExists('file_status');
+            // Verificar si existe la tabla file_state
+            $fileStatusExists = $db->tableExists('file_state');
 
             $data = [
                 'file_status_table_exists' => $fileStatusExists
@@ -641,8 +641,8 @@ class Analytics extends BaseController
 
             if ($fileStatusExists) {
                 // Obtener todos los estados disponibles
-                $statuses = $db->table('file_status')->get()->getResultArray();
-                $data['file_statuses'] = $statuses;
+                $statuses = $db->table('file_state')->get()->getResultArray();
+                $data['file_states'] = $statuses;
             }
 
             // Obtener distribución de estados en la tabla File
@@ -1250,7 +1250,7 @@ class Analytics extends BaseController
             // Consulta para obtener distribución por estatus
             $query = $db->table('expedient f')
                 ->select('fs.name as statusName, COUNT(f.id) as totalCases')
-                ->join('file_status fs', 'f.id_current_state = fs.id', 'left')
+                ->join('file_state fs', 'f.id_current_state = fs.id', 'left')
                 ->groupBy('fs.id, fs.name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1321,7 +1321,7 @@ class Analytics extends BaseController
             // OPTIMIZACIÓN: Usar rangos de fechas en lugar de funciones de fecha
             $query = $db->table('expedient f')
                 ->select('fs.name as statusName, COUNT(f.id) as totalCases')
-                ->join('file_status fs', 'f.id_current_state = fs.id', 'left')
+                ->join('file_state fs', 'f.id_current_state = fs.id', 'left')
                 ->where('f.registration_date >=', $monthStart)
                 ->where('f.registration_date <=', $monthEnd)
                 ->groupBy('fs.id, fs.name')
@@ -1486,7 +1486,7 @@ class Analytics extends BaseController
 
             $query = $db->table('expedient f')
                 ->select('fs.name as statusName, COUNT(f.id) as totalCases')
-                ->join('file_status fs', 'f.id_current_state = fs.id', 'left')
+                ->join('file_state fs', 'f.id_current_state = fs.id', 'left')
                 ->groupBy('fs.id, fs.name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1570,7 +1570,7 @@ class Analytics extends BaseController
             $monthStart = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-01 00:00:00';
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
-            // OPTIMIZACIÓN: Usar id_current_state directamente en lugar de JOIN con file_status
+            // OPTIMIZACIÓN: Usar id_current_state directamente en lugar de JOIN con file_state
             // Nota: 'user' es palabra reservada en MySQL, usar backticks explícitos
             $query = $db->table('expedient f')
                 ->select('u.name as advisorName, 
@@ -2035,7 +2035,7 @@ class Analytics extends BaseController
             $monthStart = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-01 00:00:00';
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
-            // OPTIMIZACIÓN: Usar id_current_state directamente en lugar de JOIN con file_status
+            // OPTIMIZACIÓN: Usar id_current_state directamente en lugar de JOIN con file_state
             $query = $db->table('expedient f')
                 ->select('COUNT(f.id) as total')
                 ->where('f.registration_date IS NOT NULL')
@@ -2100,7 +2100,7 @@ class Analytics extends BaseController
 
             // Consulta para obtener expedientes liberados de toda la historia
             $query = $db->table('expedient f')
-                ->join('file_status fs', 'f.id_current_state = fs.id', 'inner')
+                ->join('file_state fs', 'f.id_current_state = fs.id', 'inner')
                 ->select('COUNT(f.id) as total')
                 ->where('f.registration_date IS NOT NULL')
                 ->where('fs.name', 'Liberado');
@@ -2196,7 +2196,7 @@ class Analytics extends BaseController
                     DATEDIFF(COALESCE(f.close_date, CURDATE()), f.registration_date) as diasAtencion,
                     fs.name as estado
                 FROM expedient f
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_process = p.id

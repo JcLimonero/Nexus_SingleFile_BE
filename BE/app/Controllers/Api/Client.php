@@ -240,7 +240,7 @@ class Client extends BaseController
                 LEFT JOIN process p ON f.id_process = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                LEFT JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE hc.id = ?
                 GROUP BY f.id, f.id_order_total, f.registration_date, fs.name, p.name, ot.name, ct.name, a.name, a.id, co.name, c.id
                 ORDER BY co.name ASC, a.name ASC, f.registration_date DESC

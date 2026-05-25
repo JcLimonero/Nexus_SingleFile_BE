@@ -195,7 +195,7 @@ function extractEntityFromUrl(url: string): string {
     'operation-type': 'tipo de operación',
     'costumer-type': 'tipo de cliente',
     'document-type': 'tipo de documento',
-    'file-status': 'estado de archivo',
+    'file-state': 'estado de archivo',
     'user': 'usuario',
     'user-role': 'rol de usuario',
     'user-access': 'acceso de usuario',

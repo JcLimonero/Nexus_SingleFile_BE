@@ -82,10 +82,10 @@ export class DocumentTypeEditDialogComponent implements OnInit {
   private loadCatalogs(): void {
     this.loadingCatalogs = true;
 
-    this.documentTypeService.getActiveFileStatuses().subscribe({
+    this.documentTypeService.getActiveFileStates().subscribe({
       next: (fileStatusesResponse) => {
         if (fileStatusesResponse?.success) {
-          this.fileStatuses = fileStatusesResponse.data.file_statuses || [];
+          this.fileStatuses = fileStatusesResponse.data.file_states || [];
         }
         this.checkCatalogsLoaded();
       },
@@ -100,7 +100,7 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     }
   }
 
-  /** Cargar sub fases filtradas por id_file_status (relación file_status - file_sub_status) */
+  /** Cargar sub fases filtradas por id_file_status (relación file_state - file_sub_state) */
   private loadSubProcessesByPhase(phaseId: number | string): void {
     const id = typeof phaseId === 'string' ? parseInt(phaseId, 10) : phaseId;
     if (isNaN(id)) {
@@ -109,7 +109,7 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     }
     this.documentTypeService.getActiveSubProcesses(id).subscribe({
       next: (res) => {
-        this.subProcesses = res?.data?.file_sub_statuses || [];
+        this.subProcesses = res?.data?.file_sub_states || [];
       },
       error: () => { this.subProcesses = []; }
     });

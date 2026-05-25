@@ -203,17 +203,17 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
             $routes->get('widget-system-overview-metrics', 'Analytics::getSystemMetrics');
             $routes->get('export', 'Analytics::exportAnalytics');
         });
-    $routes->group('file-status', function($routes) {
-        $routes->get('/', 'FileStatus::index');
-        $routes->get('active', 'FileStatus::active');
-        $routes->get('(:num)', 'FileStatus::show/$1');
+    $routes->group('file-state', function($routes) {
+        $routes->get('/', 'FileState::index');
+        $routes->get('active', 'FileState::active');
+        $routes->get('(:num)', 'FileState::show/$1');
     });
     
-    // Rutas de subestados de archivo (FileSubStatus)
-    $routes->group('file-sub-status', function($routes) {
-        $routes->get('/', 'FileSubStatus::index');
-        $routes->get('active', 'FileSubStatus::active');
-        $routes->get('(:num)', 'FileSubStatus::show/$1');
+    // Rutas de subestados de archivo (FileSubState)
+    $routes->group('file-sub-state', function($routes) {
+        $routes->get('/', 'FileSubState::index');
+        $routes->get('active', 'FileSubState::active');
+        $routes->get('(:num)', 'FileSubState::show/$1');
     });
     
     // Rutas de motivos (FileReasons)

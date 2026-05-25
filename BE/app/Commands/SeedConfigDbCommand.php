@@ -16,7 +16,7 @@ use Config\Database;
  *   php spark db:seed-config --target=Nexfile_Config --admin-email=admin@x.com
  *
  * Tables copied (matches plan toasty-herding-nebula.md):
- *   Catálogos básicos : process, customer_type, operation_type, payment_method, file_status
+ *   Catálogos básicos : process, customer_type, operation_type, payment_method, file_state
  *   Documentos        : tipo_documento, documento_requerido, motivo_rechazo, tipo_cliente
  *   Roles + RBAC      : role, plus any *_role / role_* / permission* / module* table that exists
  *   Usuario admin     : user rows matching role name 'admin' (case-insensitive) OR --admin-email
@@ -39,8 +39,8 @@ class SeedConfigDbCommand extends BaseCommand
         'customer_type',
         'operation_type',
         'payment_method',
-        'file_status',
-        'file_sub_status',
+        'file_state',
+        'file_sub_state',
         // Documentos y motivos
         'document_type',
         'configuration_process_document_type',

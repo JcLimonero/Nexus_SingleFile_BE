@@ -58,7 +58,7 @@ class Files extends BaseController
                             LEFT JOIN operation_type ot ON f.id_operation = ot.id
                             LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                             LEFT JOIN agency a ON f.id_agency = a.id
-                            LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                            LEFT JOIN file_state fs ON f.id_current_state = fs.id
                             LEFT JOIN `order` obc ON f.id_order_total = obc.id_dms
                             WHERE TRIM(ctr.id_dms) = ?
                         ";
@@ -159,7 +159,7 @@ class Files extends BaseController
                 LEFT JOIN process p ON f.id_process = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                LEFT JOIN file_state fs ON f.id_current_state = fs.id
                 LEFT JOIN (
                     SELECT 
                         obc1.id_dms,
@@ -181,8 +181,8 @@ class Files extends BaseController
             $params = [$internalAgencyId];
 
             // Agregar filtro de estatus si se proporciona
-            // IMPORTANTE: Filtramos directamente por f.id_current_state porque el LEFT JOIN con file_status
-            // puede devolver NULL si no hay registro en file_status, causando que fs.id = ? falle siempre
+            // IMPORTANTE: Filtramos directamente por f.id_current_state porque el LEFT JOIN con file_state
+            // puede devolver NULL si no hay registro en file_state, causando que fs.id = ? falle siempre
             // Esto es crítico para que los archivos se muestren correctamente
             if ($statusId !== null && $statusId !== '' && is_numeric($statusId)) {
                 $sql .= " AND f.id_current_state = ?";
@@ -237,7 +237,7 @@ class Files extends BaseController
                         fs.name as estado
                     FROM expedient f
                     INNER JOIN agency a ON f.id_agency = a.id
-                    LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                    LEFT JOIN file_state fs ON f.id_current_state = fs.id
                     WHERE f.id_order_total = '35348'
                 ";
                 $pedidoQuery = $this->db->query($pedidoSql);
@@ -290,11 +290,11 @@ class Files extends BaseController
                         a.id as AgencyId,
                         a.id_agency_dms as AgencyIdAgencyDMS,
                         f.id_client,
-                        fs.id as FileStatusId,
-                        fs.name as FileStatusName
+                        fs.id as FileStateId,
+                        fs.name as FileStateName
                     FROM expedient f
                     LEFT JOIN agency a ON f.id_agency = a.id
-                    LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                    LEFT JOIN file_state fs ON f.id_current_state = fs.id
                     WHERE f.id = 12328
                 ";
                 $diagnosticQuery = $this->db->query($diagnosticSql);
@@ -307,8 +307,8 @@ class Files extends BaseController
                     error_log("Agency Id (interno): " . ($diagnosticResult->AgencyId ?? 'NULL'));
                     error_log("Agency IdAgencyDMS (externo): " . ($diagnosticResult->AgencyIdAgencyDMS ?? 'NULL'));
                     error_log("IdClient: " . ($diagnosticResult->IdClient ?? 'NULL'));
-                    error_log("FileStatusId: " . ($diagnosticResult->FileStatusId ?? 'NULL'));
-                    error_log("FileStatusName: " . ($diagnosticResult->FileStatusName ?? 'NULL'));
+                    error_log("FileStateId: " . ($diagnosticResult->FileStateId ?? 'NULL'));
+                    error_log("FileStateName: " . ($diagnosticResult->FileStateName ?? 'NULL'));
                     
                     // Verificar si pasa los filtros
                     $expectedStatus = $statusId ? $statusId : 'cualquiera';
@@ -444,7 +444,7 @@ class Files extends BaseController
                     END as estado_join
                 FROM expedient f
                 LEFT JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                LEFT JOIN file_state fs ON f.id_current_state = fs.id
                 LEFT JOIN `order` obc ON f.id_order_total = obc.id_dms
                 WHERE a.id_agency_dms = ?
             ";
@@ -1895,7 +1895,7 @@ class Files extends BaseController
                     f.id as fileId
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                LEFT JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE " . implode(' OR ', $placeholders) . "
             ";
 

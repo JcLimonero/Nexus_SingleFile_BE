@@ -111,7 +111,7 @@ class Validacion extends BaseController
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_process = p.id
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE f.id = ?
             ", [$idFile])->getRowArray();
 
@@ -1004,7 +1004,7 @@ class Validacion extends BaseController
                 INNER JOIN process p ON f.id_process = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN `order` obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
@@ -1083,7 +1083,7 @@ class Validacion extends BaseController
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_process = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE 1=1
                 " . ($filtrarPorAgencia ? " AND f.id_agency = ?" : "") . "
                 AND p.enabled = 1
@@ -1445,14 +1445,14 @@ class Validacion extends BaseController
             error_log("clienteId: {$clienteId}, nuevoIdCurrentState: {$nuevoIdCurrentState}");
             
             // Primero, obtener todos los estados disponibles para debugging
-            $todosEstadosQuery = $this->db->table('file_status')
+            $todosEstadosQuery = $this->db->table('file_state')
                 ->select('Id, Name')
                 ->get();
             $todosEstados = $todosEstadosQuery->getResultArray();
-            error_log("Todos los estados disponibles en file_status: " . json_encode($todosEstados));
+            error_log("Todos los estados disponibles en file_state: " . json_encode($todosEstados));
 
-            // Verificar que el estado existe en la tabla file_status por ID
-            $estadoQuery = $this->db->table('file_status')
+            // Verificar que el estado existe en la tabla file_state por ID
+            $estadoQuery = $this->db->table('file_state')
                 ->select('id, name')
                 ->where('id', $nuevoIdCurrentState)
                 ->get();
@@ -1553,7 +1553,7 @@ class Validacion extends BaseController
             $query = $this->db->table('expedient f')
                 ->select('fs.name as estado, COUNT(*) as cantidad')
                 ->join('process p', 'f.id_process = p.id', 'inner')
-                ->join('file_status fs', 'f.id_current_state = fs.id', 'inner')
+                ->join('file_state fs', 'f.id_current_state = fs.id', 'inner')
                 ->where('f.id_agency', $idAgency)
                 ->where('f.id_process', $idProcess)
                 ->where('p.enabled', 1)
@@ -1640,7 +1640,7 @@ class Validacion extends BaseController
                 ->join('expedient f', 'dbf.id_file = f.id', 'inner')
                 ->join('process p', 'f.id_process = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-                ->join('file_status fs', 'dt.id_process_type = fs.id', 'inner')
+                ->join('file_state fs', 'dt.id_process_type = fs.id', 'inner')
                 ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
                 ->join('user u', 'dbf.id_last_user_update = u.id', 'left')
                 ->join('liquidation_receipt_detail lrd', 'lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file', 'left')
@@ -2508,7 +2508,7 @@ class Validacion extends BaseController
                 INNER JOIN process p ON f.id_process = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN company co ON a.id_company = co.id
                 LEFT JOIN `order` obc1 ON obc1.id = f.id_order
@@ -3082,7 +3082,7 @@ class Validacion extends BaseController
                 ->join('expedient f', 'dbf.id_file = f.id', 'inner')
                 ->join('process p', 'f.id_process = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-                ->join('file_status fs', 'dt.id_process_type = fs.id', 'inner')
+                ->join('file_state fs', 'dt.id_process_type = fs.id', 'inner')
                 ->where('dbf.id_file', $idFile)
                 ->where('dbf.enabled', 1)
                 ->where('dbf.id_document_container IS NOT NULL')

@@ -221,7 +221,7 @@ class ReportesCumplimiento extends BaseController
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN company co ON a.id_company = co.id
-                LEFT JOIN file_status fs ON f.id_current_state = fs.id
+                LEFT JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE YEAR(f.registration_date) = ?
             ";
             $params = [$anio];
@@ -413,7 +413,7 @@ class ReportesCumplimiento extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_process = p.id
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE f.id_customer_type = 2
                 AND f.id_current_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
@@ -507,7 +507,7 @@ class ReportesCumplimiento extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_process = p.id
-                INNER JOIN file_status fs ON f.id_current_state = fs.id
+                INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE f.id_current_state NOT IN (5)
                 AND NOT EXISTS (
                     SELECT 1 FROM file_pld fp
@@ -563,7 +563,7 @@ class ReportesCumplimiento extends BaseController
                         LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                         INNER JOIN agency a ON f.id_agency = a.id
                         INNER JOIN process p ON f.id_process = p.id
-                        INNER JOIN file_status fs ON f.id_current_state = fs.id
+                        INNER JOIN file_state fs ON f.id_current_state = fs.id
                         WHERE f.id_current_state NOT IN (5)
                     ";
                     $paramsFallback = [];

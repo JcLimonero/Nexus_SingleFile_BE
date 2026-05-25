@@ -5,7 +5,7 @@ namespace App\Controllers\Api;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class FileStatus extends BaseController
+class FileSubState extends BaseController
 {
     protected $db;
     
@@ -15,8 +15,8 @@ class FileStatus extends BaseController
     }
     
     /**
-     * GET /api/file-status
-     * Obtener todos los estados de archivo con filtros
+     * GET /api/file-sub-state
+     * Obtener todos los subestados de archivo con filtros
      */
     public function index()
     {
@@ -35,28 +35,29 @@ class FileStatus extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            $builder = $this->db->table('file_status fs');
-            $builder->select('fs.*');
+            $builder = $this->db->table('file_sub_state fss');
+            $builder->select('fss.*');
 
-            // Aplicar filtros de búsqueda
+            // Aplicar filtros
+            // No filtrar por enabled ya que la tabla no tiene esa columna
             if (!empty($search)) {
-                $builder->like('fs.name', $search);
+                $builder->like('fss.name', $search);
             }
 
-            // Ordenamiento (validar columnas permitidas)
-            $allowedSort = ['id', 'name', 'registration_date', 'update_date', 'enabled'];
-            if (!in_array($sortBy, $allowedSort)) {
+            // Ordenamiento (snake_case)
+            $allowedSort = ['id', 'name', 'id_file_status', 'registration_date', 'update_date'];
+            if (!in_array(strtolower($sortBy), $allowedSort)) {
                 $sortBy = 'name';
             }
-            $builder->orderBy("fs.$sortBy", $sortOrder);
+            $builder->orderBy("fss.$sortBy", $sortOrder);
 
             $results = $builder->get()->getResultArray();
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Estados de archivo obtenidos exitosamente',
+                'message' => 'Subestados de archivo obtenidos exitosamente',
                 'data' => [
-                    'file_statuses' => $results,
+                    'file_sub_states' => $results,
                     'count' => count($results)
                 ]
             ]);
@@ -65,14 +66,14 @@ class FileStatus extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener estados de archivo: ' . $e->getMessage()
+                'message' => 'Error al obtener subestados de archivo: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
 
     /**
-     * GET /api/file-status/active
-     * Obtener solo las fases específicas: Integración, Liquidación y Liberación
+     * GET /api/file-sub-state/active
+     * Obtener todos los subestados de archivo (la tabla no tiene columna Enabled)
      */
     public function active()
     {
@@ -86,19 +87,21 @@ class FileStatus extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('file_status fs');
-            $builder->select('fs.*');
-            // Filtrar solo las fases específicas requeridas (fases activas del proceso)
-            $builder->whereIn('fs.name', ['Integración', 'Liquidación', 'Liberación']);
-            $builder->orderBy('fs.name', 'ASC');
+            $idFileState = $this->request->getGet('id_file_status');
+            $builder = $this->db->table('file_sub_state fss');
+            $builder->select('fss.*');
+            if ($idFileState !== null && $idFileState !== '') {
+                $builder->where('fss.id_file_status', (int) $idFileState);
+            }
+            $builder->orderBy('fss.name', 'ASC');
 
             $results = $builder->get()->getResultArray();
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Fases específicas obtenidas exitosamente',
+                'message' => 'Subestados de archivo obtenidos exitosamente',
                 'data' => [
-                    'file_statuses' => $results,
+                    'file_sub_states' => $results,
                     'count' => count($results)
                 ]
             ]);
@@ -107,14 +110,14 @@ class FileStatus extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener fases específicas: ' . $e->getMessage()
+                'message' => 'Error al obtener subestados de archivo: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
 
     /**
-     * GET /api/file-status/{id}
-     * Obtener un estado de archivo específico por ID
+     * GET /api/file-sub-state/{id}
+     * Obtener un subestado de archivo específico por ID
      */
     public function show($id = null)
     {
@@ -135,22 +138,22 @@ class FileStatus extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $builder = $this->db->table('file_status fs');
-            $builder->select('fs.*');
-            $builder->where('fs.id', $id);
+            $builder = $this->db->table('file_sub_state fss');
+            $builder->select('fss.*');
+            $builder->where('fss.id', $id);
 
             $result = $builder->get()->getRowArray();
 
             if (!$result) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Estado de archivo no encontrado'
+                    'message' => 'Subestado de archivo no encontrado'
                 ])->setStatusCode(404);
             }
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Estado de archivo obtenido exitosamente',
+                'message' => 'Subestado de archivo obtenido exitosamente',
                 'data' => $result
             ]);
 
@@ -158,7 +161,7 @@ class FileStatus extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener fase: ' . $e->getMessage()
+                'message' => 'Error al obtener subestado de archivo: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }

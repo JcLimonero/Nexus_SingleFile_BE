@@ -104,7 +104,7 @@ export interface DocumentTypeEditDialogData {
   mode: 'create' | 'edit';
 }
 
-export interface FileStatus {
+export interface FileState {
   id: string;
   name: string;
   enabled: string;
@@ -116,11 +116,11 @@ export interface SubProcess {
   enabled: string;
 }
 
-export interface FileStatusResponse {
+export interface FileStateResponse {
   success: boolean;
   message: string;
   data: {
-    file_statuses: FileStatus[];
+    file_states: FileState[];
     count: number;
   };
 }

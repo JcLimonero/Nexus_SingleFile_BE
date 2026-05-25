@@ -95,11 +95,11 @@ export class TiposDocumentoComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   loadAvailablePhases(): void {
-    this.documentTypeService.getFileStatuses().subscribe({
+    this.documentTypeService.getFileStates().subscribe({
       next: (response) => {
-        if (response?.success && response?.data?.file_statuses) {
+        if (response?.success && response?.data?.file_states) {
           const names = [...new Set(
-            response.data.file_statuses
+            response.data.file_states
               .map((fs: any) => fs.name ?? fs.Name ?? '')
               .filter((n: string) => n && n !== 'N/A' && !FASES_OCULTAS.includes(n))
           )];

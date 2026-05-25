@@ -73,9 +73,9 @@ class Documents extends BaseController
                 FROM expedient f
                 INNER JOIN file_document df ON f.id = df.id_file
                 INNER JOIN document_type dt ON df.id_document_type = dt.id
-                INNER JOIN file_status fs ON dt.id_process_type = fs.id 
+                INNER JOIN file_state fs ON dt.id_process_type = fs.id 
                 INNER JOIN document_file_status dfs ON dfs.id = df.id_current_status 
-                LEFT JOIN file_sub_status fss ON fss.id = dt.id_sub_process
+                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_process
                 {$liquidacionJoins}
                 WHERE f.id = ?
                 AND dt.id_process_type = ?
@@ -173,8 +173,8 @@ class Documents extends BaseController
                        dt.req_expiration as hasExpiration, fs.name as processTypeName,
                        fss.name as subProcessName
                 FROM document_type dt
-                INNER JOIN file_status fs ON dt.id_process_type = fs.id
-                LEFT JOIN file_sub_status fss ON fss.id = dt.id_sub_process
+                INNER JOIN file_state fs ON dt.id_process_type = fs.id
+                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_process
                 WHERE dt.id_process_type = ?
                 AND dt.id NOT IN (
                     SELECT df.id_document_type

@@ -132,27 +132,27 @@ export class DocumentTypeService {
   /**
    * Obtener estados de archivo activos (File_Status) - Integración, Liquidación, Liberación
    */
-  getActiveFileStatuses(): Observable<any> {
-    return this.http.get(`${this.apiBaseService.buildApiUrl('file-status/active')}`);
+  getActiveFileStates(): Observable<any> {
+    return this.http.get(`${this.apiBaseService.buildApiUrl('file-state/active')}`);
   }
 
   /**
-   * Obtener todas las fases desde file_status (para filtros)
+   * Obtener todas las fases desde file_state (para filtros)
    */
-  getFileStatuses(): Observable<{ success: boolean; data?: { file_statuses: { id: number; name: string }[] } }> {
-    return this.http.get<{ success: boolean; data?: { file_statuses: { id: number; name: string }[] } }>(
-      `${this.apiBaseService.buildApiUrl('file-status')}`
+  getFileStates(): Observable<{ success: boolean; data?: { file_states: { id: number; name: string }[] } }> {
+    return this.http.get<{ success: boolean; data?: { file_states: { id: number; name: string }[] } }>(
+      `${this.apiBaseService.buildApiUrl('file-state')}`
     );
   }
 
   /**
    * Obtener subestados de archivo activos (File_SubStatus).
-   * Si se pasa idFileStatus, filtra por la relación file_sub_status.id_file_status = file_status.id
+   * Si se pasa idFileState, filtra por la relación file_sub_state.id_file_status = file_state.id
    */
-  getActiveSubProcesses(idFileStatus?: number): Observable<any> {
-    let url = `${this.apiBaseService.buildApiUrl('file-sub-status/active')}`;
-    if (idFileStatus != null) {
-      url += `?id_file_status=${idFileStatus}`;
+  getActiveSubProcesses(idFileState?: number): Observable<any> {
+    let url = `${this.apiBaseService.buildApiUrl('file-sub-state/active')}`;
+    if (idFileState != null) {
+      url += `?id_file_status=${idFileState}`;
     }
     return this.http.get(url);
   }

@@ -187,8 +187,8 @@ class DocumentTypeModel extends Model
 
         // JOINs para obtener las descripciones
         $builder->join('user u', 'u.id = dt.id_last_user_update', 'left');
-        $builder->join('`file_status` fs', 'fs.id = dt.id_process_type', 'left'); // Tipo de proceso
-        $builder->join('`file_sub_status` sp', 'sp.id = dt.id_sub_process', 'left'); // Subestado de archivo
+        $builder->join('`file_state` fs', 'fs.id = dt.id_process_type', 'left'); // Tipo de proceso
+        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_process', 'left'); // Subestado de archivo
         
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -273,8 +273,8 @@ class DocumentTypeModel extends Model
     {
         $builder = $this->db->table('document_type dt');
         
-        $builder->join('`file_status` fs', 'fs.id = dt.id_process_type', 'left');
-        $builder->join('`file_sub_status` sp', 'sp.id = dt.id_sub_process', 'left');
+        $builder->join('`file_state` fs', 'fs.id = dt.id_process_type', 'left');
+        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_process', 'left');
 
         // Aplicar los mismos filtros
         if (!empty($filters['enabled'])) {
@@ -333,8 +333,8 @@ class DocumentTypeModel extends Model
         ');
 
         $builder->join('user u', 'u.id = dt.id_last_user_update', 'left');
-        $builder->join('`file_status` fs', 'fs.id = dt.id_process_type', 'left'); // Tipo de proceso
-        $builder->join('`file_sub_status` sp', 'sp.id = dt.id_sub_process', 'left'); // Subestado de archivo
+        $builder->join('`file_state` fs', 'fs.id = dt.id_process_type', 'left'); // Tipo de proceso
+        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_process', 'left'); // Subestado de archivo
         
         $builder->where('dt.id', $id);
 

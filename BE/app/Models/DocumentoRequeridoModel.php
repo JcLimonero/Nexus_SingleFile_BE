@@ -125,8 +125,8 @@ class DocumentoRequeridoModel extends Model
             $builder->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left');
             $builder->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left');
             $builder->join('document_type dt', 'dt.id = cpd.id_document_type', 'left');
-            $builder->join('file_status fs', 'fs.id = dt.id_process_type', 'left');
-            $builder->join('file_sub_status sp', 'sp.id = dt.id_sub_process', 'left');
+            $builder->join('file_state fs', 'fs.id = dt.id_process_type', 'left');
+            $builder->join('file_sub_state sp', 'sp.id = dt.id_sub_process', 'left');
             
             if (!empty($filters['id_process'])) {
                 $builder->where('cp.id_process', $filters['id_process']);
