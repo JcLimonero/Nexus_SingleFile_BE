@@ -55,6 +55,203 @@ function parseEnv(text: string): Record<string, string> {
   return out;
 }
 
+/**
+ * Reads REFERENCE_DB_NAME from config/central.env. Returns the empty string
+ * if the file or key is missing — caller then falls back to the curated
+ * migrations.ts subset.
+ */
+function getReferenceDbName(): string {
+  try {
+    const p = centralEnvPath();
+    if (!fs.existsSync(p)) return '';
+    const env = parseEnv(fs.readFileSync(p, 'utf8'));
+    return (env['REFERENCE_DB_NAME'] ?? '').trim();
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Clones every base table + view from `sourceDbName` (on the same MySQL
+ * server as `cfg`) into the database `cfg.database`. Mirrors what the
+ * PHP spark db:clone-schema does. Skip-on-exists semantics.
+ *
+ * Returns { ok, baseCreated, viewsCreated, baseSkipped, viewsSkipped, failed }.
+ */
+async function cloneFullSchema(
+  cfg: DbConnectionConfig,
+  sourceDbName: string,
+): Promise<{ ok: boolean; baseCreated: number; viewsCreated: number; baseSkipped: number; viewsSkipped: number; failed: Array<{ name: string; error: string }> }> {
+  if (!cfg.database) throw new Error('Target DB required');
+  if (!/^[A-Za-z0-9_]+$/.test(sourceDbName)) throw new Error('Invalid source DB name');
+
+  const failed: Array<{ name: string; error: string }> = [];
+  let baseCreated = 0, viewsCreated = 0, baseSkipped = 0, viewsSkipped = 0;
+
+  // We need 2 connections: one to source (no database in cfg → manual SELECT)
+  // and one to target. Opening them in sequence keeps things simple.
+  await withConnection({ ...cfg, database: undefined }, async (conn) => {
+    await conn.query('SET FOREIGN_KEY_CHECKS = 0');
+
+    // Discover base tables vs views via information_schema
+    const [rows]: any = await conn.query(
+      "SELECT TABLE_NAME, TABLE_TYPE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ?",
+      [sourceDbName],
+    );
+    const baseTables: string[] = [];
+    const views: string[] = [];
+    for (const r of rows) {
+      if (r.TABLE_TYPE === 'VIEW') views.push(r.TABLE_NAME);
+      else baseTables.push(r.TABLE_NAME);
+    }
+
+    // Check which already exist on target
+    const [existingRows]: any = await conn.query(
+      "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ?",
+      [cfg.database],
+    );
+    const existing: Set<string> = new Set(existingRows.map((r: any) => r.TABLE_NAME));
+
+    // 1) Base tables
+    for (const t of baseTables) {
+      if (existing.has(t)) { baseSkipped++; continue; }
+      try {
+        const [r]: any = await conn.query(`SHOW CREATE TABLE \`${sourceDbName}\`.\`${t}\``);
+        const ddl = r[0]?.['Create Table'];
+        if (!ddl) { failed.push({ name: t, error: 'no DDL' }); continue; }
+        // Target the new DB — SHOW CREATE TABLE returns the bare CREATE TABLE
+        // statement without DB qualifier, which is what we want.
+        await conn.query(`USE \`${cfg.database}\``);
+        await conn.query(ddl);
+        baseCreated++;
+        await conn.query(`USE \`${sourceDbName}\``); // restore for next SHOW CREATE
+      } catch (e) {
+        failed.push({ name: t, error: (e as Error).message });
+      }
+    }
+
+    // 2) Views — strip DEFINER + rewrite source-DB-qualified refs to target DB
+    for (const v of views) {
+      if (existing.has(v)) { viewsSkipped++; continue; }
+      try {
+        const [r]: any = await conn.query(`SHOW CREATE VIEW \`${sourceDbName}\`.\`${v}\``);
+        let ddl = r[0]?.['Create View'];
+        if (!ddl) { failed.push({ name: v, error: 'no view DDL' }); continue; }
+        ddl = ddl.replace(/DEFINER\s*=\s*`[^`]+`@`[^`]+`\s*/i, '');
+        ddl = ddl.replace(/SQL\s+SECURITY\s+DEFINER\s*/i, 'SQL SECURITY INVOKER ');
+        ddl = ddl.split(`\`${sourceDbName}\`.`).join(`\`${cfg.database}\`.`);
+        await conn.query(`USE \`${cfg.database}\``);
+        await conn.query(ddl);
+        viewsCreated++;
+      } catch (e) {
+        failed.push({ name: `view ${v}`, error: (e as Error).message });
+      }
+    }
+
+    await conn.query('SET FOREIGN_KEY_CHECKS = 1');
+  });
+
+  return { ok: failed.length === 0, baseCreated, viewsCreated, baseSkipped, viewsSkipped, failed };
+}
+
+/**
+ * Phase 0b rename + Phase A additions, idempotent. Run AFTER cloneFullSchema
+ * so the target has file_status / file_sub_status from the source (which then
+ * get renamed) and the catalog tables exist (so the ALTERs work).
+ */
+async function applyTenantSchemaUpgrades(cfg: DbConnectionConfig): Promise<{ ok: boolean; log: string[]; message?: string }> {
+  const log: string[] = [];
+  try {
+    await withConnection(cfg, async (c) => {
+      const tableExists = async (name: string): Promise<boolean> => {
+        const [r]: any = await c.query(
+          "SELECT COUNT(*) AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+          [name],
+        );
+        return (r[0]?.n ?? 0) > 0;
+      };
+      const colExists = async (table: string, col: string): Promise<boolean> => {
+        const [r]: any = await c.query(
+          "SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+          [table, col],
+        );
+        return (r[0]?.n ?? 0) > 0;
+      };
+
+      await c.query('SET FOREIGN_KEY_CHECKS = 0');
+
+      // Phase 0b — rename file_status → file_state, file_sub_status → file_sub_state
+      if ((await tableExists('file_status')) && !(await tableExists('file_state'))) {
+        await c.query('RENAME TABLE `file_status` TO `file_state`');
+        log.push('rename file_status → file_state');
+      }
+      if ((await tableExists('file_sub_status')) && !(await tableExists('file_sub_state'))) {
+        await c.query('RENAME TABLE `file_sub_status` TO `file_sub_state`');
+        log.push('rename file_sub_status → file_sub_state');
+      }
+
+      // Phase A — client_group + junctions + ALTERs
+      if (!(await tableExists('client_group'))) {
+        await c.query(`CREATE TABLE client_group (
+          id BIGINT NOT NULL AUTO_INCREMENT,
+          name VARCHAR(200) NOT NULL,
+          description TEXT NULL,
+          enabled TINYINT(1) NOT NULL DEFAULT 1,
+          registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+          update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          id_last_user_update BIGINT NULL,
+          PRIMARY KEY (id),
+          UNIQUE KEY uq_client_group_name (name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+        log.push('+ client_group');
+      }
+      if (!(await tableExists('client_group_process'))) {
+        await c.query(`CREATE TABLE client_group_process (
+          id BIGINT NOT NULL AUTO_INCREMENT,
+          id_client_group BIGINT NOT NULL,
+          id_process BIGINT NOT NULL,
+          display_order INT DEFAULT 0,
+          enabled TINYINT(1) DEFAULT 1,
+          registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+          update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id),
+          UNIQUE KEY uq_cgp (id_client_group, id_process)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+        log.push('+ client_group_process');
+      }
+      if (!(await tableExists('client_group_phase'))) {
+        await c.query(`CREATE TABLE client_group_phase (
+          id BIGINT NOT NULL AUTO_INCREMENT,
+          id_client_group BIGINT NOT NULL,
+          id_file_state BIGINT NOT NULL,
+          display_order INT DEFAULT 0,
+          enabled TINYINT(1) DEFAULT 1,
+          registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+          update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id),
+          UNIQUE KEY uq_cgph (id_client_group, id_file_state)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+        log.push('+ client_group_phase');
+      }
+      if ((await tableExists('company')) && !(await colExists('company', 'id_client_group'))) {
+        await c.query('ALTER TABLE `company` ADD COLUMN `id_client_group` BIGINT NULL AFTER `id`');
+        await c.query('CREATE INDEX `idx_company_client_group` ON `company` (`id_client_group`)');
+        log.push('+ company.id_client_group');
+      }
+      if ((await tableExists('file_state')) && !(await colExists('file_state', 'requires_payment_voucher'))) {
+        await c.query('ALTER TABLE `file_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NULL DEFAULT 0 AFTER `enabled`');
+        await c.query('UPDATE `file_state` SET `requires_payment_voucher` = 1 WHERE `id` = 2');
+        log.push('+ file_state.requires_payment_voucher (Liquidación backfilled)');
+      }
+
+      await c.query('SET FOREIGN_KEY_CHECKS = 1');
+    });
+    return { ok: true, log };
+  } catch (e) {
+    return { ok: false, log, message: (e as Error).message };
+  }
+}
+
 /** Payload for the final "create everything" step. */
 interface ProvisionPayload {
   central: DbConnectionConfig;
@@ -200,15 +397,42 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         });
       }
 
-      // 3. Create tenant DB + run schema migrations
+      // 3. Create tenant DB + apply full schema
       log.push(`Creando base de datos del tenant ${payload.tenant.db.database}…`);
       const dbResult = await createDatabase(payload.tenant.db, payload.tenant.db.database);
       if (!dbResult.ok) return { ok: false, log, message: dbResult.message };
 
-      log.push('Aplicando esquema base…');
-      const migResult = await executeBatch(payload.tenant.db, schemaMigrations);
-      if (!migResult.ok) {
-        return { ok: false, log, message: `Migración "${migResult.failed?.name}" falló: ${migResult.failed?.error}` };
+      // Prefer cloning the FULL schema from a reference DB (configured via
+      // REFERENCE_DB_NAME in config/central.env). Falls back to the curated
+      // 17-table subset only if no reference is set.
+      const refDb = getReferenceDbName();
+      if (refDb) {
+        log.push(`Clonando schema completo desde \`${refDb}\`…`);
+        const clone = await cloneFullSchema(payload.tenant.db, refDb);
+        log.push(`  base: +${clone.baseCreated} created, ${clone.baseSkipped} skipped`);
+        log.push(`  views: +${clone.viewsCreated} created, ${clone.viewsSkipped} skipped`);
+        if (clone.failed.length) {
+          // Views with missing-table errors are expected (they get re-created
+          // when their tables exist on next run); only base-table failures abort.
+          const blocking = clone.failed.filter((f) => !f.name.startsWith('view '));
+          if (blocking.length) {
+            return { ok: false, log, message: `Schema clone falló: ${blocking.map((f) => f.name + ': ' + f.error).join('; ')}` };
+          }
+          log.push(`  views con FK pendientes: ${clone.failed.length} (no bloquea — los re-crearemos al final si aplica)`);
+        }
+
+        log.push('Aplicando rename file_status → file_state + Phase A…');
+        const up = await applyTenantSchemaUpgrades(payload.tenant.db);
+        up.log.forEach((l) => log.push(`  ${l}`));
+        if (!up.ok) {
+          return { ok: false, log, message: `Schema upgrades fallaron: ${up.message}` };
+        }
+      } else {
+        log.push('REFERENCE_DB_NAME no configurado — usando subset curado de 17 tablas (no recomendado para producción)…');
+        const migResult = await executeBatch(payload.tenant.db, schemaMigrations);
+        if (!migResult.ok) {
+          return { ok: false, log, message: `Migración "${migResult.failed?.name}" falló: ${migResult.failed?.error}` };
+        }
       }
 
       // 4. Seed catalog rows into tenant DB
