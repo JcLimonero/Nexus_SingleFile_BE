@@ -237,7 +237,7 @@ class Client extends BaseController
                     AND obc2.id_agency = f.id_agency
                 INNER JOIN agency a ON a.id = f.id_agency
                 LEFT JOIN company co ON a.id_company = co.id
-                LEFT JOIN process p ON f.id_sale_type = p.id
+                LEFT JOIN sale_type p ON f.id_sale_type = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id

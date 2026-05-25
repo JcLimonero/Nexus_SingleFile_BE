@@ -54,7 +54,7 @@ class Files extends BaseController
                             INNER JOIN client_header hc ON hc.id_client = f.id_client
                             INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
                                 AND ctr.id_agency = f.id_agency
-                            LEFT JOIN process p ON f.id_sale_type = p.id
+                            LEFT JOIN sale_type p ON f.id_sale_type = p.id
                             LEFT JOIN operation_type ot ON f.id_operation = ot.id
                             LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                             LEFT JOIN agency a ON f.id_agency = a.id
@@ -156,7 +156,7 @@ class Files extends BaseController
                     fs.name as estatus
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN process p ON f.id_sale_type = p.id
+                LEFT JOIN sale_type p ON f.id_sale_type = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id

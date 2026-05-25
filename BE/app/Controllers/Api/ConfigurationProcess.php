@@ -52,7 +52,7 @@ class ConfigurationProcess extends BaseController
                 cp.registration_date,
                 cp.update_date
             ')
-            ->join('process p', 'p.id = cp.id_sale_type', 'left')
+            ->join('sale_type p', 'p.id = cp.id_sale_type', 'left')
             ->join('agency a', 'a.id = cp.id_agency', 'left')
             ->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left')
             ->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left')
@@ -169,7 +169,7 @@ class ConfigurationProcess extends BaseController
                 cp.registration_date,
                 cp.update_date
             ')
-            ->join('process p', 'p.id = cp.id_sale_type', 'left')
+            ->join('sale_type p', 'p.id = cp.id_sale_type', 'left')
             ->join('agency a', 'a.id = cp.id_agency', 'left')
             ->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left')
             ->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left')

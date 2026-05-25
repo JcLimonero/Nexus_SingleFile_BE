@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class ProcessModel extends Model
 {
-    protected $table = 'process';
+    protected $table = 'sale_type';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = false;
     protected $returnType = 'array';
@@ -148,9 +148,9 @@ class ProcessModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('process.*, u.name as LastUserUpdateName')
-                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
-                    ->orderBy("process.{$sortField}", $sortOrder)
+        return $this->select('sale_type.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'sale_type.id_last_user_update = u.id', 'left')
+                    ->orderBy("sale_type.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -167,9 +167,9 @@ class ProcessModel extends Model
      */
     public function getProcessByIdWithUser($id)
     {
-        return $this->select('process.*, u.name as LastUserUpdateName')
-                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
-                    ->where('process.id', $id)
+        return $this->select('sale_type.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'sale_type.id_last_user_update = u.id', 'left')
+                    ->where('sale_type.id', $id)
                     ->first();
     }
 
@@ -208,15 +208,15 @@ class ProcessModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        $query = $this->select('process.*, u.name as LastUserUpdateName')
-                      ->join('user u', 'process.id_last_user_update = u.id', 'left')
-                      ->like('process.name', $name);
+        $query = $this->select('sale_type.*, u.name as LastUserUpdateName')
+                      ->join('user u', 'sale_type.id_last_user_update = u.id', 'left')
+                      ->like('sale_type.name', $name);
         
         if ($enabledOnly) {
-            $query->where('process.enabled', 1);
+            $query->where('sale_type.enabled', 1);
         }
         
-        return $query->orderBy("process.{$sortField}", $sortOrder)->findAll();
+        return $query->orderBy("sale_type.{$sortField}", $sortOrder)->findAll();
     }
 
     /**
@@ -242,10 +242,10 @@ class ProcessModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('process.*, u.name as LastUserUpdateName')
-                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
-                    ->where('process.enabled', 1)
-                    ->orderBy("process.{$sortField}", $sortOrder)
+        return $this->select('sale_type.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'sale_type.id_last_user_update = u.id', 'left')
+                    ->where('sale_type.enabled', 1)
+                    ->orderBy("sale_type.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -280,10 +280,10 @@ class ProcessModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('process.*, u.name as LastUserUpdateName')
-                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
-                    ->where('process.enabled', 0)
-                    ->orderBy("process.{$sortField}", $sortOrder)
+        return $this->select('sale_type.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'sale_type.id_last_user_update = u.id', 'left')
+                    ->where('sale_type.enabled', 0)
+                    ->orderBy("sale_type.{$sortField}", $sortOrder)
                     ->findAll();
     }
 
@@ -348,10 +348,10 @@ class ProcessModel extends Model
         ];
         $sortField = $sortFieldMap[$sortBy] ?? 'name';
         
-        return $this->select('process.*, u.name as LastUserUpdateName')
-                    ->join('user u', 'process.id_last_user_update = u.id', 'left')
-                    ->where('process.enabled', $enabled)
-                    ->orderBy("process.{$sortField}", $sortOrder)
+        return $this->select('sale_type.*, u.name as LastUserUpdateName')
+                    ->join('user u', 'sale_type.id_last_user_update = u.id', 'left')
+                    ->where('sale_type.enabled', $enabled)
+                    ->orderBy("sale_type.{$sortField}", $sortOrder)
                     ->findAll();
     }
 

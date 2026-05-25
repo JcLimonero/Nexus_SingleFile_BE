@@ -120,7 +120,7 @@ class DocumentoRequeridoModel extends Model
             
             // Joins con tablas relacionadas
             $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'left');
-            $builder->join('process p', 'p.id = cp.id_sale_type', 'left');
+            $builder->join('sale_type p', 'p.id = cp.id_sale_type', 'left');
             $builder->join('agency a', 'a.id = cp.id_agency', 'left');
             $builder->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left');
             $builder->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left');

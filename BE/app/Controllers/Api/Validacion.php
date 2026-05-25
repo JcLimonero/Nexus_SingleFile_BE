@@ -110,7 +110,7 @@ class Validacion extends BaseController
                     fs.name as estado_actual
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                INNER JOIN process p ON f.id_sale_type = p.id
+                INNER JOIN sale_type p ON f.id_sale_type = p.id
                 INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE f.id = ?
             ", [$idFile])->getRowArray();
@@ -1001,7 +1001,7 @@ class Validacion extends BaseController
                 LEFT JOIN expedient_pld fp ON fp.id_expedient = f.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_sale_type = p.id
+                INNER JOIN sale_type p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
@@ -1081,7 +1081,7 @@ class Validacion extends BaseController
                 FROM expedient f
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_sale_type = p.id
+                INNER JOIN sale_type p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE 1=1
@@ -1552,7 +1552,7 @@ class Validacion extends BaseController
 
             $query = $this->db->table('expedient f')
                 ->select('fs.name as estado, COUNT(*) as cantidad')
-                ->join('process p', 'f.id_sale_type = p.id', 'inner')
+                ->join('sale_type p', 'f.id_sale_type = p.id', 'inner')
                 ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'inner')
                 ->where('f.id_agency', $id_agency)
                 ->where('f.id_sale_type', $idProcess)
@@ -1638,7 +1638,7 @@ class Validacion extends BaseController
                     lrd.registration_date as registrationDate
                 ')
                 ->join('expedient f', 'dbf.id_expedient = f.id', 'inner')
-                ->join('process p', 'f.id_sale_type = p.id', 'inner')
+                ->join('sale_type p', 'f.id_sale_type = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
                 ->join('expedient_state fs', 'dt.id_sale_type = fs.id', 'inner')
                 ->join('document_status dfs', 'dbf.id_current_document_status = dfs.id', 'inner')
@@ -2505,7 +2505,7 @@ class Validacion extends BaseController
                 FROM expedient f
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_sale_type = p.id
+                INNER JOIN sale_type p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
@@ -3099,7 +3099,7 @@ class Validacion extends BaseController
             $docs = $this->db->table('expedient_document dbf')
                 ->select('dbf.id_document_container as documentContainer, p.name as proceso, fs.name as fase, dt.name as tipoDocumento, dbf.name as documento')
                 ->join('expedient f', 'dbf.id_expedient = f.id', 'inner')
-                ->join('process p', 'f.id_sale_type = p.id', 'inner')
+                ->join('sale_type p', 'f.id_sale_type = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
                 ->join('expedient_state fs', 'dt.id_sale_type = fs.id', 'inner')
                 ->where('dbf.id_expedient', $idFile)

@@ -41,7 +41,7 @@ class ClientGroupProcessModel extends Model
     public function getProcessesForGroup(int $idClientGroup): array
     {
         return $this->select('client_group_process.*, p.name as process_name, p.enabled as process_enabled')
-            ->join('process p', 'p.id = client_group_process.id_sale_type', 'left')
+            ->join('sale_type p', 'p.id = client_group_process.id_sale_type', 'left')
             ->where('client_group_process.id_client_group', $idClientGroup)
             ->orderBy('client_group_process.display_order', 'ASC')
             ->findAll();

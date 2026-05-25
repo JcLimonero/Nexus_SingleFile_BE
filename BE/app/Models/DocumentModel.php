@@ -111,7 +111,7 @@ class DocumentModel extends Model
         // JOIN para obtener el tipo de proceso desde expedient_sub_state
         $builder->join('expedient_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
         // JOIN para obtener el subproceso
-        $builder->join('process sp', 'sp.id = dt.id_sub_sale_type', 'left');
+        $builder->join('sale_type sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -186,7 +186,7 @@ class DocumentModel extends Model
         $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
         $builder->join('expedient f', 'f.id = d.id_expedient', 'left');
         $builder->join('expedient_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
-        $builder->join('process sp', 'sp.id = dt.id_sub_sale_type', 'left');
+        $builder->join('sale_type sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
         if (!empty($filters['enabled'])) {

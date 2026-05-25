@@ -467,7 +467,7 @@ class Miniportal extends BaseController
                     CASE WHEN ap.id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
                 FROM expedient_document dbf
                 INNER JOIN expedient f ON dbf.id_expedient = f.id
-                INNER JOIN process p ON f.id_sale_type = p.id
+                INNER JOIN sale_type p ON f.id_sale_type = p.id
                 INNER JOIN document_type dt ON dbf.id_document_type = dt.id
                 INNER JOIN expedient_state fs ON dt.id_sale_type = fs.id
                 INNER JOIN document_status dfs ON dbf.id_current_document_status = dfs.id
@@ -509,7 +509,7 @@ class Miniportal extends BaseController
                 0 as aprobadoCliente
             ')
             ->join('expedient f', 'dbf.id_expedient = f.id', 'inner')
-            ->join('process p', 'f.id_sale_type = p.id', 'inner')
+            ->join('sale_type p', 'f.id_sale_type = p.id', 'inner')
             ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
             ->join('expedient_state fs', 'dt.id_sale_type = fs.id', 'inner')
             ->join('document_status dfs', 'dbf.id_current_document_status = dfs.id', 'inner')

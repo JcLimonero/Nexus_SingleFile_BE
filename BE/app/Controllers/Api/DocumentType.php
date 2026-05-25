@@ -759,7 +759,7 @@ class DocumentType extends BaseController
                        cp.id_agency, a.name as agencia_name, cp.id_customer_type, ct.name as tipo_cliente_name,
                        cp.id_operation_type, ot.name as tipo_operacion_name, cp.enabled
                 FROM configuration_process cp
-                LEFT JOIN process p ON p.id = cp.id_sale_type
+                LEFT JOIN sale_type p ON p.id = cp.id_sale_type
                 INNER JOIN agency a ON a.id = cp.id_agency AND a.name IS NOT NULL AND TRIM(a.name) != ''
                 LEFT JOIN customer_type ct ON ct.id = cp.id_customer_type
                 LEFT JOIN operation_type ot ON ot.id = cp.id_operation_type

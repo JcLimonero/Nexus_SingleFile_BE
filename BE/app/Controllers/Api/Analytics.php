@@ -222,18 +222,18 @@ class Analytics extends BaseController
             // Si hay filtro de agencia, hacer JOIN con configuration_process usando alias único
             if ($hasAgencyFilter) {
                 $totalBuilder->distinct()
-                    ->select('process.*')
-                    ->join('configuration_process cp1', 'cp1.id_sale_type = process.id', 'inner')
+                    ->select('sale_type.*')
+                    ->join('configuration_process cp1', 'cp1.id_sale_type = sale_type.id', 'inner')
                     ->where('cp1.id_agency', $agencyId)
                     ->where('cp1.enabled', 1);
             }
             
             // Aplicar filtros de fecha (snake_case)
             if (!empty($filters['start_date'])) {
-                $totalBuilder->where('process.registration_date >=', $filters['start_date']);
+                $totalBuilder->where('sale_type.registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $totalBuilder->where('process.registration_date <=', $filters['end_date']);
+                $totalBuilder->where('sale_type.registration_date <=', $filters['end_date']);
             }
 
             // Estadísticas básicas
@@ -243,22 +243,22 @@ class Analytics extends BaseController
             $statusBuilder = $db->table('sale_type');
             if ($hasAgencyFilter) {
                 $statusBuilder->distinct()
-                    ->select('process.enabled as status, COUNT(DISTINCT process.id) as count')
-                    ->join('configuration_process cp2', 'cp2.id_sale_type = process.id', 'inner')
+                    ->select('sale_type.enabled as status, COUNT(DISTINCT sale_type.id) as count')
+                    ->join('configuration_process cp2', 'cp2.id_sale_type = sale_type.id', 'inner')
                     ->where('cp2.id_agency', $agencyId)
                     ->where('cp2.enabled', 1);
             } else {
-                $statusBuilder->select('process.enabled as status, COUNT(*) as count');
+                $statusBuilder->select('sale_type.enabled as status, COUNT(*) as count');
             }
             
             if (!empty($filters['start_date'])) {
-                $statusBuilder->where('process.registration_date >=', $filters['start_date']);
+                $statusBuilder->where('sale_type.registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $statusBuilder->where('process.registration_date <=', $filters['end_date']);
+                $statusBuilder->where('sale_type.registration_date <=', $filters['end_date']);
             }
             
-            $statusBuilder->groupBy('process.enabled');
+            $statusBuilder->groupBy('sale_type.enabled');
             $processesByStatus = $statusBuilder->get()->getResultArray();
 
             // Procesos por agencia (simplificado - la tabla Process no tiene relación directa con agencias)
@@ -271,21 +271,21 @@ class Analytics extends BaseController
             $trendBuilder = $db->table('sale_type');
             if ($hasAgencyFilter) {
                 $trendBuilder->distinct()
-                    ->select("DATE_FORMAT(process.registration_date, '%Y-%m') as month, COUNT(DISTINCT process.id) as count")
-                    ->join('configuration_process cp3', 'cp3.id_sale_type = process.id', 'inner')
+                    ->select("DATE_FORMAT(sale_type.registration_date, '%Y-%m') as month, COUNT(DISTINCT sale_type.id) as count")
+                    ->join('configuration_process cp3', 'cp3.id_sale_type = sale_type.id', 'inner')
                     ->where('cp3.id_agency', $agencyId)
                     ->where('cp3.enabled', 1)
-                    ->where('process.registration_date >=', date('Y-m-01', strtotime('-12 months')));
+                    ->where('sale_type.registration_date >=', date('Y-m-01', strtotime('-12 months')));
             } else {
-                $trendBuilder->select("DATE_FORMAT(process.registration_date, '%Y-%m') as month, COUNT(*) as count")
-                    ->where('process.registration_date >=', date('Y-m-01', strtotime('-12 months')));
+                $trendBuilder->select("DATE_FORMAT(sale_type.registration_date, '%Y-%m') as month, COUNT(*) as count")
+                    ->where('sale_type.registration_date >=', date('Y-m-01', strtotime('-12 months')));
             }
             
             if (!empty($filters['start_date'])) {
-                $trendBuilder->where('process.registration_date >=', $filters['start_date']);
+                $trendBuilder->where('sale_type.registration_date >=', $filters['start_date']);
             }
             if (!empty($filters['end_date'])) {
-                $trendBuilder->where('process.registration_date <=', $filters['end_date']);
+                $trendBuilder->where('sale_type.registration_date <=', $filters['end_date']);
             }
             
             $trendBuilder->groupBy('month')
@@ -1189,7 +1189,7 @@ class Analytics extends BaseController
             // Consulta para obtener distribución por proceso
             $query = $db->table('expedient f')
                 ->select('p.name as processName, COUNT(f.id) as totalCases')
-                ->join('process p', 'f.id_sale_type = p.id', 'left')
+                ->join('sale_type p', 'f.id_sale_type = p.id', 'left')
                 ->groupBy('p.id, p.name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1762,7 +1762,7 @@ class Analytics extends BaseController
 
         // OPTIMIZACIÓN: Reducir JOINs innecesarios - solo necesitamos Process para verificar enabled
         $query = $db->table('expedient f')
-            ->join('process p', 'f.id_sale_type = p.id', 'inner')
+            ->join('sale_type p', 'f.id_sale_type = p.id', 'inner')
             ->select('
                 CASE 
                     WHEN DATEDIFF(COALESCE(f.close_date, CURDATE()), f.registration_date) <= 5 THEN "0-5"
@@ -1915,7 +1915,7 @@ class Analytics extends BaseController
             // OPTIMIZACIÓN: Reducir JOINs innecesarios y usar rangos de fechas
             // Solo necesitamos JOIN con Process para verificar enabled, el resto se puede simplificar
             $query = $db->table('expedient f')
-                ->join('process p', 'f.id_sale_type = p.id', 'inner')
+                ->join('sale_type p', 'f.id_sale_type = p.id', 'inner')
                 ->select('
                     CASE 
                         WHEN DATEDIFF(COALESCE(f.close_date, CURDATE()), f.registration_date) <= 5 THEN "0-5"
@@ -2199,7 +2199,7 @@ class Analytics extends BaseController
                 INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_sale_type = p.id
+                INNER JOIN sale_type p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
             WHERE f.registration_date IS NOT NULL

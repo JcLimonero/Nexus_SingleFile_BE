@@ -114,7 +114,7 @@ class DocumentTypeModel extends Model
         ');
         
         $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'inner');
-        $builder->join('process p', 'p.id = cp.id_sale_type', 'left');
+        $builder->join('sale_type p', 'p.id = cp.id_sale_type', 'left');
         // INNER JOIN: excluir configuraciones donde la agencia es N/A (nombre nulo, vacío o literal "N/A")
         $builder->join(
             'agency a',
