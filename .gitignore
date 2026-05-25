@@ -14,6 +14,11 @@ BE/env.port402
 BE/env.production
 BE/config/database-config.json
 ADMIN_BE/.env
+
+# PHPUnit overrides locales con creds DB — phpunit.xml.dist es público
+BE/phpunit.xml
+DWH/phpunit.xml
+ADMIN_BE/phpunit.xml
 .env
 .env.local
 .env.*.local

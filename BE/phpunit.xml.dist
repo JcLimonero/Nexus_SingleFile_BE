@@ -51,13 +51,15 @@
         <!-- Directory containing the front controller (index.php) -->
         <const name="PUBLICPATH" value="./public/"/>
         <!-- Database configuration -->
-        <!-- Uncomment to provide your own database for testing
-            <env name="database.tests.hostname" value="localhost"/>
-            <env name="database.tests.database" value="tests"/>
-            <env name="database.tests.username" value="tests_user"/>
+        <!-- Para tests con DB real (MySQL en lugar del SQLite default), copiar
+             phpunit.xml.dist → phpunit.xml y descomentar el bloque siguiente.
+             phpunit.xml es gitignored (no commitea credenciales).
+            <env name="database.tests.hostname" value="..."/>
+            <env name="database.tests.database" value="..."/>
+            <env name="database.tests.username" value="..."/>
             <env name="database.tests.password" value=""/>
             <env name="database.tests.DBDriver" value="MySQLi"/>
-            <env name="database.tests.DBPrefix" value="tests_"/>
+            <env name="database.tests.DBPrefix" value=""/>
             -->
     </php>
 </phpunit>
