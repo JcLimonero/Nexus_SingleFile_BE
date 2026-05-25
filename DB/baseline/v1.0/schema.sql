@@ -895,6 +895,12 @@ ALTER TABLE `company` ADD COLUMN `id_client_group` BIGINT NULL AFTER `id`;
 CREATE INDEX `idx_company_client_group` ON `company` (`id_client_group`);
 ALTER TABLE `file_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NULL DEFAULT 0 AFTER `enabled`;
 
+-- Forward-fix: legacy nexfile dump leaves these tables without AUTO_INCREMENT
+-- (they relied on externally-assigned ids). The WIZARD provisioning + the
+-- tenant operating going forward both need auto-generated PKs to insert
+-- without specifying id every time.
+ALTER TABLE `agency` MODIFY `id` BIGINT NOT NULL AUTO_INCREMENT;
+
 -- ====== Views ======
 
 DROP VIEW IF EXISTS `view_all_relations`;
