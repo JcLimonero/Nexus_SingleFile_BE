@@ -373,21 +373,37 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         if (!seed.ok) return { ok: false, log, message: seed.message };
       }
 
-      // 5. Insert client_group + companies + agencies + processes assignment
+      // 5. Admin user FIRST — every other row's id_last_user_update FK points to user.id
+      log.push('Creando usuario administrador del tenant…');
+      const hash = await bcryptHash(payload.admin.password);
+      const adminUserId = await withConnection(payload.tenant.db, async (c) => {
+        const [r]: any = await c.query(
+          'INSERT INTO `user` (mail, password, name, enabled) VALUES (?, ?, ?, 1)',
+          [payload.admin.email, hash, payload.admin.name ?? payload.admin.email],
+        );
+        return r.insertId as number;
+      });
+      log.push(`  admin user id=${adminUserId}`);
+
+      // 6. Hierarchy: client_group → companies → agencies, then client_group_process.
+      // Every INSERT explicitly passes id_last_user_update = adminUserId because the
+      // source schema has DEFAULT '0' on that column + FK to user.id, and user(id=0)
+      // doesn't exist → naked INSERTs trip the FK.
       log.push('Insertando jerarquía cliente_group → companies → agencias…');
       await withConnection(payload.tenant.db, async (c) => {
+        await c.query('SET FOREIGN_KEY_CHECKS = 0');
+
         const [g]: any = await c.query(
-          'INSERT INTO client_group (name, description) VALUES (?, ?)',
-          [payload.clientGroup.name, payload.clientGroup.description ?? null],
+          'INSERT INTO client_group (name, description, id_last_user_update) VALUES (?, ?, ?)',
+          [payload.clientGroup.name, payload.clientGroup.description ?? null, adminUserId],
         );
         const clientGroupId = g.insertId;
 
         const companyIds: number[] = [];
         for (const co of payload.companies) {
-          // company in tenant DB might use different columns; we try common shape with id_client_group
           const [cr]: any = await c.query(
-            'INSERT INTO company (name, id_client_group) VALUES (?, ?)',
-            [co.name, clientGroupId],
+            'INSERT INTO company (name, id_client_group, id_last_user_update) VALUES (?, ?, ?)',
+            [co.name, clientGroupId, adminUserId],
           );
           companyIds.push(cr.insertId);
         }
@@ -395,8 +411,8 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         for (const a of payload.agencies) {
           const idCompany = companyIds[a.companyIndex] ?? companyIds[0];
           await c.query(
-            'INSERT INTO agency (name, id_company) VALUES (?, ?)',
-            [a.name, idCompany],
+            'INSERT INTO agency (name, id_company, id_last_user_update) VALUES (?, ?, ?)',
+            [a.name, idCompany, adminUserId],
           );
         }
 
@@ -409,16 +425,8 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
             );
           }
         }
-      });
 
-      // 6. Admin user
-      log.push('Creando usuario administrador del tenant…');
-      const hash = await bcryptHash(payload.admin.password);
-      await withConnection(payload.tenant.db, async (c) => {
-        await c.query(
-          'INSERT INTO `user` (mail, password, name, enabled) VALUES (?, ?, ?, 1)',
-          [payload.admin.email, hash, payload.admin.name ?? payload.admin.email],
-        );
+        await c.query('SET FOREIGN_KEY_CHECKS = 1');
       });
 
       log.push('✅ Tenant provisionado correctamente.');
