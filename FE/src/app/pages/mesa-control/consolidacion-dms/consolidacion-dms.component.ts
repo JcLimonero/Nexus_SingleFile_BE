@@ -114,7 +114,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
 
   /** Columnas fijas: detalles del pedido + estatus en Nexfile */
   readonly displayedColumns: string[] = [
-    'agency_name', 'bussines_name', 'order_dms', 'state', 'tipo_operacion', 'tipo_proceso', 'tipo_cliente', 'vin', 'release_date'
+    'agency_name', 'bussines_name', 'order_dms', 'state', 'tipo_operacion', 'tipo_proceso', 'client_type', 'vin', 'release_date'
   ];
   dataSource = new MatTableDataSource<PedidoDms>([]);
 
@@ -155,7 +155,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
     'version': 'Versión',
     'connection_string': 'Conexión',
     'bussines_name': 'Razón Social',
-    'tipo_cliente': 'Tipo Cliente',
+    'client_type': 'Tipo Cliente',
     'tipo_operacion': 'Tipo Operación',
     'tipo_proceso': 'Tipo Proceso',
   };
@@ -611,7 +611,7 @@ export class ConsolidacionDmsComponent implements OnInit, OnDestroy {
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
       return s;
     }
-    if (col === 'tipo_cliente' && v != null) {
+    if (col === 'client_type' && v != null) {
       const s = String(v).toLowerCase();
       if (s === 'fisica' || s === '1') return 'Persona Física';
       if (s === 'moral' || s === '2') return 'Persona Moral';

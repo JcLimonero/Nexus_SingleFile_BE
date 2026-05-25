@@ -81,7 +81,7 @@ class ReportesCumplimiento extends BaseController
                     c.id as idCliente,
                     MIN(hc.id) as idClientHeader,
                     MIN(ctr.id_dms) as ndCliente,
-                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.business_name), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     COALESCE(aml.totalMonto, 0) as totalMontoEfectivo,
                     tot.totalMonto as totalMontoExpediente,
                     tot.idCompany,
@@ -129,7 +129,7 @@ class ReportesCumplimiento extends BaseController
                         c.id as idCliente,
                         MIN(hc.id) as idClientHeader,
                         MIN(ctr.id_dms) as ndCliente,
-                        ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                        ANY_VALUE(COALESCE(NULLIF(TRIM(c.business_name), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                         aml.totalMonto as totalMontoEfectivo,
                         aml.totalMonto as totalMontoExpediente,
                         aml.idCompany,
@@ -400,7 +400,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT
                     f.id as idFile,
                     f.id_order_total as ndPedido,
-                    COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                    COALESCE(NULLIF(TRIM(c.business_name), ''),
                         TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
                     ct.name as tipoCliente,
@@ -469,7 +469,7 @@ class ReportesCumplimiento extends BaseController
     /**
      * GET /api/compliance-reports/cases-without-notice
      * Expedientes sin aviso de privacidad aceptado.
-     * Incluye: sin registro en expedient_pld, o con registro pero aviso_privacidad_entregado != 1.
+     * Incluye: sin registro en expedient_pld, o con registro pero privacy_notice_delivered != 1.
      */
     public function expedientesSinAviso()
     {
@@ -494,7 +494,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT
                     f.id as idFile,
                     f.id_order_total as ndPedido,
-                    COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                    COALESCE(NULLIF(TRIM(c.business_name), ''),
                         TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
                     ct.name as tipoCliente,
@@ -511,7 +511,7 @@ class ReportesCumplimiento extends BaseController
                 WHERE f.id_current_expedient_state NOT IN (5)
                 AND NOT EXISTS (
                     SELECT 1 FROM expedient_pld fp
-                    WHERE fp.id_expedient = f.id AND fp.aviso_privacidad_entregado = 1
+                    WHERE fp.id_expedient = f.id AND fp.privacy_notice_delivered = 1
                 )
             ";
             $params = [];
@@ -550,7 +550,7 @@ class ReportesCumplimiento extends BaseController
                         SELECT
                             f.id as idFile,
                             f.id_order_total as ndPedido,
-                            COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                            COALESCE(NULLIF(TRIM(c.business_name), ''),
                                 TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                             ) as cliente,
                             ct.name as tipoCliente,
@@ -725,7 +725,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 WHERE f.id_current_expedient_state NOT IN (5) AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM expedient_pld fp WHERE fp.id_expedient = f.id AND fp.aviso_privacidad_entregado = 1)
+                AND NOT EXISTS (SELECT 1 FROM expedient_pld fp WHERE fp.id_expedient = f.id AND fp.privacy_notice_delivered = 1)
             ";
             $paramsAviso = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {

@@ -327,7 +327,7 @@ class NexFileClientImport extends ResourceController
                 c.email as email,
                 c.tel_number as telefono,
                 c.tel_number2 as telefono2,
-                c.razon_social as razonSocial,
+                c.business_name as razonSocial,
                 c.CURP as curp,
                 c.adviser as asesor,
                 c.agency_origin as agenciaOrigen,
@@ -397,7 +397,7 @@ class NexFileClientImport extends ResourceController
         error_log("🔍 Buscando cliente por RFC: {$rfcTrimmed}");
         $sql = "
             SELECT c.id, c.name, c.last_name, c.mother_last_name, c.RFC, c.email, c.tel_number,
-                   c.tel_number2, c.razon_social, c.CURP, c.adviser, c.agency_origin,
+                   c.tel_number2, c.business_name, c.CURP, c.adviser, c.agency_origin,
                    c.registration_date, c.update_date
             FROM client c
             WHERE TRIM(c.RFC) = ?
@@ -462,7 +462,7 @@ class NexFileClientImport extends ResourceController
                 c.email as email,
                 c.tel_number as telefono,
                 c.tel_number2 as telefono2,
-                c.razon_social as razonSocial,
+                c.business_name as razonSocial,
                 c.CURP as curp,
                 c.adviser as asesor,
                 c.agency_origin as agenciaOrigen,
@@ -473,7 +473,7 @@ class NexFileClientImport extends ResourceController
             FROM client c
             INNER JOIN client_header hc ON c.id = hc.id_client
             INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
-            WHERE c.razon_social = ?
+            WHERE c.business_name = ?
             LIMIT 1
         ";
 
@@ -523,8 +523,8 @@ class NexFileClientImport extends ResourceController
             'tel_number' => $NexFileData['phone'] ?? '',
             'tel_number2' => $NexFileData['mobile_phone'] ?? '',
             'email' => $NexFileData['mail'] ?? '',
-            'razon_social' => $razonSocial,
-            'tipo_cliente' => $this->normalizeTipoClienteForDb($NexFileData['tipo_cliente'] ?? null),
+            'business_name' => $razonSocial,
+            'client_type' => $this->normalizeTipoClienteForDb($NexFileData['client_type'] ?? null),
             'adviser' => '', // Se puede asignar después
             'agency_origin' => $NexFileData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'),
@@ -734,9 +734,9 @@ class NexFileClientImport extends ResourceController
                 c.email as email,
                 c.tel_number as telefono,
                 c.tel_number2 as telefono2,
-                c.razon_social as razonSocial,
+                c.business_name as razonSocial,
                 c.CURP as curp,
-                c.tipo_cliente as tipoCliente,
+                c.client_type as tipoCliente,
                 c.adviser as asesor,
                 c.agency_origin as agenciaOrigen,
                 c.registration_date as fechaRegistro,
@@ -753,7 +753,7 @@ class NexFileClientImport extends ResourceController
         return $query->getRowArray();
     }
 
-    /** Convierte tipo_cliente a ID: 'fisica'/'moral' -> 1/2, 1/2 se mantienen */
+    /** Convierte client_type a ID: 'fisica'/'moral' -> 1/2, 1/2 se mantienen */
     private function normalizeTipoClienteForDb($value): ?int
     {
         if ($value === null || $value === '') return null;

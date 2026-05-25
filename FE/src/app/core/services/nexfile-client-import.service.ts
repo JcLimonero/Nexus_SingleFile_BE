@@ -17,7 +17,7 @@ export interface NexFileClientImportRequest {
   phone: string;
   mobile_phone: string;
   mail: string;
-  tipo_cliente?: string;  // 'fisica' | 'moral'
+  client_type?: string;  // 'fisica' | 'moral'
 }
 
 export interface NexFileClientImportResponse {
@@ -37,7 +37,7 @@ export interface NexFileClientImportResponse {
     razonSocial: string;
     curp: string;
     tipoCliente?: string;
-    tipo_cliente?: string;
+    client_type?: string;
     asesor: string;
     agenciaOrigen: string;
     fechaRegistro: string;
@@ -89,7 +89,7 @@ export class NexFileClientImportService {
       phone: NexFileClient.phone || '',
       mobile_phone: NexFileClient.mobile_phone || '',
       mail: NexFileClient.mail || '',
-      tipo_cliente: NexFileClient.tipo_cliente || ''
+      client_type: NexFileClient.client_type || ''
     };
   }
 }

@@ -77,7 +77,7 @@ class Client extends BaseController
                 SELECT
                     c.id as idCliente,
                     MIN(ctr.id_dms) as ndCliente,
-                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.business_name), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     MIN(hc.id) as idClientHeader,
                     (EXISTS (
                         SELECT 1 FROM {$vistaAML} aml
@@ -114,7 +114,7 @@ class Client extends BaseController
                 $pattern = "%{$search}%";
                 $sql .= " AND (
                     ctr.id_dms LIKE ?
-                    OR c.razon_social LIKE ?
+                    OR c.business_name LIKE ?
                     OR TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) LIKE ?
                     OR c.name LIKE ?
                     OR c.last_name LIKE ?
@@ -214,7 +214,7 @@ class Client extends BaseController
                     a.id as idAgency,
                     co.name as compania,
                     c.id as idCliente,
-                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
+                    ANY_VALUE(COALESCE(NULLIF(TRIM(c.business_name), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))))) as cliente,
                     MAX(ctr.id_dms) as ndCliente,
                     MAX(COALESCE(obc1.amount, obc2.Amount)) as monto
                 FROM client_header hc
@@ -353,7 +353,7 @@ class Client extends BaseController
                 SELECT 
                     c.id as idCliente,
                     ctr.id_dms as ndCliente,
-                    COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))) as cliente,
+                    COALESCE(NULLIF(TRIM(c.business_name), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))) as cliente,
                     c.name as nombre,
                     c.last_name as apellidoPaterno,
                     c.mother_last_name as apellidoMaterno,
@@ -361,7 +361,7 @@ class Client extends BaseController
                     c.email as email,
                     c.tel_number as telefono,
                     c.tel_number2 as telefono2,
-                    c.razon_social as razonSocial,
+                    c.business_name as razonSocial,
                     c.CURP as curp,
                     c.adviser as asesor,
                     c.agency_origin as agenciaOrigen,
@@ -405,7 +405,7 @@ class Client extends BaseController
                 }
             }
             
-            $sql .= " GROUP BY c.id, ctr.id_dms, c.name, c.last_name, c.mother_last_name, c.RFC, c.email, c.tel_number, c.tel_number2, c.razon_social, c.CURP, c.adviser, c.agency_origin, c.registration_date, c.update_date";
+            $sql .= " GROUP BY c.id, ctr.id_dms, c.name, c.last_name, c.mother_last_name, c.RFC, c.email, c.tel_number, c.tel_number2, c.business_name, c.CURP, c.adviser, c.agency_origin, c.registration_date, c.update_date";
             $sql .= " ORDER BY ndCliente ASC LIMIT ?";
             $params[] = $limit;
 

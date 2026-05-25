@@ -632,8 +632,8 @@ export class IntegracionComponent implements OnInit, OnDestroy {
               telefono2: response.data.telefono2,
               razonSocial: response.data.razonSocial,
               curp: response.data.curp,
-              tipoCliente: response.data.tipoCliente ?? response.data.tipo_cliente,
-              tipo_cliente: response.data.tipoCliente ?? response.data.tipo_cliente ?? NexFileClient?.tipo_cliente,
+              tipoCliente: response.data.tipoCliente ?? response.data.client_type,
+              client_type: response.data.tipoCliente ?? response.data.client_type ?? NexFileClient?.client_type,
               asesor: response.data.asesor,
               agenciaOrigen: response.data.agenciaOrigen || String(clientIdAgency),
               fechaRegistro: response.data.fechaRegistro,
@@ -978,7 +978,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data && response.data.files) {
-            // BE devuelve snake_case (file_id, numero_pedido, tipo_cliente...).
+            // BE devuelve snake_case (file_id, numero_pedido, client_type...).
             // snakeFileToFile crea aliases camelCase para no tener que reescribir el resto del componente.
             this.files = response.data.files.map((file: any) => snakeFileToFile({
               ...file,
@@ -1414,7 +1414,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           agencyId: this.selectedAgencyId, 
           ndCliente: this.selectedClient?.ndCliente,
           existingOrders: existingOrders,
-          clienteTipo: this.selectedClient?.tipo_cliente ?? this.selectedClient?.tipoCliente
+          clienteTipo: this.selectedClient?.client_type ?? this.selectedClient?.tipoCliente
         }
       });
 
@@ -1468,7 +1468,7 @@ export class IntegracionComponent implements OnInit, OnDestroy {
           agencyId: this.selectedAgencyId, 
           ndCliente: this.selectedClient?.ndCliente,
           existingOrders: existingOrders,
-          clienteTipo: this.selectedClient?.tipo_cliente ?? this.selectedClient?.tipoCliente
+          clienteTipo: this.selectedClient?.client_type ?? this.selectedClient?.tipoCliente
         }
       });
 

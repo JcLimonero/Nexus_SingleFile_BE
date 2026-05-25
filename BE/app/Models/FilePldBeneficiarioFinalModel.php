@@ -16,7 +16,7 @@ class FilePldBeneficiarioFinalModel extends Model
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'id_expedient', 'nombre', 'RFC', 'CURP', 'porcentaje_participacion', 'id_last_user_update'
+        'id_expedient', 'name', 'RFC', 'CURP', 'participation_percentage', 'id_last_user_update'
     ];
 
     protected $useTimestamps = false;
@@ -34,10 +34,10 @@ class FilePldBeneficiarioFinalModel extends Model
     {
         $data = [
             'id_expedient' => $idFile,
-            'nombre' => $nombre,
+            'name' => $nombre,
             'RFC' => $rfc,
             'CURP' => $curp,
-            'porcentaje_participacion' => $porcentaje,
+            'participation_percentage' => $porcentaje,
             'id_last_user_update' => $idLastUserUpdate
         ];
         return $this->insert($data);

@@ -217,7 +217,7 @@ class CompanyClientImport extends BaseController
                 TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
                 c.name as nombre, c.last_name as apellidoPaterno, c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc, c.email as email, c.tel_number as telefono, c.tel_number2 as telefono2,
-                c.razon_social as razonSocial, c.CURP as curp, c.adviser as asesor, c.agency_origin as agenciaOrigen,
+                c.business_name as razonSocial, c.CURP as curp, c.adviser as asesor, c.agency_origin as agenciaOrigen,
                 c.registration_date as fechaRegistro, c.update_date as fechaActualizacion,
                 ctr.id_agency as idAgency, hc.id as headerClientId
             FROM client c
@@ -246,7 +246,7 @@ class CompanyClientImport extends BaseController
 
     private function checkExistingClientByRazonSocial($razonSocial)
     {
-        $sql = "SELECT c.id as idCliente FROM client c WHERE c.razon_social = ? LIMIT 1";
+        $sql = "SELECT c.id as idCliente FROM client c WHERE c.business_name = ? LIMIT 1";
         return $this->db->query($sql, [$razonSocial])->getRowArray() ?: null;
     }
 
@@ -257,12 +257,12 @@ class CompanyClientImport extends BaseController
                 TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
                 c.name as nombre, c.last_name as apellidoPaterno, c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc, c.email as email, c.tel_number as telefono, c.tel_number2 as telefono2,
-                c.razon_social as razonSocial, c.CURP as curp, c.adviser as asesor, c.agency_origin as agenciaOrigen,
+                c.business_name as razonSocial, c.CURP as curp, c.adviser as asesor, c.agency_origin as agenciaOrigen,
                 c.registration_date as fechaRegistro, c.update_date as fechaActualizacion,
                 ctr.id_agency as idAgency, hc.id as headerClientId
             FROM client c INNER JOIN client_header hc ON c.id = hc.id_client
             INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
-            WHERE c.razon_social = ? LIMIT 1
+            WHERE c.business_name = ? LIMIT 1
         ";
         return $this->db->query($sql, [$razonSocial])->getRowArray() ?: null;
     }
@@ -281,7 +281,7 @@ class CompanyClientImport extends BaseController
             'mother_last_name' => $companyData['maternal_surname'] ?? '', 'RFC' => $companyData['rfc'] ?? '',
             'CURP' => $companyData['curp'] ?? '', 'tel_number' => $companyData['phone'] ?? '',
             'tel_number2' => $companyData['mobile_phone'] ?? '', 'email' => $companyData['mail'] ?? '',
-            'razon_social' => $razonSocial, 'tipo_cliente' => $this->normalizeTipoClienteForDb($companyData['tipo_cliente'] ?? null), 'adviser' => '',
+            'business_name' => $razonSocial, 'client_type' => $this->normalizeTipoClienteForDb($companyData['client_type'] ?? null), 'adviser' => '',
             'agency_origin' => $companyData['idAgency'] ?? '',
             'registration_date' => date('Y-m-d H:i:s'), 'update_date' => date('Y-m-d H:i:s'), 'id_last_user_update' => $this->getCurrentUserId() ?? 1
         ];
@@ -345,7 +345,7 @@ class CompanyClientImport extends BaseController
                 TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) as cliente,
                 c.name as nombre, c.last_name as apellidoPaterno, c.mother_last_name as apellidoMaterno,
                 c.RFC as rfc, c.email as email, c.tel_number as telefono, c.tel_number2 as telefono2,
-                c.razon_social as razonSocial, c.CURP as curp, c.tipo_cliente as tipoCliente, c.adviser as asesor, c.agency_origin as agenciaOrigen,
+                c.business_name as razonSocial, c.CURP as curp, c.client_type as tipoCliente, c.adviser as asesor, c.agency_origin as agenciaOrigen,
                 c.registration_date as fechaRegistro, c.update_date as fechaActualizacion,
                 hc.id as headerClientId, ctr.id as relationId
             FROM client c INNER JOIN client_header hc ON c.id = hc.id_client
@@ -355,7 +355,7 @@ class CompanyClientImport extends BaseController
         return $this->db->query($sql, [$clientId, $headerClientId, $relationId])->getRowArray();
     }
 
-    /** Convierte tipo_cliente a ID: 'fisica'/'moral' -> 1/2, 1/2 se mantienen */
+    /** Convierte client_type a ID: 'fisica'/'moral' -> 1/2, 1/2 se mantienen */
     private function normalizeTipoClienteForDb($value): ?int
     {
         if ($value === null || $value === '') return null;

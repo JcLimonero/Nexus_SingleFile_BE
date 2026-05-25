@@ -536,7 +536,7 @@ class Miniportal extends BaseController
                 f.id_order_total as ndPedido,
                 f.registration_date as fechaRegistro,
                 fs.name as estatus,
-                COALESCE(NULLIF(TRIM(c.razon_social), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))) as cliente,
+                COALESCE(NULLIF(TRIM(c.business_name), ''), TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))) as cliente,
                 a.name as agencia,
                 COALESCE(obc1.vin, obc2.vin) as vin,
                 COALESCE(obc1.model, obc2.model) as modelo,

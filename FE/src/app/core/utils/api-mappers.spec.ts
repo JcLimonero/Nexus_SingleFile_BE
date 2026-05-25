@@ -7,7 +7,7 @@ describe('api-mappers', () => {
         file_id: 42,
         numero_pedido: 'PED-001',
         numero_inventario: 'INV-7',
-        tipo_cliente: 'Individual',
+        client_type: 'Individual',
         fecha_registro: '2025-01-01',
         agencia: 'Sur',
         estatus: 'liberado'

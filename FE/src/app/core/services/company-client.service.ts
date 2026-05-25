@@ -15,7 +15,7 @@ export interface CompanyClient {
   phone: string;
   mobile_phone: string;
   mail: string;
-  tipo_cliente?: string;  // 'fisica' | 'moral'
+  client_type?: string;  // 'fisica' | 'moral'
   // Campos adicionales para compatibilidad
   idCliente?: number;
   ndCliente?: string;
@@ -114,7 +114,7 @@ export class CompanyClientService {
       telefono: companyData.phone || '',
       telefono2: companyData.mobile_phone || '',
       razonSocial: companyData.bussines_name || '',
-      tipo_cliente: companyData.tipo_cliente || '',
+      client_type: companyData.client_type || '',
       asesor: '',
       agenciaOrigen: '',
       fechaRegistro: '',

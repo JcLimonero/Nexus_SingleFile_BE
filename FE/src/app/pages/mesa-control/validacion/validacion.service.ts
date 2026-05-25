@@ -76,28 +76,28 @@ export interface DatosIdentificacion {
   idClient?: number;
   idCustomerType?: number;
   nombre?: string;
-  apellido_paterno?: string;
-  apellido_materno?: string;
-  razon_social?: string;
+  last_name?: string;
+  mother_last_name?: string;
+  business_name?: string;
   rfc?: string;
   curp?: string;
   email?: string;
   telefono?: string;
   telefono2?: string;
   calle?: string;
-  numero_exterior?: string;
-  numero_interior?: string;
+  external_number?: string;
+  internal_number?: string;
   colonia?: string;
-  codigo_postal?: string;
+  postal_code?: string;
   ciudad?: string;
   municipio?: string;
   pais?: string;
-  fecha_nacimiento?: string;
-  pais_nacimiento?: string;
-  pais_nacionalidad?: string;
-  autoridad_emite?: string;
-  fecha_constituccion?: string;
-  actividad_giro?: string;
+  birth_date?: string;
+  birth_country?: string;
+  nationality_country?: string;
+  issuing_authority?: string;
+  incorporation_date?: string;
+  business_activity?: string;
 }
 
 @Injectable({

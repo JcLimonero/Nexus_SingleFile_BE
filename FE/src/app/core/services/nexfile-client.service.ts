@@ -15,7 +15,7 @@ export interface NexFileClient {
   phone: string;
   mobile_phone: string;
   mail: string;
-  tipo_cliente?: string;  // 'fisica' | 'moral'
+  client_type?: string;  // 'fisica' | 'moral'
   // Campos adicionales para compatibilidad
   idCliente?: number;
   ndCliente?: string;
@@ -115,7 +115,7 @@ export class NexFileClientService {
       telefono: NexFileData.phone || '',
       telefono2: NexFileData.mobile_phone || '',
       razonSocial: NexFileData.bussines_name || '',
-      tipo_cliente: NexFileData.tipo_cliente || '',
+      client_type: NexFileData.client_type || '',
       asesor: '',
       agenciaOrigen: '',
       fechaRegistro: '',

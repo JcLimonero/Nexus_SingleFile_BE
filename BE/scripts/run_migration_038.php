@@ -93,7 +93,7 @@ $statements = [
     "ALTER TABLE `client` CHANGE COLUMN `Enabled` `enabled` TINYINT DEFAULT 1",
     "ALTER TABLE `client` CHANGE COLUMN `Adviser` `adviser` VARCHAR(50)",
     "ALTER TABLE `client` CHANGE COLUMN `Email` `email` VARCHAR(50)",
-    "ALTER TABLE `client` CHANGE COLUMN `RazonSocial` `razon_social` VARCHAR(500)",
+    "ALTER TABLE `client` CHANGE COLUMN `RazonSocial` `business_name` VARCHAR(500)",
     "ALTER TABLE `client` CHANGE COLUMN `AgencyOrigin` `agency_origin` VARCHAR(50)",
     "-- client_dms_relation",
     "ALTER TABLE `client_dms_relation` CHANGE COLUMN `Id` `id` INT NOT NULL PRIMARY KEY",

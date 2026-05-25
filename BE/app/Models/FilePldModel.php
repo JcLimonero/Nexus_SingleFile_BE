@@ -17,9 +17,9 @@ class FilePldModel extends Model
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'id_expedient', 'aviso_privacidad_entregado', 'aviso_privacidad_fecha', 'aviso_privacidad_metodo',
-        'aviso_privacidad_firma', 'geolocalizacion_capturada', 'geolocalizacion_latitud', 'geolocalizacion_longitud',
-        'geolocalizacion_fecha', 'geolocalizacion_origen'
+        'id_expedient', 'privacy_notice_delivered', 'privacy_notice_date', 'privacy_notice_method',
+        'privacy_notice_signature', 'geolocation_captured', 'geolocation_latitude', 'geolocation_longitude',
+        'geolocation_date', 'geolocation_origin'
     ];
 
     protected $useTimestamps = false;
@@ -31,7 +31,7 @@ class FilePldModel extends Model
     public function hasAvisoAceptado(int $idFile): bool
     {
         $row = $this->where('id_expedient', $idFile)->first();
-        return $row && !empty($row['aviso_privacidad_entregado']);
+        return $row && !empty($row['privacy_notice_delivered']);
     }
 
     /**
@@ -44,19 +44,19 @@ class FilePldModel extends Model
 
         if ($row) {
             return (bool) $this->update($row['id'], [
-                'aviso_privacidad_entregado' => 1,
-                'aviso_privacidad_fecha' => $now,
-                'aviso_privacidad_metodo' => 'Miniportal',
-                'aviso_privacidad_firma' => $signatureData
+                'privacy_notice_delivered' => 1,
+                'privacy_notice_date' => $now,
+                'privacy_notice_method' => 'Miniportal',
+                'privacy_notice_signature' => $signatureData
             ]);
         }
 
         return (bool) $this->insert([
             'id_expedient' => $idFile,
-            'aviso_privacidad_entregado' => 1,
-            'aviso_privacidad_fecha' => $now,
-            'aviso_privacidad_metodo' => 'Miniportal',
-            'aviso_privacidad_firma' => $signatureData
+            'privacy_notice_delivered' => 1,
+            'privacy_notice_date' => $now,
+            'privacy_notice_method' => 'Miniportal',
+            'privacy_notice_signature' => $signatureData
         ]);
     }
 }

@@ -943,7 +943,7 @@ class Validacion extends BaseController
                     ) as ndCliente,
                     f.id_order_total as ndPedido,
                     COALESCE(
-                        NULLIF(TRIM(c.razon_social), ''),
+                        NULLIF(TRIM(c.business_name), ''),
                         TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
                     ct.name as tipoCliente,
@@ -981,22 +981,22 @@ class Validacion extends BaseController
                     COALESCE(obc1.year, obc2.year) as year,
                     COALESCE(obc1.car_type, obc2.car_type) as version,
                     COALESCE(obc1.amount, obc2.amount) as montoUnidad,
-                    /* Aviso confid.: Sí solo si existe registro en expedient_pld con aviso_privacidad_entregado=1; No si no existe registro o no está entregado */
+                    /* Aviso confid.: Sí solo si existe registro en expedient_pld con privacy_notice_delivered=1; No si no existe registro o no está entregado */
                     (SELECT CASE WHEN EXISTS (
                         SELECT 1 FROM expedient_pld fp_aviso
                         WHERE fp_aviso.id_expedient = f.id
-                        AND COALESCE(fp_aviso.aviso_privacidad_entregado, 0) = 1
+                        AND COALESCE(fp_aviso.privacy_notice_delivered, 0) = 1
                     ) THEN 1 ELSE 0 END) as avisoConfidencialidadAceptado,
                     (
                         SELECT COUNT(*) 
                         FROM expedient_pld_beneficial_owner bf 
                         WHERE bf.id_expedient = f.id AND COALESCE(bf.enabled, 1) = 1
-                    ) + CASE WHEN COALESCE(fp.beneficiario_final_capturado, 0) = 1 THEN 1 ELSE 0 END as cantidadBeneficiarios,
+                    ) + CASE WHEN COALESCE(fp.beneficial_owner_captured, 0) = 1 THEN 1 ELSE 0 END as cantidadBeneficiarios,
                     (
-                        SELECT COALESCE(SUM(bf2.porcentaje_participacion), 0) 
+                        SELECT COALESCE(SUM(bf2.participation_percentage), 0) 
                         FROM expedient_pld_beneficial_owner bf2 
                         WHERE bf2.id_expedient = f.id AND COALESCE(bf2.enabled, 1) = 1
-                    ) + COALESCE(fp.beneficiario_final_porcentaje, 0) as porcentajeBeneficiarios
+                    ) + COALESCE(fp.beneficial_owner_percentage, 0) as porcentajeBeneficiarios
                 FROM expedient f
                 LEFT JOIN expedient_pld fp ON fp.id_expedient = f.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
@@ -1066,7 +1066,7 @@ class Validacion extends BaseController
             foreach ($results as &$row) {
                 $idFile = (int) ($row['idFile'] ?? 0);
                 $check = $this->db->query(
-                    'SELECT 1 FROM expedient_pld WHERE id_expedient = ? AND COALESCE(aviso_privacidad_entregado, 0) = 1 LIMIT 1',
+                    'SELECT 1 FROM expedient_pld WHERE id_expedient = ? AND COALESCE(privacy_notice_delivered, 0) = 1 LIMIT 1',
                     [$idFile]
                 )->getRow();
                 $row['avisoConfidencialidadAceptado'] = $check ? 1 : 0;
@@ -2455,7 +2455,7 @@ class Validacion extends BaseController
                         ''
                     ) as ndCliente,
                     f.id_order_total as ndPedido,
-                    COALESCE(NULLIF(TRIM(c.razon_social), ''), 
+                    COALESCE(NULLIF(TRIM(c.business_name), ''), 
                         TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
                     c.name as nombre,
@@ -2466,31 +2466,31 @@ class Validacion extends BaseController
                     c.email as email,
                     c.tel_number as telefono,
                     c.tel_number2 as telefono2,
-                    c.razon_social as razonSocial,
-                    c.tipo_cliente as client_tipo_cliente,
+                    c.business_name as razonSocial,
+                    c.client_type as client_tipo_cliente,
                     cid.nombre as cid_nombre,
-                    cid.apellido_paterno as cid_apellido_paterno,
-                    cid.apellido_materno as cid_apellido_materno,
-                    cid.razon_social as cid_razon_social,
+                    cid.last_name as cid_apellido_paterno,
+                    cid.mother_last_name as cid_apellido_materno,
+                    cid.business_name as cid_razon_social,
                     cid.rfc as cid_rfc,
                     cid.curp as cid_curp,
                     cid.email as cid_email,
                     cid.telefono as cid_telefono,
                     cid.telefono2 as cid_telefono2,
                     cid.calle as cid_calle,
-                    cid.numero_exterior as cid_numero_exterior,
-                    cid.numero_interior as cid_numero_interior,
+                    cid.external_number as cid_numero_exterior,
+                    cid.internal_number as cid_numero_interior,
                     cid.colonia as cid_colonia,
-                    cid.codigo_postal as cid_codigo_postal,
+                    cid.postal_code as cid_codigo_postal,
                     cid.ciudad as cid_ciudad,
                     cid.municipio as cid_municipio,
                     cid.pais as cid_pais,
-                    cid.fecha_nacimiento as cid_fecha_nacimiento,
-                    cid.pais_nacimiento as cid_pais_nacimiento,
-                    cid.pais_nacionalidad as cid_pais_nacionalidad,
-                    cid.autoridad_emite as cid_autoridad_emite,
-                    cid.fecha_constituccion as cid_fecha_constituccion,
-                    cid.actividad_giro as cid_actividad_giro,
+                    cid.birth_date as cid_fecha_nacimiento,
+                    cid.birth_country as cid_pais_nacimiento,
+                    cid.nationality_country as cid_pais_nacionalidad,
+                    cid.issuing_authority as cid_autoridad_emite,
+                    cid.incorporation_date as cid_fecha_constituccion,
+                    cid.business_activity as cid_actividad_giro,
                     f.id_customer_type as id_customer_type,
                     ct.name as tipoCliente,
                     p.name as proceso,
@@ -2549,12 +2549,12 @@ class Validacion extends BaseController
             $razonSocial = $m($cliente['cid_razon_social'] ?? null, $cliente['razonSocial'] ?? null);
             $rfc = $m($cliente['cid_rfc'] ?? null, $cliente['rfc'] ?? null);
 
-            // Usar solo client.tipo_cliente: 1 = persona física, 2 = persona moral
+            // Usar solo client.client_type: 1 = persona física, 2 = persona moral
             $clientTipoClienteId = (int) ($cliente['client_tipo_cliente'] ?? 0);
             if ($clientTipoClienteId !== 1 && $clientTipoClienteId !== 2) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Formato no definido para el tipo de cliente. Configure tipo_cliente en el cliente (1=Persona Física, 2=Persona Moral).',
+                    'message' => 'Formato no definido para el tipo de cliente. Configure client_type en el cliente (1=Persona Física, 2=Persona Moral).',
                     'data' => null
                 ])->setStatusCode(400);
             }
@@ -2767,37 +2767,37 @@ class Validacion extends BaseController
                     f.id_client as idClient,
                     f.id_customer_type as idCustomerType,
                     c.name as nombre,
-                    c.last_name as apellido_paterno,
-                    c.mother_last_name as apellido_materno,
-                    c.razon_social,
+                    c.last_name as last_name,
+                    c.mother_last_name as mother_last_name,
+                    c.business_name,
                     c.RFC as rfc,
                     c.CURP as curp,
                     c.email,
                     c.tel_number as telefono,
                     c.tel_number2 as telefono2,
-                    cid.nombre as cid_nombre,
-                    cid.apellido_paterno as cid_apellido_paterno,
-                    cid.apellido_materno as cid_apellido_materno,
-                    cid.razon_social as cid_razon_social,
+                    cid.name as cid_nombre,
+                    cid.last_name as cid_apellido_paterno,
+                    cid.mother_last_name as cid_apellido_materno,
+                    cid.business_name as cid_razon_social,
                     cid.rfc as cid_rfc,
                     cid.curp as cid_curp,
                     cid.email as cid_email,
-                    cid.telefono as cid_telefono,
-                    cid.telefono2 as cid_telefono2,
-                    cid.calle,
-                    cid.numero_exterior,
-                    cid.numero_interior,
-                    cid.colonia,
-                    cid.codigo_postal,
-                    cid.ciudad,
-                    cid.municipio,
-                    cid.pais,
-                    cid.fecha_nacimiento,
-                    cid.pais_nacimiento,
-                    cid.pais_nacionalidad,
-                    cid.autoridad_emite,
-                    cid.fecha_constituccion,
-                    cid.actividad_giro
+                    cid.tel_number as cid_telefono,
+                    cid.tel_number2 as cid_telefono2,
+                    cid.street as calle,
+                    cid.external_number,
+                    cid.internal_number,
+                    cid.neighborhood as colonia,
+                    cid.postal_code,
+                    cid.city as ciudad,
+                    cid.municipality as municipio,
+                    cid.country as pais,
+                    cid.birth_date,
+                    cid.birth_country,
+                    cid.nationality_country,
+                    cid.issuing_authority,
+                    cid.incorporation_date,
+                    cid.business_activity
                 FROM expedient f
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
@@ -2821,28 +2821,28 @@ class Validacion extends BaseController
                 'idClient' => (int) $row['idClient'],
                 'idCustomerType' => (int) ($row['idCustomerType'] ?? 0),
                 'nombre' => $merge($row['cid_nombre'] ?? null, $row['nombre'] ?? null),
-                'apellido_paterno' => $merge($row['cid_apellido_paterno'] ?? null, $row['apellido_paterno'] ?? null),
-                'apellido_materno' => $merge($row['cid_apellido_materno'] ?? null, $row['apellido_materno'] ?? null),
-                'razon_social' => $merge($row['cid_razon_social'] ?? null, $row['razon_social'] ?? null),
+                'last_name' => $merge($row['cid_apellido_paterno'] ?? null, $row['last_name'] ?? null),
+                'mother_last_name' => $merge($row['cid_apellido_materno'] ?? null, $row['mother_last_name'] ?? null),
+                'business_name' => $merge($row['cid_razon_social'] ?? null, $row['business_name'] ?? null),
                 'rfc' => $merge($row['cid_rfc'] ?? null, $row['rfc'] ?? null),
                 'curp' => $merge($row['cid_curp'] ?? null, $row['curp'] ?? null),
                 'email' => $merge($row['cid_email'] ?? null, $row['email'] ?? null),
                 'telefono' => $merge($row['cid_telefono'] ?? null, $row['telefono'] ?? null),
                 'telefono2' => $merge($row['cid_telefono2'] ?? null, $row['telefono2'] ?? null),
                 'calle' => trim($row['calle'] ?? ''),
-                'numero_exterior' => trim($row['numero_exterior'] ?? ''),
-                'numero_interior' => trim($row['numero_interior'] ?? ''),
+                'external_number' => trim($row['external_number'] ?? ''),
+                'internal_number' => trim($row['internal_number'] ?? ''),
                 'colonia' => trim($row['colonia'] ?? ''),
-                'codigo_postal' => trim($row['codigo_postal'] ?? ''),
+                'postal_code' => trim($row['postal_code'] ?? ''),
                 'ciudad' => trim($row['ciudad'] ?? ''),
                 'municipio' => trim($row['municipio'] ?? ''),
                 'pais' => trim($row['pais'] ?? ''),
-                'fecha_nacimiento' => $mergeDate($row['fecha_nacimiento'] ?? null, null),
-                'pais_nacimiento' => trim($row['pais_nacimiento'] ?? ''),
-                'pais_nacionalidad' => trim($row['pais_nacionalidad'] ?? ''),
-                'autoridad_emite' => trim($row['autoridad_emite'] ?? ''),
-                'fecha_constituccion' => $mergeDate($row['fecha_constituccion'] ?? null, null),
-                'actividad_giro' => trim($row['actividad_giro'] ?? ''),
+                'birth_date' => $mergeDate($row['birth_date'] ?? null, null),
+                'birth_country' => trim($row['birth_country'] ?? ''),
+                'nationality_country' => trim($row['nationality_country'] ?? ''),
+                'issuing_authority' => trim($row['issuing_authority'] ?? ''),
+                'incorporation_date' => $mergeDate($row['incorporation_date'] ?? null, null),
+                'business_activity' => trim($row['business_activity'] ?? ''),
             ];
             return $this->response->setJSON(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
@@ -2875,24 +2875,43 @@ class Validacion extends BaseController
                 return $this->response->setJSON(['success' => false, 'message' => 'idClient o idFile es requerido'])->setStatusCode(400);
             }
             $userId = $currentUser['user_id'] ?? null;
-            $fields = [
-                'nombre', 'apellido_paterno', 'apellido_materno', 'razon_social', 'rfc', 'curp',
-                'email', 'telefono', 'telefono2', 'calle', 'numero_exterior', 'numero_interior',
-                'colonia', 'codigo_postal', 'ciudad', 'municipio', 'pais',
-                'fecha_nacimiento', 'pais_nacimiento', 'pais_nacionalidad', 'autoridad_emite',
-                'fecha_constituccion', 'actividad_giro'
+            // Mapa: clave legacy (formControlName en FE) → columna DB (renombrada Tier 6)
+            $fieldMap = [
+                'nombre' => 'name',
+                'last_name' => 'last_name',
+                'mother_last_name' => 'mother_last_name',
+                'business_name' => 'business_name',
+                'rfc' => 'rfc',
+                'curp' => 'curp',
+                'email' => 'email',
+                'telefono' => 'tel_number',
+                'telefono2' => 'tel_number2',
+                'calle' => 'street',
+                'external_number' => 'external_number',
+                'internal_number' => 'internal_number',
+                'colonia' => 'neighborhood',
+                'postal_code' => 'postal_code',
+                'ciudad' => 'city',
+                'municipio' => 'municipality',
+                'pais' => 'country',
+                'birth_date' => 'birth_date',
+                'birth_country' => 'birth_country',
+                'nationality_country' => 'nationality_country',
+                'issuing_authority' => 'issuing_authority',
+                'incorporation_date' => 'incorporation_date',
+                'business_activity' => 'business_activity',
             ];
             $toSave = [];
-            foreach ($fields as $f) {
-                $v = $data[$f] ?? null;
+            foreach ($fieldMap as $incomingKey => $column) {
+                $v = $data[$incomingKey] ?? null;
                 if ($v !== null && $v !== '') {
-                    if (in_array($f, ['fecha_nacimiento', 'fecha_constituccion'])) {
-                        $toSave[$f] = is_string($v) ? $v : date('Y-m-d', strtotime($v));
+                    if (in_array($column, ['birth_date', 'incorporation_date'])) {
+                        $toSave[$column] = is_string($v) ? $v : date('Y-m-d', strtotime($v));
                     } else {
-                        $toSave[$f] = trim((string) $v);
+                        $toSave[$column] = trim((string) $v);
                     }
                 } else {
-                    $toSave[$f] = null;
+                    $toSave[$column] = null;
                 }
             }
             $toSave['id_last_user_update'] = $userId;
@@ -2937,7 +2956,7 @@ class Validacion extends BaseController
             if ($r = $this->requireFileAccess($idFile)) return $r;
             $row = $this->db->query("
                 SELECT
-                    COALESCE(NULLIF(TRIM(c.razon_social), ''),
+                    COALESCE(NULLIF(TRIM(c.business_name), ''),
                         TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, '')))
                     ) as cliente,
                     c.RFC as rfc,
@@ -3014,7 +3033,7 @@ class Validacion extends BaseController
             $model = new \App\Models\FilePldBeneficiarioFinalModel();
             if ($porcentaje !== null) {
                 $existentes = $model->getByFile($idFile);
-                $sumaActual = array_sum(array_map(fn($b) => (float) ($b['porcentaje_participacion'] ?? 0), $existentes));
+                $sumaActual = array_sum(array_map(fn($b) => (float) ($b['participation_percentage'] ?? 0), $existentes));
                 if ($sumaActual + $porcentaje > 100) {
                     return $this->response->setJSON([
                         'success' => false,

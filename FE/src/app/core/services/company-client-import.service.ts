@@ -17,7 +17,7 @@ export interface CompanyClientImportRequest {
   phone: string;
   mobile_phone: string;
   mail: string;
-  tipo_cliente?: string;  // 'fisica' | 'moral'
+  client_type?: string;  // 'fisica' | 'moral'
 }
 
 export interface CompanyClientImportResponse {
@@ -37,7 +37,7 @@ export interface CompanyClientImportResponse {
     razonSocial: string;
     curp: string;
     tipoCliente?: string;
-    tipo_cliente?: string;
+    client_type?: string;
     asesor: string;
     agenciaOrigen: string;
     fechaRegistro: string;
@@ -89,7 +89,7 @@ export class CompanyClientImportService {
       phone: companyClient.phone || '',
       mobile_phone: companyClient.mobile_phone || '',
       mail: companyClient.mail || '',
-      tipo_cliente: companyClient.tipo_cliente || ''
+      client_type: companyClient.client_type || ''
     };
   }
 }

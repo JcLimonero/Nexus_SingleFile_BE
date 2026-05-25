@@ -86,9 +86,9 @@ function findCol(array $cols, array $candidates): ?string {
 }
 
 $nameCol = findCol($stringCols, ['name', 'nombre', 'Name', 'FirstName', 'firstName']);
-$paternalCol = findCol($stringCols, ['paternal_surname', 'apellido_paterno', 'apellidoPaterno', 'LastName', 'lastName']);
-$maternalCol = findCol($stringCols, ['maternal_surname', 'apellido_materno', 'apellidoMaterno', 'MotherLastName', 'motherLastName']);
-$bussinesCol = findCol($stringCols, ['bussines_name', 'razon_social', 'razonSocial', 'RazonSocial', 'BusinessName']);
+$paternalCol = findCol($stringCols, ['paternal_surname', 'last_name', 'apellidoPaterno', 'LastName', 'lastName']);
+$maternalCol = findCol($stringCols, ['maternal_surname', 'mother_last_name', 'apellidoMaterno', 'MotherLastName', 'motherLastName']);
+$bussinesCol = findCol($stringCols, ['bussines_name', 'business_name', 'razonSocial', 'RazonSocial', 'BusinessName']);
 $rfcCol = findCol($stringCols, ['rfc', 'RFC']);
 $curpCol = findCol($stringCols, ['curp', 'CURP']);
 $phoneCol = findCol($stringCols, ['phone', 'telefono', 'TelNumber', 'telNumber', 'Phone']);
@@ -116,7 +116,7 @@ if ($mobileCol) $updates[] = "`$mobileCol` = ?";
 if ($mailCol) $updates[] = "`$mailCol` = ?";
 if ($connCol) $updates[] = "`$connCol` = ?";
 
-$tipoCol = findCol($stringCols, ['tipo_cliente']) ?? (in_array('tipo_cliente', $allCols, true) ? 'tipo_cliente' : null);
+$tipoCol = findCol($stringCols, ['client_type']) ?? (in_array('client_type', $allCols, true) ? 'client_type' : null);
 if ($tipoCol) $updates[] = "`$tipoCol` = ?";
 
 if (empty($updates)) {

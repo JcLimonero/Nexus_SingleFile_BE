@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
 /**
- * Migración 009: tipo_cliente y homologación snake_case en nexfile_customers
+ * Migración 009: client_type y homologación snake_case en nexfile_customers
  *
- * - Agrega columna tipo_cliente ('fisica' | 'moral') si no existe
+ * - Agrega columna client_type ('fisica' | 'moral') si no existe
  * - Renombra columnas camelCase a snake_case
- * - Asigna tipo_cliente: 'moral' si bussines_name tiene valor, 'fisica' si no
+ * - Asigna client_type: 'moral' si bussines_name tiene valor, 'fisica' si no
  *
  * Uso: php scripts/run-migration-009.php
  */
@@ -46,26 +46,26 @@ function columnExists(mysqli $db, string $table, string $col): bool {
 
 $renames = [
     ['razonSocial', 'bussines_name', 'VARCHAR(200)'],
-    ['razon_social', 'bussines_name', 'VARCHAR(200)'],
+    ['business_name', 'bussines_name', 'VARCHAR(200)'],
     ['nombre', 'name', 'VARCHAR(100)'],
     ['apellidoPaterno', 'paternal_surname', 'VARCHAR(100)'],
-    ['apellido_paterno', 'paternal_surname', 'VARCHAR(100)'],
+    ['last_name', 'paternal_surname', 'VARCHAR(100)'],
     ['apellidoMaterno', 'maternal_surname', 'VARCHAR(100)'],
-    ['apellido_materno', 'maternal_surname', 'VARCHAR(100)'],
+    ['mother_last_name', 'maternal_surname', 'VARCHAR(100)'],
     ['telefono', 'phone', 'VARCHAR(20)'],
     ['telefono2', 'mobile_phone', 'VARCHAR(20)'],
     ['email', 'mail', 'VARCHAR(150)'],
 ];
 
-// 1. Agregar tipo_cliente si no existe
-if (!columnExists($mysqli, 'nexfile_customers', 'tipo_cliente')) {
-    if ($mysqli->query("ALTER TABLE nexfile_customers ADD COLUMN tipo_cliente VARCHAR(10) DEFAULT NULL")) {
-        echo "OK: Columna tipo_cliente agregada.\n";
+// 1. Agregar client_type si no existe
+if (!columnExists($mysqli, 'nexfile_customers', 'client_type')) {
+    if ($mysqli->query("ALTER TABLE nexfile_customers ADD COLUMN client_type VARCHAR(10) DEFAULT NULL")) {
+        echo "OK: Columna client_type agregada.\n";
     } else {
-        fwrite(STDERR, "Error agregando tipo_cliente: " . $mysqli->error . "\n");
+        fwrite(STDERR, "Error agregando client_type: " . $mysqli->error . "\n");
     }
 } else {
-    echo "Skip: tipo_cliente ya existe.\n";
+    echo "Skip: client_type ya existe.\n";
 }
 
 // 2. Renombrar columnas camelCase a snake_case (solo si la vieja existe y la nueva no)
@@ -81,12 +81,12 @@ foreach ($renames as [$old, $new, $type]) {
     }
 }
 
-// 3. Asignar tipo_cliente: 'moral' si bussines_name tiene valor, 'fisica' si no
+// 3. Asignar client_type: 'moral' si bussines_name tiene valor, 'fisica' si no
 $bussinesCol = columnExists($mysqli, 'nexfile_customers', 'bussines_name') ? 'bussines_name' : null;
-if ($bussinesCol && columnExists($mysqli, 'nexfile_customers', 'tipo_cliente')) {
-    $mysqli->query("UPDATE nexfile_customers SET tipo_cliente = CASE WHEN TRIM(COALESCE($bussinesCol, '')) != '' THEN 'moral' ELSE 'fisica' END WHERE tipo_cliente IS NULL OR tipo_cliente = ''");
+if ($bussinesCol && columnExists($mysqli, 'nexfile_customers', 'client_type')) {
+    $mysqli->query("UPDATE nexfile_customers SET client_type = CASE WHEN TRIM(COALESCE($bussinesCol, '')) != '' THEN 'moral' ELSE 'fisica' END WHERE client_type IS NULL OR client_type = ''");
     $affected = $mysqli->affected_rows;
-    echo "OK: tipo_cliente asignado a $affected registros.\n";
+    echo "OK: client_type asignado a $affected registros.\n";
 }
 
 $mysqli->close();

@@ -17,7 +17,7 @@ export interface ClientSearchResult {
   razonSocial: string;
   curp: string;
   tipoCliente?: string;
-  tipo_cliente?: string;
+  client_type?: string;
   asesor: string;
   agenciaOrigen: string;
   fechaRegistro: string;

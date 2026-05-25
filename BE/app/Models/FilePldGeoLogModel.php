@@ -17,7 +17,7 @@ class FilePldGeoLogModel extends Model
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'id_expedient', 'latitud', 'longitud', 'accion', 'origen', 'id_last_user_update'
+        'id_expedient', 'latitude', 'longitude', 'action', 'origin', 'id_last_user_update'
     ];
 
     protected $useTimestamps = false;
@@ -31,10 +31,10 @@ class FilePldGeoLogModel extends Model
     {
         return $this->insert([
             'id_expedient' => $idFile,
-            'latitud' => $latitud,
-            'longitud' => $longitud,
-            'accion' => $accion ?? 'ver_expediente',
-            'origen' => 'Miniportal',
+            'latitude' => $latitud,
+            'longitude' => $longitud,
+            'action' => $accion ?? 'ver_expediente',
+            'origin' => 'Miniportal',
             'id_last_user_update' => null
         ]);
     }

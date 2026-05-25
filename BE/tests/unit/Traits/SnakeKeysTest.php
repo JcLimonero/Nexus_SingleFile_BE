@@ -63,7 +63,7 @@ final class SnakeKeysTest extends CIUnitTestCase
 
     public function testLeavesSnakeCaseUnchanged(): void
     {
-        $in = ['tipo_cliente' => 'A', 'id_user_rol' => 7, 'fecha_registro' => '2025-01-01'];
+        $in = ['client_type' => 'A', 'id_user_rol' => 7, 'fecha_registro' => '2025-01-01'];
         $this->assertSame($in, $this->subject->snakeKeys($in));
     }
 

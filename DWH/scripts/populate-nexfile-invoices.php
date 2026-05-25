@@ -192,10 +192,10 @@ foreach ($toInsertFromOrders as $order) {
         if ($v === null && in_array(strtolower($ic), ['release_date', 'releasedate'], true)) {
             $v = $faker->randomElement(['2025-11-15', '2025-11-20', '2025-12-01', '2025-12-10', '2026-01-05', '2026-01-15']);
         }
-        if ($v === null && in_array(strtolower($ic), ['bussines_name', 'bussinesname', 'razon_social', 'razonsocial'], true)) {
+        if ($v === null && in_array(strtolower($ic), ['bussines_name', 'bussinesname', 'business_name', 'razonsocial'], true)) {
             $v = $faker->company;
         }
-        if ($v === null && in_array(strtolower($ic), ['tipo_cliente', 'tipocliente'], true)) {
+        if ($v === null && in_array(strtolower($ic), ['client_type', 'tipocliente'], true)) {
             $v = $faker->randomElement(['fisica', 'moral']);
         }
         if ($v === null && in_array(strtolower($ic), ['tipo_operacion', 'tipooperacion'], true)) {
@@ -273,9 +273,9 @@ for ($i = 0; $i < $numInvented; $i++) {
             $row[$ic] = $faker->randomElement([2025, 2026]);
         } elseif (in_array($icLower, ['release_date', 'releasedate'])) {
             $row[$ic] = $faker->randomElement(['2025-11-15', '2025-11-20', '2025-12-01', '2025-12-10', '2026-01-05', '2026-01-15']);
-        } elseif (in_array($icLower, ['bussines_name', 'bussinesname', 'razon_social', 'razonsocial'])) {
+        } elseif (in_array($icLower, ['bussines_name', 'bussinesname', 'business_name', 'razonsocial'])) {
             $row[$ic] = $faker->company;
-        } elseif (in_array($icLower, ['tipo_cliente', 'tipocliente'])) {
+        } elseif (in_array($icLower, ['client_type', 'tipocliente'])) {
             $row[$ic] = $faker->randomElement(['fisica', 'moral']);
         } elseif (in_array($icLower, ['tipo_operacion', 'tipooperacion'])) {
             $row[$ic] = $faker->randomElement(['Compra', 'Venta']);

@@ -293,10 +293,10 @@ class Nexfile extends BaseController
         $out = [];
         foreach ($rows as $r) {
             $name = $r['name'] ?? $r['nombre'] ?? $r['Name'] ?? '';
-            $paternal = $r['paternal_surname'] ?? $r['apellidoPaterno'] ?? $r['apellido_paterno'] ?? $r['LastName'] ?? '';
-            $maternal = $r['maternal_surname'] ?? $r['apellidoMaterno'] ?? $r['apellido_materno'] ?? $r['MotherLastName'] ?? '';
-            $bussinesName = $r['bussines_name'] ?? $r['razonSocial'] ?? $r['razon_social'] ?? '';
-            $tipoCliente = $r['tipo_cliente'] ?? '';
+            $paternal = $r['paternal_surname'] ?? $r['apellidoPaterno'] ?? $r['last_name'] ?? $r['LastName'] ?? '';
+            $maternal = $r['maternal_surname'] ?? $r['apellidoMaterno'] ?? $r['mother_last_name'] ?? $r['MotherLastName'] ?? '';
+            $bussinesName = $r['bussines_name'] ?? $r['razonSocial'] ?? $r['business_name'] ?? '';
+            $tipoCliente = $r['client_type'] ?? '';
             if (empty(trim($bussinesName)) && $tipoCliente === 'fisica') {
                 $bussinesName = trim("$name $paternal $maternal");
             }
@@ -313,7 +313,7 @@ class Nexfile extends BaseController
                 'mobile_phone' => $r['mobile_phone'] ?? $r['telefono2'] ?? $r['TelNumber2'] ?? '',
                 'mail' => $r['mail'] ?? $r['email'] ?? $r['Email'] ?? '',
                 'connection_string' => $r['connection_string'] ?? $r['connectionstring'] ?? '',
-                'tipo_cliente' => $r['tipo_cliente'] ?? '',
+                'client_type' => $r['client_type'] ?? '',
             ];
         }
         return $out;

@@ -108,7 +108,7 @@ export function snakeFileToFile(f: any): any {
     fileId:           pick(f, 'file_id', 'fileId'),
     numeroPedido:     pick(f, 'numero_pedido', 'numeroPedido'),
     numeroInventario: pick(f, 'numero_inventario', 'numeroInventario'),
-    tipoCliente:      pick(f, 'tipo_cliente', 'tipoCliente'),
+    tipoCliente:      pick(f, 'client_type', 'tipoCliente'),
     fechaRegistro:    pick(f, 'fecha_registro', 'fechaRegistro')
   };
 }
@@ -143,7 +143,7 @@ export function snakeClienteToCliente(c: any): any {
     idFile:                         pick(c, 'id_expedient', 'idFile'),
     ndCliente:                      pick(c, 'nd_cliente', 'ndCliente'),
     ndPedido:                       pick(c, 'nd_pedido', 'ndPedido'),
-    tipoCliente:                    pick(c, 'tipo_cliente', 'tipoCliente'),
+    tipoCliente:                    pick(c, 'client_type', 'tipoCliente'),
     idCustomerType:                 pick(c, 'id_customer_type', 'idCustomerType'),
     idAgency:                       pick(c, 'id_agency', 'idAgency'),
     // IdCurrentState es seteado manualmente en el BE (PascalCase) para el FE — el
