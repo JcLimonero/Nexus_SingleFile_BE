@@ -28,8 +28,10 @@ class Documents extends BaseController
             }
 
             // Query corregido - Solo documentos requeridos para el proceso específico
-            // Para liquidación (idProcessType=2) se incluyen amount y payment_method
-            $isLiquidation = ($idProcessType === '2');
+            // Para fases marcadas con requires_payment_voucher=1 se incluyen amount y payment_method.
+            // Históricamente esto era hardcoded como idProcessType === '2' (Liquidación), pero ahora
+            // cada deployment marca su propia fase de pago en la tabla file_state.
+            $isLiquidation = (new \App\Models\FileStateModel())->isVoucherPhaseId($idProcessType);
             $liquidacionJoins = $isLiquidation ? "
                 LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_file_document = df.id AND lrd.id_file = f.id
                 LEFT JOIN payment_method pm ON pm.id = lrd.id_payment_method

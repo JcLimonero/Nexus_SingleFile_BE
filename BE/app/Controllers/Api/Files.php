@@ -1066,7 +1066,10 @@ class Files extends BaseController
             }
         }
 
-        // Siempre agregar documento de Liquidación (id desde config) si no está ya en la lista
+        // Siempre agregar documento de Liquidación (id desde config) si no está ya en la lista.
+        // TODO(multi-tenant): mover esta lógica a una tabla `file_state.id_document_type_voucher`
+        // y consultar por la fase marcada con requires_payment_voucher=1 en lugar de hardcodear
+        // el config_key "id_document_type_liquidacion".
         $idLiquidacion = $this->getConfigDocumentTypeLiquidacion();
         if ($idLiquidacion !== null && !in_array($idLiquidacion, $createdDocumentTypeIds, true)) {
             try {

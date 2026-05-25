@@ -216,6 +216,19 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('(:num)', 'FileSubState::show/$1');
     });
     
+    // Rutas de grupo de cliente (ClientGroup) — tope de la jerarquía nueva: grupo → company → agency
+    $routes->group('client-group', function($routes) {
+        $routes->get('/',                          'ClientGroup::index');
+        $routes->post('/',                         'ClientGroup::create');
+        $routes->get('(:num)',                     'ClientGroup::show/$1');
+        $routes->put('(:num)',                     'ClientGroup::update/$1');
+        $routes->patch('(:num)/estado',            'ClientGroup::toggleEnabled/$1');
+        $routes->get('(:num)/processes',           'ClientGroup::processes/$1');
+        $routes->put('(:num)/processes',           'ClientGroup::setProcesses/$1');
+        $routes->get('(:num)/phases',              'ClientGroup::phases/$1');
+        $routes->put('(:num)/phases',              'ClientGroup::setPhases/$1');
+    });
+
     // Rutas de motivos (FileReasons)
     $routes->group('file-reason', function($routes) {
         $routes->get('/', 'FileReason::index');
