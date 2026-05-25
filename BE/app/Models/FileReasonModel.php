@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class FileReasonModel extends Model
 {
-    protected $table            = 'file_reasons';
+    protected $table            = 'expedient_reason';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
@@ -145,7 +145,7 @@ class FileReasonModel extends Model
         
         $total = $builder->countAllResults();
         
-        $typeReasonStats = $this->db->table('file_reasons')
+        $typeReasonStats = $this->db->table('expedient_reason')
             ->select('id_type_reason, COUNT(*) as count')
             ->groupBy('id_type_reason')
             ->get()

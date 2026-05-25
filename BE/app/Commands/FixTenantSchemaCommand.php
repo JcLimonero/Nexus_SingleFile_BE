@@ -32,9 +32,9 @@ class FixTenantSchemaCommand extends BaseCommand
     /** Tables created by the WIZARD migrations.ts that need their id type relaxed. */
     private const WIZARD_TABLES = [
         'user', 'user_role', 'agency', 'company', 'process',
-        'file_state', 'file_sub_state', 'customer_type', 'operation_type',
-        'payment_method', 'document_type', 'file_reasons',
-        'document_file_error', 'file_exception_reason',
+        'expedient_state', 'expedient_sub_state', 'customer_type', 'operation_type',
+        'payment_method', 'document_type', 'expedient_reason',
+        'document_error', 'expedient_exception_reason',
         'client_group', 'client_group_sale_type', 'client_group_phase',
     ];
 

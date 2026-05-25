@@ -14,7 +14,7 @@ namespace App\Traits;
  *
  * Reglas:
  *   - camelCase  → snake_case  ('fileId' → 'file_id')
- *   - PascalCase → snake_case  ('IdFile' → 'id_file')
+ *   - PascalCase → snake_case  ('IdFile' → 'id_expedient')
  *   - ALL_CAPS   → all_caps    ('RFC' → 'rfc',  'API_KEY' → 'api_key')
  *   - snake_case sin cambios
  *   - claves numéricas sin cambios

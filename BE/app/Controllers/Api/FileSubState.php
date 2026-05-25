@@ -35,7 +35,7 @@ class FileSubState extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            $builder = $this->db->table('file_sub_state fss');
+            $builder = $this->db->table('expedient_sub_state fss');
             $builder->select('fss.*');
 
             // Aplicar filtros
@@ -45,7 +45,7 @@ class FileSubState extends BaseController
             }
 
             // Ordenamiento (snake_case)
-            $allowedSort = ['id', 'name', 'id_file_state', 'registration_date', 'update_date'];
+            $allowedSort = ['id', 'name', 'id_expedient_state', 'registration_date', 'update_date'];
             if (!in_array(strtolower($sortBy), $allowedSort)) {
                 $sortBy = 'name';
             }
@@ -87,11 +87,11 @@ class FileSubState extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $idFileState = $this->request->getGet('id_file_state');
-            $builder = $this->db->table('file_sub_state fss');
+            $idFileState = $this->request->getGet('id_expedient_state');
+            $builder = $this->db->table('expedient_sub_state fss');
             $builder->select('fss.*');
             if ($idFileState !== null && $idFileState !== '') {
-                $builder->where('fss.id_file_state', (int) $idFileState);
+                $builder->where('fss.id_expedient_state', (int) $idFileState);
             }
             $builder->orderBy('fss.name', 'ASC');
 
@@ -138,7 +138,7 @@ class FileSubState extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $builder = $this->db->table('file_sub_state fss');
+            $builder = $this->db->table('expedient_sub_state fss');
             $builder->select('fss.*');
             $builder->where('fss.id', $id);
 

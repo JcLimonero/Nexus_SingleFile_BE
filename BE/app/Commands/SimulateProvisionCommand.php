@@ -116,7 +116,7 @@ class SimulateProvisionCommand extends BaseCommand
         CLI::write("  Total      : " . ($base + $views), 'cyan');
 
         // Spot-check a few critical tables have rows
-        foreach (['user', 'company', 'agency', 'client_group', 'sale_type', 'file_state', 'document_type', 'payment_method'] as $t) {
+        foreach (['user', 'company', 'agency', 'client_group', 'sale_type', 'expedient_state', 'document_type', 'payment_method'] as $t) {
             $c = $db->query("SELECT COUNT(*) AS n FROM `{$t}`")->getRowArray();
             $n = (int) $c['n'];
             CLI::write("  {$t}: {$n} rows", $n > 0 ? 'green' : 'yellow');

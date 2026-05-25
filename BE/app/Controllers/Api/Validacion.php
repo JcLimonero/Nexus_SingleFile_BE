@@ -102,7 +102,7 @@ class Validacion extends BaseController
                     f.id_agency,
                     f.id_sale_type,
                     f.id_client,
-                    f.id_current_state,
+                    f.id_current_expedient_state,
                     f.id_order_total as ndPedido,
                     a.name as agencia,
                     p.name as proceso,
@@ -111,7 +111,7 @@ class Validacion extends BaseController
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_sale_type = p.id
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE f.id = ?
             ", [$idFile])->getRowArray();
 
@@ -387,7 +387,7 @@ class Validacion extends BaseController
                 'proceso' => $condicionProceso,
                 'proceso_id' => $fileIdProcess, // Agregar el IdProcess del file para referencia
                 'proceso_habilitado' => $fileInfo['proceso_habilitado'] == 1,
-                'no_cancelado' => ($fileInfo['id_current_state'] ?? $fileInfo['IdCurrentState'] ?? 0) != 5,
+                'no_cancelado' => ($fileInfo['id_current_expedient_state'] ?? $fileInfo['IdCurrentState'] ?? 0) != 5,
                 'tiene_relacion_cliente_agencia' => $tieneRelacion
             ];
             
@@ -448,7 +448,7 @@ class Validacion extends BaseController
     }
 
     /**
-     * Listar expedientes que requieren corrección desde la tabla files_to_correct.
+     * Listar expedientes que requieren corrección desde la tabla expedients_to_correct.
      * Solo administrador (role_id = 7).
      * GET /api/clients-validation/expedientes-corregir
      */
@@ -466,7 +466,7 @@ class Validacion extends BaseController
             $rows = $this->db->query("
                 SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS, ec.api_result, ec.created_at,
                        a.name as nombreAgencia
-                FROM files_to_correct ec
+                FROM expedients_to_correct ec
                 INNER JOIN agency a ON a.id = ec.idAgency
                     WHERE  (ec.api_result IS NULL OR NOT JSON_CONTAINS(ec.api_result, 'true', '$.success')) 
                 ORDER BY ec.idAgency ASC, ec.id ASC
@@ -509,7 +509,7 @@ class Validacion extends BaseController
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Expedientes a corregir desde tabla files_to_correct',
+                'message' => 'Expedientes a corregir desde tabla expedients_to_correct',
                 'data' => [
                     'porAgencia' => array_values($porAgencia),
                     'totalGeneral' => $totalGeneral
@@ -551,7 +551,7 @@ class Validacion extends BaseController
             do {
                 $rows = $this->db->query("
                     SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS
-                    FROM files_to_correct ec
+                    FROM expedients_to_correct ec
                     WHERE ec.api_result IS NULL and ec.idAgency = 9
                     ORDER BY (ec.idAgency IN (20, 21, 22)) DESC, ec.idAgency ASC, ec.id ASC
                     LIMIT ?
@@ -628,7 +628,7 @@ class Validacion extends BaseController
             }
 
             $this->db->query("
-                UPDATE files_to_correct SET api_result = ?
+                UPDATE expedients_to_correct SET api_result = ?
                 WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
             ", [json_encode(['success' => true, 'idClient' => $idClient]), $idExpediente, $idAgency, $ndDMS]);
 
@@ -642,7 +642,7 @@ class Validacion extends BaseController
     }
 
     /**
-     * Guardar error en files_to_correct.api_result con request y detalle del error.
+     * Guardar error en expedients_to_correct.api_result con request y detalle del error.
      */
     private function guardarErrorExpediente(int $idExpediente, int $idAgency, string $ndDMS, string $message, ?\Throwable $e = null): void
     {
@@ -668,7 +668,7 @@ class Validacion extends BaseController
         }
         try {
             $this->db->query("
-                UPDATE files_to_correct SET api_result = ?
+                UPDATE expedients_to_correct SET api_result = ?
                 WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
             ", [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
         } catch (\Throwable $e2) {
@@ -954,57 +954,57 @@ class Validacion extends BaseController
                     f.id_agency as idAgency,
                     f.registration_date as registro,
                     fs.name as fase,
-                    f.id_current_state,
+                    f.id_current_expedient_state,
                     CASE 
-                        WHEN f.id_current_state IN (4, 6) THEN f.update_date
+                        WHEN f.id_current_expedient_state IN (4, 6) THEN f.update_date
                         ELSE f.agend_date
                     END as fechaLiberacion,
                     CASE 
                         WHEN EXISTS (
                             SELECT 1 
-                            FROM file_document dbf 
-                            INNER JOIN document_file_status dfs ON dbf.id_current_status = dfs.id 
-                            WHERE dbf.id_file = f.id 
+                            FROM expedient_document dbf 
+                            INNER JOIN document_status dfs ON dbf.id_current_document_status = dfs.id 
+                            WHERE dbf.id_expedient = f.id 
                             AND dfs.id = 2
                         ) THEN 1 
                         ELSE 0 
                     END as tieneDocumentosPendientes,
                     (
                         SELECT COUNT(*) 
-                        FROM file_document dbfPend
-                        WHERE dbfPend.id_file = f.id
+                        FROM expedient_document dbfPend
+                        WHERE dbfPend.id_expedient = f.id
                         AND dbfPend.enabled = 1
-                        AND dbfPend.id_current_status <> 4
+                        AND dbfPend.id_current_document_status <> 4
                     ) as documentosNoAprobados,
                     COALESCE(obc1.vin, obc2.vin) as vin,
                     COALESCE(obc1.model, obc2.model) as modelo,
                     COALESCE(obc1.year, obc2.year) as year,
                     COALESCE(obc1.car_type, obc2.car_type) as version,
                     COALESCE(obc1.amount, obc2.amount) as montoUnidad,
-                    /* Aviso confid.: Sí solo si existe registro en file_pld con AvisoPrivacidadEntregado=1; No si no existe registro o no está entregado */
+                    /* Aviso confid.: Sí solo si existe registro en expedient_pld con AvisoPrivacidadEntregado=1; No si no existe registro o no está entregado */
                     (SELECT CASE WHEN EXISTS (
-                        SELECT 1 FROM file_pld fp_aviso
+                        SELECT 1 FROM expedient_pld fp_aviso
                         WHERE fp_aviso.IdFile = f.id
                         AND COALESCE(fp_aviso.AvisoPrivacidadEntregado, 0) = 1
                     ) THEN 1 ELSE 0 END) as avisoConfidencialidadAceptado,
                     (
                         SELECT COUNT(*) 
-                        FROM file_pld_beneficial_owner bf 
+                        FROM expedient_pld_beneficial_owner bf 
                         WHERE bf.IdFile = f.id AND COALESCE(bf.Enabled, 1) = 1
                     ) + CASE WHEN COALESCE(fp.BeneficiarioFinalCapturado, 0) = 1 THEN 1 ELSE 0 END as cantidadBeneficiarios,
                     (
                         SELECT COALESCE(SUM(bf2.PorcentajeParticipacion), 0) 
-                        FROM file_pld_beneficial_owner bf2 
+                        FROM expedient_pld_beneficial_owner bf2 
                         WHERE bf2.IdFile = f.id AND COALESCE(bf2.Enabled, 1) = 1
                     ) + COALESCE(fp.BeneficiarioFinalPorcentaje, 0) as porcentajeBeneficiarios
                 FROM expedient f
-                LEFT JOIN file_pld fp ON fp.IdFile = f.id
+                LEFT JOIN expedient_pld fp ON fp.IdFile = f.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN `order` obc1 ON obc1.id = f.id_order
                 LEFT JOIN (
@@ -1048,9 +1048,9 @@ class Validacion extends BaseController
             
             // Aplicar filtro de pedidos cancelados 
             if ($showCancelled) {
-                $sql .= " AND f.id_current_state = 5";
+                $sql .= " AND f.id_current_expedient_state = 5";
             } else {
-                $sql .= " AND f.id_current_state != 5";
+                $sql .= " AND f.id_current_expedient_state != 5";
             }
             
             // LIMIT y OFFSET deben ser valores directos, no parámetros preparados
@@ -1062,16 +1062,16 @@ class Validacion extends BaseController
             $query = $this->db->query($sql, $params);
             $results = $query->getResultArray();
 
-            // Asegurar avisoConfidencialidadAceptado y mapear id_current_state → IdCurrentState para el frontend
+            // Asegurar avisoConfidencialidadAceptado y mapear id_current_expedient_state → IdCurrentState para el frontend
             foreach ($results as &$row) {
                 $idFile = (int) ($row['idFile'] ?? 0);
                 $check = $this->db->query(
-                    'SELECT 1 FROM file_pld WHERE IdFile = ? AND COALESCE(AvisoPrivacidadEntregado, 0) = 1 LIMIT 1',
+                    'SELECT 1 FROM expedient_pld WHERE IdFile = ? AND COALESCE(AvisoPrivacidadEntregado, 0) = 1 LIMIT 1',
                     [$idFile]
                 )->getRow();
                 $row['avisoConfidencialidadAceptado'] = $check ? 1 : 0;
-                // Frontend espera IdCurrentState (PascalCase); backend devuelve id_current_state (snake_case)
-                $row['IdCurrentState'] = $row['id_current_state'] ?? null;
+                // Frontend espera IdCurrentState (PascalCase); backend devuelve id_current_expedient_state (snake_case)
+                $row['IdCurrentState'] = $row['id_current_expedient_state'] ?? null;
             }
             unset($row);
 
@@ -1083,7 +1083,7 @@ class Validacion extends BaseController
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE 1=1
                 " . ($filtrarPorAgencia ? " AND f.id_agency = ?" : "") . "
                 AND p.enabled = 1
@@ -1103,9 +1103,9 @@ class Validacion extends BaseController
                 $countParams[] = $idProcess;
             }
             if ($showCancelled) {
-                $countSql .= " AND f.id_current_state = 5";
+                $countSql .= " AND f.id_current_expedient_state = 5";
             } else {
-                $countSql .= " AND f.id_current_state != 5";
+                $countSql .= " AND f.id_current_expedient_state != 5";
             }
 
             $countQuery = $this->db->query($countSql, $countParams);
@@ -1173,7 +1173,7 @@ class Validacion extends BaseController
 
             // Actualizar el registro en la tabla File
             $updateData = [
-                'id_current_state' => 5, // Estado cancelado
+                'id_current_expedient_state' => 5, // Estado cancelado
                 'description' => $comentario,
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
@@ -1252,7 +1252,7 @@ class Validacion extends BaseController
 
             // Actualizar el registro en la tabla File
             $updateData = [
-                'id_current_state' => 6, // Estado excepción
+                'id_current_expedient_state' => 6, // Estado excepción
                 'description' => $comentario,
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => $this->getCurrentUserId() ?? 1
@@ -1346,7 +1346,7 @@ class Validacion extends BaseController
 
             $this->deleteFileDependents($clienteId);
 
-            $this->db->query("DELETE FROM file_document WHERE id_file = ?", [$clienteId]);
+            $this->db->query("DELETE FROM expedient_document WHERE id_expedient = ?", [$clienteId]);
 
             $this->db->query("DELETE FROM expedient WHERE id = ?", [$clienteId]);
             $fileDeleted = $this->db->affectedRows();
@@ -1370,7 +1370,7 @@ class Validacion extends BaseController
                 [
                     'cliente_id' => $clienteId,
                     'accion' => 'Eliminación completa',
-                    'tablas_afectadas' => ['expedient', 'file_document'],
+                    'tablas_afectadas' => ['expedient', 'expedient_document'],
                     'fecha_eliminacion' => date('Y-m-d H:i:s')
                 ],
                 $clienteId
@@ -1445,14 +1445,14 @@ class Validacion extends BaseController
             error_log("clienteId: {$clienteId}, nuevoIdCurrentState: {$nuevoIdCurrentState}");
             
             // Primero, obtener todos los estados disponibles para debugging
-            $todosEstadosQuery = $this->db->table('file_state')
+            $todosEstadosQuery = $this->db->table('expedient_state')
                 ->select('Id, Name')
                 ->get();
             $todosEstados = $todosEstadosQuery->getResultArray();
-            error_log("Todos los estados disponibles en file_state: " . json_encode($todosEstados));
+            error_log("Todos los estados disponibles en expedient_state: " . json_encode($todosEstados));
 
-            // Verificar que el estado existe en la tabla file_state por ID
-            $estadoQuery = $this->db->table('file_state')
+            // Verificar que el estado existe en la tabla expedient_state por ID
+            $estadoQuery = $this->db->table('expedient_state')
                 ->select('id, name')
                 ->where('id', $nuevoIdCurrentState)
                 ->get();
@@ -1480,7 +1480,7 @@ class Validacion extends BaseController
             
             // Actualizar el registro en la tabla File
             $updateData = [
-                'id_current_state' => $nuevoIdCurrentState,
+                'id_current_expedient_state' => $nuevoIdCurrentState,
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => $this->getCurrentUserId() ?? 1
             ];
@@ -1553,12 +1553,12 @@ class Validacion extends BaseController
             $query = $this->db->table('expedient f')
                 ->select('fs.name as estado, COUNT(*) as cantidad')
                 ->join('process p', 'f.id_sale_type = p.id', 'inner')
-                ->join('file_state fs', 'f.id_current_state = fs.id', 'inner')
+                ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'inner')
                 ->where('f.id_agency', $idAgency)
                 ->where('f.id_sale_type', $idProcess)
                 ->where('p.enabled', 1)
-                ->groupBy('f.id_current_state, fs.name')
-                ->orderBy('f.id_current_state');
+                ->groupBy('f.id_current_expedient_state, fs.name')
+                ->orderBy('f.id_current_expedient_state');
 
             $results = $query->get()->getResultArray();
 
@@ -1601,7 +1601,7 @@ class Validacion extends BaseController
 
             // requerido: si el documento está en configuration_process_document_type para este expediente, es requerido (1).
             // Si no, usar dt.required del document_type (por defecto 1).
-            $query = $this->db->table('file_document dbf')
+            $query = $this->db->table('expedient_document dbf')
                 ->select('
                     dbf.id as idFileDocument,
                     dbf.id as idDocumentByFile,
@@ -1637,15 +1637,15 @@ class Validacion extends BaseController
                     lrd.payment_date as paymentDate,
                     lrd.registration_date as registrationDate
                 ')
-                ->join('expedient f', 'dbf.id_file = f.id', 'inner')
+                ->join('expedient f', 'dbf.id_expedient = f.id', 'inner')
                 ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-                ->join('file_state fs', 'dt.id_sale_type = fs.id', 'inner')
-                ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
+                ->join('expedient_state fs', 'dt.id_sale_type = fs.id', 'inner')
+                ->join('document_status dfs', 'dbf.id_current_document_status = dfs.id', 'inner')
                 ->join('user u', 'dbf.id_last_user_update = u.id', 'left')
-                ->join('liquidation_receipt_detail lrd', 'lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file', 'left')
+                ->join('liquidation_receipt_detail lrd', 'lrd.id_expedient_document = dbf.id AND lrd.id_expedient = dbf.id_expedient', 'left')
                 ->join('payment_method pm', 'pm.id = lrd.id_payment_method', 'left')
-                ->where('dbf.id_file', $idFile)
+                ->where('dbf.id_expedient', $idFile)
                 ->where('dbf.enabled', 1)
                 ->orderBy('p.name', 'ASC')
                 ->orderBy('fs.name', 'ASC')
@@ -1687,8 +1687,8 @@ class Validacion extends BaseController
                 try {
                     $sumRow = $this->db->query("
                         SELECT COALESCE(SUM(lrd.amount), 0) AS total FROM liquidation_receipt_detail lrd
-                        INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
-                        WHERE lrd.id_file = ?
+                        INNER JOIN expedient_document fd ON fd.id = lrd.id_expedient_document AND fd.enabled = 1
+                        WHERE lrd.id_expedient = ?
                     ", [$idFile])->getRowArray();
                     $totalReceiptAmount = (float) ($sumRow['total'] ?? 0);
                 } catch (\Exception $e) {
@@ -1811,8 +1811,8 @@ class Validacion extends BaseController
                 $sumRow = $this->db->query("
                     SELECT COALESCE(SUM(lrd.amount), 0) AS total
                     FROM liquidation_receipt_detail lrd
-                    INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
-                    WHERE lrd.id_file = ? AND fd.id_document_type = ?
+                    INNER JOIN expedient_document fd ON fd.id = lrd.id_expedient_document AND fd.enabled = 1
+                    WHERE lrd.id_expedient = ? AND fd.id_document_type = ?
                 ", [$idFile, $documentTypeId])->getRowArray();
             } catch (\Exception $e) {
                 error_log("Error consultando liquidation_receipt_detail: " . $e->getMessage());
@@ -1853,9 +1853,9 @@ class Validacion extends BaseController
             }
 
             // Obtener documentos existentes de liquidación para calcular el consecutivo
-            $existingDocuments = $this->db->table('file_document')
+            $existingDocuments = $this->db->table('expedient_document')
                 ->select('name')
-                ->where('id_file', $idFile)
+                ->where('id_expedient', $idFile)
                 ->where('id_document_type', $documentTypeId)
                 ->orderBy('id', 'ASC')
                 ->get()
@@ -1877,8 +1877,8 @@ class Validacion extends BaseController
             $documentName = trim($baseName . ' ' . $nextCounter);
 
             // Garantizar que no exista un documento con el mismo nombre
-            while ($this->db->table('file_document')
-                ->where('id_file', $idFile)
+            while ($this->db->table('expedient_document')
+                ->where('id_expedient', $idFile)
                 ->where('name', $documentName)
                 ->countAllResults() > 0) {
                 $nextCounter++;
@@ -1886,7 +1886,7 @@ class Validacion extends BaseController
             }
 
             // Obtener siguiente ID manualmente
-            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM file_document")
+            $nextIdRow = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM expedient_document")
                 ->getRowArray();
             $nextId = (int) ($nextIdRow['nextId'] ?? 1);
 
@@ -1916,14 +1916,14 @@ class Validacion extends BaseController
                 'update_date' => $now,
                 'last_user_update' => $currentUserId,
                 'id_last_user_update' => $currentUserId,
-                'id_file' => $idFile,
+                'id_expedient' => $idFile,
                 'id_validation' => null,
                 'id_document_type' => $documentTypeId,
-                'id_current_status' => 1,
+                'id_current_document_status' => 1,
                 'id_document_error' => null
             ];
 
-            if (!$this->db->table('file_document')->insert($documentData)) {
+            if (!$this->db->table('expedient_document')->insert($documentData)) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se pudo crear el documento de liquidación',
@@ -1934,8 +1934,8 @@ class Validacion extends BaseController
             // Insertar detalle de comprobante (monto, método de pago, fecha real del pago)
             try {
                 $this->db->table('liquidation_receipt_detail')->insert([
-                'id_file_document' => $nextId,
-                'id_file' => $idFile,
+                'id_expedient_document' => $nextId,
+                'id_expedient' => $idFile,
                 'amount' => $monto,
                 'id_payment_method' => $idPaymentMethod,
                 'payment_date' => $paymentDate,
@@ -2006,9 +2006,9 @@ class Validacion extends BaseController
             $idFileDocument = $data['idFileDocument'];
 
             // Verificar que el documento existe y tiene estatus "3"
-            $documento = $this->db->table('file_document')
+            $documento = $this->db->table('expedient_document')
                 ->where('id', $idFileDocument)
-                ->where('id_current_status', 3)
+                ->where('id_current_document_status', 3)
                 ->get()
                 ->getRowArray();
 
@@ -2019,22 +2019,22 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
-            if ($r = $this->requireFileAccess((int) ($documento['id_file'] ?? 0))) return $r;
+            if ($r = $this->requireFileAccess((int) ($documento['id_expedient'] ?? 0))) return $r;
             
             // Actualizar el estatus del documento a "4" (Validado y aprobado)
             $updateData = [
-                'id_current_status' => 4,
+                'id_current_document_status' => 4,
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
-            $result = $this->db->table('file_document')
+            $result = $this->db->table('expedient_document')
                 ->where('id', $idFileDocument)
                 ->update($updateData);
             
             if ($result) {
                 // Registrar actividad en el log (incluir file_id para historial por expediente)
-                $idFile = $documento['id_file'] ?? null;
+                $idFile = $documento['id_expedient'] ?? null;
                 $this->logActivity(
                     'VALIDAR_DOCUMENTO',
                     "Documento {$idFileDocument} validado",
@@ -2121,7 +2121,7 @@ class Validacion extends BaseController
             }
             
             // Verificar que el documento existe
-            $documento = $this->db->table('file_document')
+            $documento = $this->db->table('expedient_document')
                 ->where('id', $idFileDocument)
                 ->get()
                 ->getRowArray();
@@ -2133,12 +2133,12 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
-            if ($r = $this->requireFileAccess((int) ($documento['id_file'] ?? 0))) return $r;
+            if ($r = $this->requireFileAccess((int) ($documento['id_expedient'] ?? 0))) return $r;
 
 
             // Verificar permisos según el rol del usuario
             $userRoleId = $currentUser['role_id'];
-            $currentStatus = $documento['id_current_status'];
+            $currentStatus = $documento['id_current_document_status'];
             
             // Lógica de permisos:
             // - Usuarios normales: solo pueden aprobar/rechazar documentos con estatus "3" (en revisión)
@@ -2167,7 +2167,7 @@ class Validacion extends BaseController
             
             // Actualizar el estatus del documento
             $updateData = [
-                'id_current_status' => $nuevoEstatus,
+                'id_current_document_status' => $nuevoEstatus,
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => $currentUser['user_id']
             ];
@@ -2183,7 +2183,7 @@ class Validacion extends BaseController
             }
 
             // Documentos de liquidación: al aprobar, requerir monto y método de pago e insertar/actualizar liquidation_receipt_detail
-            $idFile = (int) ($documento['id_file'] ?? 0);
+            $idFile = (int) ($documento['id_expedient'] ?? 0);
             $idDocumentType = (int) ($documento['id_document_type'] ?? 0);
             $documentTypeLiquidacion = $this->getConfigDocumentTypeLiquidacion();
 
@@ -2223,14 +2223,14 @@ class Validacion extends BaseController
 
                 $sumRow = $this->db->query("
                     SELECT COALESCE(SUM(lrd.amount), 0) AS total FROM liquidation_receipt_detail lrd
-                    INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
-                    WHERE lrd.id_file = ? AND fd.id_document_type = ?
+                    INNER JOIN expedient_document fd ON fd.id = lrd.id_expedient_document AND fd.enabled = 1
+                    WHERE lrd.id_expedient = ? AND fd.id_document_type = ?
                 ", [$idFile, $documentTypeLiquidacion])->getRowArray();
                 $sumaActual = (float) ($sumRow['total'] ?? 0);
 
                 $existingLrd = $this->db->table('liquidation_receipt_detail')
-                    ->where('id_file_document', $idFileDocument)
-                    ->where('id_file', $idFile)
+                    ->where('id_expedient_document', $idFileDocument)
+                    ->where('id_expedient', $idFile)
                     ->get()->getRowArray();
                 $montoAnterior = $existingLrd ? (float) ($existingLrd['amount'] ?? 0) : 0;
                 $sumaParaValidar = $sumaActual - $montoAnterior + $monto;
@@ -2267,19 +2267,19 @@ class Validacion extends BaseController
                 ];
                 if ($existingLrd) {
                     $this->db->table('liquidation_receipt_detail')
-                        ->where('id_file_document', $idFileDocument)
-                        ->where('id_file', $idFile)
+                        ->where('id_expedient_document', $idFileDocument)
+                        ->where('id_expedient', $idFile)
                         ->update($lrdUpdateData);
                 } else {
                     $this->db->table('liquidation_receipt_detail')->insert(array_merge($lrdUpdateData, [
-                        'id_file_document' => $idFileDocument,
-                        'id_file' => $idFile,
+                        'id_expedient_document' => $idFileDocument,
+                        'id_expedient' => $idFile,
                         'registration_date' => $now,
                     ]));
                 }
             }
             
-            $result = $this->db->table('file_document')
+            $result = $this->db->table('expedient_document')
                 ->where('id', $idFileDocument)
                 ->update($updateData);
             
@@ -2290,7 +2290,7 @@ class Validacion extends BaseController
                 $mensaje = $nuevoEstatus == 4 ? 'Documento aprobado exitosamente' : 'Documento rechazado exitosamente';
                 
                 // Registrar actividad en el log (incluir file_id para historial por expediente)
-                $idFile = $documento['id_file'] ?? null;
+                $idFile = $documento['id_expedient'] ?? null;
                 $this->logActivity(
                     $accion,
                     "Documento {$idFileDocument} " . ($nuevoEstatus == 4 ? 'aprobado' : 'rechazado'),
@@ -2355,9 +2355,9 @@ class Validacion extends BaseController
             }
             
             // Verificar que el documento existe y tiene estatus "2"
-            $documento = $this->db->table('file_document')
+            $documento = $this->db->table('expedient_document')
                 ->where('id', $idFileDocument)
-                ->where('id_current_status', 2)
+                ->where('id_current_document_status', 2)
                 ->get()
                 ->getRowArray();
 
@@ -2368,22 +2368,22 @@ class Validacion extends BaseController
                     'data' => null
                 ])->setStatusCode(400);
             }
-            if ($r = $this->requireFileAccess((int) ($documento['id_file'] ?? 0))) return $r;
+            if ($r = $this->requireFileAccess((int) ($documento['id_expedient'] ?? 0))) return $r;
             
             // Actualizar el estatus del documento a "3" (Listo para validar)
             $updateData = [
-                'id_current_status' => 3,
+                'id_current_document_status' => 3,
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => 1 // TODO: Obtener el ID del usuario actual
             ];
             
-            $result = $this->db->table('file_document')
+            $result = $this->db->table('expedient_document')
                 ->where('id', $idFileDocument)
                 ->update($updateData);
             
             if ($result) {
                 // Registrar actividad en el log (incluir file_id para historial por expediente)
-                $idFile = $documento['id_file'] ?? null;
+                $idFile = $documento['id_expedient'] ?? null;
                 $this->logActivity(
                     'PREPARAR_DOCUMENTO',
                     "Documento {$idFileDocument} preparado para validación",
@@ -2508,7 +2508,7 @@ class Validacion extends BaseController
                 INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN company co ON a.id_company = co.id
                 LEFT JOIN `order` obc1 ON obc1.id = f.id_order
@@ -2701,7 +2701,7 @@ class Validacion extends BaseController
             }
 
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
-            $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            $idFile = (int) ($data['idFile'] ?? $data['id_expedient'] ?? 0);
             if ($idFile && ($r = $this->requireFileAccess($idFile))) return $r;
             if (!$idFile) {
                 return $this->response->setJSON([
@@ -2865,7 +2865,7 @@ class Validacion extends BaseController
             }
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
             $idClient = (int) ($data['idClient'] ?? $data['id_client'] ?? 0);
-            $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            $idFile = (int) ($data['idFile'] ?? $data['id_expedient'] ?? 0);
             if ($idFile && ($r = $this->requireFileAccess($idFile))) return $r;
             if (!$idClient && $idFile) {
                 $row = $this->db->table('expedient')->select('id_client')->where('id', $idFile)->get()->getRowArray();
@@ -2999,7 +2999,7 @@ class Validacion extends BaseController
                 return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
             }
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
-            $idFile = (int) ($data['idFile'] ?? $data['id_file'] ?? 0);
+            $idFile = (int) ($data['idFile'] ?? $data['id_expedient'] ?? 0);
             $nombre = trim($data['nombre'] ?? $data['Nombre'] ?? '');
             if (!$idFile || !$nombre) {
                 return $this->response->setJSON(['success' => false, 'message' => 'idFile y nombre son requeridos'])->setStatusCode(400);
@@ -3077,13 +3077,13 @@ class Validacion extends BaseController
             }
             if ($r = $this->requireFileAccess($idFile)) return $r;
 
-            $docs = $this->db->table('file_document dbf')
+            $docs = $this->db->table('expedient_document dbf')
                 ->select('dbf.id_document_container as documentContainer, p.name as proceso, fs.name as fase, dt.name as tipoDocumento, dbf.name as documento')
-                ->join('expedient f', 'dbf.id_file = f.id', 'inner')
+                ->join('expedient f', 'dbf.id_expedient = f.id', 'inner')
                 ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-                ->join('file_state fs', 'dt.id_sale_type = fs.id', 'inner')
-                ->where('dbf.id_file', $idFile)
+                ->join('expedient_state fs', 'dt.id_sale_type = fs.id', 'inner')
+                ->where('dbf.id_expedient', $idFile)
                 ->where('dbf.enabled', 1)
                 ->where('dbf.id_document_container IS NOT NULL')
                 ->where('dbf.id_document_container !=', '')

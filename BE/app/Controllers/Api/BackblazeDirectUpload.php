@@ -12,7 +12,7 @@ class BackblazeDirectUpload extends BaseController
 {
     /**
      * POST /api/backblaze/direct-upload
-     * Sube un archivo directamente a Backblaze B2 y actualiza file_document
+     * Sube un archivo directamente a Backblaze B2 y actualiza expedient_document
      */
     public function upload()
     {
@@ -532,8 +532,8 @@ class BackblazeDirectUpload extends BaseController
                 a.name AS agency_name,
                 c.name AS company_name,
                 ctr.id_dms AS id_dms_cliente
-            FROM file_document fd
-            INNER JOIN expedient e ON e.id = fd.id_file
+            FROM expedient_document fd
+            INNER JOIN expedient e ON e.id = fd.id_expedient
             LEFT JOIN agency a ON a.id = e.id_agency
             LEFT JOIN company c ON c.id = a.id_company
             LEFT JOIN client_header hc ON hc.id_client = e.id_client
@@ -612,12 +612,12 @@ class BackblazeDirectUpload extends BaseController
     private function updateFileDocument(string $idFileDocument, string $documentContainer, string $fileName): void
     {
         $db = \Config\Database::connect();
-        $db->table('file_document')
+        $db->table('expedient_document')
             ->where('id', $idFileDocument)
             ->update([
                 'id_document_container' => $documentContainer,
                 'name' => $fileName,
-                'id_current_status' => 2, // 2 = Documento cargado (uploaded)
+                'id_current_document_status' => 2, // 2 = Documento cargado (uploaded)
                 'comment' => null,        // Limpiar comentario de rechazo anterior
                 'id_document_error' => null, // Limpiar error anterior
                 'update_date' => date('Y-m-d H:i:s'),

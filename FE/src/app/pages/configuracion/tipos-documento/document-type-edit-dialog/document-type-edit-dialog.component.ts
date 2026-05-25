@@ -100,7 +100,7 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     }
   }
 
-  /** Cargar sub fases filtradas por id_file_state (relación file_state - file_sub_state) */
+  /** Cargar sub fases filtradas por id_expedient_state (relación expedient_state - expedient_sub_state) */
   private loadSubProcessesByPhase(phaseId: number | string): void {
     const id = typeof phaseId === 'string' ? parseInt(phaseId, 10) : phaseId;
     if (isNaN(id)) {

@@ -138,7 +138,7 @@ class Analytics extends BaseController
                 $builder->where('d.registration_date <=', $filters['end_date']);
             }
             if (!empty($filters['agency_id'])) {
-                $builder->join('expedient f', '`f`.`id` = `d`.`id_file`', 'inner', false)
+                $builder->join('expedient f', '`f`.`id` = `d`.`id_expedient`', 'inner', false)
                     ->where('f.id_agency', $filters['agency_id']);
             }
             if (!empty($filters['document_type_id'])) {
@@ -147,22 +147,22 @@ class Analytics extends BaseController
             return $builder;
         };
 
-        $builder = $applyFilters($db->table('file_document d'));
+        $builder = $applyFilters($db->table('expedient_document d'));
         $totalDocuments = $builder->countAllResults(false);
 
-        $builder = $applyFilters($db->table('file_document d'));
+        $builder = $applyFilters($db->table('expedient_document d'));
         $documentsByType = $builder->select('dt.name as type, COUNT(*) as count')
             ->join('document_type dt', '`dt`.`id` = `d`.`id_document_type`', 'left', false)
             ->groupBy('dt.name')
             ->get()->getResultArray();
 
-        $builder = $applyFilters($db->table('file_document d'));
-        $documentsByStatus = $builder->select('d.id_current_status as status, COUNT(*) as count')
-            ->groupBy('d.id_current_status')
+        $builder = $applyFilters($db->table('expedient_document d'));
+        $documentsByStatus = $builder->select('d.id_current_document_status as status, COUNT(*) as count')
+            ->groupBy('d.id_current_document_status')
             ->get()->getResultArray();
 
-        $builder = $db->table('file_document d')
-            ->join('expedient f', '`f`.`id` = `d`.`id_file`', 'inner', false)
+        $builder = $db->table('expedient_document d')
+            ->join('expedient f', '`f`.`id` = `d`.`id_expedient`', 'inner', false)
             ->join('agency a', '`a`.`id` = `f`.`id_agency`', 'inner', false);
         if (!empty($filters['start_date'])) $builder->where('d.registration_date >=', $filters['start_date']);
         if (!empty($filters['end_date'])) $builder->where('d.registration_date <=', $filters['end_date']);
@@ -174,7 +174,7 @@ class Analytics extends BaseController
             ->limit(10)
             ->get()->getResultArray();
 
-        $builder = $applyFilters($db->table('file_document d'));
+        $builder = $applyFilters($db->table('expedient_document d'));
         $builder->where('d.registration_date >=', date('Y-m-01', strtotime('-12 months')));
         $monthlyTrend = $builder->select("DATE_FORMAT(d.registration_date, '%Y-%m') as month, COUNT(*) as count")
             ->groupBy('month')
@@ -497,9 +497,9 @@ class Analytics extends BaseController
             $query = $db->table('expedient')
                 ->select('
                     MONTH(registration_date) as month,
-                    SUM(CASE WHEN id_current_state IN (4, 6) THEN 1 ELSE 0 END) as entregados,
-                    SUM(CASE WHEN id_current_state = 5 THEN 1 ELSE 0 END) as canceladas,
-                    SUM(CASE WHEN id_current_state IN (1, 2, 3) THEN 1 ELSE 0 END) as proceso
+                    SUM(CASE WHEN id_current_expedient_state IN (4, 6) THEN 1 ELSE 0 END) as entregados,
+                    SUM(CASE WHEN id_current_expedient_state = 5 THEN 1 ELSE 0 END) as canceladas,
+                    SUM(CASE WHEN id_current_expedient_state IN (1, 2, 3) THEN 1 ELSE 0 END) as proceso
                 ', false)
                 ->where('registration_date >=', $yearStart)
                 ->where('registration_date <=', $yearEnd)
@@ -567,9 +567,9 @@ class Analytics extends BaseController
             $monthEnd = date('Y-m-t 23:59:59');
             $query = $db->table('expedient')
                 ->select('
-                    SUM(CASE WHEN id_current_state IN (4, 6) THEN 1 ELSE 0 END) as entregados,
-                    SUM(CASE WHEN id_current_state = 5 THEN 1 ELSE 0 END) as canceladas,
-                    SUM(CASE WHEN id_current_state IN (1, 2, 3) THEN 1 ELSE 0 END) as proceso
+                    SUM(CASE WHEN id_current_expedient_state IN (4, 6) THEN 1 ELSE 0 END) as entregados,
+                    SUM(CASE WHEN id_current_expedient_state = 5 THEN 1 ELSE 0 END) as canceladas,
+                    SUM(CASE WHEN id_current_expedient_state IN (1, 2, 3) THEN 1 ELSE 0 END) as proceso
                 ', false)
                 ->where('registration_date >=', $monthStart)
                 ->where('registration_date <=', $monthEnd);
@@ -632,8 +632,8 @@ class Analytics extends BaseController
         try {
             $db = \Config\Database::connect();
 
-            // Verificar si existe la tabla file_state
-            $fileStatusExists = $db->tableExists('file_state');
+            // Verificar si existe la tabla expedient_state
+            $fileStatusExists = $db->tableExists('expedient_state');
 
             $data = [
                 'file_status_table_exists' => $fileStatusExists
@@ -641,14 +641,14 @@ class Analytics extends BaseController
 
             if ($fileStatusExists) {
                 // Obtener todos los estados disponibles
-                $statuses = $db->table('file_state')->get()->getResultArray();
+                $statuses = $db->table('expedient_state')->get()->getResultArray();
                 $data['file_states'] = $statuses;
             }
 
             // Obtener distribución de estados en la tabla File
             $currentStates = $db->table('expedient')
-                ->select('id_current_state, COUNT(*) as count')
-                ->groupBy('id_current_state')
+                ->select('id_current_expedient_state, COUNT(*) as count')
+                ->groupBy('id_current_expedient_state')
                 ->orderBy('count', 'DESC')
                 ->get()
                 ->getResultArray();
@@ -657,7 +657,7 @@ class Analytics extends BaseController
 
             // Obtener algunos ejemplos de archivos con diferentes estados
             $sampleFiles = $db->table('expedient')
-                ->select('id, id_current_state, registration_date, close_date')
+                ->select('id, id_current_expedient_state, registration_date, close_date')
                 ->limit(10)
                 ->get()
                 ->getResultArray();
@@ -697,29 +697,29 @@ class Analytics extends BaseController
 
             // Expedientes entregados (estados 4 "Liberado" y 6 "Liberado por Excepción")
             $entregadosQuery = clone $baseQuery;
-            $entregados = $entregadosQuery->whereIn('id_current_state', [4, 6])->countAllResults();
+            $entregados = $entregadosQuery->whereIn('id_current_expedient_state', [4, 6])->countAllResults();
 
             // Expedientes cancelados (estado 5 "Cancelado")
             $canceladasQuery = clone $baseQuery;
-            $canceladas = $canceladasQuery->where('id_current_state', 5)->countAllResults();
+            $canceladas = $canceladasQuery->where('id_current_expedient_state', 5)->countAllResults();
 
             // Expedientes en proceso (estados 1 "Integración", 2 "Liquidación", 3 "Liberación")
             $procesoQuery = clone $baseQuery;
-            $proceso = $procesoQuery->whereIn('id_current_state', [1, 2, 3])->countAllResults();
+            $proceso = $procesoQuery->whereIn('id_current_expedient_state', [1, 2, 3])->countAllResults();
 
             // Distribución por estado
             $distributionByState = $db->table('expedient')
-                ->select('id_current_state, COUNT(*) as count')
+                ->select('id_current_expedient_state, COUNT(*) as count')
                 ->where('YEAR(registration_date)', 2025)
                 ->where('MONTH(registration_date)', 1)
-                ->groupBy('id_current_state')
+                ->groupBy('id_current_expedient_state')
                 ->orderBy('count', 'DESC')
                 ->get()
                 ->getResultArray();
 
             // Algunos ejemplos de archivos de enero 2025
             $sampleFiles = $db->table('expedient')
-                ->select('id, id_current_state, registration_date, close_date')
+                ->select('id, id_current_expedient_state, registration_date, close_date')
                 ->where('YEAR(registration_date)', 2025)
                 ->where('MONTH(registration_date)', 1)
                 ->limit(10)
@@ -762,23 +762,23 @@ class Analytics extends BaseController
             $entregados = $db->table('expedient')
                 ->where('YEAR(registration_date)', 2025)
                 ->where('MONTH(registration_date)', 1)
-                ->whereIn('id_current_state', [4, 6])
+                ->whereIn('id_current_expedient_state', [4, 6])
                 ->countAllResults();
 
             // Consulta para distribución por estado
             $distributionByState = $db->table('expedient')
-                ->select('id_current_state, COUNT(*) as count')
+                ->select('id_current_expedient_state, COUNT(*) as count')
                 ->where('YEAR(registration_date)', 2025)
                 ->where('MONTH(registration_date)', 1)
-                ->groupBy('id_current_state')
+                ->groupBy('id_current_expedient_state')
                 ->orderBy('count', 'DESC')
                 ->get()
                 ->getResultArray();
 
             // Mostrar las consultas SQL manualmente
             $sqlQueries = [
-                'entregados_query' => "SELECT COUNT(*) FROM `expedient` WHERE YEAR(registration_date) = 2025 AND MONTH(registration_date) = 1 AND id_current_state IN (4, 6)",
-                'distribution_query' => "SELECT id_current_state, COUNT(*) as count FROM `expedient` WHERE YEAR(registration_date) = 2025 AND MONTH(registration_date) = 1 GROUP BY id_current_state ORDER BY count DESC"
+                'entregados_query' => "SELECT COUNT(*) FROM `expedient` WHERE YEAR(registration_date) = 2025 AND MONTH(registration_date) = 1 AND id_current_expedient_state IN (4, 6)",
+                'distribution_query' => "SELECT id_current_expedient_state, COUNT(*) as count FROM `expedient` WHERE YEAR(registration_date) = 2025 AND MONTH(registration_date) = 1 GROUP BY id_current_expedient_state ORDER BY count DESC"
             ];
 
             $data = [
@@ -1250,7 +1250,7 @@ class Analytics extends BaseController
             // Consulta para obtener distribución por estatus
             $query = $db->table('expedient f')
                 ->select('fs.name as statusName, COUNT(f.id) as totalCases')
-                ->join('file_state fs', 'f.id_current_state = fs.id', 'left')
+                ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'left')
                 ->groupBy('fs.id, fs.name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1321,7 +1321,7 @@ class Analytics extends BaseController
             // OPTIMIZACIÓN: Usar rangos de fechas en lugar de funciones de fecha
             $query = $db->table('expedient f')
                 ->select('fs.name as statusName, COUNT(f.id) as totalCases')
-                ->join('file_state fs', 'f.id_current_state = fs.id', 'left')
+                ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'left')
                 ->where('f.registration_date >=', $monthStart)
                 ->where('f.registration_date <=', $monthEnd)
                 ->groupBy('fs.id, fs.name')
@@ -1406,9 +1406,9 @@ class Analytics extends BaseController
                     YEAR(f.registration_date) as year,
                     MONTH(f.registration_date) as month,
                     COUNT(f.id) as totalCases,
-                    SUM(CASE WHEN f.id_current_state IN (4, 6) THEN 1 ELSE 0 END) as deliveredCases,
-                    SUM(CASE WHEN f.id_current_state = 2 THEN 1 ELSE 0 END) as inProcessCases,
-                    SUM(CASE WHEN f.id_current_state = 3 THEN 1 ELSE 0 END) as cancelledCases
+                    SUM(CASE WHEN f.id_current_expedient_state IN (4, 6) THEN 1 ELSE 0 END) as deliveredCases,
+                    SUM(CASE WHEN f.id_current_expedient_state = 2 THEN 1 ELSE 0 END) as inProcessCases,
+                    SUM(CASE WHEN f.id_current_expedient_state = 3 THEN 1 ELSE 0 END) as cancelledCases
                 ')
                 ->where('f.registration_date >=', $startDate . ' 00:00:00')
                 ->where('f.registration_date <=', $endDate)
@@ -1486,7 +1486,7 @@ class Analytics extends BaseController
 
             $query = $db->table('expedient f')
                 ->select('fs.name as statusName, COUNT(f.id) as totalCases')
-                ->join('file_state fs', 'f.id_current_state = fs.id', 'left')
+                ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'left')
                 ->groupBy('fs.id, fs.name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1570,13 +1570,13 @@ class Analytics extends BaseController
             $monthStart = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-01 00:00:00';
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
-            // OPTIMIZACIÓN: Usar id_current_state directamente en lugar de JOIN con file_state
+            // OPTIMIZACIÓN: Usar id_current_expedient_state directamente en lugar de JOIN con expedient_state
             // Nota: 'user' es palabra reservada en MySQL, usar backticks explícitos
             $query = $db->table('expedient f')
                 ->select('u.name as advisorName, 
-                         SUM(CASE WHEN f.id_current_state IN (4, 6) THEN 1 ELSE 0 END) as approved,
-                         SUM(CASE WHEN f.id_current_state IN (1, 2, 3) THEN 1 ELSE 0 END) as pending,
-                         SUM(CASE WHEN f.id_current_state = 5 THEN 1 ELSE 0 END) as rejected,
+                         SUM(CASE WHEN f.id_current_expedient_state IN (4, 6) THEN 1 ELSE 0 END) as approved,
+                         SUM(CASE WHEN f.id_current_expedient_state IN (1, 2, 3) THEN 1 ELSE 0 END) as pending,
+                         SUM(CASE WHEN f.id_current_expedient_state = 5 THEN 1 ELSE 0 END) as rejected,
                          COUNT(f.id) as total')
                 ->join('`user` u', 'f.id_seller = u.id', 'left')
                 ->where('f.registration_date >=', $monthStart)
@@ -1780,7 +1780,7 @@ class Analytics extends BaseController
             ')
             ->where('f.registration_date IS NOT NULL')
             ->where('COALESCE(f.close_date, CURDATE()) >= f.registration_date')
-            ->whereNotIn('f.id_current_state', [4, 6])  // ← EXCLUIR PEDIDOS LIBERADOS (4=Liberado, 6=Liberado por Excepción)
+            ->whereNotIn('f.id_current_expedient_state', [4, 6])  // ← EXCLUIR PEDIDOS LIBERADOS (4=Liberado, 6=Liberado por Excepción)
             ->where('p.enabled', 1)
             ->groupBy('period_range, period_label')
             ->orderBy('period_range', 'ASC');
@@ -1935,7 +1935,7 @@ class Analytics extends BaseController
                 ->where('f.registration_date >=', $monthStart)
                 ->where('f.registration_date <=', $monthEnd)
                 ->where('COALESCE(f.close_date, CURDATE()) >= f.registration_date')
-                ->whereNotIn('f.id_current_state', [4, 6])  // ← EXCLUIR PEDIDOS LIBERADOS (4=Liberado, 6=Liberado por Excepción)
+                ->whereNotIn('f.id_current_expedient_state', [4, 6])  // ← EXCLUIR PEDIDOS LIBERADOS (4=Liberado, 6=Liberado por Excepción)
                 ->where('p.enabled', 1)
                 ->groupBy('period_range, period_label')
                 ->orderBy('period_range', 'ASC');
@@ -2035,13 +2035,13 @@ class Analytics extends BaseController
             $monthStart = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-01 00:00:00';
             $monthEnd = $currentYear . '-' . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . '-' . date('t', strtotime($monthStart)) . ' 23:59:59';
             
-            // OPTIMIZACIÓN: Usar id_current_state directamente en lugar de JOIN con file_state
+            // OPTIMIZACIÓN: Usar id_current_expedient_state directamente en lugar de JOIN con expedient_state
             $query = $db->table('expedient f')
                 ->select('COUNT(f.id) as total')
                 ->where('f.registration_date IS NOT NULL')
                 ->where('f.registration_date >=', $monthStart)
                 ->where('f.registration_date <=', $monthEnd)
-                ->whereIn('f.id_current_state', [4, 6]); // 4 = Liberado, 6 = Liberado por Excepción
+                ->whereIn('f.id_current_expedient_state', [4, 6]); // 4 = Liberado, 6 = Liberado por Excepción
 
             // Aplicar filtros
             if ($agencyId && $agencyId !== 'null' && $agencyId !== null) {
@@ -2100,7 +2100,7 @@ class Analytics extends BaseController
 
             // Consulta para obtener expedientes liberados de toda la historia
             $query = $db->table('expedient f')
-                ->join('file_state fs', 'f.id_current_state = fs.id', 'inner')
+                ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'inner')
                 ->select('COUNT(f.id) as total')
                 ->where('f.registration_date IS NOT NULL')
                 ->where('fs.name', 'Liberado');
@@ -2196,7 +2196,7 @@ class Analytics extends BaseController
                     DATEDIFF(COALESCE(f.close_date, CURDATE()), f.registration_date) as diasAtencion,
                     fs.name as estado
                 FROM expedient f
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_sale_type = p.id

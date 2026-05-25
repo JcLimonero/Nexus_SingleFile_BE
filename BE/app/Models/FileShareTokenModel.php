@@ -6,14 +6,14 @@ use CodeIgniter\Model;
 
 class FileShareTokenModel extends Model
 {
-    protected $table = 'file_share_token';
+    protected $table = 'expedient_share_token';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'id_file', 'token', 'expiration_date', 'enabled',
+        'id_expedient', 'token', 'expiration_date', 'enabled',
         'registration_date', 'update_date', 'id_last_user_update'
     ];
 
@@ -34,7 +34,7 @@ class FileShareTokenModel extends Model
         if ($expirationDate === null) {
             $expirationDate = date('Y-m-d H:i:s', time() + (7 * 24 * 60 * 60));
         }
-        $existing = $this->where('id_file', $idFile)->first();
+        $existing = $this->where('id_expedient', $idFile)->first();
         if ($existing) {
             $enabled = $existing['enabled'] ?? $existing['Enabled'] ?? 0;
             $expDate = $existing['expiration_date'] ?? $existing['ExpirationDate'] ?? null;
@@ -58,7 +58,7 @@ class FileShareTokenModel extends Model
 
         $token = $this->generateUUID();
         $data = [
-            'id_file' => $idFile,
+            'id_expedient' => $idFile,
             'token' => $token,
             'expiration_date' => $expirationDate,
             'enabled' => 1
@@ -75,7 +75,7 @@ class FileShareTokenModel extends Model
     private function normalizeTokenRow(array $row): array
     {
         return array_merge($row, [
-            'IdFile' => $row['id_file'] ?? $row['IdFile'] ?? null,
+            'IdFile' => $row['id_expedient'] ?? $row['IdFile'] ?? null,
             'Token' => $row['token'] ?? $row['Token'] ?? null,
             'ExpirationDate' => $row['expiration_date'] ?? $row['ExpirationDate'] ?? null,
             'Enabled' => $row['enabled'] ?? $row['Enabled'] ?? null,

@@ -10,7 +10,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * API pública del Miniportal - acceso sin autenticación mediante token UUID.
- * Usa file_pld y file_pld_geolog (tablas PLD existentes) en lugar de tablas redundantes.
+ * Usa expedient_pld y file_pld_geolog (tablas PLD existentes) en lugar de tablas redundantes.
  */
 class Miniportal extends BaseController
 {
@@ -183,11 +183,11 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $doc = $this->db->table('file_document dbf')
-            ->select('dbf.id, dbf.id_file')
+        $doc = $this->db->table('expedient_document dbf')
+            ->select('dbf.id, dbf.id_expedient')
             ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
             ->where('dbf.id', $idFileDocument)
-            ->where('dbf.id_file', $idFile)
+            ->where('dbf.id_expedient', $idFile)
             ->where('dbf.enabled', 1)
             ->where('dt.available_to_client', 1)
             ->get()
@@ -304,9 +304,9 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $exists = $this->db->table('file_document dbf')
+        $exists = $this->db->table('expedient_document dbf')
             ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-            ->where('dbf.id_file', $idFile)
+            ->where('dbf.id_expedient', $idFile)
             ->where('dbf.id_document_container', $fileContainer)
             ->where('dbf.enabled', 1)
             ->where('dt.available_to_client', 1)
@@ -369,11 +369,11 @@ class Miniportal extends BaseController
             ])->setStatusCode(400);
         }
 
-        $doc = $this->db->table('file_document dbf')
-            ->select('dbf.id, dbf.id_file, dbf.id_current_status')
+        $doc = $this->db->table('expedient_document dbf')
+            ->select('dbf.id, dbf.id_expedient, dbf.id_current_document_status')
             ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
             ->where('dbf.id', $idFileDocument)
-            ->where('dbf.id_file', $idFile)
+            ->where('dbf.id_expedient', $idFile)
             ->where('dbf.enabled', 1)
             ->where('dt.available_to_client', 1)
             ->get()
@@ -386,7 +386,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        if ((int) ($doc['id_current_status'] ?? 0) !== 4) {
+        if ((int) ($doc['id_current_document_status'] ?? 0) !== 4) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Solo se puede aprobar cuando el documento está en estatus 4'
@@ -401,9 +401,9 @@ class Miniportal extends BaseController
         }
 
         try {
-            $this->db->table('file_pld_approved_document')->insert([
-                'id_document_by_file' => $idFileDocument,
-                'id_file' => $idFile,
+            $this->db->table('expedient_pld_approved_document')->insert([
+                'id_expedient_document' => $idFileDocument,
+                'id_expedient' => $idFile,
                 'approved_by_client' => 1,
                 'approval_date' => date('Y-m-d H:i:s')
             ]);
@@ -431,9 +431,9 @@ class Miniportal extends BaseController
     private function isDocumentoAprobadoPorCliente(int $idFileDocument, int $idFile): bool
     {
         try {
-            $row = $this->db->table('file_pld_approved_document')
-                ->where('id_document_by_file', $idFileDocument)
-                ->where('id_file', $idFile)
+            $row = $this->db->table('expedient_pld_approved_document')
+                ->where('id_expedient_document', $idFileDocument)
+                ->where('id_expedient', $idFile)
                 ->where('approved_by_client', 1)
                 ->get()
                 ->getRowArray();
@@ -453,7 +453,7 @@ class Miniportal extends BaseController
                 SELECT
                     dbf.id as idFileDocument,
                     dbf.id as idDocumentByFile,
-                    dbf.id_current_status as idEstatus,
+                    dbf.id_current_document_status as idEstatus,
                     dbf.comment as comentarioRechazo,
                     p.name as proceso,
                     fs.name as fase,
@@ -465,14 +465,14 @@ class Miniportal extends BaseController
                     dt.available_to_client as DisponibleCliente,
                     COALESCE(dt.required, 1) as requerido,
                     CASE WHEN ap.id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
-                FROM file_document dbf
-                INNER JOIN expedient f ON dbf.id_file = f.id
+                FROM expedient_document dbf
+                INNER JOIN expedient f ON dbf.id_expedient = f.id
                 INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN document_type dt ON dbf.id_document_type = dt.id
-                INNER JOIN file_state fs ON dt.id_sale_type = fs.id
-                INNER JOIN document_file_status dfs ON dbf.id_current_status = dfs.id
-                LEFT JOIN file_pld_approved_document ap ON ap.id_document_by_file = dbf.id AND ap.id_file = dbf.id_file AND ap.approved_by_client = 1
-                WHERE dbf.id_file = ?
+                INNER JOIN expedient_state fs ON dt.id_sale_type = fs.id
+                INNER JOIN document_status dfs ON dbf.id_current_document_status = dfs.id
+                LEFT JOIN expedient_pld_approved_document ap ON ap.id_expedient_document = dbf.id AND ap.id_expedient = dbf.id_expedient AND ap.approved_by_client = 1
+                WHERE dbf.id_expedient = ?
                 AND dbf.enabled = 1
                 AND dt.available_to_client = 1
                 ORDER BY p.name ASC, fs.name ASC, dt.name ASC
@@ -490,12 +490,12 @@ class Miniportal extends BaseController
 
     private function getDocumentosByFileFallback(int $idFile): array
     {
-        $builder = $this->db->table('file_document dbf');
+        $builder = $this->db->table('expedient_document dbf');
         $results = $builder
             ->select('
                 dbf.id as idFileDocument,
                 dbf.id as idDocumentByFile,
-                dbf.id_current_status as idEstatus,
+                dbf.id_current_document_status as idEstatus,
                 dbf.comment as comentarioRechazo,
                 p.name as proceso,
                 fs.name as fase,
@@ -508,12 +508,12 @@ class Miniportal extends BaseController
                 COALESCE(dt.required, 1) as requerido,
                 0 as aprobadoCliente
             ')
-            ->join('expedient f', 'dbf.id_file = f.id', 'inner')
+            ->join('expedient f', 'dbf.id_expedient = f.id', 'inner')
             ->join('process p', 'f.id_sale_type = p.id', 'inner')
             ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-            ->join('file_state fs', 'dt.id_sale_type = fs.id', 'inner')
-            ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
-            ->where('dbf.id_file', $idFile)
+            ->join('expedient_state fs', 'dt.id_sale_type = fs.id', 'inner')
+            ->join('document_status dfs', 'dbf.id_current_document_status = dfs.id', 'inner')
+            ->where('dbf.id_expedient', $idFile)
             ->where('dbf.enabled', 1)
             ->where('dt.available_to_client', 1)
             ->orderBy('p.name', 'ASC')
@@ -545,7 +545,7 @@ class Miniportal extends BaseController
             FROM expedient f
             INNER JOIN client c ON f.id_client = c.id
             INNER JOIN agency a ON f.id_agency = a.id
-            LEFT JOIN file_state fs ON f.id_current_state = fs.id
+            LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
             LEFT JOIN `order` obc1 ON obc1.id = f.id_order
             LEFT JOIN (
                 SELECT obc2a.id_dms, obc2a.id_agency, obc2a.vin, obc2a.model, obc2a.year, obc2a.car_type
@@ -560,7 +560,7 @@ class Miniportal extends BaseController
             ) obc2 ON f.id_order IS NULL
                 AND obc2.id_dms = f.id_order_total
                 AND obc2.id_agency = f.id_agency
-            WHERE f.id = ? AND f.id_current_state != 5
+            WHERE f.id = ? AND f.id_current_expedient_state != 5
         ";
         $query = $this->db->query($sql, [$idFile]);
         $row = $query->getRowArray();

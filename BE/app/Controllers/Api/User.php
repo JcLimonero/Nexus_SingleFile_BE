@@ -452,7 +452,7 @@ class User extends BaseController
         }
 
         // Documentos: último actualizador
-        $docCount = $db->table('file_document')
+        $docCount = $db->table('expedient_document')
             ->where('id_last_user_update', $userId)
             ->countAllResults();
         if ($docCount > 0) {

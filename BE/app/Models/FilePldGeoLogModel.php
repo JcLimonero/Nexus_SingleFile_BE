@@ -10,7 +10,7 @@ use CodeIgniter\Model;
  */
 class FilePldGeoLogModel extends Model
 {
-    protected $table = 'file_pld_geo_log';
+    protected $table = 'expedient_pld_geo_log';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

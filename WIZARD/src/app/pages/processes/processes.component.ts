@@ -99,8 +99,8 @@ export class ProcessesComponent implements OnInit {
   async loadDefaults() {
     if (!window.wizardApi) return;
     this.loadingDefaults.set(true);
-    // file_state contains the actual workflow phases (Integración/Liquidación/etc.)
-    const r = await window.wizardApi.defaults.load('file_state');
+    // expedient_state contains the actual workflow phases (Integración/Liquidación/etc.)
+    const r = await window.wizardApi.defaults.load('expedient_state');
     this.loadingDefaults.set(false);
     if (!r.ok || !r.rows) return;
     const mapped = r.rows.map((row: any, i: number) => ({

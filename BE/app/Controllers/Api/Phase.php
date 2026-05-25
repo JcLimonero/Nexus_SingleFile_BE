@@ -11,10 +11,10 @@ use App\Models\ClientGroupPhaseModel;
  *     Resolves the current user's tenant chain
  *       user.default_agency → agency.id_company → company.id_client_group → client_group_phase
  *     and returns the phases assigned to that group, ordered by display_order.
- *     Each row is enriched with the file_state.name and requires_payment_voucher flag.
+ *     Each row is enriched with the expedient_state.name and requires_payment_voucher flag.
  *
  * Fallback: if the user has no agency, the company has no group, or the group has
- * no phase assignments, we return ALL active rows of file_state (legacy single-set
+ * no phase assignments, we return ALL active rows of expedient_state (legacy single-set
  * behavior). This keeps the endpoint useful before any group is configured.
  */
 class Phase extends BaseController
@@ -59,7 +59,7 @@ class Phase extends BaseController
         // Fallback if no group assignment exists yet
         if (!$phases) {
             $source = 'legacy_all';
-            $phases = $db->table('file_state')
+            $phases = $db->table('expedient_state')
                 ->select('id, name, enabled, requires_payment_voucher')
                 ->where('enabled', 1)
                 ->orderBy('id', 'ASC')
@@ -70,7 +70,7 @@ class Phase extends BaseController
                 return [
                     'id' => null,
                     'id_client_group' => null,
-                    'id_file_state' => (int) $p['id'],
+                    'id_expedient_state' => (int) $p['id'],
                     'display_order' => $i,
                     'enabled' => (int) ($p['enabled'] ?? 1),
                     'phase_name' => $p['name'],

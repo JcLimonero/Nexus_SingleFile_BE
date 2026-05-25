@@ -84,7 +84,7 @@ class UserActivityLog extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $logs,
-                'id_file' => (int) $idFile
+                'id_expedient' => (int) $idFile
             ]);
 
         } catch (\Exception $e) {

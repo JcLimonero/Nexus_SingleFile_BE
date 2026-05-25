@@ -7,7 +7,7 @@ import { ApiBaseService } from './api-base.service';
 export interface PhaseRow {
   id: number | null;
   id_client_group: number | null;
-  id_file_state: number;
+  id_expedient_state: number;
   display_order: number;
   enabled: number;
   phase_name: string;

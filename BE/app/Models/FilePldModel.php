@@ -5,12 +5,12 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 /**
- * Model para file_pld - datos PLD/AML por expediente.
+ * Model para expedient_pld - datos PLD/AML por expediente.
  * Usado por Miniportal para registrar aviso de privacidad aceptado.
  */
 class FilePldModel extends Model
 {
-    protected $table = 'file_pld';
+    protected $table = 'expedient_pld';
     protected $primaryKey = 'Id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';

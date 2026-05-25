@@ -15,9 +15,9 @@ const CATALOGS = [
   { id: 'operation_type', label: 'Tipos de operación' },
   { id: 'payment_method', label: 'Métodos de pago' },
   { id: 'document_type', label: 'Tipos de documento' },
-  { id: 'file_reasons', label: 'Motivos de rechazo' },
-  { id: 'document_file_error', label: 'Errores de documento' },
-  { id: 'file_exception_reason', label: 'Motivos de excepción' },
+  { id: 'expedient_reason', label: 'Motivos de rechazo' },
+  { id: 'document_error', label: 'Errores de documento' },
+  { id: 'expedient_exception_reason', label: 'Motivos de excepción' },
 ];
 
 @Component({

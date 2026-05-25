@@ -27,7 +27,7 @@ export interface FileReasonResponse {
   success: boolean;
   message: string;
   data: {
-    file_reasons: FileReason[];
+    expedient_reason: FileReason[];
     total: number;
     limit: number | string;
     offset: number;

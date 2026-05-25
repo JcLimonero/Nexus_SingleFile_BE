@@ -68,7 +68,7 @@ import { PhaseService, phaseSlug, PhaseRow } from '../../../core/services/phase.
           }
           <p style="margin-top: 24px; color: #666;">
             Fase activa #{{ phase()!.display_order + 1 }} del flujo.
-            Próximamente: tabla de expedientes filtrada por <code>id_current_state = {{ phase()!.id_file_state }}</code>
+            Próximamente: tabla de expedientes filtrada por <code>id_current_expedient_state = {{ phase()!.id_expedient_state }}</code>
             y, si aplica, botón para cargar el comprobante (reutiliza el dialog existente de Liquidación).
           </p>
         </mat-card-content>

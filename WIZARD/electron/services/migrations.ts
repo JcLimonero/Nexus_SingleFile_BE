@@ -103,7 +103,7 @@ export const schemaMigrations: Migration[] = [
   },
   {
     name: 'create_file_state',
-    sql: `CREATE TABLE IF NOT EXISTS file_state (
+    sql: `CREATE TABLE IF NOT EXISTS expedient_state (
       id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
@@ -116,9 +116,9 @@ export const schemaMigrations: Migration[] = [
   },
   {
     name: 'create_file_sub_state',
-    sql: `CREATE TABLE IF NOT EXISTS file_sub_state (
+    sql: `CREATE TABLE IF NOT EXISTS expedient_sub_state (
       id BIGINT NOT NULL AUTO_INCREMENT,
-      id_file_state BIGINT NULL,
+      id_expedient_state BIGINT NULL,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -176,7 +176,7 @@ export const schemaMigrations: Migration[] = [
   },
   {
     name: 'create_file_reasons',
-    sql: `CREATE TABLE IF NOT EXISTS file_reasons (
+    sql: `CREATE TABLE IF NOT EXISTS expedient_reason (
       id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       id_type_reason BIGINT NULL,
@@ -188,7 +188,7 @@ export const schemaMigrations: Migration[] = [
   },
   {
     name: 'create_document_file_error',
-    sql: `CREATE TABLE IF NOT EXISTS document_file_error (
+    sql: `CREATE TABLE IF NOT EXISTS document_error (
       id BIGINT NOT NULL AUTO_INCREMENT,
       description VARCHAR(500) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
@@ -199,7 +199,7 @@ export const schemaMigrations: Migration[] = [
   },
   {
     name: 'create_file_exception_reason',
-    sql: `CREATE TABLE IF NOT EXISTS file_exception_reason (
+    sql: `CREATE TABLE IF NOT EXISTS expedient_exception_reason (
       id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       id_type_reason BIGINT NULL,
@@ -228,13 +228,13 @@ export const schemaMigrations: Migration[] = [
     sql: `CREATE TABLE IF NOT EXISTS client_group_phase (
       id BIGINT NOT NULL AUTO_INCREMENT,
       id_client_group BIGINT NOT NULL,
-      id_file_state BIGINT NOT NULL,
+      id_expedient_state BIGINT NOT NULL,
       display_order INT DEFAULT 0,
       enabled TINYINT(1) DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
-      UNIQUE KEY uq_cgph (id_client_group, id_file_state)
+      UNIQUE KEY uq_cgph (id_client_group, id_expedient_state)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   },
 ];

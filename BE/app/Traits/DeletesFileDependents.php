@@ -15,10 +15,10 @@ trait DeletesFileDependents
      */
     protected function deleteFileDependents($fileId): void
     {
-        // PLD: beneficiarios y geo logs cuelgan del file_pld, así que van antes
-        $pldIds = $this->db->table('file_pld')
+        // PLD: beneficiarios y geo logs cuelgan del expedient_pld, así que van antes
+        $pldIds = $this->db->table('expedient_pld')
             ->select('id')
-            ->where('id_file', $fileId)
+            ->where('id_expedient', $fileId)
             ->get()
             ->getResultArray();
 
@@ -27,25 +27,25 @@ trait DeletesFileDependents
             $this->db->table('file_pld_beneficiario_final')
                 ->whereIn('id_file_pld', $ids)
                 ->delete();
-            $this->db->table('file_pld_geo_log')
+            $this->db->table('expedient_pld_geo_log')
                 ->whereIn('id_file_pld', $ids)
                 ->delete();
-            $this->db->table('file_pld')
-                ->where('id_file', $fileId)
+            $this->db->table('expedient_pld')
+                ->where('id_expedient', $fileId)
                 ->delete();
         }
 
         // Tokens de share / miniportal
-        $this->db->table('file_share_token')
-            ->where('id_file', $fileId)
+        $this->db->table('expedient_share_token')
+            ->where('id_expedient', $fileId)
             ->delete();
 
         // Razones / motivos extraordinarios
         $this->db->table('file_extraordinary_reason')
-            ->where('id_file', $fileId)
+            ->where('id_expedient', $fileId)
             ->delete();
         $this->db->table('file_reason')
-            ->where('id_file', $fileId)
+            ->where('id_expedient', $fileId)
             ->delete();
     }
 }

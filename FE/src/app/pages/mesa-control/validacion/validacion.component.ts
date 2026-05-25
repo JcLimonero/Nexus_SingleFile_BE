@@ -1173,7 +1173,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    const idState = String(this.selectedCliente.IdCurrentState ?? this.selectedCliente.id_current_state ?? '');
+    const idState = String(this.selectedCliente.IdCurrentState ?? this.selectedCliente.id_current_expedient_state ?? '');
     if (idState !== this.INTEGRACION_STATE_ID.toString()) {
       return;
     }
@@ -1213,7 +1213,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    const idState = String(this.selectedCliente.IdCurrentState ?? this.selectedCliente.id_current_state ?? '');
+    const idState = String(this.selectedCliente.IdCurrentState ?? this.selectedCliente.id_current_expedient_state ?? '');
     if (idState !== this.LIQUIDACION_STATE_ID.toString()) {
       return;
     }
@@ -1314,7 +1314,7 @@ export class ValidacionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private esDocumentoAprobado(documento: Documento): boolean {
     const doc = documento as any;
-    const estatus = Number(doc.idEstatus ?? doc.IdEstatus ?? doc.id_current_status ?? 0);
+    const estatus = Number(doc.idEstatus ?? doc.IdEstatus ?? doc.id_current_document_status ?? 0);
     return estatus === 4;
   }
 

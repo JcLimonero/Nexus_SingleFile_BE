@@ -6,7 +6,7 @@ use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 
 /**
- * Repara automáticamente los primeros 10 expedientes pendientes en files_to_correct.
+ * Repara automáticamente los primeros 10 expedientes pendientes en expedients_to_correct.
  * Ejecutar con cron: php spark expedientes:auto-reparar
  */
 class AutoReparar extends BaseCommand
@@ -24,7 +24,7 @@ class AutoReparar extends BaseCommand
         $db = \Config\Database::connect();
         $rows = $db->query("
             SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS
-            FROM files_to_correct ec
+            FROM expedients_to_correct ec
             WHERE ec.api_result IS NULL OR NOT JSON_CONTAINS(ec.api_result, 'true', '$.success')
             ORDER BY (ec.idAgency IN (20, 21, 22)) DESC, ec.idAgency ASC, ec.id ASC
             LIMIT ?
@@ -79,7 +79,7 @@ class AutoReparar extends BaseCommand
             }
         }
         try {
-            $db->query("UPDATE files_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
+            $db->query("UPDATE expedients_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
                 [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
         } catch (\Throwable $e2) {
             // ignorar
@@ -113,7 +113,7 @@ class AutoReparar extends BaseCommand
                 return false;
             }
 
-            $db->query("UPDATE files_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
+            $db->query("UPDATE expedients_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
                 [json_encode(['success' => true, 'idClient' => $idClient]), $idExpediente, $idAgency, $ndDMS]);
 
             return true;

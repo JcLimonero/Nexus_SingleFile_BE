@@ -59,7 +59,7 @@ class FileReason extends BaseController
                 'success' => true,
                 'message' => 'Motivos de rechazo obtenidos exitosamente',
                 'data' => [
-                    'file_reasons' => $fileReasons,
+                    'expedient_reason' => $fileReasons,
                     'total' => $total,
                     'limit' => $limit ?? 'all',
                     'offset' => $offset,
@@ -329,7 +329,7 @@ class FileReason extends BaseController
                 'success' => true,
                 'message' => 'Búsqueda completada exitosamente',
                 'data' => [
-                    'file_reasons' => $results,
+                    'expedient_reason' => $results,
                     'total' => count($results),
                     'search_term' => $searchTerm
                 ]
@@ -381,7 +381,7 @@ class FileReason extends BaseController
                 'success' => true,
                 'message' => 'Motivos activos obtenidos exitosamente',
                 'data' => [
-                    'file_reasons' => $activeReasons,
+                    'expedient_reason' => $activeReasons,
                     'total' => count($activeReasons)
                 ]
             ]);

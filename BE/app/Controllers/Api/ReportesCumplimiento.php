@@ -215,13 +215,13 @@ class ReportesCumplimiento extends BaseController
                     COALESCE(NULLIF(TRIM(co.name), ''), 'Sin razón social') as razonSocial,
                     a.id as idAgency,
                     a.name as nombreAgencia,
-                    f.id_current_state as idEstado,
+                    f.id_current_expedient_state as idEstado,
                     fs.name as nombreEstado,
                     COUNT(*) as total
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN company co ON a.id_company = co.id
-                LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE YEAR(f.registration_date) = ?
             ";
             $params = [$anio];
@@ -240,7 +240,7 @@ class ReportesCumplimiento extends BaseController
                 $params[] = (int) $mes;
             }
 
-            $sql .= " GROUP BY co.id, co.name, a.id, a.name, f.id_current_state, fs.name ORDER BY razonSocial, a.name, f.id_current_state";
+            $sql .= " GROUP BY co.id, co.name, a.id, a.name, f.id_current_expedient_state, fs.name ORDER BY razonSocial, a.name, f.id_current_expedient_state";
 
             $query = $this->db->query($sql, $params);
             $rows = $query->getResultArray();
@@ -309,16 +309,16 @@ class ReportesCumplimiento extends BaseController
                     COALESCE(NULLIF(TRIM(co.name), ''), 'Sin razón social') as razonSocial,
                     a.id as idAgency,
                     a.name as nombreAgencia,
-                    dbf.id_current_status as idEstatus,
+                    dbf.id_current_document_status as idEstatus,
                     dfs.name as nombreEstatus,
                     COUNT(*) as total
-                FROM file_document dbf
-                INNER JOIN expedient f ON dbf.id_file = f.id
+                FROM expedient_document dbf
+                INNER JOIN expedient f ON dbf.id_expedient = f.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 LEFT JOIN company co ON a.id_company = co.id
-                LEFT JOIN document_file_status dfs ON dbf.id_current_status = dfs.id
-                WHERE dbf.id_current_status IN (1, 2, 3)
-                AND f.id_current_state NOT IN (5)
+                LEFT JOIN document_status dfs ON dbf.id_current_document_status = dfs.id
+                WHERE dbf.id_current_document_status IN (1, 2, 3)
+                AND f.id_current_expedient_state NOT IN (5)
             ";
             $params = [];
 
@@ -332,7 +332,7 @@ class ReportesCumplimiento extends BaseController
                 $params[] = (int) $idCompany;
             }
 
-            $sql .= " GROUP BY co.id, co.name, a.id, a.name, dbf.id_current_status, dfs.name ORDER BY razonSocial, a.name, dbf.id_current_status";
+            $sql .= " GROUP BY co.id, co.name, a.id, a.name, dbf.id_current_document_status, dfs.name ORDER BY razonSocial, a.name, dbf.id_current_document_status";
 
             $query = $this->db->query($sql, $params);
             $rows = $query->getResultArray();
@@ -413,12 +413,12 @@ class ReportesCumplimiento extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_sale_type = p.id
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE f.id_customer_type = 2
-                AND f.id_current_state NOT IN (5)
+                AND f.id_current_expedient_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
                 AND NOT EXISTS (
-                    SELECT 1 FROM file_pld_beneficial_owner bf WHERE bf.IdFile = f.id
+                    SELECT 1 FROM expedient_pld_beneficial_owner bf WHERE bf.IdFile = f.id
                 )
             ";
             $params = [$anio];
@@ -469,7 +469,7 @@ class ReportesCumplimiento extends BaseController
     /**
      * GET /api/compliance-reports/cases-without-notice
      * Expedientes sin aviso de privacidad aceptado.
-     * Incluye: sin registro en file_pld, o con registro pero AvisoPrivacidadEntregado != 1.
+     * Incluye: sin registro en expedient_pld, o con registro pero AvisoPrivacidadEntregado != 1.
      */
     public function expedientesSinAviso()
     {
@@ -507,10 +507,10 @@ class ReportesCumplimiento extends BaseController
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN agency a ON f.id_agency = a.id
                 INNER JOIN process p ON f.id_sale_type = p.id
-                INNER JOIN file_state fs ON f.id_current_state = fs.id
-                WHERE f.id_current_state NOT IN (5)
+                INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
+                WHERE f.id_current_expedient_state NOT IN (5)
                 AND NOT EXISTS (
-                    SELECT 1 FROM file_pld fp
+                    SELECT 1 FROM expedient_pld fp
                     WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1
                 )
             ";
@@ -563,8 +563,8 @@ class ReportesCumplimiento extends BaseController
                         LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                         INNER JOIN agency a ON f.id_agency = a.id
                         INNER JOIN process p ON f.id_sale_type = p.id
-                        INNER JOIN file_state fs ON f.id_current_state = fs.id
-                        WHERE f.id_current_state NOT IN (5)
+                        INNER JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
+                        WHERE f.id_current_expedient_state NOT IN (5)
                     ";
                     $paramsFallback = [];
                     if ($anio > 0) {
@@ -608,7 +608,7 @@ class ReportesCumplimiento extends BaseController
             if (strpos($e->getMessage(), "doesn't exist") !== false) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'La tabla file_pld no existe. Ejecuta la migración: DB/migrations/create_file_pld_tables.sql',
+                    'message' => 'La tabla expedient_pld no existe. Ejecuta la migración: DB/migrations/create_file_pld_tables.sql',
                     'error' => $e->getMessage()
                 ])->setStatusCode(500);
             }
@@ -680,7 +680,7 @@ class ReportesCumplimiento extends BaseController
             }
 
             // Total de expedientes activos (no cancelados) en el año
-            $sqlFiles = "SELECT COUNT(*) as total FROM expedient f INNER JOIN agency a ON f.id_agency = a.id WHERE YEAR(f.registration_date) = ? AND f.id_current_state != 5";
+            $sqlFiles = "SELECT COUNT(*) as total FROM expedient f INNER JOIN agency a ON f.id_agency = a.id WHERE YEAR(f.registration_date) = ? AND f.id_current_expedient_state != 5";
             $paramsFiles = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
                 $sqlFiles .= " AND a.id_company = ?";
@@ -691,10 +691,10 @@ class ReportesCumplimiento extends BaseController
 
             // Documentos pendientes de validación
             $sqlDoc = "
-                SELECT COUNT(*) as total FROM file_document dbf
-                INNER JOIN expedient f ON dbf.id_file = f.id
+                SELECT COUNT(*) as total FROM expedient_document dbf
+                INNER JOIN expedient f ON dbf.id_expedient = f.id
                 INNER JOIN agency a ON f.id_agency = a.id
-                WHERE dbf.id_current_status IN (1, 2, 3) AND f.id_current_state NOT IN (5)
+                WHERE dbf.id_current_document_status IN (1, 2, 3) AND f.id_current_expedient_state NOT IN (5)
             ";
             $paramsDoc = [];
             if ($idCompany !== null && $idCompany !== '') {
@@ -708,9 +708,9 @@ class ReportesCumplimiento extends BaseController
             $sqlBenef = "
                 SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                WHERE f.id_customer_type = 2 AND f.id_current_state NOT IN (5)
+                WHERE f.id_customer_type = 2 AND f.id_current_expedient_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM file_pld_beneficial_owner bf WHERE bf.IdFile = f.id)
+                AND NOT EXISTS (SELECT 1 FROM expedient_pld_beneficial_owner bf WHERE bf.IdFile = f.id)
             ";
             $paramsBenef = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
@@ -724,8 +724,8 @@ class ReportesCumplimiento extends BaseController
             $sqlAviso = "
                 SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                WHERE f.id_current_state NOT IN (5) AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM file_pld fp WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1)
+                WHERE f.id_current_expedient_state NOT IN (5) AND YEAR(f.registration_date) = ?
+                AND NOT EXISTS (SELECT 1 FROM expedient_pld fp WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1)
             ";
             $paramsAviso = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {

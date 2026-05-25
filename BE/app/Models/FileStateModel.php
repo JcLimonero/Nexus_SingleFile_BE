@@ -5,7 +5,7 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 /**
- * file_state holds the workflow phases (Integración, Liquidación, Liberación)
+ * expedient_state holds the workflow phases (Integración, Liquidación, Liberación)
  * plus terminal states (Liberado, Cancelado, Liberado por Excepción).
  *
  * The flag `requires_payment_voucher` marks which phase receives payment
@@ -14,7 +14,7 @@ use CodeIgniter\Model;
  */
 class FileStateModel extends Model
 {
-    protected $table         = 'file_state';
+    protected $table         = 'expedient_state';
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     protected $useAutoIncrement = true;
@@ -36,7 +36,7 @@ class FileStateModel extends Model
     }
 
     /**
-     * Returns the file_state row(s) marked as the payment-voucher phase.
+     * Returns the expedient_state row(s) marked as the payment-voucher phase.
      * In the standard config there should be exactly one. Returns an array
      * so callers can decide between first(), exists check, etc.
      */

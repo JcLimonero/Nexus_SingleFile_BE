@@ -43,13 +43,13 @@ class AuditOrphansCommand extends BaseCommand
     private const CANDIDATES = [
         // === Categoría A — Phase A junctions / columns we own ===
         ['client_group_sale_type', 'id_sale_type',          'process',      'id', 'delete'],
-        ['client_group_phase',   'id_file_state',       'file_state',   'id', 'delete'],
+        ['client_group_phase',   'id_expedient_state',       'expedient_state',   'id', 'delete'],
         ['client_group_phase',   'id_client_group',     'client_group', 'id', 'delete'],
         ['company',              'id_client_group',     'client_group', 'id', 'set_null'],
         ['client_group',         'id_last_user_update', 'user',         'id', 'set_null'],
 
         // === Categoría B — Legacy hierarchy (need orphan check + cleanup) ===
-        // NOTE: `id_type_reason` en file_reasons / file_exception_reason apunta
+        // NOTE: `id_type_reason` en expedient_reason / expedient_exception_reason apunta
         // a una tabla `type_reason` que NUNCA existió en el schema (feature
         // legacy abandonada). No agregamos FK; solo nullify los zeros.
         ['agency',                     'id_company',          'company', 'id', 'set_null'],

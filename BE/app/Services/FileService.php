@@ -167,7 +167,7 @@ class FileService
             'id_customer_type' => $customerType['id'] ?? $customerType['Id'] ?? null,
             'id_operation' => $operationType['id'] ?? $operationType['Id'] ?? null,
             'id_seller' => $sellerId,
-            'id_current_state' => 1, // Integración
+            'id_current_expedient_state' => 1, // Integración
             'id_order_total' => $idOrderTotal,
             // id_order debe ser el ID de Order (foreign key), no id_order_total
             // Si no se proporciona orderByCarId, no se asigna (NULL por defecto)
@@ -218,15 +218,15 @@ class FileService
 
         foreach ($requiredDocuments as $document) {
             $documentData = [
-                'id_file' => $fileId,
+                'id_expedient' => $fileId,
                 'id_document_type' => $document['id_document_type'] ?? $document['IdDocumentType'] ?? null,
-                'id_current_state' => 1, // Pendiente
+                'id_current_expedient_state' => 1, // Pendiente
                 'registration_date' => $currentDate,
                 'update_date' => $currentDate,
                 'id_last_user_update' => $userId
             ];
 
-            $this->db->table('file_document')->insert($documentData);
+            $this->db->table('expedient_document')->insert($documentData);
             $documentsCreated++;
         }
 

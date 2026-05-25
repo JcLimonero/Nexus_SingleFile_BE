@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class DocumentModel extends Model
 {
-    protected $table            = 'file_document';
+    protected $table            = 'expedient_document';
     protected $primaryKey       = 'Id';
     protected $useAutoIncrement = false;
     protected $returnType       = 'array';
@@ -15,7 +15,7 @@ class DocumentModel extends Model
     protected $allowedFields    = [
         'id', 'name', 'comment', 'expiration_date', 'path_document', 'enabled', 
         'registration_date', 'update_date', 'last_user_update', 'id_last_user_update',
-        'id_file', 'id_validation', 'id_document_type', 'id_current_status', 'id_document_error'
+        'id_expedient', 'id_validation', 'id_document_type', 'id_current_document_status', 'id_document_error'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -70,7 +70,7 @@ class DocumentModel extends Model
      */
     public function getDocumentsWithRelations($filters = [])
     {
-        $builder = $this->db->table('file_document d');
+        $builder = $this->db->table('expedient_document d');
         
         $builder->select('
             d.id,
@@ -82,10 +82,10 @@ class DocumentModel extends Model
             d.registration_date,
             d.update_date,
             d.id_last_user_update,
-            d.id_file,
+            d.id_expedient,
             d.id_validation,
             d.id_document_type,
-            d.id_current_status,
+            d.id_current_document_status,
             d.id_document_error,
             dt.name as document_type_name,
             dt.id_sale_type,
@@ -95,7 +95,7 @@ class DocumentModel extends Model
             u.name as last_user_update_name,
             f.id as file_id,
             f.description as file_description,
-            f.id_current_state as file_current_state,
+            f.id_current_expedient_state as file_current_state,
             fs.name as file_status_description,
             fss.name as process_type_name,
             sp.name as sub_process_name
@@ -103,13 +103,13 @@ class DocumentModel extends Model
 
         // JOINs para obtener las descripciones
         $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
-        $builder->join('document_file_status dfs', 'dfs.id = d.id_current_status', 'left');
-        $builder->join('document_file_error dfe', 'dfe.id = d.id_document_error', 'left');
+        $builder->join('document_status dfs', 'dfs.id = d.id_current_document_status', 'left');
+        $builder->join('document_error dfe', 'dfe.id = d.id_document_error', 'left');
         $builder->join('user u', 'u.id = d.id_last_user_update', 'left');
-        $builder->join('expedient f', 'f.id = d.id_file', 'left');
-        $builder->join('file_state fs', 'fs.id = f.id_current_state', 'left');
-        // JOIN para obtener el tipo de proceso desde file_sub_state
-        $builder->join('file_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
+        $builder->join('expedient f', 'f.id = d.id_expedient', 'left');
+        $builder->join('expedient_state fs', 'fs.id = f.id_current_expedient_state', 'left');
+        // JOIN para obtener el tipo de proceso desde expedient_sub_state
+        $builder->join('expedient_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
         // JOIN para obtener el subproceso
         $builder->join('process sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
@@ -123,11 +123,11 @@ class DocumentModel extends Model
         }
 
         if (!empty($filters['current_status'])) {
-            $builder->where('d.id_current_status', $filters['current_status']);
+            $builder->where('d.id_current_document_status', $filters['current_status']);
         }
 
         if (!empty($filters['file_id'])) {
-            $builder->where('d.id_file', $filters['file_id']);
+            $builder->where('d.id_expedient', $filters['file_id']);
         }
 
         if (!empty($filters['process_type'])) {
@@ -181,11 +181,11 @@ class DocumentModel extends Model
      */
     public function countDocumentsWithFilters($filters = [])
     {
-        $builder = $this->db->table('file_document d');
+        $builder = $this->db->table('expedient_document d');
         
         $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
-        $builder->join('expedient f', 'f.id = d.id_file', 'left');
-        $builder->join('file_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
+        $builder->join('expedient f', 'f.id = d.id_expedient', 'left');
+        $builder->join('expedient_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
         $builder->join('process sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
@@ -198,11 +198,11 @@ class DocumentModel extends Model
         }
 
         if (!empty($filters['current_status'])) {
-            $builder->where('d.id_current_status', $filters['current_status']);
+            $builder->where('d.id_current_document_status', $filters['current_status']);
         }
 
         if (!empty($filters['file_id'])) {
-            $builder->where('d.id_file', $filters['file_id']);
+            $builder->where('d.id_expedient', $filters['file_id']);
         }
 
         if (!empty($filters['process_type'])) {
@@ -232,7 +232,7 @@ class DocumentModel extends Model
     public function getDocumentWithRelations($id)
     {
         $result = $this->getDocumentsWithRelations(['limit' => 1]);
-        $builder = $this->db->table('file_document d');
+        $builder = $this->db->table('expedient_document d');
         
         $builder->select('
             d.Id,
@@ -260,11 +260,11 @@ class DocumentModel extends Model
         ');
 
         $builder->join('document_type dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('document_file_status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
-        $builder->join('document_file_error dfe', 'dfe.Id = d.IdDocumentError', 'left');
+        $builder->join('document_status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
+        $builder->join('document_error dfe', 'dfe.Id = d.IdDocumentError', 'left');
         $builder->join('user u', 'u.Id = d.IdLastUserUpdate', 'left');
         $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
-        $builder->join('file_state fs', 'fs.Id = f.IdCurrentState', 'left');
+        $builder->join('expedient_state fs', 'fs.Id = f.IdCurrentState', 'left');
         
         $builder->where('d.Id', $id);
 
@@ -358,7 +358,7 @@ class DocumentModel extends Model
             $disabled = $builder->where('enabled', 0)->countAllResults(false);
             
             // Estadísticas por tipo de documento
-            $byTypeBuilder = $this->db->table('file_document d')
+            $byTypeBuilder = $this->db->table('expedient_document d')
                 ->select('dt.name as DocumentType, COUNT(*) as Count')
                 ->join('document_type dt', '`dt`.`id` = `d`.`id_document_type`', 'left', false);
                 
@@ -381,9 +381,9 @@ class DocumentModel extends Model
                 ->getResultArray();
 
             // Estadísticas por estado (snake_case)
-            $byStatusBuilder = $this->db->table('file_document d')
+            $byStatusBuilder = $this->db->table('expedient_document d')
                 ->select('dfs.name as Status, COUNT(*) as Count')
-                ->join('document_file_status dfs', '`dfs`.`id` = `d`.`id_current_status`', 'left', false);
+                ->join('document_status dfs', '`dfs`.`id` = `d`.`id_current_document_status`', 'left', false);
                 
             if (!empty($filters['start_date'])) {
                 $byStatusBuilder->where('d.registration_date >=', $filters['start_date']);
@@ -398,7 +398,7 @@ class DocumentModel extends Model
                 $byStatusBuilder->where('d.id_last_user_update', $filters['user_id']);
             }
             
-            $byStatus = $byStatusBuilder->groupBy('d.id_current_status, dfs.name')
+            $byStatus = $byStatusBuilder->groupBy('d.id_current_document_status, dfs.name')
                 ->orderBy('Count', 'DESC')
                 ->get()
                 ->getResultArray();

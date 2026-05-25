@@ -125,8 +125,8 @@ class DocumentoRequeridoModel extends Model
             $builder->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left');
             $builder->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left');
             $builder->join('document_type dt', 'dt.id = cpd.id_document_type', 'left');
-            $builder->join('file_state fs', 'fs.id = dt.id_sale_type', 'left');
-            $builder->join('file_sub_state sp', 'sp.id = dt.id_sub_sale_type', 'left');
+            $builder->join('expedient_state fs', 'fs.id = dt.id_sale_type', 'left');
+            $builder->join('expedient_sub_state sp', 'sp.id = dt.id_sub_sale_type', 'left');
             
             if (!empty($filters['id_sale_type'])) {
                 $builder->where('cp.id_sale_type', $filters['id_sale_type']);

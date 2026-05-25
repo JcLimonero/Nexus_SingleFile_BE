@@ -58,7 +58,7 @@ class Files extends BaseController
                             LEFT JOIN operation_type ot ON f.id_operation = ot.id
                             LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                             LEFT JOIN agency a ON f.id_agency = a.id
-                            LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                            LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                             LEFT JOIN `order` obc ON f.id_order_total = obc.id_dms
                             WHERE TRIM(ctr.id_dms) = ?
                         ";
@@ -159,7 +159,7 @@ class Files extends BaseController
                 LEFT JOIN process p ON f.id_sale_type = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 LEFT JOIN (
                     SELECT 
                         obc1.id_dms,
@@ -181,11 +181,11 @@ class Files extends BaseController
             $params = [$internalAgencyId];
 
             // Agregar filtro de estatus si se proporciona
-            // IMPORTANTE: Filtramos directamente por f.id_current_state porque el LEFT JOIN con file_state
-            // puede devolver NULL si no hay registro en file_state, causando que fs.id = ? falle siempre
+            // IMPORTANTE: Filtramos directamente por f.id_current_expedient_state porque el LEFT JOIN con expedient_state
+            // puede devolver NULL si no hay registro en expedient_state, causando que fs.id = ? falle siempre
             // Esto es crítico para que los archivos se muestren correctamente
             if ($statusId !== null && $statusId !== '' && is_numeric($statusId)) {
-                $sql .= " AND f.id_current_state = ?";
+                $sql .= " AND f.id_current_expedient_state = ?";
                 $params[] = (int)$statusId;
             }
 
@@ -230,14 +230,14 @@ class Files extends BaseController
                     SELECT 
                         f.id as fileId,
                         f.id_order_total as numeroPedido,
-                        f.id_current_state,
+                        f.id_current_expedient_state,
                         f.id_agency as FileIdAgency,
                         a.id_agency_dms as AgencyIdAgencyDMS,
                         f.id_client as IdClient,
                         fs.name as estado
                     FROM expedient f
                     INNER JOIN agency a ON f.id_agency = a.id
-                    LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                    LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                     WHERE f.id_order_total = '35348'
                 ";
                 $pedidoQuery = $this->db->query($pedidoSql);
@@ -285,7 +285,7 @@ class Files extends BaseController
                 $diagnosticSql = "
                     SELECT 
                         f.id as fileId,
-                        f.id_current_state,
+                        f.id_current_expedient_state,
                         f.id_agency as FileIdAgency,
                         a.id as AgencyId,
                         a.id_agency_dms as AgencyIdAgencyDMS,
@@ -294,7 +294,7 @@ class Files extends BaseController
                         fs.name as FileStateName
                     FROM expedient f
                     LEFT JOIN agency a ON f.id_agency = a.id
-                    LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                    LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                     WHERE f.id = 12328
                 ";
                 $diagnosticQuery = $this->db->query($diagnosticSql);
@@ -444,7 +444,7 @@ class Files extends BaseController
                     END as estado_join
                 FROM expedient f
                 LEFT JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 LEFT JOIN `order` obc ON f.id_order_total = obc.id_dms
                 WHERE a.id_agency_dms = ?
             ";
@@ -862,7 +862,7 @@ class Files extends BaseController
             'id_customer_type' => $customerType['id'] ?? $customerType['Id'] ?? null,
             'id_operation' => $operationType['id'] ?? $operationType['Id'] ?? null,
             'id_seller' => $sellerId,
-            'id_current_state' => 1, // Integración
+            'id_current_expedient_state' => 1, // Integración
             'id_order_total' => $idOrderTotal,
             'id_order' => $orderByCarId, // Usar el ID de Order (foreign key)
             'id_inventory' => $order['inventory'] ?? $order['inventario'] ?? null,
@@ -992,7 +992,7 @@ class Files extends BaseController
             error_log("Documento: " . json_encode($document));
             
             // Obtener el siguiente ID disponible para FileDocument
-            $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 as nextId FROM file_document");
+            $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 as nextId FROM expedient_document");
             $nextDocIdResult = $nextDocIdQuery->getRow();
             $nextDocId = $nextDocIdResult->nextId;
             
@@ -1005,7 +1005,7 @@ class Files extends BaseController
             $documentIdType = $document['id_document_type'] ?? $document['IdDocumentType'] ?? null;
             $documentData = [
                 'id' => $nextDocId, // Especificar el ID explícitamente
-                'id_file' => $fileId,
+                'id_expedient' => $fileId,
                 'id_document_type' => $documentIdType,
                 'name' => $document['document_name'] ?? $document['DocumentName'] ?? 'Documento sin nombre',
                 'comment' => null,
@@ -1017,7 +1017,7 @@ class Files extends BaseController
                 'last_user_update' => $userId,
                 'id_last_user_update' => $userId,
                 'id_validation' => null,
-                'id_current_status' => 1, // Documento nuevo/pendiente (1 = Pendiente)
+                'id_current_document_status' => 1, // Documento nuevo/pendiente (1 = Pendiente)
                 'id_document_error' => null,
                 'server_path' => null
             ];
@@ -1040,7 +1040,7 @@ class Files extends BaseController
             error_log("Datos del documento a insertar en FileDocument: " . json_encode($documentData));
 
             try {
-                $result = $this->db->table('file_document')->insert($documentData);
+                $result = $this->db->table('expedient_document')->insert($documentData);
                 
                 if (!$result) {
                     $dbError = $this->db->error();
@@ -1067,18 +1067,18 @@ class Files extends BaseController
         }
 
         // Siempre agregar documento de Liquidación (id desde config) si no está ya en la lista.
-        // TODO(multi-tenant): mover esta lógica a una tabla `file_state.id_document_type_voucher`
+        // TODO(multi-tenant): mover esta lógica a una tabla `expedient_state.id_document_type_voucher`
         // y consultar por la fase marcada con requires_payment_voucher=1 en lugar de hardcodear
         // el config_key "id_document_type_liquidacion".
         $idLiquidacion = $this->getConfigDocumentTypeLiquidacion();
         if ($idLiquidacion !== null && !in_array($idLiquidacion, $createdDocumentTypeIds, true)) {
             try {
-                $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 as nextId FROM file_document");
+                $nextDocIdQuery = $this->db->query("SELECT COALESCE(MAX(id), 0) + 1 as nextId FROM expedient_document");
                 $nextDocId = $nextDocIdQuery->getRow()->nextId;
                 $currentDate = date('Y-m-d H:i:s');
                 $documentData = [
                     'id' => $nextDocId,
-                    'id_file' => $fileId,
+                    'id_expedient' => $fileId,
                     'id_document_type' => $idLiquidacion,
                     'name' => 'Liquidación',
                     'comment' => null,
@@ -1090,11 +1090,11 @@ class Files extends BaseController
                     'last_user_update' => $userId,
                     'id_last_user_update' => $userId,
                     'id_validation' => null,
-                    'id_current_status' => 1,
+                    'id_current_document_status' => 1,
                     'id_document_error' => null,
                     'server_path' => null
                 ];
-                if ($this->db->table('file_document')->insert($documentData)) {
+                if ($this->db->table('expedient_document')->insert($documentData)) {
                     $documentsCreated++;
                     error_log("Documento de Liquidación agregado automáticamente (id_document_type: $idLiquidacion)");
                 }
@@ -1565,7 +1565,7 @@ class Files extends BaseController
 
             $apiResultJson = json_encode(['success' => true, 'idClient' => $idClient]);
             $this->db->query("
-                UPDATE files_to_correct
+                UPDATE expedients_to_correct
                 SET api_result = ?
                 WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
             ", [$apiResultJson, $idExpediente, $idAgency, $ndDMS]);
@@ -1604,7 +1604,7 @@ class Files extends BaseController
                 $ag = (int) ($payload['request']['idAgency'] ?? 0);
                 $nd = trim((string) ($payload['request']['ndDMS'] ?? ''));
                 if ($ex > 0 && $ag > 0) {
-                    $this->db->query("UPDATE files_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
+                    $this->db->query("UPDATE expedients_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
                         [json_encode($payload), $ex, $ag, $nd]);
                 }
             } catch (\Throwable $e2) {
@@ -1619,7 +1619,7 @@ class Files extends BaseController
     }
 
     /**
-     * Guardar error en files_to_correct.api_result con request y detalle.
+     * Guardar error en expedients_to_correct.api_result con request y detalle.
      */
     private function guardarErrorRepair(string $ndDMS, int $idAgency, int $idExpediente, string $message): void
     {
@@ -1629,7 +1629,7 @@ class Files extends BaseController
                 'message' => $message,
                 'request' => ['ndDMS' => $ndDMS, 'idAgency' => $idAgency, 'idExpediente' => $idExpediente]
             ];
-            $this->db->query("UPDATE files_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
+            $this->db->query("UPDATE expedients_to_correct SET api_result = ? WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?",
                 [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
         } catch (\Throwable $e) {
 
@@ -1664,15 +1664,15 @@ class Files extends BaseController
         
         // Buscar documentos del mismo cliente en otros files anteriores que estén aprobados (status 4)
         // Solo buscamos ServerPath ya que es el campo que realmente usamos para copiar
-        $sql = "SELECT dbf.server_path, dbf.id_file, dbf.registration_date
-                FROM file_document dbf
-                INNER JOIN expedient f ON dbf.id_file = f.id
+        $sql = "SELECT dbf.server_path, dbf.id_expedient, dbf.registration_date
+                FROM expedient_document dbf
+                INNER JOIN expedient f ON dbf.id_expedient = f.id
                 WHERE f.id_client = ? 
                 AND dbf.id_document_type = ?
-                AND dbf.id_file != ?
+                AND dbf.id_expedient != ?
                 AND dbf.server_path IS NOT NULL 
                 AND dbf.server_path != ''
-                AND dbf.id_current_status = 4
+                AND dbf.id_current_document_status = 4
                 ORDER BY dbf.registration_date DESC
                 LIMIT 1";
         
@@ -1791,7 +1791,7 @@ class Files extends BaseController
 
             $this->deleteFileDependents($fileId);
 
-            $this->db->query("DELETE FROM file_document WHERE id_file = ?", [$fileId]);
+            $this->db->query("DELETE FROM expedient_document WHERE id_expedient = ?", [$fileId]);
             $documentsDeleted = $this->db->affectedRows();
 
             $this->db->query("DELETE FROM expedient WHERE id = ?", [$fileId]);
@@ -1898,7 +1898,7 @@ class Files extends BaseController
                     f.id as fileId
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE " . implode(' OR ', $placeholders) . "
             ";
 

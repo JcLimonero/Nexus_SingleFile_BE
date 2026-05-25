@@ -7,7 +7,7 @@ use CodeIgniter\CLI\CLI;
 use Config\Database;
 
 /**
- * One-shot helper to apply the file_status → file_state rename against a
+ * One-shot helper to apply the file_status → expedient_state rename against a
  * specific DB (sandbox or production) without going through the full CI4
  * migration runner — useful when the target DB has a mixed history of raw SQL
  * migrations and CI4 migrations that don't all replay cleanly.
@@ -22,7 +22,7 @@ class RenameFileStatusOnDbCommand extends BaseCommand
 {
     protected $group       = 'Database';
     protected $name        = 'db:rename-file-status';
-    protected $description = 'Applies RENAME TABLE file_status → file_state on the given DB.';
+    protected $description = 'Applies RENAME TABLE file_status → expedient_state on the given DB.';
     protected $usage       = 'db:rename-file-status --target=<dbname> [--confirm]';
     protected $options     = [
         '--target'  => 'Target database name (required)',
@@ -44,8 +44,8 @@ class RenameFileStatusOnDbCommand extends BaseCommand
         $db = Database::connect($cfg, false);
 
         $renames = [
-            ['file_status',     'file_state'],
-            ['file_sub_status', 'file_sub_state'],
+            ['file_status',     'expedient_state'],
+            ['file_sub_status', 'expedient_sub_state'],
         ];
 
         foreach ($renames as [$from, $to]) {

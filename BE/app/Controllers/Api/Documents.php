@@ -30,10 +30,10 @@ class Documents extends BaseController
             // Query corregido - Solo documentos requeridos para el proceso específico
             // Para fases marcadas con requires_payment_voucher=1 se incluyen amount y payment_method.
             // Históricamente esto era hardcoded como idProcessType === '2' (Liquidación), pero ahora
-            // cada deployment marca su propia fase de pago en la tabla file_state.
+            // cada deployment marca su propia fase de pago en la tabla expedient_state.
             $isLiquidation = (new \App\Models\FileStateModel())->isVoucherPhaseId($idProcessType);
             $liquidacionJoins = $isLiquidation ? "
-                LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_file_document = df.id AND lrd.id_file = f.id
+                LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_expedient_document = df.id AND lrd.id_expedient = f.id
                 LEFT JOIN payment_method pm ON pm.id = lrd.id_payment_method
             " : "";
             $liquidacionFields = $isLiquidation ? "
@@ -70,18 +70,18 @@ class Documents extends BaseController
                     dfs.id as fileStatusId,
                     dfs.name as fileStatusName,
                     df.id_document_container as documentContainer,
-                    df.id_current_status as idCurrentStatus
+                    df.id_current_document_status as idCurrentStatus
                     {$liquidacionFields}
                 FROM expedient f
-                INNER JOIN file_document df ON f.id = df.id_file
+                INNER JOIN expedient_document df ON f.id = df.id_expedient
                 INNER JOIN document_type dt ON df.id_document_type = dt.id
-                INNER JOIN file_state fs ON dt.id_sale_type = fs.id 
-                INNER JOIN document_file_status dfs ON dfs.id = df.id_current_status 
-                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_sale_type
+                INNER JOIN expedient_state fs ON dt.id_sale_type = fs.id 
+                INNER JOIN document_status dfs ON dfs.id = df.id_current_document_status 
+                LEFT JOIN expedient_sub_state fss ON fss.id = dt.id_sub_sale_type
                 {$liquidacionJoins}
                 WHERE f.id = ?
                 AND dt.id_sale_type = ?
-                AND f.id_current_state = dt.id_sale_type
+                AND f.id_current_expedient_state = dt.id_sale_type
                 AND df.enabled = 1
                 ORDER BY dt.required DESC, dt.name ASC
             ";
@@ -128,8 +128,8 @@ class Documents extends BaseController
                 }
                 $sumRow = $this->db->query("
                     SELECT COALESCE(SUM(lrd.amount), 0) AS total FROM liquidation_receipt_detail lrd
-                    INNER JOIN file_document fd ON fd.id = lrd.id_file_document AND fd.enabled = 1
-                    WHERE lrd.id_file = ?
+                    INNER JOIN expedient_document fd ON fd.id = lrd.id_expedient_document AND fd.enabled = 1
+                    WHERE lrd.id_expedient = ?
                 ", [$fileId])->getRowArray();
                 $data['expedientAmount'] = $montoExpediente;
                 $data['totalReceiptAmount'] = (float) ($sumRow['total'] ?? 0);
@@ -175,13 +175,13 @@ class Documents extends BaseController
                        dt.req_expiration as hasExpiration, fs.name as processTypeName,
                        fss.name as subProcessName
                 FROM document_type dt
-                INNER JOIN file_state fs ON dt.id_sale_type = fs.id
-                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_sale_type
+                INNER JOIN expedient_state fs ON dt.id_sale_type = fs.id
+                LEFT JOIN expedient_sub_state fss ON fss.id = dt.id_sub_sale_type
                 WHERE dt.id_sale_type = ?
                 AND dt.id NOT IN (
                     SELECT df.id_document_type
-                    FROM file_document df
-                    WHERE df.id_file = ? AND df.enabled = 1
+                    FROM expedient_document df
+                    WHERE df.id_expedient = ? AND df.enabled = 1
                 )
                 ORDER BY dt.required DESC, dt.name ASC
             ";
@@ -229,13 +229,13 @@ class Documents extends BaseController
             foreach ($documentTypeIds as $idDocumentType) {
                 if ($idDocumentType <= 0) continue;
                 $exists = $this->db->query(
-                    "SELECT 1 FROM file_document WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
+                    "SELECT 1 FROM expedient_document WHERE IdFile = ? AND IdDocumentType = ? AND Enabled = 1",
                     [$fileId, $idDocumentType]
                 )->getRow();
                 if ($exists) continue;
                 $docType = $this->db->query("SELECT Id, Name FROM document_type WHERE Id = ?", [$idDocumentType])->getRow();
                 if (!$docType) continue;
-                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM file_document")->getRow();
+                $nextIdRow = $this->db->query("SELECT COALESCE(MAX(Id), 0) + 1 AS nextId FROM expedient_document")->getRow();
                 $nextId = (int) $nextIdRow->nextId;
                 $documentData = [
                     'Id' => $nextId,
@@ -255,7 +255,7 @@ class Documents extends BaseController
                     'IdDocumentError' => null,
                     'ServerPath' => null
                 ];
-                $this->db->table('file_document')->insert($documentData);
+                $this->db->table('expedient_document')->insert($documentData);
                 $added++;
             }
             return $this->response->setJSON([
@@ -336,7 +336,7 @@ class Documents extends BaseController
                 }
 
                 // Insertar o actualizar el registro en FileDocument
-                $existingDoc = $this->db->query("SELECT Id FROM file_document WHERE IdFile = ? AND IdDocumentType = ?", [$fileId, $documentTypeId])->getRow();
+                $existingDoc = $this->db->query("SELECT Id FROM expedient_document WHERE IdFile = ? AND IdDocumentType = ?", [$fileId, $documentTypeId])->getRow();
                 
                 if ($existingDoc) {
                     // Actualizar documento existente

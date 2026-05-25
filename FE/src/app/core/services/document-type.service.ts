@@ -137,7 +137,7 @@ export class DocumentTypeService {
   }
 
   /**
-   * Obtener todas las fases desde file_state (para filtros)
+   * Obtener todas las fases desde expedient_state (para filtros)
    */
   getFileStates(): Observable<{ success: boolean; data?: { file_states: { id: number; name: string }[] } }> {
     return this.http.get<{ success: boolean; data?: { file_states: { id: number; name: string }[] } }>(
@@ -147,12 +147,12 @@ export class DocumentTypeService {
 
   /**
    * Obtener subestados de archivo activos (File_SubStatus).
-   * Si se pasa idFileState, filtra por la relación file_sub_state.id_file_state = file_state.id
+   * Si se pasa idFileState, filtra por la relación expedient_sub_state.id_expedient_state = expedient_state.id
    */
   getActiveSubProcesses(idFileState?: number): Observable<any> {
     let url = `${this.apiBaseService.buildApiUrl('file-sub-state/active')}`;
     if (idFileState != null) {
-      url += `?id_file_state=${idFileState}`;
+      url += `?id_expedient_state=${idFileState}`;
     }
     return this.http.get(url);
   }

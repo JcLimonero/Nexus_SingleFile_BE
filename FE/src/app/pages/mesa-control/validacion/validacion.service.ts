@@ -22,8 +22,8 @@ export interface Cliente {
   fase: string;
   registro: string;
   IdCurrentState?: number;
-  /** id_current_state (snake_case) - valor devuelto por el backend */
-  id_current_state?: number;
+  /** id_current_expedient_state (snake_case) - valor devuelto por el backend */
+  id_current_expedient_state?: number;
   tieneDocumentosPendientes: number;
   documentosNoAprobados?: number;
   fechaLiberacion?: string;

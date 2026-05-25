@@ -240,7 +240,7 @@ class Client extends BaseController
                 LEFT JOIN process p ON f.id_sale_type = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
-                LEFT JOIN file_state fs ON f.id_current_state = fs.id
+                LEFT JOIN expedient_state fs ON f.id_current_expedient_state = fs.id
                 WHERE hc.id = ?
                 GROUP BY f.id, f.id_order_total, f.registration_date, fs.name, p.name, ot.name, ct.name, a.name, a.id, co.name, c.id
                 ORDER BY co.name ASC, a.name ASC, f.registration_date DESC
@@ -256,7 +256,7 @@ class Client extends BaseController
                 $placeholders = implode(',', array_fill(0, count($idFiles), '?'));
                 $sqlLiq = "
                     SELECT
-                        dbf.id_file as idFile,
+                        dbf.id_expedient as idFile,
                         dbf.id as idFileDocument,
                         dbf.name as documento,
                         dbf.id_document_container as documentContainer,
@@ -264,13 +264,13 @@ class Client extends BaseController
                         lrd.id_payment_method as idPaymentMethod,
                         pm.name as tipoPago,
                         lrd.payment_date as fechaPago
-                    FROM file_document dbf
-                    LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file
+                    FROM expedient_document dbf
+                    LEFT JOIN liquidation_receipt_detail lrd ON lrd.id_expedient_document = dbf.id AND lrd.id_expedient = dbf.id_expedient
                     LEFT JOIN payment_method pm ON pm.id = lrd.id_payment_method
-                    WHERE dbf.id_file IN ({$placeholders})
+                    WHERE dbf.id_expedient IN ({$placeholders})
                     AND dbf.id_document_type = ?
                     AND dbf.enabled = 1
-                    ORDER BY dbf.id_file, dbf.id
+                    ORDER BY dbf.id_expedient, dbf.id
                 ";
                 $paramsLiq = array_merge($idFiles, [$idDocumentTypeLiquidacion]);
                 try {

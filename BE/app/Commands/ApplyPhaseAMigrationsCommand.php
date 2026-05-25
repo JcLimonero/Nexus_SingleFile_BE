@@ -8,7 +8,7 @@ use Config\Database;
 
 /**
  * Apply only the Phase A migrations (client_group, junctions, company FK,
- * file_state flag) against a specific DB. Bypasses the CI4 migrations table
+ * expedient_state flag) against a specific DB. Bypasses the CI4 migrations table
  * for sandbox DBs whose history doesn't replay cleanly.
  *
  * Usage:
@@ -78,14 +78,14 @@ class ApplyPhaseAMigrationsCommand extends BaseCommand
             $db->query('CREATE TABLE `client_group_phase` (
                 `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `id_client_group` BIGINT UNSIGNED NOT NULL,
-                `id_file_state` BIGINT UNSIGNED NOT NULL,
+                `id_expedient_state` BIGINT UNSIGNED NOT NULL,
                 `display_order` INT DEFAULT 0,
                 `enabled` TINYINT(1) DEFAULT 1,
                 `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
                 `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`id`),
-                UNIQUE KEY `uq_group_phase` (`id_client_group`, `id_file_state`),
-                KEY `idx_id_file_state` (`id_file_state`),
+                UNIQUE KEY `uq_group_phase` (`id_client_group`, `id_expedient_state`),
+                KEY `idx_id_file_state` (`id_expedient_state`),
                 CONSTRAINT `fk_cgph_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
             CLI::write('+ client_group_phase', 'green');
@@ -103,14 +103,14 @@ class ApplyPhaseAMigrationsCommand extends BaseCommand
             CLI::write('· company.id_client_group (exists)', 'yellow');
         }
 
-        // 5) file_state.requires_payment_voucher
-        $fsCols = $db->getFieldNames('file_state');
+        // 5) expedient_state.requires_payment_voucher
+        $fsCols = $db->getFieldNames('expedient_state');
         if (!in_array('requires_payment_voucher', $fsCols, true)) {
-            $db->query('ALTER TABLE `file_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NULL DEFAULT 0 AFTER `enabled`');
-            $db->query('UPDATE `file_state` SET `requires_payment_voucher` = 1 WHERE `id` = 2');
-            CLI::write('+ file_state.requires_payment_voucher (Liquidación backfilled)', 'green');
+            $db->query('ALTER TABLE `expedient_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NULL DEFAULT 0 AFTER `enabled`');
+            $db->query('UPDATE `expedient_state` SET `requires_payment_voucher` = 1 WHERE `id` = 2');
+            CLI::write('+ expedient_state.requires_payment_voucher (Liquidación backfilled)', 'green');
         } else {
-            CLI::write('· file_state.requires_payment_voucher (exists)', 'yellow');
+            CLI::write('· expedient_state.requires_payment_voucher (exists)', 'yellow');
         }
 
         CLI::newLine();

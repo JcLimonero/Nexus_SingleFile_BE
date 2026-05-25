@@ -644,7 +644,7 @@ class NexFileClientImport extends ResourceController
             INSERT INTO expedient (
                 id, id_client, id_customer_type, id_operation, id_sale_type, 
                 registration_date, update_date, last_user_update, id_agency, 
-                id_seller, id_last_user_update, id_current_state, attention_date
+                id_seller, id_last_user_update, id_current_expedient_state, attention_date
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ";
         

@@ -116,10 +116,10 @@ export class ActivityLogService {
    * Obtener historial de cambios por expediente (idFile)
    * Siempre disponible - los logs se registran en el backend (Validación)
    */
-  getExpedienteLogs(idFile: number, limit: number = 50, offset: number = 0): Observable<{ success: boolean; data: ActivityLog[]; id_file: number }> {
+  getExpedienteLogs(idFile: number, limit: number = 50, offset: number = 0): Observable<{ success: boolean; data: ActivityLog[]; id_expedient: number }> {
     const url = this.apiBaseService.buildApiUrl(`user-activity-logs/expediente/${idFile}`);
     const params = `limit=${limit}&offset=${offset}`;
-    return this.http.get<{ success: boolean; data: ActivityLog[]; id_file: number }>(`${url}?${params}`);
+    return this.http.get<{ success: boolean; data: ActivityLog[]; id_expedient: number }>(`${url}?${params}`);
   }
 
   /**

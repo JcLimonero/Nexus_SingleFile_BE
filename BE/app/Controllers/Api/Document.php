@@ -577,7 +577,7 @@ class Document extends BaseController
     private function getMaxId()
     {
         $db = \Config\Database::connect();
-        $query = $db->query('SELECT MAX(Id) as max_id FROM file_document');
+        $query = $db->query('SELECT MAX(Id) as max_id FROM expedient_document');
         $result = $query->getRow();
         return $result ? (int)$result->max_id : 0;
     }

@@ -140,15 +140,15 @@ export function snakeClienteToCliente(c: any): any {
   if (!c) return c;
   return {
     ...c,
-    idFile:                         pick(c, 'id_file', 'idFile'),
+    idFile:                         pick(c, 'id_expedient', 'idFile'),
     ndCliente:                      pick(c, 'nd_cliente', 'ndCliente'),
     ndPedido:                       pick(c, 'nd_pedido', 'ndPedido'),
     tipoCliente:                    pick(c, 'tipo_cliente', 'tipoCliente'),
     idCustomerType:                 pick(c, 'id_customer_type', 'idCustomerType'),
     idAgency:                       pick(c, 'id_agency', 'idAgency'),
     // IdCurrentState es seteado manualmente en el BE (PascalCase) para el FE — el
-    // global snake_resp filter lo baja a id_current_state, lo re-aliasamos aquí.
-    IdCurrentState:                 pick(c, 'id_current_state', 'IdCurrentState'),
+    // global snake_resp filter lo baja a id_current_expedient_state, lo re-aliasamos aquí.
+    IdCurrentState:                 pick(c, 'id_current_expedient_state', 'IdCurrentState'),
     fechaLiberacion:                pick(c, 'fecha_liberacion', 'fechaLiberacion'),
     tieneDocumentosPendientes:      pick(c, 'tiene_documentos_pendientes', 'tieneDocumentosPendientes'),
     documentosNoAprobados:          pick(c, 'documentos_no_aprobados', 'documentosNoAprobados'),
@@ -205,8 +205,8 @@ export function snakeDocumentoToDocumento(d: any): any {
   if (!d) return d;
   return {
     ...d,
-    idFileDocument:      pick(d, 'id_file_document', 'idFileDocument'),
-    idDocumentByFile:    pick(d, 'id_document_by_file', 'idDocumentByFile'),
+    idFileDocument:      pick(d, 'id_expedient_document', 'idFileDocument'),
+    idDocumentByFile:    pick(d, 'id_expedient_document', 'idDocumentByFile'),
     idDocumentType:      pick(d, 'id_document_type', 'idDocumentType'),
     tipoDocumento:       pick(d, 'tipo_documento', 'tipoDocumento'),
     idEstatus:           pick(d, 'id_estatus', 'idEstatus'),

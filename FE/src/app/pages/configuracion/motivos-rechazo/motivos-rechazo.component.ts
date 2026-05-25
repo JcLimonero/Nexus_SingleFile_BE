@@ -131,11 +131,11 @@ export class MotivosRechazoComponent implements OnInit, AfterViewInit {
       next: (response) => {
 
         // Debuggear cada motivo individualmente
-        response.data.file_reasons.forEach((reason: any, index: number) => {
+        response.data.expedient_reason.forEach((reason: any, index: number) => {
 
         });
         
-        this.dataSource.data = response.data.file_reasons;
+        this.dataSource.data = response.data.expedient_reason;
         this.totalReasons = response.data.total;
         this.loading = false;
         this.updatePageRange();

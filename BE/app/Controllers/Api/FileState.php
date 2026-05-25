@@ -35,7 +35,7 @@ class FileState extends BaseController
             $sortBy = $this->request->getGet('sort_by') ?? 'name';
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
-            $builder = $this->db->table('file_state fs');
+            $builder = $this->db->table('expedient_state fs');
             $builder->select('fs.*');
 
             // Aplicar filtros de búsqueda
@@ -86,7 +86,7 @@ class FileState extends BaseController
                 ])->setStatusCode(401);
             }
 
-            $builder = $this->db->table('file_state fs');
+            $builder = $this->db->table('expedient_state fs');
             $builder->select('fs.*');
             // Filtrar solo las fases específicas requeridas (fases activas del proceso)
             $builder->whereIn('fs.name', ['Integración', 'Liquidación', 'Liberación']);
@@ -135,7 +135,7 @@ class FileState extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $builder = $this->db->table('file_state fs');
+            $builder = $this->db->table('expedient_state fs');
             $builder->select('fs.*');
             $builder->where('fs.id', $id);
 

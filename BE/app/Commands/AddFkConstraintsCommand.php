@@ -36,13 +36,13 @@ class AddFkConstraintsCommand extends BaseCommand
      */
     private const STATEMENTS = [
         // Type alignment (no constraint name — idempotent by nature)
-        ['ALTER TABLE `client_group_phase` MODIFY `id_file_state` INT NOT NULL', null],
+        ['ALTER TABLE `client_group_phase` MODIFY `id_expedient_state` INT NOT NULL', null],
         ['ALTER TABLE `agency`             MODIFY `id_company`    INT DEFAULT NULL', null],
 
         // Categoría A (Phase A, clean)
         ['ALTER TABLE `client_group`         ADD CONSTRAINT `fk_cg_last_user_update`   FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`)          ON DELETE SET NULL ON UPDATE CASCADE', 'fk_cg_last_user_update'],
         ['ALTER TABLE `client_group_sale_type` ADD CONSTRAINT `fk_cgst_sale_type`        FOREIGN KEY (`id_sale_type`)        REFERENCES `sale_type` (`id`)     ON DELETE CASCADE',                       'fk_cgst_sale_type'],
-        ['ALTER TABLE `client_group_phase`   ADD CONSTRAINT `fk_cgph_file_state`       FOREIGN KEY (`id_file_state`)       REFERENCES `file_state` (`id`)    ON DELETE CASCADE',                       'fk_cgph_file_state'],
+        ['ALTER TABLE `client_group_phase`   ADD CONSTRAINT `fk_cgph_expedient_state` FOREIGN KEY (`id_expedient_state`)  REFERENCES `expedient_state` (`id`) ON DELETE CASCADE',                       'fk_cgph_expedient_state'],
         ['ALTER TABLE `company`              ADD CONSTRAINT `fk_company_client_group`  FOREIGN KEY (`id_client_group`)     REFERENCES `client_group` (`id`)  ON DELETE SET NULL ON UPDATE CASCADE',     'fk_company_client_group'],
 
         // Categoría B (legacy hierarchy, post-cleanup)
