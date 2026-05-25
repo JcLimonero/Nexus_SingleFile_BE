@@ -46,7 +46,7 @@ class User extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('user u');
             
-            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+            $builder->select('u.id, u.name, u.username, u.email, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
                 ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
                 ->join('agency a', 'a.id = u.default_agency', 'left');
 
@@ -58,8 +58,8 @@ class User extends BaseController
             if ($search) {
                 $builder->groupStart()
                     ->like('u.name', $search)
-                    ->orLike('u.user', $search)
-                    ->orLike('u.mail', $search)
+                    ->orLike('u.username', $search)
+                    ->orLike('u.email', $search)
                     ->groupEnd();
             }
 
@@ -74,7 +74,7 @@ class User extends BaseController
             $sortField = $sortFieldMap[$sortBy] ?? $sortBy;
             
             // Validar que el campo sea seguro (solo permitir campos válidos)
-            $allowedFields = ['id', 'name', 'username', 'mail', 'enabled', 'id_user_role', 'default_agency', 'registration_date', 'update_date'];
+            $allowedFields = ['id', 'name', 'username', 'email', 'enabled', 'id_user_role', 'default_agency', 'registration_date', 'update_date'];
             if (!in_array($sortField, $allowedFields)) {
                 $sortField = 'name';
             }
@@ -84,7 +84,7 @@ class User extends BaseController
             
             // Reconstruir el builder para obtener los datos
             $builder = $db->table('user u');
-            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+            $builder->select('u.id, u.name, u.username, u.email, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
                 ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
                 ->join('agency a', 'a.id = u.default_agency', 'left');
             
@@ -95,8 +95,8 @@ class User extends BaseController
             if ($search) {
                 $builder->groupStart()
                     ->like('u.name', $search)
-                    ->orLike('u.user', $search)
-                    ->orLike('u.mail', $search)
+                    ->orLike('u.username', $search)
+                    ->orLike('u.email', $search)
                     ->groupEnd();
             }
             
@@ -198,7 +198,7 @@ class User extends BaseController
             $userData = [
                 'id' => $nextId,
                 'name' => trim($data['Name'] ?? $data['name'] ?? ''),
-                'user' => trim($data['User'] ?? $data['user'] ?? ''),
+                'username' => trim($data['User'] ?? $data['user'] ?? ''),
                 'email' => trim($data['email'] ?? $data['email'] ?? ''),
                 'id_user_role' => isset($data['IdUserRole']) ? (int)$data['IdUserRole'] : (isset($data['id_user_role']) ? (int)$data['id_user_role'] : 0),
                 'default_agency' => isset($data['DefaultAgency']) ? (int)$data['DefaultAgency'] : (isset($data['default_agency']) ? (int)$data['default_agency'] : 0),
@@ -259,7 +259,7 @@ class User extends BaseController
             $builder = $db->table('user u');
             
             $user = $builder
-                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+                ->select('u.id, u.name, u.username, u.email, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
                 ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
                 ->join('agency a', 'a.id = u.default_agency', 'left')
                 ->where('u.id', $id)
@@ -290,7 +290,7 @@ class User extends BaseController
 
     /**
      * Actualizar un usuario.
-     * Cualquier usuario puede actualizar SUS propios datos básicos (name, mail).
+     * Cualquier usuario puede actualizar SUS propios datos básicos (name, email).
      * Solo admin puede tocar role_id / enabled / default_agency de otros usuarios.
      */
     public function update($id = null)
@@ -326,7 +326,7 @@ class User extends BaseController
             }
 
             // Verificar si el usuario existe (asegurar que incluye id)
-            $existingUser = $this->userModel->select('id, name, user, mail, pass, enabled, id_user_role, default_agency, registration_date, update_date')->find($id);
+            $existingUser = $this->userModel->select('id, name, username, email, pass, enabled, id_user_role, default_agency, registration_date, update_date')->find($id);
             $existingUserId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
             if (!$existingUser || !isset($existingUserId)) {
                 return $this->response->setJSON([
@@ -368,7 +368,7 @@ class User extends BaseController
                 $updateData['name'] = trim($data['Name'] ?? $data['name'] ?? '');
             }
             if (isset($data['User']) || isset($data['user'])) {
-                $updateData['user'] = trim($data['User'] ?? $data['user'] ?? '');
+                $updateData['username'] = trim($data['User'] ?? $data['user'] ?? '');
             }
             if (isset($data['email']) || isset($data['email'])) {
                 $updateData['email'] = trim($data['email'] ?? $data['email'] ?? '');
@@ -709,7 +709,7 @@ class User extends BaseController
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('id, name, user, mail, enabled')->find($id);
+            $existingUser = $this->userModel->select('id, name, username, email, enabled')->find($id);
             $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
             if (!$existingUser || $userId === null) {
                 return $this->response->setJSON([
@@ -764,7 +764,7 @@ class User extends BaseController
             }
 
             // Verificar si el usuario existe (incluyendo Id explícitamente)
-            $existingUser = $this->userModel->select('id, name, user, mail, enabled')->find($id);
+            $existingUser = $this->userModel->select('id, name, username, email, enabled')->find($id);
             $userId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
             if (!$existingUser || $userId === null) {
                 return $this->response->setJSON([
@@ -826,12 +826,12 @@ class User extends BaseController
             $builder = $db->table('user u');
             
             $users = $builder
-                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, a.name as AgencyName')
+                ->select('u.id, u.name, u.username, u.email, u.enabled, u.id_user_role, u.default_agency, a.name as AgencyName')
                 ->join('agency a', 'a.id = u.default_agency', 'left')
                 ->groupStart()
                     ->like('u.name', $query)
-                    ->orLike('u.user', $query)
-                    ->orLike('u.mail', $query)
+                    ->orLike('u.username', $query)
+                    ->orLike('u.email', $query)
                     ->groupEnd()
                 ->orderBy('u.name', 'ASC')
                 ->get()

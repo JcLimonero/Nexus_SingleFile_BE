@@ -13,7 +13,7 @@ class UserModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'id', 'name', 'username', 'pass', 'mail', 'enabled', 'id_user_role',
+        'id', 'name', 'username', 'pass', 'email', 'enabled', 'id_user_role',
         'registration_date', 'update_date', 'id_last_user_update',
         'id_user_total', 'default_agency', 'password_migrated',
         'profile_image', 'image_type', 'image_size'
