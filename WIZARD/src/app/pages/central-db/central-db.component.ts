@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -21,6 +21,13 @@ import { WizardStateService } from '../../state/wizard-state.service';
     <mat-card class="wiz-card">
       <mat-card-content>
         <h2>Conexión a la base central</h2>
+        @if (loadedFromIni()) {
+          <p style="background:#e8f5e9; color:#1b5e20; padding:8px 12px; border-radius:4px; font-size:13px;">
+            <mat-icon style="vertical-align:middle; font-size:18px; height:18px; width:18px;">verified</mat-icon>
+            Datos pre-cargados desde <code>config/central.ini</code>.
+            La <b>encryption key</b> también se autocompletará en el paso 4 (Tenant).
+          </p>
+        }
         <p>
           La central DB (<code>nexfile_central</code>) lleva el registro de tenants,
           sus suscripciones y configuración. Necesitas credenciales con permiso para
@@ -75,13 +82,28 @@ import { WizardStateService } from '../../state/wizard-state.service';
     </mat-card>
   `,
 })
-export class CentralDbComponent {
+export class CentralDbComponent implements OnInit {
   private readonly state = inject(WizardStateService);
   private readonly router = inject(Router);
   cfg = { ...this.state.central() };
   adminApi = this.state.adminApiBase();
   loading = signal(false);
   result = signal<{ ok: boolean; message?: string } | null>(null);
+  loadedFromIni = signal(false);
+
+  async ngOnInit() {
+    // First-time visit: pre-fill from config/central.ini if it exists.
+    // Subsequent visits keep whatever the user already entered.
+    if (this.cfg.host && this.cfg.user) return;
+    if (!window.wizardApi?.config) return;
+    const r = await window.wizardApi.config.loadCentral();
+    if (!r.ok || !r.data) return;
+    this.cfg = { ...r.data.central };
+    this.adminApi = r.data.adminApiBase;
+    // Stash the encryption key in state so the Tenant step can pre-fill it
+    this.state.encryptionKey.set(r.data.encryptionKey);
+    this.loadedFromIni.set(true);
+  }
 
   async test() {
     if (!window.wizardApi) {

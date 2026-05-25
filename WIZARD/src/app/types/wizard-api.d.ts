@@ -26,6 +26,18 @@ export interface WizardApi {
   defaults: {
     load(table: string): Promise<{ ok: boolean; rows?: any[]; message?: string }>;
   };
+  config: {
+    loadCentral(): Promise<{
+      ok: boolean;
+      message?: string;
+      path?: string;
+      data?: {
+        central: DbConfig;
+        adminApiBase: string;
+        encryptionKey: string;
+      };
+    }>;
+  };
   admin: {
     login(apiBase: string, email: string, password: string): Promise<{
       ok: boolean;

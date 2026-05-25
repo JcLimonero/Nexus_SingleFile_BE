@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('wizardApi', {
   defaults: {
     load: (table: string) => ipcRenderer.invoke('defaults:load', table),
   },
+  config: {
+    loadCentral: () => ipcRenderer.invoke('config:load-central'),
+  },
   admin: {
     login: (apiBase: string, email: string, password: string) =>
       ipcRenderer.invoke('admin:login', apiBase, email, password),

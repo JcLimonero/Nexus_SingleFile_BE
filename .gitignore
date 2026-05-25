@@ -13,10 +13,17 @@ BE/env.backup
 BE/env.port402
 BE/env.production
 BE/config/database-config.json
+ADMIN_BE/.env
 .env
 .env.local
 .env.*.local
 *.env.bak
+
+# Central DB config (shared across BE, ADMIN_BE, WIZARD) — contains the
+# decryption key + DB password. Lives only on ops machines, never in git.
+config/central.ini
+config/central.ini.example
+!config/central.ini.template
 
 # Builds y deploy
 FE/dist/

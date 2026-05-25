@@ -20,6 +20,43 @@ function defaultsRoot(): string {
   return candidates[0];
 }
 
+/** Same resolution but for config/central.ini at the repo root. */
+function centralIniPath(): string {
+  const candidates = [
+    path.join(__dirname, '..', '..', '..', 'config', 'central.ini'),
+    path.join(process.resourcesPath || '', 'config', 'central.ini'),
+  ];
+  for (const c of candidates) {
+    if (c && fs.existsSync(c)) return c;
+  }
+  return candidates[0];
+}
+
+/**
+ * Minimal INI parser (sufficient for our simple [section] key = value format).
+ * Returns { section: { key: value } }. Empty / commented (; or #) lines skipped.
+ */
+function parseIni(text: string): Record<string, Record<string, string>> {
+  const out: Record<string, Record<string, string>> = {};
+  let current = '_';
+  out[current] = {};
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith(';') || line.startsWith('#')) continue;
+    const sect = line.match(/^\[(.+)\]$/);
+    if (sect) {
+      current = sect[1].trim();
+      out[current] = out[current] ?? {};
+      continue;
+    }
+    const kv = line.match(/^([^=]+?)\s*=\s*(.*)$/);
+    if (kv) {
+      out[current][kv[1].trim()] = kv[2].trim();
+    }
+  }
+  return out;
+}
+
 /** Payload for the final "create everything" step. */
 interface ProvisionPayload {
   central: DbConnectionConfig;
@@ -241,6 +278,41 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
   });
 
   ipcMain.handle('fs:pick-file', () => ({ ok: false, message: 'TODO: file picker for branding logo' }));
+
+  /**
+   * Returns the central DB config from config/central.ini if present.
+   * The renderer's CentralDb step uses this to pre-fill the form so ops
+   * never types the password manually.
+   */
+  ipcMain.handle('config:load-central', () => {
+    const p = centralIniPath();
+    if (!fs.existsSync(p)) {
+      return { ok: false, message: `central.ini not found at ${p}` };
+    }
+    try {
+      const ini = parseIni(fs.readFileSync(p, 'utf8'));
+      const db = ini['database'] ?? {};
+      const adm = ini['admin_be'] ?? {};
+      const enc = ini['encryption'] ?? {};
+      return {
+        ok: true,
+        data: {
+          central: {
+            host: db['host'] ?? '',
+            port: parseInt(db['port'] ?? '3306', 10) || 3306,
+            user: db['user'] ?? '',
+            password: db['password'] ?? '',
+            database: db['name'] ?? 'nexfile_central',
+          },
+          adminApiBase: adm['api_url'] ?? 'http://localhost:8087',
+          encryptionKey: enc['tenant_db_key'] ?? '',
+        },
+        path: p,
+      };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
 }
 
 async function seedRows(cfg: DbConnectionConfig, table: string, rows: any[]) {

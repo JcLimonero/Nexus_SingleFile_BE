@@ -1,0 +1,16 @@
+; Copy this file to central.ini and fill in your environment values.
+; central.ini is gitignored — central.ini.template is committed for reference.
+
+[database]
+host     = your-mysql-host.example.com
+port     = 3306
+user     = nexfile_central_user
+password = CHANGE_ME
+name     = nexfile_central
+
+[admin_be]
+api_url  = http://localhost:8087
+
+[encryption]
+; Generate with: php -r "echo bin2hex(random_bytes(32));"
+tenant_db_key = CHANGE_ME_64_HEX_CHARS
