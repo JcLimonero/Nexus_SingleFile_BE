@@ -134,11 +134,14 @@ export class AuthService {
         // Establecer auth primero para que getUserAgencies tenga el token
         this.setAuthData(response as AuthResponse & { user: User; access_token: string; refresh_token: string; expires_in: number });
         const userId = String(response.user.id);
+        // Administrador (role_id=7) puede entrar sin agencias asignadas — necesita
+        // poder loguear para configurar agencias/usuarios desde el panel admin.
+        const isAdmin = String(response.user.role_id ?? '') === '7';
         return this.userAccessService.getUserAgencies(userId).pipe(
           switchMap((agenciesRes: any) => {
             const agencies = agenciesRes?.data?.agencies ?? agenciesRes?.agencies ?? [];
             const count = Array.isArray(agencies) ? agencies.length : 0;
-            if (count === 0) {
+            if (count === 0 && !isAdmin) {
               this.clearLocalSession();
               return throwError(() => ({
                 error: { message: 'No tiene agencias configuradas. Contacte al administrador para que le asigne al menos una agencia.' }
