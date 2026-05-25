@@ -24,7 +24,7 @@ import { WizardStateService } from '../../state/wizard-state.service';
         @if (loadedFromIni()) {
           <p style="background:#e8f5e9; color:#1b5e20; padding:8px 12px; border-radius:4px; font-size:13px;">
             <mat-icon style="vertical-align:middle; font-size:18px; height:18px; width:18px;">verified</mat-icon>
-            Datos pre-cargados desde <code>config/central.ini</code>.
+            Datos pre-cargados desde <code>config/central.env</code>.
             La <b>encryption key</b> también se autocompletará en el paso 4 (Tenant).
           </p>
         }
@@ -92,7 +92,7 @@ export class CentralDbComponent implements OnInit {
   loadedFromIni = signal(false);
 
   async ngOnInit() {
-    // First-time visit: pre-fill from config/central.ini if it exists.
+    // First-time visit: pre-fill from config/central.env if it exists.
     // Subsequent visits keep whatever the user already entered.
     if (this.cfg.host && this.cfg.user) return;
     if (!window.wizardApi?.config) return;

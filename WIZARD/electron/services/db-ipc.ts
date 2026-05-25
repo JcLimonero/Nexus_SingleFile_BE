@@ -20,11 +20,11 @@ function defaultsRoot(): string {
   return candidates[0];
 }
 
-/** Same resolution but for config/central.ini at the repo root. */
-function centralIniPath(): string {
+/** Same resolution but for config/central.env at the repo root. */
+function centralEnvPath(): string {
   const candidates = [
-    path.join(__dirname, '..', '..', '..', 'config', 'central.ini'),
-    path.join(process.resourcesPath || '', 'config', 'central.ini'),
+    path.join(__dirname, '..', '..', '..', 'config', 'central.env'),
+    path.join(process.resourcesPath || '', 'config', 'central.env'),
   ];
   for (const c of candidates) {
     if (c && fs.existsSync(c)) return c;
@@ -33,26 +33,24 @@ function centralIniPath(): string {
 }
 
 /**
- * Minimal INI parser (sufficient for our simple [section] key = value format).
- * Returns { section: { key: value } }. Empty / commented (; or #) lines skipped.
+ * Minimal .env parser — handles `KEY = value` and `KEY=value`, ignores
+ * empty / `#`-commented lines, strips surrounding quotes. Same shape the
+ * CI4 .env loader accepts, so the file is interchangeable between the
+ * WIZARD (here) and PHP backends.
  */
-function parseIni(text: string): Record<string, Record<string, string>> {
-  const out: Record<string, Record<string, string>> = {};
-  let current = '_';
-  out[current] = {};
+function parseEnv(text: string): Record<string, string> {
+  const out: Record<string, string> = {};
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line || line.startsWith(';') || line.startsWith('#')) continue;
-    const sect = line.match(/^\[(.+)\]$/);
-    if (sect) {
-      current = sect[1].trim();
-      out[current] = out[current] ?? {};
-      continue;
+    if (!line || line.startsWith('#')) continue;
+    const kv = line.match(/^([A-Za-z_][A-Za-z0-9_.]*)\s*=\s*(.*)$/);
+    if (!kv) continue;
+    let value = kv[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
     }
-    const kv = line.match(/^([^=]+?)\s*=\s*(.*)$/);
-    if (kv) {
-      out[current][kv[1].trim()] = kv[2].trim();
-    }
+    out[kv[1]] = value;
   }
   return out;
 }
@@ -280,32 +278,30 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
   ipcMain.handle('fs:pick-file', () => ({ ok: false, message: 'TODO: file picker for branding logo' }));
 
   /**
-   * Returns the central DB config from config/central.ini if present.
-   * The renderer's CentralDb step uses this to pre-fill the form so ops
-   * never types the password manually.
+   * Returns the central DB config from config/central.env if present.
+   * Same .env shape as BE/.env and ADMIN_BE/.env for consistency —
+   * the renderer's CentralDb step uses this to pre-fill the form so
+   * ops never types the password manually.
    */
   ipcMain.handle('config:load-central', () => {
-    const p = centralIniPath();
+    const p = centralEnvPath();
     if (!fs.existsSync(p)) {
-      return { ok: false, message: `central.ini not found at ${p}` };
+      return { ok: false, message: `central.env not found at ${p}` };
     }
     try {
-      const ini = parseIni(fs.readFileSync(p, 'utf8'));
-      const db = ini['database'] ?? {};
-      const adm = ini['admin_be'] ?? {};
-      const enc = ini['encryption'] ?? {};
+      const env = parseEnv(fs.readFileSync(p, 'utf8'));
       return {
         ok: true,
         data: {
           central: {
-            host: db['host'] ?? '',
-            port: parseInt(db['port'] ?? '3306', 10) || 3306,
-            user: db['user'] ?? '',
-            password: db['password'] ?? '',
-            database: db['name'] ?? 'nexfile_central',
+            host: env['CENTRAL_DB_HOST'] ?? '',
+            port: parseInt(env['CENTRAL_DB_PORT'] ?? '3306', 10) || 3306,
+            user: env['CENTRAL_DB_USER'] ?? '',
+            password: env['CENTRAL_DB_PASSWORD'] ?? '',
+            database: env['CENTRAL_DB_NAME'] ?? 'nexfile_central',
           },
-          adminApiBase: adm['api_url'] ?? 'http://localhost:8087',
-          encryptionKey: enc['tenant_db_key'] ?? '',
+          adminApiBase: env['ADMIN_BE_URL'] ?? 'http://localhost:8087',
+          encryptionKey: env['TENANT_DB_ENCRYPTION_KEY'] ?? '',
         },
         path: p,
       };

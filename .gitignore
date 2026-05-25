@@ -21,9 +21,8 @@ ADMIN_BE/.env
 
 # Central DB config (shared across BE, ADMIN_BE, WIZARD) — contains the
 # decryption key + DB password. Lives only on ops machines, never in git.
-config/central.ini
-config/central.ini.example
-!config/central.ini.template
+config/central.env
+!config/central.env.template
 
 # Builds y deploy
 FE/dist/
