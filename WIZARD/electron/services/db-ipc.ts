@@ -487,6 +487,18 @@ async function seedRows(cfg: DbConnectionConfig, table: string, rows: any[]) {
       const cols = Object.keys(rows[0]).filter((k) => rows[0][k] !== undefined && tableCols.has(k));
       if (!cols.length) return 0;
 
+      // Replace-mode: TRUNCATE first so user's selections in Step 8 (catalogos)
+      // override whatever data.sql seeded. With FK_CHECKS = 0 around it so
+      // tables with incoming FKs from other catalog tables can still be wiped.
+      await c.query('SET FOREIGN_KEY_CHECKS = 0');
+      try {
+        await c.query(`TRUNCATE TABLE \`${table}\``);
+      } catch {
+        // TRUNCATE may fail on some MySQL configs against tables with FKs;
+        // fall back to DELETE (safe, just slower).
+        await c.query(`DELETE FROM \`${table}\``);
+      }
+
       const placeholders = cols.map(() => '?').join(', ');
       const sql = `INSERT INTO \`${table}\` (${cols.map((cc) => `\`${cc}\``).join(', ')}) VALUES (${placeholders})`;
       let total = 0;
@@ -494,6 +506,7 @@ async function seedRows(cfg: DbConnectionConfig, table: string, rows: any[]) {
         await c.query(sql, cols.map((k) => r[k] ?? null));
         total++;
       }
+      await c.query('SET FOREIGN_KEY_CHECKS = 1');
       return total;
     });
     if (inserted === -1) return { ok: true, inserted: 0, message: `skipped: table ${table} not in tenant DB` };
