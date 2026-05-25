@@ -227,9 +227,14 @@ class DumpBaselineCommand extends BaseCommand
         $out .= "ALTER TABLE `payment_method` ADD CONSTRAINT `fk_payment_method_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n\n";
 
         // === Views (DEFINER stripped, source-DB refs rewritten to bare table refs) ===
+        // Skip dead views: referencian tablas que no existen post-rename
+        // (file, headerclient, orderbycar, etc.). Provision las saltaba y se
+        // eliminaron del baseline en Tier 1 del refactor de naming.
+        $deadViews = ['view_all_relations', 'view_client', 'view_files', 'view_files_by_client'];
         if ($views) {
             $out .= "-- ====== Views ======\n\n";
             foreach ($views as $v) {
+                if (in_array($v, $deadViews, true)) continue;
                 $ddl = $db->query("SHOW CREATE VIEW `{$sourceDb}`.`{$v}`")->getRowArray()['Create View'] ?? null;
                 if (!$ddl) continue;
                 // Strip DEFINER + SQL SECURITY
