@@ -15,6 +15,7 @@ use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\CustomCors;
 use App\Filters\JwtAuthFilter;
 use App\Filters\ResponseSnakeCaseFilter;
+use App\Filters\TenantGateFilter;
 use App\Filters\ThrottleAuthFilter;
 
 class Filters extends BaseFilters
@@ -37,6 +38,7 @@ class Filters extends BaseFilters
         'cors'          => Cors::class,
         'customcors'    => CustomCors::class,
         'jwt'           => JwtAuthFilter::class,
+        'tenant_gate'   => TenantGateFilter::class,
         'throttle_auth' => ThrottleAuthFilter::class,
         'snake_resp'    => ResponseSnakeCaseFilter::class,
         'forcehttps'    => ForceHTTPS::class,
@@ -118,6 +120,11 @@ class Filters extends BaseFilters
      * @var array<string, array<string, list<string>>>
      */
     public array $filters = [
+        // Tenant license gate — runs before JWT. No-op when MULTITENANT_ENABLED=false.
+        'tenant_gate' => [
+            'before' => ['api/*'],
+            'after'  => ['api/*'],
+        ],
         'jwt' => [
             'before' => ['api/*'],
         ],

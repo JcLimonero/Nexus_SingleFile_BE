@@ -190,6 +190,36 @@ class Database extends Config
         ],
     ];
 
+    /**
+     * Central control DB (multi-tenant registry). Holds tenant, tenant_subscription,
+     * tenant_config, tenant_status_history, super_admin_user. Read by the tenant BE
+     * for license/status checks; read/written by ADMIN_BE for tenant management.
+     *
+     * All env knobs are optional — when not set, the BE falls back to legacy
+     * single-tenant mode via MULTITENANT_ENABLED.
+     *
+     * @var array<string,mixed>
+     */
+    public array $central = [
+        'DSN'         => '',
+        'hostname'    => '127.0.0.1',
+        'username'    => '',
+        'password'    => '',
+        'database'    => 'nexfile_central',
+        'DBDriver'    => 'MySQLi',
+        'DBPrefix'    => '',
+        'pConnect'    => false,
+        'DBDebug'     => true,
+        'charset'     => 'utf8mb4',
+        'DBCollat'    => 'utf8mb4_unicode_ci',
+        'swapPre'     => '',
+        'encrypt'     => false,
+        'compress'    => false,
+        'strictOn'    => false,
+        'failover'    => [],
+        'port'        => 3306,
+    ];
+
     public function __construct()
     {
         parent::__construct();
@@ -200,7 +230,14 @@ class Database extends Config
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
         }
-        
+
+        // Central DB overrides (env-driven so .env can point to a dedicated server)
+        $this->central['hostname'] = (string) env('central.hostname', $this->default['hostname']);
+        $this->central['port']     = (int)    env('central.port',     $this->default['port']);
+        $this->central['username'] = (string) env('central.username', $this->default['username']);
+        $this->central['password'] = (string) env('central.password', $this->default['password']);
+        $this->central['database'] = (string) env('central.database', 'nexfile_central');
+
         // Cargar configuración desde archivo JSON externo si existe
         $this->loadExternalConfig();
     }
