@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { WizardStateService } from '../../state/wizard-state.service';
 
@@ -15,7 +16,7 @@ import { WizardStateService } from '../../state/wizard-state.service';
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterLink,
-    MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatCheckboxModule, MatProgressSpinnerModule,
   ],
   template: `
     <mat-card class="wiz-card">
@@ -39,24 +40,34 @@ import { WizardStateService } from '../../state/wizard-state.service';
 
         <h3 style="margin-top: 24px;">DB del tenant</h3>
         <p>Dónde se creará la base de datos del tenant. Puede ser el mismo servidor que central o uno separado.</p>
+
+        <mat-checkbox [(ngModel)]="useSameAsCentral" (change)="onUseSameChange($event.checked)" style="margin-bottom: 12px;">
+          Usar mismo servidor que la central DB
+          @if (useSameAsCentral) {
+            <span style="color:#666; font-size:13px; margin-left:8px;">
+              ({{ state.central().host }}:{{ state.central().port }}, user: <code>{{ state.central().user }}</code>)
+            </span>
+          }
+        </mat-checkbox>
+
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
           <mat-form-field appearance="outline">
             <mat-label>Host</mat-label>
-            <input matInput [(ngModel)]="tdb.host" />
+            <input matInput [(ngModel)]="tdb.host" [readonly]="useSameAsCentral" />
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Puerto</mat-label>
-            <input matInput type="number" [(ngModel)]="tdb.port" />
+            <input matInput type="number" [(ngModel)]="tdb.port" [readonly]="useSameAsCentral" />
           </mat-form-field>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <mat-form-field appearance="outline">
             <mat-label>Usuario</mat-label>
-            <input matInput [(ngModel)]="tdb.user" />
+            <input matInput [(ngModel)]="tdb.user" [readonly]="useSameAsCentral" />
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Contraseña</mat-label>
-            <input matInput type="password" [(ngModel)]="tdb.password" />
+            <input matInput type="password" [(ngModel)]="tdb.password" [readonly]="useSameAsCentral" />
           </mat-form-field>
         </div>
         <mat-form-field appearance="outline" style="width: 100%;">
@@ -100,7 +111,7 @@ import { WizardStateService } from '../../state/wizard-state.service';
   `,
 })
 export class TenantInfoComponent {
-  private readonly state = inject(WizardStateService);
+  readonly state = inject(WizardStateService);
   private readonly router = inject(Router);
 
   slug = this.state.tenantSlug();
@@ -109,6 +120,37 @@ export class TenantInfoComponent {
   encKey = this.state.encryptionKey();
   loading = signal(false);
   testResult = signal<{ ok: boolean; message?: string } | null>(null);
+
+  /**
+   * Default ON when central DB is configured AND tenant fields weren't
+   * already manually filled. The user can uncheck to point at a different
+   * MySQL server (cross-region, dedicated tenant tier, etc.).
+   */
+  useSameAsCentral = (() => {
+    const c = this.state.central();
+    const t = this.state.tenantDb();
+    // If user already typed a host different from central, respect it
+    if (t.host && t.host !== c.host) return false;
+    return !!(c.host && c.user);
+  })();
+
+  constructor() {
+    if (this.useSameAsCentral) this.copyFromCentral();
+  }
+
+  onUseSameChange(checked: boolean): void {
+    this.useSameAsCentral = checked;
+    if (checked) this.copyFromCentral();
+  }
+
+  private copyFromCentral(): void {
+    const c = this.state.central();
+    this.tdb.host     = c.host;
+    this.tdb.port     = c.port;
+    this.tdb.user     = c.user;
+    this.tdb.password = c.password;
+    // Preserve database name — that's per-tenant (nexfile_tenant_<slug>)
+  }
 
   onSlugChange(v: string) {
     // Auto-normalize: lowercase + strip invalid chars on the fly so the user
