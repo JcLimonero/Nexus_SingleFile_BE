@@ -15,10 +15,12 @@ $routes->group('api/admin', static function ($routes) {
     });
 
     $routes->group('tenants', static function ($routes) {
-        $routes->get('/',                   'Api\Admin\Tenant::index');
-        $routes->post('/',                  'Api\Admin\Tenant::create');
-        $routes->get('(:num)',              'Api\Admin\Tenant::show/$1');
-        $routes->patch('(:num)/status',     'Api\Admin\Tenant::setStatus/$1');
+        $routes->get('/',                              'Api\Admin\Tenant::index');
+        $routes->post('/',                             'Api\Admin\Tenant::create');
+        $routes->get('(:num)',                         'Api\Admin\Tenant::show/$1');
+        $routes->patch('(:num)/status',                'Api\Admin\Tenant::setStatus/$1');
+        $routes->put('(:num)/config',                  'Api\Admin\Tenant::setConfig/$1');
+        $routes->post('(:num)/extend-subscription',    'Api\Admin\Tenant::extendSubscription/$1');
     });
 });
 

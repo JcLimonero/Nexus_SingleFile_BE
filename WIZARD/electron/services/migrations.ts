@@ -22,12 +22,12 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_user_role',
     sql: `CREATE TABLE IF NOT EXISTS user_role (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(100) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      id_last_user_update BIGINT UNSIGNED NULL,
+      id_last_user_update BIGINT NULL,
       PRIMARY KEY (id),
       UNIQUE KEY uq_user_role_name (name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -35,12 +35,12 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_user',
     sql: `CREATE TABLE IF NOT EXISTS \`user\` (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       mail VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,
       name VARCHAR(200) NULL,
-      id_user_rol BIGINT UNSIGNED NULL,
-      default_agency BIGINT UNSIGNED NULL,
+      id_user_rol BIGINT NULL,
+      default_agency BIGINT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -51,7 +51,7 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_client_group',
     sql: `CREATE TABLE IF NOT EXISTS client_group (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       description TEXT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
@@ -64,8 +64,8 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_company',
     sql: `CREATE TABLE IF NOT EXISTS company (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      id_client_group BIGINT UNSIGNED NULL,
+      id BIGINT NOT NULL AUTO_INCREMENT,
+      id_client_group BIGINT NULL,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -77,8 +77,8 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_agency',
     sql: `CREATE TABLE IF NOT EXISTS agency (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      id_company BIGINT UNSIGNED NULL,
+      id BIGINT NOT NULL AUTO_INCREMENT,
+      id_company BIGINT NULL,
       name VARCHAR(200) NOT NULL,
       address VARCHAR(500) NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
@@ -91,12 +91,12 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_process',
     sql: `CREATE TABLE IF NOT EXISTS process (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      id_last_user_update BIGINT UNSIGNED NULL,
+      id_last_user_update BIGINT NULL,
       PRIMARY KEY (id),
       UNIQUE KEY uq_process_name (name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -104,21 +104,21 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_file_state',
     sql: `CREATE TABLE IF NOT EXISTS file_state (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       requires_payment_voucher TINYINT(1) NOT NULL DEFAULT 0,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      id_last_user_update BIGINT UNSIGNED NULL,
+      id_last_user_update BIGINT NULL,
       PRIMARY KEY (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   },
   {
     name: 'create_file_sub_state',
     sql: `CREATE TABLE IF NOT EXISTS file_sub_state (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      id_file_status BIGINT UNSIGNED NULL,
+      id BIGINT NOT NULL AUTO_INCREMENT,
+      id_file_status BIGINT NULL,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -129,7 +129,7 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_customer_type',
     sql: `CREATE TABLE IF NOT EXISTS customer_type (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -140,7 +140,7 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_operation_type',
     sql: `CREATE TABLE IF NOT EXISTS operation_type (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -151,7 +151,7 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_payment_method',
     sql: `CREATE TABLE IF NOT EXISTS payment_method (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -162,13 +162,13 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_document_type',
     sql: `CREATE TABLE IF NOT EXISTS document_type (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       required TINYINT(1) NOT NULL DEFAULT 0,
       req_expiration TINYINT(1) NOT NULL DEFAULT 0,
-      id_process_type BIGINT UNSIGNED NULL,
-      id_sub_process BIGINT UNSIGNED NULL,
+      id_process_type BIGINT NULL,
+      id_sub_process BIGINT NULL,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id)
@@ -177,9 +177,9 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_file_reasons',
     sql: `CREATE TABLE IF NOT EXISTS file_reasons (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
-      id_type_reason BIGINT UNSIGNED NULL,
+      id_type_reason BIGINT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -189,7 +189,7 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_document_file_error',
     sql: `CREATE TABLE IF NOT EXISTS document_file_error (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       description VARCHAR(500) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -200,9 +200,9 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_file_exception_reason',
     sql: `CREATE TABLE IF NOT EXISTS file_exception_reason (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      id BIGINT NOT NULL AUTO_INCREMENT,
       name VARCHAR(200) NOT NULL,
-      id_type_reason BIGINT UNSIGNED NULL,
+      id_type_reason BIGINT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -212,9 +212,9 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_client_group_process',
     sql: `CREATE TABLE IF NOT EXISTS client_group_process (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      id_client_group BIGINT UNSIGNED NOT NULL,
-      id_process BIGINT UNSIGNED NOT NULL,
+      id BIGINT NOT NULL AUTO_INCREMENT,
+      id_client_group BIGINT NOT NULL,
+      id_process BIGINT NOT NULL,
       display_order INT DEFAULT 0,
       enabled TINYINT(1) DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -226,9 +226,9 @@ export const schemaMigrations: Migration[] = [
   {
     name: 'create_client_group_phase',
     sql: `CREATE TABLE IF NOT EXISTS client_group_phase (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      id_client_group BIGINT UNSIGNED NOT NULL,
-      id_file_state BIGINT UNSIGNED NOT NULL,
+      id BIGINT NOT NULL AUTO_INCREMENT,
+      id_client_group BIGINT NOT NULL,
+      id_file_state BIGINT NOT NULL,
       display_order INT DEFAULT 0,
       enabled TINYINT(1) DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
