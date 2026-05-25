@@ -1,0 +1,39 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$admin-primary: mat.define-palette(mat.$deep-purple-palette);
+$admin-accent:  mat.define-palette(mat.$amber-palette, A200, A100, A400);
+$admin-warn:    mat.define-palette(mat.$red-palette);
+
+$admin-theme: mat.define-light-theme((
+  color: (
+    primary: $admin-primary,
+    accent: $admin-accent,
+    warn: $admin-warn,
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+@include mat.all-component-themes($admin-theme);
+
+html, body { height: 100%; margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background: #f6f7fb; }
+
+.adm-shell { display: flex; flex-direction: column; height: 100%; }
+.adm-content { flex: 1; overflow: auto; padding: 24px; max-width: 1280px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.adm-card { padding: 24px; margin-bottom: 24px; }
+
+.adm-status-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+.adm-status-active     { background: #e8f5e9; color: #1b5e20; }
+.adm-status-grace      { background: #fff8e1; color: #ff8f00; }
+.adm-status-readonly   { background: #fff3e0; color: #e65100; }
+.adm-status-suspended  { background: #ffebee; color: #c62828; }
+.adm-status-terminated { background: #efebe9; color: #4e342e; }
