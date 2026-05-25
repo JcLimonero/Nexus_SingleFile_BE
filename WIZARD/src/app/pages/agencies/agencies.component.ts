@@ -50,7 +50,7 @@ import { WizardStateService, AgencyInput } from '../../state/wizard-state.servic
           <table mat-table [dataSource]="items()" style="width:100%; margin-top:12px;">
             <ng-container matColumnDef="company">
               <th mat-header-cell *matHeaderCellDef>Razón social</th>
-              <td mat-cell *matCellDef="let r">{{ state.companies()[r.companyIndex]?.name }}</td>
+              <td mat-cell *matCellDef="let r">{{ companyNameFor(r.companyIndex) }}</td>
             </ng-container>
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Agencia</th>
@@ -93,5 +93,12 @@ export class AgenciesComponent {
     this.draft = { companyIndex: this.draft.companyIndex, name: '', address: '' };
   }
   remove(i: number) { this.items.update((it) => it.filter((_, idx) => idx !== i)); }
+
+  /** Safe lookup — handles companyIndex out of range or companies array changed since add. */
+  companyNameFor(idx: number): string {
+    const c = this.state.companies()[idx];
+    return c?.name ?? '—';
+  }
+
   next() { this.state.agencies.set(this.items()); this.router.navigate(['/processes']); }
 }
