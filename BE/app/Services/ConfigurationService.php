@@ -59,11 +59,11 @@ class ConfigurationService
                     cp.id_agency,
                     a.name as AgencyName
                 FROM configuration_process cp
-                INNER JOIN process p ON cp.id_sale_type = p.id
+                INNER JOIN sale_type p ON cp.id_sale_type = p.id
                 INNER JOIN customer_type ct ON cp.id_customer_type = ct.id
                 INNER JOIN operation_type ot ON cp.id_operation_type = ot.id
                 INNER JOIN agency a ON cp.id_agency = a.id
-                WHERE cp.id_agency = ? 
+                WHERE cp.id_agency = ?
                 AND cp.enabled = 1
                 AND p.enabled = 1
                 AND ct.enabled = 1
@@ -80,7 +80,7 @@ class ConfigurationService
     public function getProcessesByAgency($agencyId)
     {
         $sql = "SELECT DISTINCT p.id, p.name
-                FROM process p
+                FROM sale_type p
                 INNER JOIN configuration_process cp ON p.id = cp.id_sale_type
                 WHERE cp.id_agency = ? 
                 AND cp.enabled = 1
@@ -136,7 +136,7 @@ class ConfigurationService
         $sql = "SELECT cp.*, p.name as ProcessName, ct.name as CustomerTypeName, 
                        ot.name as OperationTypeName, a.name as AgencyName
                 FROM configuration_process cp
-                INNER JOIN process p ON cp.id_sale_type = p.id
+                INNER JOIN sale_type p ON cp.id_sale_type = p.id
                 INNER JOIN customer_type ct ON cp.id_customer_type = ct.id
                 INNER JOIN operation_type ot ON cp.id_operation_type = ot.id
                 INNER JOIN agency a ON cp.id_agency = a.id

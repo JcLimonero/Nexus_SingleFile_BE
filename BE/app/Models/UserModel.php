@@ -85,13 +85,13 @@ class UserModel extends Model
     public function changePassword($userId, $newPassword)
     {
         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-        
+
         return $this->update($userId, [
             'id' => $userId,
             'pass' => $hashedPassword,
             'password_migrated' => 1,
             'update_date' => date('Y-m-d H:i:s'),
-            'id_last_user_update' => session()->get('user_id') ?? 0
+            'id_last_user_update' => $userId
         ]);
     }
 
@@ -133,12 +133,12 @@ class UserModel extends Model
     public function updateProfileImage($userId, $imageData, $imageType, $imageSize)
     {
         return $this->update($userId, [
-            'Id' => $userId,
+            'id' => $userId,
             'profile_image' => $imageData,
             'image_type' => $imageType,
             'image_size' => $imageSize,
             'update_date' => date('Y-m-d H:i:s'),
-            'id_last_user_update' => session()->get('user_id') ?? 0
+            'id_last_user_update' => $userId
         ]);
     }
 
@@ -153,7 +153,7 @@ class UserModel extends Model
             'image_type' => null,
             'image_size' => null,
             'update_date' => date('Y-m-d H:i:s'),
-            'id_last_user_update' => session()->get('user_id') ?? 0
+            'id_last_user_update' => $userId
         ]);
     }
 

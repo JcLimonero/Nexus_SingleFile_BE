@@ -43,7 +43,6 @@ final class AgencyControllerTest extends FeatureApiTestCase
             'GET list'              => ['GET',    '/'],
             'POST create'           => ['POST',   '/'],
             'GET search'            => ['GET',    '/search'],
-            'GET regions'           => ['GET',    '/regions'],
             'GET stats'             => ['GET',    '/stats'],
             'GET show/999999'       => ['GET',    '/999999'],
             'PUT update/999999'     => ['PUT',    '/999999'],

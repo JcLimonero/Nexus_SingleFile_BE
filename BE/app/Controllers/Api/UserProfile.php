@@ -201,7 +201,7 @@ class UserProfile extends BaseController
     {
         try {
             $userId = $this->getUserIdFromToken();
-            
+
             if (!$userId) {
                 return $this->response
                     ->setStatusCode(401)
@@ -210,10 +210,9 @@ class UserProfile extends BaseController
                         'message' => 'Usuario no autenticado'
                     ]);
             }
-            
-            // Obtener usuario actual
+
             $user = $this->userModel->find($userId);
-            
+
             if (!$user) {
                 return $this->response
                     ->setStatusCode(404)
@@ -222,42 +221,29 @@ class UserProfile extends BaseController
                         'message' => 'Usuario no encontrado'
                     ]);
             }
-            
-            // Eliminar archivo físico si existe
-            if ($user['ProfileImage'] && file_exists(WRITEPATH . $user['ProfileImage'])) {
-                unlink(WRITEPATH . $user['ProfileImage']);
-            }
-            
-            // Actualizar usuario eliminando la imagen
-            $imageData = [
-                'ProfileImage' => null,
-                'ImageType' => null,
-                'UpdateDate' => date('Y-m-d H:i:s')
-            ];
-            
-            if ($this->userModel->update($userId, $imageData)) {
+
+            if ($this->userModel->removeProfileImage($userId)) {
                 return $this->response
                     ->setStatusCode(200)
                     ->setJSON([
                         'success' => true,
                         'message' => 'Imagen de perfil eliminada exitosamente'
                     ]);
-            } else {
-                return $this->response
-                    ->setStatusCode(500)
-                    ->setJSON([
-                        'success' => false,
-                        'message' => 'Error al eliminar la imagen de la base de datos'
-                    ]);
             }
-            
+
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Error al eliminar la imagen de la base de datos'
+                ]);
+
         } catch (\Exception $e) {
             return $this->response
                 ->setStatusCode(500)
                 ->setJSON([
                     'success' => false,
-                    'message' => 'Error interno del servidor',
-                    'error' => $e->getMessage()
+                    'message' => 'Error interno del servidor: ' . $e->getMessage()
                 ]);
         }
     }
@@ -277,10 +263,10 @@ class UserProfile extends BaseController
                         'message' => 'ID de usuario requerido'
                     ]);
             }
-            
-            $user = $this->userModel->find($userId);
-            
-            if (!$user) {
+
+            $profileImage = $this->userModel->getProfileImage($userId);
+
+            if (!$profileImage) {
                 return $this->response
                     ->setStatusCode(404)
                     ->setJSON([
@@ -288,8 +274,8 @@ class UserProfile extends BaseController
                         'message' => 'Usuario no encontrado'
                     ]);
             }
-            
-            if (!$user['ProfileImage']) {
+
+            if (empty($profileImage['image'])) {
                 return $this->response
                     ->setStatusCode(404)
                     ->setJSON([
@@ -297,33 +283,29 @@ class UserProfile extends BaseController
                         'message' => 'Usuario no tiene imagen de perfil'
                     ]);
             }
-            
-            $imagePath = WRITEPATH . $user['ProfileImage'];
-            
-            if (!file_exists($imagePath)) {
+
+            $binary = base64_decode($profileImage['image'], true);
+            if ($binary === false) {
                 return $this->response
-                    ->setStatusCode(404)
+                    ->setStatusCode(500)
                     ->setJSON([
                         'success' => false,
-                        'message' => 'Imagen no encontrada en el servidor'
+                        'message' => 'Imagen de perfil corrupta (base64 inválido)'
                     ]);
             }
-            
-            // Retornar la imagen
-            $fileInfo = new \finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $fileInfo->file($imagePath);
-            
+
+            $mimeType = $profileImage['type'] ?: 'application/octet-stream';
+
             return $this->response
                 ->setContentType($mimeType)
-                ->setBody(file_get_contents($imagePath));
-                
+                ->setBody($binary);
+
         } catch (\Exception $e) {
             return $this->response
                 ->setStatusCode(500)
                 ->setJSON([
                     'success' => false,
-                    'message' => 'Error interno del servidor',
-                    'error' => $e->getMessage()
+                    'message' => 'Error interno del servidor: ' . $e->getMessage()
                 ]);
         }
     }

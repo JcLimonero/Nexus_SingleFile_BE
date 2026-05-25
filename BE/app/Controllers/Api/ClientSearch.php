@@ -121,28 +121,32 @@ class ClientSearch extends BaseController
             }
 
             $sql = "
-                SELECT 
-                    Id as idCliente,
-                    ndClient as ndCliente,
-                    TRIM(CONCAT(COALESCE(Name, ''), ' ', COALESCE(LastName, ''), ' ', COALESCE(MotherLastName, ''))) as cliente,
-                    Name as nombre,
-                    LastName as apellidoPaterno,
-                    MotherLastName as apellidoMaterno,
-                    RFC as rfc,
-                    Email as email,
-                    TelNumber as telefono,
-                    TelNumber2 as telefono2,
-                    RazonSocial as razonSocial,
-                    CURP as curp,
-                    Adviser as asesor,
-                    AgencyOrigin as agenciaOrigen,
-                    RegistrationDate as fechaRegistro,
-                    UpdateDate as fechaActualizacion,
-                    idAgency
-                FROM view_client
-                WHERE ndClient = ? AND idAgency = ?
+                SELECT
+                    hc.id_client AS idCliente,
+                    COALESCE(ctr.id_dms, '') AS ndCliente,
+                    TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) AS cliente,
+                    hc.id AS IdClientHeader,
+                    c.name AS nombre,
+                    c.last_name AS apellidoPaterno,
+                    c.mother_last_name AS apellidoMaterno,
+                    c.RFC AS rfc,
+                    c.email AS email,
+                    c.tel_number AS telefono,
+                    c.tel_number2 AS telefono2,
+                    c.business_name AS razonSocial,
+                    c.CURP AS curp,
+                    c.client_type AS tipoCliente,
+                    c.adviser AS asesor,
+                    c.agency_origin AS agenciaOrigen,
+                    c.registration_date AS fechaRegistro,
+                    c.update_date AS fechaActualizacion,
+                    ctr.id_agency AS idAgency
+                FROM client_header hc
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                INNER JOIN client c ON c.id = hc.id_client
+                WHERE ctr.id_dms = ? AND ctr.id_agency = ?
             ";
-            
+
             $query = $this->db->query($sql, [$id, $idAgency]);
             $result = $query->getRowArray();
 
@@ -192,30 +196,34 @@ class ClientSearch extends BaseController
             $offset = (int) $this->request->getGet('offset') ?: 0;
 
             $sql = "
-                SELECT 
-                    Id as idCliente,
-                    ndClient as ndCliente,
-                    TRIM(CONCAT(COALESCE(Name, ''), ' ', COALESCE(LastName, ''), ' ', COALESCE(MotherLastName, ''))) as cliente,
-                    Name as nombre,
-                    LastName as apellidoPaterno,
-                    MotherLastName as apellidoMaterno,
-                    RFC as rfc,
-                    Email as email,
-                    TelNumber as telefono,
-                    TelNumber2 as telefono2,
-                    RazonSocial as razonSocial,
-                    CURP as curp,
-                    Adviser as asesor,
-                    AgencyOrigin as agenciaOrigen,
-                    RegistrationDate as fechaRegistro,
-                    UpdateDate as fechaActualizacion,
-                    idAgency
-                FROM view_client
-                WHERE idAgency = ?
-                ORDER BY ndClient ASC
+                SELECT
+                    hc.id_client AS idCliente,
+                    COALESCE(ctr.id_dms, '') AS ndCliente,
+                    TRIM(CONCAT(COALESCE(c.name, ''), ' ', COALESCE(c.last_name, ''), ' ', COALESCE(c.mother_last_name, ''))) AS cliente,
+                    hc.id AS IdClientHeader,
+                    c.name AS nombre,
+                    c.last_name AS apellidoPaterno,
+                    c.mother_last_name AS apellidoMaterno,
+                    c.RFC AS rfc,
+                    c.email AS email,
+                    c.tel_number AS telefono,
+                    c.tel_number2 AS telefono2,
+                    c.business_name AS razonSocial,
+                    c.CURP AS curp,
+                    c.client_type AS tipoCliente,
+                    c.adviser AS asesor,
+                    c.agency_origin AS agenciaOrigen,
+                    c.registration_date AS fechaRegistro,
+                    c.update_date AS fechaActualizacion,
+                    ctr.id_agency AS idAgency
+                FROM client_header hc
+                INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
+                INNER JOIN client c ON c.id = hc.id_client
+                WHERE ctr.id_agency = ?
+                ORDER BY ctr.id_dms ASC
                 LIMIT ? OFFSET ?
             ";
-            
+
             $query = $this->db->query($sql, [$idAgency, $limit, $offset]);
             $results = $query->getResultArray();
 

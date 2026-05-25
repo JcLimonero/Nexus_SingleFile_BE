@@ -68,7 +68,6 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('/', 'Agency::index');
         $routes->post('/', 'Agency::create');
         $routes->get('search', 'Agency::search');
-        $routes->get('regions', 'Agency::regions');
         $routes->get('stats', 'Agency::stats');
         $routes->get('(:num)', 'Agency::show/$1');
         $routes->put('(:num)', 'Agency::update/$1');

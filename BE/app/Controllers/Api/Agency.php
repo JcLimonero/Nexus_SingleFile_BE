@@ -598,21 +598,6 @@ class Agency extends BaseController
     }
     
     /**
-     * GET /api/agency/regions
-     * Obtener todas las regiones disponibles
-     * NOTA: Método deshabilitado - columna SubFix no existe
-     */
-    public function regions()
-    {
-        return $this->response
-            ->setStatusCode(501)
-            ->setJSON([
-                'success' => false,
-                'message' => 'Funcionalidad de regiones no disponible - columna SubFix removida'
-            ]);
-    }
-    
-    /**
      * GET /api/agency/stats
      * Obtener estadísticas de agencias
      */

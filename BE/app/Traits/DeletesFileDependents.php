@@ -15,36 +15,22 @@ trait DeletesFileDependents
      */
     protected function deleteFileDependents($fileId): void
     {
-        // PLD: beneficiarios y geo logs cuelgan del expedient_pld, así que van antes
-        $pldIds = $this->db->table('expedient_pld')
-            ->select('id')
+        // PLD: beneficial owners y geo logs FK directo a expedient.id (id_expedient)
+        $this->db->table('expedient_pld_beneficial_owner')
             ->where('id_expedient', $fileId)
-            ->get()
-            ->getResultArray();
+            ->delete();
+        $this->db->table('expedient_pld_geo_log')
+            ->where('id_expedient', $fileId)
+            ->delete();
 
-        if (!empty($pldIds)) {
-            $ids = array_column($pldIds, 'id');
-            $this->db->table('file_pld_beneficiario_final')
-                ->whereIn('id_file_pld', $ids)
-                ->delete();
-            $this->db->table('expedient_pld_geo_log')
-                ->whereIn('id_file_pld', $ids)
-                ->delete();
-            $this->db->table('expedient_pld')
-                ->where('id_expedient', $fileId)
-                ->delete();
-        }
+        // expedient_pld.id_expedient es ON DELETE SET NULL, por lo que hay que
+        // borrarlo explícitamente antes que el expediente para evitar huérfanos.
+        $this->db->table('expedient_pld')
+            ->where('id_expedient', $fileId)
+            ->delete();
 
         // Tokens de share / miniportal
         $this->db->table('expedient_share_token')
-            ->where('id_expedient', $fileId)
-            ->delete();
-
-        // Razones / motivos extraordinarios
-        $this->db->table('file_extraordinary_reason')
-            ->where('id_expedient', $fileId)
-            ->delete();
-        $this->db->table('file_reason')
             ->where('id_expedient', $fileId)
             ->delete();
     }
