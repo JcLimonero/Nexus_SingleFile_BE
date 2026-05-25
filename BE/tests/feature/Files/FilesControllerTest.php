@@ -44,7 +44,6 @@ final class FilesControllerTest extends FeatureApiTestCase
             'GET by-agency-client'       => ['GET',  '/by-agency-client'],
             'POST create-from-NexFile'   => ['POST', '/create-from-NexFile'],
             'POST create-from-NexFile-new'=> ['POST', '/create-from-NexFile-new'],
-            'POST create-file-test'      => ['POST', '/create-file-test'],
             'POST check-existing-orders' => ['POST', '/check-existing-orders'],
             'POST repair-client-relation'=> ['POST', '/repair-client-relation'],
             'POST delete'                => ['POST', '/delete'],

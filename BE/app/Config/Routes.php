@@ -376,7 +376,6 @@ $routes->group('files', function($routes) {
     $routes->get('by-agency-client', 'Files::getByAgency');
     $routes->post('create-from-NexFile', 'Files::createFromNexFileNew');
     $routes->post('create-from-NexFile-new', 'Files::createFromNexFileNew');
-    $routes->post('create-file-test', 'Files::createFileTest');
     $routes->post('check-existing-orders', 'Files::checkExistingOrders');
     $routes->post('repair-client-relation', 'Files::repairClientRelation');
     $routes->post('delete', 'Files::deleteFile');
