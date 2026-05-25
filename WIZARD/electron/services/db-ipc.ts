@@ -436,9 +436,14 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
       }
 
       // 5. Admin user FIRST — every other row's id_last_user_update FK points to user.id
-      // Note: legacy `user` schema has no AUTO_INCREMENT on id, password lives in
-      // `user_pass`, and id_user_rol defaults to 0 (FK to user_role would fail).
-      // Assign id=1 (first user) and id_user_rol=7 (Administrador, seeded by data.sql).
+      // Note: legacy `user` schema has no AUTO_INCREMENT on id and id_user_rol
+      // defaults to 0 (FK to user_role would fail). Assign id=1 + id_user_rol=7
+      // (Administrador, seeded by data.sql).
+      //
+      // The bcrypt hash MUST go in `user.pass` — that's where AuthModel.php
+      // (line 95) reads from for `password_verify()`. The `user_pass` column
+      // is for a legacy "usuario,contraseña" fallback format. We populate both
+      // for forward-compat with anything that still reads `user_pass`.
       log.push('Creando usuario administrador del tenant…');
       const hash = await bcryptHash(payload.admin.password);
       const adminUserId = 1;
@@ -446,8 +451,8 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
       await withConnection(payload.tenant.db, async (c) => {
         await c.query('SET FOREIGN_KEY_CHECKS = 0');
         await c.query(
-          'INSERT INTO `user` (id, mail, user_pass, name, id_user_rol, enabled, password_migrated) VALUES (?, ?, ?, ?, ?, 1, 1)',
-          [adminUserId, payload.admin.email, hash, payload.admin.name ?? payload.admin.email, adminRoleId],
+          'INSERT INTO `user` (id, mail, pass, user_pass, name, id_user_rol, enabled, password_migrated) VALUES (?, ?, ?, ?, ?, ?, 1, 1)',
+          [adminUserId, payload.admin.email, hash, hash, payload.admin.name ?? payload.admin.email, adminRoleId],
         );
         await c.query('SET FOREIGN_KEY_CHECKS = 1');
       });

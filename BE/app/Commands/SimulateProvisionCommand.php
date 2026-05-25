@@ -69,9 +69,10 @@ class SimulateProvisionCommand extends BaseCommand
         // === 3. Admin user FIRST (mimics fixed provision flow) ===
         $db->query("SET FOREIGN_KEY_CHECKS = 0");
         $adminId = 1;
+        $hash = password_hash('simpass', PASSWORD_BCRYPT);
         $db->query(
-            "INSERT INTO `user` (id, mail, user_pass, name, id_user_rol, enabled, password_migrated) VALUES (?, ?, ?, ?, ?, 1, 1)",
-            [$adminId, 'admin@sim.test', password_hash('simpass', PASSWORD_BCRYPT), 'Sim Admin', 7]
+            "INSERT INTO `user` (id, mail, pass, user_pass, name, id_user_rol, enabled, password_migrated) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
+            [$adminId, 'admin@sim.test', $hash, $hash, 'Sim Admin', 7]
         );
         CLI::write("+ admin user id={$adminId} (rol 7=Administrador)", 'green');
 
