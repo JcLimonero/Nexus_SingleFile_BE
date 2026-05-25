@@ -86,10 +86,11 @@ function baselineDir(): string | null {
  * preserves DDL/DML semantics. Each statement runs in its own query() call
  * because mysql2 multipleStatements: true is off by default for safety.
  */
-async function executeSqlScript(cfg: DbConnectionConfig, scriptPath: string): Promise<{ ok: boolean; executed: number; failed?: { stmt: string; error: string } }> {
+async function executeSqlScript(cfg: DbConnectionConfig, scriptPath: string): Promise<{ ok: boolean; executed: number; viewsSkipped: number; failed?: { stmt: string; error: string } }> {
   const text = fs.readFileSync(scriptPath, 'utf8');
   const stmts = splitSqlStatements(text);
   let executed = 0;
+  let viewsSkipped = 0;
   try {
     await withConnection(cfg, async (c) => {
       for (const s of stmts) {
@@ -97,14 +98,25 @@ async function executeSqlScript(cfg: DbConnectionConfig, scriptPath: string): Pr
           await c.query(s);
           executed++;
         } catch (e) {
+          // VIEW/DROP VIEW failures are non-fatal — the source schema in
+          // `nexfile` ships with stale view definitions that reference
+          // tables already renamed by migration #038 (snake_case sweep).
+          // Those views are broken in the source too; skip them and keep
+          // applying real DDL.
+          const head = s.replace(/^\s+/, '').toUpperCase();
+          const isViewStmt = head.startsWith('CREATE ALGORITHM') || head.includes('VIEW ') || head.startsWith('DROP VIEW');
+          if (isViewStmt) {
+            viewsSkipped++;
+            continue;
+          }
           throw new Error(`stmt #${executed + 1} (${s.slice(0, 60).replace(/\s+/g, ' ')}…): ${(e as Error).message}`);
         }
       }
     });
-    return { ok: true, executed };
+    return { ok: true, executed, viewsSkipped };
   } catch (e) {
     const msg = (e as Error).message;
-    return { ok: false, executed, failed: { stmt: msg.split(':')[0] ?? 'unknown', error: msg } };
+    return { ok: false, executed, viewsSkipped, failed: { stmt: msg.split(':')[0] ?? 'unknown', error: msg } };
   }
 }
 
@@ -329,7 +341,8 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         }
         log.push('  → schema.sql (CREATE TABLE / VIEW)');
         const r1 = await executeSqlScript(payload.tenant.db, schemaFile);
-        log.push(`    ${r1.executed} statements aplicados`);
+        log.push(`    ${r1.executed} statements aplicados` +
+                 (r1.viewsSkipped ? `, ${r1.viewsSkipped} views legacy omitidas` : ''));
         if (!r1.ok) {
           return { ok: false, log, message: `Schema falló en ${r1.failed?.error}` };
         }
