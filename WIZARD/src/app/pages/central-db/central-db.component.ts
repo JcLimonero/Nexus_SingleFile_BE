@@ -92,20 +92,28 @@ export class CentralDbComponent implements OnInit {
   loadedFromIni = signal(false);
 
   async ngOnInit() {
-    // First-time visit: pre-fill from config/central.env if it exists.
-    // Subsequent visits keep whatever the user already entered.
-    if (this.cfg.host && this.cfg.user) return;
+    // Always try to load central.env so downstream steps (Tenant DB, Admin
+    // user) get prefill values, even when the user is just re-visiting this
+    // step with cfg already populated from a prior session.
     if (!window.wizardApi?.config) return;
     const r = await window.wizardApi.config.loadCentral();
     if (!r.ok || !r.data) return;
-    this.cfg = { ...r.data.central };
-    this.adminApi = r.data.adminApiBase;
-    // Stash the encryption key in state so the Tenant step can pre-fill it
+
+    // Only overwrite the central DB form fields when they're empty (don't
+    // clobber manual edits the user has been making).
+    const alreadyHasCfg = !!(this.cfg.host && this.cfg.user);
+    if (!alreadyHasCfg) {
+      this.cfg = { ...r.data.central };
+      this.adminApi = r.data.adminApiBase;
+      this.loadedFromIni.set(true);
+    }
+
+    // The downstream-prefill state IS safe to always refresh — these signals
+    // only drive default values for later steps; they don't overwrite typed
+    // input because each step copies into its own local state on entry.
     this.state.encryptionKey.set(r.data.encryptionKey);
-    // Stash super-admin prefill for Step 3 (admin-login)
     this.state.adminPrefillEmail.set(r.data.superAdminEmail);
     this.state.adminPrefillPassword.set(r.data.superAdminPassword);
-    this.loadedFromIni.set(true);
   }
 
   async test() {

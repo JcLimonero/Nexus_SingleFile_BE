@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -66,7 +66,7 @@ import { WizardStateService } from '../../state/wizard-state.service';
     </mat-card>
   `,
 })
-export class AdminUserComponent {
+export class AdminUserComponent implements OnInit {
   readonly state = inject(WizardStateService);
   private readonly router = inject(Router);
   draft = { ...this.state.adminUserDraft() };
@@ -74,18 +74,37 @@ export class AdminUserComponent {
 
   /**
    * Default ON when central.env has a super-admin AND the user hasn't
-   * already typed a different email. Lets NexusQTech ops "be" the tenant
-   * admin in one click for managed deployments.
+   * already typed a different email. Re-evaluated after ngOnInit, which
+   * may load the prefill from disk if the user jumped here without
+   * visiting Step 2 (CentralDb).
    */
-  useSameAsSuperAdmin = (() => {
+  useSameAsSuperAdmin = this.shouldDefaultOn();
+
+  constructor() {
+    if (this.useSameAsSuperAdmin) this.copyFromSuperAdmin();
+  }
+
+  async ngOnInit(): Promise<void> {
+    // If the user jumped here without passing Step 2 (CentralDb), the
+    // prefill signals are empty. Load central.env directly so this step
+    // can still auto-fill without backtracking.
+    if (this.state.adminPrefillEmail() || !window.wizardApi?.config) return;
+    const r = await window.wizardApi.config.loadCentral();
+    if (!r.ok || !r.data) return;
+    this.state.adminPrefillEmail.set(r.data.superAdminEmail);
+    this.state.adminPrefillPassword.set(r.data.superAdminPassword);
+    // Re-default the checkbox if the form is still empty
+    if (!this.draft.email && this.shouldDefaultOn()) {
+      this.useSameAsSuperAdmin = true;
+      this.copyFromSuperAdmin();
+    }
+  }
+
+  private shouldDefaultOn(): boolean {
     const e = this.state.adminPrefillEmail();
     if (!e) return false;
     if (this.draft.email && this.draft.email !== e) return false;
     return true;
-  })();
-
-  constructor() {
-    if (this.useSameAsSuperAdmin) this.copyFromSuperAdmin();
   }
 
   onUseSameChange(checked: boolean): void {
