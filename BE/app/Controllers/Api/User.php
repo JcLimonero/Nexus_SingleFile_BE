@@ -434,7 +434,7 @@ class User extends BaseController
             }
         }
 
-        // Procesos asignados (process_user FK)
+        // Procesos asignados (sale_type_user FK)
         if ($db->tableExists('sale_type_user')) {
             $processCount = $db->table('sale_type_user')->where('id_user', $userId)->countAllResults();
             if ($processCount > 0) {

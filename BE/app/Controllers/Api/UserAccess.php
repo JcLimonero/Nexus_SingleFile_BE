@@ -33,7 +33,7 @@ class UserAccess extends BaseController
                 ->getResultArray();
 
             // Obtener procesos asignados (snake_case)
-            $processes = $db->table('process_user pu')
+            $processes = $db->table('sale_type_user pu')
                 ->select('pu.id_sale_type, p.name as process_name, p.enabled')
                 ->join('sale_type p', 'p.id = pu.id_sale_type', 'inner')
                 ->where('pu.id_user', $userId)

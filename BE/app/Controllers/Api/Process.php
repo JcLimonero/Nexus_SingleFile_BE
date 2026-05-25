@@ -117,7 +117,7 @@ class Process extends BaseController
                 $userId = $currentUser['user_id'];
                 $db = \Config\Database::connect();
                 
-                $builder = $db->table('process_user pu')
+                $builder = $db->table('sale_type_user pu')
                     ->join('sale_type p', 'p.id = pu.id_sale_type', 'inner')
                     ->where('pu.id_user', $userId);
                 
