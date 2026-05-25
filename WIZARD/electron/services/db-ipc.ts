@@ -142,22 +142,24 @@ function splitSqlStatements(text: string): string[] {
     }
 
     if (ch === ';' && !inSingle && !inDouble && !inBacktick) {
-      const t = buf.trim();
-      if (t.length > 0 && !/^\s*(--|#)/.test(t)) {
-        // Strip leading comment-only blocks but preserve statement
-        const cleaned = t
-          .split('\n')
-          .filter((l) => !/^\s*(--|#)/.test(l) || l.trim() !== '')
-          .join('\n')
-          .trim();
-        if (cleaned) out.push(cleaned);
-      }
+      // Always strip comment-only lines (--..., #...) from the buffer,
+      // then keep the statement if anything non-comment remains.
+      const cleaned = buf
+        .split('\n')
+        .filter((l) => !/^\s*(--|#)/.test(l))
+        .join('\n')
+        .trim();
+      if (cleaned) out.push(cleaned);
       buf = '';
     } else {
       buf += ch;
     }
   }
-  const tail = buf.trim();
+  const tail = buf
+    .split('\n')
+    .filter((l) => !/^\s*(--|#)/.test(l))
+    .join('\n')
+    .trim();
   if (tail) out.push(tail);
   return out;
 }
