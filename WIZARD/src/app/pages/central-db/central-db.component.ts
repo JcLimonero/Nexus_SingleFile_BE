@@ -102,6 +102,9 @@ export class CentralDbComponent implements OnInit {
     this.adminApi = r.data.adminApiBase;
     // Stash the encryption key in state so the Tenant step can pre-fill it
     this.state.encryptionKey.set(r.data.encryptionKey);
+    // Stash super-admin prefill for Step 3 (admin-login)
+    this.state.adminPrefillEmail.set(r.data.superAdminEmail);
+    this.state.adminPrefillPassword.set(r.data.superAdminPassword);
     this.loadedFromIni.set(true);
   }
 

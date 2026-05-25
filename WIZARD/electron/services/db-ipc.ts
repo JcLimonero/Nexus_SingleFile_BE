@@ -441,6 +441,8 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
           },
           adminApiBase: env['ADMIN_BE_URL'] ?? 'http://localhost:8087',
           encryptionKey: env['TENANT_DB_ENCRYPTION_KEY'] ?? '',
+          superAdminEmail:    env['SUPER_ADMIN_EMAIL']    ?? '',
+          superAdminPassword: env['SUPER_ADMIN_PASSWORD'] ?? '',
         },
         path: p,
       };

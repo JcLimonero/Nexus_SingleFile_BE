@@ -35,6 +35,8 @@ export interface WizardApi {
         central: DbConfig;
         adminApiBase: string;
         encryptionKey: string;
+        superAdminEmail: string;
+        superAdminPassword: string;
       };
     }>;
   };

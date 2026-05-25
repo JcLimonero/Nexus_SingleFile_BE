@@ -59,8 +59,10 @@ import { WizardStateService } from '../../state/wizard-state.service';
 export class AdminLoginComponent {
   readonly state = inject(WizardStateService);
   private readonly router = inject(Router);
-  email = '';
-  password = '';
+  // Pre-fill from config/central.env (populated by the CentralDb step).
+  // Falls back to empty so manual entry still works for ad-hoc super-admins.
+  email = this.state.adminPrefillEmail();
+  password = this.state.adminPrefillPassword();
   loading = signal(false);
   error = signal<string | null>(null);
 

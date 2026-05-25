@@ -31,6 +31,9 @@ export class WizardStateService {
   readonly adminApiBase = signal('http://localhost:8087');
   readonly adminToken   = signal<string | null>(null);
   readonly adminUser    = signal<{ id: number; email: string; name?: string } | null>(null);
+  /** Prefilled super-admin creds (from config/central.env) — set by CentralDb. */
+  readonly adminPrefillEmail    = signal('');
+  readonly adminPrefillPassword = signal('');
 
   // Step 3: Tenant identity + DB config
   readonly tenantSlug = signal('');
