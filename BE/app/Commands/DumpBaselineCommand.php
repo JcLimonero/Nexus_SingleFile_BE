@@ -42,7 +42,11 @@ class DumpBaselineCommand extends BaseCommand
         'file_sub_status' => 'file_sub_state',
     ];
 
-    /** Catalog tables whose rows go into data.sql. Order matters (FK deps). */
+    /** Catalog tables whose rows go into data.sql. Order matters (FK deps).
+     *  NOTE: tablas tenant-config (configuration_process,
+     *  configuration_process_document_type, etc.) NO se incluyen — cada tenant
+     *  arma su propia configuración. Solo van catálogos de referencia (roles,
+     *  estados, tipos de documento, etc.). */
     private const CATALOG_TABLES = [
         'user_role',
         'process',
@@ -52,7 +56,6 @@ class DumpBaselineCommand extends BaseCommand
         'file_status',           // → file_state after rename
         'file_sub_status',       // → file_sub_state after rename
         'document_type',
-        'configuration_process_document_type',
         'file_reasons',
         'document_file_error',
         'document_file_status',
