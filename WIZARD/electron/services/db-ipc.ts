@@ -466,8 +466,13 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
       await withConnection(payload.tenant.db, async (c) => {
         await c.query('SET FOREIGN_KEY_CHECKS = 0');
 
+        // enabled=1 explícito en las 3 — el schema legacy tiene
+        // `agency.enabled DEFAULT 0` y el BE filtra todos los listados con
+        // `WHERE enabled = 1`, así que sin esto la agencia recién creada no
+        // aparece en ningún módulo. client_group/company se setean también
+        // por consistencia (aunque su DEFAULT es 1).
         const [g]: any = await c.query(
-          'INSERT INTO client_group (name, description, id_last_user_update) VALUES (?, ?, ?)',
+          'INSERT INTO client_group (name, description, enabled, id_last_user_update) VALUES (?, ?, 1, ?)',
           [payload.clientGroup.name, payload.clientGroup.description ?? null, adminUserId],
         );
         const clientGroupId = g.insertId;
@@ -475,7 +480,7 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         const companyIds: number[] = [];
         for (const co of payload.companies) {
           const [cr]: any = await c.query(
-            'INSERT INTO company (name, id_client_group, id_last_user_update) VALUES (?, ?, ?)',
+            'INSERT INTO company (name, id_client_group, enabled, id_last_user_update) VALUES (?, ?, 1, ?)',
             [co.name, clientGroupId, adminUserId],
           );
           companyIds.push(cr.insertId);
@@ -484,7 +489,7 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         for (const a of payload.agencies) {
           const idCompany = companyIds[a.companyIndex] ?? companyIds[0];
           await c.query(
-            'INSERT INTO agency (name, id_company, id_last_user_update) VALUES (?, ?, ?)',
+            'INSERT INTO agency (name, id_company, enabled, id_last_user_update) VALUES (?, ?, 1, ?)',
             [a.name, idCompany, adminUserId],
           );
         }

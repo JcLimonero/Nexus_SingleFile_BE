@@ -78,17 +78,17 @@ class SimulateProvisionCommand extends BaseCommand
 
         // === 4. Hierarchy ===
         $db->query(
-            "INSERT INTO client_group (name, description, id_last_user_update) VALUES (?, ?, ?)",
+            "INSERT INTO client_group (name, description, enabled, id_last_user_update) VALUES (?, ?, 1, ?)",
             ['Sim Group', 'simulated', $adminId]
         );
         $cgId = $db->insertID();
         $db->query(
-            "INSERT INTO company (name, id_client_group, id_last_user_update) VALUES (?, ?, ?)",
+            "INSERT INTO company (name, id_client_group, enabled, id_last_user_update) VALUES (?, ?, 1, ?)",
             ['Sim Company', $cgId, $adminId]
         );
         $cId = $db->insertID();
         $db->query(
-            "INSERT INTO agency (name, id_company, id_last_user_update) VALUES (?, ?, ?)",
+            "INSERT INTO agency (name, id_company, enabled, id_last_user_update) VALUES (?, ?, 1, ?)",
             ['Sim Agency', $cId, $adminId]
         );
         $aId = $db->insertID();
