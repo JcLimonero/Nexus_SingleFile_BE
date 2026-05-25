@@ -6,9 +6,15 @@ REM  Double-click this file to launch the desktop wizard.
 REM  On first run it installs npm dependencies (~3-5 minutes).
 REM  Subsequent runs go straight to launching Electron.
 REM
+REM  Flow: 13 pasos (Welcome -> Central DB -> Super-admin -> Tenant ->
+REM  Grupo -> Companies -> Agencias -> Procesos -> Catalogos -> Admin ->
+REM  Branding -> Integraciones -> Confirmar -> Listo). El paso Confirmar
+REM  hace toda la provision atomicamente con auto-rollback si algo falla.
+REM
 REM  Requirements:
 REM   - Node.js 20+ installed and on PATH
 REM   - config\central.env present at the repo root (one level up)
+REM     (copy from config\central.env.template and fill in the creds)
 REM ============================================================
 
 setlocal
@@ -61,7 +67,22 @@ if not exist "..\config\central.env" (
     pause
 )
 
-REM Launch the wizard
+REM Close any prior wizard instance so we always launch against the freshly
+REM built electron main + Angular bundle. The dev rule is: each relaunch must
+REM pick up the latest electron/services/db-ipc.ts changes — stale processes
+REM hide them.
+echo Cerrando instancias previas del WIZARD...
+taskkill /F /IM electron.exe /T >nul 2>&1
+REM Free port 4300 if a zombie ng serve is holding it, otherwise
+REM `wait-on http://localhost:4300` hangs forever.
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":4300 " ^| findstr LISTENING') do (
+    echo   - Liberando puerto 4300 ^(pid %%a^)...
+    taskkill /F /PID %%a >nul 2>&1
+)
+timeout /t 1 /nobreak >nul
+
+REM Launch the wizard (npm start re-compiles electron main first, then
+REM runs Angular dev server + electron in parallel via concurrently)
 echo.
 echo Launching wizard... (Ctrl+C to abort)
 echo.
