@@ -36,7 +36,7 @@ class DocumentoRequerido extends BaseController
             $sortOrder = $this->request->getGet('sort_order') ?: 'ASC';
 
             $filters = [
-                'id_process' => $this->request->getGet('id_process'),
+                'id_sale_type' => $this->request->getGet('id_sale_type'),
                 'id_agency' => $this->request->getGet('id_agency'),
                 'id_company' => $this->request->getGet('id_company'),
                 'id_customer_type' => $this->request->getGet('id_customer_type'),
@@ -186,7 +186,7 @@ class DocumentoRequerido extends BaseController
             }
 
             if ($this->documentoRequeridoModel->existsDocumentoRequerido(
-                $data['id_process'], 
+                $data['id_sale_type'], 
                 $data['id_agency'], 
                 $data['id_customer_type'], 
                 $data['id_operation_type'], 
@@ -210,7 +210,7 @@ class DocumentoRequerido extends BaseController
             
             if ($result) {
                 $documentoCreado = $this->documentoRequeridoModel->getDocumentosRequeridosWithRelations([
-                    'id_process' => $data['id_process'],
+                    'id_sale_type' => $data['id_sale_type'],
                     'id_agency' => $data['id_agency'],
                     'id_customer_type' => $data['id_customer_type'],
                     'id_operation_type' => $data['id_operation_type']
@@ -307,7 +307,7 @@ class DocumentoRequerido extends BaseController
                 $isOnlyEnabledUpdate = true;
             } else {
                 $configFieldsMatch = true;
-                $configFields = ['id_process', 'id_agency', 'id_customer_type', 'id_operation_type', 'id_document_type'];
+                $configFields = ['id_sale_type', 'id_agency', 'id_customer_type', 'id_operation_type', 'id_document_type'];
                 foreach ($configFields as $field) {
                     if (isset($data[$field])) {
                         $requestValue = $normalizeValue($data[$field]);
@@ -323,12 +323,12 @@ class DocumentoRequerido extends BaseController
                 }
             }
 
-            if (!$isOnlyEnabledUpdate && isset($data['id_process']) && isset($data['id_agency']) && 
+            if (!$isOnlyEnabledUpdate && isset($data['id_sale_type']) && isset($data['id_agency']) && 
                 isset($data['id_customer_type']) && isset($data['id_operation_type']) && 
                 isset($data['id_document_type'])) {
                 
                 $configChanged = (
-                    $normalizeValue($data['id_process']) !== $normalizeValue($existingDocumento['id_process'] ?? '') ||
+                    $normalizeValue($data['id_sale_type']) !== $normalizeValue($existingDocumento['id_sale_type'] ?? '') ||
                     $normalizeValue($data['id_agency']) !== $normalizeValue($existingDocumento['id_agency'] ?? '') ||
                     $normalizeValue($data['id_customer_type']) !== $normalizeValue($existingDocumento['id_customer_type'] ?? '') ||
                     $normalizeValue($data['id_operation_type']) !== $normalizeValue($existingDocumento['id_operation_type'] ?? '') ||
@@ -337,7 +337,7 @@ class DocumentoRequerido extends BaseController
                 
                 if ($configChanged) {
                     if ($this->documentoRequeridoModel->existsDocumentoRequerido(
-                        $data['id_process'], 
+                        $data['id_sale_type'], 
                         $data['id_agency'], 
                         $data['id_customer_type'], 
                         $data['id_operation_type'], 
@@ -585,7 +585,7 @@ class DocumentoRequerido extends BaseController
             $target = $data['target'];
 
             $sourceFilters = [
-                'id_process' => $source['id_process'] ?? null,
+                'id_sale_type' => $source['id_sale_type'] ?? null,
                 'id_agency' => $source['id_agency'] ?? null,
                 'id_customer_type' => $source['id_customer_type'] ?? null,
                 'id_operation_type' => $source['id_operation_type'] ?? null
@@ -600,7 +600,7 @@ class DocumentoRequerido extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $targetProcess = $target['id_process'] ?? null;
+            $targetProcess = $target['id_sale_type'] ?? null;
             $targetAgency = $target['id_agency'] ?? null;
             $targetCustomerType = $target['id_customer_type'] ?? null;
             $targetOperationType = $target['id_operation_type'] ?? null;
@@ -622,7 +622,7 @@ class DocumentoRequerido extends BaseController
                 }
 
                 $duplicateData = [
-                    'id_process' => $targetProcess,
+                    'id_sale_type' => $targetProcess,
                     'id_agency' => $targetAgency,
                     'id_customer_type' => $targetCustomerType,
                     'id_operation_type' => $targetOperationType,
@@ -666,7 +666,7 @@ class DocumentoRequerido extends BaseController
 
     private function validateRequiredFields($data)
     {
-        $required = ['id_process', 'id_agency', 'id_customer_type', 'id_operation_type', 'id_document_type'];
+        $required = ['id_sale_type', 'id_agency', 'id_customer_type', 'id_operation_type', 'id_document_type'];
         foreach ($required as $field) {
             if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
                 return false;

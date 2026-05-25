@@ -61,6 +61,6 @@ class ProcessSeeder extends Seeder
             ]
         ];
 
-        $this->db->table('process')->insertBatch($data);
+        \$this->db->table('sale_type')->insertBatch($data);
     }
 }

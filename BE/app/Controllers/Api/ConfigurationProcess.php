@@ -40,7 +40,7 @@ class ConfigurationProcess extends BaseController
             
             $builder->select('
                 cp.id as configuration_id,
-                cp.id_process,
+                cp.id_sale_type,
                 p.name as process_name,
                 cp.id_agency,
                 a.name as agency_name,
@@ -52,7 +52,7 @@ class ConfigurationProcess extends BaseController
                 cp.registration_date,
                 cp.update_date
             ')
-            ->join('process p', 'p.id = cp.id_process', 'left')
+            ->join('process p', 'p.id = cp.id_sale_type', 'left')
             ->join('agency a', 'a.id = cp.id_agency', 'left')
             ->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left')
             ->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left')
@@ -79,10 +79,10 @@ class ConfigurationProcess extends BaseController
             // Extraer procesos únicos
             $processIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['id_process'], $processIds)) {
-                    $processIds[] = $config['id_process'];
+                if (!in_array($config['id_sale_type'], $processIds)) {
+                    $processIds[] = $config['id_sale_type'];
                     $organizedData['processes'][] = [
-                        'id' => $config['id_process'],
+                        'id' => $config['id_sale_type'],
                         'name' => $config['process_name']
                     ];
                 }
@@ -157,7 +157,7 @@ class ConfigurationProcess extends BaseController
             
             $builder->select('
                 cp.id as configuration_id,
-                cp.id_process,
+                cp.id_sale_type,
                 p.name as process_name,
                 cp.id_agency,
                 a.name as agency_name,
@@ -169,7 +169,7 @@ class ConfigurationProcess extends BaseController
                 cp.registration_date,
                 cp.update_date
             ')
-            ->join('process p', 'p.id = cp.id_process', 'left')
+            ->join('process p', 'p.id = cp.id_sale_type', 'left')
             ->join('agency a', 'a.id = cp.id_agency', 'left')
             ->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left')
             ->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left')
@@ -196,8 +196,8 @@ class ConfigurationProcess extends BaseController
                 $organizedData['configurations'][] = [
                     'id' => $config['configuration_id'],
                     'Id' => $config['configuration_id'],
-                    'id_process' => $config['id_process'],
-                    'IdProcess' => $config['id_process'],
+                    'id_sale_type' => $config['id_sale_type'],
+                    'IdProcess' => $config['id_sale_type'],
                     'id_customer_type' => $config['id_customer_type'],
                     'IdCostumerType' => $config['id_customer_type'],
                     'id_operation_type' => $config['id_operation_type'],
@@ -208,11 +208,11 @@ class ConfigurationProcess extends BaseController
             // Extraer procesos únicos
             $processIds = [];
             foreach ($configurations as $config) {
-                if (!in_array($config['id_process'], $processIds)) {
-                    $processIds[] = $config['id_process'];
+                if (!in_array($config['id_sale_type'], $processIds)) {
+                    $processIds[] = $config['id_sale_type'];
                     $organizedData['processes'][] = [
-                        'id' => $config['id_process'],
-                        'Id' => $config['id_process'],
+                        'id' => $config['id_sale_type'],
+                        'Id' => $config['id_sale_type'],
                         'name' => $config['process_name'],
                         'Name' => $config['process_name']
                     ];

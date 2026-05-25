@@ -348,7 +348,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
 
   applyFilters(): void {
     this.filteredConfigurations = this.allConfigurations.filter(config => {
-      const matchesProcess = !this.selectedProcess || String(config.id_process) === String(this.selectedProcess);
+      const matchesProcess = !this.selectedProcess || String(config.id_sale_type) === String(this.selectedProcess);
       const matchesAgency = !this.selectedAgency || String(config.id_agency) === String(this.selectedAgency);
       const matchesCostumerType = !this.selectedCostumerType || String(config.id_customer_type) === String(this.selectedCostumerType);
       const matchesOperationType = !this.selectedOperationType || String(config.id_operation_type) === String(this.selectedOperationType);

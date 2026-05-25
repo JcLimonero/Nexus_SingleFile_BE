@@ -100,7 +100,7 @@ class Validacion extends BaseController
                 SELECT 
                     f.id as idFile,
                     f.id_agency,
-                    f.id_process,
+                    f.id_sale_type,
                     f.id_client,
                     f.id_current_state,
                     f.id_order_total as ndPedido,
@@ -110,7 +110,7 @@ class Validacion extends BaseController
                     fs.name as estado_actual
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE f.id = ?
             ", [$idFile])->getRowArray();
@@ -367,7 +367,7 @@ class Validacion extends BaseController
             $idAgencyInt = $idAgency ? (int) $idAgency : null;
             $idProcessInt = $idProcess ? (int) $idProcess : null;
             $fileIdAgency = (int) ($fileInfo['id_agency'] ?? $fileInfo['IdAgency'] ?? 0);
-            $fileIdProcess = (int) ($fileInfo['id_process'] ?? $fileInfo['IdProcess'] ?? 0);
+            $fileIdProcess = (int) ($fileInfo['id_sale_type'] ?? $fileInfo['IdProcess'] ?? 0);
             
             // Evaluar condiciones
             // Agencia: solo se evalúa si se pasa el parámetro
@@ -1001,7 +1001,7 @@ class Validacion extends BaseController
                 LEFT JOIN file_pld fp ON fp.IdFile = f.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
@@ -1042,7 +1042,7 @@ class Validacion extends BaseController
                 $params[] = $idAgency;
             }
             if ($filtrarPorProceso) {
-                $sql .= " AND f.id_process = ?";
+                $sql .= " AND f.id_sale_type = ?";
                 $params[] = $idProcess;
             }
             
@@ -1081,7 +1081,7 @@ class Validacion extends BaseController
                 FROM expedient f
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE 1=1
@@ -1099,7 +1099,7 @@ class Validacion extends BaseController
                 $countParams[] = $idAgency;
             }
             if ($filtrarPorProceso) {
-                $countSql .= " AND f.id_process = ?";
+                $countSql .= " AND f.id_sale_type = ?";
                 $countParams[] = $idProcess;
             }
             if ($showCancelled) {
@@ -1552,10 +1552,10 @@ class Validacion extends BaseController
 
             $query = $this->db->table('expedient f')
                 ->select('fs.name as estado, COUNT(*) as cantidad')
-                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->join('file_state fs', 'f.id_current_state = fs.id', 'inner')
                 ->where('f.id_agency', $idAgency)
-                ->where('f.id_process', $idProcess)
+                ->where('f.id_sale_type', $idProcess)
                 ->where('p.enabled', 1)
                 ->groupBy('f.id_current_state, fs.name')
                 ->orderBy('f.id_current_state');
@@ -1617,7 +1617,7 @@ class Validacion extends BaseController
                         (SELECT 1 FROM configuration_process_document_type cpd
                          INNER JOIN configuration_process cp ON cp.id = cpd.id_configuration_process AND cp.enabled = 1
                          WHERE cpd.id_document_type = dbf.id_document_type
-                           AND cp.id_process = f.id_process
+                           AND cp.id_sale_type = f.id_sale_type
                            AND cp.id_agency = f.id_agency
                            AND COALESCE(cp.id_customer_type, 0) = COALESCE(f.id_customer_type, 0)
                            AND COALESCE(cp.id_operation_type, 0) = COALESCE(f.id_operation, 0)
@@ -1638,9 +1638,9 @@ class Validacion extends BaseController
                     lrd.registration_date as registrationDate
                 ')
                 ->join('expedient f', 'dbf.id_file = f.id', 'inner')
-                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-                ->join('file_state fs', 'dt.id_process_type = fs.id', 'inner')
+                ->join('file_state fs', 'dt.id_sale_type = fs.id', 'inner')
                 ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
                 ->join('user u', 'dbf.id_last_user_update = u.id', 'left')
                 ->join('liquidation_receipt_detail lrd', 'lrd.id_file_document = dbf.id AND lrd.id_file = dbf.id_file', 'left')
@@ -2505,7 +2505,7 @@ class Validacion extends BaseController
                 FROM expedient f
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
@@ -3080,9 +3080,9 @@ class Validacion extends BaseController
             $docs = $this->db->table('file_document dbf')
                 ->select('dbf.id_document_container as documentContainer, p.name as proceso, fs.name as fase, dt.name as tipoDocumento, dbf.name as documento')
                 ->join('expedient f', 'dbf.id_file = f.id', 'inner')
-                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-                ->join('file_state fs', 'dt.id_process_type = fs.id', 'inner')
+                ->join('file_state fs', 'dt.id_sale_type = fs.id', 'inner')
                 ->where('dbf.id_file', $idFile)
                 ->where('dbf.enabled', 1)
                 ->where('dbf.id_document_container IS NOT NULL')

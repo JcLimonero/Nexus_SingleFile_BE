@@ -38,8 +38,11 @@ class DumpBaselineCommand extends BaseCommand
 
     /** table → renamed-table emitted to the script. */
     private const TABLE_RENAMES = [
-        'file_status'     => 'file_state',
-        'file_sub_status' => 'file_sub_state',
+        'file_status'           => 'file_state',
+        'file_sub_status'       => 'file_sub_state',
+        'process'               => 'sale_type',
+        'process_user'          => 'sale_type_user',
+        'client_group_process'  => 'client_group_sale_type',
     ];
 
     /** Catalog tables whose rows go into data.sql. Order matters (FK deps).
@@ -163,17 +166,17 @@ class DumpBaselineCommand extends BaseCommand
         $out .= "  UNIQUE KEY `uq_client_group_name` (`name`)\n";
         $out .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n";
 
-        $out .= "DROP TABLE IF EXISTS `client_group_process`;\n";
-        $out .= "CREATE TABLE `client_group_process` (\n";
+        $out .= "DROP TABLE IF EXISTS `client_group_sale_type`;\n";
+        $out .= "CREATE TABLE `client_group_sale_type` (\n";
         $out .= "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n";
         $out .= "  `id_client_group` BIGINT NOT NULL,\n";
-        $out .= "  `id_process` BIGINT NOT NULL,\n";
+        $out .= "  `id_sale_type` BIGINT NOT NULL,\n";
         $out .= "  `display_order` INT DEFAULT 0,\n";
         $out .= "  `enabled` TINYINT(1) DEFAULT 1,\n";
         $out .= "  `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,\n";
         $out .= "  `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n";
         $out .= "  PRIMARY KEY (`id`),\n";
-        $out .= "  UNIQUE KEY `uq_cgp` (`id_client_group`, `id_process`),\n";
+        $out .= "  UNIQUE KEY `uq_cgp` (`id_client_group`, `id_sale_type`),\n";
         $out .= "  CONSTRAINT `fk_cgp_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE\n";
         $out .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n";
 
@@ -213,14 +216,14 @@ class DumpBaselineCommand extends BaseCommand
 
         $out .= "-- Categoría A (Phase A, sin huérfanos):\n";
         $out .= "ALTER TABLE `client_group` ADD CONSTRAINT `fk_cg_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `client_group_process` ADD CONSTRAINT `fk_cgp_process` FOREIGN KEY (`id_process`) REFERENCES `process` (`id`) ON DELETE CASCADE;\n";
+        $out .= "ALTER TABLE `client_group_sale_type` ADD CONSTRAINT `fk_cgst_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE CASCADE;\n";
         $out .= "ALTER TABLE `client_group_phase` ADD CONSTRAINT `fk_cgph_file_state` FOREIGN KEY (`id_file_state`) REFERENCES `file_state` (`id`) ON DELETE CASCADE;\n";
         $out .= "ALTER TABLE `company` ADD CONSTRAINT `fk_company_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n\n";
 
         $out .= "-- Categoría B (legacy hierarchy, post-cleanup):\n";
         $out .= "ALTER TABLE `agency` ADD CONSTRAINT `fk_agency_company` FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_process_type` FOREIGN KEY (`id_process_type`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sub_process` FOREIGN KEY (`id_sub_process`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sub_sale_type` FOREIGN KEY (`id_sub_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
         $out .= "ALTER TABLE `liquidation_receipt_detail` ADD CONSTRAINT `fk_lrd_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
         $out .= "ALTER TABLE `client_identification_data` ADD CONSTRAINT `fk_cid_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
         $out .= "ALTER TABLE `config` ADD CONSTRAINT `fk_config_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";

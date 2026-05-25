@@ -217,13 +217,13 @@ class Analytics extends BaseController
         $db = \Config\Database::connect();
 
         // Construir consulta base para total de procesos
-            $totalBuilder = $db->table('process');
+            $totalBuilder = $db->table('sale_type');
             
             // Si hay filtro de agencia, hacer JOIN con configuration_process usando alias único
             if ($hasAgencyFilter) {
                 $totalBuilder->distinct()
                     ->select('process.*')
-                    ->join('configuration_process cp1', 'cp1.id_process = process.id', 'inner')
+                    ->join('configuration_process cp1', 'cp1.id_sale_type = process.id', 'inner')
                     ->where('cp1.id_agency', $agencyId)
                     ->where('cp1.enabled', 1);
             }
@@ -240,11 +240,11 @@ class Analytics extends BaseController
             $totalProcesses = $totalBuilder->countAllResults(false);
 
             // Procesos por estado (snake_case)
-            $statusBuilder = $db->table('process');
+            $statusBuilder = $db->table('sale_type');
             if ($hasAgencyFilter) {
                 $statusBuilder->distinct()
                     ->select('process.enabled as status, COUNT(DISTINCT process.id) as count')
-                    ->join('configuration_process cp2', 'cp2.id_process = process.id', 'inner')
+                    ->join('configuration_process cp2', 'cp2.id_sale_type = process.id', 'inner')
                     ->where('cp2.id_agency', $agencyId)
                     ->where('cp2.enabled', 1);
             } else {
@@ -268,11 +268,11 @@ class Analytics extends BaseController
             $averageProcessingTime = 0;
 
             // Tendencia mensual - usar alias diferente
-            $trendBuilder = $db->table('process');
+            $trendBuilder = $db->table('sale_type');
             if ($hasAgencyFilter) {
                 $trendBuilder->distinct()
                     ->select("DATE_FORMAT(process.registration_date, '%Y-%m') as month, COUNT(DISTINCT process.id) as count")
-                    ->join('configuration_process cp3', 'cp3.id_process = process.id', 'inner')
+                    ->join('configuration_process cp3', 'cp3.id_sale_type = process.id', 'inner')
                     ->where('cp3.id_agency', $agencyId)
                     ->where('cp3.enabled', 1)
                     ->where('process.registration_date >=', date('Y-m-01', strtotime('-12 months')));
@@ -1189,7 +1189,7 @@ class Analytics extends BaseController
             // Consulta para obtener distribución por proceso
             $query = $db->table('expedient f')
                 ->select('p.name as processName, COUNT(f.id) as totalCases')
-                ->join('process p', 'f.id_process = p.id', 'left')
+                ->join('process p', 'f.id_sale_type = p.id', 'left')
                 ->groupBy('p.id, p.name')
                 ->orderBy('totalCases', 'DESC');
 
@@ -1762,7 +1762,7 @@ class Analytics extends BaseController
 
         // OPTIMIZACIÓN: Reducir JOINs innecesarios - solo necesitamos Process para verificar enabled
         $query = $db->table('expedient f')
-            ->join('process p', 'f.id_process = p.id', 'inner')
+            ->join('process p', 'f.id_sale_type = p.id', 'inner')
             ->select('
                 CASE 
                     WHEN DATEDIFF(COALESCE(f.close_date, CURDATE()), f.registration_date) <= 5 THEN "0-5"
@@ -1915,7 +1915,7 @@ class Analytics extends BaseController
             // OPTIMIZACIÓN: Reducir JOINs innecesarios y usar rangos de fechas
             // Solo necesitamos JOIN con Process para verificar enabled, el resto se puede simplificar
             $query = $db->table('expedient f')
-                ->join('process p', 'f.id_process = p.id', 'inner')
+                ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->select('
                     CASE 
                         WHEN DATEDIFF(COALESCE(f.close_date, CURDATE()), f.registration_date) <= 5 THEN "0-5"
@@ -2199,7 +2199,7 @@ class Analytics extends BaseController
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN operation_type ot ON f.id_operation = ot.id
                 INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
             WHERE f.registration_date IS NOT NULL

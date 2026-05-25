@@ -1,7 +1,7 @@
 export interface DocumentTypeConfiguration {
   id_configuration_process_document_type: number;
   id_configuration_process: number;
-  id_process: number;
+  id_sale_type: number;
   id_agency: number;
   id_customer_type: number;
   id_operation_type: number;
@@ -20,9 +20,9 @@ export interface DocumentType {
   update_date: string | null;
   id_last_user_update: string | null;
   req_expiration: string;
-  id_process_type: string;
+  id_sale_type: string;
   required: string;
-  id_sub_process: string;
+  id_sub_sale_type: string;
   available_to_client: string;
   last_user_update_name?: string;
   process_type_name?: string;
@@ -53,9 +53,9 @@ export interface DocumentTypeCreateRequest {
   name: string;
   enabled?: string;
   req_expiration?: string;
-  id_process_type?: string;
+  id_sale_type?: string;
   required?: string;
-  id_sub_process?: string;
+  id_sub_sale_type?: string;
   available_to_client?: string;
 }
 
@@ -63,9 +63,9 @@ export interface DocumentTypeUpdateRequest {
   name: string;
   enabled?: string;
   req_expiration?: string;
-  id_process_type?: string;
+  id_sale_type?: string;
   required?: string;
-  id_sub_process?: string;
+  id_sub_sale_type?: string;
   available_to_client?: string;
 }
 

@@ -89,7 +89,7 @@ export interface AgencyDetail {
 }
 
 export interface ProcessDetail {
-  id_process: string;
+  id_sale_type: string;
   process_name: string;
   enabled: string;
 }

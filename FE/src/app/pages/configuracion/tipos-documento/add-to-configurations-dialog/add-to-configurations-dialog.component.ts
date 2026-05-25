@@ -21,7 +21,7 @@ import { TipoOperacionService } from '../../../../core/services/tipo-operacion.s
 
 export interface ConfigToAdd {
   id_configuration_process: number;
-  id_process?: number;
+  id_sale_type?: number;
   proceso_name?: string;
   id_agency?: number;
   agencia_name?: string;
@@ -118,7 +118,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
         const raw = (res?.data?.configurations ?? []) as Array<Record<string, unknown>>;
         this.configurations = raw.map(c => ({
           id_configuration_process: (c['id_configuration_process'] ?? c['IdConfigurationProcess']) as number,
-          id_process: (c['id_process'] ?? c['IdProcess']) as number | undefined,
+          id_sale_type: (c['id_sale_type'] ?? c['IdProcess']) as number | undefined,
           proceso_name: (c['proceso_name'] ?? c['ProcesoName']) as string | undefined,
           id_agency: (c['id_agency'] ?? c['IdAgency']) as number | undefined,
           agencia_name: (c['agencia_name'] ?? c['AgenciaName']) as string | undefined,
@@ -142,7 +142,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
 
   applyFilters(): void {
     this.filtered = this.configurations.filter(c => {
-      const okProcess = !this.selectedProcess || String(c.id_process) === String(this.selectedProcess);
+      const okProcess = !this.selectedProcess || String(c.id_sale_type) === String(this.selectedProcess);
       const okAgency = !this.selectedAgency || String(c.id_agency) === String(this.selectedAgency);
       const okCostumer = !this.selectedCostumerType || String(c.id_customer_type) === String(this.selectedCostumerType);
       const okOp = !this.selectedOperationType || String(c.id_operation_type) === String(this.selectedOperationType);

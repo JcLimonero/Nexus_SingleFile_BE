@@ -41,14 +41,14 @@ class AddFkConstraintsCommand extends BaseCommand
 
         // Categoría A (Phase A, clean)
         ['ALTER TABLE `client_group`         ADD CONSTRAINT `fk_cg_last_user_update`   FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`)          ON DELETE SET NULL ON UPDATE CASCADE', 'fk_cg_last_user_update'],
-        ['ALTER TABLE `client_group_process` ADD CONSTRAINT `fk_cgp_process`           FOREIGN KEY (`id_process`)          REFERENCES `process` (`id`)       ON DELETE CASCADE',                       'fk_cgp_process'],
+        ['ALTER TABLE `client_group_sale_type` ADD CONSTRAINT `fk_cgst_sale_type`        FOREIGN KEY (`id_sale_type`)        REFERENCES `sale_type` (`id`)     ON DELETE CASCADE',                       'fk_cgst_sale_type'],
         ['ALTER TABLE `client_group_phase`   ADD CONSTRAINT `fk_cgph_file_state`       FOREIGN KEY (`id_file_state`)       REFERENCES `file_state` (`id`)    ON DELETE CASCADE',                       'fk_cgph_file_state'],
         ['ALTER TABLE `company`              ADD CONSTRAINT `fk_company_client_group`  FOREIGN KEY (`id_client_group`)     REFERENCES `client_group` (`id`)  ON DELETE SET NULL ON UPDATE CASCADE',     'fk_company_client_group'],
 
         // Categoría B (legacy hierarchy, post-cleanup)
-        ['ALTER TABLE `agency`                     ADD CONSTRAINT `fk_agency_company`                  FOREIGN KEY (`id_company`)          REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE', 'fk_agency_company'],
-        ['ALTER TABLE `document_type`              ADD CONSTRAINT `fk_document_type_process_type`      FOREIGN KEY (`id_process_type`)     REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE', 'fk_document_type_process_type'],
-        ['ALTER TABLE `document_type`              ADD CONSTRAINT `fk_document_type_sub_process`       FOREIGN KEY (`id_sub_process`)      REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE', 'fk_document_type_sub_process'],
+        ['ALTER TABLE `agency`                     ADD CONSTRAINT `fk_agency_company`                  FOREIGN KEY (`id_company`)          REFERENCES `company` (`id`)     ON DELETE SET NULL ON UPDATE CASCADE', 'fk_agency_company'],
+        ['ALTER TABLE `document_type`              ADD CONSTRAINT `fk_document_type_sale_type`         FOREIGN KEY (`id_sale_type`)        REFERENCES `sale_type` (`id`)   ON DELETE SET NULL ON UPDATE CASCADE', 'fk_document_type_sale_type'],
+        ['ALTER TABLE `document_type`              ADD CONSTRAINT `fk_document_type_sub_sale_type`     FOREIGN KEY (`id_sub_sale_type`)    REFERENCES `sale_type` (`id`)   ON DELETE SET NULL ON UPDATE CASCADE', 'fk_document_type_sub_sale_type'],
         ['ALTER TABLE `liquidation_receipt_detail` ADD CONSTRAINT `fk_lrd_last_user_update`            FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`)    ON DELETE SET NULL ON UPDATE CASCADE', 'fk_lrd_last_user_update'],
         ['ALTER TABLE `client_identification_data` ADD CONSTRAINT `fk_cid_last_user_update`            FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`)    ON DELETE SET NULL ON UPDATE CASCADE', 'fk_cid_last_user_update'],
         ['ALTER TABLE `config`                     ADD CONSTRAINT `fk_config_last_user_update`         FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`)    ON DELETE SET NULL ON UPDATE CASCADE', 'fk_config_last_user_update'],

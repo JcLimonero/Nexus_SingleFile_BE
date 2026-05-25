@@ -13,7 +13,7 @@ class ConfigurationProcessModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'id', 'id_process', 'id_agency', 'id_customer_type', 'id_operation_type', 
+        'id', 'id_sale_type', 'id_agency', 'id_customer_type', 'id_operation_type', 
         'enabled', 'registration_date', 'update_date', 'id_last_user_update'
     ];
 
@@ -32,14 +32,14 @@ class ConfigurationProcessModel extends Model
 
     // Validation (snake_case)
     protected $validationRules      = [
-        'id_process' => 'required|integer',
+        'id_sale_type' => 'required|integer',
         'id_agency' => 'required|integer',
         'id_customer_type' => 'required|integer',
         'id_operation_type' => 'required|integer'
     ];
     
     protected $validationMessages   = [
-        'id_process' => [
+        'id_sale_type' => [
             'required' => 'El ID del proceso es requerido',
             'integer' => 'El ID del proceso debe ser un número válido'
         ],
@@ -118,7 +118,7 @@ class ConfigurationProcessModel extends Model
      */
     public function getConfigurationByParams($idProcess, $idAgency, $idCustomerType, $idOperationType)
     {
-        return $this->where('id_process', $idProcess)
+        return $this->where('id_sale_type', $idProcess)
                     ->where('id_agency', $idAgency)
                     ->where('id_customer_type', $idCustomerType)
                     ->where('id_operation_type', $idOperationType)
@@ -138,7 +138,7 @@ class ConfigurationProcessModel extends Model
         }
         
         $insertData = [
-            'id_process' => $idProcess,
+            'id_sale_type' => $idProcess,
             'id_agency' => $idAgency,
             'id_customer_type' => $idCustomerType,
             'id_operation_type' => $idOperationType,

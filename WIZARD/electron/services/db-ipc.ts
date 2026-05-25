@@ -458,7 +458,7 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
       });
       log.push(`  admin user id=${adminUserId} (rol=${adminRoleId} Administrador)`);
 
-      // 6. Hierarchy: client_group → companies → agencies, then client_group_process.
+      // 6. Hierarchy: client_group → companies → agencies, then client_group_sale_type.
       // Every INSERT explicitly passes id_last_user_update = adminUserId because the
       // source schema has DEFAULT '0' on that column + FK to user.id, and user(id=0)
       // doesn't exist → naked INSERTs trip the FK.
@@ -494,11 +494,11 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
           );
         }
 
-        // Per-group process assignment with display_order + voucher flag
+        // Per-group sale-type assignment with display_order + voucher flag
         for (const p of payload.processes) {
           if (p.id) {
             await c.query(
-              'INSERT INTO client_group_process (id_client_group, id_process, display_order, enabled) VALUES (?, ?, ?, ?)',
+              'INSERT INTO client_group_sale_type (id_client_group, id_sale_type, display_order, enabled) VALUES (?, ?, ?, ?)',
               [clientGroupId, p.id, p.display_order, p.enabled ?? 1],
             );
           }

@@ -88,8 +88,8 @@ class DocumentModel extends Model
             d.id_current_status,
             d.id_document_error,
             dt.name as document_type_name,
-            dt.id_process_type,
-            dt.id_sub_process,
+            dt.id_sale_type,
+            dt.id_sub_sale_type,
             dfs.name as current_status_description,
             dfe.description as document_error_description,
             u.name as last_user_update_name,
@@ -109,9 +109,9 @@ class DocumentModel extends Model
         $builder->join('expedient f', 'f.id = d.id_file', 'left');
         $builder->join('file_state fs', 'fs.id = f.id_current_state', 'left');
         // JOIN para obtener el tipo de proceso desde file_sub_state
-        $builder->join('file_sub_state fss', 'fss.id = dt.id_process_type', 'left');
+        $builder->join('file_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
         // JOIN para obtener el subproceso
-        $builder->join('process sp', 'sp.id = dt.id_sub_process', 'left');
+        $builder->join('process sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -131,11 +131,11 @@ class DocumentModel extends Model
         }
 
         if (!empty($filters['process_type'])) {
-            $builder->where('dt.id_process_type', $filters['process_type']);
+            $builder->where('dt.id_sale_type', $filters['process_type']);
         }
 
         if (!empty($filters['sub_process'])) {
-            $builder->where('dt.id_sub_process', $filters['sub_process']);
+            $builder->where('dt.id_sub_sale_type', $filters['sub_process']);
         }
 
         if (!empty($filters['search'])) {
@@ -185,8 +185,8 @@ class DocumentModel extends Model
         
         $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
         $builder->join('expedient f', 'f.id = d.id_file', 'left');
-        $builder->join('file_sub_state fss', 'fss.id = dt.id_process_type', 'left');
-        $builder->join('process sp', 'sp.id = dt.id_sub_process', 'left');
+        $builder->join('file_sub_state fss', 'fss.id = dt.id_sale_type', 'left');
+        $builder->join('process sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
         // Aplicar los mismos filtros que en getDocumentsWithRelations
         if (!empty($filters['enabled'])) {
@@ -206,11 +206,11 @@ class DocumentModel extends Model
         }
 
         if (!empty($filters['process_type'])) {
-            $builder->where('dt.id_process_type', $filters['process_type']);
+            $builder->where('dt.id_sale_type', $filters['process_type']);
         }
 
         if (!empty($filters['sub_process'])) {
-            $builder->where('dt.id_sub_process', $filters['sub_process']);
+            $builder->where('dt.id_sub_sale_type', $filters['sub_process']);
         }
 
         if (!empty($filters['search'])) {

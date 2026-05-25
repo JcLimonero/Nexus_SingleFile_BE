@@ -467,9 +467,9 @@ class Miniportal extends BaseController
                     CASE WHEN ap.id IS NOT NULL THEN 1 ELSE 0 END as aprobadoCliente
                 FROM file_document dbf
                 INNER JOIN expedient f ON dbf.id_file = f.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN document_type dt ON dbf.id_document_type = dt.id
-                INNER JOIN file_state fs ON dt.id_process_type = fs.id
+                INNER JOIN file_state fs ON dt.id_sale_type = fs.id
                 INNER JOIN document_file_status dfs ON dbf.id_current_status = dfs.id
                 LEFT JOIN file_pld_approved_document ap ON ap.id_document_by_file = dbf.id AND ap.id_file = dbf.id_file AND ap.approved_by_client = 1
                 WHERE dbf.id_file = ?
@@ -509,9 +509,9 @@ class Miniportal extends BaseController
                 0 as aprobadoCliente
             ')
             ->join('expedient f', 'dbf.id_file = f.id', 'inner')
-            ->join('process p', 'f.id_process = p.id', 'inner')
+            ->join('process p', 'f.id_sale_type = p.id', 'inner')
             ->join('document_type dt', 'dbf.id_document_type = dt.id', 'inner')
-            ->join('file_state fs', 'dt.id_process_type = fs.id', 'inner')
+            ->join('file_state fs', 'dt.id_sale_type = fs.id', 'inner')
             ->join('document_file_status dfs', 'dbf.id_current_status = dfs.id', 'inner')
             ->where('dbf.id_file', $idFile)
             ->where('dbf.enabled', 1)

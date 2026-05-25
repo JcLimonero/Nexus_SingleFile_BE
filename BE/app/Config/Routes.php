@@ -84,7 +84,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
     });
     
     // Rutas de procesos
-    $routes->group('process', function($routes) {
+    $routes->group('sale-type', function($routes) {
         $routes->get('/', 'Process::index');
         $routes->post('/', 'Process::create');
         $routes->get('search', 'Process::search');

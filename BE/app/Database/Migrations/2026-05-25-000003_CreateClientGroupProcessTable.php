@@ -15,7 +15,7 @@ class CreateClientGroupProcessTable extends Migration
         $this->forge->addField([
             'id' => ['type' => 'BIGINT', 'unsigned' => true, 'auto_increment' => true],
             'id_client_group' => ['type' => 'BIGINT', 'unsigned' => true, 'null' => false],
-            'id_process'      => ['type' => 'BIGINT', 'unsigned' => true, 'null' => false],
+            'id_sale_type'      => ['type' => 'BIGINT', 'unsigned' => true, 'null' => false],
             'display_order'   => ['type' => 'INT', 'default' => 0],
             'enabled'         => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 1],
             'registration_date' => [
@@ -29,16 +29,16 @@ class CreateClientGroupProcessTable extends Migration
             ],
         ]);
         $this->forge->addPrimaryKey('id');
-        $this->forge->addUniqueKey(['id_client_group', 'id_process']);
-        $this->forge->addKey('id_process');
-        // FK on id_client_group only (id_process FK skipped — process.id is VARCHAR(50) and
+        $this->forge->addUniqueKey(['id_client_group', 'id_sale_type']);
+        $this->forge->addKey('id_sale_type');
+        // FK on id_client_group only (id_sale_type FK skipped — process.id is VARCHAR(50) and
         // mixed types would require a coordinated migration; covered by app-level checks).
         $this->forge->addForeignKey('id_client_group', 'client_group', 'id', 'CASCADE', 'CASCADE');
-        $this->forge->createTable('client_group_process', true);
+        $this->forge->createTable('client_group_sale_type', true);
     }
 
     public function down()
     {
-        $this->forge->dropTable('client_group_process', true);
+        $this->forge->dropTable('client_group_sale_type', true);
     }
 }

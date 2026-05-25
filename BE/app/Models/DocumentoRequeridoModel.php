@@ -97,7 +97,7 @@ class DocumentoRequeridoModel extends Model
             cpd.id,
             cpd.id_document_type,
             cpd.id_configuration_process,
-            cp.id_process,
+            cp.id_sale_type,
             cp.id_agency,
             cp.id_operation_type,
             cp.id_customer_type,
@@ -112,24 +112,24 @@ class DocumentoRequeridoModel extends Model
             dt.name as tipo_documento_name,
             dt.required,
             dt.req_expiration,
-            dt.id_process_type,
-            dt.id_sub_process,
+            dt.id_sale_type,
+            dt.id_sub_sale_type,
             fs.name as process_type_name,
             sp.name as sub_process_name
             ');
             
             // Joins con tablas relacionadas
             $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'left');
-            $builder->join('process p', 'p.id = cp.id_process', 'left');
+            $builder->join('process p', 'p.id = cp.id_sale_type', 'left');
             $builder->join('agency a', 'a.id = cp.id_agency', 'left');
             $builder->join('operation_type ot', 'ot.id = cp.id_operation_type', 'left');
             $builder->join('customer_type ct', 'ct.id = cp.id_customer_type', 'left');
             $builder->join('document_type dt', 'dt.id = cpd.id_document_type', 'left');
-            $builder->join('file_state fs', 'fs.id = dt.id_process_type', 'left');
-            $builder->join('file_sub_state sp', 'sp.id = dt.id_sub_process', 'left');
+            $builder->join('file_state fs', 'fs.id = dt.id_sale_type', 'left');
+            $builder->join('file_sub_state sp', 'sp.id = dt.id_sub_sale_type', 'left');
             
-            if (!empty($filters['id_process'])) {
-                $builder->where('cp.id_process', $filters['id_process']);
+            if (!empty($filters['id_sale_type'])) {
+                $builder->where('cp.id_sale_type', $filters['id_sale_type']);
             }
             if (!empty($filters['id_agency'])) {
                 $builder->where('cp.id_agency', $filters['id_agency']);
@@ -201,8 +201,8 @@ class DocumentoRequeridoModel extends Model
         $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'left');
         
         // Aplicar filtros (mapear nombres de filtros PascalCase a snake_case)
-        if (!empty($filters['id_process'])) {
-            $builder->where('cp.id_process', $filters['id_process']);
+        if (!empty($filters['id_sale_type'])) {
+            $builder->where('cp.id_sale_type', $filters['id_sale_type']);
         }
         if (!empty($filters['id_agency'])) {
             $builder->where('cp.id_agency', $filters['id_agency']);
@@ -241,7 +241,7 @@ class DocumentoRequeridoModel extends Model
         
         // Contar procesos únicos
         $procesosCount = $this->db->table('configuration_process')
-                                 ->select('COUNT(DISTINCT id_process) as count')
+                                 ->select('COUNT(DISTINCT id_sale_type) as count')
                                  ->where('enabled', 1)
                                  ->get()
                                  ->getRow()->count;
@@ -281,7 +281,7 @@ class DocumentoRequeridoModel extends Model
             cpd.id,
             cpd.id_document_type,
             cpd.id_configuration_process,
-            cp.id_process,
+            cp.id_sale_type,
             cp.id_agency,
             cp.id_operation_type,
             cp.id_customer_type,
@@ -305,7 +305,7 @@ class DocumentoRequeridoModel extends Model
         $builder = $this->db->table('configuration_process_document_type cpd');
         $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'left');
         
-        $builder->where('cp.id_process', $idProcess)
+        $builder->where('cp.id_sale_type', $idProcess)
                 ->where('cp.id_agency', $idAgency)
                 ->where('cp.id_customer_type', $idCustomerType)
                 ->where('cp.id_operation_type', $idOperationType)
@@ -333,7 +333,7 @@ class DocumentoRequeridoModel extends Model
     {
         $userId = $data['id_last_user_update'] ?? null;
         $idConfigProcess = $this->getOrCreateconfiguration_process(
-            $data['id_process'] ?? 0,
+            $data['id_sale_type'] ?? 0,
             $data['id_agency'] ?? 0,
             $data['id_customer_type'] ?? 0,
             $data['id_operation_type'] ?? 0,
@@ -354,10 +354,10 @@ class DocumentoRequeridoModel extends Model
      */
     public function updateDocumentoRequerido($id, $data)
     {
-        if (isset($data['id_process']) || isset($data['id_agency']) || isset($data['id_customer_type']) || isset($data['id_operation_type'])) {
+        if (isset($data['id_sale_type']) || isset($data['id_agency']) || isset($data['id_customer_type']) || isset($data['id_operation_type'])) {
             $userId = $data['id_last_user_update'] ?? null;
             $idConfigProcess = $this->getOrCreateconfiguration_process(
-                $data['id_process'] ?? 0,
+                $data['id_sale_type'] ?? 0,
                 $data['id_agency'] ?? 0,
                 $data['id_customer_type'] ?? 0,
                 $data['id_operation_type'] ?? 0,

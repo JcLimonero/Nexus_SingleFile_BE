@@ -220,7 +220,7 @@ export class ValidacionService {
    * Cargar procesos disponibles
    */
   cargarProcesos(): Observable<any[]> {
-    const url = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/process`;
+    const url = `${environment.apiBaseUrl.replace(/\/$/, '')}/api/sale-type`;
 
     return this.http.get<any>(url).pipe(
       map((response: any) => {

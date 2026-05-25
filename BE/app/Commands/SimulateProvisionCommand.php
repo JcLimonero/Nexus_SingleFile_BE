@@ -93,7 +93,7 @@ class SimulateProvisionCommand extends BaseCommand
         );
         $aId = $db->insertID();
         $db->query(
-            "INSERT INTO client_group_process (id_client_group, id_process, display_order, enabled) VALUES (?, ?, ?, ?)",
+            "INSERT INTO client_group_sale_type (id_client_group, id_sale_type, display_order, enabled) VALUES (?, ?, ?, ?)",
             [$cgId, 1, 0, 1]
         );
         $db->query("SET FOREIGN_KEY_CHECKS = 1");
@@ -116,7 +116,7 @@ class SimulateProvisionCommand extends BaseCommand
         CLI::write("  Total      : " . ($base + $views), 'cyan');
 
         // Spot-check a few critical tables have rows
-        foreach (['user', 'company', 'agency', 'client_group', 'process', 'file_state', 'document_type', 'payment_method'] as $t) {
+        foreach (['user', 'company', 'agency', 'client_group', 'sale_type', 'file_state', 'document_type', 'payment_method'] as $t) {
             $c = $db->query("SELECT COUNT(*) AS n FROM `{$t}`")->getRowArray();
             $n = (int) $c['n'];
             CLI::write("  {$t}: {$n} rows", $n > 0 ? 'green' : 'yellow');

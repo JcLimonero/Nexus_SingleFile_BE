@@ -412,7 +412,7 @@ class ReportesCumplimiento extends BaseController
                 INNER JOIN client c ON f.id_client = c.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN agency a ON f.id_agency = a.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE f.id_customer_type = 2
                 AND f.id_current_state NOT IN (5)
@@ -506,7 +506,7 @@ class ReportesCumplimiento extends BaseController
                 INNER JOIN client c ON f.id_client = c.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 INNER JOIN agency a ON f.id_agency = a.id
-                INNER JOIN process p ON f.id_process = p.id
+                INNER JOIN process p ON f.id_sale_type = p.id
                 INNER JOIN file_state fs ON f.id_current_state = fs.id
                 WHERE f.id_current_state NOT IN (5)
                 AND NOT EXISTS (
@@ -562,7 +562,7 @@ class ReportesCumplimiento extends BaseController
                         INNER JOIN client c ON f.id_client = c.id
                         LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                         INNER JOIN agency a ON f.id_agency = a.id
-                        INNER JOIN process p ON f.id_process = p.id
+                        INNER JOIN process p ON f.id_sale_type = p.id
                         INNER JOIN file_state fs ON f.id_current_state = fs.id
                         WHERE f.id_current_state NOT IN (5)
                     ";

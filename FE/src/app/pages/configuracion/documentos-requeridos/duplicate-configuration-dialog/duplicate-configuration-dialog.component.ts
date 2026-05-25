@@ -18,7 +18,7 @@ import { DocumentoRequeridoService } from '../../../../core/services/documento-r
 
 export interface DuplicateConfigurationData {
   configuracion: {
-    id_process: string;
+    id_sale_type: string;
     id_agency: number;
     id_customer_type: string;
     id_operation_type: string;
@@ -97,7 +97,7 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       const promises = this.availableAgencies.map(async (agency) => {
         // Verificar si existe configuración para esta agencia
         const hasConfig = await this.documentoRequeridoService.getDocumentosRequeridos({
-          id_process: this.data.configuracion.id_process,
+          id_sale_type: this.data.configuracion.id_sale_type,
           id_agency: agency.id.toString(),
           id_customer_type: this.data.configuracion.id_customer_type,
           id_operation_type: this.data.configuracion.id_operation_type
@@ -172,14 +172,14 @@ export class DuplicateConfigurationDialogComponent implements OnInit {
       // Duplicar la configuración para cada agencia seleccionada
       const promises = this.selectedAgencies.map(async (agencyId) => {
         const sourceConfig = {
-          id_process: this.data.configuracion.id_process,
+          id_sale_type: this.data.configuracion.id_sale_type,
           id_agency: this.data.configuracion.id_agency.toString(),
           id_customer_type: this.data.configuracion.id_customer_type,
           id_operation_type: this.data.configuracion.id_operation_type
         };
 
         const targetConfig = {
-          id_process: this.data.configuracion.id_process,
+          id_sale_type: this.data.configuracion.id_sale_type,
           id_agency: agencyId.toString(),
           id_customer_type: this.data.configuracion.id_customer_type,
           id_operation_type: this.data.configuracion.id_operation_type

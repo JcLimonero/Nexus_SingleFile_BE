@@ -642,7 +642,7 @@ class NexFileClientImport extends ResourceController
         // Usar SQL directo para evitar problemas con la estructura de la tabla
         $sql = "
             INSERT INTO expedient (
-                id, id_client, id_customer_type, id_operation, id_process, 
+                id, id_client, id_customer_type, id_operation, id_sale_type, 
                 registration_date, update_date, last_user_update, id_agency, 
                 id_seller, id_last_user_update, id_current_state, attention_date
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

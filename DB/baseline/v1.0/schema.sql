@@ -222,19 +222,19 @@ CREATE TABLE `configuration_process` (
   `id_customer_type` bigint DEFAULT '0',
   `id_operation_type` bigint DEFAULT '0',
   `id_agency` bigint DEFAULT '0',
-  `id_process` bigint DEFAULT '0',
+  `id_sale_type` bigint DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `IDX_Config_Unique` (`id_process`,`id_agency`,`id_customer_type`,`id_operation_type`),
+  UNIQUE KEY `IDX_Config_Unique` (`id_sale_type`,`id_agency`,`id_customer_type`,`id_operation_type`),
   KEY `WDIDX_ConfigurationProcess_IdCustomerType` (`id_customer_type`),
   KEY `WDIDX_ConfigurationProcess_IdOperationType` (`id_operation_type`),
   KEY `WDIDX_ConfigurationProcess_IdAgency` (`id_agency`),
-  KEY `WDIDX_ConfigurationProcess_IdProcess` (`id_process`),
-  KEY `WDIDX_ConfigProc_IdProcIdAgencyIdOpIdCust` (`id_process`,`id_agency`,`id_operation_type`,`id_customer_type`),
+  KEY `WDIDX_ConfigurationProcess_IdProcess` (`id_sale_type`),
+  KEY `WDIDX_ConfigProc_IdProcIdAgencyIdOpIdCust` (`id_sale_type`,`id_agency`,`id_operation_type`,`id_customer_type`),
   KEY `FK_configuration_process_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_Config_Agency` FOREIGN KEY (`id_agency`) REFERENCES `agency` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `FK_Config_CustomerType` FOREIGN KEY (`id_customer_type`) REFERENCES `customer_type` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `FK_Config_OperationType` FOREIGN KEY (`id_operation_type`) REFERENCES `operation_type` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `FK_Config_Process` FOREIGN KEY (`id_process`) REFERENCES `process` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `FK_Config_Process` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `FK_configuration_process_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -313,15 +313,15 @@ CREATE TABLE `document_type` (
   `enabled` tinyint DEFAULT '0',
   `id_last_user_update` bigint DEFAULT '0',
   `req_expiration` tinyint DEFAULT '0',
-  `id_process_type` bigint DEFAULT '0',
+  `id_sale_type` bigint DEFAULT '0',
   `required` tinyint DEFAULT '1',
-  `id_sub_process` bigint DEFAULT '0',
+  `id_sub_sale_type` bigint DEFAULT '0',
   `document_auto_upload` tinyint DEFAULT '1',
   `available_to_client` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Name` (`name`),
-  KEY `WDIDX_DocumentType_IdIdProcessType` (`id`,`id_process_type`),
-  KEY `WDIDX_DocumentType_IdProcessTypeIdSubProcess` (`id_process_type`,`id_sub_process`),
+  KEY `WDIDX_DocumentType_IdIdProcessType` (`id`,`id_sale_type`),
+  KEY `WDIDX_DocumentType_IdProcessTypeIdSubProcess` (`id_sale_type`,`id_sub_sale_type`),
   KEY `FK_document_type_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_document_type_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -334,7 +334,7 @@ CREATE TABLE `expedient` (
   `id_order` bigint DEFAULT NULL,
   `id_customer_type` bigint DEFAULT NULL,
   `id_operation` bigint DEFAULT '0',
-  `id_process` bigint DEFAULT NULL,
+  `id_sale_type` bigint DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_agency` bigint DEFAULT NULL,
@@ -354,7 +354,7 @@ CREATE TABLE `expedient` (
   KEY `WDIDX_File_IdOrder` (`id_order`),
   KEY `WDIDX_File_IdCustomerType` (`id_customer_type`),
   KEY `WDIDX_File_IdOperation` (`id_operation`),
-  KEY `WDIDX_File_IdProcess` (`id_process`),
+  KEY `WDIDX_File_IdProcess` (`id_sale_type`),
   KEY `WDIDX_File_IdAgency` (`id_agency`),
   KEY `WDIDX_File_IdSeller` (`id_seller`),
   KEY `WDIDX_File_IdCurrentState` (`id_current_state`),
@@ -369,7 +369,7 @@ CREATE TABLE `expedient` (
   KEY `IDX_File_CloseDate` (`close_date`),
   KEY `IDX_File_RegistrationDate_CloseDate` (`registration_date`,`close_date`),
   KEY `IDX_File_Agency_State_Date` (`id_agency`,`id_current_state`,`registration_date` DESC),
-  KEY `IDX_File_Client_Process` (`id_client`,`id_process`),
+  KEY `IDX_File_Client_Process` (`id_client`,`id_sale_type`),
   KEY `IDX_File_Client_Agency_State` (`id_client`,`id_agency`,`id_current_state`),
   KEY `IDX_File_OrderTotal` (`id_order_total`),
   KEY `IDX_File_Date_State` (`registration_date` DESC,`id_current_state`),
@@ -377,7 +377,7 @@ CREATE TABLE `expedient` (
   KEY `idx_expedient_RegistrationDate` (`registration_date` DESC),
   CONSTRAINT `expedient_ibfk_3` FOREIGN KEY (`id_operation`) REFERENCES `operation_type` (`id`),
   CONSTRAINT `expedient_ibfk_4` FOREIGN KEY (`id_customer_type`) REFERENCES `customer_type` (`id`),
-  CONSTRAINT `expedient_ibfk_5` FOREIGN KEY (`id_process`) REFERENCES `process` (`id`),
+  CONSTRAINT `expedient_ibfk_5` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`),
   CONSTRAINT `expedient_ibfk_6` FOREIGN KEY (`id_agency`) REFERENCES `agency` (`id`),
   CONSTRAINT `expedient_ibfk_7` FOREIGN KEY (`id_seller`) REFERENCES `user` (`id`),
   CONSTRAINT `expedient_ibfk_8` FOREIGN KEY (`id_current_state`) REFERENCES `file_state` (`id`),
@@ -714,9 +714,9 @@ CREATE TABLE `payment_method` (
   UNIQUE KEY `uk_payment_method_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ------ Table: `process` ------
-DROP TABLE IF EXISTS `process`;
-CREATE TABLE `process` (
+-- ------ Table: `sale_type` ------
+DROP TABLE IF EXISTS `sale_type`;
+CREATE TABLE `sale_type` (
   `id` bigint NOT NULL,
   `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `enabled` tinyint DEFAULT '0',
@@ -729,21 +729,21 @@ CREATE TABLE `process` (
   CONSTRAINT `FK_process_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
--- ------ Table: `process_user` ------
-DROP TABLE IF EXISTS `process_user`;
-CREATE TABLE `process_user` (
+-- ------ Table: `sale_type_user` ------
+DROP TABLE IF EXISTS `sale_type_user`;
+CREATE TABLE `sale_type_user` (
   `id_user` bigint NOT NULL,
-  `id_process` bigint NOT NULL,
+  `id_sale_type` bigint NOT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
   KEY `WDIDX_Process_User_IdUser` (`id_user`),
-  KEY `WDIDX_Process_User_IdProcess` (`id_process`),
-  KEY `WDIDX_Process_User_IdProcess_IdUser` (`id_process`,`id_user`),
+  KEY `WDIDX_Process_User_IdProcess` (`id_sale_type`),
+  KEY `WDIDX_Process_User_IdProcess_IdUser` (`id_sale_type`,`id_user`),
   KEY `FK_process_user_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_process_user_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `process_user_ibfk_1` FOREIGN KEY (`id_process`) REFERENCES `process` (`id`),
+  CONSTRAINT `process_user_ibfk_1` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`),
   CONSTRAINT `process_user_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -860,17 +860,17 @@ CREATE TABLE `client_group` (
   UNIQUE KEY `uq_client_group_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DROP TABLE IF EXISTS `client_group_process`;
-CREATE TABLE `client_group_process` (
+DROP TABLE IF EXISTS `client_group_sale_type`;
+CREATE TABLE `client_group_sale_type` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `id_client_group` BIGINT NOT NULL,
-  `id_process` BIGINT NOT NULL,
+  `id_sale_type` BIGINT NOT NULL,
   `display_order` INT DEFAULT 0,
   `enabled` TINYINT(1) DEFAULT 1,
   `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_cgp` (`id_client_group`, `id_process`),
+  UNIQUE KEY `uq_cgp` (`id_client_group`, `id_sale_type`),
   CONSTRAINT `fk_cgp_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -919,9 +919,9 @@ ALTER TABLE `client_group`
   ADD CONSTRAINT `fk_cg_last_user_update`
   FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE `client_group_process`
-  ADD CONSTRAINT `fk_cgp_process`
-  FOREIGN KEY (`id_process`) REFERENCES `process` (`id`) ON DELETE CASCADE;
+ALTER TABLE `client_group_sale_type`
+  ADD CONSTRAINT `fk_cgst_sale_type`
+  FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `client_group_phase`
   ADD CONSTRAINT `fk_cgph_file_state`
@@ -939,12 +939,12 @@ ALTER TABLE `agency`
   FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `document_type`
-  ADD CONSTRAINT `fk_document_type_process_type`
-  FOREIGN KEY (`id_process_type`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_document_type_sale_type`
+  FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `document_type`
-  ADD CONSTRAINT `fk_document_type_sub_process`
-  FOREIGN KEY (`id_sub_process`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_document_type_sub_sale_type`
+  FOREIGN KEY (`id_sub_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 ALTER TABLE `liquidation_receipt_detail`
   ADD CONSTRAINT `fk_lrd_last_user_update`

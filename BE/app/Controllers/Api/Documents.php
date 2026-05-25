@@ -57,7 +57,7 @@ class Documents extends BaseController
                     df.registration_date as uploadDate,
                     dt.req_expiration as hasExpiration,
                     df.expiration_date as expirationDate,
-                    dt.id_sub_process as subProcessId,
+                    dt.id_sub_sale_type as subProcessId,
                     fss.name as subProcessName,
                     CASE 
                         WHEN ISNULL(dt.req_expiration) THEN FALSE
@@ -65,7 +65,7 @@ class Documents extends BaseController
                         WHEN dt.req_expiration = 1 AND df.expiration_date < CURDATE() THEN TRUE
                         ELSE FALSE
                     END as hasExpired,    
-                    dt.id_process_type as documentProcessId,
+                    dt.id_sale_type as documentProcessId,
                     fs.name as documentProcessName,
                     dfs.id as fileStatusId,
                     dfs.name as fileStatusName,
@@ -75,13 +75,13 @@ class Documents extends BaseController
                 FROM expedient f
                 INNER JOIN file_document df ON f.id = df.id_file
                 INNER JOIN document_type dt ON df.id_document_type = dt.id
-                INNER JOIN file_state fs ON dt.id_process_type = fs.id 
+                INNER JOIN file_state fs ON dt.id_sale_type = fs.id 
                 INNER JOIN document_file_status dfs ON dfs.id = df.id_current_status 
-                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_process
+                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_sale_type
                 {$liquidacionJoins}
                 WHERE f.id = ?
-                AND dt.id_process_type = ?
-                AND f.id_current_state = dt.id_process_type
+                AND dt.id_sale_type = ?
+                AND f.id_current_state = dt.id_sale_type
                 AND df.enabled = 1
                 ORDER BY dt.required DESC, dt.name ASC
             ";
@@ -175,9 +175,9 @@ class Documents extends BaseController
                        dt.req_expiration as hasExpiration, fs.name as processTypeName,
                        fss.name as subProcessName
                 FROM document_type dt
-                INNER JOIN file_state fs ON dt.id_process_type = fs.id
-                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_process
-                WHERE dt.id_process_type = ?
+                INNER JOIN file_state fs ON dt.id_sale_type = fs.id
+                LEFT JOIN file_sub_state fss ON fss.id = dt.id_sub_sale_type
+                WHERE dt.id_sale_type = ?
                 AND dt.id NOT IN (
                     SELECT df.id_document_type
                     FROM file_document df

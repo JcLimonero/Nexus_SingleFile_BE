@@ -35,7 +35,7 @@ class FixTenantSchemaCommand extends BaseCommand
         'file_state', 'file_sub_state', 'customer_type', 'operation_type',
         'payment_method', 'document_type', 'file_reasons',
         'document_file_error', 'file_exception_reason',
-        'client_group', 'client_group_process', 'client_group_phase',
+        'client_group', 'client_group_sale_type', 'client_group_phase',
     ];
 
     /** Columns that should be BIGINT (signed, nullable) wherever they appear. */

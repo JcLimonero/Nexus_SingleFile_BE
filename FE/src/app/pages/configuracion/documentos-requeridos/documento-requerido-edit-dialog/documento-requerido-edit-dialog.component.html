@@ -81,13 +81,13 @@
         <!-- Proceso -->
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Proceso</mat-label>
-          <mat-select formControlName="id_process">
+          <mat-select formControlName="id_sale_type">
             <mat-option value="">Seleccionar proceso</mat-option>
             <mat-option *ngFor="let proceso of procesos" [value]="proceso.id">
               {{ proceso.name }}
             </mat-option>
           </mat-select>
-          <mat-error *ngIf="documentoForm.get('id_process')?.hasError('required') && documentoForm.get('id_process')?.touched">
+          <mat-error *ngIf="documentoForm.get('id_sale_type')?.hasError('required') && documentoForm.get('id_sale_type')?.touched">
             El proceso es requerido
           </mat-error>
         </mat-form-field>
@@ -136,7 +136,7 @@
           <mat-icon class="text-base">warning</mat-icon>
           <span>{{ mensajeValidacion }}</span>
         </div>
-        <div *ngIf="!validandoConfiguracion && !configuracionExiste && mensajeValidacion === '' && documentoForm.get('id_agency')?.value && documentoForm.get('id_process')?.value && documentoForm.get('id_customer_type')?.value && documentoForm.get('id_operation_type')?.value" class="flex items-center gap-2 text-green-600 text-xs bg-green-50 border border-green-200 rounded p-2">
+        <div *ngIf="!validandoConfiguracion && !configuracionExiste && mensajeValidacion === '' && documentoForm.get('id_agency')?.value && documentoForm.get('id_sale_type')?.value && documentoForm.get('id_customer_type')?.value && documentoForm.get('id_operation_type')?.value" class="flex items-center gap-2 text-green-600 text-xs bg-green-50 border border-green-200 rounded p-2">
           <mat-icon class="text-base">check_circle</mat-icon>
           <span>Configuración disponible para crear</span>
         </div>

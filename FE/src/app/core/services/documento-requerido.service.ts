@@ -29,7 +29,7 @@ export class DocumentoRequeridoService {
     let httpParams = new HttpParams();
     
     if (filters) {
-      if (filters.id_process) httpParams = httpParams.set('id_process', filters.id_process);
+      if (filters.id_sale_type) httpParams = httpParams.set('id_sale_type', filters.id_sale_type);
       if (filters.id_agency) httpParams = httpParams.set('id_agency', filters.id_agency);
       if (filters.id_company != null) httpParams = httpParams.set('id_company', String(filters.id_company));
       if (filters.id_customer_type) httpParams = httpParams.set('id_customer_type', filters.id_customer_type);
@@ -97,7 +97,7 @@ export class DocumentoRequeridoService {
     idOperationType: string
   ): Observable<DocumentoRequeridoResponse> {
     const filters: DocumentoRequeridoFilters = {
-      id_process: idProcess,
+      id_sale_type: idProcess,
       id_agency: idAgency,
       id_customer_type: idCostumerType,
       id_operation_type: idOperationType,
@@ -119,8 +119,8 @@ export class DocumentoRequeridoService {
    * Duplicar configuración de documentos requeridos
    */
   duplicateConfiguracion(
-    sourceConfig: { id_process: string; id_agency: string; id_customer_type: string; id_operation_type: string },
-    targetConfig: { id_process: string; id_agency: string; id_customer_type: string; id_operation_type: string }
+    sourceConfig: { id_sale_type: string; id_agency: string; id_customer_type: string; id_operation_type: string },
+    targetConfig: { id_sale_type: string; id_agency: string; id_customer_type: string; id_operation_type: string }
   ): Observable<DocumentoRequeridoResponse> {
     const url = this.apiBaseService.buildApiUrl(`${this.API_URL}/duplicate`);
     return this.http.post<DocumentoRequeridoResponse>(url, {
@@ -136,7 +136,7 @@ export class DocumentoRequeridoService {
     let httpParams = new HttpParams();
     
     if (filters) {
-      if (filters.id_process) httpParams = httpParams.set('id_process', filters.id_process);
+      if (filters.id_sale_type) httpParams = httpParams.set('id_sale_type', filters.id_sale_type);
       if (filters.id_agency) httpParams = httpParams.set('id_agency', filters.id_agency);
       if (filters.id_customer_type) httpParams = httpParams.set('id_customer_type', filters.id_customer_type);
       if (filters.id_operation_type) httpParams = httpParams.set('id_operation_type', filters.id_operation_type);

@@ -16,7 +16,7 @@ class Process extends BaseController
     }
     
     /**
-     * GET /api/process
+     * GET /api/sale-type
      * Obtener todos los procesos con filtros y paginación
      */
     public function index()
@@ -73,13 +73,13 @@ class Process extends BaseController
                 $db = \Config\Database::connect();
                 
                 // Obtener IDs de procesos asignados al usuario (usar snake_case)
-                $userProcesses = $db->table('process_user')
-                    ->select('id_process')
+                $userProcesses = $db->table('sale_type_user')
+                    ->select('id_sale_type')
                     ->where('id_user', $userId)
                     ->get()
                     ->getResultArray();
                 
-                $allowedProcessIds = array_column($userProcesses, 'id_process');
+                $allowedProcessIds = array_column($userProcesses, 'id_sale_type');
                 
                 // Filtrar los procesos obtenidos (compatibilidad con ambos formatos)
                 if (!empty($allowedProcessIds)) {
@@ -118,7 +118,7 @@ class Process extends BaseController
                 $db = \Config\Database::connect();
                 
                 $builder = $db->table('process_user pu')
-                    ->join('process p', 'p.id = pu.id_process', 'inner')
+                    ->join('process p', 'p.id = pu.id_sale_type', 'inner')
                     ->where('pu.id_user', $userId);
                 
                 if ($enabled === 'true') {
@@ -159,7 +159,7 @@ class Process extends BaseController
     }
     
     /**
-     * POST /api/process
+     * POST /api/sale-type
      * Crear nuevo proceso
      */
     public function create()
@@ -234,7 +234,7 @@ class Process extends BaseController
     }
     
     /**
-     * GET /api/process/{id}
+     * GET /api/sale-type/{id}
      * Obtener proceso por ID
      */
     public function show($id = null)
@@ -281,7 +281,7 @@ class Process extends BaseController
     }
     
     /**
-     * PUT /api/process/{id}
+     * PUT /api/sale-type/{id}
      * Actualizar proceso existente
      */
     public function update($id = null)
@@ -381,7 +381,7 @@ class Process extends BaseController
     }
     
     /**
-     * DELETE /api/process/{id}
+     * DELETE /api/sale-type/{id}
      * Eliminar proceso (soft delete o hard delete)
      */
     public function delete($id = null)
@@ -472,7 +472,7 @@ class Process extends BaseController
     }
     
     /**
-     * PATCH /api/process/{id}/estado
+     * PATCH /api/sale-type/{id}/estado
      * Cambiar estado de habilitación de un proceso
      */
     public function toggleStatus($id = null)
@@ -542,7 +542,7 @@ class Process extends BaseController
     }
     
     /**
-     * GET /api/process/search
+     * GET /api/sale-type/search
      * Buscar procesos por nombre
      */
     public function search()
@@ -585,7 +585,7 @@ class Process extends BaseController
     }
     
     /**
-     * GET /api/process/stats
+     * GET /api/sale-type/stats
      * Obtener estadísticas de procesos
      */
     public function stats()

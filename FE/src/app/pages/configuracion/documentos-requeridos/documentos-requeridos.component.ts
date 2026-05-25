@@ -348,7 +348,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
       offset: this.pageIndexDocumentos * this.pageSizeDocumentos
     };
     if (this.selectedCompany) filters.id_company = this.selectedCompany;
-    if (this.selectedProcess) filters.id_process = this.selectedProcess;
+    if (this.selectedProcess) filters.id_sale_type = this.selectedProcess;
     if (this.selectedAgency) filters.id_agency = this.selectedAgency;
     if (this.selectedCustomerType) filters.id_customer_type = this.selectedCustomerType;
     if (this.selectedOperationType) filters.id_operation_type = this.selectedOperationType;
@@ -429,7 +429,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     // Para crear una nueva configuración, usar filtros del Tab 2 si están disponibles,
     // o del Tab 1 (filtro de agencia), o valores vacíos
     const configuracion = {
-      id_process: this.selectedProcess || '',
+      id_sale_type: this.selectedProcess || '',
       id_agency: this.selectedAgency || this.selectedAgencyForConfiguraciones || '',
       id_customer_type: this.selectedCustomerType || '',
       id_operation_type: this.selectedOperationType || ''
@@ -478,7 +478,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   editConfiguration(): void {
     // Buscar el estado de la configuración desde los datos cargados
     const existingConfig = this.dataSource.data.find(doc => 
-      doc.id_process === this.selectedProcess &&
+      doc.id_sale_type === this.selectedProcess &&
       doc.id_agency === this.selectedAgency &&
       doc.id_customer_type === this.selectedCustomerType &&
       doc.id_operation_type === this.selectedOperationType
@@ -486,7 +486,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
     // Crear objeto de configuración con los filtros seleccionados
     const configuracion = {
-      id_process: this.selectedProcess,
+      id_sale_type: this.selectedProcess,
       id_agency: this.selectedAgency,
       id_customer_type: this.selectedCustomerType,
       id_operation_type: this.selectedOperationType,
@@ -543,7 +543,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
     // Crear objeto de configuración con los filtros seleccionados
     const configuracion = {
-      id_process: this.selectedProcess,
+      id_sale_type: this.selectedProcess,
       id_agency: parseInt(this.selectedAgency),
       id_customer_type: this.selectedCustomerType,
       id_operation_type: this.selectedOperationType
@@ -593,12 +593,12 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
           const configuracionesMap = new Map<string, any>();
           
           documentos.forEach((doc: DocumentoRequerido) => {
-            const key = `${doc.id_process}-${doc.id_agency}-${doc.id_customer_type}-${doc.id_operation_type}`;
+            const key = `${doc.id_sale_type}-${doc.id_agency}-${doc.id_customer_type}-${doc.id_operation_type}`;
             
             if (!configuracionesMap.has(key)) {
               configuracionesMap.set(key, {
                 id_configuration_process: doc.id_configuration_process,
-                id_process: doc.id_process,
+                id_sale_type: doc.id_sale_type,
                 id_agency: doc.id_agency,
                 id_customer_type: doc.id_customer_type,
                 id_operation_type: doc.id_operation_type,
@@ -654,7 +654,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
    * Aplicar configuración seleccionada del Tab 1 al Tab 2
    */
   aplicarConfiguracion(configuracion: any): void {
-    this.selectedProcess = configuracion.id_process;
+    this.selectedProcess = configuracion.id_sale_type;
     this.selectedAgency = configuracion.id_agency;
     this.selectedCustomerType = configuracion.id_customer_type;
     this.selectedOperationType = configuracion.id_operation_type;
@@ -672,7 +672,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
       data: {
         mode: 'edit',
         configuracion: {
-          id_process: configuracion.id_process,
+          id_sale_type: configuracion.id_sale_type,
           id_agency: configuracion.id_agency,
           id_customer_type: configuracion.id_customer_type,
           id_operation_type: configuracion.id_operation_type,
@@ -696,7 +696,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   duplicateConfigurationFromTab1(configuracion: any): void {
     // Obtener nombres de los elementos de la configuración
     const currentAgency = this.agencies.find(a => String(a.id) === String(configuracion.id_agency));
-    const currentProcess = this.processes.find(p => String(p.id) === String(configuracion.id_process));
+    const currentProcess = this.processes.find(p => String(p.id) === String(configuracion.id_sale_type));
     const currentCustomerType = this.customerTypes.find(c => String(c.id) === String(configuracion.id_customer_type));
     const currentOperationType = this.operationTypes.find(o => String(o.id) === String(configuracion.id_operation_type));
 
@@ -707,7 +707,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
     // Crear objeto de configuración
     const config = {
-      id_process: configuracion.id_process,
+      id_sale_type: configuracion.id_sale_type,
       id_agency: parseInt(configuracion.id_agency),
       id_customer_type: configuracion.id_customer_type,
       id_operation_type: configuracion.id_operation_type

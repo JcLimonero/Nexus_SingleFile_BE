@@ -55,13 +55,13 @@ export class DocumentTypeEditDialogComponent implements OnInit {
     this.initializeForm();
     this.loadCatalogs();
 
-    this.documentTypeForm.get('id_process_type')?.valueChanges.subscribe(selectedPhaseId => {
+    this.documentTypeForm.get('id_sale_type')?.valueChanges.subscribe(selectedPhaseId => {
       this.isSubPhaseEnabled = selectedPhaseId != null && selectedPhaseId !== '' && selectedPhaseId !== '0';
       if (this.isSubPhaseEnabled) {
-        this.documentTypeForm.patchValue({ id_sub_process: null }, { emitEvent: false });
+        this.documentTypeForm.patchValue({ id_sub_sale_type: null }, { emitEvent: false });
         this.loadSubProcessesByPhase(selectedPhaseId);
       } else {
-        this.documentTypeForm.patchValue({ id_sub_process: null }, { emitEvent: false });
+        this.documentTypeForm.patchValue({ id_sub_sale_type: null }, { emitEvent: false });
         this.subProcesses = [];
       }
     });
@@ -72,9 +72,9 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
       enabled: ['1', Validators.required],
       req_expiration: ['0'],
-      id_process_type: [null as number | null],
+      id_sale_type: [null as number | null],
       required: ['1'],
-      id_sub_process: [null as number | null],
+      id_sub_sale_type: [null as number | null],
       available_to_client: ['1']
     });
   }
@@ -122,23 +122,23 @@ export class DocumentTypeEditDialogComponent implements OnInit {
 
     if (this.data.documentType && this.data.mode === 'edit') {
       const dt = this.data.documentType;
-      const selectedPhaseId = dt.id_process_type ?? (dt as any).IdProcessType ?? defaultPhaseId;
-      const selectedSubProcess = dt.id_sub_process ?? (dt as any).IdSubProcess ?? null;
+      const selectedPhaseId = dt.id_sale_type ?? (dt as any).IdProcessType ?? defaultPhaseId;
+      const selectedSubProcess = dt.id_sub_sale_type ?? (dt as any).IdSubProcess ?? null;
       this.documentTypeForm.patchValue({
         name: dt.name ?? (dt as any).Name,
         enabled: dt.enabled ?? (dt as any).Enabled,
         req_expiration: dt.req_expiration ?? (dt as any).ReqExpiration ?? '0',
-        id_process_type: selectedPhaseId,
+        id_sale_type: selectedPhaseId,
         required: dt.required ?? (dt as any).Required ?? '1',
-        id_sub_process: selectedSubProcess,
+        id_sub_sale_type: selectedSubProcess,
         available_to_client: dt.available_to_client ?? (dt as any).AvailableToClient ?? '1'
       }, { emitEvent: false });
       this.isSubPhaseEnabled = selectedPhaseId != null && selectedPhaseId !== '' && selectedPhaseId !== '0';
       if (this.isSubPhaseEnabled) this.loadSubProcessesByPhase(selectedPhaseId);
     } else {
       this.documentTypeForm.patchValue({
-        id_process_type: defaultPhaseId,
-        id_sub_process: null
+        id_sale_type: defaultPhaseId,
+        id_sub_sale_type: null
       }, { emitEvent: false });
       this.isSubPhaseEnabled = defaultPhaseId != null;
       if (this.isSubPhaseEnabled) this.loadSubProcessesByPhase(defaultPhaseId);
@@ -163,9 +163,9 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       name: v.name,
       enabled: v.enabled,
       req_expiration: v.req_expiration,
-      id_process_type: v.id_process_type,
+      id_sale_type: v.id_sale_type,
       required: v.required,
-      id_sub_process: v.id_sub_process,
+      id_sub_sale_type: v.id_sub_sale_type,
       available_to_client: v.available_to_client
     };
 
@@ -198,9 +198,9 @@ export class DocumentTypeEditDialogComponent implements OnInit {
       name: v.name,
       enabled: v.enabled,
       req_expiration: v.req_expiration,
-      id_process_type: v.id_process_type,
+      id_sale_type: v.id_sale_type,
       required: v.required,
-      id_sub_process: v.id_sub_process,
+      id_sub_sale_type: v.id_sub_sale_type,
       available_to_client: v.available_to_client
     };
     const id = this.data.documentType!.id ?? (this.data.documentType as any).Id;

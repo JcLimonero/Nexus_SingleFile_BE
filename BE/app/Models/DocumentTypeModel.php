@@ -14,7 +14,7 @@ class DocumentTypeModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update',
-        'req_expiration', 'id_process_type', 'required', 'id_sub_process', 'available_to_client', 'document_auto_upload'
+        'req_expiration', 'id_sale_type', 'required', 'id_sub_sale_type', 'available_to_client', 'document_auto_upload'
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -102,7 +102,7 @@ class DocumentTypeModel extends Model
             cpd.id as id_configuration_process_document_type,
             cpd.id_document_type,
             cp.id as id_configuration_process,
-            cp.id_process,
+            cp.id_sale_type,
             cp.id_agency,
             cp.id_customer_type,
             cp.id_operation_type,
@@ -114,7 +114,7 @@ class DocumentTypeModel extends Model
         ');
         
         $builder->join('configuration_process cp', 'cp.id = cpd.id_configuration_process', 'inner');
-        $builder->join('process p', 'p.id = cp.id_process', 'left');
+        $builder->join('process p', 'p.id = cp.id_sale_type', 'left');
         // INNER JOIN: excluir configuraciones donde la agencia es N/A (nombre nulo, vacío o literal "N/A")
         $builder->join(
             'agency a',
@@ -176,9 +176,9 @@ class DocumentTypeModel extends Model
             dt.update_date,
             dt.id_last_user_update,
             dt.req_expiration,
-            dt.id_process_type,
+            dt.id_sale_type,
             dt.required,
-            dt.id_sub_process,
+            dt.id_sub_sale_type,
             dt.available_to_client,
             u.name as last_user_update_name,
             fs.name as process_type_name,
@@ -187,8 +187,8 @@ class DocumentTypeModel extends Model
 
         // JOINs para obtener las descripciones
         $builder->join('user u', 'u.id = dt.id_last_user_update', 'left');
-        $builder->join('`file_state` fs', 'fs.id = dt.id_process_type', 'left'); // Tipo de proceso
-        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_process', 'left'); // Subestado de archivo
+        $builder->join('`file_state` fs', 'fs.id = dt.id_sale_type', 'left'); // Tipo de proceso
+        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_sale_type', 'left'); // Subestado de archivo
         
         // Aplicar filtros
         if (!empty($filters['enabled'])) {
@@ -204,7 +204,7 @@ class DocumentTypeModel extends Model
         }
 
         if (!empty($filters['process_type'])) {
-            $builder->where('dt.id_process_type', $filters['process_type']);
+            $builder->where('dt.id_sale_type', $filters['process_type']);
         }
 
         if (!empty($filters['phase'])) {
@@ -232,9 +232,9 @@ class DocumentTypeModel extends Model
             'UpdateDate' => 'update_date',
             'IdLastUserUpdate' => 'id_last_user_update',
             'ReqExpiration' => 'req_expiration',
-            'IdProcessType' => 'id_process_type',
+            'IdProcessType' => 'id_sale_type',
             'Required' => 'required',
-            'IdSubProcess' => 'id_sub_process',
+            'IdSubProcess' => 'id_sub_sale_type',
             'AvailableToClient' => 'available_to_client'
         ];
         
@@ -244,7 +244,7 @@ class DocumentTypeModel extends Model
         }
         
         // Validar campos permitidos para ordenamiento
-        $allowedSortFields = ['id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update', 'req_expiration', 'id_process_type', 'required', 'id_sub_process', 'available_to_client'];
+        $allowedSortFields = ['id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update', 'req_expiration', 'id_sale_type', 'required', 'id_sub_sale_type', 'available_to_client'];
         if (!in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'name';
         }
@@ -273,8 +273,8 @@ class DocumentTypeModel extends Model
     {
         $builder = $this->db->table('document_type dt');
         
-        $builder->join('`file_state` fs', 'fs.id = dt.id_process_type', 'left');
-        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_process', 'left');
+        $builder->join('`file_state` fs', 'fs.id = dt.id_sale_type', 'left');
+        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_sale_type', 'left');
 
         // Aplicar los mismos filtros
         if (!empty($filters['enabled'])) {
@@ -290,7 +290,7 @@ class DocumentTypeModel extends Model
         }
 
         if (!empty($filters['process_type'])) {
-            $builder->where('dt.id_process_type', $filters['process_type']);
+            $builder->where('dt.id_sale_type', $filters['process_type']);
         }
 
         if (!empty($filters['phase'])) {
@@ -323,9 +323,9 @@ class DocumentTypeModel extends Model
             dt.update_date,
             dt.id_last_user_update,
             dt.req_expiration,
-            dt.id_process_type,
+            dt.id_sale_type,
             dt.required,
-            dt.id_sub_process,
+            dt.id_sub_sale_type,
             dt.available_to_client,
             u.name as last_user_update_name,
             fs.name as process_type_name,
@@ -333,8 +333,8 @@ class DocumentTypeModel extends Model
         ');
 
         $builder->join('user u', 'u.id = dt.id_last_user_update', 'left');
-        $builder->join('`file_state` fs', 'fs.id = dt.id_process_type', 'left'); // Tipo de proceso
-        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_process', 'left'); // Subestado de archivo
+        $builder->join('`file_state` fs', 'fs.id = dt.id_sale_type', 'left'); // Tipo de proceso
+        $builder->join('`file_sub_state` sp', 'sp.id = dt.id_sub_sale_type', 'left'); // Subestado de archivo
         
         $builder->where('dt.id', $id);
 

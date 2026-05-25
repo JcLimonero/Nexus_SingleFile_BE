@@ -980,7 +980,7 @@ export class OrderSelectionDialogComponent implements OnInit {
 
   private loadProcesses(): void {
     this.loadingProcesses = true;
-    this.http.get<any>(`${environment.apiBaseUrl}/api/process?enabled=1`)
+    this.http.get<any>(`${environment.apiBaseUrl}/api/sale-type?enabled=1`)
       .subscribe({
         next: (response) => {
           if (response && response.success && response.data) {
@@ -1130,7 +1130,7 @@ export class OrderSelectionDialogComponent implements OnInit {
       (config.IdCostumerType ?? config.id_customer_type) === costumerId
     );
 
-    const processIds = [...new Set(configurationsWithCostumer.map(config => config.IdProcess ?? config.id_process))];
+    const processIds = [...new Set(configurationsWithCostumer.map(config => config.IdProcess ?? config.id_sale_type))];
 
     this.availableProcesses = procs.filter(p =>
       processIds.includes(p.Id ?? p.id)
@@ -1146,7 +1146,7 @@ export class OrderSelectionDialogComponent implements OnInit {
 
     const configs = Array.isArray(this.allConfigurations) ? this.allConfigurations : [];
     const configurationsWithProcessAndCostumer = configs.filter(config => 
-      (config.IdProcess ?? config.id_process) === (this.selectedProcess?.Id ?? this.selectedProcess?.id) && 
+      (config.IdProcess ?? config.id_sale_type) === (this.selectedProcess?.Id ?? this.selectedProcess?.id) && 
       (config.IdCostumerType ?? config.id_customer_type) === (this.selectedCostumerType?.Id ?? this.selectedCostumerType?.id)
     );
 

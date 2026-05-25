@@ -42,7 +42,7 @@ class AuditOrphansCommand extends BaseCommand
      */
     private const CANDIDATES = [
         // === Categoría A — Phase A junctions / columns we own ===
-        ['client_group_process', 'id_process',          'process',      'id', 'delete'],
+        ['client_group_sale_type', 'id_sale_type',          'process',      'id', 'delete'],
         ['client_group_phase',   'id_file_state',       'file_state',   'id', 'delete'],
         ['client_group_phase',   'id_client_group',     'client_group', 'id', 'delete'],
         ['company',              'id_client_group',     'client_group', 'id', 'set_null'],
@@ -53,8 +53,8 @@ class AuditOrphansCommand extends BaseCommand
         // a una tabla `type_reason` que NUNCA existió en el schema (feature
         // legacy abandonada). No agregamos FK; solo nullify los zeros.
         ['agency',                     'id_company',          'company', 'id', 'set_null'],
-        ['document_type',              'id_process_type',     'process', 'id', 'set_null'],
-        ['document_type',              'id_sub_process',      'process', 'id', 'set_null'],
+        ['document_type',              'id_sale_type',     'process', 'id', 'set_null'],
+        ['document_type',              'id_sub_sale_type',      'process', 'id', 'set_null'],
         ['liquidation_receipt_detail', 'id_last_user_update', 'user',    'id', 'set_null'],
         ['client_identification_data', 'id_last_user_update', 'user',    'id', 'set_null'],
         ['config',                     'id_last_user_update', 'user',    'id', 'set_null'],

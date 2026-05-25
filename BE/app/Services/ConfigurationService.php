@@ -25,7 +25,7 @@ class ConfigurationService
         
         $sql = "SELECT COUNT(*) as count 
                 FROM configuration_process 
-                WHERE id_process = ? 
+                WHERE id_sale_type = ? 
                 AND id_customer_type = ? 
                 AND id_operation_type = ? 
                 AND id_agency = ? 
@@ -50,7 +50,7 @@ class ConfigurationService
     public function getEnabledConfigurationsByAgency($agencyId)
     {
         $sql = "SELECT DISTINCT 
-                    cp.id_process,
+                    cp.id_sale_type,
                     p.name as ProcessName,
                     cp.id_customer_type,
                     ct.name as CustomerTypeName,
@@ -59,7 +59,7 @@ class ConfigurationService
                     cp.id_agency,
                     a.name as AgencyName
                 FROM configuration_process cp
-                INNER JOIN process p ON cp.id_process = p.id
+                INNER JOIN process p ON cp.id_sale_type = p.id
                 INNER JOIN customer_type ct ON cp.id_customer_type = ct.id
                 INNER JOIN operation_type ot ON cp.id_operation_type = ot.id
                 INNER JOIN agency a ON cp.id_agency = a.id
@@ -81,7 +81,7 @@ class ConfigurationService
     {
         $sql = "SELECT DISTINCT p.id, p.name
                 FROM process p
-                INNER JOIN configuration_process cp ON p.id = cp.id_process
+                INNER JOIN configuration_process cp ON p.id = cp.id_sale_type
                 WHERE cp.id_agency = ? 
                 AND cp.enabled = 1
                 AND p.enabled = 1
@@ -99,7 +99,7 @@ class ConfigurationService
         $sql = "SELECT DISTINCT ct.id, ct.name
                 FROM customer_type ct
                 INNER JOIN configuration_process cp ON ct.id = cp.id_customer_type
-                WHERE cp.id_process = ? 
+                WHERE cp.id_sale_type = ? 
                 AND cp.id_agency = ? 
                 AND cp.enabled = 1
                 AND ct.enabled = 1
@@ -117,7 +117,7 @@ class ConfigurationService
         $sql = "SELECT DISTINCT ot.id, ot.name
                 FROM operation_type ot
                 INNER JOIN configuration_process cp ON ot.id = cp.id_operation_type
-                WHERE cp.id_process = ? 
+                WHERE cp.id_sale_type = ? 
                 AND cp.id_customer_type = ? 
                 AND cp.id_agency = ? 
                 AND cp.enabled = 1
@@ -136,7 +136,7 @@ class ConfigurationService
         $sql = "SELECT cp.*, p.name as ProcessName, ct.name as CustomerTypeName, 
                        ot.name as OperationTypeName, a.name as AgencyName
                 FROM configuration_process cp
-                INNER JOIN process p ON cp.id_process = p.id
+                INNER JOIN process p ON cp.id_sale_type = p.id
                 INNER JOIN customer_type ct ON cp.id_customer_type = ct.id
                 INNER JOIN operation_type ot ON cp.id_operation_type = ot.id
                 INNER JOIN agency a ON cp.id_agency = a.id
@@ -156,7 +156,7 @@ class ConfigurationService
     public function createConfiguration($processId, $customerTypeId, $operationTypeId, $agencyId, $userId)
     {
         $data = [
-            'id_process' => $processId,
+            'id_sale_type' => $processId,
             'id_customer_type' => $customerTypeId,
             'id_operation_type' => $operationTypeId,
             'id_agency' => $agencyId,

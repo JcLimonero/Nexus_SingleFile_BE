@@ -54,18 +54,18 @@ class ApplyPhaseAMigrationsCommand extends BaseCommand
         }
 
         // 2) client_group_process
-        if (!$db->tableExists('client_group_process')) {
-            $db->query('CREATE TABLE `client_group_process` (
+        if (!$db->tableExists('client_group_sale_type')) {
+            $db->query('CREATE TABLE `client_group_sale_type` (
                 `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `id_client_group` BIGINT UNSIGNED NOT NULL,
-                `id_process` BIGINT UNSIGNED NOT NULL,
+                `id_sale_type` BIGINT UNSIGNED NOT NULL,
                 `display_order` INT DEFAULT 0,
                 `enabled` TINYINT(1) DEFAULT 1,
                 `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
                 `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`id`),
-                UNIQUE KEY `uq_group_process` (`id_client_group`, `id_process`),
-                KEY `idx_id_process` (`id_process`),
+                UNIQUE KEY `uq_group_process` (`id_client_group`, `id_sale_type`),
+                KEY `idx_id_process` (`id_sale_type`),
                 CONSTRAINT `fk_cgp_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
             CLI::write('+ client_group_process', 'green');

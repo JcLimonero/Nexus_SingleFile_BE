@@ -167,8 +167,8 @@ export const schemaMigrations: Migration[] = [
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       required TINYINT(1) NOT NULL DEFAULT 0,
       req_expiration TINYINT(1) NOT NULL DEFAULT 0,
-      id_process_type BIGINT NULL,
-      id_sub_process BIGINT NULL,
+      id_sale_type BIGINT NULL,
+      id_sub_sale_type BIGINT NULL,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id)
@@ -214,13 +214,13 @@ export const schemaMigrations: Migration[] = [
     sql: `CREATE TABLE IF NOT EXISTS client_group_process (
       id BIGINT NOT NULL AUTO_INCREMENT,
       id_client_group BIGINT NOT NULL,
-      id_process BIGINT NOT NULL,
+      id_sale_type BIGINT NOT NULL,
       display_order INT DEFAULT 0,
       enabled TINYINT(1) DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
       update_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
-      UNIQUE KEY uq_cgp (id_client_group, id_process)
+      UNIQUE KEY uq_cgp (id_client_group, id_sale_type)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   },
   {

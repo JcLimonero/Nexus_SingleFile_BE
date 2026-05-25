@@ -34,8 +34,8 @@ class UserAccess extends BaseController
 
             // Obtener procesos asignados (snake_case)
             $processes = $db->table('process_user pu')
-                ->select('pu.id_process, p.name as process_name, p.enabled')
-                ->join('process p', 'p.id = pu.id_process', 'inner')
+                ->select('pu.id_sale_type, p.name as process_name, p.enabled')
+                ->join('process p', 'p.id = pu.id_sale_type', 'inner')
                 ->where('pu.id_user', $userId)
                 ->orderBy('p.name', 'ASC')
                 ->get()
@@ -43,7 +43,7 @@ class UserAccess extends BaseController
 
             // Extraer IDs
             $agencyIds = array_column($agencies, 'id_agency');
-            $processIds = array_column($processes, 'id_process');
+            $processIds = array_column($processes, 'id_sale_type');
 
             return $this->response->setJSON([
                 'success' => true,
@@ -135,21 +135,21 @@ class UserAccess extends BaseController
             }
 
             // Actualizar procesos (snake_case)
-            $db->table('process_user')->where('id_user', $userId)->delete();
+            $db->table('sale_type_user')->where('id_user', $userId)->delete();
             $processInsertData = [];
             foreach ($processes as $processId) {
-                $processExists = $db->table('process')->where('id', $processId)->countAllResults() > 0;
+                $processExists = $db->table('sale_type')->where('id', $processId)->countAllResults() > 0;
                 if ($processExists) {
                     $row = [
                         'id_user' => $userId,
-                        'id_process' => $processId
+                        'id_sale_type' => $processId
                     ];
                     $row['id_last_user_update'] = $currentUserId;
                     $processInsertData[] = $row;
                 }
             }
             if (!empty($processInsertData)) {
-                $db->table('process_user')->insertBatch($processInsertData);
+                $db->table('sale_type_user')->insertBatch($processInsertData);
             }
 
             // Completar transacción
@@ -206,7 +206,7 @@ class UserAccess extends BaseController
             $agenciesRemoved = $db->table('agency_user')->where('id_user', $userId)->delete();
             $agenciesCount = $db->affectedRows();
             
-            $processesRemoved = $db->table('process_user')->where('id_user', $userId)->delete();
+            $processesRemoved = $db->table('sale_type_user')->where('id_user', $userId)->delete();
             $processesCount = $db->affectedRows();
 
             // Completar transacción

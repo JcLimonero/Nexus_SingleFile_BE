@@ -33,7 +33,7 @@ class DocumentType extends BaseController
             $sortOrder = $this->request->getGet('sort_order') ?? 'ASC';
 
             // Validar campos permitidos para ordenamiento (snake_case)
-            $allowedSortFields = ['id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update', 'req_expiration', 'id_process_type', 'required', 'id_sub_process', 'available_to_client'];
+            $allowedSortFields = ['id', 'name', 'enabled', 'registration_date', 'update_date', 'id_last_user_update', 'req_expiration', 'id_sale_type', 'required', 'id_sub_sale_type', 'available_to_client'];
             if (!in_array($sortBy, $allowedSortFields)) {
                 $sortBy = 'name';
             }
@@ -181,9 +181,9 @@ class DocumentType extends BaseController
                 'name' => trim($data['Name'] ?? $data['name'] ?? ''),
                 'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
                 'req_expiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : (isset($data['req_expiration']) ? (int)$data['req_expiration'] : 0),
-                'id_process_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_process_type']) ? (int)$data['id_process_type'] : 0),
+                'id_sale_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_sale_type']) ? (int)$data['id_sale_type'] : 0),
                 'required' => isset($data['Required']) ? (int)$data['Required'] : (isset($data['required']) ? (int)$data['required'] : 1),
-                'id_sub_process' => $this->normalizeIdSubProcess($data),
+                'id_sub_sale_type' => $this->normalizeIdSubProcess($data),
                 'available_to_client' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : (isset($data['available_to_client']) ? (int)$data['available_to_client'] : 1),
                 'registration_date' => date('Y-m-d H:i:s'),
                 'update_date' => null,
@@ -351,9 +351,9 @@ class DocumentType extends BaseController
                 'name' => trim($data['Name'] ?? $data['name'] ?? ''),
                 'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : ($documentType['enabled'] ?? $documentType['Enabled'] ?? 1)),
                 'req_expiration' => isset($data['ReqExpiration']) ? (int)$data['ReqExpiration'] : (isset($data['req_expiration']) ? (int)$data['req_expiration'] : ($documentType['req_expiration'] ?? $documentType['ReqExpiration'] ?? 0)),
-                'id_process_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_process_type']) ? (int)$data['id_process_type'] : ($documentType['id_process_type'] ?? $documentType['IdProcessType'] ?? 0)),
+                'id_sale_type' => isset($data['IdProcessType']) ? (int)$data['IdProcessType'] : (isset($data['id_sale_type']) ? (int)$data['id_sale_type'] : ($documentType['id_sale_type'] ?? $documentType['IdProcessType'] ?? 0)),
                 'required' => isset($data['Required']) ? (int)$data['Required'] : (isset($data['required']) ? (int)$data['required'] : ($documentType['required'] ?? $documentType['Required'] ?? 1)),
-                'id_sub_process' => $this->normalizeIdSubProcess($data, $documentType),
+                'id_sub_sale_type' => $this->normalizeIdSubProcess($data, $documentType),
                 'available_to_client' => isset($data['AvailableToClient']) ? (int)$data['AvailableToClient'] : (isset($data['available_to_client']) ? (int)$data['available_to_client'] : ($documentType['available_to_client'] ?? $documentType['AvailableToClient'] ?? 1)),
                 'update_date' => date('Y-m-d H:i:s'),
                 'id_last_user_update' => $this->getCurrentUserId() ?? 0
@@ -755,11 +755,11 @@ class DocumentType extends BaseController
             }
             $db = \Config\Database::connect();
             $sql = "
-                SELECT cp.id as id_configuration_process, cp.id_process, p.name as proceso_name,
+                SELECT cp.id as id_configuration_process, cp.id_sale_type, p.name as proceso_name,
                        cp.id_agency, a.name as agencia_name, cp.id_customer_type, ct.name as tipo_cliente_name,
                        cp.id_operation_type, ot.name as tipo_operacion_name, cp.enabled
                 FROM configuration_process cp
-                LEFT JOIN process p ON p.id = cp.id_process
+                LEFT JOIN process p ON p.id = cp.id_sale_type
                 INNER JOIN agency a ON a.id = cp.id_agency AND a.name IS NOT NULL AND TRIM(a.name) != ''
                 LEFT JOIN customer_type ct ON ct.id = cp.id_customer_type
                 LEFT JOIN operation_type ot ON ot.id = cp.id_operation_type
@@ -875,16 +875,16 @@ class DocumentType extends BaseController
     }
 
     /**
-     * Normaliza id_sub_process: "Sin sub fase" (null, 0, '') se guarda como NULL en BD.
+     * Normaliza id_sub_sale_type: "Sin sub fase" (null, 0, '') se guarda como NULL en BD.
      * @param array $data Datos del request
      * @param array|null $documentType Registro actual (solo para update, cuando la clave no viene en data)
      */
     private function normalizeIdSubProcess(array $data, ?array $documentType = null): ?int
     {
-        $keyExists = array_key_exists('id_sub_process', $data) || array_key_exists('IdSubProcess', $data);
-        $val = $data['id_sub_process'] ?? $data['IdSubProcess'] ?? null;
+        $keyExists = array_key_exists('id_sub_sale_type', $data) || array_key_exists('IdSubProcess', $data);
+        $val = $data['id_sub_sale_type'] ?? $data['IdSubProcess'] ?? null;
         if (!$keyExists && $documentType !== null) {
-            $val = $documentType['id_sub_process'] ?? $documentType['IdSubProcess'] ?? null;
+            $val = $documentType['id_sub_sale_type'] ?? $documentType['IdSubProcess'] ?? null;
         }
         if ($val === null || $val === '' || $val === '0' || (is_numeric($val) && (int)$val === 0)) {
             return null;

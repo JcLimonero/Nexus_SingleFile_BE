@@ -109,7 +109,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       documento?: DocumentoRequerido; 
       mode: 'create' | 'edit';
       configuracion?: {
-        id_process: string;
+        id_sale_type: string;
         id_agency: string;
         id_customer_type: string;
         id_operation_type: string;
@@ -126,7 +126,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   private initializeForm(): void {
     this.documentoForm = this.fb.group({
-      id_process: ['', Validators.required],
+      id_sale_type: ['', Validators.required],
       id_agency: ['', Validators.required],
       id_customer_type: ['', Validators.required],
       id_operation_type: ['', Validators.required],
@@ -136,7 +136,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     // Si estamos en modo edición, poblar el formulario
     if (this.data.mode === 'edit' && this.data.documento) {
       this.documentoForm.patchValue({
-        id_process: this.data.documento.id_process,
+        id_sale_type: this.data.documento.id_sale_type,
         id_agency: this.data.documento.id_agency,
         id_customer_type: this.data.documento.id_customer_type,
         id_operation_type: this.data.documento.id_operation_type,
@@ -151,7 +151,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       const isEnabled = enabledValue === undefined || enabledValue === '' || enabledValue === '1' || String(enabledValue) === '1';
       
       this.documentoForm.patchValue({
-        id_process: this.data.configuracion.id_process,
+        id_sale_type: this.data.configuracion.id_sale_type,
         id_agency: this.data.configuracion.id_agency,
         id_customer_type: this.data.configuracion.id_customer_type,
         id_operation_type: this.data.configuracion.id_operation_type,
@@ -167,7 +167,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
       this.documentoForm.get('id_agency')?.valueChanges.subscribe(() => {
         this.validarConfiguracionExistente();
       });
-      this.documentoForm.get('id_process')?.valueChanges.subscribe(() => {
+      this.documentoForm.get('id_sale_type')?.valueChanges.subscribe(() => {
         this.validarConfiguracionExistente();
       });
       this.documentoForm.get('id_customer_type')?.valueChanges.subscribe(() => {
@@ -185,7 +185,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (enabledCtrl) {
       this._loading ? enabledCtrl.disable() : enabledCtrl.enable();
     }
-    ['id_agency', 'id_process', 'id_customer_type', 'id_operation_type'].forEach(name => {
+    ['id_agency', 'id_sale_type', 'id_customer_type', 'id_operation_type'].forEach(name => {
       const c = this.documentoForm.get(name);
       if (c) (this._loadingCatalogs ? c.disable() : c.enable());
     });
@@ -193,7 +193,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   private loadExistingDocuments(): void {
     const config = this.data.configuracion ?? (this.data.documento ? {
-      id_process: this.data.documento.id_process,
+      id_sale_type: this.data.documento.id_sale_type,
       id_agency: this.data.documento.id_agency,
       id_customer_type: this.data.documento.id_customer_type,
       id_operation_type: this.data.documento.id_operation_type
@@ -205,7 +205,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     }
 
     const filters = {
-      id_process: config.id_process,
+      id_sale_type: config.id_sale_type,
       id_agency: config.id_agency,
       id_customer_type: config.id_customer_type,
       id_operation_type: config.id_operation_type
@@ -351,11 +351,11 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   validarConfiguracionExistente(): void {
     // Solo validar si todos los campos están completos
     const id_agency = this.documentoForm.get('id_agency')?.value;
-    const id_process = this.documentoForm.get('id_process')?.value;
+    const id_sale_type = this.documentoForm.get('id_sale_type')?.value;
     const id_customer_type = this.documentoForm.get('id_customer_type')?.value;
     const id_operation_type = this.documentoForm.get('id_operation_type')?.value;
 
-    if (!id_agency || !id_process || !id_customer_type || !id_operation_type) {
+    if (!id_agency || !id_sale_type || !id_customer_type || !id_operation_type) {
       // Si falta algún campo, resetear el estado
       this.configuracionExiste = false;
       this.mensajeValidacion = '';
@@ -366,7 +366,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     this.mensajeValidacion = 'Verificando...';
 
     const filters = {
-      id_process,
+      id_sale_type,
       id_agency,
       id_customer_type,
       id_operation_type
@@ -378,7 +378,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
         if (response.success && response.data && response.data.documentos && response.data.documentos.length > 0) {
           // Ya existe una configuración
           this.configuracionExiste = true;
-          const procesoName = this.procesos.find(p => String(p.id) === String(id_process))?.name || 'N/A';
+          const procesoName = this.procesos.find(p => String(p.id) === String(id_sale_type))?.name || 'N/A';
           const agenciaName = this.agencias.find(a => String(a.id) === String(id_agency))?.name || 'N/A';
           const clienteName = this.tiposCliente.find(c => String(c.id) === String(id_customer_type))?.name || 'N/A';
           const operacionName = this.tiposOperacion.find(o => String(o.id) === String(id_operation_type))?.name || 'N/A';
@@ -430,7 +430,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     const formVal = this.documentoForm.getRawValue();
     this.selectedDocumentTypes.forEach((documentTypeId: string, index: number) => {
       const documentoData: DocumentoRequeridoCreateRequest = {
-        id_process: formVal.id_process,
+        id_sale_type: formVal.id_sale_type,
         id_agency: formVal.id_agency,
         id_customer_type: formVal.id_customer_type,
         id_operation_type: formVal.id_operation_type,
@@ -507,7 +507,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (!this.data.documento && this.data.configuracion) {
       const formVal = this.documentoForm.getRawValue();
       const filters = {
-        id_process: formVal.id_process,
+        id_sale_type: formVal.id_sale_type,
         id_agency: formVal.id_agency,
         id_customer_type: formVal.id_customer_type,
         id_operation_type: formVal.id_operation_type
@@ -532,7 +532,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
           const createRequests = typesToAdd.map(idDocType => {
             const data: DocumentoRequeridoCreateRequest = {
-              id_process: formVal.id_process,
+              id_sale_type: formVal.id_sale_type,
               id_agency: formVal.id_agency,
               id_customer_type: formVal.id_customer_type,
               id_operation_type: formVal.id_operation_type,
@@ -555,7 +555,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             const firstDoc = existingDocs[0];
             const updateData: DocumentoRequeridoUpdateRequest = {
               id: firstDoc.id,
-              id_process: formVal.id_process,
+              id_sale_type: formVal.id_sale_type,
               id_agency: formVal.id_agency,
               id_customer_type: formVal.id_customer_type,
               id_operation_type: formVal.id_operation_type,
@@ -573,7 +573,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
               if (docToUpdate) {
                 const updateData: DocumentoRequeridoUpdateRequest = {
                   id: docToUpdate.id,
-                  id_process: formVal.id_process,
+                  id_sale_type: formVal.id_sale_type,
                   id_agency: formVal.id_agency,
                   id_customer_type: formVal.id_customer_type,
                   id_operation_type: formVal.id_operation_type,
@@ -605,7 +605,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     if (this.data.documento) {
       const formVal = this.documentoForm.getRawValue();
       const filters = {
-        id_process: formVal.id_process,
+        id_sale_type: formVal.id_sale_type,
         id_agency: formVal.id_agency,
         id_customer_type: formVal.id_customer_type,
         id_operation_type: formVal.id_operation_type
@@ -628,7 +628,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
           const createRequests = typesToAdd.map(idDocType => {
             const data: DocumentoRequeridoCreateRequest = {
-              id_process: formVal.id_process,
+              id_sale_type: formVal.id_sale_type,
               id_agency: formVal.id_agency,
               id_customer_type: formVal.id_customer_type,
               id_operation_type: formVal.id_operation_type,
@@ -650,7 +650,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
             const firstDoc = existingDocs[0];
             const updateData: DocumentoRequeridoUpdateRequest = {
               id: firstDoc.id,
-              id_process: formVal.id_process,
+              id_sale_type: formVal.id_sale_type,
               id_agency: formVal.id_agency,
               id_customer_type: formVal.id_customer_type,
               id_operation_type: formVal.id_operation_type,
@@ -667,7 +667,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
               if (docToUpdate) {
                 const updateData: DocumentoRequeridoUpdateRequest = {
                   id: docToUpdate.id,
-                  id_process: formVal.id_process,
+                  id_sale_type: formVal.id_sale_type,
                   id_agency: formVal.id_agency,
                   id_customer_type: formVal.id_customer_type,
                   id_operation_type: formVal.id_operation_type,
@@ -777,7 +777,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
 
   // Métodos para obtener textos de solo lectura
   getProcessText(): string {
-    const processId = this.documentoForm.get('id_process')?.value;
+    const processId = this.documentoForm.get('id_sale_type')?.value;
     const process = this.procesos.find(p => String(p.id) === String(processId));
     return process ? process.name : 'No seleccionado';
   }

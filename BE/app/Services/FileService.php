@@ -163,7 +163,7 @@ class FileService
         $fileData = [
             'id_client' => $clientId,
             'id_agency' => $internalAgencyId,
-            'id_process' => $process['id'] ?? $process['Id'] ?? null,
+            'id_sale_type' => $process['id'] ?? $process['Id'] ?? null,
             'id_customer_type' => $customerType['id'] ?? $customerType['Id'] ?? null,
             'id_operation' => $operationType['id'] ?? $operationType['Id'] ?? null,
             'id_seller' => $sellerId,
@@ -243,7 +243,7 @@ class FileService
                 FROM document_type dt
                 INNER JOIN configuration_process_document_type cpd ON dt.id = cpd.id_document_type
                 INNER JOIN configuration_process cp ON cpd.id_configuration_process = cp.id
-                WHERE cp.id_process = ? 
+                WHERE cp.id_sale_type = ? 
                 AND cp.id_customer_type = ? 
                 AND cp.id_operation_type = ? 
                 AND cp.id_agency = ?

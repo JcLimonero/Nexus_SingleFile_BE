@@ -54,7 +54,7 @@ class Files extends BaseController
                             INNER JOIN client_header hc ON hc.id_client = f.id_client
                             INNER JOIN client_dms_relation ctr ON hc.id = ctr.id_client_header
                                 AND ctr.id_agency = f.id_agency
-                            LEFT JOIN process p ON f.id_process = p.id
+                            LEFT JOIN process p ON f.id_sale_type = p.id
                             LEFT JOIN operation_type ot ON f.id_operation = ot.id
                             LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                             LEFT JOIN agency a ON f.id_agency = a.id
@@ -156,7 +156,7 @@ class Files extends BaseController
                     fs.name as estatus
                 FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
-                LEFT JOIN process p ON f.id_process = p.id
+                LEFT JOIN process p ON f.id_sale_type = p.id
                 LEFT JOIN operation_type ot ON f.id_operation = ot.id
                 LEFT JOIN customer_type ct ON f.id_customer_type = ct.id
                 LEFT JOIN file_state fs ON f.id_current_state = fs.id
@@ -763,7 +763,7 @@ class Files extends BaseController
     {
         $sql = "SELECT COUNT(*) as count
                 FROM configuration_process
-                WHERE id_process = ?
+                WHERE id_sale_type = ?
                 AND id_customer_type = ?
                 AND id_operation_type = ?
                 AND id_agency = ?
@@ -858,7 +858,7 @@ class Files extends BaseController
             'id' => $nextId, // Especificar el ID explícitamente
             'id_client' => $clientId,
             'id_agency' => $internalAgencyId,
-            'id_process' => $process['id'] ?? $process['Id'] ?? null,
+            'id_sale_type' => $process['id'] ?? $process['Id'] ?? null,
             'id_customer_type' => $customerType['id'] ?? $customerType['Id'] ?? null,
             'id_operation' => $operationType['id'] ?? $operationType['Id'] ?? null,
             'id_seller' => $sellerId,
@@ -959,11 +959,11 @@ class Files extends BaseController
         
         // Buscar documentos requeridos usando AMBOS IDs de agencia
         // configuration_process puede usar el ID interno o externo, así que buscamos por ambos
-        $sql = "SELECT DISTINCT cpd.id_document_type, dt.name as document_name, dt.id_process_type
+        $sql = "SELECT DISTINCT cpd.id_document_type, dt.name as document_name, dt.id_sale_type
                 FROM configuration_process_document_type cpd
                 INNER JOIN document_type dt ON cpd.id_document_type = dt.id
                 INNER JOIN configuration_process cp ON cpd.id_configuration_process = cp.id
-                WHERE cp.id_process = ? 
+                WHERE cp.id_sale_type = ? 
                 AND cp.id_customer_type = ? 
                 AND cp.id_operation_type = ? 
                 AND (cp.id_agency = ? OR cp.id_agency = ?)
