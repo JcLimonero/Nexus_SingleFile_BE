@@ -216,6 +216,12 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], function($routes) 
         $routes->get('(:num)', 'FileSubState::show/$1');
     });
     
+    // Helper endpoint para el FE: fases activas para el usuario actual,
+    // resueltas vía user → agency → company → client_group → client_group_phase.
+    $routes->group('phase', function($routes) {
+        $routes->get('active-for-user', 'Phase::activeForUser');
+    });
+
     // Rutas de grupo de cliente (ClientGroup) — tope de la jerarquía nueva: grupo → company → agency
     $routes->group('client-group', function($routes) {
         $routes->get('/',                          'ClientGroup::index');

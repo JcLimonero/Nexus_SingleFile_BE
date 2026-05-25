@@ -198,6 +198,16 @@ export const appRoutes: VexRoutes = [
         ]
       },
       {
+        // Dynamic phase route — resolves slug against the user's current group
+        // phase assignments. Coexists with /procesos/integracion|liquidacion|liberacion
+        // during the legacy → dynamic transition.
+        path: 'fases/:slug',
+        loadComponent: () =>
+          import('./pages/procesos/process-page/process-page.component').then(
+            (m) => m.ProcessPageComponent
+          )
+      },
+      {
         path: 'mesa-control',
         children: [
           {
