@@ -1,0 +1,164 @@
+[
+    {
+        "id": "1",
+        "name": "Error Datos Cliente",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:18",
+        "update_date": "2026-02-28 07:26:18",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "2",
+        "name": "Error en Fecha",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:18",
+        "update_date": "2026-02-28 07:26:18",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "3",
+        "name": "Error en Domicilio",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:19",
+        "update_date": "2026-02-28 07:26:19",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "4",
+        "name": "Error en Precio",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:19",
+        "update_date": "2026-02-28 07:26:19",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "5",
+        "name": "Error en RFC",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:19",
+        "update_date": "2026-02-28 07:26:19",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "6",
+        "name": "Error en Datos Vehiculo",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:20",
+        "update_date": "2026-02-28 07:26:20",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "7",
+        "name": "Error en el Sistema",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:20",
+        "update_date": "2026-02-28 07:26:20",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "8",
+        "name": "Error en Uso CFDI",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:21",
+        "update_date": "2026-02-28 07:26:21",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "9",
+        "name": "Error por Adenda",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:21",
+        "update_date": "2026-02-28 07:26:21",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "10",
+        "name": "Venta Caida",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:21",
+        "update_date": "2026-02-28 07:26:21",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "11",
+        "name": "Credito No Autorizado",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:22",
+        "update_date": "2026-02-28 07:26:22",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "12",
+        "name": "No Pago",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:22",
+        "update_date": "2026-02-28 07:26:22",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "13",
+        "name": "Cambio de Opinión de Cliente",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:22",
+        "update_date": "2026-02-28 07:26:22",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "14",
+        "name": "No Llego la Unidad",
+        "id_type_reason": "2",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:23",
+        "update_date": "2026-02-28 07:26:23",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "15",
+        "name": "Autorizacion de Direccion",
+        "id_type_reason": "1",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:23",
+        "update_date": "2026-02-28 07:26:23",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "16",
+        "name": "Venta de Socio",
+        "id_type_reason": "1",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:24",
+        "update_date": "2026-02-28 07:26:24",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "17",
+        "name": "Cierre de Mes",
+        "id_type_reason": "1",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:24",
+        "update_date": "2026-02-28 07:26:24",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "18",
+        "name": "Autorizacion Dir. Marca",
+        "id_type_reason": "1",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:26:24",
+        "update_date": "2026-02-28 07:26:24",
+        "id_last_user_update": "1"
+    }
+]

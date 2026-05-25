@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-electron/
+release/
+out-tsc/
+.angular/
+*.log
+.DS_Store

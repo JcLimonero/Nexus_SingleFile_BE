@@ -1,0 +1,82 @@
+[
+    {
+        "id": "1",
+        "name": "Depósito en efectivo en ventanilla bancaria",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "2",
+        "name": "Transferencia electrónica (SPEI)",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "3",
+        "name": "Transferencia interbancaria programada",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "4",
+        "name": "Cheque de caja",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "5",
+        "name": "Cheque certificado",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "6",
+        "name": "Pago referenciado (línea de captura)",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "7",
+        "name": "Transferencia desde cuenta empresarial (persona moral)",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "8",
+        "name": "Pago mixto (enganche + transferencia + crédito)",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "9",
+        "name": "Depósito en corresponsales bancarios (Oxxo, farmacias, etc.)",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    },
+    {
+        "id": "10",
+        "name": "Desembolso de crédito bancario directo a la agencia",
+        "registration_date": "2026-03-01 23:38:17",
+        "update_date": "2026-03-01 23:38:17",
+        "id_last_user_update": "0",
+        "enabled": "1"
+    }
+]

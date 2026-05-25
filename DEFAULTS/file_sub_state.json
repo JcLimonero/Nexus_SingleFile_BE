@@ -1,0 +1,56 @@
+[
+    {
+        "id": "1",
+        "id_file_status": "3",
+        "name": "Placas",
+        "registration_date": "2026-02-28 06:49:12",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "2",
+        "id_file_status": "3",
+        "name": "Seguro",
+        "registration_date": "2026-02-28 06:49:13",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "3",
+        "id_file_status": "3",
+        "name": "Accesorio",
+        "registration_date": "2026-02-28 06:49:14",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "4",
+        "id_file_status": "3",
+        "name": "PDI",
+        "registration_date": "2026-02-28 06:49:15",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "5",
+        "id_file_status": "3",
+        "name": "Detallado",
+        "registration_date": "2026-02-28 06:49:15",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "6",
+        "id_file_status": "3",
+        "name": "Entrega Unidad",
+        "registration_date": "2026-02-28 06:49:16",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    }
+]

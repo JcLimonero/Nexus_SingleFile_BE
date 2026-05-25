@@ -1,0 +1,50 @@
+[
+    {
+        "id": "1",
+        "registration_date": "2026-02-28 07:14:30",
+        "update_date": "2026-02-28 07:16:50",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "name": "Documento Nuevo"
+    },
+    {
+        "id": "2",
+        "registration_date": "2026-02-28 07:14:31",
+        "update_date": "2026-02-28 07:16:50",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "name": "Documento Cargado"
+    },
+    {
+        "id": "3",
+        "registration_date": "2026-02-28 07:14:32",
+        "update_date": "2026-02-28 07:16:50",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "name": "Documento en Revisión"
+    },
+    {
+        "id": "4",
+        "registration_date": "2026-02-28 07:14:33",
+        "update_date": "2026-02-28 07:16:50",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "name": "Documento Aprobado"
+    },
+    {
+        "id": "5",
+        "registration_date": "2026-02-28 07:14:33",
+        "update_date": "2026-02-28 07:16:50",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "name": "Documento Rechazado"
+    },
+    {
+        "id": "6",
+        "registration_date": "2026-02-28 07:14:34",
+        "update_date": "2026-02-28 07:16:50",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "name": "Documento Caduco"
+    }
+]

@@ -1,0 +1,26 @@
+[
+    {
+        "id": "1",
+        "name": "Autos Nuevos",
+        "enabled": "1",
+        "registration_date": "2026-02-28 06:17:45",
+        "id_last_user_update": "1",
+        "update_date": "2026-02-28 07:16:54"
+    },
+    {
+        "id": "2",
+        "name": "Autos Seminuevos",
+        "enabled": "1",
+        "registration_date": "2026-02-28 06:17:45",
+        "id_last_user_update": "1",
+        "update_date": "2026-02-28 07:16:54"
+    },
+    {
+        "id": "3",
+        "name": "Motos Nuevos",
+        "enabled": "1",
+        "registration_date": "2026-02-28 06:17:46",
+        "id_last_user_update": "1",
+        "update_date": "2026-02-28 07:16:54"
+    }
+]

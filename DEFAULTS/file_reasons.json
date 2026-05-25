@@ -1,0 +1,74 @@
+[
+    {
+        "id": "1",
+        "name": "Documento Vencido",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:01",
+        "update_date": "2026-02-28 07:21:16",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "2",
+        "name": "Documento No Legible",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:02",
+        "update_date": "2026-02-28 07:21:17",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "3",
+        "name": "Dcto. Vencido y No Legible",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:03",
+        "update_date": "2026-02-28 07:21:17",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "4",
+        "name": "Dcto. No Correspondiente",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:04",
+        "update_date": "2026-02-28 07:21:17",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "5",
+        "name": "Informacion No Corresponde",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:04",
+        "update_date": "2026-02-28 07:21:18",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "6",
+        "name": "Documento Incompleto",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:05",
+        "update_date": "2026-02-28 07:21:18",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "7",
+        "name": "Firma No Coincide",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:06",
+        "update_date": "2026-02-28 07:21:19",
+        "id_last_user_update": "1"
+    },
+    {
+        "id": "8",
+        "name": "Corrección de Expediente",
+        "id_type_reason": "0",
+        "enabled": "1",
+        "registration_date": "2026-02-28 07:20:07",
+        "update_date": "2026-02-28 07:21:19",
+        "id_last_user_update": "1"
+    }
+]

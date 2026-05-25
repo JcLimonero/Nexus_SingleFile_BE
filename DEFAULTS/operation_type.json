@@ -1,0 +1,42 @@
+[
+    {
+        "id": "1",
+        "name": "Contado",
+        "registration_date": "2026-02-28 06:20:01",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "2",
+        "name": "Financiamiento",
+        "registration_date": "2026-02-28 06:20:02",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "3",
+        "name": "Arrendamiento",
+        "registration_date": "2026-02-28 06:20:03",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "4",
+        "name": "Autofinanciamiento",
+        "registration_date": "2026-02-28 06:20:04",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "5",
+        "name": "Credito Interno",
+        "registration_date": "2026-02-28 06:20:04",
+        "update_date": "2026-02-28 07:16:53",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    }
+]

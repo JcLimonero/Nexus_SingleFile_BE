@@ -1,0 +1,66 @@
+[
+    {
+        "id": "1",
+        "registration_date": "2026-02-28 07:23:39",
+        "update_date": "2026-02-28 07:23:39",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Documento Vencido"
+    },
+    {
+        "id": "2",
+        "registration_date": "2026-02-28 07:23:40",
+        "update_date": "2026-02-28 07:23:40",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Documento No Legible"
+    },
+    {
+        "id": "3",
+        "registration_date": "2026-02-28 07:23:40",
+        "update_date": "2026-02-28 07:23:40",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Dcto. Vencido y No Legible"
+    },
+    {
+        "id": "4",
+        "registration_date": "2026-02-28 07:23:40",
+        "update_date": "2026-02-28 07:23:40",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Dcto. No Correspondiente"
+    },
+    {
+        "id": "5",
+        "registration_date": "2026-02-28 07:23:41",
+        "update_date": "2026-02-28 07:23:41",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Informacion No Corresponde"
+    },
+    {
+        "id": "6",
+        "registration_date": "2026-02-28 07:23:41",
+        "update_date": "2026-02-28 07:23:41",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Documento Incompleto"
+    },
+    {
+        "id": "7",
+        "registration_date": "2026-02-28 07:23:42",
+        "update_date": "2026-02-28 07:23:42",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Firma No Coincide"
+    },
+    {
+        "id": "8",
+        "registration_date": "2026-02-28 07:23:42",
+        "update_date": "2026-02-28 07:23:42",
+        "id_last_user_update": "1",
+        "enabled": "1",
+        "description": "Corrección de Expediente"
+    }
+]

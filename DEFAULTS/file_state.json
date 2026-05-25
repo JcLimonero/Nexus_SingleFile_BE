@@ -1,0 +1,50 @@
+[
+    {
+        "id": "1",
+        "name": "Integración",
+        "registration_date": null,
+        "update_date": "2026-02-28 07:16:52",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "2",
+        "name": "Liquidación",
+        "registration_date": null,
+        "update_date": "2026-02-28 07:16:52",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "3",
+        "name": "Liberación",
+        "registration_date": null,
+        "update_date": "2026-02-28 07:16:52",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "4",
+        "name": "Liberado",
+        "registration_date": null,
+        "update_date": "2026-02-28 07:16:52",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "5",
+        "name": "Cancelado",
+        "registration_date": null,
+        "update_date": "2026-02-28 07:16:52",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "6",
+        "name": "Liberado por Excepción",
+        "registration_date": null,
+        "update_date": "2026-02-28 07:16:52",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    }
+]

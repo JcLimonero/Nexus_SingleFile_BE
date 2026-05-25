@@ -1,0 +1,18 @@
+[
+    {
+        "id": "1",
+        "name": "Persona Física",
+        "registration_date": "2026-02-28 06:18:51",
+        "update_date": "2026-02-28 07:16:49",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    },
+    {
+        "id": "2",
+        "name": "Persona Moral",
+        "registration_date": "2026-02-28 06:18:52",
+        "update_date": "2026-02-28 07:16:49",
+        "id_last_user_update": "1",
+        "enabled": "1"
+    }
+]

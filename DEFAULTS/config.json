@@ -1,0 +1,145 @@
+[
+    {
+        "id": "1",
+        "config_key": "backblaze_key_id",
+        "config_value": "",
+        "category": "backblaze",
+        "description": "Backblaze B2: Key ID (Application Key)",
+        "sensitive": "1",
+        "registration_date": "2026-03-01 23:41:05",
+        "update_date": "2026-03-01 23:41:05",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "2",
+        "config_key": "backblaze_application_key",
+        "config_value": "",
+        "category": "backblaze",
+        "description": "Backblaze B2: Application Key (secreto)",
+        "sensitive": "1",
+        "registration_date": "2026-03-01 23:41:05",
+        "update_date": "2026-03-01 23:41:05",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "3",
+        "config_key": "backblaze_bucket_id",
+        "config_value": "",
+        "category": "backblaze",
+        "description": "Backblaze B2: Bucket ID",
+        "sensitive": "0",
+        "registration_date": "2026-03-01 23:41:05",
+        "update_date": "2026-03-01 23:41:05",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "4",
+        "config_key": "backblaze_bucket_name",
+        "config_value": "",
+        "category": "backblaze",
+        "description": "Backblaze B2: Nombre del bucket",
+        "sensitive": "0",
+        "registration_date": "2026-03-01 23:41:05",
+        "update_date": "2026-03-01 23:41:05",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "5",
+        "config_key": "backblaze_endpoint",
+        "config_value": "",
+        "category": "backblaze",
+        "description": "Backblaze B2: Endpoint S3-compatible (opcional)",
+        "sensitive": "0",
+        "registration_date": "2026-03-01 23:41:05",
+        "update_date": "2026-03-01 23:41:05",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "6",
+        "config_key": "group_api_url",
+        "config_value": "",
+        "category": "orders_api",
+        "description": "URL base del API para obtener pedidos",
+        "sensitive": "0",
+        "registration_date": "2026-03-01 23:41:08",
+        "update_date": "2026-03-01 23:41:08",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "7",
+        "config_key": "orders_api_key",
+        "config_value": "",
+        "category": "orders_api",
+        "description": "API Key o token de autenticación para pedidos",
+        "sensitive": "1",
+        "registration_date": "2026-03-01 23:41:08",
+        "update_date": "2026-03-01 23:41:08",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "8",
+        "config_key": "orders_api_user",
+        "config_value": "",
+        "category": "orders_api",
+        "description": "Usuario del API de pedidos (si aplica)",
+        "sensitive": "0",
+        "registration_date": "2026-03-01 23:41:08",
+        "update_date": "2026-03-01 23:41:08",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "9",
+        "config_key": "orders_api_password",
+        "config_value": "",
+        "category": "orders_api",
+        "description": "Contraseña del API de pedidos (si aplica)",
+        "sensitive": "1",
+        "registration_date": "2026-03-01 23:41:08",
+        "update_date": "2026-03-01 23:41:08",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "10",
+        "config_key": "id_document_type_liquidacion",
+        "config_value": "",
+        "category": "document_types",
+        "description": "ID del tipo de documento de Liquidación en document_type",
+        "sensitive": "0",
+        "registration_date": "2026-03-01 23:41:10",
+        "update_date": "2026-03-01 23:41:10",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "11",
+        "config_key": "aml_umbral_uma",
+        "config_value": "",
+        "category": "aml",
+        "description": "Umbral AML en unidades UMA (normativa PLD). Operaciones que superen este monto por cliente\/compañía activan alerta.",
+        "sensitive": "0",
+        "registration_date": "2026-03-03 05:47:38",
+        "update_date": "2026-03-03 05:47:38",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "12",
+        "config_key": "aml_valor_uma",
+        "config_value": "",
+        "category": "aml",
+        "description": "Valor diario de la UMA en pesos MXN. Actualizar cuando INEGI publique nuevo valor (vigente feb 2025 - ene 2026).",
+        "sensitive": "0",
+        "registration_date": "2026-03-03 05:47:38",
+        "update_date": "2026-03-03 05:47:38",
+        "id_last_user_update": "0"
+    },
+    {
+        "id": "13",
+        "config_key": "aml_umbral_reportar_uma",
+        "config_value": "",
+        "category": "aml",
+        "description": "Umbral para reportar a fin de mes (UMA). Operaciones que superen este monto por cliente\/compañía deben reportarse ante la autoridad.",
+        "sensitive": "0",
+        "registration_date": "2026-03-06 19:06:14",
+        "update_date": "2026-03-06 19:06:14",
+        "id_last_user_update": "0"
+    }
+]
