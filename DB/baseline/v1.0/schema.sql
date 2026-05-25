@@ -901,6 +901,69 @@ ALTER TABLE `file_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NU
 -- without specifying id every time.
 ALTER TABLE `agency` MODIFY `id` BIGINT NOT NULL AUTO_INCREMENT;
 
+-- ====== FK integrity additions ======
+-- El dump original de `nexfile` dejó muchas columnas id_* sin FK constraint
+-- declarada. Estas filas eran proclives a huérfanos. Agregar FOREIGN KEY las
+-- hace fallar al insertar referencias inválidas (MySQL 1452).
+--
+-- MySQL auto-crea un índice por cada FK, así que cubre integridad + perf.
+--
+-- Type-alignment fixes (parents legacy son INT, columnas Phase A se
+-- declararon BIGINT; downgrade a INT para que las FKs no fallen 3780):
+
+ALTER TABLE `client_group_phase` MODIFY `id_file_state` INT NOT NULL;
+ALTER TABLE `agency`             MODIFY `id_company`    INT DEFAULT NULL;
+
+-- Categoría A — junctions y columnas que NOSOTROS creamos en Phase A
+-- (sabemos que están limpias, no requieren data migration):
+
+ALTER TABLE `client_group`
+  ADD CONSTRAINT `fk_cg_last_user_update`
+  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `client_group_process`
+  ADD CONSTRAINT `fk_cgp_process`
+  FOREIGN KEY (`id_process`) REFERENCES `process` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `client_group_phase`
+  ADD CONSTRAINT `fk_cgph_file_state`
+  FOREIGN KEY (`id_file_state`) REFERENCES `file_state` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `company`
+  ADD CONSTRAINT `fk_company_client_group`
+  FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Categoría B — legacy hierarchy (después de cleanup con tenant:audit-orphans
+-- --fix-zeros + spark tenant:audit-orphans + UPDATEs sugeridas):
+
+ALTER TABLE `agency`
+  ADD CONSTRAINT `fk_agency_company`
+  FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `document_type`
+  ADD CONSTRAINT `fk_document_type_process_type`
+  FOREIGN KEY (`id_process_type`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `document_type`
+  ADD CONSTRAINT `fk_document_type_sub_process`
+  FOREIGN KEY (`id_sub_process`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `liquidation_receipt_detail`
+  ADD CONSTRAINT `fk_lrd_last_user_update`
+  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `client_identification_data`
+  ADD CONSTRAINT `fk_cid_last_user_update`
+  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `config`
+  ADD CONSTRAINT `fk_config_last_user_update`
+  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `payment_method`
+  ADD CONSTRAINT `fk_payment_method_last_user_update`
+  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
 -- ====== Views ======
 
 DROP VIEW IF EXISTS `view_all_relations`;

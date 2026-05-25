@@ -202,6 +202,30 @@ class DumpBaselineCommand extends BaseCommand
         // auto-generated PKs to insert without specifying id every time.
         $out .= "ALTER TABLE `agency` MODIFY `id` BIGINT NOT NULL AUTO_INCREMENT;\n\n";
 
+        // FK integrity additions — el dump original deja muchas columnas id_*
+        // sin FK declarada (proclive a huérfanos). Las agregamos aquí. Ver
+        // `php spark tenant:audit-orphans --db <name>` para identificar y
+        // limpiar huérfanos antes de aplicar estas FKs a un tenant ya creado.
+        $out .= "-- ====== FK integrity additions ======\n";
+        $out .= "-- Type-alignment (parents legacy INT, Phase A children BIGINT → downgrade):\n";
+        $out .= "ALTER TABLE `client_group_phase` MODIFY `id_file_state` INT NOT NULL;\n";
+        $out .= "ALTER TABLE `agency`             MODIFY `id_company`    INT DEFAULT NULL;\n\n";
+
+        $out .= "-- Categoría A (Phase A, sin huérfanos):\n";
+        $out .= "ALTER TABLE `client_group` ADD CONSTRAINT `fk_cg_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `client_group_process` ADD CONSTRAINT `fk_cgp_process` FOREIGN KEY (`id_process`) REFERENCES `process` (`id`) ON DELETE CASCADE;\n";
+        $out .= "ALTER TABLE `client_group_phase` ADD CONSTRAINT `fk_cgph_file_state` FOREIGN KEY (`id_file_state`) REFERENCES `file_state` (`id`) ON DELETE CASCADE;\n";
+        $out .= "ALTER TABLE `company` ADD CONSTRAINT `fk_company_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n\n";
+
+        $out .= "-- Categoría B (legacy hierarchy, post-cleanup):\n";
+        $out .= "ALTER TABLE `agency` ADD CONSTRAINT `fk_agency_company` FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_process_type` FOREIGN KEY (`id_process_type`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sub_process` FOREIGN KEY (`id_sub_process`) REFERENCES `process` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `liquidation_receipt_detail` ADD CONSTRAINT `fk_lrd_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `client_identification_data` ADD CONSTRAINT `fk_cid_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `config` ADD CONSTRAINT `fk_config_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
+        $out .= "ALTER TABLE `payment_method` ADD CONSTRAINT `fk_payment_method_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n\n";
+
         // === Views (DEFINER stripped, source-DB refs rewritten to bare table refs) ===
         if ($views) {
             $out .= "-- ====== Views ======\n\n";
