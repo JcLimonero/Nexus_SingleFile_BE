@@ -80,6 +80,15 @@ import { WizardStateService } from '../../state/wizard-state.service';
           }
         </div>
 
+        @if (missingFields().length) {
+          <div style="margin-top: 16px; padding: 12px; background: #fff8e1; color: #ff8f00; border-radius: 4px; font-size: 13px;">
+            <b>Falta para habilitar Continuar:</b>
+            <ul style="margin: 4px 0 0 16px; padding: 0;">
+              @for (f of missingFields(); track f) { <li>{{ f }}</li> }
+            </ul>
+          </div>
+        }
+
         <div class="wiz-step-actions">
           <a mat-button routerLink="/admin-login"><mat-icon>arrow_back</mat-icon> Atrás</a>
           <button mat-flat-button color="primary" (click)="next()" [disabled]="!canProceed()">
@@ -102,13 +111,32 @@ export class TenantInfoComponent {
   testResult = signal<{ ok: boolean; message?: string } | null>(null);
 
   onSlugChange(v: string) {
+    // Auto-normalize: lowercase + strip invalid chars on the fly so the user
+    // can paste "VW" or "VW Test" and get "vw" / "vw-test" without thinking
+    // about slug rules.
+    const cleaned = (v || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    if (cleaned !== this.slug) this.slug = cleaned;
     if (!this.tdb.database || this.tdb.database.startsWith('nexfile_tenant_')) {
-      this.tdb.database = `nexfile_tenant_${v}`;
+      this.tdb.database = `nexfile_tenant_${cleaned}`;
     }
   }
 
   canProceed(): boolean {
-    return !!(this.slug && /^[a-z0-9_-]{2,50}$/.test(this.slug) && this.name && this.tdb.host && this.tdb.user && this.tdb.database && /^[0-9a-fA-F]{64}$/.test(this.encKey));
+    return this.missingFields().length === 0;
+  }
+
+  /** Returns a human-readable list of what's still blocking the Continue button. */
+  missingFields(): string[] {
+    const out: string[] = [];
+    if (!this.slug) out.push('Slug vacío');
+    else if (!/^[a-z0-9_-]{2,50}$/.test(this.slug)) out.push('Slug inválido (solo minúsculas, números, _ y -, 2-50 chars)');
+    if (!this.name) out.push('Nombre vacío');
+    if (!this.tdb.host) out.push('Host del tenant DB vacío');
+    if (!this.tdb.user) out.push('Usuario del tenant DB vacío');
+    if (!this.tdb.database) out.push('Nombre del tenant DB vacío');
+    if (!this.encKey) out.push('Encryption key vacía (revisa config/central.env)');
+    else if (!/^[0-9a-fA-F]{64}$/.test(this.encKey)) out.push(`Encryption key debe ser 64 chars hex (actual: ${this.encKey.length})`);
+    return out;
   }
 
   async test() {
