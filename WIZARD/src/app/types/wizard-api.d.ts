@@ -1,6 +1,6 @@
 /**
- * Shape of the IPC API exposed by electron/preload.ts to the renderer.
- * Keep in sync with electron/preload.ts. Renderer code reads (window as any).wizardApi.
+ * Renderer-side mirror of the IPC API exposed by electron/preload.ts.
+ * Keep in sync with that file.
  */
 export interface DbConfig {
   host: string;
@@ -22,12 +22,25 @@ export interface WizardApi {
     createDatabase(cfg: DbConfig, dbName: string): Promise<OpResult>;
     runMigrations(cfg: DbConfig): Promise<{ ok: boolean; executed: number; failed?: { name: string; error: string } }>;
     seedTable(cfg: DbConfig, table: string, rows: unknown[]): Promise<OpResult & { inserted?: number }>;
-    createHierarchy(cfg: DbConfig, payload: unknown): Promise<OpResult>;
-    createAdminUser(cfg: DbConfig, admin: unknown): Promise<OpResult>;
-    upsertConfig(cfg: DbConfig, entries: unknown[]): Promise<OpResult>;
   };
   defaults: {
     load(table: string): Promise<{ ok: boolean; rows?: any[]; message?: string }>;
+  };
+  admin: {
+    login(apiBase: string, email: string, password: string): Promise<{
+      ok: boolean;
+      token?: string;
+      user?: { id: number; email: string; name?: string };
+      message?: string;
+    }>;
+  };
+  wizard: {
+    provision(payload: unknown): Promise<{
+      ok: boolean;
+      tenantId?: number;
+      log?: string[];
+      message?: string;
+    }>;
   };
   fs: {
     pickFile(opts: unknown): Promise<OpResult>;

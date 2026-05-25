@@ -1,8 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 /**
- * Surface a narrow API to the Angular renderer process.
- * All DB work happens in the main process via IPC — the renderer never imports mysql2 directly.
+ * Surface a narrow API to the Angular renderer process. All node/electron
+ * APIs are kept out of the renderer — the renderer only calls these
+ * promises and gets plain JSON back.
  */
 contextBridge.exposeInMainWorld('wizardApi', {
   db: {
@@ -11,17 +12,18 @@ contextBridge.exposeInMainWorld('wizardApi', {
     runMigrations: (cfg: unknown) => ipcRenderer.invoke('db:run-migrations', cfg),
     seedTable: (cfg: unknown, table: string, rows: unknown[]) =>
       ipcRenderer.invoke('db:seed-table', cfg, table, rows),
-    createHierarchy: (cfg: unknown, payload: unknown) =>
-      ipcRenderer.invoke('db:create-hierarchy', cfg, payload),
-    createAdminUser: (cfg: unknown, admin: unknown) =>
-      ipcRenderer.invoke('db:create-admin-user', cfg, admin),
-    upsertConfig: (cfg: unknown, entries: unknown[]) =>
-      ipcRenderer.invoke('db:upsert-config', cfg, entries)
   },
   defaults: {
-    load: (table: string) => ipcRenderer.invoke('defaults:load', table)
+    load: (table: string) => ipcRenderer.invoke('defaults:load', table),
+  },
+  admin: {
+    login: (apiBase: string, email: string, password: string) =>
+      ipcRenderer.invoke('admin:login', apiBase, email, password),
+  },
+  wizard: {
+    provision: (payload: unknown) => ipcRenderer.invoke('wizard:provision', payload),
   },
   fs: {
-    pickFile: (opts: unknown) => ipcRenderer.invoke('fs:pick-file', opts)
-  }
+    pickFile: (opts: unknown) => ipcRenderer.invoke('fs:pick-file', opts),
+  },
 });
