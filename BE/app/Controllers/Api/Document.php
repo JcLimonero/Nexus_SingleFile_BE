@@ -144,22 +144,22 @@ class Document extends BaseController
             $maxId = $this->getMaxId();
             $newId = $maxId + 1;
 
-            // Preparar datos para insertar
+            // Preparar datos para insertar (columnas snake_case Tier 5)
             $insertData = [
-                'Id' => $newId,
-                'Name' => trim($data['Name']),
-                'Comment' => $data['Comment'] ?? null,
-                'ExpirationDate' => $data['ExpirationDate'] ?? null,
-                'PathDocument' => $data['PathDocument'] ?? null,
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : 1,
-                'IdFile' => $data['IdFile'],
-                'IdValidation' => $data['IdValidation'] ?? null,
-                'IdDocumentType' => $data['IdDocumentType'],
-                'IdCurrentStatus' => $data['IdCurrentStatus'] ?? 1,
-                'IdDocumentError' => $data['IdDocumentError'] ?? null,
-                'RegistrationDate' => date('Y-m-d H:i:s'),
-                'UpdateDate' => null,
-                'IdLastUserUpdate' => $currentUser['user_id'] ?? 0
+                'id' => $newId,
+                'name' => trim($data['Name'] ?? $data['name'] ?? ''),
+                'comment' => $data['Comment'] ?? $data['comment'] ?? null,
+                'expiration_date' => $data['ExpirationDate'] ?? $data['expiration_date'] ?? null,
+                'path_document' => $data['PathDocument'] ?? $data['path_document'] ?? null,
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
+                'id_expedient' => $data['IdFile'] ?? $data['id_expedient'] ?? null,
+                'id_validation' => $data['IdValidation'] ?? $data['id_validation'] ?? null,
+                'id_document_type' => $data['IdDocumentType'] ?? $data['id_document_type'] ?? null,
+                'id_current_document_status' => $data['IdCurrentStatus'] ?? $data['id_current_document_status'] ?? 1,
+                'id_document_error' => $data['IdDocumentError'] ?? $data['id_document_error'] ?? null,
+                'registration_date' => date('Y-m-d H:i:s'),
+                'update_date' => null,
+                'id_last_user_update' => $currentUser['user_id'] ?? null
             ];
 
             // Insertar el nuevo documento
@@ -267,19 +267,19 @@ class Document extends BaseController
 
             $data = $this->request->getJSON(true);
             
-            // Preparar datos para actualizar
+            // Preparar datos para actualizar (columnas snake_case Tier 5)
             $updateData = [
-                'Name' => isset($data['Name']) ? trim($data['Name']) : $document['Name'],
-                'Comment' => $data['Comment'] ?? $document['Comment'],
-                'ExpirationDate' => $data['ExpirationDate'] ?? $document['ExpirationDate'],
-                'PathDocument' => $data['PathDocument'] ?? $document['PathDocument'],
-                'Enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : $document['Enabled'],
-                'IdValidation' => $data['IdValidation'] ?? $document['IdValidation'],
-                'IdDocumentType' => $data['IdDocumentType'] ?? $document['IdDocumentType'],
-                'IdCurrentStatus' => $data['IdCurrentStatus'] ?? $document['IdCurrentStatus'],
-                'IdDocumentError' => $data['IdDocumentError'] ?? $document['IdDocumentError'],
-                'UpdateDate' => date('Y-m-d H:i:s'),
-                'IdLastUserUpdate' => $currentUser['user_id'] ?? 0
+                'name' => isset($data['Name']) ? trim($data['Name']) : (isset($data['name']) ? trim($data['name']) : $document['name']),
+                'comment' => $data['Comment'] ?? $data['comment'] ?? $document['comment'],
+                'expiration_date' => $data['ExpirationDate'] ?? $data['expiration_date'] ?? $document['expiration_date'],
+                'path_document' => $data['PathDocument'] ?? $data['path_document'] ?? $document['path_document'],
+                'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : $document['enabled']),
+                'id_validation' => $data['IdValidation'] ?? $data['id_validation'] ?? $document['id_validation'],
+                'id_document_type' => $data['IdDocumentType'] ?? $data['id_document_type'] ?? $document['id_document_type'],
+                'id_current_document_status' => $data['IdCurrentStatus'] ?? $data['id_current_document_status'] ?? $document['id_current_document_status'],
+                'id_document_error' => $data['IdDocumentError'] ?? $data['id_document_error'] ?? $document['id_document_error'],
+                'update_date' => date('Y-m-d H:i:s'),
+                'id_last_user_update' => $currentUser['user_id'] ?? null
             ];
 
             // Actualizar el documento

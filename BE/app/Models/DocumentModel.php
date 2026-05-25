@@ -233,40 +233,40 @@ class DocumentModel extends Model
     {
         $result = $this->getDocumentsWithRelations(['limit' => 1]);
         $builder = $this->db->table('expedient_document d');
-        
+
         $builder->select('
-            d.Id,
-            d.Name,
-            d.Comment,
-            d.ExpirationDate,
-            d.PathDocument,
-            d.Enabled,
-            d.RegistrationDate,
-            d.UpdateDate,
-            d.IdLastUserUpdate,
-            d.IdFile,
-            d.IdValidation,
-            d.IdDocumentType,
-            d.IdCurrentStatus,
-            d.IdDocumentError,
-            dt.Name as DocumentTypeName,
-            dfs.Name as CurrentStatusDescription,
-            dfe.Description as DocumentErrorDescription,
-            u.Name as LastUserUpdateName,
-            f.Id as FileId,
-            f.Description as FileDescription,
-            f.IdCurrentState as FileCurrentState,
-            fs.Name as FileStateDescription
+            d.id,
+            d.name,
+            d.comment,
+            d.expiration_date,
+            d.path_document,
+            d.enabled,
+            d.registration_date,
+            d.update_date,
+            d.id_last_user_update,
+            d.id_expedient,
+            d.id_validation,
+            d.id_document_type,
+            d.id_current_document_status,
+            d.id_document_error,
+            dt.name as DocumentTypeName,
+            dfs.name as CurrentStatusDescription,
+            dfe.description as DocumentErrorDescription,
+            u.name as LastUserUpdateName,
+            f.id as FileId,
+            f.description as FileDescription,
+            f.id_current_expedient_state as FileCurrentState,
+            fs.name as FileStateDescription
         ');
 
-        $builder->join('document_type dt', 'dt.Id = d.IdDocumentType', 'left');
-        $builder->join('document_status dfs', 'dfs.Id = d.IdCurrentStatus', 'left');
-        $builder->join('document_error dfe', 'dfe.Id = d.IdDocumentError', 'left');
-        $builder->join('user u', 'u.Id = d.IdLastUserUpdate', 'left');
-        $builder->join('expedient f', 'f.Id = d.IdFile', 'left');
-        $builder->join('expedient_state fs', 'fs.Id = f.IdCurrentState', 'left');
-        
-        $builder->where('d.Id', $id);
+        $builder->join('document_type dt', 'dt.id = d.id_document_type', 'left');
+        $builder->join('document_status dfs', 'dfs.id = d.id_current_document_status', 'left');
+        $builder->join('document_error dfe', 'dfe.id = d.id_document_error', 'left');
+        $builder->join('user u', 'u.id = d.id_last_user_update', 'left');
+        $builder->join('expedient f', 'f.id = d.id_expedient', 'left');
+        $builder->join('expedient_state fs', 'fs.id = f.id_current_expedient_state', 'left');
+
+        $builder->where('d.id', $id);
 
         return $builder->get()->getRowArray();
     }
@@ -297,8 +297,8 @@ class DocumentModel extends Model
             return false;
         }
 
-        $newStatus = $document['Enabled'] == 1 ? 0 : 1;
-        return $this->update($id, ['Enabled' => $newStatus]);
+        $newStatus = $document['enabled'] == 1 ? 0 : 1;
+        return $this->update($id, ['enabled' => $newStatus]);
     }
 
     /**
