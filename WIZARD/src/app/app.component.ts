@@ -49,7 +49,6 @@ export class AppComponent {
     { route: 'central-db',    label: 'Central DB' },
     { route: 'admin-login',   label: 'Super-admin' },
     { route: 'tenant-info',   label: 'Tenant' },
-    { route: 'schema',        label: 'Schema' },
     { route: 'client-group',  label: 'Grupo' },
     { route: 'companies',     label: 'Razones Soc.' },
     { route: 'agencies',      label: 'Agencias' },

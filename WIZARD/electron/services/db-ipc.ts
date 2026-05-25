@@ -263,20 +263,67 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
   });
 
   /**
-   * The big one: provisions a tenant end-to-end. Idempotent at the per-row
-   * level — if anything fails the partial state is left for the admin to
-   * inspect (no rollback across DBs because we can't transact two MySQLs).
+   * Atomic provision with auto-rollback. If anything between "central INSERT"
+   * and the final success fails, we DROP the tenant DB and DELETE the central
+   * tenant row (cascades to subscription/config/history via FK ON DELETE CASCADE).
+   * The user can fix the cause and retry from Step 14 with a clean slate.
+   *
+   * Pre-checks: refuse if the tenant DB already exists (we won't overwrite
+   * customer data) or if the slug is already registered in central.
    */
   ipcMain.handle('wizard:provision', async (_e, payload: ProvisionPayload) => {
     const log: string[] = [];
+    let tenantId: number | null = null;
+    let tenantDbCreated = false;
+
+    // === Rollback helper ===
+    const rollback = async (reason: string) => {
+      log.push(`❌ ${reason}`);
+      log.push('🧹 Rollback automático…');
+      try {
+        if (tenantDbCreated && payload.tenant.db.database) {
+          await withConnection({ ...payload.central, database: undefined }, async (c) => {
+            await c.query(`DROP DATABASE IF EXISTS \`${payload.tenant.db.database}\``);
+          });
+          log.push(`  · tenant DB \`${payload.tenant.db.database}\` eliminada`);
+        }
+        if (tenantId !== null) {
+          await withConnection(payload.central, async (c) => {
+            // tenant_subscription / tenant_config / tenant_status_history cascade
+            await c.query('DELETE FROM tenant WHERE id = ?', [tenantId]);
+          });
+          log.push(`  · central tenant id=${tenantId} eliminada (cascade)`);
+        }
+        log.push('✔ Rollback completo. Puedes corregir el problema y reintentar.');
+      } catch (e) {
+        log.push(`  ⚠ Rollback parcial: ${(e as Error).message}`);
+      }
+    };
 
     try {
+      // === Pre-checks ===
+      log.push('Validando que el tenant no exista previamente…');
+      const conflict = await withConnection(payload.central, async (c) => {
+        const [rs]: any = await c.query('SELECT id FROM tenant WHERE slug = ? LIMIT 1', [payload.tenant.slug]);
+        return rs[0]?.id ?? null;
+      });
+      if (conflict) {
+        return { ok: false, log: [...log, `❌ El slug \`${payload.tenant.slug}\` ya está registrado en central (id=${conflict}). Borra ese tenant o elige otro slug.`], message: 'slug_conflict' };
+      }
+      const dbExists = await withConnection({ ...payload.central, database: undefined }, async (c) => {
+        const [rs]: any = await c.query('SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?', [payload.tenant.db.database]);
+        return rs.length > 0;
+      });
+      if (dbExists) {
+        return { ok: false, log: [...log, `❌ La base \`${payload.tenant.db.database}\` ya existe en el servidor. Borra esa DB o elige otro nombre para no sobrescribir datos.`], message: 'db_exists' };
+      }
+
       // 1. Encrypt tenant DB password + insert tenant row in central
       log.push('Cifrando contraseña del tenant…');
       const encrypted = encryptTenantPassword(payload.tenant.db.password, payload.tenant.encryptionKey);
 
       log.push('Registrando tenant en central DB…');
-      const tenantId = await withConnection(payload.central, async (c) => {
+      tenantId = await withConnection(payload.central, async (c) => {
         const [r]: any = await c.query(
           'INSERT INTO tenant (slug, name, status, db_host, db_port, db_name, db_username, db_password_encrypted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
           [
@@ -325,7 +372,11 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
       // 3. Create tenant DB + apply baseline schema + data
       log.push(`Creando base de datos del tenant ${payload.tenant.db.database}…`);
       const dbResult = await createDatabase(payload.tenant.db, payload.tenant.db.database);
-      if (!dbResult.ok) return { ok: false, log, message: dbResult.message };
+      if (!dbResult.ok) {
+        await rollback(dbResult.message ?? 'No se pudo crear la base de datos');
+        return { ok: false, log, message: dbResult.message };
+      }
+      tenantDbCreated = true;
 
       // Prefer applying the versioned baseline scripts (DB/baseline/v<N>/).
       // Falls back to the legacy curated migrations.ts only if the baseline
@@ -337,14 +388,18 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         const dataFile   = path.join(baseDir, 'data.sql');
 
         if (!fs.existsSync(schemaFile)) {
-          return { ok: false, log, message: `schema.sql no encontrado en ${baseDir}` };
+          const msg = `schema.sql no encontrado en ${baseDir}`;
+          await rollback(msg);
+          return { ok: false, log, message: msg };
         }
         log.push('  → schema.sql (CREATE TABLE / VIEW)');
         const r1 = await executeSqlScript(payload.tenant.db, schemaFile);
         log.push(`    ${r1.executed} statements aplicados` +
                  (r1.viewsSkipped ? `, ${r1.viewsSkipped} views legacy omitidas` : ''));
         if (!r1.ok) {
-          return { ok: false, log, message: `Schema falló en ${r1.failed?.error}` };
+          const msg = `Schema falló en ${r1.failed?.error}`;
+          await rollback(msg);
+          return { ok: false, log, message: msg };
         }
 
         if (fs.existsSync(dataFile)) {
@@ -352,7 +407,9 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
           const r2 = await executeSqlScript(payload.tenant.db, dataFile);
           log.push(`    ${r2.executed} statements aplicados`);
           if (!r2.ok) {
-            return { ok: false, log, message: `Data falló en ${r2.failed?.error}` };
+            const msg = `Data falló en ${r2.failed?.error}`;
+            await rollback(msg);
+            return { ok: false, log, message: msg };
           }
         } else {
           log.push('  → data.sql no presente (skip seed base)');
@@ -361,7 +418,9 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         log.push('DB/baseline/v* no encontrado — usando subset curado de la WIZARD (no recomendado)…');
         const migResult = await executeBatch(payload.tenant.db, schemaMigrations);
         if (!migResult.ok) {
-          return { ok: false, log, message: `Migración "${migResult.failed?.name}" falló: ${migResult.failed?.error}` };
+          const msg = `Migración "${migResult.failed?.name}" falló: ${migResult.failed?.error}`;
+          await rollback(msg);
+          return { ok: false, log, message: msg };
         }
       }
 
@@ -370,7 +429,10 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         if (!Array.isArray(rows) || !rows.length) continue;
         log.push(`Sembrando ${table} (${rows.length} filas)…`);
         const seed = await seedRows(payload.tenant.db, table, rows);
-        if (!seed.ok) return { ok: false, log, message: seed.message };
+        if (!seed.ok) {
+          await rollback(seed.message ?? `Seed de ${table} falló`);
+          return { ok: false, log, message: seed.message };
+        }
       }
 
       // 5. Admin user FIRST — every other row's id_last_user_update FK points to user.id
@@ -438,8 +500,9 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
       log.push('✅ Tenant provisionado correctamente.');
       return { ok: true, tenantId, log };
     } catch (e) {
-      log.push(`❌ Error: ${(e as Error).message}`);
-      return { ok: false, log, message: (e as Error).message };
+      const msg = (e as Error).message;
+      await rollback(msg);
+      return { ok: false, log, message: msg };
     }
   });
 

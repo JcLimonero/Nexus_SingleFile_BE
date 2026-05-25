@@ -199,6 +199,6 @@ export class TenantInfoComponent {
     this.state.tenantName.set(this.name);
     this.state.tenantDb.set({ ...this.tdb });
     this.state.encryptionKey.set(this.encKey);
-    this.router.navigate(['/schema']);
+    this.router.navigate(['/client-group']);
   }
 }

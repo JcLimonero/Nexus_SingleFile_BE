@@ -25,10 +25,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/tenant-info/tenant-info.component').then((m) => m.TenantInfoComponent),
   },
-  {
-    path: 'schema',
-    loadComponent: () => import('./pages/schema/schema.component').then((m) => m.SchemaComponent),
-  },
+  // /schema removed in opt-D — Step 14 (Confirmar) does all DB work atomically
+  // with auto-rollback on failure. The route stays redirected for muscle memory.
+  { path: 'schema', redirectTo: 'client-group' },
   {
     path: 'client-group',
     loadComponent: () =>

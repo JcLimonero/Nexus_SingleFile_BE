@@ -27,7 +27,7 @@ import { WizardStateService } from '../../state/wizard-state.service';
           <textarea matInput [(ngModel)]="group.description" rows="3"></textarea>
         </mat-form-field>
         <div class="wiz-step-actions">
-          <a mat-button routerLink="/schema"><mat-icon>arrow_back</mat-icon> Atrás</a>
+          <a mat-button routerLink="/tenant-info"><mat-icon>arrow_back</mat-icon> Atrás</a>
           <button mat-flat-button color="primary" (click)="next()" [disabled]="!group.name">
             Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
           </button>
