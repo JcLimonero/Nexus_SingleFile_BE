@@ -15,6 +15,7 @@ import { MatDrawer, MatDrawerMode, MatSidenavModule } from '@angular/material/si
 import { AppProgressBarComponent } from '../components/app-progress-bar/app-progress-bar.component';
 import { BaseLayoutComponent } from '../base-layout/base-layout.component';
 import { AppLayoutConfig } from '../../core/layout/layout-config.interface';
+import { TenantStatusBannerComponent } from '../../shared/components/tenant-status-banner/tenant-status-banner.component';
 
 @Component({
   selector: 'vex-layout',
@@ -30,7 +31,8 @@ import { AppLayoutConfig } from '../../core/layout/layout-config.interface';
     QuickpanelComponent,
     MatSidenavModule,
     RouterOutlet,
-    AppProgressBarComponent
+    AppProgressBarComponent,
+    TenantStatusBannerComponent
   ],
   standalone: true
 })

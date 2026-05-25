@@ -20,6 +20,7 @@ import { provideQuillConfig } from 'ngx-quill';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { ActivityLogInterceptor } from './core/interceptors/activity-log.interceptor';
 import { TimeoutRetryInterceptor } from './core/interceptors/timeout-retry.interceptor';
+import { tenantStatusInterceptor } from './core/interceptors/tenant-status.interceptor';
 import { BrandingService } from './core/services/branding.service';
 import { AppSplashScreenService } from './core/services/app-splash-screen.service';
 
@@ -54,7 +55,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withInterceptorsFromDi(),
-      withInterceptors([TimeoutRetryInterceptor, AuthInterceptor, ActivityLogInterceptor])
+      withInterceptors([TimeoutRetryInterceptor, AuthInterceptor, ActivityLogInterceptor, tenantStatusInterceptor])
     ),
     {
       // Default global: previene que dialogs con muchos campos se corten en laptops 13" / DPI alto

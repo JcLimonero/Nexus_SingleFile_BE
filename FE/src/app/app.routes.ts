@@ -32,6 +32,13 @@ export const appRoutes: VexRoutes = [
       )
   },
   {
+    path: 'cuenta-suspendida',
+    loadComponent: () =>
+      import('./pages/cuenta-suspendida/cuenta-suspendida.component').then(
+        (m) => m.CuentaSuspendidaComponent
+      )
+  },
+  {
     path: '',
     component: LayoutComponent,
     canActivate: [AuthGuard, RoleGuard],
