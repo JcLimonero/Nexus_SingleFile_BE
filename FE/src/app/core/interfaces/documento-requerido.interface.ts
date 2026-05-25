@@ -19,7 +19,6 @@ export interface DocumentoRequerido {
 
   required?: string;
   req_expiration?: string;
-  id_sale_type?: string;
   id_sub_sale_type?: string;
   process_type_name?: string;
   sub_process_name?: string;
