@@ -10,13 +10,13 @@ use CodeIgniter\Model;
 class FilePldBeneficiarioFinalModel extends Model
 {
     protected $table = 'expedient_pld_beneficial_owner';
-    protected $primaryKey = 'Id';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'IdFile', 'Nombre', 'RFC', 'CURP', 'PorcentajeParticipacion', 'IdLastUserUpdate'
+        'id_expedient', 'nombre', 'RFC', 'CURP', 'porcentaje_participacion', 'id_last_user_update'
     ];
 
     protected $useTimestamps = false;
@@ -24,7 +24,7 @@ class FilePldBeneficiarioFinalModel extends Model
 
     public function getByFile(int $idFile): array
     {
-        return $this->where('IdFile', $idFile)->orderBy('Id', 'ASC')->findAll();
+        return $this->where('id_expedient', $idFile)->orderBy('id', 'ASC')->findAll();
     }
 
     /**
@@ -33,12 +33,12 @@ class FilePldBeneficiarioFinalModel extends Model
     public function add(int $idFile, string $nombre, ?string $rfc = null, ?string $curp = null, ?float $porcentaje = null, ?int $idLastUserUpdate = null): ?int
     {
         $data = [
-            'IdFile' => $idFile,
-            'Nombre' => $nombre,
+            'id_expedient' => $idFile,
+            'nombre' => $nombre,
             'RFC' => $rfc,
             'CURP' => $curp,
-            'PorcentajeParticipacion' => $porcentaje,
-            'IdLastUserUpdate' => $idLastUserUpdate
+            'porcentaje_participacion' => $porcentaje,
+            'id_last_user_update' => $idLastUserUpdate
         ];
         return $this->insert($data);
     }

@@ -11,15 +11,15 @@ use CodeIgniter\Model;
 class FilePldModel extends Model
 {
     protected $table = 'expedient_pld';
-    protected $primaryKey = 'Id';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = [
-        'IdFile', 'AvisoPrivacidadEntregado', 'AvisoPrivacidadFecha', 'AvisoPrivacidadMetodo',
-        'AvisoPrivacidadFirma', 'GeolocalizacionCapturada', 'GeolocalizacionLatitud', 'GeolocalizacionLongitud',
-        'GeolocalizacionFecha', 'GeolocalizacionOrigen'
+        'id_expedient', 'aviso_privacidad_entregado', 'aviso_privacidad_fecha', 'aviso_privacidad_metodo',
+        'aviso_privacidad_firma', 'geolocalizacion_capturada', 'geolocalizacion_latitud', 'geolocalizacion_longitud',
+        'geolocalizacion_fecha', 'geolocalizacion_origen'
     ];
 
     protected $useTimestamps = false;
@@ -30,8 +30,8 @@ class FilePldModel extends Model
      */
     public function hasAvisoAceptado(int $idFile): bool
     {
-        $row = $this->where('IdFile', $idFile)->first();
-        return $row && !empty($row['AvisoPrivacidadEntregado']);
+        $row = $this->where('id_expedient', $idFile)->first();
+        return $row && !empty($row['aviso_privacidad_entregado']);
     }
 
     /**
@@ -39,24 +39,24 @@ class FilePldModel extends Model
      */
     public function recordAvisoMiniportal(int $idFile, ?string $signatureData = null): bool
     {
-        $row = $this->where('IdFile', $idFile)->first();
+        $row = $this->where('id_expedient', $idFile)->first();
         $now = date('Y-m-d H:i:s');
 
         if ($row) {
-            return (bool) $this->update($row['Id'], [
-                'AvisoPrivacidadEntregado' => 1,
-                'AvisoPrivacidadFecha' => $now,
-                'AvisoPrivacidadMetodo' => 'Miniportal',
-                'AvisoPrivacidadFirma' => $signatureData
+            return (bool) $this->update($row['id'], [
+                'aviso_privacidad_entregado' => 1,
+                'aviso_privacidad_fecha' => $now,
+                'aviso_privacidad_metodo' => 'Miniportal',
+                'aviso_privacidad_firma' => $signatureData
             ]);
         }
 
         return (bool) $this->insert([
-            'IdFile' => $idFile,
-            'AvisoPrivacidadEntregado' => 1,
-            'AvisoPrivacidadFecha' => $now,
-            'AvisoPrivacidadMetodo' => 'Miniportal',
-            'AvisoPrivacidadFirma' => $signatureData
+            'id_expedient' => $idFile,
+            'aviso_privacidad_entregado' => 1,
+            'aviso_privacidad_fecha' => $now,
+            'aviso_privacidad_metodo' => 'Miniportal',
+            'aviso_privacidad_firma' => $signatureData
         ]);
     }
 }

@@ -41,7 +41,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        $idFile = (int) $tokenData['IdFile'];
+        $idFile = (int) $tokenData['id_expedient'];
         $expediente = $this->getExpedienteInfo($idFile);
         if (!$expediente) {
             return $this->response->setJSON([
@@ -76,7 +76,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        $idFile = (int) $tokenData['IdFile'];
+        $idFile = (int) $tokenData['id_expedient'];
         if ($this->filePldModel->hasAvisoAceptado($idFile)) {
             return $this->response->setJSON([
                 'success' => true,
@@ -131,7 +131,7 @@ class Miniportal extends BaseController
         }
 
         $this->geoLogModel->log(
-            (int) $tokenData['IdFile'],
+            (int) $tokenData['id_expedient'],
             (float) $lat,
             (float) $lon,
             $accion
@@ -157,7 +157,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        $idFile = (int) $tokenData['IdFile'];
+        $idFile = (int) $tokenData['id_expedient'];
         if (!$this->filePldModel->hasAvisoAceptado($idFile)) {
             return $this->response->setJSON([
                 'success' => false,
@@ -236,7 +236,7 @@ class Miniportal extends BaseController
     {
         try {
             $query = $this->db->query(
-                "SELECT file_name_original FROM view_document_name WHERE IdFileDocument = ? AND IdFile = ?",
+                "SELECT file_name_original FROM view_document_name WHERE IdFileDocument = ? AND id_expedient = ?",
                 [$idFileDocument, $idFile]
             );
             $result = $query->getRow();
@@ -265,7 +265,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        $idFile = (int) $tokenData['IdFile'];
+        $idFile = (int) $tokenData['id_expedient'];
         if (!$this->filePldModel->hasAvisoAceptado($idFile)) {
             return $this->response->setJSON([
                 'success' => false,
@@ -295,7 +295,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        $idFile = (int) $tokenData['IdFile'];
+        $idFile = (int) $tokenData['id_expedient'];
         $fileContainer = $this->request->getGet('file');
         if (!$fileContainer) {
             return $this->response->setJSON([
@@ -351,7 +351,7 @@ class Miniportal extends BaseController
             ])->setStatusCode(404);
         }
 
-        $idFile = (int) $tokenData['IdFile'];
+        $idFile = (int) $tokenData['id_expedient'];
         if (!$this->filePldModel->hasAvisoAceptado($idFile)) {
             return $this->response->setJSON([
                 'success' => false,

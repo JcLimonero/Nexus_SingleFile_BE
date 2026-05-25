@@ -76,13 +76,13 @@ class Validacion extends BaseController
 
     /**
      * Endpoint de diagnóstico para verificar por qué un pedido no aparece
-     * GET /api/validacion/diagnostico?idFile=15460&idAgency=5&idProcess=?
+     * GET /api/validacion/diagnostico?idFile=15460&id_agency=5&idProcess=?
      */
     public function diagnosticoPedido()
     {
         try {
             $idFile = $this->request->getGet('idFile');
-            $idAgency = $this->request->getGet('idAgency');
+            $id_agency = $this->request->getGet('id_agency');
             $idProcess = $this->request->getGet('idProcess');
             $idDMS = $this->request->getGet('IdDMS'); // Parámetro opcional para verificar relación específica
 
@@ -134,7 +134,7 @@ class Validacion extends BaseController
                 LIMIT 1
             ", [$idClient])->getRowArray();
             
-            $idClientHeader = $headerClientInfo ? (int) ($headerClientInfo['id'] ?? $headerClientInfo['Id'] ?? 0) : null;
+            $idClientHeader = $headerClientInfo ? (int) ($headerClientInfo['id'] ?? $headerClientInfo['id'] ?? 0) : null;
             
             error_log("=== DIAGNÓSTICO FILE {$idFile} ===");
             error_log("File.id_client (Client.id): {$idClient}");
@@ -194,16 +194,16 @@ class Validacion extends BaseController
                     ", [$idClientHeader, $idAgencyFile])->getRowArray();
                     
                     if ($relacion) {
-                        error_log("✅ Relación encontrada por ClientHeader.Id: " . json_encode($relacion));
+                        error_log("✅ Relación encontrada por ClientHeader.id: " . json_encode($relacion));
                     }
                 } else {
-                    error_log("⚠️ No se encontró ClientHeader para Client.Id={$idClient}");
+                    error_log("⚠️ No se encontró ClientHeader para Client.id={$idClient}");
                 }
             }
             
             // Si no se encuentra, buscar por IdDMS
             if (!$relacion) {
-                error_log("⚠️ Relación NO encontrada por ClientHeader.Id={$idClientHeader} y IdAgency={$idAgencyFile}");
+                error_log("⚠️ Relación NO encontrada por ClientHeader.id={$idClientHeader} y IdAgency={$idAgencyFile}");
                 
                 // Prioridad 1: Si se pasa IdDMS como parámetro, usarlo
                 $ndCliente = null;
@@ -287,7 +287,7 @@ class Validacion extends BaseController
                 error_log("Total de relaciones con id_agency={$idAgencyFile}: " . count($relacionesAgencia));
             }
 
-            // Verificar todas las relaciones del cliente (usando ClientHeader.Id del file)
+            // Verificar todas las relaciones del cliente (usando ClientHeader.id del file)
             $todasRelaciones = [];
             if ($idClientHeader) {
                 $todasRelaciones = $this->db->query("
@@ -303,7 +303,7 @@ class Validacion extends BaseController
                     WHERE hc.id = ?
                 ", [$idClientHeader])->getResultArray();
             } else {
-                error_log("⚠️ No se puede buscar relaciones porque no se encontró ClientHeader para Client.Id={$idClient}");
+                error_log("⚠️ No se puede buscar relaciones porque no se encontró ClientHeader para Client.id={$idClient}");
             }
             
             // También buscar directamente por id_dms si se proporciona como parámetro
@@ -330,21 +330,21 @@ class Validacion extends BaseController
             if ($relacionPorNdCliente && count($relacionPorNdCliente) > 0) {
                 $relacionEncontrada = $relacionPorNdCliente[0];
                 if ($relacionEncontrada['idClientHeader'] == $idClientHeader) {
-                    error_log("✅ La relación con IdDMS='99282' e IdAgency=3 SÍ pertenece al ClientHeader.Id={$idClientHeader} del file");
+                    error_log("✅ La relación con IdDMS='99282' e IdAgency=3 SÍ pertenece al ClientHeader.id={$idClientHeader} del file");
                     // Si no se encontró antes, usar esta relación
                     if (!$relacion) {
                         $relacion = $relacionEncontrada;
                         error_log("✅ Usando relación encontrada por IdDMS: " . json_encode($relacion));
                     }
                 } else {
-                    error_log("⚠️ La relación con IdDMS='99282' e IdAgency=3 pertenece a ClientHeader.Id={$relacionEncontrada['idClientHeader']}, pero el file tiene ClientHeader.Id={$idClientHeader}");
+                    error_log("⚠️ La relación con IdDMS='99282' e IdAgency=3 pertenece a ClientHeader.id={$relacionEncontrada['idClientHeader']}, pero el file tiene ClientHeader.id={$idClientHeader}");
                     error_log("⚠️ Esto significa que el file está asociado a un ClientHeader diferente al que tiene la relación con la agencia 3");
                 }
             }
 
             // Verificar condiciones del query de validación
             // Para tener_relacion_cliente_agencia, verificar si:
-            // 1. Se encontró relación directa por ClientHeader.Id e IdAgency, O
+            // 1. Se encontró relación directa por ClientHeader.id e IdAgency, O
             // 2. Existe una relación con IdDMS e IdAgency (aunque el ClientHeader sea diferente)
             $tieneRelacion = false;
             if ($relacion) {
@@ -364,7 +364,7 @@ class Validacion extends BaseController
             }
             
             // Convertir parámetros a enteros para comparación correcta
-            $idAgencyInt = $idAgency ? (int) $idAgency : null;
+            $idAgencyInt = $id_agency ? (int) $id_agency : null;
             $idProcessInt = $idProcess ? (int) $idProcess : null;
             $fileIdAgency = (int) ($fileInfo['id_agency'] ?? $fileInfo['IdAgency'] ?? 0);
             $fileIdProcess = (int) ($fileInfo['id_sale_type'] ?? $fileInfo['IdProcess'] ?? 0);
@@ -393,8 +393,8 @@ class Validacion extends BaseController
             
             // Agregar información adicional para debugging
             error_log("=== EVALUACIÓN DE CONDICIONES ===");
-            error_log("idAgency recibido: " . ($idAgency ?? 'NULL') . " (tipo: " . gettype($idAgency) . ")");
-            error_log("idAgency convertido: " . ($idAgencyInt ?? 'NULL'));
+            error_log("id_agency recibido: " . ($id_agency ?? 'NULL') . " (tipo: " . gettype($id_agency) . ")");
+            error_log("id_agency convertido: " . ($idAgencyInt ?? 'NULL'));
             error_log("File.IdAgency: {$fileIdAgency}");
             error_log("Condición agencia: " . ($condicionAgencia === null ? 'NULL' : ($condicionAgencia ? 'TRUE' : 'FALSE')));
             error_log("idProcess recibido: " . ($idProcess ?? 'NULL') . " (tipo: " . gettype($idProcess) . ")");
@@ -429,7 +429,7 @@ class Validacion extends BaseController
                     'relacion_por_idDMS' => $relacionPorNdCliente, // Relación encontrada por parámetro IdDMS
                     'condiciones' => $cumpleCondiciones,
                     'apareceria_en_validacion' => 
-                        (!$idAgency || $cumpleCondiciones['agencia']) &&
+                        (!$id_agency || $cumpleCondiciones['agencia']) &&
                         (!$idProcess || $cumpleCondiciones['proceso']) &&
                         $cumpleCondiciones['proceso_habilitado'] &&
                         $cumpleCondiciones['no_cancelado'] &&
@@ -464,22 +464,22 @@ class Validacion extends BaseController
             }
 
             $rows = $this->db->query("
-                SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS, ec.api_result, ec.created_at,
+                SELECT ec.id, ec.id_expedient, ec.id_agency, ec.nd_dms, ec.api_result, ec.created_at,
                        a.name as nombreAgencia
                 FROM expedients_to_correct ec
-                INNER JOIN agency a ON a.id = ec.idAgency
+                INNER JOIN agency a ON a.id = ec.id_agency
                     WHERE  (ec.api_result IS NULL OR NOT JSON_CONTAINS(ec.api_result, 'true', '$.success')) 
-                ORDER BY ec.idAgency ASC, ec.id ASC
+                ORDER BY ec.id_agency ASC, ec.id ASC
             ")->getResultArray();
 
             $porAgencia = [];
             $totalGeneral = 0;
 
             foreach ($rows as $row) {
-                $idAgency = (int) $row['idAgency'];
-                if (!isset($porAgencia[$idAgency])) {
-                    $porAgencia[$idAgency] = [
-                        'idAgency' => $idAgency,
+                $id_agency = (int) $row['id_agency'];
+                if (!isset($porAgencia[$id_agency])) {
+                    $porAgencia[$id_agency] = [
+                        'id_agency' => $id_agency,
                         'nombreAgencia' => $row['nombreAgencia'] ?? '',
                         'total' => 0,
                         'expedientes' => []
@@ -492,16 +492,16 @@ class Validacion extends BaseController
                     $apiResult = is_array($decoded) ? $decoded : ['raw' => $row['api_result']];
                 }
 
-                $porAgencia[$idAgency]['expedientes'][] = [
+                $porAgencia[$id_agency]['expedientes'][] = [
                     'id' => (int) $row['id'],
-                    'idFile' => (int) $row['idExpediente'],
-                    'idAgency' => $idAgency,
-                    'ndCliente' => $row['ndDMS'] ?? '',
+                    'idFile' => (int) $row['id_expedient'],
+                    'id_agency' => $id_agency,
+                    'ndCliente' => $row['nd_dms'] ?? '',
                     'api_result' => $apiResult,
                     'created_at' => $row['created_at'] ?? null,
                     'tipoReparacion' => 'repairClientRelation'
                 ];
-                $porAgencia[$idAgency]['total']++;
+                $porAgencia[$id_agency]['total']++;
                 $totalGeneral++;
             }
 
@@ -550,25 +550,25 @@ class Validacion extends BaseController
 
             do {
                 $rows = $this->db->query("
-                    SELECT ec.id, ec.idExpediente, ec.idAgency, ec.ndDMS
+                    SELECT ec.id, ec.id_expedient, ec.id_agency, ec.nd_dms
                     FROM expedients_to_correct ec
-                    WHERE ec.api_result IS NULL and ec.idAgency = 9
-                    ORDER BY (ec.idAgency IN (20, 21, 22)) DESC, ec.idAgency ASC, ec.id ASC
+                    WHERE ec.api_result IS NULL and ec.id_agency = 9
+                    ORDER BY (ec.id_agency IN (20, 21, 22)) DESC, ec.id_agency ASC, ec.id ASC
                     LIMIT ?
                 ", [$limit])->getResultArray();
 
                 foreach ($rows as $row) {
                     $result = $this->ejecutarReparacionClientRelation(
-                        trim((string) ($row['ndDMS'] ?? '')),
-                        (int) $row['idAgency'],
-                        (int) $row['idExpediente']
+                        trim((string) ($row['nd_dms'] ?? '')),
+                        (int) $row['id_agency'],
+                        (int) $row['id_expedient']
                     );
                     if ($result['success']) {
                         $reparadosTotal++;
                     } else {
                         $erroresTotal[] = [
-                            'idExpediente' => (int) $row['idExpediente'],
-                            'ndDMS' => $row['ndDMS'],
+                            'id_expedient' => (int) $row['id_expedient'],
+                            'nd_dms' => $row['nd_dms'],
                             'mensaje' => $result['message']
                         ];
                     }
@@ -598,45 +598,45 @@ class Validacion extends BaseController
      * Ejecutar la reparación de File.IdClient para un expediente.
      * Retorna ['success' => bool, 'idClient' => int|null, 'message' => string].
      */
-    private function ejecutarReparacionClientRelation(string $ndDMS, int $idAgency, int $idExpediente): array
+    private function ejecutarReparacionClientRelation(string $nd_dms, int $id_agency, int $id_expedient): array
     {
         try {
-            if ($ndDMS === '') {
-                $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, 'ndDMS vacío');
-                return ['success' => false, 'idClient' => null, 'message' => 'ndDMS vacío'];
+            if ($nd_dms === '') {
+                $this->guardarErrorExpediente($id_expedient, $id_agency, $nd_dms, 'nd_dms vacío');
+                return ['success' => false, 'idClient' => null, 'message' => 'nd_dms vacío'];
             }
 
             $row = $this->db->query("
                 SELECT idCliente FROM view_client_relations
-                WHERE TRIM(ndCliente) = ? AND idAgency = ?
+                WHERE TRIM(ndCliente) = ? AND id_agency = ?
                 LIMIT 1
-            ", [$ndDMS, $idAgency])->getRowArray();
+            ", [$nd_dms, $id_agency])->getRowArray();
 
             $idClientVal = $row['idCliente'] ?? null;
             if (!$row || empty($idClientVal)) {
                 $msg = 'No se encontró relación en view_client_relations';
-                $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg);
+                $this->guardarErrorExpediente($id_expedient, $id_agency, $nd_dms, $msg);
                 return ['success' => false, 'idClient' => null, 'message' => $msg];
             }
 
             $idClient = (int) $idClientVal;
-            $this->db->table('expedient')->where('id', $idExpediente)->update(['id_client' => $idClient]);
+            $this->db->table('expedient')->where('id', $id_expedient)->update(['id_client' => $idClient]);
             if ($this->db->affectedRows() === 0) {
                 $msg = 'No se actualizó ningún expediente';
-                $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg);
+                $this->guardarErrorExpediente($id_expedient, $id_agency, $nd_dms, $msg);
                 return ['success' => false, 'idClient' => null, 'message' => $msg];
             }
 
             $this->db->query("
                 UPDATE expedients_to_correct SET api_result = ?
-                WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
-            ", [json_encode(['success' => true, 'idClient' => $idClient]), $idExpediente, $idAgency, $ndDMS]);
+                WHERE id_expedient = ? AND id_agency = ? AND nd_dms = ?
+            ", [json_encode(['success' => true, 'idClient' => $idClient]), $id_expedient, $id_agency, $nd_dms]);
 
             return ['success' => true, 'idClient' => $idClient, 'message' => 'OK'];
         } catch (\Throwable $e) {
             $msg = $e->getMessage();
 
-            $this->guardarErrorExpediente($idExpediente, $idAgency, $ndDMS, $msg, $e);
+            $this->guardarErrorExpediente($id_expedient, $id_agency, $nd_dms, $msg, $e);
             return ['success' => false, 'idClient' => null, 'message' => $msg];
         }
     }
@@ -644,15 +644,15 @@ class Validacion extends BaseController
     /**
      * Guardar error en expedients_to_correct.api_result con request y detalle del error.
      */
-    private function guardarErrorExpediente(int $idExpediente, int $idAgency, string $ndDMS, string $message, ?\Throwable $e = null): void
+    private function guardarErrorExpediente(int $id_expedient, int $id_agency, string $nd_dms, string $message, ?\Throwable $e = null): void
     {
         $payload = [
             'success' => false,
             'message' => $message,
             'request' => [
-                'ndDMS' => $ndDMS,
-                'idAgency' => $idAgency,
-                'idExpediente' => $idExpediente
+                'nd_dms' => $nd_dms,
+                'id_agency' => $id_agency,
+                'id_expedient' => $id_expedient
             ]
         ];
         if ($e !== null) {
@@ -669,8 +669,8 @@ class Validacion extends BaseController
         try {
             $this->db->query("
                 UPDATE expedients_to_correct SET api_result = ?
-                WHERE idExpediente = ? AND idAgency = ? AND ndDMS = ?
-            ", [json_encode($payload), $idExpediente, $idAgency, $ndDMS]);
+                WHERE id_expedient = ? AND id_agency = ? AND nd_dms = ?
+            ", [json_encode($payload), $id_expedient, $id_agency, $nd_dms]);
         } catch (\Throwable $e2) {
 
         }
@@ -792,7 +792,7 @@ class Validacion extends BaseController
 
             // File.id_client apunta a Client.id, NO a ClientHeader.id
             $idClient = (int) ($file['id_client'] ?? $file['IdClient'] ?? 0);
-            $idAgency = (int) ($file['id_agency'] ?? $file['IdAgency'] ?? 0);
+            $id_agency = (int) ($file['id_agency'] ?? $file['IdAgency'] ?? 0);
             
             // Obtener el ClientHeader.id desde Client.id
             $headerClientInfo = $this->db->query("
@@ -808,17 +808,17 @@ class Validacion extends BaseController
                 ])->setStatusCode(404);
             }
             
-            $idClientHeader = (int) ($headerClientInfo['id'] ?? $headerClientInfo['Id'] ?? 0);
+            $idClientHeader = (int) ($headerClientInfo['id'] ?? $headerClientInfo['id'] ?? 0);
 
             $existe = $this->db->query("
                 SELECT 1 FROM client_dms_relation ctr
                 WHERE ctr.id_client_header = ? AND ctr.id_agency = ?
-            ", [$idClientHeader, $idAgency])->getRowArray();
+            ", [$idClientHeader, $id_agency])->getRowArray();
             if ($existe) {
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'La relación ya existe; no se requiere reparación',
-                    'data' => ['idFile' => $idFile, 'idClientHeader' => $idClientHeader, 'IdAgency' => $idAgency]
+                    'data' => ['idFile' => $idFile, 'idClientHeader' => $idClientHeader, 'IdAgency' => $id_agency]
                 ]);
             }
 
@@ -847,11 +847,11 @@ class Validacion extends BaseController
                         WHERE hc2.id_client = ?
                         AND ctr.id_agency = ?
                         LIMIT 1
-                    ", [$headerClientInfo['id_client'] ?? $headerClientInfo['IdClient'] ?? 0, $idAgency])->getRowArray();
+                    ", [$headerClientInfo['id_client'] ?? $headerClientInfo['IdClient'] ?? 0, $id_agency])->getRowArray();
                     
                     if ($otroClientHeader && !empty($otroClientHeader['id_dms'] ?? $otroClientHeader['IdDMS'] ?? null)) {
                         $idDMS = trim((string) ($otroClientHeader['id_dms'] ?? $otroClientHeader['IdDMS'] ?? ''));
-                        error_log("✅ Encontrado id_dms '{$idDMS}' de otro ClientHeader del mismo cliente con relación a agencia {$idAgency}");
+                        error_log("✅ Encontrado id_dms '{$idDMS}' de otro ClientHeader del mismo cliente con relación a agencia {$id_agency}");
                     } else {
                         // Si no hay otro ClientHeader, buscar cualquier relación con esta agencia para usar su id_dms
                         $relacionAgencia = $this->db->query("
@@ -859,11 +859,11 @@ class Validacion extends BaseController
                             FROM client_dms_relation ctr
                             WHERE ctr.id_agency = ?
                             LIMIT 1
-                        ", [$idAgency])->getRowArray();
+                        ", [$id_agency])->getRowArray();
                         
                         if ($relacionAgencia && !empty($relacionAgencia['id_dms'] ?? $relacionAgencia['IdDMS'] ?? null)) {
                             $idDMS = trim((string) ($relacionAgencia['id_dms'] ?? $relacionAgencia['IdDMS'] ?? ''));
-                            error_log("⚠️ Usando IdDMS '{$idDMS}' de otra relación con la misma agencia {$idAgency}");
+                            error_log("⚠️ Usando IdDMS '{$idDMS}' de otra relación con la misma agencia {$id_agency}");
                         }
                     }
                 }
@@ -873,9 +873,9 @@ class Validacion extends BaseController
             $nextId = (int) ($nextIdRow['nextId'] ?? 1);
 
             $this->db->table('client_dms_relation')->insert([
-                'Id' => $nextId,
+                'id' => $nextId,
                 'idClientHeader' => $idClientHeader,
-                'IdAgency' => $idAgency,
+                'IdAgency' => $id_agency,
                 'IdDMS' => $idDMS
             ]);
 
@@ -886,7 +886,7 @@ class Validacion extends BaseController
                     'idFile' => $idFile,
                     'idRelation' => $nextId,
                     'idClientHeader' => $idClientHeader,
-                    'IdAgency' => $idAgency,
+                    'IdAgency' => $id_agency,
                     'IdDMS' => $idDMS ?: '(vacío)'
                 ]
             ]);
@@ -908,7 +908,7 @@ class Validacion extends BaseController
     {
         try {
             // Obtener parámetros de la petición
-            $idAgency = $this->request->getGet('id');
+            $id_agency = $this->request->getGet('id');
             $idProcess = $this->request->getGet('idProcess');
             $showCancelledParam = $this->request->getGet('showCancelled');
             $showCancelled = ($showCancelledParam === 'true');
@@ -920,7 +920,7 @@ class Validacion extends BaseController
 
             // id (agencia) opcional: si no viene o está vacío, "Todas las agencias"
             // idProcess opcional: si no viene o está vacío, "Todos los procesos"
-            $filtrarPorAgencia = $idAgency !== null && $idAgency !== '';
+            $filtrarPorAgencia = $id_agency !== null && $id_agency !== '';
             $filtrarPorProceso = $idProcess !== null && $idProcess !== '';
 
             // Query principal usando SQL directo para evitar problemas con Query Builder
@@ -951,7 +951,7 @@ class Validacion extends BaseController
                     p.name as proceso,
                     ot.name as operacion,
                     a.name as agencia,
-                    f.id_agency as idAgency,
+                    f.id_agency as id_agency,
                     f.registration_date as registro,
                     fs.name as fase,
                     f.id_current_expedient_state,
@@ -981,24 +981,24 @@ class Validacion extends BaseController
                     COALESCE(obc1.year, obc2.year) as year,
                     COALESCE(obc1.car_type, obc2.car_type) as version,
                     COALESCE(obc1.amount, obc2.amount) as montoUnidad,
-                    /* Aviso confid.: Sí solo si existe registro en expedient_pld con AvisoPrivacidadEntregado=1; No si no existe registro o no está entregado */
+                    /* Aviso confid.: Sí solo si existe registro en expedient_pld con aviso_privacidad_entregado=1; No si no existe registro o no está entregado */
                     (SELECT CASE WHEN EXISTS (
                         SELECT 1 FROM expedient_pld fp_aviso
-                        WHERE fp_aviso.IdFile = f.id
-                        AND COALESCE(fp_aviso.AvisoPrivacidadEntregado, 0) = 1
+                        WHERE fp_aviso.id_expedient = f.id
+                        AND COALESCE(fp_aviso.aviso_privacidad_entregado, 0) = 1
                     ) THEN 1 ELSE 0 END) as avisoConfidencialidadAceptado,
                     (
                         SELECT COUNT(*) 
                         FROM expedient_pld_beneficial_owner bf 
-                        WHERE bf.IdFile = f.id AND COALESCE(bf.Enabled, 1) = 1
-                    ) + CASE WHEN COALESCE(fp.BeneficiarioFinalCapturado, 0) = 1 THEN 1 ELSE 0 END as cantidadBeneficiarios,
+                        WHERE bf.id_expedient = f.id AND COALESCE(bf.enabled, 1) = 1
+                    ) + CASE WHEN COALESCE(fp.beneficiario_final_capturado, 0) = 1 THEN 1 ELSE 0 END as cantidadBeneficiarios,
                     (
-                        SELECT COALESCE(SUM(bf2.PorcentajeParticipacion), 0) 
+                        SELECT COALESCE(SUM(bf2.porcentaje_participacion), 0) 
                         FROM expedient_pld_beneficial_owner bf2 
-                        WHERE bf2.IdFile = f.id AND COALESCE(bf2.Enabled, 1) = 1
-                    ) + COALESCE(fp.BeneficiarioFinalPorcentaje, 0) as porcentajeBeneficiarios
+                        WHERE bf2.id_expedient = f.id AND COALESCE(bf2.enabled, 1) = 1
+                    ) + COALESCE(fp.beneficiario_final_porcentaje, 0) as porcentajeBeneficiarios
                 FROM expedient f
-                LEFT JOIN expedient_pld fp ON fp.IdFile = f.id
+                LEFT JOIN expedient_pld fp ON fp.id_expedient = f.id
                 INNER JOIN client_header hc ON hc.id_client = f.id_client
                 INNER JOIN client c ON hc.id_client = c.id
                 INNER JOIN process p ON f.id_sale_type = p.id
@@ -1039,7 +1039,7 @@ class Validacion extends BaseController
 
             $params = [];
             if ($filtrarPorAgencia) {
-                $params[] = $idAgency;
+                $params[] = $id_agency;
             }
             if ($filtrarPorProceso) {
                 $sql .= " AND f.id_sale_type = ?";
@@ -1066,7 +1066,7 @@ class Validacion extends BaseController
             foreach ($results as &$row) {
                 $idFile = (int) ($row['idFile'] ?? 0);
                 $check = $this->db->query(
-                    'SELECT 1 FROM expedient_pld WHERE IdFile = ? AND COALESCE(AvisoPrivacidadEntregado, 0) = 1 LIMIT 1',
+                    'SELECT 1 FROM expedient_pld WHERE id_expedient = ? AND COALESCE(aviso_privacidad_entregado, 0) = 1 LIMIT 1',
                     [$idFile]
                 )->getRow();
                 $row['avisoConfidencialidadAceptado'] = $check ? 1 : 0;
@@ -1096,7 +1096,7 @@ class Validacion extends BaseController
             ";
             $countParams = [];
             if ($filtrarPorAgencia) {
-                $countParams[] = $idAgency;
+                $countParams[] = $id_agency;
             }
             if ($filtrarPorProceso) {
                 $countSql .= " AND f.id_sale_type = ?";
@@ -1446,7 +1446,7 @@ class Validacion extends BaseController
             
             // Primero, obtener todos los estados disponibles para debugging
             $todosEstadosQuery = $this->db->table('expedient_state')
-                ->select('Id, Name')
+                ->select('id, Name')
                 ->get();
             $todosEstados = $todosEstadosQuery->getResultArray();
             error_log("Todos los estados disponibles en expedient_state: " . json_encode($todosEstados));
@@ -1462,7 +1462,7 @@ class Validacion extends BaseController
 
             if (!$estado) {
                 $estadosDisponibles = array_map(function($e) {
-                    return "ID: {$e['Id']} - {$e['Name']}";
+                    return "ID: {$e['id']} - {$e['Name']}";
                 }, $todosEstados);
                 
                 return $this->response->setJSON([
@@ -1539,10 +1539,10 @@ class Validacion extends BaseController
     public function getEstadisticas()
     {
         try {
-            $idAgency = $this->request->getGet('id');
+            $id_agency = $this->request->getGet('id');
             $idProcess = $this->request->getGet('idProcess');
 
-            if (!$idAgency || !$idProcess) {
+            if (!$id_agency || !$idProcess) {
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Los parámetros id e idProcess son requeridos',
@@ -1554,7 +1554,7 @@ class Validacion extends BaseController
                 ->select('fs.name as estado, COUNT(*) as cantidad')
                 ->join('process p', 'f.id_sale_type = p.id', 'inner')
                 ->join('expedient_state fs', 'f.id_current_expedient_state = fs.id', 'inner')
-                ->where('f.id_agency', $idAgency)
+                ->where('f.id_agency', $id_agency)
                 ->where('f.id_sale_type', $idProcess)
                 ->where('p.enabled', 1)
                 ->groupBy('f.id_current_expedient_state, fs.name')
@@ -2115,7 +2115,7 @@ class Validacion extends BaseController
             if (!$currentUser) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Token de autorización requerido',
+                    'message' => 'token de autorización requerido',
                     'data' => null
                 ])->setStatusCode(401);
             }
@@ -2696,7 +2696,7 @@ class Validacion extends BaseController
             if (!$currentUser) {
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Token de autorización requerido'
+                    'message' => 'token de autorización requerido'
                 ])->setStatusCode(401);
             }
 
@@ -2723,17 +2723,17 @@ class Validacion extends BaseController
             // URL del frontend donde está desplegada la app Angular (miniportal en /consulta/:token)
             // Configurar miniportal.frontendUrl o app.frontendUrl en .env de producción
             $frontendUrl = env('miniportal.frontendUrl', env('app.frontendUrl', 'http://localhost:4200'));
-            $miniportalUrl = rtrim($frontendUrl, '/') . '/consulta/' . $tokenData['Token'];
+            $miniportalUrl = rtrim($frontendUrl, '/') . '/consulta/' . $tokenData['token'];
 
-            $this->logActivity('GENERAR_TOKEN_MINIPORTAL', "Token Miniportal generado para expediente {$idFile}", [
+            $this->logActivity('GENERAR_TOKEN_MINIPORTAL', "token Miniportal generado para expediente {$idFile}", [
                 'file_id' => $idFile,
-                'token' => $tokenData['Token']
+                'token' => $tokenData['token']
             ], $idFile);
 
             return $this->response->setJSON([
                 'success' => true,
                 'data' => [
-                    'token' => $tokenData['Token'],
+                    'token' => $tokenData['token'],
                     'url' => $miniportalUrl,
                     'idFile' => $idFile
                 ]
@@ -2756,7 +2756,7 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $idFile = (int) $this->request->getGet('idFile');
             if (!$idFile) {
@@ -2861,7 +2861,7 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
             $idClient = (int) ($data['idClient'] ?? $data['id_client'] ?? 0);
@@ -2928,7 +2928,7 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $idFile = (int) $this->request->getGet('idFile');
             if (!$idFile) {
@@ -2972,7 +2972,7 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $idFile = (int) $this->request->getGet('idFile');
             if (!$idFile) {
@@ -2996,11 +2996,11 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $data = $this->request->getJSON(true) ?? $this->request->getPost();
             $idFile = (int) ($data['idFile'] ?? $data['id_expedient'] ?? 0);
-            $nombre = trim($data['nombre'] ?? $data['Nombre'] ?? '');
+            $nombre = trim($data['nombre'] ?? $data['nombre'] ?? '');
             if (!$idFile || !$nombre) {
                 return $this->response->setJSON(['success' => false, 'message' => 'idFile y nombre son requeridos'])->setStatusCode(400);
             }
@@ -3014,7 +3014,7 @@ class Validacion extends BaseController
             $model = new \App\Models\FilePldBeneficiarioFinalModel();
             if ($porcentaje !== null) {
                 $existentes = $model->getByFile($idFile);
-                $sumaActual = array_sum(array_map(fn($b) => (float) ($b['PorcentajeParticipacion'] ?? 0), $existentes));
+                $sumaActual = array_sum(array_map(fn($b) => (float) ($b['porcentaje_participacion'] ?? 0), $existentes));
                 if ($sumaActual + $porcentaje > 100) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -3043,7 +3043,7 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $id = (int) $id;
             if (!$id) {
@@ -3069,7 +3069,7 @@ class Validacion extends BaseController
         try {
             $currentUser = $this->getAuthenticatedUser();
             if (!$currentUser) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Token de autorización requerido'])->setStatusCode(401);
+                return $this->response->setJSON(['success' => false, 'message' => 'token de autorización requerido'])->setStatusCode(401);
             }
             $idFile = (int) $idFile;
             if (!$idFile) {

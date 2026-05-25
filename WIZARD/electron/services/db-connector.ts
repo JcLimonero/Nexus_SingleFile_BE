@@ -54,7 +54,7 @@ export async function testConnection(cfg: DbConnectionConfig): Promise<Operation
 
 export async function createDatabase(cfg: DbConnectionConfig, dbName: string): Promise<OperationResult> {
   if (!/^[A-Za-z0-9_]+$/.test(dbName)) {
-    return { ok: false, message: 'Nombre de DB inválido (solo alfanumérico + underscore).' };
+    return { ok: false, message: 'nombre de DB inválido (solo alfanumérico + underscore).' };
   }
   try {
     await withConnection({ ...cfg, database: undefined }, async (c) => {

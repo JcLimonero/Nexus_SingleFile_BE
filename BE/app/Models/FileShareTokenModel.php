@@ -36,14 +36,14 @@ class FileShareTokenModel extends Model
         }
         $existing = $this->where('id_expedient', $idFile)->first();
         if ($existing) {
-            $enabled = $existing['enabled'] ?? $existing['Enabled'] ?? 0;
+            $enabled = $existing['enabled'] ?? $existing['enabled'] ?? 0;
             $expDate = $existing['expiration_date'] ?? $existing['ExpirationDate'] ?? null;
             if ($enabled && (!$expDate || strtotime($expDate) >= time())) {
                 return $this->normalizeTokenRow($existing);
             }
-            // Token expirado o deshabilitado: renovar con nuevo UUID
+            // token expirado o deshabilitado: renovar con nuevo UUID
             $token = $this->generateUUID();
-            $rowId = $existing['id'] ?? $existing['Id'] ?? null;
+            $rowId = $existing['id'] ?? $existing['id'] ?? null;
             $updateData = [
                 'token' => $token,
                 'expiration_date' => $expirationDate,
@@ -70,15 +70,15 @@ class FileShareTokenModel extends Model
     }
 
     /**
-     * Normalizar fila para compatibilidad (IdFile, Token, etc.)
+     * Normalizar fila para compatibilidad (id_expedient, token, etc.)
      */
     private function normalizeTokenRow(array $row): array
     {
         return array_merge($row, [
-            'IdFile' => $row['id_expedient'] ?? $row['IdFile'] ?? null,
-            'Token' => $row['token'] ?? $row['Token'] ?? null,
+            'id_expedient' => $row['id_expedient'] ?? $row['id_expedient'] ?? null,
+            'token' => $row['token'] ?? $row['token'] ?? null,
             'ExpirationDate' => $row['expiration_date'] ?? $row['ExpirationDate'] ?? null,
-            'Enabled' => $row['enabled'] ?? $row['Enabled'] ?? null,
+            'enabled' => $row['enabled'] ?? $row['enabled'] ?? null,
         ]);
     }
 
@@ -107,7 +107,7 @@ class FileShareTokenModel extends Model
         if (!$row) {
             return false;
         }
-        $rowId = $row['id'] ?? $row['Id'] ?? null;
+        $rowId = $row['id'] ?? $row['id'] ?? null;
         return $rowId ? (bool) $this->update($rowId, ['enabled' => 0]) : false;
     }
 

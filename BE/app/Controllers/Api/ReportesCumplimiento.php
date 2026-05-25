@@ -20,12 +20,12 @@ class ReportesCumplimiento extends BaseController
     }
 
     /**
-     * Parsear idAgency: acepta valor único o lista separada por comas.
+     * Parsear id_agency: acepta valor único o lista separada por comas.
      * @return int[] Array de IDs de agencia (vacío si no hay filtro)
      */
     private function parseIdAgencyIds(): array
     {
-        $raw = $this->request->getGet('idAgency');
+        $raw = $this->request->getGet('id_agency');
         if ($raw === null || $raw === '') {
             return [];
         }
@@ -213,7 +213,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT
                     co.id as idCompany,
                     COALESCE(NULLIF(TRIM(co.name), ''), 'Sin razón social') as razonSocial,
-                    a.id as idAgency,
+                    a.id as id_agency,
                     a.name as nombreAgencia,
                     f.id_current_expedient_state as idEstado,
                     fs.name as nombreEstado,
@@ -248,12 +248,12 @@ class ReportesCumplimiento extends BaseController
             // Agrupar por Razón Social / Agencia
             $porRazonSocialAgencia = [];
             foreach ($rows as $r) {
-                $key = ($r['razonSocial'] ?? 'Sin razón social') . '|' . $r['idAgency'];
+                $key = ($r['razonSocial'] ?? 'Sin razón social') . '|' . $r['id_agency'];
                 if (!isset($porRazonSocialAgencia[$key])) {
                     $porRazonSocialAgencia[$key] = [
                         'razonSocial' => $r['razonSocial'] ?? 'Sin razón social',
                         'idCompany' => $r['idCompany'],
-                        'idAgency' => $r['idAgency'],
+                        'id_agency' => $r['id_agency'],
                         'nombreAgencia' => $r['nombreAgencia'],
                         'porEstado' => [],
                         'total' => 0
@@ -307,7 +307,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT
                     co.id as idCompany,
                     COALESCE(NULLIF(TRIM(co.name), ''), 'Sin razón social') as razonSocial,
-                    a.id as idAgency,
+                    a.id as id_agency,
                     a.name as nombreAgencia,
                     dbf.id_current_document_status as idEstatus,
                     dfs.name as nombreEstatus,
@@ -339,12 +339,12 @@ class ReportesCumplimiento extends BaseController
 
             $porRazonSocialAgencia = [];
             foreach ($rows as $r) {
-                $key = ($r['razonSocial'] ?? 'Sin razón social') . '|' . $r['idAgency'];
+                $key = ($r['razonSocial'] ?? 'Sin razón social') . '|' . $r['id_agency'];
                 if (!isset($porRazonSocialAgencia[$key])) {
                     $porRazonSocialAgencia[$key] = [
                         'razonSocial' => $r['razonSocial'] ?? 'Sin razón social',
                         'idCompany' => $r['idCompany'],
-                        'idAgency' => $r['idAgency'],
+                        'id_agency' => $r['id_agency'],
                         'nombreAgencia' => $r['nombreAgencia'],
                         'porEstatus' => [],
                         'total' => 0
@@ -418,7 +418,7 @@ class ReportesCumplimiento extends BaseController
                 AND f.id_current_expedient_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
                 AND NOT EXISTS (
-                    SELECT 1 FROM expedient_pld_beneficial_owner bf WHERE bf.IdFile = f.id
+                    SELECT 1 FROM expedient_pld_beneficial_owner bf WHERE bf.id_expedient = f.id
                 )
             ";
             $params = [$anio];
@@ -469,7 +469,7 @@ class ReportesCumplimiento extends BaseController
     /**
      * GET /api/compliance-reports/cases-without-notice
      * Expedientes sin aviso de privacidad aceptado.
-     * Incluye: sin registro en expedient_pld, o con registro pero AvisoPrivacidadEntregado != 1.
+     * Incluye: sin registro en expedient_pld, o con registro pero aviso_privacidad_entregado != 1.
      */
     public function expedientesSinAviso()
     {
@@ -511,7 +511,7 @@ class ReportesCumplimiento extends BaseController
                 WHERE f.id_current_expedient_state NOT IN (5)
                 AND NOT EXISTS (
                     SELECT 1 FROM expedient_pld fp
-                    WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1
+                    WHERE fp.id_expedient = f.id AND fp.aviso_privacidad_entregado = 1
                 )
             ";
             $params = [];
@@ -710,7 +710,7 @@ class ReportesCumplimiento extends BaseController
                 INNER JOIN agency a ON f.id_agency = a.id
                 WHERE f.id_customer_type = 2 AND f.id_current_expedient_state NOT IN (5)
                 AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM expedient_pld_beneficial_owner bf WHERE bf.IdFile = f.id)
+                AND NOT EXISTS (SELECT 1 FROM expedient_pld_beneficial_owner bf WHERE bf.id_expedient = f.id)
             ";
             $paramsBenef = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {
@@ -725,7 +725,7 @@ class ReportesCumplimiento extends BaseController
                 SELECT COUNT(*) as total FROM expedient f
                 INNER JOIN agency a ON f.id_agency = a.id
                 WHERE f.id_current_expedient_state NOT IN (5) AND YEAR(f.registration_date) = ?
-                AND NOT EXISTS (SELECT 1 FROM expedient_pld fp WHERE fp.IdFile = f.id AND fp.AvisoPrivacidadEntregado = 1)
+                AND NOT EXISTS (SELECT 1 FROM expedient_pld fp WHERE fp.id_expedient = f.id AND fp.aviso_privacidad_entregado = 1)
             ";
             $paramsAviso = [$anioActual];
             if ($idCompany !== null && $idCompany !== '') {

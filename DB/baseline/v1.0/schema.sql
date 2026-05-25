@@ -18,22 +18,22 @@ CREATE TABLE `activity_log` (
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
-  `UserId` int NOT NULL,
-  `UserEmail` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `Action` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `EntityType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `EntityId` int NOT NULL,
-  `EntityData` json DEFAULT NULL,
-  `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
-  `IpAddress` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `UserAgent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
-  `CreatedAt` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `id_user` int NOT NULL,
+  `user_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `action` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `entity_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `entity_id` int NOT NULL,
+  `entity_data` json DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`UserId`),
-  KEY `idx_action` (`Action`),
-  KEY `idx_entity_type` (`EntityType`),
-  KEY `idx_entity_id` (`EntityId`),
-  KEY `idx_created_at` (`CreatedAt`),
+  KEY `idx_user_id` (`id_user`),
+  KEY `idx_action` (`action`),
+  KEY `idx_entity_type` (`entity_type`),
+  KEY `idx_entity_id` (`entity_id`),
+  KEY `idx_created_at` (`created_at`),
   KEY `FK_activity_log_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_activity_log_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -283,7 +283,7 @@ CREATE TABLE `document_error` (
   `enabled` tinyint DEFAULT '1',
   `description` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `Id` (`id`),
+  UNIQUE KEY `id` (`id`),
   KEY `FK_document_file_error_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_document_file_error_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -298,7 +298,7 @@ CREATE TABLE `document_status` (
   `enabled` tinyint DEFAULT '1',
   `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `Id` (`id`),
+  UNIQUE KEY `id` (`id`),
   KEY `FK_document_file_status_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_document_file_status_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -443,42 +443,42 @@ CREATE TABLE `expedient_exception_reason` (
 -- ------ Table: `expedient_pld` ------
 DROP TABLE IF EXISTS `expedient_pld`;
 CREATE TABLE `expedient_pld` (
-  `Id` bigint NOT NULL AUTO_INCREMENT,
-  `IdFile` bigint DEFAULT NULL,
-  `AvisoPrivacidadEntregado` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=No',
-  `AvisoPrivacidadFecha` datetime DEFAULT NULL COMMENT 'Fecha de entrega/aceptación',
-  `AvisoPrivacidadMetodo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Presencial, Digital, Correo, Miniportal',
-  `AvisoPrivacidadFirma` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Ruta o referencia a firma digital',
-  `RequiereBeneficiarioFinal` tinyint(1) DEFAULT '0' COMMENT '1=Sí aplica, 0=No aplica',
-  `BeneficiarioFinalCapturado` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=Pendiente',
-  `BeneficiarioFinalNombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `BeneficiarioFinalRFC` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `BeneficiarioFinalCURP` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `BeneficiarioFinalPorcentaje` decimal(5,2) DEFAULT NULL COMMENT 'Porcentaje de participación',
-  `BeneficiarioFinalFechaCaptura` datetime DEFAULT NULL,
-  `ProveedorRecursosCapturado` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=Pendiente',
-  `ProveedorRecursosDescripcion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Descripción del origen de recursos',
-  `ProveedorRecursosFechaCaptura` datetime DEFAULT NULL,
-  `TipoIdentificacion` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'CIF, CSF o NULL si no aplica',
-  `GeolocalizacionCapturada` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=No',
-  `GeolocalizacionLatitud` decimal(10,8) DEFAULT NULL,
-  `GeolocalizacionLongitud` decimal(11,8) DEFAULT NULL,
-  `GeolocalizacionFecha` datetime DEFAULT NULL,
-  `GeolocalizacionOrigen` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Miniportal, App, Agencia',
-  `ExpedientePLDCompleto` tinyint(1) DEFAULT '0' COMMENT '1=Completo, 0=Incompleto',
-  `ExpedientePLDCompletoFecha` datetime DEFAULT NULL COMMENT 'Cuándo se marcó completo',
-  `RegistrationDate` datetime DEFAULT CURRENT_TIMESTAMP,
-  `UpdateDate` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `IdLastUserUpdate` bigint DEFAULT NULL,
-  `Enabled` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`Id`),
-  UNIQUE KEY `uk_file_pld_idfile` (`IdFile`),
-  KEY `idx_file_pld_completo` (`ExpedientePLDCompleto`),
-  KEY `idx_file_pld_aviso` (`AvisoPrivacidadEntregado`),
-  KEY `idx_file_pld_beneficiario` (`BeneficiarioFinalCapturado`),
-  KEY `FK_file_pld_IdLastUserUpdate` (`IdLastUserUpdate`),
-  CONSTRAINT `FK_file_pld_IdFile` FOREIGN KEY (`IdFile`) REFERENCES `expedient` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `FK_file_pld_IdLastUserUpdate` FOREIGN KEY (`IdLastUserUpdate`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id_expedient` bigint DEFAULT NULL,
+  `aviso_privacidad_entregado` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=No',
+  `aviso_privacidad_fecha` datetime DEFAULT NULL COMMENT 'Fecha de entrega/aceptación',
+  `aviso_privacidad_metodo` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Presencial, Digital, Correo, Miniportal',
+  `aviso_privacidad_firma` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Ruta o referencia a firma digital',
+  `requiere_beneficiario_final` tinyint(1) DEFAULT '0' COMMENT '1=Sí aplica, 0=No aplica',
+  `beneficiario_final_capturado` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=Pendiente',
+  `beneficiario_final_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `beneficiario_final_rfc` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `beneficiario_final_curp` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `beneficiario_final_porcentaje` decimal(5,2) DEFAULT NULL COMMENT 'Porcentaje de participación',
+  `beneficiario_final_fecha_captura` datetime DEFAULT NULL,
+  `proveedor_recursos_capturado` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=Pendiente',
+  `proveedor_recursos_descripcion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Descripción del origen de recursos',
+  `proveedor_recursos_fecha_captura` datetime DEFAULT NULL,
+  `tipo_identificacion` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'CIF, CSF o NULL si no aplica',
+  `geolocalizacion_capturada` tinyint(1) DEFAULT '0' COMMENT '1=Sí, 0=No',
+  `geolocalizacion_latitud` decimal(10,8) DEFAULT NULL,
+  `geolocalizacion_longitud` decimal(11,8) DEFAULT NULL,
+  `geolocalizacion_fecha` datetime DEFAULT NULL,
+  `geolocalizacion_origen` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL COMMENT 'Miniportal, App, Agencia',
+  `expediente_pld_completo` tinyint(1) DEFAULT '0' COMMENT '1=Completo, 0=Incompleto',
+  `expediente_pld_completo_fecha` datetime DEFAULT NULL COMMENT 'Cuándo se marcó completo',
+  `registration_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `id_last_user_update` bigint DEFAULT NULL,
+  `enabled` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_file_pld_idfile` (`id_expedient`),
+  KEY `idx_file_pld_completo` (`expediente_pld_completo`),
+  KEY `idx_file_pld_aviso` (`aviso_privacidad_entregado`),
+  KEY `idx_file_pld_beneficiario` (`beneficiario_final_capturado`),
+  KEY `FK_file_pld_IdLastUserUpdate` (`id_last_user_update`),
+  CONSTRAINT `FK_file_pld_IdFile` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `FK_file_pld_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci COMMENT='Datos PLD/AML por expediente - Ley Antilavado';
 
 -- ------ Table: `expedient_pld_approved_document` ------
@@ -499,41 +499,41 @@ CREATE TABLE `expedient_pld_approved_document` (
 -- ------ Table: `expedient_pld_beneficial_owner` ------
 DROP TABLE IF EXISTS `expedient_pld_beneficial_owner`;
 CREATE TABLE `expedient_pld_beneficial_owner` (
-  `Id` bigint NOT NULL AUTO_INCREMENT,
-  `IdFile` bigint NOT NULL COMMENT 'FK a File.Id',
-  `Nombre` varchar(255) NOT NULL,
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id_expedient` bigint NOT NULL COMMENT 'FK a File.id',
+  `nombre` varchar(255) NOT NULL,
   `RFC` varchar(13) DEFAULT NULL,
   `CURP` varchar(18) DEFAULT NULL,
-  `PorcentajeParticipacion` decimal(5,2) DEFAULT NULL,
-  `RegistrationDate` datetime DEFAULT CURRENT_TIMESTAMP,
-  `UpdateDate` timestamp NULL DEFAULT NULL,
-  `IdLastUserUpdate` bigint DEFAULT '0',
-  `Enabled` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`Id`),
-  KEY `idx_beneficiario_idfile` (`IdFile`),
-  KEY `FK_file_pld_beneficial_owner_IdLastUserUpdate` (`IdLastUserUpdate`),
-  CONSTRAINT `fk_beneficiario_file` FOREIGN KEY (`IdFile`) REFERENCES `expedient` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `FK_file_pld_beneficial_owner_IdLastUserUpdate` FOREIGN KEY (`IdLastUserUpdate`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  `porcentaje_participacion` decimal(5,2) DEFAULT NULL,
+  `registration_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_date` timestamp NULL DEFAULT NULL,
+  `id_last_user_update` bigint DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`),
+  KEY `idx_beneficiario_idfile` (`id_expedient`),
+  KEY `FK_file_pld_beneficial_owner_IdLastUserUpdate` (`id_last_user_update`),
+  CONSTRAINT `fk_beneficiario_file` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_file_pld_beneficial_owner_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ------ Table: `expedient_pld_geo_log` ------
 DROP TABLE IF EXISTS `expedient_pld_geo_log`;
 CREATE TABLE `expedient_pld_geo_log` (
-  `Id` bigint NOT NULL AUTO_INCREMENT,
-  `IdFile` bigint NOT NULL,
-  `Latitud` decimal(10,8) NOT NULL,
-  `Longitud` decimal(11,8) NOT NULL,
-  `Accion` varchar(100) DEFAULT NULL COMMENT 'Aceptar aviso, Subir documento, Firmar',
-  `Origen` varchar(50) DEFAULT NULL COMMENT 'Miniportal, App',
-  `RegistrationDate` datetime DEFAULT CURRENT_TIMESTAMP,
-  `UpdateDate` timestamp NULL DEFAULT NULL,
-  `IdLastUserUpdate` bigint DEFAULT '0',
-  `Enabled` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`Id`),
-  KEY `idx_geolog_idfile` (`IdFile`),
-  KEY `FK_file_pld_geo_log_IdLastUserUpdate` (`IdLastUserUpdate`),
-  CONSTRAINT `FK_file_pld_geo_log_IdLastUserUpdate` FOREIGN KEY (`IdLastUserUpdate`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_geolog_file` FOREIGN KEY (`IdFile`) REFERENCES `expedient` (`id`) ON DELETE CASCADE
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id_expedient` bigint NOT NULL,
+  `latitud` decimal(10,8) NOT NULL,
+  `longitud` decimal(11,8) NOT NULL,
+  `accion` varchar(100) DEFAULT NULL COMMENT 'Aceptar aviso, Subir documento, Firmar',
+  `origen` varchar(50) DEFAULT NULL COMMENT 'Miniportal, App',
+  `registration_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_date` timestamp NULL DEFAULT NULL,
+  `id_last_user_update` bigint DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`),
+  KEY `idx_geolog_idfile` (`id_expedient`),
+  KEY `FK_file_pld_geo_log_IdLastUserUpdate` (`id_last_user_update`),
+  CONSTRAINT `FK_file_pld_geo_log_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_geolog_file` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ------ Table: `expedient_reason` ------
@@ -559,20 +559,20 @@ DROP TABLE IF EXISTS `expedient_share_token`;
 CREATE TABLE `expedient_share_token` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `id_expedient` bigint NOT NULL,
-  `Token` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'UUID único para acceso al miniportal',
+  `token` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'UUID único para acceso al miniportal',
   `expiration_date` timestamp NULL DEFAULT NULL,
   `enabled` tinyint DEFAULT '1',
   `registration_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_date` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `id_last_user_update` bigint DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_share_token_token` (`Token`),
+  UNIQUE KEY `uk_share_token_token` (`token`),
   UNIQUE KEY `uk_share_token_idfile` (`id_expedient`),
   KEY `idx_share_token_enabled` (`enabled`),
   KEY `FK_file_share_token_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_file_share_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_share_token_file` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Token único por expediente para acceso al Miniportal';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='token único por expediente para acceso al Miniportal';
 
 -- ------ Table: `expedient_state` (renamed from `file_status`) ------
 DROP TABLE IF EXISTS `expedient_state`;
@@ -584,7 +584,7 @@ CREATE TABLE `expedient_state` (
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `Id` (`id`),
+  UNIQUE KEY `id` (`id`),
   KEY `FK_file_status_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_file_status_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -610,22 +610,22 @@ CREATE TABLE `expedient_sub_state` (
 DROP TABLE IF EXISTS `expedients_to_correct`;
 CREATE TABLE `expedients_to_correct` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `idExpediente` int unsigned NOT NULL,
-  `idAgency` int unsigned NOT NULL,
-  `ndDMS` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `id_expedient` int unsigned NOT NULL,
+  `id_agency` int unsigned NOT NULL,
+  `nd_dms` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `api_result` json DEFAULT NULL COMMENT 'Respuesta del API (success, error, etc.)',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `RegistrationDate` timestamp NULL DEFAULT NULL,
-  `UpdateDate` timestamp NULL DEFAULT NULL,
-  `IdLastUserUpdate` bigint DEFAULT '0',
-  `Enabled` tinyint(1) DEFAULT '1',
+  `registration_date` timestamp NULL DEFAULT NULL,
+  `update_date` timestamp NULL DEFAULT NULL,
+  `id_last_user_update` bigint DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_expediente` (`idExpediente`),
-  KEY `idx_agency` (`idAgency`),
-  KEY `idx_ndDMS` (`ndDMS`),
-  KEY `FK_files_to_correct_IdLastUserUpdate` (`IdLastUserUpdate`),
-  CONSTRAINT `FK_files_to_correct_IdLastUserUpdate` FOREIGN KEY (`IdLastUserUpdate`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  UNIQUE KEY `uk_expediente` (`id_expedient`),
+  KEY `idx_agency` (`id_agency`),
+  KEY `idx_ndDMS` (`nd_dms`),
+  KEY `FK_files_to_correct_IdLastUserUpdate` (`id_last_user_update`),
+  CONSTRAINT `FK_files_to_correct_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- ------ Table: `liquidation_receipt_detail` ------
@@ -786,7 +786,7 @@ CREATE TABLE `user_activity_logs` (
   `id_last_user_update` bigint DEFAULT NULL,
   `enabled` tinyint DEFAULT '1',
   `user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID del usuario que realiz? la acci?n',
-  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de usuario',
+  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'nombre de usuario',
   `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tipo de acci?n realizada',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Descripci?n detallada de la acci?n',
   `change_details` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Detalles espec?ficos del cambio realizado',
@@ -974,9 +974,9 @@ DROP VIEW IF EXISTS `view_client_company_amount_6m_total`;
 CREATE ALGORITHM=UNDEFINED SQL SECURITY INVOKER VIEW `view_client_company_amount_6m_total` AS select `c`.`id` AS `idCliente`,`a`.`id_company` AS `idCompany`,sum(coalesce(`lrd`.`amount`,0)) AS `totalMonto` from ((((`expedient` `f` join `client` `c` on((`f`.`id_client` = `c`.`id`))) join `agency` `a` on((`f`.`id_agency` = `a`.`id`))) join `liquidation_receipt_detail` `lrd` on((`lrd`.`id_expedient` = `f`.`id`))) join `expedient_document` `fd` on(((`fd`.`id` = `lrd`.`id_expedient_document`) and (`fd`.`enabled` = 1)))) where (coalesce(`lrd`.`payment_date`,cast(`lrd`.`registration_date` as date),cast(`f`.`registration_date` as date)) >= (curdate() - interval 6 month)) group by `c`.`id`,`a`.`id_company` having (sum(coalesce(`lrd`.`amount`,0)) > 0);
 
 DROP VIEW IF EXISTS `view_client_relations`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY INVOKER VIEW `view_client_relations` AS select `hc`.`id_client` AS `idCliente`,coalesce(`ctr`.`id_dms`,'') AS `ndCliente`,trim(concat(coalesce(`c`.`name`,''),' ',coalesce(`c`.`last_name`,''),' ',coalesce(`c`.`mother_last_name`,''))) AS `cliente`,`hc`.`id` AS `IdClientHeader`,`c`.`name` AS `nombre`,`c`.`last_name` AS `apellidoPaterno`,`c`.`mother_last_name` AS `apellidoMaterno`,`c`.`RFC` AS `rfc`,`c`.`email` AS `email`,`c`.`tel_number` AS `telefono`,`c`.`tel_number2` AS `telefono2`,`c`.`razon_social` AS `razonSocial`,`c`.`CURP` AS `curp`,`c`.`tipo_cliente` AS `tipoCliente`,`c`.`adviser` AS `asesor`,`c`.`agency_origin` AS `agenciaOrigen`,`c`.`registration_date` AS `fechaRegistro`,`c`.`update_date` AS `fechaActualizacion`,`ctr`.`id_agency` AS `idAgency` from ((`client_header` `hc` join `client_dms_relation` `ctr` on((`hc`.`id` = `ctr`.`id_client_header`))) join `client` `c` on((`c`.`id` = `hc`.`id_client`)));
+CREATE ALGORITHM=UNDEFINED SQL SECURITY INVOKER VIEW `view_client_relations` AS select `hc`.`id_client` AS `idCliente`,coalesce(`ctr`.`id_dms`,'') AS `ndCliente`,trim(concat(coalesce(`c`.`name`,''),' ',coalesce(`c`.`last_name`,''),' ',coalesce(`c`.`mother_last_name`,''))) AS `cliente`,`hc`.`id` AS `IdClientHeader`,`c`.`name` AS `nombre`,`c`.`last_name` AS `apellidoPaterno`,`c`.`mother_last_name` AS `apellidoMaterno`,`c`.`RFC` AS `rfc`,`c`.`email` AS `email`,`c`.`tel_number` AS `telefono`,`c`.`tel_number2` AS `telefono2`,`c`.`razon_social` AS `razonSocial`,`c`.`CURP` AS `curp`,`c`.`tipo_cliente` AS `tipoCliente`,`c`.`adviser` AS `asesor`,`c`.`agency_origin` AS `agenciaOrigen`,`c`.`registration_date` AS `fechaRegistro`,`c`.`update_date` AS `fechaActualizacion`,`ctr`.`id_agency` AS `id_agency` from ((`client_header` `hc` join `client_dms_relation` `ctr` on((`hc`.`id` = `ctr`.`id_client_header`))) join `client` `c` on((`c`.`id` = `hc`.`id_client`)));
 
 DROP VIEW IF EXISTS `view_document_name`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY INVOKER VIEW `view_document_name` AS select `fd`.`id` AS `IdFileDocument`,`fd`.`id_expedient` AS `IdFile`,coalesce(`dt`.`name`,`fd`.`name`) AS `file_name_original` from (`expedient_document` `fd` left join `document_type` `dt` on((`fd`.`id_document_type` = `dt`.`id`))) where (`fd`.`enabled` = 1);
+CREATE ALGORITHM=UNDEFINED SQL SECURITY INVOKER VIEW `view_document_name` AS select `fd`.`id` AS `IdFileDocument`,`fd`.`id_expedient` AS `id_expedient`,coalesce(`dt`.`name`,`fd`.`name`) AS `file_name_original` from (`expedient_document` `fd` left join `document_type` `dt` on((`fd`.`id_document_type` = `dt`.`id`))) where (`fd`.`enabled` = 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
