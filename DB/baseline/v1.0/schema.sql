@@ -337,7 +337,6 @@ CREATE TABLE `expedient` (
   `id_process` bigint DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
-  `last_user_update` bigint DEFAULT '0',
   `id_agency` bigint DEFAULT NULL,
   `id_seller` bigint DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
@@ -381,7 +380,7 @@ CREATE TABLE `expedient` (
   CONSTRAINT `expedient_ibfk_5` FOREIGN KEY (`id_process`) REFERENCES `process` (`id`),
   CONSTRAINT `expedient_ibfk_6` FOREIGN KEY (`id_agency`) REFERENCES `agency` (`id`),
   CONSTRAINT `expedient_ibfk_7` FOREIGN KEY (`id_seller`) REFERENCES `user` (`id`),
-  CONSTRAINT `expedient_ibfk_8` FOREIGN KEY (`id_current_state`) REFERENCES `file_status` (`id`),
+  CONSTRAINT `expedient_ibfk_8` FOREIGN KEY (`id_current_state`) REFERENCES `file_state` (`id`),
   CONSTRAINT `FK_expedient_IdClient` FOREIGN KEY (`id_client`) REFERENCES `client_header` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_expedient_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_expedient_IdOrder` FOREIGN KEY (`id_order`) REFERENCES `order` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -399,7 +398,6 @@ CREATE TABLE `file_document` (
   `enabled` tinyint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
-  `last_user_update` bigint DEFAULT '0',
   `id_last_user_update` bigint DEFAULT '0',
   `id_file` bigint DEFAULT '0',
   `id_validation` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
@@ -595,16 +593,16 @@ CREATE TABLE `file_state` (
 DROP TABLE IF EXISTS `file_sub_state`;
 CREATE TABLE `file_sub_state` (
   `id` bigint NOT NULL,
-  `id_file_status` int DEFAULT NULL,
+  `id_file_state` int DEFAULT NULL,
   `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
   PRIMARY KEY (`id`),
-  KEY `IDX_file_sub_status_IdFileStatus` (`id_file_status`),
+  KEY `IDX_file_sub_state_IdFileState` (`id_file_state`),
   KEY `FK_file_sub_status_IdLastUserUpdate` (`id_last_user_update`),
-  CONSTRAINT `FK_file_sub_status_file_status` FOREIGN KEY (`id_file_status`) REFERENCES `file_status` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `FK_file_sub_state_file_state` FOREIGN KEY (`id_file_state`) REFERENCES `file_state` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_file_sub_status_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -755,13 +753,13 @@ CREATE TABLE `user` (
   `id` bigint NOT NULL,
   `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `enabled` tinyint DEFAULT '0',
-  `id_user_rol` bigint DEFAULT '0',
+  `id_user_role` bigint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
-  `user` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `username` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `pass` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `mail` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `email` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `id_user_total` bigint DEFAULT '0',
   `default_agency` bigint DEFAULT '0',
   `user_pass` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
@@ -772,11 +770,11 @@ CREATE TABLE `user` (
   `last_login_at` datetime DEFAULT NULL COMMENT 'Fecha y hora del último ingreso al sistema',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Name` (`name`),
-  KEY `WDIDX_User_IdUserRol` (`id_user_rol`),
-  KEY `WDIDX_User_UserPass` (`user`,`pass`),
+  KEY `WDIDX_User_IdUserRol` (`id_user_role`),
+  KEY `WDIDX_User_UsernamePass` (`username`,`pass`),
   KEY `FK_user_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_user_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `user_ibfk_1` FOREIGN KEY (`id_user_rol`) REFERENCES `user_role` (`id`)
+  CONSTRAINT `user_ibfk_1` FOREIGN KEY (`id_user_role`) REFERENCES `user_role` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- ------ Table: `user_activity_logs` ------

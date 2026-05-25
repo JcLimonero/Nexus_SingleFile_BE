@@ -61,12 +61,12 @@ INSERT INTO `file_state` (`id`, `name`, `registration_date`, `update_date`, `id_
 
 -- ------ Data for `file_sub_state` (6 rows) ------
 TRUNCATE TABLE `file_sub_state`;
-INSERT INTO `file_sub_state` (`id`, `id_file_status`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (1, 3, 'Placas', '2026-02-28 06:49:12', '2026-02-28 07:16:53', 1, 1);
-INSERT INTO `file_sub_state` (`id`, `id_file_status`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (2, 3, 'Seguro', '2026-02-28 06:49:13', '2026-02-28 07:16:53', 1, 1);
-INSERT INTO `file_sub_state` (`id`, `id_file_status`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (3, 3, 'Accesorio', '2026-02-28 06:49:14', '2026-02-28 07:16:53', 1, 1);
-INSERT INTO `file_sub_state` (`id`, `id_file_status`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (4, 3, 'PDI', '2026-02-28 06:49:15', '2026-02-28 07:16:53', 1, 1);
-INSERT INTO `file_sub_state` (`id`, `id_file_status`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (5, 3, 'Detallado', '2026-02-28 06:49:15', '2026-02-28 07:16:53', 1, 1);
-INSERT INTO `file_sub_state` (`id`, `id_file_status`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (6, 3, 'Entrega Unidad', '2026-02-28 06:49:16', '2026-02-28 07:16:53', 1, 1);
+INSERT INTO `file_sub_state` (`id`, `id_file_state`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (1, 3, 'Placas', '2026-02-28 06:49:12', '2026-02-28 07:16:53', 1, 1);
+INSERT INTO `file_sub_state` (`id`, `id_file_state`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (2, 3, 'Seguro', '2026-02-28 06:49:13', '2026-02-28 07:16:53', 1, 1);
+INSERT INTO `file_sub_state` (`id`, `id_file_state`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (3, 3, 'Accesorio', '2026-02-28 06:49:14', '2026-02-28 07:16:53', 1, 1);
+INSERT INTO `file_sub_state` (`id`, `id_file_state`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (4, 3, 'PDI', '2026-02-28 06:49:15', '2026-02-28 07:16:53', 1, 1);
+INSERT INTO `file_sub_state` (`id`, `id_file_state`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (5, 3, 'Detallado', '2026-02-28 06:49:15', '2026-02-28 07:16:53', 1, 1);
+INSERT INTO `file_sub_state` (`id`, `id_file_state`, `name`, `registration_date`, `update_date`, `id_last_user_update`, `enabled`) VALUES (6, 3, 'Entrega Unidad', '2026-02-28 06:49:16', '2026-02-28 07:16:53', 1, 1);
 
 -- ------ Data for `document_type` (92 rows) ------
 TRUNCATE TABLE `document_type`;

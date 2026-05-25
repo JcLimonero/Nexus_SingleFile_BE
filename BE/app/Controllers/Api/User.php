@@ -46,7 +46,7 @@ class User extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('user u');
             
-            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
                 ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
                 ->join('agency a', 'a.id = u.default_agency', 'left');
 
@@ -66,15 +66,15 @@ class User extends BaseController
             // Aplicar ordenamiento (mapear PascalCase a snake_case)
             $sortFieldMap = [
                 'Name' => 'name',
-                'User' => 'user',
-                'Mail' => 'mail',
+                'User' => 'username',
+                'Mail' => 'email',
                 'RegistrationDate' => 'registration_date',
                 'UpdateDate' => 'update_date'
             ];
             $sortField = $sortFieldMap[$sortBy] ?? $sortBy;
             
             // Validar que el campo sea seguro (solo permitir campos válidos)
-            $allowedFields = ['id', 'name', 'user', 'mail', 'enabled', 'id_user_rol', 'default_agency', 'registration_date', 'update_date'];
+            $allowedFields = ['id', 'name', 'username', 'mail', 'enabled', 'id_user_role', 'default_agency', 'registration_date', 'update_date'];
             if (!in_array($sortField, $allowedFields)) {
                 $sortField = 'name';
             }
@@ -84,7 +84,7 @@ class User extends BaseController
             
             // Reconstruir el builder para obtener los datos
             $builder = $db->table('user u');
-            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+            $builder->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
                 ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
                 ->join('agency a', 'a.id = u.default_agency', 'left');
             
@@ -147,10 +147,10 @@ class User extends BaseController
             // Validar campos requeridos (compatibilidad con PascalCase y snake_case)
             $requiredFields = [
                 'name' => ['name', 'Name'],
-                'user' => ['user', 'User'],
-                'mail' => ['mail', 'Mail'],
+                'user' => ['username', 'User'],
+                'email' => ['email', 'Mail'],
                 'pass' => ['pass', 'Pass'],
-                'id_user_rol' => ['id_user_rol', 'IdUserRol'],
+                'id_user_role' => ['id_user_role', 'IdUserRole'],
                 'default_agency' => ['default_agency', 'DefaultAgency']
             ];
             
@@ -171,7 +171,7 @@ class User extends BaseController
             }
 
             // Verificar si el username ya existe
-            $existingUser = $this->userModel->where('user', $data['user'] ?? $data['User'] ?? null)->first();
+            $existingUser = $this->userModel->where('username', $data['user'] ?? $data['User'] ?? null)->first();
             if ($existingUser) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -180,7 +180,7 @@ class User extends BaseController
             }
 
             // Verificar si el email ya existe
-            $existingEmail = $this->userModel->where('mail', $data['mail'] ?? $data['Mail'] ?? null)->first();
+            $existingEmail = $this->userModel->where('email', $data['email'] ?? $data['email'] ?? null)->first();
             if ($existingEmail) {
                 return $this->response->setJSON([
                     'success' => false,
@@ -199,8 +199,8 @@ class User extends BaseController
                 'id' => $nextId,
                 'name' => trim($data['Name'] ?? $data['name'] ?? ''),
                 'user' => trim($data['User'] ?? $data['user'] ?? ''),
-                'mail' => trim($data['Mail'] ?? $data['mail'] ?? ''),
-                'id_user_rol' => isset($data['IdUserRol']) ? (int)$data['IdUserRol'] : (isset($data['id_user_rol']) ? (int)$data['id_user_rol'] : 0),
+                'email' => trim($data['email'] ?? $data['email'] ?? ''),
+                'id_user_role' => isset($data['IdUserRole']) ? (int)$data['IdUserRole'] : (isset($data['id_user_role']) ? (int)$data['id_user_role'] : 0),
                 'default_agency' => isset($data['DefaultAgency']) ? (int)$data['DefaultAgency'] : (isset($data['default_agency']) ? (int)$data['default_agency'] : 0),
                 'enabled' => isset($data['Enabled']) ? (int)$data['Enabled'] : (isset($data['enabled']) ? (int)$data['enabled'] : 1),
                 'registration_date' => date('Y-m-d H:i:s'),
@@ -259,7 +259,7 @@ class User extends BaseController
             $builder = $db->table('user u');
             
             $user = $builder
-                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
+                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, u.registration_date, u.update_date, u.id_last_user_update, ur.name as LastUserUpdateName, a.name as AgencyName')
                 ->join('user ur', 'ur.id = u.id_last_user_update', 'left')
                 ->join('agency a', 'a.id = u.default_agency', 'left')
                 ->where('u.id', $id)
@@ -320,13 +320,13 @@ class User extends BaseController
 
             // Si no es admin, sanitiza campos sensibles que NO puede tocar en su propio perfil
             if (!$this->isCurrentUserAdmin()) {
-                foreach (['id_user_rol', 'IdUserRol', 'enabled', 'Enabled', 'default_agency', 'DefaultAgency'] as $k) {
+                foreach (['id_user_role', 'IdUserRole', 'enabled', 'Enabled', 'default_agency', 'DefaultAgency'] as $k) {
                     unset($data[$k]);
                 }
             }
 
             // Verificar si el usuario existe (asegurar que incluye id)
-            $existingUser = $this->userModel->select('id, name, user, mail, pass, enabled, id_user_rol, default_agency, registration_date, update_date')->find($id);
+            $existingUser = $this->userModel->select('id, name, user, mail, pass, enabled, id_user_role, default_agency, registration_date, update_date')->find($id);
             $existingUserId = $existingUser['id'] ?? $existingUser['Id'] ?? null;
             if (!$existingUser || !isset($existingUserId)) {
                 return $this->response->setJSON([
@@ -339,7 +339,7 @@ class User extends BaseController
             $userValue = $data['user'] ?? $data['User'] ?? null;
             $existingUserValue = $existingUser['user'] ?? $existingUser['User'] ?? null;
             if (isset($userValue) && $userValue !== $existingUserValue) {
-                $duplicateUser = $this->userModel->where('user', $userValue)->where('id !=', $id)->first();
+                $duplicateUser = $this->userModel->where('username', $userValue)->where('id !=', $id)->first();
                 if ($duplicateUser) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -349,10 +349,10 @@ class User extends BaseController
             }
 
             // Verificar email único (si se está cambiando)
-            $mailValue = $data['mail'] ?? $data['Mail'] ?? null;
-            $existingMailValue = $existingUser['mail'] ?? $existingUser['Mail'] ?? null;
+            $mailValue = $data['email'] ?? $data['email'] ?? null;
+            $existingMailValue = $existingUser['email'] ?? $existingUser['Mail'] ?? null;
             if (isset($mailValue) && $mailValue !== $existingMailValue) {
-                $duplicateEmail = $this->userModel->where('mail', $mailValue)->where('id !=', $id)->first();
+                $duplicateEmail = $this->userModel->where('email', $mailValue)->where('id !=', $id)->first();
                 if ($duplicateEmail) {
                     return $this->response->setJSON([
                         'success' => false,
@@ -370,8 +370,8 @@ class User extends BaseController
             if (isset($data['User']) || isset($data['user'])) {
                 $updateData['user'] = trim($data['User'] ?? $data['user'] ?? '');
             }
-            if (isset($data['Mail']) || isset($data['mail'])) {
-                $updateData['mail'] = trim($data['Mail'] ?? $data['mail'] ?? '');
+            if (isset($data['email']) || isset($data['email'])) {
+                $updateData['email'] = trim($data['email'] ?? $data['email'] ?? '');
             }
             if (isset($data['Pass']) || isset($data['pass'])) {
                 $passValue = $data['Pass'] ?? $data['pass'] ?? null;
@@ -383,8 +383,8 @@ class User extends BaseController
             if (isset($data['Enabled']) || isset($data['enabled'])) {
                 $updateData['enabled'] = isset($data['Enabled']) ? (int)$data['Enabled'] : (int)$data['enabled'];
             }
-            if (isset($data['IdUserRol']) || isset($data['id_user_rol'])) {
-                $updateData['id_user_rol'] = isset($data['IdUserRol']) ? (int)$data['IdUserRol'] : (int)$data['id_user_rol'];
+            if (isset($data['IdUserRole']) || isset($data['id_user_role'])) {
+                $updateData['id_user_role'] = isset($data['IdUserRole']) ? (int)$data['IdUserRole'] : (int)$data['id_user_role'];
             }
             if (isset($data['DefaultAgency']) || isset($data['default_agency'])) {
                 $updateData['default_agency'] = isset($data['DefaultAgency']) ? (int)$data['DefaultAgency'] : (int)$data['default_agency'];
@@ -826,7 +826,7 @@ class User extends BaseController
             $builder = $db->table('user u');
             
             $users = $builder
-                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_rol, u.default_agency, a.name as AgencyName')
+                ->select('u.id, u.name, u.user, u.mail, u.enabled, u.id_user_role, u.default_agency, a.name as AgencyName')
                 ->join('agency a', 'a.id = u.default_agency', 'left')
                 ->groupStart()
                     ->like('u.name', $query)
@@ -900,7 +900,7 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $existingUser = $this->userModel->where('user', $username)->first();
+            $existingUser = $this->userModel->where('username', $username)->first();
             $available = !$existingUser;
 
             return $this->response->setJSON([
@@ -936,7 +936,7 @@ class User extends BaseController
                 ])->setStatusCode(400);
             }
 
-            $existingUser = $this->userModel->where('mail', $email)->first();
+            $existingUser = $this->userModel->where('email', $email)->first();
             $available = !$existingUser;
 
             return $this->response->setJSON([

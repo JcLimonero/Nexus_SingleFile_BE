@@ -147,12 +147,12 @@ export class DocumentTypeService {
 
   /**
    * Obtener subestados de archivo activos (File_SubStatus).
-   * Si se pasa idFileState, filtra por la relación file_sub_state.id_file_status = file_state.id
+   * Si se pasa idFileState, filtra por la relación file_sub_state.id_file_state = file_state.id
    */
   getActiveSubProcesses(idFileState?: number): Observable<any> {
     let url = `${this.apiBaseService.buildApiUrl('file-sub-state/active')}`;
     if (idFileState != null) {
-      url += `?id_file_status=${idFileState}`;
+      url += `?id_file_state=${idFileState}`;
     }
     return this.http.get(url);
   }

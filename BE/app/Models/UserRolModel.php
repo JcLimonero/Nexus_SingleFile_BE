@@ -92,7 +92,7 @@ class UserRolModel extends Model
     public function isRoleInUse($roleId)
     {
         $db = \Config\Database::connect();
-        $userCount = $db->table('user')->where('id_user_rol', $roleId)->countAllResults();
+        $userCount = $db->table('user')->where('id_user_role', $roleId)->countAllResults();
         return $userCount > 0;
     }
 

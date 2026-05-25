@@ -40,7 +40,7 @@ class FixTenantSchemaCommand extends BaseCommand
 
     /** Columns that should be BIGINT (signed, nullable) wherever they appear. */
     private const NULLABLE_BIGINT_COLS = [
-        'id_last_user_update', 'id_client_group', 'id_company', 'id_user_rol',
+        'id_last_user_update', 'id_client_group', 'id_company', 'id_user_role',
         'default_agency',
     ];
 

@@ -11,7 +11,7 @@ class AuthModel extends Model
     protected $table = 'user';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = false;
-    protected $allowedFields = ['name', 'user', 'pass', 'mail', 'enabled', 'id_user_rol'];
+    protected $allowedFields = ['name', 'username', 'pass', 'mail', 'enabled', 'id_user_role'];
     protected bool $updateOnlyChanged = false;
     
     private string $jwtSecret;
@@ -42,25 +42,25 @@ class AuthModel extends Model
             $loginMethod = 'email'; // 'email' o 'username'
             
             // Primero intentar buscar por Mail (método nuevo)
-            $user = $this->select('user.id, user.name, user.user, user.pass, user.mail, user.enabled, user.id_user_rol, user.user_pass, user.profile_image, user.image_type, ur.name as RoleName')
-                        ->join('user_role ur', 'user.id_user_rol = ur.id', 'left')
-                        ->where('user.mail', $identifier)
+            $user = $this->select('user.id, user.name, user.username, user.pass, user.email, user.enabled, user.id_user_role, user.user_pass, user.profile_image, user.image_type, ur.name as RoleName')
+                        ->join('user_role ur', 'user.id_user_role = ur.id', 'left')
+                        ->where('user.email', $identifier)
                         ->where('user.enabled', 1)
                         ->get()
                         ->getRowArray();
             
             // Si no se encuentra por Mail, intentar por User (método antiguo)
             if (!$user) {
-                $user = $this->select('user.id, user.name, user.user, user.pass, user.mail, user.enabled, user.id_user_rol, user.user_pass, user.profile_image, user.image_type, ur.name as RoleName')
-                            ->join('user_role ur', 'user.id_user_rol = ur.id', 'left')
-                            ->where('user.user', $identifier)
+                $user = $this->select('user.id, user.name, user.username, user.pass, user.email, user.enabled, user.id_user_role, user.user_pass, user.profile_image, user.image_type, ur.name as RoleName')
+                            ->join('user_role ur', 'user.id_user_role = ur.id', 'left')
+                            ->where('user.username', $identifier)
                             ->where('user.enabled', 1)
                             ->get()
                             ->getRowArray();
                 
                 if ($user) {
                     // Si el usuario tiene email, no permitir login con username
-                    $userMail = $user['mail'] ?? $user['Mail'] ?? '';
+                    $userMail = $user['email'] ?? $user['email'] ?? '';
                     if (!empty($userMail) && trim($userMail) !== '') {
                         return [
                             'success' => false,
@@ -77,7 +77,7 @@ class AuthModel extends Model
                             'requires_email' => true,
                             'message' => 'Para continuar, necesitas completar tu correo electrónico. Por favor, proporciona tu email para migrar al nuevo sistema de autenticación.',
                             'user_id' => $user['id'] ?? $user['Id'] ?? null,
-                            'username' => $user['user'] ?? $user['User'] ?? '',
+                            'username' => $user['username'] ?? $user['username'] ?? '',
                             'name' => $user['name'] ?? $user['Name'] ?? ''
                         ];
                     }
@@ -110,9 +110,9 @@ class AuthModel extends Model
                     'user' => [
                         'id' => $user['id'] ?? $user['Id'] ?? null,
                         'name' => $user['name'] ?? $user['Name'] ?? '',
-                        'email' => $user['mail'] ?? $user['Mail'] ?? '',
-                        'username' => $user['user'] ?? $user['User'] ?? '',
-                        'role_id' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
+                        'email' => $user['email'] ?? $user['email'] ?? '',
+                        'username' => $user['username'] ?? $user['username'] ?? '',
+                        'role_id' => $user['id_user_role'] ?? $user['IdUserRole'] ?? null,
                         'role_name' => $user['RoleName'] ?? 'Sin rol asignado',
                         'enabled' => $user['enabled'] ?? $user['Enabled'] ?? 0,
                         'profile_image' => $user['profile_image'] ?? null,
@@ -180,8 +180,8 @@ class AuthModel extends Model
             'iat' => time(), // Tiempo de emisión
             'exp' => time() + $this->jwtExpiration, // Expiración
             'user_id' => $user['id'] ?? $user['Id'] ?? null,
-            'email' => $user['mail'] ?? $user['Mail'] ?? '',
-            'role_id' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
+            'email' => $user['email'] ?? $user['email'] ?? '',
+            'role_id' => $user['id_user_role'] ?? $user['IdUserRole'] ?? null,
             'type' => 'access'
         ];
         
@@ -199,8 +199,8 @@ class AuthModel extends Model
             'iat' => time(), // Tiempo de emisión
             'exp' => time() + $this->refreshTokenExpiration, // Expiración más larga
             'user_id' => $user['id'] ?? $user['Id'] ?? null,
-            'email' => $user['mail'] ?? $user['Mail'] ?? '',
-            'role_id' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
+            'email' => $user['email'] ?? $user['email'] ?? '',
+            'role_id' => $user['id_user_role'] ?? $user['IdUserRole'] ?? null,
             'type' => 'refresh'
         ];
         
@@ -287,7 +287,7 @@ class AuthModel extends Model
             }
             
             // Obtener información del usuario (incluyendo id explícitamente)
-            $user = $this->select('id, name, user, mail, enabled, id_user_rol')->find($decoded->user_id);
+            $user = $this->select('id, name, user, mail, enabled, id_user_role')->find($decoded->user_id);
             $userId = $user['id'] ?? $user['Id'] ?? null;
             if (!$user || $userId === null || ($user['enabled'] ?? $user['Enabled'] ?? 0) != 1) {
                 return [
@@ -383,7 +383,7 @@ class AuthModel extends Model
      */
     public function getUserById($userId)
     {
-        return $this->select('id, name, user, mail, enabled, id_user_rol')->find($userId);
+        return $this->select('id, name, user, mail, enabled, id_user_role')->find($userId);
     }
     
     /**
@@ -412,7 +412,7 @@ class AuthModel extends Model
             }
             
             // Verificar que el usuario existe y obtener sus datos (incluyendo id explícitamente)
-            $user = $this->select('id, name, user, pass, mail, enabled, id_user_rol, user_pass')->find($userId);
+            $user = $this->select('id, name, user, pass, mail, enabled, id_user_role, user_pass')->find($userId);
             $userIdValue = $user['id'] ?? $user['Id'] ?? null;
             if (!$user || $userIdValue === null) {
                 return [
@@ -432,7 +432,7 @@ class AuthModel extends Model
             }
             
             // Verificar que el email no esté en uso por otro usuario
-            $existingUser = $this->where('mail', $email)
+            $existingUser = $this->where('email', $email)
                                 ->where('id !=', $userId)
                                 ->get()
                                 ->getRowArray();
@@ -447,7 +447,7 @@ class AuthModel extends Model
             // Actualizar el email (incluyendo id en los datos)
             $this->update($userId, [
                 'id' => $userId,
-                'mail' => $email,
+                'email' => $email,
                 'update_date' => date('Y-m-d H:i:s')
             ]);
             

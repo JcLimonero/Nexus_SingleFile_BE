@@ -50,10 +50,10 @@ class UserProfile extends BaseController
             $profileData = [
                 'id' => $user['id'] ?? $user['Id'] ?? null,
                 'name' => $user['name'] ?? $user['Name'] ?? '',
-                'user' => $user['user'] ?? $user['User'] ?? '',
-                'mail' => $user['mail'] ?? $user['Mail'] ?? '',
+                'user' => $user['username'] ?? $user['username'] ?? '',
+                'email' => $user['email'] ?? $user['email'] ?? '',
                 'default_agency' => $user['default_agency'] ?? $user['DefaultAgency'] ?? null,
-                'id_user_rol' => $user['id_user_rol'] ?? $user['IdUserRol'] ?? null,
+                'id_user_role' => $user['id_user_role'] ?? $user['IdUserRole'] ?? null,
                 'enabled' => $user['enabled'] ?? $user['Enabled'] ?? 0,
                 'registration_date' => $user['registration_date'] ?? $user['RegistrationDate'] ?? null,
                 'update_date' => $user['update_date'] ?? $user['UpdateDate'] ?? null

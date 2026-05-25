@@ -105,7 +105,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'user', 'mail', 'id_user_rol', 'default_agency', 'AssignedAgencies', 'Status', 'acciones']);
+    this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'user', 'mail', 'id_user_role', 'default_agency', 'AssignedAgencies', 'Status', 'acciones']);
     this.loadUsers();
     this.loadRoles();
     this.loadAgencies();
@@ -280,7 +280,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
     
     // Filtro de rol
     if (this.roleFilter !== '') {
-      filteredData = filteredData.filter(user => user.id_user_rol === this.roleFilter);
+      filteredData = filteredData.filter(user => user.id_user_role === this.roleFilter);
     }
     
     // Filtro de agencia predeterminada

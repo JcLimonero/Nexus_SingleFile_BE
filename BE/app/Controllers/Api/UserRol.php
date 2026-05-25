@@ -411,7 +411,7 @@ class UserRol extends BaseController
             $rolesWithUserCount = $db->query("
                 SELECT ur.id, ur.name, ur.enabled, COUNT(u.id) as UserCount
                 FROM user_role ur
-                LEFT JOIN user u ON u.id_user_rol = ur.id
+                LEFT JOIN user u ON u.id_user_role = ur.id
                 GROUP BY ur.id, ur.name, ur.enabled
                 ORDER BY UserCount DESC, ur.name ASC
             ")->getResultArray();

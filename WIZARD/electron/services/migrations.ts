@@ -39,7 +39,7 @@ export const schemaMigrations: Migration[] = [
       mail VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,
       name VARCHAR(200) NULL,
-      id_user_rol BIGINT NULL,
+      id_user_role BIGINT NULL,
       default_agency BIGINT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -118,7 +118,7 @@ export const schemaMigrations: Migration[] = [
     name: 'create_file_sub_state',
     sql: `CREATE TABLE IF NOT EXISTS file_sub_state (
       id BIGINT NOT NULL AUTO_INCREMENT,
-      id_file_status BIGINT NULL,
+      id_file_state BIGINT NULL,
       name VARCHAR(200) NOT NULL,
       enabled TINYINT(1) NOT NULL DEFAULT 1,
       registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,

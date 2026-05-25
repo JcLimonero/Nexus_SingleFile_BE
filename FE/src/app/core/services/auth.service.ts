@@ -340,7 +340,7 @@ export class AuthService {
 
   /** Columnas de tipo ID que se ocultan para el rol Demo (presentaciones a clientes). */
   static readonly DEMO_HIDDEN_ID_COLUMNS = [
-    'id', 'idExpediente', 'idFile', 'id_agency_dms', 'id_user_rol', 'idTypeReason'
+    'id', 'idExpediente', 'idFile', 'id_agency_dms', 'id_user_role', 'idTypeReason'
   ];
 
   /**

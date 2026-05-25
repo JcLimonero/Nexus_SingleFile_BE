@@ -7,7 +7,7 @@ use CodeIgniter\Database\Migration;
 /**
  * Renames file_status → file_state and file_sub_status → file_sub_state.
  *
- * The column names (id_current_state, id_file_status, id_file_sub_status) are
+ * The column names (id_current_state, id_file_state, id_file_sub_status) are
  * left untouched on purpose — column renames are FK-coordinated and would touch
  * many more tables. Code searches by table name, not column name, for clarity.
  *

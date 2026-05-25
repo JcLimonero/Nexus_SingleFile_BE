@@ -71,7 +71,7 @@ class SimulateProvisionCommand extends BaseCommand
         $adminId = 1;
         $hash = password_hash('simpass', PASSWORD_BCRYPT);
         $db->query(
-            "INSERT INTO `user` (id, mail, pass, user_pass, name, id_user_rol, enabled, password_migrated) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
+            "INSERT INTO `user` (id, email, pass, user_pass, name, id_user_role, enabled, password_migrated) VALUES (?, ?, ?, ?, ?, ?, 1, 1)",
             [$adminId, 'admin@sim.test', $hash, $hash, 'Sim Admin', 7]
         );
         CLI::write("+ admin user id={$adminId} (rol 7=Administrador)", 'green');

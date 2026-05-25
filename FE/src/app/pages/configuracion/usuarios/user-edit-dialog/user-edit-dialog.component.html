@@ -84,13 +84,13 @@
       <!-- Rol -->
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Rol de Usuario</mat-label>
-        <mat-select formControlName="id_user_rol">
+        <mat-select formControlName="id_user_role">
           <mat-option *ngFor="let role of rolesForSelect" [value]="role.id">
             {{ role.name }}
           </mat-option>
         </mat-select>
         <mat-hint>Rol que determina los permisos del usuario</mat-hint>
-        <mat-error *ngIf="userForm.get('id_user_rol')?.hasError('required')">
+        <mat-error *ngIf="userForm.get('id_user_role')?.hasError('required')">
           El rol es requerido
         </mat-error>
       </mat-form-field>

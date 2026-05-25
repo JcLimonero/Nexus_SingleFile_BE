@@ -168,13 +168,13 @@
       </ng-container>
 
       <!-- Columna Rol -->
-      <ng-container matColumnDef="id_user_rol">
+      <ng-container matColumnDef="id_user_role">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="min-w-0 flex-1 py-1 bg-gray-50 text-xs font-medium text-gray-700">
           Rol
         </th>
         <td mat-cell *matCellDef="let user" class="text-left py-0">
           <span class="text-xs">
-            {{ isHiddenRole(user.id_user_rol) ? '—' : getRoleName(user.id_user_rol) }}
+            {{ isHiddenRole(user.id_user_role) ? '—' : getRoleName(user.id_user_role) }}
           </span>
         </td>
       </ng-container>

@@ -85,7 +85,7 @@ export class UserEditDialogComponent implements OnInit {
       mail: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       pass: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
       confirmPassword: ['', [Validators.required]],
-      id_user_rol: ['', Validators.required],
+      id_user_role: ['', Validators.required],
       default_agency: ['', Validators.required],
       enabled: ['1']
     }, { validators: this.passwordMatchValidator() });
@@ -116,7 +116,7 @@ export class UserEditDialogComponent implements OnInit {
         name: this.data.user.name,
         user: this.data.user.user,
         mail: this.data.user.mail,
-        id_user_rol: this.data.user.id_user_rol,
+        id_user_role: this.data.user.id_user_role,
         default_agency: this.data.user.default_agency,
         enabled: this.data.user.enabled || '1'
       });
@@ -145,7 +145,7 @@ export class UserEditDialogComponent implements OnInit {
       user: v.user,
       mail: v.mail,
       pass: v.pass,
-      id_user_rol: v.id_user_rol,
+      id_user_role: v.id_user_role,
       default_agency: v.default_agency,
       enabled: '1'
     };
@@ -180,7 +180,7 @@ export class UserEditDialogComponent implements OnInit {
       name: v.name,
       user: v.user,
       mail: v.mail,
-      id_user_rol: v.id_user_rol,
+      id_user_role: v.id_user_role,
       default_agency: v.default_agency,
       enabled: v.enabled
     };

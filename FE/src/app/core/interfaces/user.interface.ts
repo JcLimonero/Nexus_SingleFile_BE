@@ -4,7 +4,7 @@ export interface User {
   user: string; // username
   mail: string;
   enabled: string; // "1" para activo, "0" para inactivo
-  id_user_rol: string;
+  id_user_role: string;
   default_agency: string;
   agency_name?: string;
   profile_image?: string | null;
@@ -21,7 +21,7 @@ export interface UserCreateRequest {
   user: string;
   mail: string;
   pass: string;
-  id_user_rol: string;
+  id_user_role: string;
   default_agency: string;
   enabled: string;
 }
