@@ -69,15 +69,34 @@ export class NavigationLoaderService {
       'cancelado': 'mat:cancel',
     };
 
+    // Las 3 fases base (Integración/Liquidación/Liberación) tienen
+    // componentes legacy hardcoded con toda la lógica (selectores,
+    // búsqueda de cliente, API a vanguardia/NexFile, etc.). Apuntar a
+    // /procesos/{slug} en vez del wrapper genérico /fases/{slug} que
+    // solo muestra un placeholder hasta migrar la tabla de expedientes.
+    const LEGACY_ROUTES: Record<string, string> = {
+      'integración': '/procesos/integracion',
+      'integracion': '/procesos/integracion',
+      'liquidación': '/procesos/liquidacion',
+      'liquidacion': '/procesos/liquidacion',
+      'liberación': '/procesos/liberacion',
+      'liberacion': '/procesos/liberacion',
+    };
+
     const children: NavigationLink[] = phases
       .filter((p) => Number(p.enabled) === 1)
       .sort((a, b) => Number(a.display_order) - Number(b.display_order))
-      .map((p) => ({
-        type: 'link',
-        label: p.phase_name,
-        route: `/fases/${phaseSlug(p.phase_name)}`,
-        icon: ICON_BY_NAME[p.phase_name.toLowerCase()] ?? 'mat:circle',
-      }));
+      .map((p) => {
+        const lc = p.phase_name.toLowerCase();
+        return {
+          type: 'link',
+          label: p.phase_name,
+          // Si es una fase base conocida → componente legacy con lógica completa.
+          // Si es custom (admin agregó) → wrapper genérico /fases/:slug.
+          route: LEGACY_ROUTES[lc] ?? `/fases/${phaseSlug(p.phase_name)}`,
+          icon: ICON_BY_NAME[lc] ?? 'mat:circle',
+        };
+      });
 
     return {
       type: 'dropdown',
