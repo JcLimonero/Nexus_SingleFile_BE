@@ -13,6 +13,10 @@ export interface PhaseRow {
   phase_name: string;
   phase_enabled: number;
   requires_payment_voucher: number;
+  /** 1 = la fase permite cargar documentos cuando expediente está en este estado */
+  allows_document_upload?: number;
+  /** 1 = estado terminal (Liberado, Cancelado, Excepción). El BE no los devuelve por filtro is_navigable. */
+  is_terminal?: number;
 }
 
 export interface PhaseActiveResponse {

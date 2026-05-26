@@ -40,9 +40,13 @@ class ClientGroupPhaseModel extends Model
 
     public function getPhasesForGroup(int $idClientGroup): array
     {
-        return $this->select('client_group_phase.*, fs.name as phase_name, fs.enabled as phase_enabled, fs.requires_payment_voucher')
+        // Filtra fs.is_navigable=1 defensivamente: aunque el admin haya
+        // asignado una fase terminal al grupo (data corrupta), no aparece
+        // en el sidebar — el flag canónico manda.
+        return $this->select('client_group_phase.*, fs.name as phase_name, fs.enabled as phase_enabled, fs.requires_payment_voucher, fs.is_navigable, fs.allows_document_upload, fs.is_terminal')
             ->join('expedient_state fs', 'fs.id = client_group_phase.id_expedient_state', 'left')
             ->where('client_group_phase.id_client_group', $idClientGroup)
+            ->where('fs.is_navigable', 1)
             ->orderBy('client_group_phase.display_order', 'ASC')
             ->findAll();
     }

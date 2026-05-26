@@ -165,6 +165,11 @@ class Miniportal extends BaseController
             ])->setStatusCode(403);
         }
 
+        // Rechaza upload si el expediente está en estado terminal (Liberado,
+        // Cancelado, etc.). Miniportal es público (token UUID) pero el guard
+        // valida estado independiente de la auth.
+        if ($r = $this->requireExpedientAllowsUpload($idFile)) return $r;
+
         // Aceptar 'expedient' (legacy) o 'file' (miniportal frontend)
         $file = $this->request->getFile('expedient') ?? $this->request->getFile('file');
         $idFileDocument = (int) ($this->request->getPost('idFileDocument') ?? $this->request->getPost('idDocumentFile') ?? $this->request->getPost('idDocumentByFile') ?? 0);

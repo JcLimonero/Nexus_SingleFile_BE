@@ -1,5 +1,5 @@
 -- NexFile baseline schema dump
--- Source: `nexfile` on 2026-05-24 23:27:05
+-- Source: `nexfile_tenant_test8` on 2026-05-25 19:59:43
 -- Transformations applied:
 --   - file_status         → expedient_state
 --   - file_sub_status     → expedient_sub_state
@@ -19,14 +19,14 @@ CREATE TABLE `activity_log` (
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
   `id_user` int NOT NULL,
-  `user_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `action` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `entity_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `user_email` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `action` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `entity_type` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `entity_id` int NOT NULL,
   `entity_data` json DEFAULT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
-  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
+  `description` text COLLATE utf8mb4_unicode_520_ci,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_unicode_520_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`id_user`),
@@ -41,17 +41,19 @@ CREATE TABLE `activity_log` (
 -- ------ Table: `agency` ------
 DROP TABLE IF EXISTS `agency`;
 CREATE TABLE `agency` (
-  `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '0',
-  `id_agency_dms` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `id_company` bigint DEFAULT NULL,
+  `id_agency_dms` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_company` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Name` (`name`),
   KEY `FK_agency_IdLastUserUpdate` (`id_last_user_update`),
+  KEY `fk_agency_company` (`id_company`),
+  CONSTRAINT `fk_agency_company` FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_agency_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -77,21 +79,21 @@ CREATE TABLE `agency_user` (
 DROP TABLE IF EXISTS `client`;
 CREATE TABLE `client` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `last_name` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `mother_last_name` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `last_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `mother_last_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `RFC` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `CURP` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `tel_number` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `tel_number2` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `tel_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `tel_number2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
-  `adviser` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `email` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `business_name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `agency_origin` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `adviser` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `business_name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `agency_origin` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `client_type` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `RazonSocial` (`business_name`),
@@ -104,7 +106,7 @@ CREATE TABLE `client` (
 DROP TABLE IF EXISTS `client_dms_relation`;
 CREATE TABLE `client_dms_relation` (
   `id` int NOT NULL,
-  `id_dms` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_dms` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
@@ -124,6 +126,56 @@ CREATE TABLE `client_dms_relation` (
   CONSTRAINT `FK_CTR_Agency` FOREIGN KEY (`id_agency`) REFERENCES `agency` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `FK_CTR_HeaderClient` FOREIGN KEY (`id_client_header`) REFERENCES `client_header` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+-- ------ Table: `client_group` ------
+DROP TABLE IF EXISTS `client_group`;
+CREATE TABLE `client_group` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `enabled` tinyint(1) NOT NULL DEFAULT '1',
+  `registration_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `id_last_user_update` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_client_group_name` (`name`),
+  KEY `fk_cg_last_user_update` (`id_last_user_update`),
+  CONSTRAINT `fk_cg_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------ Table: `client_group_phase` ------
+DROP TABLE IF EXISTS `client_group_phase`;
+CREATE TABLE `client_group_phase` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id_client_group` bigint NOT NULL,
+  `id_expedient_state` int NOT NULL,
+  `display_order` int DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT '1',
+  `registration_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cgph` (`id_client_group`,`id_expedient_state`),
+  KEY `fk_cgph_expedient_state` (`id_expedient_state`),
+  CONSTRAINT `fk_cgph_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cgph_expedient_state` FOREIGN KEY (`id_expedient_state`) REFERENCES `expedient_state` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------ Table: `client_group_sale_type` ------
+DROP TABLE IF EXISTS `client_group_sale_type`;
+CREATE TABLE `client_group_sale_type` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id_client_group` bigint NOT NULL,
+  `id_sale_type` bigint NOT NULL,
+  `display_order` int DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT '1',
+  `registration_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cgp` (`id_client_group`,`id_sale_type`),
+  KEY `fk_cgst_sale_type` (`id_sale_type`),
+  CONSTRAINT `fk_cgp_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cgst_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------ Table: `client_header` ------
 DROP TABLE IF EXISTS `client_header`;
@@ -146,51 +198,56 @@ DROP TABLE IF EXISTS `client_identification_data`;
 CREATE TABLE `client_identification_data` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `id_client` bigint NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `last_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `mother_last_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `business_name` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `rfc` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `curp` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `tel_number` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `tel_number2` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `street` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `external_number` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `internal_number` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `neighborhood` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `postal_code` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `city` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `municipality` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `country` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `last_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mother_last_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `business_name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `rfc` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `curp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tel_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tel_number2` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `street` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `external_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `internal_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `neighborhood` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `postal_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `city` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `municipality` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `country` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `birth_date` date DEFAULT NULL,
-  `birth_country` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nationality_country` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `issuing_authority` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `birth_country` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nationality_country` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `issuing_authority` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `incorporation_date` date DEFAULT NULL,
-  `business_activity` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `business_activity` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `id_last_user_update` bigint DEFAULT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_id_client` (`id_client`),
-  CONSTRAINT `fk_cid_client` FOREIGN KEY (`id_client`) REFERENCES `client` (`id`) ON DELETE CASCADE
+  KEY `fk_cid_last_user_update` (`id_last_user_update`),
+  CONSTRAINT `fk_cid_client` FOREIGN KEY (`id_client`) REFERENCES `client` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cid_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------ Table: `company` ------
 DROP TABLE IF EXISTS `company`;
 CREATE TABLE `company` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `id_client_group` bigint DEFAULT NULL,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
-  `agency_connection` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `agency_connection` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `Name` (`name`),
   KEY `FK_company_IdLastUserUpdate` (`id_last_user_update`),
+  KEY `idx_company_client_group` (`id_client_group`),
+  CONSTRAINT `fk_company_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_company_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -198,17 +255,19 @@ CREATE TABLE `company` (
 DROP TABLE IF EXISTS `config`;
 CREATE TABLE `config` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `config_key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `config_value` text COLLATE utf8mb4_unicode_ci,
-  `category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `config_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `config_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `sensitive` tinyint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_config_key` (`config_key`),
-  KEY `idx_config_category` (`category`)
+  KEY `idx_config_category` (`category`),
+  KEY `fk_config_last_user_update` (`id_last_user_update`),
+  CONSTRAINT `fk_config_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------ Table: `configuration_process` ------
@@ -262,7 +321,7 @@ CREATE TABLE `configuration_process_document_type` (
 DROP TABLE IF EXISTS `customer_type`;
 CREATE TABLE `customer_type` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
@@ -281,9 +340,9 @@ CREATE TABLE `document_error` (
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
-  `description` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `Id` (`id`),
   KEY `FK_document_file_error_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_document_file_error_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -296,9 +355,9 @@ CREATE TABLE `document_status` (
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
-  `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `Id` (`id`),
   KEY `FK_document_file_status_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_document_file_status_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -307,15 +366,15 @@ CREATE TABLE `document_status` (
 DROP TABLE IF EXISTS `document_type`;
 CREATE TABLE `document_type` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `enabled` tinyint DEFAULT '0',
   `id_last_user_update` bigint DEFAULT '0',
   `req_expiration` tinyint DEFAULT '0',
-  `id_sale_type` bigint DEFAULT '0',
+  `id_sale_type` bigint DEFAULT NULL,
   `required` tinyint DEFAULT '1',
-  `id_sub_sale_type` bigint DEFAULT '0',
+  `id_sub_sale_type` bigint DEFAULT NULL,
   `document_auto_upload` tinyint DEFAULT '1',
   `available_to_client` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -323,7 +382,10 @@ CREATE TABLE `document_type` (
   KEY `WDIDX_DocumentType_IdIdProcessType` (`id`,`id_sale_type`),
   KEY `WDIDX_DocumentType_IdProcessTypeIdSubProcess` (`id_sale_type`,`id_sub_sale_type`),
   KEY `FK_document_type_IdLastUserUpdate` (`id_last_user_update`),
-  CONSTRAINT `FK_document_type_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  KEY `fk_document_type_sub_sale_type` (`id_sub_sale_type`),
+  CONSTRAINT `FK_document_type_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_document_type_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_document_type_sub_sale_type` FOREIGN KEY (`id_sub_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- ------ Table: `expedient` ------
@@ -334,21 +396,21 @@ CREATE TABLE `expedient` (
   `id_order` bigint DEFAULT NULL,
   `id_customer_type` bigint DEFAULT NULL,
   `id_operation` bigint DEFAULT '0',
-  `id_sale_type` bigint DEFAULT NULL,
+  `id_sale_type` bigint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_agency` bigint DEFAULT NULL,
   `id_seller` bigint DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
-  `description` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `id_current_expedient_state` int DEFAULT '0',
-  `id_order_total` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_order_total` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `attention_date` date DEFAULT NULL,
   `close_date` date DEFAULT NULL,
   `agend_hour` time DEFAULT NULL,
   `agend_date` date DEFAULT NULL,
-  `id_inventory` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_inventory` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `WDIDX_File_IdClient` (`id_client`),
   KEY `WDIDX_File_IdOrder` (`id_order`),
@@ -380,7 +442,7 @@ CREATE TABLE `expedient` (
   CONSTRAINT `expedient_ibfk_5` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`),
   CONSTRAINT `expedient_ibfk_6` FOREIGN KEY (`id_agency`) REFERENCES `agency` (`id`),
   CONSTRAINT `expedient_ibfk_7` FOREIGN KEY (`id_seller`) REFERENCES `user` (`id`),
-  CONSTRAINT `expedient_ibfk_8` FOREIGN KEY (`id_current_expedient_state`) REFERENCES `expedient_state` (`id`),
+  CONSTRAINT `expedient_ibfk_8` FOREIGN KEY (`id_current_expedient_state`) REFERENCES `file_status` (`id`),
   CONSTRAINT `FK_expedient_IdClient` FOREIGN KEY (`id_client`) REFERENCES `client_header` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_expedient_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_expedient_IdOrder` FOREIGN KEY (`id_order`) REFERENCES `order` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -391,21 +453,21 @@ CREATE TABLE `expedient` (
 DROP TABLE IF EXISTS `expedient_document`;
 CREATE TABLE `expedient_document` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `comment` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `comment` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `expiration_date` timestamp NULL DEFAULT NULL,
-  `path_document` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `path_document` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `enabled` tinyint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
-  `id_expedient` bigint DEFAULT '0',
-  `id_validation` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_expedient` bigint DEFAULT NULL,
+  `id_validation` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `id_document_type` bigint DEFAULT NULL,
   `id_current_document_status` int DEFAULT NULL,
   `id_document_error` int DEFAULT NULL,
-  `server_path` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `id_document_container` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `server_path` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_document_container` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `WDIDX_DocumentByFile_IdFile` (`id_expedient`),
   KEY `WDIDX_DocumentByFile_IdDocumentType` (`id_document_type`),
@@ -417,9 +479,9 @@ CREATE TABLE `expedient_document` (
   KEY `FK_file_document_IdLastUserUpdate` (`id_last_user_update`),
   KEY `idx_file_document_ExpirationDate` (`expiration_date`),
   KEY `idx_file_document_Enabled` (`enabled`),
-  CONSTRAINT `file_document_ibfk_2` FOREIGN KEY (`id_document_type`) REFERENCES `document_type` (`id`),
-  CONSTRAINT `file_document_ibfk_3` FOREIGN KEY (`id_current_document_status`) REFERENCES `document_status` (`id`),
-  CONSTRAINT `file_document_ibfk_4` FOREIGN KEY (`id_document_error`) REFERENCES `document_error` (`id`),
+  CONSTRAINT `expedient_document_ibfk_2` FOREIGN KEY (`id_document_type`) REFERENCES `document_type` (`id`),
+  CONSTRAINT `expedient_document_ibfk_3` FOREIGN KEY (`id_current_document_status`) REFERENCES `document_status` (`id`),
+  CONSTRAINT `expedient_document_ibfk_4` FOREIGN KEY (`id_document_error`) REFERENCES `document_error` (`id`),
   CONSTRAINT `FK_file_document_IdFile` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_file_document_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
@@ -428,7 +490,7 @@ CREATE TABLE `expedient_document` (
 DROP TABLE IF EXISTS `expedient_exception_reason`;
 CREATE TABLE `expedient_exception_reason` (
   `id` int NOT NULL,
-  `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `id_type_reason` int DEFAULT NULL,
   `enabled` tinyint DEFAULT '1',
   `registration_date` timestamp NULL DEFAULT NULL,
@@ -443,7 +505,7 @@ CREATE TABLE `expedient_exception_reason` (
 -- ------ Table: `expedient_pld` ------
 DROP TABLE IF EXISTS `expedient_pld`;
 CREATE TABLE `expedient_pld` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL,
   `id_expedient` bigint DEFAULT NULL,
   `privacy_notice_delivered` tinyint(1) DEFAULT '0' COMMENT '1=Yes, 0=No',
   `privacy_notice_date` datetime DEFAULT NULL COMMENT 'Delivery/acceptance date',
@@ -485,8 +547,8 @@ CREATE TABLE `expedient_pld` (
 DROP TABLE IF EXISTS `expedient_pld_approved_document`;
 CREATE TABLE `expedient_pld_approved_document` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `id_expedient_document` bigint NOT NULL COMMENT 'FK to expedient_document.id',
-  `id_expedient` bigint NOT NULL COMMENT 'FK to expedient.id',
+  `id_expedient_document` bigint NOT NULL,
+  `id_expedient` bigint NOT NULL,
   `approved_by_client` tinyint(1) DEFAULT '1' COMMENT '1=Approved by client',
   `approval_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -499,8 +561,8 @@ CREATE TABLE `expedient_pld_approved_document` (
 -- ------ Table: `expedient_pld_beneficial_owner` ------
 DROP TABLE IF EXISTS `expedient_pld_beneficial_owner`;
 CREATE TABLE `expedient_pld_beneficial_owner` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `id_expedient` bigint NOT NULL COMMENT 'FK to expedient.id',
+  `id` bigint NOT NULL,
+  `id_expedient` bigint NOT NULL,
   `name` varchar(255) NOT NULL,
   `RFC` varchar(13) DEFAULT NULL,
   `CURP` varchar(18) DEFAULT NULL,
@@ -519,7 +581,7 @@ CREATE TABLE `expedient_pld_beneficial_owner` (
 -- ------ Table: `expedient_pld_geo_log` ------
 DROP TABLE IF EXISTS `expedient_pld_geo_log`;
 CREATE TABLE `expedient_pld_geo_log` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL,
   `id_expedient` bigint NOT NULL,
   `latitude` decimal(10,8) NOT NULL,
   `longitude` decimal(11,8) NOT NULL,
@@ -540,7 +602,7 @@ CREATE TABLE `expedient_pld_geo_log` (
 DROP TABLE IF EXISTS `expedient_reason`;
 CREATE TABLE `expedient_reason` (
   `id` int NOT NULL,
-  `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `id_type_reason` int DEFAULT NULL,
   `enabled` tinyint DEFAULT '1',
   `registration_date` timestamp NULL DEFAULT NULL,
@@ -559,7 +621,7 @@ DROP TABLE IF EXISTS `expedient_share_token`;
 CREATE TABLE `expedient_share_token` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `id_expedient` bigint NOT NULL,
-  `token` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'UUID único para acceso al miniportal',
+  `token` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration_date` timestamp NULL DEFAULT NULL,
   `enabled` tinyint DEFAULT '1',
   `registration_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -572,37 +634,41 @@ CREATE TABLE `expedient_share_token` (
   KEY `FK_file_share_token_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_file_share_token_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_share_token_file` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='token único por expediente para acceso al Miniportal';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Token único por expediente para acceso al Miniportal';
 
--- ------ Table: `expedient_state` (renamed from `file_status`) ------
+-- ------ Table: `expedient_state` ------
 DROP TABLE IF EXISTS `expedient_state`;
 CREATE TABLE `expedient_state` (
   `id` int NOT NULL,
-  `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
+  `requires_payment_voucher` tinyint(1) NOT NULL DEFAULT '0',
+  `is_navigable` tinyint(1) NOT NULL DEFAULT '1',
+  `allows_document_upload` tinyint(1) NOT NULL DEFAULT '0',
+  `is_terminal` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `Id` (`id`),
   KEY `FK_file_status_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_file_status_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
--- ------ Table: `expedient_sub_state` (renamed from `file_sub_status`) ------
+-- ------ Table: `expedient_sub_state` ------
 DROP TABLE IF EXISTS `expedient_sub_state`;
 CREATE TABLE `expedient_sub_state` (
   `id` bigint NOT NULL,
   `id_expedient_state` int DEFAULT NULL,
-  `name` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
   PRIMARY KEY (`id`),
-  KEY `IDX_file_sub_state_IdFileState` (`id_expedient_state`),
+  KEY `IDX_file_sub_status_IdFileStatus` (`id_expedient_state`),
   KEY `FK_file_sub_status_IdLastUserUpdate` (`id_last_user_update`),
-  CONSTRAINT `FK_file_sub_state_file_state` FOREIGN KEY (`id_expedient_state`) REFERENCES `expedient_state` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `FK_file_sub_status_file_status` FOREIGN KEY (`id_expedient_state`) REFERENCES `file_status` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `FK_file_sub_status_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
@@ -612,7 +678,7 @@ CREATE TABLE `expedients_to_correct` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `id_expedient` int unsigned NOT NULL,
   `id_agency` int unsigned NOT NULL,
-  `nd_dms` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `nd_dms` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `api_result` json DEFAULT NULL COMMENT 'Respuesta del API (success, error, etc.)',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -628,6 +694,25 @@ CREATE TABLE `expedients_to_correct` (
   CONSTRAINT `FK_files_to_correct_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
+-- ------ Table: `factories` ------
+DROP TABLE IF EXISTS `factories`;
+CREATE TABLE `factories` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(31) NOT NULL,
+  `uid` varchar(31) NOT NULL,
+  `class` varchar(63) NOT NULL,
+  `icon` varchar(31) NOT NULL,
+  `summary` varchar(255) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `name` (`name`),
+  KEY `uid` (`uid`),
+  KEY `deleted_at_id` (`deleted_at`,`id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
 -- ------ Table: `liquidation_receipt_detail` ------
 DROP TABLE IF EXISTS `liquidation_receipt_detail`;
 CREATE TABLE `liquidation_receipt_detail` (
@@ -642,8 +727,10 @@ CREATE TABLE `liquidation_receipt_detail` (
   `id_last_user_update` bigint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_file_document` (`id_expedient_document`),
-  KEY `id_expedient` (`id_expedient`),
+  KEY `id_file` (`id_expedient`),
   KEY `id_payment_method` (`id_payment_method`),
+  KEY `fk_lrd_last_user_update` (`id_last_user_update`),
+  CONSTRAINT `fk_lrd_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `liquidation_receipt_detail_ibfk_1` FOREIGN KEY (`id_expedient_document`) REFERENCES `expedient_document` (`id`),
   CONSTRAINT `liquidation_receipt_detail_ibfk_2` FOREIGN KEY (`id_expedient`) REFERENCES `expedient` (`id`),
   CONSTRAINT `liquidation_receipt_detail_ibfk_3` FOREIGN KEY (`id_payment_method`) REFERENCES `payment_method` (`id`)
@@ -666,7 +753,7 @@ CREATE TABLE `migrations` (
 DROP TABLE IF EXISTS `operation_type`;
 CREATE TABLE `operation_type` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
@@ -681,18 +768,18 @@ CREATE TABLE `operation_type` (
 DROP TABLE IF EXISTS `order`;
 CREATE TABLE `order` (
   `id` bigint NOT NULL,
-  `number` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `car_type` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `car_type` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `year` int DEFAULT '0',
-  `vin` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `vin` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint(1) DEFAULT '1',
-  `model` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `advisor` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `id_dms` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `id_agency` varchar(100) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `model` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `advisor` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_dms` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `id_agency` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `amount` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `WDIDX_OrderByCar_IdTotalDealer` (`id_dms`),
@@ -705,20 +792,38 @@ CREATE TABLE `order` (
 DROP TABLE IF EXISTS `payment_method`;
 CREATE TABLE `payment_method` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `name` varchar(600) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `enabled` tinyint DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_payment_method_name` (`name`)
+  UNIQUE KEY `uk_payment_method_name` (`name`),
+  KEY `fk_payment_method_last_user_update` (`id_last_user_update`),
+  CONSTRAINT `fk_payment_method_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------ Table: `sale_type` (renamed from `process`) ------
+DROP TABLE IF EXISTS `sale_type`;
+CREATE TABLE `sale_type` (
+  `Id` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `Name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `Code` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `Description` text COLLATE utf8mb4_general_ci,
+  `Enabled` tinyint(1) NOT NULL DEFAULT '1',
+  `RegistrationDate` datetime DEFAULT NULL,
+  `UpdateDate` datetime DEFAULT NULL,
+  `IdLastUserUpdate` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `Code` (`Code`),
+  UNIQUE KEY `Name` (`Name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ------ Table: `sale_type` ------
 DROP TABLE IF EXISTS `sale_type`;
 CREATE TABLE `sale_type` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `enabled` tinyint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
@@ -743,26 +848,26 @@ CREATE TABLE `sale_type_user` (
   KEY `WDIDX_Process_User_IdProcess_IdUser` (`id_sale_type`,`id_user`),
   KEY `FK_process_user_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_process_user_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `process_user_ibfk_1` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`),
-  CONSTRAINT `process_user_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
+  CONSTRAINT `sale_type_user_ibfk_1` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`),
+  CONSTRAINT `sale_type_user_ibfk_2` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- ------ Table: `user` ------
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `enabled` tinyint DEFAULT '0',
   `id_user_role` bigint DEFAULT '0',
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
   `username` varchar(50) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `pass` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `pass` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `email` varchar(500) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `id_user_total` bigint DEFAULT '0',
   `default_agency` bigint DEFAULT '0',
-  `user_pass` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `user_pass` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `password_migrated` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Flag para indicar si la contrase?a ya fue migrada a hash',
   `profile_image` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci,
   `image_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
@@ -771,7 +876,7 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `Name` (`name`),
   KEY `WDIDX_User_IdUserRol` (`id_user_role`),
-  KEY `WDIDX_User_UsernamePass` (`username`,`pass`),
+  KEY `WDIDX_User_UserPass` (`username`,`pass`),
   KEY `FK_user_IdLastUserUpdate` (`id_last_user_update`),
   CONSTRAINT `FK_user_IdLastUserUpdate` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `user_ibfk_1` FOREIGN KEY (`id_user_role`) REFERENCES `user_role` (`id`)
@@ -786,7 +891,7 @@ CREATE TABLE `user_activity_logs` (
   `id_last_user_update` bigint DEFAULT NULL,
   `enabled` tinyint DEFAULT '1',
   `user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID del usuario que realiz? la acci?n',
-  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'nombre de usuario',
+  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Nombre de usuario',
   `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tipo de acci?n realizada',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Descripci?n detallada de la acci?n',
   `change_details` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Detalles espec?ficos del cambio realizado',
@@ -815,7 +920,7 @@ CREATE TABLE `user_refresh_token` (
   `id` int unsigned NOT NULL,
   `id_user` bigint NOT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
-  `refresh_token` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `refresh_token` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration_date` timestamp NULL DEFAULT NULL,
   `created_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_date` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -833,7 +938,7 @@ CREATE TABLE `user_refresh_token` (
 DROP TABLE IF EXISTS `user_role`;
 CREATE TABLE `user_role` (
   `id` bigint NOT NULL,
-  `name` varchar(600) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `name` varchar(600) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `registration_date` timestamp NULL DEFAULT NULL,
   `update_date` timestamp NULL DEFAULT NULL,
   `id_last_user_update` bigint DEFAULT '0',
@@ -893,74 +998,27 @@ ALTER TABLE `company` ADD COLUMN `id_client_group` BIGINT NULL AFTER `id`;
 CREATE INDEX `idx_company_client_group` ON `company` (`id_client_group`);
 ALTER TABLE `expedient_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NULL DEFAULT 0 AFTER `enabled`;
 
--- Forward-fix: legacy nexfile dump leaves these tables without AUTO_INCREMENT
--- (they relied on externally-assigned ids). The WIZARD provisioning + the
--- tenant operating going forward both need auto-generated PKs to insert
--- without specifying id every time.
 ALTER TABLE `agency` MODIFY `id` BIGINT NOT NULL AUTO_INCREMENT;
 
 -- ====== FK integrity additions ======
--- El dump original de `nexfile` dejó muchas columnas id_* sin FK constraint
--- declarada. Estas filas eran proclives a huérfanos. Agregar FOREIGN KEY las
--- hace fallar al insertar referencias inválidas (MySQL 1452).
---
--- MySQL auto-crea un índice por cada FK, así que cubre integridad + perf.
---
--- Type-alignment fixes (parents legacy son INT, columnas Phase A se
--- declararon BIGINT; downgrade a INT para que las FKs no fallen 3780):
-
+-- Type-alignment (parents legacy INT, Phase A children BIGINT → downgrade):
 ALTER TABLE `client_group_phase` MODIFY `id_expedient_state` INT NOT NULL;
 ALTER TABLE `agency`             MODIFY `id_company`    INT DEFAULT NULL;
 
--- Categoría A — junctions y columnas que NOSOTROS creamos en Phase A
--- (sabemos que están limpias, no requieren data migration):
+-- Categoría A (Phase A, sin huérfanos):
+ALTER TABLE `client_group` ADD CONSTRAINT `fk_cg_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `client_group_sale_type` ADD CONSTRAINT `fk_cgst_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE CASCADE;
+ALTER TABLE `client_group_phase` ADD CONSTRAINT `fk_cgph_file_state` FOREIGN KEY (`id_expedient_state`) REFERENCES `expedient_state` (`id`) ON DELETE CASCADE;
+ALTER TABLE `company` ADD CONSTRAINT `fk_company_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
-ALTER TABLE `client_group`
-  ADD CONSTRAINT `fk_cg_last_user_update`
-  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `client_group_sale_type`
-  ADD CONSTRAINT `fk_cgst_sale_type`
-  FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `client_group_phase`
-  ADD CONSTRAINT `fk_cgph_expedient_state`
-  FOREIGN KEY (`id_expedient_state`) REFERENCES `expedient_state` (`id`) ON DELETE CASCADE;
-
-ALTER TABLE `company`
-  ADD CONSTRAINT `fk_company_client_group`
-  FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- Categoría B — legacy hierarchy (después de cleanup con tenant:audit-orphans
--- --fix-zeros + spark tenant:audit-orphans + UPDATEs sugeridas):
-
-ALTER TABLE `agency`
-  ADD CONSTRAINT `fk_agency_company`
-  FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `document_type`
-  ADD CONSTRAINT `fk_document_type_sale_type`
-  FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `document_type`
-  ADD CONSTRAINT `fk_document_type_sub_sale_type`
-  FOREIGN KEY (`id_sub_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `liquidation_receipt_detail`
-  ADD CONSTRAINT `fk_lrd_last_user_update`
-  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `client_identification_data`
-  ADD CONSTRAINT `fk_cid_last_user_update`
-  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `config`
-  ADD CONSTRAINT `fk_config_last_user_update`
-  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `payment_method`
-  ADD CONSTRAINT `fk_payment_method_last_user_update`
-  FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+-- Categoría B (legacy hierarchy, post-cleanup):
+ALTER TABLE `agency` ADD CONSTRAINT `fk_agency_company` FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sub_sale_type` FOREIGN KEY (`id_sub_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `liquidation_receipt_detail` ADD CONSTRAINT `fk_lrd_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `client_identification_data` ADD CONSTRAINT `fk_cid_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `config` ADD CONSTRAINT `fk_config_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `payment_method` ADD CONSTRAINT `fk_payment_method_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- ====== Views ======
 

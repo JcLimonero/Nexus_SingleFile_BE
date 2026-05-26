@@ -60,10 +60,14 @@ import { PhaseService, phaseSlug, PhaseRow } from '../../../core/services/phase.
             <mat-icon>account_tree</mat-icon>
             {{ phase()!.phase_name }}
           </h2>
-          @if (phase()!.requires_payment_voucher) {
+          @if (phase()!.allows_document_upload) {
             <p style="display: inline-flex; align-items:center; gap:6px; background:#e8f5e9; color:#1b5e20; padding:6px 12px; border-radius:12px; font-size:13px; font-weight:500;">
-              <mat-icon style="font-size:16px; height:16px; width:16px;">receipt_long</mat-icon>
-              Esta fase recibe comprobantes de pago
+              <mat-icon style="font-size:16px; height:16px; width:16px;">upload_file</mat-icon>
+              @if (phase()!.requires_payment_voucher) {
+                Esta fase recibe comprobantes de pago
+              } @else {
+                Esta fase permite cargar documentos
+              }
             </p>
           }
           <p style="margin-top: 24px; color: #666;">

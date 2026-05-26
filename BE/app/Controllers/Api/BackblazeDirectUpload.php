@@ -44,6 +44,9 @@ class BackblazeDirectUpload extends BaseController
                 ])->setStatusCode(400);
             }
 
+            // Rechaza upload si el expediente está en estado terminal.
+            if ($r = $this->requireExpedientAllowsUpload((int) $idNexFile)) return $r;
+
             return $this->performUpload($file, (string) $idNexFile, (string) $idDocumentFile);
         } catch (\Exception $e) {
 
@@ -57,10 +60,15 @@ class BackblazeDirectUpload extends BaseController
     /**
      * Realiza la subida a Backblaze B2 (sin verificación de auth).
      * Usado por Miniportal que valida con share token.
+     *
+     * Doble defensa: aunque cada caller ya guardea con
+     * requireExpedientAllowsUpload, revalidamos aquí porque performUpload
+     * es público y un nuevo caller podría olvidarlo. Costo: 1 query extra.
      */
     public function performUpload($file, string $idNexFile, string $idDocumentFile)
     {
         try {
+            if ($r = $this->requireExpedientAllowsUpload((int) $idNexFile)) return $r;
             $fileName = $this->getFileNameFromView($idDocumentFile, $idNexFile, $file);
             $b2Path = $this->buildBackblazePath($idNexFile, $idDocumentFile, $fileName);
             $fileContent = file_get_contents($file->getTempName());

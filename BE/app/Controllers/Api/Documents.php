@@ -222,6 +222,7 @@ class Documents extends BaseController
                 ])->setStatusCode(400);
             }
             $fileId = (int) $fileId;
+            if ($r = $this->requireExpedientAllowsUpload($fileId)) return $r;
             $documentTypeIds = array_map('intval', array_values(array_unique($documentTypeIds)));
             $userId = (int) ($json['userId'] ?? 0);
             $currentDate = date('Y-m-d H:i:s');
@@ -293,6 +294,7 @@ class Documents extends BaseController
             }
 
             if ($r = $this->requireFileAccess($fileId)) return $r;
+            if ($r = $this->requireExpedientAllowsUpload($fileId)) return $r;
 
             if (!$file->isValid()) {
                 return $this->response->setJSON([

@@ -1757,6 +1757,7 @@ class Validacion extends BaseController
             $idPaymentMethod = (int) $data['id_payment_method'];
             $idFile = (int) $data['idFile'];
             if ($r = $this->requireFileAccess($idFile)) return $r;
+            if ($r = $this->requireExpedientAllowsUpload($idFile)) return $r;
             $documentTypeId = $this->getConfigDocumentTypeLiquidacion();
             if ($documentTypeId === null) {
                 return $this->response->setJSON([

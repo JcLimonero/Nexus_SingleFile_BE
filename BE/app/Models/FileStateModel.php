@@ -5,12 +5,19 @@ namespace App\Models;
 use CodeIgniter\Model;
 
 /**
- * expedient_state holds the workflow phases (Integración, Liquidación, Liberación)
- * plus terminal states (Liberado, Cancelado, Liberado por Excepción).
+ * expedient_state separa 3 conceptos previamente colapsados en la misma fila:
  *
- * The flag `requires_payment_voucher` marks which phase receives payment
- * receipts — historically hardcoded as id=2 (Liquidación). Driven by config
- * now so each deployment can move it.
+ *   1. lifecycle state — el expediente puede estar acá ahora (id_current_expedient_state)
+ *   2. navegable phase — aparece en sidebar del FE (is_navigable=1)
+ *   3. upload-allowed phase — se pueden cargar documentos en este estado (allows_document_upload=1)
+ *
+ * Estados típicos (id canónico):
+ *   1 Integración   nav=1, upload=1, terminal=0
+ *   2 Liquidación   nav=1, upload=1, terminal=0  (requires_payment_voucher=1)
+ *   3 Liberación    nav=1, upload=0, terminal=0
+ *   4 Liberado      nav=0, upload=0, terminal=1
+ *   5 Cancelado     nav=0, upload=0, terminal=1
+ *   6 Excepción     nav=0, upload=0, terminal=1
  */
 class FileStateModel extends Model
 {
@@ -23,6 +30,9 @@ class FileStateModel extends Model
         'name',
         'enabled',
         'requires_payment_voucher',
+        'is_navigable',
+        'allows_document_upload',
+        'is_terminal',
         'id_last_user_update',
     ];
 
@@ -53,5 +63,25 @@ class FileStateModel extends Model
         if ($id === null || $id === '') return false;
         $row = $this->find((int) $id);
         return !empty($row) && (int) ($row['requires_payment_voucher'] ?? 0) === 1;
+    }
+
+    /**
+     * Returns true if the state with $id allows document uploads.
+     * Usado por requireExpedientAllowsUpload() en BaseController.
+     */
+    public function allowsUpload($id): bool
+    {
+        if ($id === null || $id === '') return false;
+        $row = $this->find((int) $id);
+        return !empty($row) && (int) ($row['allows_document_upload'] ?? 0) === 1;
+    }
+
+    /** Returns only navigable phases (excluye terminales). Para sidebar dinámico. */
+    public function getNavigable(): array
+    {
+        return $this->where('enabled', 1)
+            ->where('is_navigable', 1)
+            ->orderBy('id', 'ASC')
+            ->findAll();
     }
 }

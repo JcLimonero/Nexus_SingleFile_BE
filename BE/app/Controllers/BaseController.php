@@ -251,6 +251,48 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * Devuelve 409 si el expediente está en un estado que NO permite carga
+     * de documentos (Liberado, Cancelado, etc. — cualquier estado con
+     * allows_document_upload=0). 404 si el expediente no existe. null si OK.
+     *
+     * Patrón de uso: `if ($r = $this->requireExpedientAllowsUpload($idFile)) return $r;`
+     *
+     * Reusable en los 4 endpoints de upload: Documents, Validacion::agregarDocumentoLiquidacion,
+     * Miniportal y BackblazeDirectUpload. Lo que cada uno valida adicionalmente
+     * (auth, available_to_client, etc.) es ortogonal a este check.
+     */
+    protected function requireExpedientAllowsUpload($fileId)
+    {
+        $row = \Config\Database::connect()->query(
+            'SELECT fs.allows_document_upload, fs.name AS state_name
+             FROM expedient e
+             INNER JOIN expedient_state fs ON fs.id = e.id_current_expedient_state
+             WHERE e.id = ?',
+            [(int) $fileId]
+        )->getRowArray();
+
+        if (!$row) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'success' => false,
+                    'message' => 'Expediente no existe',
+                ]);
+        }
+
+        if ((int) $row['allows_document_upload'] !== 1) {
+            return $this->response
+                ->setStatusCode(409)
+                ->setJSON([
+                    'success' => false,
+                    'message' => "El expediente está en estado '{$row['state_name']}' y no admite carga de documentos",
+                ]);
+        }
+
+        return null;
+    }
+
+    /**
      * Wrap exceptions: en production devuelve mensaje genérico al cliente
      * (sin getMessage / trace) y loggea el detalle real al stderr / writable/logs.
      *

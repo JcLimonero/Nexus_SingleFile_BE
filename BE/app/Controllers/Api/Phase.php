@@ -56,12 +56,16 @@ class Phase extends BaseController
             $phases = $this->junction->getPhasesForGroup($idClientGroup);
         }
 
-        // Fallback if no group assignment exists yet
+        // Fallback if no group assignment exists yet.
+        // Filtra is_navigable=1 para no mostrar fases terminales (Liberado,
+        // Cancelado, Excepción) como páginas navegables — son estados del
+        // lifecycle pero no son páginas del sidebar.
         if (!$phases) {
             $source = 'legacy_all';
             $phases = $db->table('expedient_state')
-                ->select('id, name, enabled, requires_payment_voucher')
+                ->select('id, name, enabled, requires_payment_voucher, allows_document_upload, is_terminal')
                 ->where('enabled', 1)
+                ->where('is_navigable', 1)
                 ->orderBy('id', 'ASC')
                 ->get()
                 ->getResultArray();
@@ -76,6 +80,8 @@ class Phase extends BaseController
                     'phase_name' => $p['name'],
                     'phase_enabled' => (int) ($p['enabled'] ?? 1),
                     'requires_payment_voucher' => (int) ($p['requires_payment_voucher'] ?? 0),
+                    'allows_document_upload' => (int) ($p['allows_document_upload'] ?? 0),
+                    'is_terminal' => (int) ($p['is_terminal'] ?? 0),
                 ];
             }, $phases, array_keys($phases));
         }
