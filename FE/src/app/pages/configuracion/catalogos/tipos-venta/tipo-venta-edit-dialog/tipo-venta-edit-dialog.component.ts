@@ -10,11 +10,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { Proceso, ProcesoUpdateRequest } from '../../../../../core/interfaces/proceso.interface';
-import { ProcesoService } from '../../../../../core/services/proceso.service';
+import { TipoVenta, TipoVentaUpdateRequest } from '../../../../../core/interfaces/tipo-venta.interface';
+import { TipoVentaService } from '../../../../../core/services/tipo-venta.service';
 
 export interface TipoVentaEditDialogData {
-  proceso: Proceso;
+  tipoVenta: TipoVenta;
   mode: 'edit' | 'create';
 }
 
@@ -36,12 +36,12 @@ export interface TipoVentaEditDialogData {
   templateUrl: './tipo-venta-edit-dialog.component.html'
 })
 export class TipoVentaEditDialogComponent implements OnInit {
-  procesoForm!: FormGroup;
+  tipoVentaForm!: FormGroup;
   loading = false;
 
   constructor(
     private fb: FormBuilder,
-    private procesoService: ProcesoService,
+    private tipoVentaService: TipoVentaService,
     private snackBar: MatSnackBar,
     private dialogRef: MatDialogRef<TipoVentaEditDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: TipoVentaEditDialogData
@@ -56,85 +56,85 @@ export class TipoVentaEditDialogComponent implements OnInit {
   }
 
   private initializeForm(): void {
-    this.procesoForm = this.fb.group({
+    this.tipoVentaForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(600)]],
       enabled: ['1', Validators.required]
     });
   }
 
   private populateForm(): void {
-    if (this.data.proceso) {
-      this.procesoForm.patchValue({
-        name: this.data.proceso.name,
-        enabled: this.data.proceso.enabled
+    if (this.data.tipoVenta) {
+      this.tipoVentaForm.patchValue({
+        name: this.data.tipoVenta.name,
+        enabled: this.data.tipoVenta.enabled
       });
     }
   }
 
   onSubmit(): void {
-    if (this.procesoForm.valid) {
+    if (this.tipoVentaForm.valid) {
       this.loading = true;
-      
+
       if (this.data.mode === 'edit') {
-        this.updateProceso();
+        this.updateTipoVenta();
       } else {
-        this.createProceso();
+        this.createTipoVenta();
       }
     } else {
       this.markFormGroupTouched();
     }
   }
 
-  private updateProceso(): void {
-    const v = this.procesoForm.value;
-    const updateData: ProcesoUpdateRequest = {
-      id: this.data.proceso.id,
+  private updateTipoVenta(): void {
+    const v = this.tipoVentaForm.value;
+    const updateData: TipoVentaUpdateRequest = {
+      id: this.data.tipoVenta.id,
       name: v.name,
       enabled: v.enabled
     };
 
-    this.procesoService.updateProceso(updateData).subscribe({
+    this.tipoVentaService.updateTipoVenta(updateData).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
-          this.snackBar.open('Proceso actualizado exitosamente', 'Éxito', {
+          this.snackBar.open('Tipo de venta actualizado exitosamente', 'Éxito', {
             duration: 2000
           });
           this.dialogRef.close(true);
         } else {
-          this.snackBar.open(response.message || 'Error al actualizar proceso', 'Error', {
+          this.snackBar.open(response.message || 'Error al actualizar tipo de venta', 'Error', {
             duration: 3000
           });
         }
       },
       error: (error) => {
         this.loading = false;
-        this.snackBar.open('Error al actualizar proceso', 'Error', {
+        this.snackBar.open('Error al actualizar tipo de venta', 'Error', {
           duration: 3000
         });
       }
     });
   }
 
-  private createProceso(): void {
-    const v = this.procesoForm.value;
-    this.procesoService.createProceso({ name: v.name, enabled: v.enabled }).subscribe({
+  private createTipoVenta(): void {
+    const v = this.tipoVentaForm.value;
+    this.tipoVentaService.createTipoVenta({ name: v.name, enabled: v.enabled }).subscribe({
       next: (response) => {
         this.loading = false;
         if (response.success) {
-          this.snackBar.open('Proceso creado exitosamente', 'Éxito', {
+          this.snackBar.open('Tipo de venta creado exitosamente', 'Éxito', {
             duration: 2000
           });
           this.dialogRef.close(true);
         } else {
-          this.snackBar.open(response.message || 'Error al crear proceso', 'Error', {
+          this.snackBar.open(response.message || 'Error al crear tipo de venta', 'Error', {
             duration: 3000
           });
         }
       },
       error: (error) => {
         this.loading = false;
-        this.snackBar.open('Error al crear proceso', 'Error', {
+        this.snackBar.open('Error al crear tipo de venta', 'Error', {
           duration: 3000
         });
       }
@@ -146,8 +146,8 @@ export class TipoVentaEditDialogComponent implements OnInit {
   }
 
   private markFormGroupTouched(): void {
-    Object.keys(this.procesoForm.controls).forEach(key => {
-      const control = this.procesoForm.get(key);
+    Object.keys(this.tipoVentaForm.controls).forEach(key => {
+      const control = this.tipoVentaForm.get(key);
       control?.markAsTouched();
     });
   }

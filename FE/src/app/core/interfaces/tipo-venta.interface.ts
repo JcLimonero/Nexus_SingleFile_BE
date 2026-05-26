@@ -1,4 +1,4 @@
-export interface Proceso {
+export interface TipoVenta {
   id: string;
   name: string;
   enabled: string; // "1" para activo, "0" para inactivo
@@ -8,20 +8,20 @@ export interface Proceso {
   last_user_update_name?: string;
 }
 
-export interface ProcesoCreateRequest {
+export interface TipoVentaCreateRequest {
   name: string;
   enabled: string;
 }
 
-export interface ProcesoUpdateRequest extends Partial<ProcesoCreateRequest> {
+export interface TipoVentaUpdateRequest extends Partial<TipoVentaCreateRequest> {
   id: string;
 }
 
-export interface ProcesoResponse {
+export interface TipoVentaResponse {
   success: boolean;
   message: string;
   data?: {
-    processes: Proceso[];
+    processes: TipoVenta[];
     total: number;
     limit?: number | null;
     offset?: number | null;

@@ -15,13 +15,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { DocumentoRequerido, DocumentoRequeridoCreateRequest, DocumentoRequeridoUpdateRequest } from '../../../../core/interfaces/documento-requerido.interface';
 import { DocumentoRequeridoService } from '../../../../core/services/documento-requerido.service';
-import { ProcesoService } from '../../../../core/services/proceso.service';
+import { TipoVentaService } from '../../../../core/services/tipo-venta.service';
 import { AgencyService, Agency } from '../../../../core/services/agency.service';
 import { CostumerTypeService } from '../../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
 import { DocumentTypeService } from '../../../../core/services/document-type.service';
 
-import { Proceso } from '../../../../core/interfaces/proceso.interface';
+import { TipoVenta } from '../../../../core/interfaces/tipo-venta.interface';
 import { CostumerType } from '../../../../core/interfaces/costumer-type.interface';
 import { TipoOperacion } from '../../../../core/interfaces/tipo-operacion.interface';
 import { DocumentType } from '../../../../core/interfaces/document-type.interface';
@@ -71,7 +71,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   private readonly totalCatalogs = 5;
   
   // Catálogos
-  procesos: Proceso[] = [];
+  procesos: TipoVenta[] = [];
   agencias: Agency[] = [];
   tiposCliente: CostumerType[] = [];
   tiposOperacion: TipoOperacion[] = [];
@@ -99,7 +99,7 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private documentoRequeridoService: DocumentoRequeridoService,
-    private procesoService: ProcesoService,
+    private tipoVentaService: TipoVentaService,
     private agencyService: AgencyService,
     private costumerTypeService: CostumerTypeService,
     private tipoOperacionService: TipoOperacionService,
@@ -235,8 +235,8 @@ export class DocumentoRequeridoEditDialogComponent implements OnInit {
     this.loadingCatalogs = true;
     this.catalogsProcessed = 0; // Resetear contador
 
-    // Cargar procesos
-    this.procesoService.getProcesos().subscribe({
+    // Cargar tipos de venta
+    this.tipoVentaService.getTiposVenta().subscribe({
       next: (response: any) => {
         if (response?.success && response.data) {
           this.procesos = response.data.processes || [];

@@ -10,7 +10,7 @@
   </div>
 
   <!-- Formulario -->
-  <form [formGroup]="procesoForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <form [formGroup]="tipoVentaForm" (ngSubmit)="onSubmit()" class="space-y-4">
     <!-- Nombre -->
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Nombre del Tipo de Venta</mat-label>
@@ -20,13 +20,13 @@
         placeholder="Ej: Gestión de Clientes"
         maxlength="600">
       <mat-hint>Nombre completo del tipo de venta (máximo 600 caracteres)</mat-hint>
-      <mat-error *ngIf="procesoForm.get('name')?.hasError('required')">
+      <mat-error *ngIf="tipoVentaForm.get('name')?.hasError('required')">
         El nombre es requerido
       </mat-error>
-      <mat-error *ngIf="procesoForm.get('name')?.hasError('minlength')">
+      <mat-error *ngIf="tipoVentaForm.get('name')?.hasError('minlength')">
         El nombre debe tener al menos 3 caracteres
       </mat-error>
-      <mat-error *ngIf="procesoForm.get('name')?.hasError('maxlength')">
+      <mat-error *ngIf="tipoVentaForm.get('name')?.hasError('maxlength')">
         El nombre no puede exceder 600 caracteres
       </mat-error>
     </mat-form-field>
@@ -51,19 +51,19 @@
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div>
           <span class="text-gray-500">ID:</span>
-          <span class="ml-2 font-mono">{{ data.proceso.id }}</span>
+          <span class="ml-2 font-mono">{{ data.tipoVenta.id }}</span>
         </div>
         <div>
           <span class="text-gray-500">Último Usuario:</span>
-          <span class="ml-2">{{ data.proceso.last_user_update_name || 'N/A' }}</span>
+          <span class="ml-2">{{ data.tipoVenta.last_user_update_name || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Fecha Registro:</span>
-          <span class="ml-2">{{ data.proceso.registration_date || 'N/A' }}</span>
+          <span class="ml-2">{{ data.tipoVenta.registration_date || 'N/A' }}</span>
         </div>
         <div>
           <span class="text-gray-500">Última Actualización:</span>
-          <span class="ml-2">{{ data.proceso.update_date || 'N/A' }}</span>
+          <span class="ml-2">{{ data.tipoVenta.update_date || 'N/A' }}</span>
         </div>
       </div>
     </div>
@@ -81,7 +81,7 @@
         type="submit" 
         mat-raised-button 
         color="primary"
-        [disabled]="procesoForm.invalid || loading">
+        [disabled]="tipoVentaForm.invalid || loading">
         <mat-spinner *ngIf="loading" diameter="20" class="mr-2"></mat-spinner>
         <mat-icon *ngIf="!loading">{{ data.mode === 'edit' ? 'save' : 'add' }}</mat-icon>
         {{ data.mode === 'edit' ? 'Guardar Cambios' : 'Crear Tipo de Venta' }}

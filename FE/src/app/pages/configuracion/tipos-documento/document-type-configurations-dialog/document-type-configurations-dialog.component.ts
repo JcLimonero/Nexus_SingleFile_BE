@@ -13,7 +13,7 @@ import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { ViewChild, AfterViewInit } from '@angular/core';
 import { DocumentType, DocumentTypeConfiguration } from '../../../../core/interfaces/document-type.interface';
 import { DocumentTypeService } from '../../../../core/services/document-type.service';
-import { ProcesoService } from '../../../../core/services/proceso.service';
+import { TipoVentaService } from '../../../../core/services/tipo-venta.service';
 import { AgencyService } from '../../../../core/services/agency.service';
 import { CostumerTypeService } from '../../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
@@ -272,7 +272,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
     public dialogRef: MatDialogRef<DocumentTypeConfigurationsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: DocumentTypeConfigurationsDialogData,
     private documentTypeService: DocumentTypeService,
-    private procesoService: ProcesoService,
+    private tipoVentaService: TipoVentaService,
     private agencyService: AgencyService,
     private costumerTypeService: CostumerTypeService,
     private tipoOperacionService: TipoOperacionService,
@@ -298,7 +298,7 @@ export class DocumentTypeConfigurationsDialogComponent implements OnInit, AfterV
 
   loadCatalogs(): void {
     // Cargar procesos
-    this.procesoService.getProcesos().subscribe({
+    this.tipoVentaService.getTiposVenta().subscribe({
       next: (response: any) => {
         if (response?.success && response.data) {
           this.procesos = response.data.processes || [];

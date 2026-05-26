@@ -14,7 +14,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentType } from '../../../../core/interfaces/document-type.interface';
 import { DocumentTypeService } from '../../../../core/services/document-type.service';
-import { ProcesoService } from '../../../../core/services/proceso.service';
+import { TipoVentaService } from '../../../../core/services/tipo-venta.service';
 import { AgencyService } from '../../../../core/services/agency.service';
 import { CostumerTypeService } from '../../../../core/services/costumer-type.service';
 import { TipoOperacionService } from '../../../../core/services/tipo-operacion.service';
@@ -82,7 +82,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<AddToConfigurationsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AddToConfigurationsDialogData,
     private documentTypeService: DocumentTypeService,
-    private procesoService: ProcesoService,
+    private tipoVentaService: TipoVentaService,
     private agencyService: AgencyService,
     private costumerTypeService: CostumerTypeService,
     private tipoOperacionService: TipoOperacionService,
@@ -95,7 +95,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
   }
 
   private loadCatalogs(): void {
-    this.procesoService.getProcesos().subscribe({
+    this.tipoVentaService.getTiposVenta().subscribe({
       next: (r: any) => { if (r?.success && r?.data) this.procesos = r.data.processes || []; }
     });
     this.agencyService.getAgencies({}).subscribe({

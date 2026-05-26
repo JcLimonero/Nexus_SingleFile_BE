@@ -22,7 +22,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 
 // Importar servicios existentes
-import { ProcesoService } from '../../../core/services/proceso.service';
+import { TipoVentaService } from '../../../core/services/tipo-venta.service';
 import { AgencyService, Agency } from '../../../core/services/agency.service';
 import { CompanyService } from '../../../core/services/company.service';
 import { CostumerTypeService } from '../../../core/services/costumer-type.service';
@@ -30,7 +30,7 @@ import { TipoOperacionService } from '../../../core/services/tipo-operacion.serv
 import { DocumentoRequeridoService } from '../../../core/services/documento-requerido.service';
 
 // Importar interfaces existentes
-import { Proceso } from '../../../core/interfaces/proceso.interface';
+import { TipoVenta } from '../../../core/interfaces/tipo-venta.interface';
 import { CostumerType } from '../../../core/interfaces/costumer-type.interface';
 import { TipoOperacion } from '../../../core/interfaces/tipo-operacion.interface';
 import { DocumentoRequerido, DocumentoRequeridoFilters } from '../../../core/interfaces/documento-requerido.interface';
@@ -91,7 +91,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   selectedOperationType = '';
   
   // Datos para los dropdowns usando interfaces existentes
-  processes: Proceso[] = [];
+  processes: TipoVenta[] = [];
   agencies: Agency[] = [];
   companies: { id: number; name: string }[] = [];
   customerTypes: CostumerType[] = [];
@@ -107,7 +107,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private authService: AuthService,
-    private procesoService: ProcesoService,
+    private tipoVentaService: TipoVentaService,
     private agencyService: AgencyService,
     private companyService: CompanyService,
     private costumerTypeService: CostumerTypeService,
@@ -199,7 +199,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
     // Cargar procesos
 
-    this.procesoService.getProcesos().subscribe({
+    this.tipoVentaService.getTiposVenta().subscribe({
       next: (response: any) => {
 
         if (response?.success && response.data) {
@@ -207,13 +207,13 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
 
         } else {
 
-          this.snackBar.open('Error al cargar procesos', 'Error', { duration: 3000 });
+          this.snackBar.open('Error al cargar tipos de venta', 'Error', { duration: 3000 });
         }
         this.checkCatalogsLoaded();
       },
       error: (error: any) => {
 
-        this.snackBar.open('Error al cargar procesos', 'Error', { duration: 3000 });
+        this.snackBar.open('Error al cargar tipos de venta', 'Error', { duration: 3000 });
         this.checkCatalogsLoaded();
       }
     });

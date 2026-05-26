@@ -18,10 +18,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { Proceso, ProcesoCreateRequest, ProcesoUpdateRequest } from '../../../../core/interfaces/proceso.interface';
+import { TipoVenta, TipoVentaCreateRequest, TipoVentaUpdateRequest } from '../../../../core/interfaces/tipo-venta.interface';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
-import { ProcesoService } from '../../../../core/services/proceso.service';
+import { TipoVentaService } from '../../../../core/services/tipo-venta.service';
 import { TipoVentaEditDialogComponent, TipoVentaEditDialogData } from './tipo-venta-edit-dialog/tipo-venta-edit-dialog.component';
 
 @Component({
@@ -52,21 +52,21 @@ import { TipoVentaEditDialogComponent, TipoVentaEditDialogData } from './tipo-ve
   styleUrls: ['./tipos-venta.component.scss']
 })
 export class TiposVentaComponent implements OnInit, AfterViewInit {
-  procesos: Proceso[] = [];
-  dataSource = new MatTableDataSource<Proceso>([]);
-  totalProcesos = 0;
+  tiposVenta: TipoVenta[] = [];
+  dataSource = new MatTableDataSource<TipoVenta>([]);
+  totalTiposVenta = 0;
   searchTerm = '';
   statusFilter = '';
-  
+
   displayedColumns: string[] = [];
-  
+
   loading = false;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
-    private procesoService: ProcesoService,
+    private tipoVentaService: TipoVentaService,
     private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
@@ -76,31 +76,31 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.displayedColumns = this.authService.getDisplayedColumnsWithOptionalId(['id', 'name', 'enabled', 'acciones']);
-    this.loadProcesos();
+    this.loadTiposVenta();
   }
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-    
+
     // Configurar filtro personalizado
-    this.dataSource.filterPredicate = (data: Proceso, filter: string) => {
+    this.dataSource.filterPredicate = (data: TipoVenta, filter: string) => {
       const searchTerm = filter.toLowerCase();
       return data.name.toLowerCase().includes(searchTerm);
     };
   }
 
-  loadProcesos(): void {
+  loadTiposVenta(): void {
     this.loading = true;
-    this.procesoService.getProcesos().subscribe({
+    this.tipoVentaService.getTiposVenta().subscribe({
       next: (response) => {
         if (response.success && response.data?.processes) {
-          this.procesos = response.data.processes;
-          this.totalProcesos = response.data.total;
-          
+          this.tiposVenta = response.data.processes;
+          this.totalTiposVenta = response.data.total;
+
           // Crear nuevo DataSource para asegurar que la tabla se actualice
-          this.dataSource = new MatTableDataSource<Proceso>(this.procesos);
-          
+          this.dataSource = new MatTableDataSource<TipoVenta>(this.tiposVenta);
+
           // Reconfigurar paginator y sort
           if (this.paginator) {
             this.dataSource.paginator = this.paginator;
@@ -110,7 +110,7 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
           }
           this.applyFilter();
         } else {
-          this.snackBar.open(response.message || 'Error al cargar procesos', 'Error', {
+          this.snackBar.open(response.message || 'Error al cargar tipos de venta', 'Error', {
             duration: 3000
           });
         }
@@ -118,7 +118,7 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
         this.cdr.markForCheck();
       },
       error: (error) => {
-        this.snackBar.open('Error de conexión al cargar procesos', 'Error', {
+        this.snackBar.open('Error de conexión al cargar tipos de venta', 'Error', {
           duration: 3000
         });
         this.loading = false;
@@ -130,24 +130,24 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
   applyFilter(): void {
     // Combinar filtros
     let filterValue = '';
-    
+
     if (this.searchTerm) {
       filterValue = this.searchTerm;
     }
-    
+
     // Aplicar filtro de estado si existe
     if (this.statusFilter !== '') {
       const status = this.statusFilter; // Mantener como string
-      
+
       // Crear nuevo DataSource con los datos filtrados
-      const filteredProcesos = this.procesos.filter(proceso => 
-        proceso.enabled === status &&
-        (filterValue === '' || 
-         proceso.name.toLowerCase().includes(filterValue.toLowerCase()))
+      const filteredTiposVenta = this.tiposVenta.filter(tv =>
+        tv.enabled === status &&
+        (filterValue === '' ||
+         tv.name.toLowerCase().includes(filterValue.toLowerCase()))
       );
-      
-      this.dataSource = new MatTableDataSource<Proceso>(filteredProcesos);
-      
+
+      this.dataSource = new MatTableDataSource<TipoVenta>(filteredTiposVenta);
+
       // Reconfigurar paginator y sort
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
@@ -156,9 +156,9 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
         this.dataSource.sort = this.sort;
       }
     } else {
-      // Sin filtro de estado, usar todos los procesos
-      this.dataSource = new MatTableDataSource<Proceso>(this.procesos);
-      
+      // Sin filtro de estado, usar todos los tipos de venta
+      this.dataSource = new MatTableDataSource<TipoVenta>(this.tiposVenta);
+
       // Reconfigurar paginator y sort
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
@@ -166,11 +166,11 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
       if (this.sort) {
         this.dataSource.sort = this.sort;
       }
-      
+
       // Aplicar filtro de búsqueda
       this.dataSource.filter = filterValue.trim().toLowerCase();
     }
-    
+
     // Reset paginator to first page
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
@@ -178,7 +178,7 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
   }
 
   refreshData(): void {
-    this.loadProcesos();
+    this.loadTiposVenta();
   }
 
   /**
@@ -187,21 +187,21 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
   clearFilters(): void {
     // Verificar si hay filtros activos
     const hasActiveFilters = this.searchTerm || this.statusFilter;
-    
+
     if (!hasActiveFilters) {
       this.snackBar.open('No hay filtros activos para limpiar', 'Info', {
         duration: 2000
       });
       return;
     }
-    
+
     // Limpiar filtros
     this.searchTerm = '';
     this.statusFilter = '';
-    
+
     // Crear nuevo DataSource con todos los datos
-    this.dataSource = new MatTableDataSource<Proceso>(this.procesos);
-    
+    this.dataSource = new MatTableDataSource<TipoVenta>(this.tiposVenta);
+
     // Reconfigurar paginator y sort
     if (this.paginator) {
       this.dataSource.paginator = this.paginator;
@@ -209,12 +209,12 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
     if (this.sort) {
       this.dataSource.sort = this.sort;
     }
-    
+
     // Reset paginator to first page
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
-    
+
     this.snackBar.open('Filtros limpiados', 'Info', {
       duration: 2000
     });
@@ -224,12 +224,12 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
    * Recargar datos sin mostrar mensaje
    */
   refreshDataSilent(): void {
-    this.loadProcesos();
+    this.loadTiposVenta();
   }
 
   openCreateDialog(): void {
     const dialogData: TipoVentaEditDialogData = {
-      proceso: {} as Proceso,
+      tipoVenta: {} as TipoVenta,
       mode: 'create'
     };
 
@@ -246,9 +246,9 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
     });
   }
 
-  openEditDialog(proceso: Proceso): void {
+  openEditDialog(tipoVenta: TipoVenta): void {
     const dialogData: TipoVentaEditDialogData = {
-      proceso: proceso,
+      tipoVenta: tipoVenta,
       mode: 'edit'
     };
 
@@ -265,27 +265,27 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
     });
   }
 
-  deleteProceso(proceso: Proceso): void {
+  deleteTipoVenta(tipoVenta: TipoVenta): void {
     this.confirmDialog.confirm({
-      title: 'Eliminar proceso permanentemente',
-      message: `¿Eliminar el proceso "${proceso.name}"?`,
+      title: 'Eliminar tipo de venta permanentemente',
+      message: `¿Eliminar el tipo de venta "${tipoVenta.name}"?`,
       details: 'Esta acción no se puede deshacer.',
       variant: 'danger',
       confirmText: 'Eliminar permanentemente'
     }).subscribe(ok => {
       if (!ok) return;
-      this.procesoService.deleteProceso(proceso.id!, true).subscribe({
+      this.tipoVentaService.deleteTipoVenta(tipoVenta.id!, true).subscribe({
         next: (response) => {
           if (response.success) {
-            this.procesos = this.procesos.filter(p => p.id !== proceso.id);
+            this.tiposVenta = this.tiposVenta.filter(tv => tv.id !== tipoVenta.id);
             this.applyFilter();
-            this.snackBar.open('Proceso eliminado exitosamente', 'Éxito', { duration: 2000 });
+            this.snackBar.open('Tipo de venta eliminado exitosamente', 'Éxito', { duration: 2000 });
           } else {
-            this.snackBar.open(response.message || 'Error al eliminar proceso', 'Error', { duration: 3000 });
+            this.snackBar.open(response.message || 'Error al eliminar tipo de venta', 'Error', { duration: 3000 });
           }
         },
         error: () => {
-          this.snackBar.open('Error al eliminar proceso', 'Error', { duration: 3000 });
+          this.snackBar.open('Error al eliminar tipo de venta', 'Error', { duration: 3000 });
         }
       });
     });
@@ -295,10 +295,10 @@ export class TiposVentaComponent implements OnInit, AfterViewInit {
     if (!this.paginator || this.dataSource.filteredData.length === 0) {
       return '0-0';
     }
-    
+
     const startIndex = this.paginator.pageIndex * this.paginator.pageSize + 1;
     const endIndex = Math.min(startIndex + this.paginator.pageSize - 1, this.dataSource.filteredData.length);
-    
+
     return `${startIndex}-${endIndex}`;
   }
 }
