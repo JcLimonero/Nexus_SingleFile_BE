@@ -12,10 +12,10 @@
   <!-- Formulario -->
   <form [formGroup]="documentoForm" (ngSubmit)="onSubmit()" class="space-y-6 p-6">
     
-    <!-- Configuración del Proceso y Estado -->
+    <!-- Configuración del Tipo de Venta y Estado -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="text-sm font-medium text-blue-900">Configuración del Proceso</h3>
+        <h3 class="text-sm font-medium text-blue-900">Configuración del Tipo de Venta</h3>
         <div class="flex items-center space-x-3">
           <!-- Estado de la configuración -->
           <div class="flex items-center space-x-2">
@@ -35,11 +35,11 @@
         </div>
       </div>
       
-      <!-- Información del proceso -->
+      <!-- Información del tipo de venta -->
       <div *ngIf="data.mode === 'edit'" class="flex flex-wrap gap-x-6 gap-y-1">
-        <!-- Proceso -->
+        <!-- Tipo de Venta -->
         <div class="flex items-center space-x-1">
-          <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Proceso:</span>
+          <span class="text-xs font-medium text-blue-700 uppercase tracking-wide min-w-12">Tipo de Venta:</span>
           <span class="text-sm text-gray-800 font-medium bg-white px-2 py-0.5 rounded border border-blue-200 shadow-sm">{{ getProcessText() }}</span>
         </div>
 
@@ -78,17 +78,17 @@
           </mat-error>
         </mat-form-field>
 
-        <!-- Proceso -->
+        <!-- Tipo de Venta -->
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Proceso</mat-label>
+          <mat-label>Tipo de Venta</mat-label>
           <mat-select formControlName="id_sale_type">
-            <mat-option value="">Seleccionar proceso</mat-option>
+            <mat-option value="">Seleccionar tipo de venta</mat-option>
             <mat-option *ngFor="let proceso of procesos" [value]="proceso.id">
               {{ proceso.name }}
             </mat-option>
           </mat-select>
           <mat-error *ngIf="documentoForm.get('id_sale_type')?.hasError('required') && documentoForm.get('id_sale_type')?.touched">
-            El proceso es requerido
+            El tipo de venta es requerido
           </mat-error>
         </mat-form-field>
 
@@ -123,7 +123,7 @@
       
       <!-- Descripción del estado -->
       <p class="text-xs text-gray-500 mt-2 italic">
-        Una configuración deshabilitada no se aplicará a nuevos procesos
+        Una configuración deshabilitada no se aplicará a nuevos expedientes
       </p>
 
       <!-- Mensaje de validación en tiempo real (solo en modo create) -->
