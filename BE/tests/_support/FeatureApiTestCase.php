@@ -116,4 +116,34 @@ abstract class FeatureApiTestCase extends CIUnitTestCase
         $this->assertNotNull($decoded, "Response no es JSON válido. Body: " . substr((string) $body, 0, 300));
         return $decoded;
     }
+
+    /**
+     * Mensajes esperados (validación de input legítima o not-found con ID falso) —
+     * NO son bugs, no deberían generar warning STDERR. Ampliá la regex si aparece
+     * un mensaje legítimo nuevo. Si dudás, dejá que warne y lo evaluamos.
+     */
+    private const EXPECTED_VALIDATION_PATTERN = '/(?:(?:^|\W)(?:es |son )?requerid[oa]s?|(?:^|\W)no encontrad[oa]s?|(?:^|\W)debe (?:ser|tener|estar|contener)|inv[aá]lid[oa]?(?:[^a-z]|$)|no v[aá]lid[oa]?(?:[^a-z]|$)|Validaci[óo]n fallida|no (?:se )?(?:proporcion|recibi)[oó]\w*|array no vac[íi]o|no tiene imagen|formato inv[aá]lid|usuario no autenticad|no encontr[óo]|Acceso denegad|Se requiere|t[ée]rmino de b[úu]squeda|Permiso denegad|al menos \d|debe ser un|Demasiados intentos|Reintenta en|Error al (?:cambiar|actualizar|guardar|crear|eliminar) (?:el (?:estado|registro|item|elemento)|la )(?:[\w\s]+)?(?:$|\.|\W))/iu';
+
+    /**
+     * Verifica que la response JSON tiene shape `{success: bool, ...}` y, si
+     * success=false, decide si es bug real (warning STDERR) o validación
+     * legítima (silencio).
+     *
+     * Usar desde tests parametrizados:
+     *   $this->assertJsonShape($resp, "$method $path");
+     */
+    protected function assertJsonShape(\CodeIgniter\Test\TestResponse $resp, string $context = ''): array
+    {
+        $body = $this->decodeJson($resp);
+        $this->assertArrayHasKey('success', $body,
+            "$context: response no tiene clave 'success'. Body: " . substr(json_encode($body), 0, 300));
+
+        if (!($body['success'] ?? false)) {
+            $msg = (string) ($body['message'] ?? '');
+            if (!preg_match(self::EXPECTED_VALIDATION_PATTERN, $msg)) {
+                fwrite(STDERR, "  ⚠ $context → success=false: $msg\n");
+            }
+        }
+        return $body;
+    }
 }

@@ -23,11 +23,7 @@ final class CompanyClientImportControllerTest extends FeatureApiTestCase
     public function testEndpointRespondsWithJsonShape(string $path): void
     {
         $resp = $this->callApi('POST', $path, []);
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ POST $path → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "POST $path");
     }
 
     public static function provideAllEndpoints(): array

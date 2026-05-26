@@ -18,11 +18,7 @@ final class ConfigControllerTest extends FeatureApiTestCase
     public function testEndpointIsPublic(string $path): void
     {
         $resp = $this->callApiNoAuth('GET', $path);
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ GET $path → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "GET $path");
     }
 
     public static function provideAllEndpoints(): array

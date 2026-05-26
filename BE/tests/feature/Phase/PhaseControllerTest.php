@@ -18,10 +18,6 @@ final class PhaseControllerTest extends FeatureApiTestCase
     public function testActiveForUserReturnsJsonShape(): void
     {
         $resp = $this->callApi('GET', self::BASE . '/active-for-user');
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ GET /active-for-user → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "GET /active-for-user");
     }
 }

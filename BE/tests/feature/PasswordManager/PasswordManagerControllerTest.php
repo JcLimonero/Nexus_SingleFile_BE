@@ -20,11 +20,7 @@ final class PasswordManagerControllerTest extends FeatureApiTestCase
     public function testEndpointRespondsWithJsonShape(string $method, string $path): void
     {
         $resp = $this->callApi($method, self::BASE . $path, $method !== 'GET' ? [] : null);
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ $method $path → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "$method $path");
     }
 
     public static function provideAllEndpoints(): array

@@ -16,10 +16,6 @@ final class ConsolidacionDmsControllerTest extends FeatureApiTestCase
     public function testPedidosRespondsWithJsonShape(): void
     {
         $resp = $this->callApi('GET', '/api/consolidacion-dms/pedidos');
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ GET /api/consolidacion-dms/pedidos → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "GET /api/consolidacion-dms/pedidos");
     }
 }

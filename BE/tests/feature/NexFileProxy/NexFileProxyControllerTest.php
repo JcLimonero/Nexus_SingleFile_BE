@@ -20,11 +20,7 @@ final class NexFileProxyControllerTest extends FeatureApiTestCase
     public function testEndpointRespondsWithJsonShape(string $path): void
     {
         $resp = $this->callApi('GET', self::BASE . $path);
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ GET $path → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "GET $path");
     }
 
     public static function provideAllEndpoints(): array

@@ -40,13 +40,7 @@ final class AnalyticsControllerTest extends FeatureApiTestCase
         }
 
         $resp = $this->callApi('GET', self::BASE . $path);
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body,
-            "GET $path debe responder JSON con clave 'success'. Body: " . substr(json_encode($body), 0, 300));
-
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ GET $path → success=false: " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "GET $path");
     }
 
     public static function provideAllEndpoints(): array

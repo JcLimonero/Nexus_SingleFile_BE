@@ -10,7 +10,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * API pública del Miniportal - acceso sin autenticación mediante token UUID.
- * Usa expedient_pld y file_pld_geolog (tablas PLD existentes) en lugar de tablas redundantes.
+ * Usa expedient_pld y expedient_pld_geo_log (tablas PLD existentes) en lugar de tablas redundantes.
  */
 class Miniportal extends BaseController
 {
@@ -91,7 +91,7 @@ class Miniportal extends BaseController
 
         $this->filePldModel->recordAvisoMiniportal($idFile, $signatureData);
 
-        // Siempre registrar en file_pld_geolog la acción de aceptar aviso (auditoría PLD)
+        // Siempre registrar en expedient_pld_geo_log la acción de aceptar aviso (auditoría PLD)
         if ($lat !== null && $lon !== null && is_numeric($lat) && is_numeric($lon)) {
             $this->geoLogModel->log($idFile, (float) $lat, (float) $lon, 'Aceptar aviso');
         } else {

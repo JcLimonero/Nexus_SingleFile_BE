@@ -18,10 +18,6 @@ final class PaymentMethodControllerTest extends FeatureApiTestCase
     public function testListReturnsJsonShape(): void
     {
         $resp = $this->callApi('GET', self::BASE . '/');
-        $body = $this->decodeJson($resp);
-        $this->assertArrayHasKey('success', $body);
-        if (!($body['success'] ?? false)) {
-            fwrite(STDERR, "  ⚠ GET / → " . ($body['message'] ?? '') . "\n");
-        }
+        $this->assertJsonShape($resp, "GET /");
     }
 }
