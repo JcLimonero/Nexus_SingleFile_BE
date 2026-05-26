@@ -16,6 +16,7 @@ import { UserService } from '../../../../core/services/user.service';
 import { DefaultAgencyService } from '../../../../core/services/default-agency.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { CompanyAgencyFilterComponent } from '../../../../shared/components/company-agency-filter/company-agency-filter.component';
 
 @Component({
   selector: 'app-user-edit-dialog',
@@ -34,7 +35,8 @@ import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.s
     MatSelectModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    CompanyAgencyFilterComponent
   ]
 })
 export class UserEditDialogComponent implements OnInit {

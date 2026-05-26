@@ -5,22 +5,11 @@
     <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
       <mat-card-content class="p-2">
         <div class="flex items-start justify-start gap-6 flex-wrap">
-          <!-- Filtro de Agencia -->
-          <div class="flex items-center space-x-3">
-            <mat-form-field appearance="outline" class="min-w-48">
-              <mat-label>Agencia</mat-label>
-              <mat-select 
-                [value]="selectedAgencyId" 
-                (selectionChange)="onAgencyChange($event.value)"
-                [disabled]="agenciesLoading || !hasAgencies()">
-                <mat-option 
-                  *ngFor="let agency of agencies; trackBy: trackByAgencyId" 
-                  [value]="getAgencyId(agency)">
-                  {{ agency.name ?? agency.Name }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
+          <!-- Filtro de Razón Social + Agencia (componente compartido) -->
+          <app-company-agency-filter
+            [selectedAgencyId]="selectedAgencyId"
+            (agencyChange)="onAgencyChange($event)">
+          </app-company-agency-filter>
 
           <!-- Filtro de Cliente y Botones -->
           <div class="flex items-center space-x-3 w-[500px]">

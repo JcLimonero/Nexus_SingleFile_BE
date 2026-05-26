@@ -64,19 +64,17 @@
 
       <!-- Selects editables para modo create -->
       <div *ngIf="data.mode === 'create'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Agencia (Primero) -->
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Agencia</mat-label>
-          <mat-select formControlName="id_agency">
-            <mat-option value="">Seleccionar agencia</mat-option>
-            <mat-option *ngFor="let agency of agencias" [value]="agency.id">
-              {{ agency.name }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="documentoForm.get('id_agency')?.hasError('required') && documentoForm.get('id_agency')?.touched">
+        <!-- Razón Social + Agencia (componente compartido) -->
+        <div class="w-full md:col-span-2">
+          <app-company-agency-filter
+            [selectedAgencyId]="documentoForm.get('id_agency')?.value"
+            (agencyChange)="documentoForm.get('id_agency')?.setValue($event ?? '')">
+          </app-company-agency-filter>
+          <mat-error *ngIf="documentoForm.get('id_agency')?.hasError('required') && documentoForm.get('id_agency')?.touched"
+                     class="text-xs text-red-500 mt-1 block">
             La agencia es requerida
           </mat-error>
-        </mat-form-field>
+        </div>
 
         <!-- Tipo de Venta -->
         <mat-form-field appearance="outline" class="w-full">

@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CompanyAgencyFilterComponent } from '../../../../shared/components/company-agency-filter/company-agency-filter.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -46,6 +47,7 @@ import { switchMap, catchError, timeout } from 'rxjs/operators';
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    CompanyAgencyFilterComponent,
     MatTooltipModule,
     MatCheckboxModule,
     MatSlideToggleModule

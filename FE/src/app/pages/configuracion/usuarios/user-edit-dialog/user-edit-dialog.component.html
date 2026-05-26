@@ -95,27 +95,17 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Agencia -->
+      <!-- Agencia Predeterminada (con pre-filtro de razón social) -->
       <div class="w-full flex items-start gap-2">
-        <mat-form-field appearance="outline" class="flex-1">
-          <mat-label>Agencia Predeterminada</mat-label>
-          <mat-select formControlName="default_agency" [disabled]="loadingAgencies">
-            <mat-option *ngIf="loadingAgencies" value="" disabled>
-              <mat-spinner diameter="16" class="inline mr-2"></mat-spinner>
-              Cargando agencias...
-            </mat-option>
-            <mat-option *ngIf="!loadingAgencies && agencies.length === 0" value="" disabled>
-              No hay agencias disponibles
-            </mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.id">
-              {{ agency.name }}
-            </mat-option>
-          </mat-select>
-          <mat-hint>Agencia predeterminada del usuario</mat-hint>
-          <mat-error *ngIf="userForm.get('default_agency')?.hasError('required')">
+        <div class="flex-1">
+          <app-company-agency-filter
+            [selectedAgencyId]="userForm.get('default_agency')?.value"
+            (agencyChange)="userForm.get('default_agency')?.setValue($event ?? '')">
+          </app-company-agency-filter>
+          <mat-error *ngIf="userForm.get('default_agency')?.hasError('required') && userForm.get('default_agency')?.touched" class="text-xs">
             La agencia es requerida
           </mat-error>
-        </mat-form-field>
+        </div>
         <button
           mat-icon-button
           type="button"

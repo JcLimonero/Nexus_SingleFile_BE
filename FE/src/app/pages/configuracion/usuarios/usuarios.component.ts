@@ -22,6 +22,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { UserEditDialogComponent } from './user-edit-dialog/user-edit-dialog.component';
 import { UserAccessDialogComponent } from './user-access-dialog/user-access-dialog.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 
 @Component({
   selector: 'app-usuarios',
@@ -44,7 +45,8 @@ import { UserAccessDialogComponent } from './user-access-dialog/user-access-dial
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
-    MatCardModule
+    MatCardModule,
+    CompanyAgencyFilterComponent
   ]
 })
 export class UsuariosComponent implements OnInit, AfterViewInit {
@@ -57,7 +59,7 @@ export class UsuariosComponent implements OnInit, AfterViewInit {
   loadingCatalogs = false;
   searchTerm = '';
   roleFilter = '';
-  agencyFilter = '';
+  agencyFilter: number | '' = '';
   assignedAgencyFilter = '';
   statusFilter = '';
 

@@ -25,6 +25,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { ClientSelectionDialogComponent } from '../integracion/client-selection-dialog.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 import { LiquidationAddDocumentDialogComponent } from './liquidation-add-document-dialog.component';
 
 @Component({
@@ -46,7 +47,8 @@ import { LiquidationAddDocumentDialogComponent } from './liquidation-add-documen
     MatTableModule,
     MatMenuModule,
     MatPaginatorModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    CompanyAgencyFilterComponent,
   ],
   templateUrl: './liquidacion.component.html',
   styleUrls: ['./liquidacion.component.scss']

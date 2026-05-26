@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { WidgetAgencyMetricsComponent } from '../components/widgets/widget-agency-metrics/widget-agency-metrics.component';
-import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -38,7 +38,7 @@ import { ErrorBannerComponent } from '../../../shared/error-banner/error-banner.
     MatTabsModule,
     MatSnackBarModule,
                 WidgetAgencyMetricsComponent,
-                AgencyFilterComponent,
+                CompanyAgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,
                 MatSelectModule,

@@ -38,6 +38,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { DocumentoRequeridoEditDialogComponent } from './documento-requerido-edit-dialog/documento-requerido-edit-dialog.component';
 import { DuplicateConfigurationDialogComponent } from './duplicate-configuration-dialog/duplicate-configuration-dialog.component';
 import { DocumentosConfiguracionDialogComponent } from './documentos-configuracion-dialog/documentos-configuracion-dialog.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 
 @Component({
   selector: 'app-documentos-requeridos',
@@ -60,7 +61,8 @@ import { DocumentosConfiguracionDialogComponent } from './documentos-configuraci
     MatSelectModule,
     MatTabsModule,
     MatTooltipModule,
-    MatCardModule
+    MatCardModule,
+    CompanyAgencyFilterComponent
   ]
 })
 export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
@@ -79,14 +81,14 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
   // Tab 1: Configuraciones agrupadas
   displayedColumnsConfiguraciones: string[] = [];
   dataSourceConfiguraciones = new MatTableDataSource<any>([]);
-  selectedAgencyForConfiguraciones = '';
+  selectedAgencyForConfiguraciones: number | '' = '';
   
   loading = false;
   loadingCatalogs = false;
   loadingConfiguraciones = false;
-  selectedCompany = '';
+  selectedCompany: number | '' = '';
   selectedProcess = '';
-  selectedAgency = '';
+  selectedAgency: number | '' = '';
   selectedCustomerType = '';
   selectedOperationType = '';
   
@@ -349,7 +351,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     };
     if (this.selectedCompany) filters.id_company = this.selectedCompany;
     if (this.selectedProcess) filters.id_sale_type = this.selectedProcess;
-    if (this.selectedAgency) filters.id_agency = this.selectedAgency;
+    if (this.selectedAgency) filters.id_agency = String(this.selectedAgency);
     if (this.selectedCustomerType) filters.id_customer_type = this.selectedCustomerType;
     if (this.selectedOperationType) filters.id_operation_type = this.selectedOperationType;
 
@@ -544,7 +546,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     // Crear objeto de configuración con los filtros seleccionados
     const configuracion = {
       id_sale_type: this.selectedProcess,
-      id_agency: parseInt(this.selectedAgency),
+      id_agency: Number(this.selectedAgency),
       id_customer_type: this.selectedCustomerType,
       id_operation_type: this.selectedOperationType
     };
@@ -582,7 +584,7 @@ export class DocumentosRequeridosComponent implements OnInit, AfterViewInit {
     // Construir filtros con razón social y agencia
     const filters: DocumentoRequeridoFilters = {};
     if (this.selectedCompany) filters.id_company = this.selectedCompany;
-    if (this.selectedAgencyForConfiguraciones) filters.id_agency = this.selectedAgencyForConfiguraciones;
+    if (this.selectedAgencyForConfiguraciones) filters.id_agency = String(this.selectedAgencyForConfiguraciones);
 
     this.documentoRequeridoService.getDocumentosRequeridos(filters).subscribe({
       next: (response) => {

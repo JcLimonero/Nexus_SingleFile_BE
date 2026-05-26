@@ -26,6 +26,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ClientSearchService, ClientSearchResponse } from '../../../core/services/client-search.service';
 import { ClientSelectionDialogComponent } from '../integracion/client-selection-dialog.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 import { DocumentosNoConfiguradosDialogComponent } from './documentos-no-configurados-dialog/documentos-no-configurados-dialog.component';
 
 @Component({
@@ -48,7 +49,8 @@ import { DocumentosNoConfiguradosDialogComponent } from './documentos-no-configu
     MatMenuModule,
     MatPaginatorModule,
     MatTabsModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    CompanyAgencyFilterComponent,
   ],
   templateUrl: './liberacion.component.html',
   styleUrls: ['./liberacion.component.scss']

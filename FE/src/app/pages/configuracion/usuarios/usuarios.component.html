@@ -6,17 +6,11 @@
       <mat-card-content class="p-2">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 flex-wrap">
-            <!-- Filtro por agencia -->
-            <mat-form-field appearance="outline" class="min-w-48">
-          <mat-label>Agencia</mat-label>
-          <mat-select [(ngModel)]="agencyFilter" (ngModelChange)="applyFilter()" [disabled]="loadingCatalogs">
-            <mat-option value="">Todas las agencias</mat-option>
-            <mat-option *ngFor="let agency of agencies" [value]="agency.id">
-              {{ agency.name }}
-            </mat-option>
-          </mat-select>
-          <mat-icon *ngIf="loadingCatalogs" matSuffix class="animate-spin">refresh</mat-icon>
-            </mat-form-field>
+            <!-- Filtro por agencia (con pre-filtro de razón social) -->
+            <app-company-agency-filter
+              [selectedAgencyId]="agencyFilter"
+              (agencyChange)="agencyFilter = $event ?? ''; applyFilter()">
+            </app-company-agency-filter>
   
             <!-- Filtro por agencias asignadas -->
             <mat-form-field appearance="outline" class="min-w-48">

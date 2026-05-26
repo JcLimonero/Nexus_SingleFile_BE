@@ -29,6 +29,7 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
 import { environment } from '../../../../environments/environment';
 import { ClientSelectionDialogComponent } from './client-selection-dialog.component';
 import { OrderSelectionDialogComponent } from './order-selection-dialog.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 
 @Component({
   selector: 'vex-integracion',
@@ -49,7 +50,8 @@ import { OrderSelectionDialogComponent } from './order-selection-dialog.componen
     MatTableModule,
     MatMenuModule,
     MatPaginatorModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    CompanyAgencyFilterComponent,
   ],
   templateUrl: './integracion.component.html',
   styleUrls: ['./integracion.component.scss'],

@@ -23,7 +23,7 @@ import { WidgetAgencyUsersComponent } from '../components/widgets/widget-agency-
 import { WidgetTodayCasesComponent } from '../components/widgets/widget-today-cases/widget-today-cases.component';
 import { WidgetMonthlyCasesComponent } from '../components/widgets/widget-monthly-cases/widget-monthly-cases.component';
 import { WidgetTotalCasesComponent } from '../components/widgets/widget-total-cases/widget-total-cases.component';
-import { AgencyFilterComponent } from '../components/agency-filter/agency-filter.component';
+import { CompanyAgencyFilterComponent } from '../../../shared/components/company-agency-filter/company-agency-filter.component';
 import { ErrorBannerComponent } from '../../../shared/error-banner/error-banner.component';
 import { DateRangeFilterComponent, DateRange } from '../components/date-range-filter/date-range-filter.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -77,7 +77,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
         WidgetTodayCasesComponent,
         WidgetMonthlyCasesComponent,
         WidgetTotalCasesComponent,
-    AgencyFilterComponent,
+    CompanyAgencyFilterComponent,
                 DateRangeFilterComponent,
                 MatFormFieldModule,
                 MatSelectModule,

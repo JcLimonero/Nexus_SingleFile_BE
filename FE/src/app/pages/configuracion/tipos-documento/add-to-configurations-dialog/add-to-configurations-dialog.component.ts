@@ -12,6 +12,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CompanyAgencyFilterComponent } from '../../../../shared/components/company-agency-filter/company-agency-filter.component';
 import { DocumentType } from '../../../../core/interfaces/document-type.interface';
 import { DocumentTypeService } from '../../../../core/services/document-type.service';
 import { TipoVentaService } from '../../../../core/services/tipo-venta.service';
@@ -52,7 +53,8 @@ export interface AddToConfigurationsDialogData {
     MatSnackBarModule,
     MatPaginatorModule,
     MatCheckboxModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    CompanyAgencyFilterComponent
   ],
   templateUrl: './add-to-configurations-dialog.component.html',
   styleUrls: ['./add-to-configurations-dialog.component.scss']
@@ -68,7 +70,7 @@ export class AddToConfigurationsDialogComponent implements OnInit {
   selectedIds = new Set<number>();
 
   selectedProcess = '';
-  selectedAgency = '';
+  selectedAgency: number | '' = '';
   selectedCostumerType = '';
   selectedOperationType = '';
 
