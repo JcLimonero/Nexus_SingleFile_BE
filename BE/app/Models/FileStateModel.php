@@ -45,6 +45,7 @@ class FileStateModel extends Model
         'allows_document_upload',
         'is_terminal',
         'is_system',
+        'display_order',
         'id_last_user_update',
     ];
 
@@ -93,11 +94,16 @@ class FileStateModel extends Model
         return !empty($row) && (int) ($row['allows_document_upload'] ?? 0) === 1;
     }
 
-    /** Returns only navigable phases (excluye terminales). Para sidebar dinámico. */
+    /**
+     * Returns only navigable phases (excluye terminales). Para sidebar dinámico.
+     * Ordenadas por display_order (incrementos de 10 para insertar entre fases
+     * sin renumerar). Fallback ASC por id cuando display_order es NULL o hay ties.
+     */
     public function getNavigable(): array
     {
         return $this->where('enabled', 1)
             ->where('is_navigable', 1)
+            ->orderBy('display_order', 'ASC')
             ->orderBy('id', 'ASC')
             ->findAll();
     }

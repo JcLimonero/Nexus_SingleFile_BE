@@ -60,16 +60,24 @@ class Phase extends BaseController
         // Filtra is_navigable=1 para no mostrar fases terminales (Liberado,
         // Cancelado, Excepción) como páginas navegables — son estados del
         // lifecycle pero no son páginas del sidebar.
+        //
+        // Orden: por expedient_state.display_order ASC (incrementos de 10 para
+        // permitir insertar fases intermedias). Fallback id ASC cuando
+        // display_order es NULL o hay ties.
         if (!$phases) {
             $source = 'legacy_all';
             $phases = $db->table('expedient_state')
-                ->select('id, name, enabled, requires_payment_voucher, allows_document_upload, is_terminal')
+                ->select('id, name, enabled, requires_payment_voucher, allows_document_upload, is_terminal, display_order')
                 ->where('enabled', 1)
                 ->where('is_navigable', 1)
+                ->orderBy('display_order', 'ASC')
                 ->orderBy('id', 'ASC')
                 ->get()
                 ->getResultArray();
-            // Normalize shape so FE has consistent fields
+            // Normalize shape so FE has consistent fields. El display_order del
+            // response usa el orden real (índice tras el ORDER BY), no el
+            // display_order crudo de la tabla — preserva el contrato existente
+            // con el FE que asume secuencial 0..N.
             $phases = array_map(static function ($p, $i) {
                 return [
                     'id' => null,
