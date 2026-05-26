@@ -32,7 +32,7 @@ export class UserAccessService {
 
   // Obtener todos los procesos activos
   getActiveProcesses(): Observable<ProcessResponse> {
-    return this.http.get<ProcessResponse>(`${this.apiBaseService.buildApiUrl('process')}?enabled=1`);
+    return this.http.get<ProcessResponse>(`${this.apiBaseService.buildApiUrl('sale-type')}?enabled=1`);
   }
 
   // Obtener todas las agencias (activas e inactivas)
@@ -42,7 +42,7 @@ export class UserAccessService {
 
   // Obtener todos los procesos (activos e inactivos)
   getAllProcesses(): Observable<ProcessResponse> {
-    return this.http.get<ProcessResponse>(`${this.apiBaseService.buildApiUrl('process')}`);
+    return this.http.get<ProcessResponse>(`${this.apiBaseService.buildApiUrl('sale-type')}`);
   }
 
   // Obtener agencias asignadas a un usuario

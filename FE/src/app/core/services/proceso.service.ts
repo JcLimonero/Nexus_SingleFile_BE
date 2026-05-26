@@ -13,7 +13,8 @@ import { ApiBaseService } from './api-base.service';
   providedIn: 'root'
 })
 export class ProcesoService {
-  private readonly API_URL = 'process';
+  // Renombrada en Tier 3 (DB rename process → sale_type, ruta /api/process → /api/sale-type)
+  private readonly API_URL = 'sale-type';
 
   constructor(
     private http: HttpClient,
