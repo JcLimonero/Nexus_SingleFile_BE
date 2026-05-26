@@ -73,7 +73,7 @@ const CATALOGS = [
         </mat-tab-group>
 
         <div class="wiz-step-actions">
-          <a mat-button routerLink="/processes"><mat-icon>arrow_back</mat-icon> Atrás</a>
+          <a mat-button routerLink="/phases"><mat-icon>arrow_back</mat-icon> Atrás</a>
           <button mat-flat-button color="primary" (click)="next()">
             Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
           </button>

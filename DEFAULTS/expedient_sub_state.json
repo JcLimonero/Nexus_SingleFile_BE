@@ -1,0 +1,8 @@
+[
+  { "id": 1, "id_expedient_state": 3, "name": "Placas",         "enabled": 1 },
+  { "id": 2, "id_expedient_state": 3, "name": "Seguro",         "enabled": 1 },
+  { "id": 3, "id_expedient_state": 3, "name": "Accesorio",      "enabled": 1 },
+  { "id": 4, "id_expedient_state": 3, "name": "PDI",            "enabled": 1 },
+  { "id": 5, "id_expedient_state": 3, "name": "Detallado",      "enabled": 1 },
+  { "id": 6, "id_expedient_state": 3, "name": "Entrega Unidad", "enabled": 1 }
+]

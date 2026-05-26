@@ -12,6 +12,31 @@ export interface ProcessRow {
 }
 
 /**
+ * Una fila de expedient_state que se inserta al provisionar el tenant.
+ * Las is_system=1 (Integración + Liquidación por convención) tienen
+ * candado en UI — no se pueden borrar ni renombrar.
+ */
+export interface ExpedientPhaseRow {
+  id: number;
+  name: string;
+  display_order: number | null;
+  enabled: number;
+  requires_payment_voucher: number;
+  is_navigable: number;
+  allows_document_upload: number;
+  is_terminal: number;
+  is_system: number;
+}
+
+/** Una subfase ligada a una fase parent por id_expedient_state. */
+export interface ExpedientSubStateRow {
+  id: number;
+  id_expedient_state: number;
+  name: string;
+  enabled: number;
+}
+
+/**
  * In-memory aggregator across wizard steps. Cleared on app restart by design —
  * the wizard is a one-shot flow; partial state is intentionally non-persistent.
  */
@@ -60,8 +85,16 @@ export class WizardStateService {
   // Step 7: agencies (per company by index)
   readonly agencies = signal<AgencyInput[]>([]);
 
-  // Step 8: processes (with order + voucher flag)
+  // Step 8: processes (with order + voucher flag) — DEPRECATED, mantener
+  // por compat con db-ipc.ts que sigue leyendo `payload.processes` para
+  // poblar client_group_sale_type. Migrar después.
   readonly processes = signal<ProcessRow[]>([]);
+
+  // Step 8 (renamed "Fases"): expedient_state + expedient_sub_state.
+  // El componente processes maneja AMBAS tablas en una sola UI dual
+  // (tabla de fases + sub-tabla contextual de subfases).
+  readonly expedientPhases    = signal<ExpedientPhaseRow[]>([]);
+  readonly expedientSubStates = signal<ExpedientSubStateRow[]>([]);
 
   // Step 9: catalog seeds (table → rows, edited by admin from DEFAULTS)
   readonly catalogSeeds = signal<Record<string, any[]>>({});
@@ -89,6 +122,8 @@ export class WizardStateService {
     this.companies.set([]);
     this.agencies.set([]);
     this.processes.set([]);
+    this.expedientPhases.set([]);
+    this.expedientSubStates.set([]);
     this.catalogSeeds.set({});
     this.adminUserDraft.set({ email: '', password: '' });
     this.branding.set({});

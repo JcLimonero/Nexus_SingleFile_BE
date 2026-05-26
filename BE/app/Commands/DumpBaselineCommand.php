@@ -7,19 +7,18 @@ use CodeIgniter\CLI\CLI;
 use Config\Database;
 
 /**
- * Dumps the full schema + catalog data of a source DB (typically `nexfile`)
+ * Dumps the full schema + catalog data of a source DB (post-Tier 4 nexfile)
  * into two versioned SQL scripts:
  *
- *   DB/baseline/v1.0/schema.sql   ← CREATE TABLE / VIEW (with renames applied)
+ *   DB/baseline/v1.0/schema.sql   ← CREATE TABLE / VIEW as-is from source
  *   DB/baseline/v1.0/data.sql     ← INSERT statements for catalog rows
  *
- * Transforms baked into schema.sql so the source DB stays untouched:
- *   - RENAME file_status → expedient_state
- *   - RENAME file_sub_status → expedient_sub_state
- *   - APPEND client_group + client_group_process + client_group_phase
- *   - APPEND company.id_client_group + expedient_state.requires_payment_voucher
+ * The source DB is expected to already carry all Tier 0b/2/3/4 renames and the
+ * Phase A additions (client_group*, company.id_client_group, expedient_state
+ * navigation flags, etc.). No on-the-fly transforms — the source is the truth.
  *
- * The WIZARD applies these scripts when provisioning a new tenant.
+ * Stale legacy tables left in source (e.g. `process` after the Tier 3 rename
+ * to `sale_type`) are filtered via SKIP_TABLES.
  *
  * Usage:
  *   php spark db:dump-baseline                          # source = default DB, version = 1.0
@@ -36,47 +35,27 @@ class DumpBaselineCommand extends BaseCommand
         '--version' => 'Baseline version label (default: 1.0)',
     ];
 
-    /** table → renamed-table emitted to the script. Source DB still uses old names
-     *  (nexfile); the rename happens during the dump emit. */
-    private const TABLE_RENAMES = [
-        // Tier 2 (rename file_status family)
-        'file_status'                   => 'expedient_state',
-        'file_sub_status'               => 'expedient_sub_state',
-        // Tier 3 (process → sale_type)
-        'process'                       => 'sale_type',
-        'process_user'                  => 'sale_type_user',
-        'client_group_process'          => 'client_group_sale_type',
-        // Tier 4 (file_* → expedient_*)
-        'file_document'                 => 'expedient_document',
-        'file_reasons'                  => 'expedient_reason',
-        'file_exception_reason'         => 'expedient_exception_reason',
-        'file_share_token'              => 'expedient_share_token',
-        'file_pld'                      => 'expedient_pld',
-        'file_pld_approved_document'    => 'expedient_pld_approved_document',
-        'file_pld_beneficial_owner'     => 'expedient_pld_beneficial_owner',
-        'file_pld_geo_log'              => 'expedient_pld_geo_log',
-        'files_to_correct'              => 'expedients_to_correct',
-        'document_file_status'          => 'document_status',
-        'document_file_error'           => 'document_error',
-    ];
+    /** Legacy tables left over in source DB that must NOT make it into the baseline.
+     *  `process` was renamed to `sale_type` in Tier 3 but the original table was
+     *  not dropped — it lingers with camelCase columns. */
+    private const SKIP_TABLES = ['process'];
 
     /** Catalog tables whose rows go into data.sql. Order matters (FK deps).
-     *  NOTE: source-DB names — TABLE_RENAMES applies during dump emit.
-     *  tablas tenant-config (configuration_process, etc.) NO se incluyen — cada
-     *  tenant arma su propia configuración. */
+     *  Names are POST-Tier 4 (current). Config tables (configuration_process,
+     *  etc.) are NOT included — each tenant builds its own configuration. */
     private const CATALOG_TABLES = [
         'user_role',
-        'process',
+        'sale_type',
         'customer_type',
         'operation_type',
         'payment_method',
-        'file_status',           // → expedient_state after rename
-        'file_sub_status',       // → expedient_sub_state after rename
+        'expedient_state',
+        'expedient_sub_state',
         'document_type',
-        'file_reasons',          // → expedient_reason
-        'document_file_error',   // → document_error
-        'document_file_status',  // → document_status
-        'file_exception_reason', // → expedient_exception_reason
+        'expedient_reason',
+        'document_error',
+        'document_status',
+        'expedient_exception_reason',
     ];
 
     public function run(array $params)
@@ -124,12 +103,9 @@ class DumpBaselineCommand extends BaseCommand
     {
         $out = "-- NexFile baseline schema dump\n";
         $out .= "-- Source: `{$sourceDb}` on " . date('Y-m-d H:i:s') . "\n";
-        $out .= "-- Transformations applied:\n";
-        $out .= "--   - file_status         → expedient_state\n";
-        $out .= "--   - file_sub_status     → expedient_sub_state\n";
-        $out .= "--   - + client_group, client_group_process, client_group_phase\n";
-        $out .= "--   - + company.id_client_group\n";
-        $out .= "--   - + expedient_state.requires_payment_voucher (id=2 backfilled in data.sql)\n";
+        $out .= "-- Source DB is expected to be post-Tier 4: renames already applied,\n";
+        $out .= "-- Phase A tables present, FKs declared inline. Stale tables in\n";
+        $out .= "-- SKIP_TABLES are omitted.\n";
         $out .= "-- Generated by: php spark db:dump-baseline\n\n";
 
         $out .= "SET FOREIGN_KEY_CHECKS = 0;\n\n";
@@ -147,101 +123,17 @@ class DumpBaselineCommand extends BaseCommand
 
         // === Base tables ===
         foreach ($baseTables as $t) {
-            $renamed = self::TABLE_RENAMES[$t] ?? $t;
+            if (in_array($t, self::SKIP_TABLES, true)) continue;
             $ddl = $db->query("SHOW CREATE TABLE `{$sourceDb}`.`{$t}`")->getRowArray()['Create Table'] ?? null;
             if (!$ddl) continue;
-
-            // Apply the rename if this is a renamed table
-            if ($renamed !== $t) {
-                $ddl = preg_replace('/^CREATE TABLE `' . preg_quote($t, '/') . '`/', 'CREATE TABLE `' . $renamed . '`', $ddl, 1);
-            }
 
             // Drop AUTO_INCREMENT=N counter (clean state for a new tenant)
             $ddl = preg_replace('/\s+AUTO_INCREMENT=\d+/', '', $ddl);
 
-            $out .= "-- ------ Table: `{$renamed}`" . ($renamed !== $t ? " (renamed from `{$t}`)" : '') . " ------\n";
-            $out .= "DROP TABLE IF EXISTS `{$renamed}`;\n";
+            $out .= "-- ------ Table: `{$t}` ------\n";
+            $out .= "DROP TABLE IF EXISTS `{$t}`;\n";
             $out .= $ddl . ";\n\n";
         }
-
-        // === Phase A additions ===
-        $out .= "-- ====== Phase A additions ======\n\n";
-        $out .= "-- client_group (top-level grouping above company)\n";
-        $out .= "DROP TABLE IF EXISTS `client_group`;\n";
-        $out .= "CREATE TABLE `client_group` (\n";
-        $out .= "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n";
-        $out .= "  `name` VARCHAR(200) NOT NULL,\n";
-        $out .= "  `description` TEXT NULL,\n";
-        $out .= "  `enabled` TINYINT(1) NOT NULL DEFAULT 1,\n";
-        $out .= "  `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,\n";
-        $out .= "  `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n";
-        $out .= "  `id_last_user_update` BIGINT NULL,\n";
-        $out .= "  PRIMARY KEY (`id`),\n";
-        $out .= "  UNIQUE KEY `uq_client_group_name` (`name`)\n";
-        $out .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n";
-
-        $out .= "DROP TABLE IF EXISTS `client_group_sale_type`;\n";
-        $out .= "CREATE TABLE `client_group_sale_type` (\n";
-        $out .= "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n";
-        $out .= "  `id_client_group` BIGINT NOT NULL,\n";
-        $out .= "  `id_sale_type` BIGINT NOT NULL,\n";
-        $out .= "  `display_order` INT DEFAULT 0,\n";
-        $out .= "  `enabled` TINYINT(1) DEFAULT 1,\n";
-        $out .= "  `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,\n";
-        $out .= "  `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n";
-        $out .= "  PRIMARY KEY (`id`),\n";
-        $out .= "  UNIQUE KEY `uq_cgp` (`id_client_group`, `id_sale_type`),\n";
-        $out .= "  CONSTRAINT `fk_cgp_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE\n";
-        $out .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n";
-
-        $out .= "DROP TABLE IF EXISTS `client_group_phase`;\n";
-        $out .= "CREATE TABLE `client_group_phase` (\n";
-        $out .= "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n";
-        $out .= "  `id_client_group` BIGINT NOT NULL,\n";
-        $out .= "  `id_expedient_state` BIGINT NOT NULL,\n";
-        $out .= "  `display_order` INT DEFAULT 0,\n";
-        $out .= "  `enabled` TINYINT(1) DEFAULT 1,\n";
-        $out .= "  `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP,\n";
-        $out .= "  `update_date` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n";
-        $out .= "  PRIMARY KEY (`id`),\n";
-        $out .= "  UNIQUE KEY `uq_cgph` (`id_client_group`, `id_expedient_state`),\n";
-        $out .= "  CONSTRAINT `fk_cgph_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE CASCADE\n";
-        $out .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n\n";
-
-        $out .= "-- company.id_client_group + expedient_state.requires_payment_voucher\n";
-        $out .= "ALTER TABLE `company` ADD COLUMN `id_client_group` BIGINT NULL AFTER `id`;\n";
-        $out .= "CREATE INDEX `idx_company_client_group` ON `company` (`id_client_group`);\n";
-        $out .= "ALTER TABLE `expedient_state` ADD COLUMN `requires_payment_voucher` TINYINT(1) NOT NULL DEFAULT 0 AFTER `enabled`;\n\n";
-
-        // Forward-fix: legacy nexfile dump leaves these tables without
-        // AUTO_INCREMENT (they relied on externally-assigned ids). The WIZARD
-        // provisioning + the tenant operating going forward both need
-        // auto-generated PKs to insert without specifying id every time.
-        $out .= "ALTER TABLE `agency` MODIFY `id` BIGINT NOT NULL AUTO_INCREMENT;\n\n";
-
-        // FK integrity additions — el dump original deja muchas columnas id_*
-        // sin FK declarada (proclive a huérfanos). Las agregamos aquí. Ver
-        // `php spark tenant:audit-orphans --db <name>` para identificar y
-        // limpiar huérfanos antes de aplicar estas FKs a un tenant ya creado.
-        $out .= "-- ====== FK integrity additions ======\n";
-        $out .= "-- Type-alignment (parents legacy INT, Phase A children BIGINT → downgrade):\n";
-        $out .= "ALTER TABLE `client_group_phase` MODIFY `id_expedient_state` INT NOT NULL;\n";
-        $out .= "ALTER TABLE `agency`             MODIFY `id_company`    INT DEFAULT NULL;\n\n";
-
-        $out .= "-- Categoría A (Phase A, sin huérfanos):\n";
-        $out .= "ALTER TABLE `client_group` ADD CONSTRAINT `fk_cg_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `client_group_sale_type` ADD CONSTRAINT `fk_cgst_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE CASCADE;\n";
-        $out .= "ALTER TABLE `client_group_phase` ADD CONSTRAINT `fk_cgph_file_state` FOREIGN KEY (`id_expedient_state`) REFERENCES `expedient_state` (`id`) ON DELETE CASCADE;\n";
-        $out .= "ALTER TABLE `company` ADD CONSTRAINT `fk_company_client_group` FOREIGN KEY (`id_client_group`) REFERENCES `client_group` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n\n";
-
-        $out .= "-- Categoría B (legacy hierarchy, post-cleanup):\n";
-        $out .= "ALTER TABLE `agency` ADD CONSTRAINT `fk_agency_company` FOREIGN KEY (`id_company`) REFERENCES `company` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sale_type` FOREIGN KEY (`id_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `document_type` ADD CONSTRAINT `fk_document_type_sub_sale_type` FOREIGN KEY (`id_sub_sale_type`) REFERENCES `sale_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `liquidation_receipt_detail` ADD CONSTRAINT `fk_lrd_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `client_identification_data` ADD CONSTRAINT `fk_cid_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `config` ADD CONSTRAINT `fk_config_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n";
-        $out .= "ALTER TABLE `payment_method` ADD CONSTRAINT `fk_payment_method_last_user_update` FOREIGN KEY (`id_last_user_update`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;\n\n";
 
         // === Views (DEFINER stripped, source-DB refs rewritten to bare table refs) ===
         // Skip dead views: referencian tablas que no existen post-rename
@@ -259,10 +151,6 @@ class DumpBaselineCommand extends BaseCommand
                 $ddl = preg_replace('/SQL\s+SECURITY\s+DEFINER\s*/i', 'SQL SECURITY INVOKER ', $ddl);
                 // Drop source-DB qualifier so view refs to its own DB
                 $ddl = str_replace("`{$sourceDb}`.", '', $ddl);
-                // Apply table renames inside view body
-                foreach (self::TABLE_RENAMES as $from => $to) {
-                    $ddl = preg_replace('/`' . preg_quote($from, '/') . '`/', "`{$to}`", $ddl);
-                }
                 $out .= "DROP VIEW IF EXISTS `{$v}`;\n";
                 $out .= $ddl . ";\n\n";
             }
@@ -281,21 +169,15 @@ class DumpBaselineCommand extends BaseCommand
         $out .= "SET FOREIGN_KEY_CHECKS = 0;\n\n";
 
         foreach (self::CATALOG_TABLES as $t) {
-            $targetTable = self::TABLE_RENAMES[$t] ?? $t;
             if (!$db->tableExists($t)) continue;
             $rows = $db->table($t)->orderBy('id', 'ASC')->get()->getResultArray();
             if (!$rows) continue;
 
-            $out .= "-- ------ Data for `{$targetTable}` (" . count($rows) . " rows) ------\n";
-            $out .= "TRUNCATE TABLE `{$targetTable}`;\n";
+            $out .= "-- ------ Data for `{$t}` (" . count($rows) . " rows) ------\n";
+            $out .= "TRUNCATE TABLE `{$t}`;\n";
 
-            // Determine column list from first row
             $cols = array_keys($rows[0]);
             $colsList = implode('`, `', $cols);
-
-            // Special handling: expedient_state needs the new requires_payment_voucher column
-            // pre-populated for backwards compat (Liquidación = id 2)
-            $isFileState = ($targetTable === 'expedient_state');
 
             foreach ($rows as $r) {
                 $values = [];
@@ -305,15 +187,7 @@ class DumpBaselineCommand extends BaseCommand
                     elseif (is_numeric($v) && !preg_match('/^0\d/', $v)) $values[] = $v;
                     else $values[] = "'" . str_replace("'", "''", (string) $v) . "'";
                 }
-                if ($isFileState) {
-                    // append the requires_payment_voucher column
-                    $rpv = ((int) $r['id'] === 2) ? '1' : '0';
-                    $colsForInsert = '`' . $colsList . '`, `requires_payment_voucher`';
-                    $valuesForInsert = implode(', ', $values) . ', ' . $rpv;
-                    $out .= "INSERT INTO `{$targetTable}` ({$colsForInsert}) VALUES ({$valuesForInsert});\n";
-                } else {
-                    $out .= "INSERT INTO `{$targetTable}` (`{$colsList}`) VALUES (" . implode(', ', $values) . ");\n";
-                }
+                $out .= "INSERT INTO `{$t}` (`{$colsList}`) VALUES (" . implode(', ', $values) . ");\n";
             }
             $out .= "\n";
         }

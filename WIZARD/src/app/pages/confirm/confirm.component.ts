@@ -24,7 +24,8 @@ import { WizardStateService } from '../../state/wizard-state.service';
           <div><b>Grupo:</b> {{ state.clientGroup().name }}</div>
           <div><b>Razones sociales:</b> {{ state.companies().length }}</div>
           <div><b>Agencias:</b> {{ state.agencies().length }}</div>
-          <div><b>Procesos:</b> {{ state.processes().length }} ({{ voucherPhase() }} lleva comprobante)</div>
+          <div><b>Fases:</b> {{ state.expedientPhases().length }} ({{ voucherPhase() }} lleva comprobante)</div>
+          <div><b>Subfases:</b> {{ state.expedientSubStates().length }}</div>
           <div><b>Catálogos:</b> {{ catalogSummary() }}</div>
           <div><b>Admin:</b> {{ state.adminUserDraft().email }}</div>
           <div><b>Integraciones:</b> {{ integrationsSummary() }}</div>
@@ -69,7 +70,7 @@ export class ConfirmComponent {
   errorMsg = signal<string | null>(null);
 
   voucherPhase(): string {
-    return this.state.processes().find((p) => p.requires_payment_voucher === 1)?.name ?? 'ninguno';
+    return this.state.expedientPhases().find((p) => p.requires_payment_voucher === 1)?.name ?? 'ninguno';
   }
   catalogSummary(): string {
     const entries = Object.entries(this.state.catalogSeeds()).map(([k, v]) => `${k}: ${v.length}`);
@@ -103,6 +104,8 @@ export class ConfirmComponent {
       companies: this.state.companies(),
       agencies: this.state.agencies(),
       processes: this.state.processes(),
+      expedientPhases: this.state.expedientPhases(),
+      expedientSubStates: this.state.expedientSubStates(),
       catalogSeeds: this.state.catalogSeeds(),
       admin: this.state.adminUserDraft(),
       branding: this.state.branding(),

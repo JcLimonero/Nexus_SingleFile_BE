@@ -44,10 +44,13 @@ export const routes: Routes = [
       import('./pages/agencies/agencies.component').then((m) => m.AgenciesComponent),
   },
   {
-    path: 'processes',
+    path: 'phases',
     loadComponent: () =>
       import('./pages/processes/processes.component').then((m) => m.ProcessesComponent),
   },
+  // Alias legacy — antes el paso se llamaba "processes" pero ahora maneja
+  // fases (expedient_state) + subfases (expedient_sub_state).
+  { path: 'processes', redirectTo: 'phases', pathMatch: 'full' },
   {
     path: 'catalogs',
     loadComponent: () =>

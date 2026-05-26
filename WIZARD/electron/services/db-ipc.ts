@@ -191,6 +191,25 @@ interface ProvisionPayload {
   companies: Array<{ name: string; rfc?: string }>;
   agencies: Array<{ companyIndex: number; name: string; address?: string }>;
   processes: Array<{ id?: number; name: string; display_order: number; requires_payment_voucher: number; enabled?: number }>;
+  /** Fases del workflow (expedient_state). Si está vacío, no se siembran. */
+  expedientPhases?: Array<{
+    id: number;
+    name: string;
+    display_order: number | null;
+    enabled: number;
+    requires_payment_voucher: number;
+    is_navigable: number;
+    allows_document_upload: number;
+    is_terminal: number;
+    is_system: number;
+  }>;
+  /** Subfases (expedient_sub_state) ligadas a fases por id_expedient_state. */
+  expedientSubStates?: Array<{
+    id: number;
+    id_expedient_state: number;
+    name: string;
+    enabled: number;
+  }>;
   catalogSeeds: Record<string, any[]>; // table → rows (already edited by admin in step 8)
   admin: { email: string; password: string; name?: string };
   branding?: { appName?: string; primaryColor?: string; logoBase64?: string };
@@ -435,6 +454,51 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
         }
       }
 
+      // 4.5 Seed expedient_state + expedient_sub_state (catálogo de fases).
+      // Va antes del admin user porque las FK id_last_user_update aceptan NULL
+      // o 0 con FOREIGN_KEY_CHECKS=0. TRUNCATE primero por seguridad —
+      // si el baseline data.sql empieza a sembrar estas tablas en el futuro
+      // (no lo hace hoy), nuestro INSERT manda.
+      if (payload.expedientPhases?.length) {
+        log.push(`Sembrando expedient_state (${payload.expedientPhases.length} fases)…`);
+        await withConnection(payload.tenant.db, async (c) => {
+          await c.query('SET FOREIGN_KEY_CHECKS = 0');
+          await c.query('TRUNCATE TABLE expedient_state');
+          for (const p of payload.expedientPhases!) {
+            await c.query(
+              `INSERT INTO expedient_state
+                 (id, name, enabled, requires_payment_voucher, is_navigable,
+                  allows_document_upload, is_terminal, is_system, display_order)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                p.id,
+                p.name,
+                p.enabled ?? 1,
+                p.requires_payment_voucher ?? 0,
+                p.is_navigable ?? 1,
+                p.allows_document_upload ?? 0,
+                p.is_terminal ?? 0,
+                p.is_system ?? 0,
+                p.display_order ?? null,
+              ],
+            );
+          }
+
+          if (payload.expedientSubStates?.length) {
+            log.push(`Sembrando expedient_sub_state (${payload.expedientSubStates.length} subfases)…`);
+            await c.query('TRUNCATE TABLE expedient_sub_state');
+            for (const s of payload.expedientSubStates!) {
+              await c.query(
+                `INSERT INTO expedient_sub_state (id, id_expedient_state, name, enabled)
+                 VALUES (?, ?, ?, ?)`,
+                [s.id, s.id_expedient_state, s.name, s.enabled ?? 1],
+              );
+            }
+          }
+          await c.query('SET FOREIGN_KEY_CHECKS = 1');
+        });
+      }
+
       // 5. Admin user FIRST — every other row's id_last_user_update FK points to user.id
       // Note: legacy `user` schema has no AUTO_INCREMENT on id and id_user_role
       // defaults to 0 (FK to user_role would fail). Assign id=1 + id_user_role=7
@@ -502,6 +566,26 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
               [clientGroupId, p.id, p.display_order, p.enabled ?? 1],
             );
           }
+        }
+
+        // client_group_phase: asignar las fases navegables al grupo (sidebar
+        // order). Solo las is_navigable=1 — terminales no se ven en sidebar.
+        // El display_order acá lo mantenemos sincronizado con el global
+        // (expedient_state.display_order) — el admin puede divergirlos después
+        // editando solo por-grupo desde el FE.
+        const navigablePhases = (payload.expedientPhases ?? []).filter(
+          (p) => p.is_navigable === 1,
+        );
+        for (const p of navigablePhases) {
+          await c.query(
+            `INSERT INTO client_group_phase
+               (id_client_group, id_expedient_state, display_order, enabled)
+             VALUES (?, ?, ?, ?)`,
+            [clientGroupId, p.id, p.display_order ?? 0, p.enabled ?? 1],
+          );
+        }
+        if (navigablePhases.length) {
+          log.push(`  client_group_phase: ${navigablePhases.length} fases asignadas al grupo`);
         }
 
         await c.query('SET FOREIGN_KEY_CHECKS = 1');

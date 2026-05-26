@@ -100,5 +100,5 @@ export class AgenciesComponent {
     return c?.name ?? '—';
   }
 
-  next() { this.state.agencies.set(this.items()); this.router.navigate(['/processes']); }
+  next() { this.state.agencies.set(this.items()); this.router.navigate(['/phases']); }
 }
