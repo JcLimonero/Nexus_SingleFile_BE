@@ -17,7 +17,7 @@
             
             <!-- Búsqueda por texto -->
             <mat-form-field appearance="outline" class="w-[400px]">
-              <mat-label>Buscar procesos</mat-label>
+              <mat-label>Buscar tipos de venta</mat-label>
               <input 
                 matInput 
                 [(ngModel)]="searchTerm" 
@@ -54,10 +54,10 @@
               mat-raised-button 
               color="primary" 
               (click)="openCreateDialog()"
-              matTooltip="Crear nuevo proceso"
+              matTooltip="Crear nuevo tipo de venta"
               class="flex items-center gap-2">
               <mat-icon>add_circle</mat-icon>
-              Nuevo Proceso
+              Nuevo Tipo de Venta
             </button>
           </div>
         </div>
@@ -141,11 +141,11 @@
         <td colspan="4" class="text-center py-8">
           <div class="flex flex-col items-center gap-2 text-gray-500">
             <mat-icon class="text-4xl text-gray-300">inbox</mat-icon>
-            <p class="text-lg font-medium">No hay procesos para mostrar</p>
+            <p class="text-lg font-medium">No hay tipos de venta para mostrar</p>
             <p class="text-sm">
-              <span *ngIf="loading">Cargando procesos...</span>
+              <span *ngIf="loading">Cargando tipos de venta...</span>
               <span *ngIf="!loading && (searchTerm || statusFilter)">
-                No se encontraron procesos con los filtros aplicados.
+                No se encontraron tipos de venta con los filtros aplicados.
                 <button 
                   mat-button 
                   color="primary" 
@@ -155,7 +155,7 @@
                 </button>
               </span>
               <span *ngIf="!loading && !searchTerm && !statusFilter">
-                No hay procesos registrados en el sistema.
+                No hay tipos de venta registrados en el sistema.
               </span>
             </p>
           </div>

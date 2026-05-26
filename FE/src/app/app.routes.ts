@@ -142,11 +142,19 @@ export const appRoutes: VexRoutes = [
                 )
             },
             {
-              path: 'procesos',
+              path: 'tipos-venta',
               loadComponent: () =>
-                import('./pages/configuracion/catalogos/procesos/procesos.component').then(
-                  (m) => m.ProcesosComponent
+                import('./pages/configuracion/catalogos/tipos-venta/tipos-venta.component').then(
+                  (m) => m.TiposVentaComponent
                 )
+            },
+            // Redirect del path legacy (antes confundía con "Procesos" = fases
+            // del workflow). El catálogo es la tabla sale_type — renombrado para
+            // separar conceptos. Bookmarks viejos siguen funcionando.
+            {
+              path: 'procesos',
+              redirectTo: 'tipos-venta',
+              pathMatch: 'full'
             },
             {
               path: 'tipos-operacion',

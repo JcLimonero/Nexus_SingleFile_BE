@@ -168,8 +168,8 @@ export class ToolbarComponent implements OnInit {
         return 'Tipos de Documento';
       } else if (url.includes('/tipos-cliente')) {
         return 'Tipos de Cliente';
-      } else if (url.includes('/catalogos/procesos')) {
-        return 'Procesos';
+      } else if (url.includes('/catalogos/tipos-venta') || url.includes('/catalogos/procesos')) {
+        return 'Tipos de Venta';
       } else if (url.includes('/catalogos/tipos-operacion')) {
         return 'Tipos de Operación';
       } else if (url.includes('/catalogos')) {

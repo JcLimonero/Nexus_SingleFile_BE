@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <h2 class="text-2xl font-bold text-gray-900">
-      {{ data.mode === 'edit' ? 'Editar Proceso' : 'Nuevo Proceso' }}
+      {{ data.mode === 'edit' ? 'Editar Tipo de Venta' : 'Nuevo Tipo de Venta' }}
     </h2>
     <button mat-icon-button (click)="onCancel()" matTooltip="Cerrar">
       <mat-icon>close</mat-icon>
@@ -13,13 +13,13 @@
   <form [formGroup]="procesoForm" (ngSubmit)="onSubmit()" class="space-y-4">
     <!-- Nombre -->
     <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Nombre del Proceso</mat-label>
+      <mat-label>Nombre del Tipo de Venta</mat-label>
       <input 
         matInput 
         formControlName="name" 
         placeholder="Ej: Gestión de Clientes"
         maxlength="600">
-      <mat-hint>Nombre completo del proceso (máximo 600 caracteres)</mat-hint>
+      <mat-hint>Nombre completo del tipo de venta (máximo 600 caracteres)</mat-hint>
       <mat-error *ngIf="procesoForm.get('name')?.hasError('required')">
         El nombre es requerido
       </mat-error>
@@ -42,7 +42,7 @@
         <mat-option value="1">Activo</mat-option>
         <mat-option value="0">Inactivo</mat-option>
       </mat-select>
-      <mat-hint>Estado actual del proceso</mat-hint>
+      <mat-hint>Estado actual del tipo de venta</mat-hint>
     </mat-form-field>
 
     <!-- Información adicional (solo lectura en modo edición) -->
@@ -84,7 +84,7 @@
         [disabled]="procesoForm.invalid || loading">
         <mat-spinner *ngIf="loading" diameter="20" class="mr-2"></mat-spinner>
         <mat-icon *ngIf="!loading">{{ data.mode === 'edit' ? 'save' : 'add' }}</mat-icon>
-        {{ data.mode === 'edit' ? 'Guardar Cambios' : 'Crear Proceso' }}
+        {{ data.mode === 'edit' ? 'Guardar Cambios' : 'Crear Tipo de Venta' }}
       </button>
     </div>
   </form>

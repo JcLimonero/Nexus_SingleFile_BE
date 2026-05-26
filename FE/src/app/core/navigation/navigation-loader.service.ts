@@ -163,10 +163,14 @@ export class NavigationLoaderService {
                 icon: 'mat:storefront'
               },
               {
+                // Catálogo de la tabla sale_type (Autos Nuevos, Seminuevos,
+                // Motos). Renombrado de "Procesos" a "Tipos de Venta" para
+                // no confundir con las fases del workflow (Integración,
+                // Liquidación, Liberación) que también se llaman "procesos".
                 type: 'link',
-                label: 'Procesos',
-                route: '/configuracion/catalogos/procesos',
-                icon: 'mat:list_alt'
+                label: 'Tipos de Venta',
+                route: '/configuracion/catalogos/tipos-venta',
+                icon: 'mat:sell'
               },
               {
                 type: 'link',

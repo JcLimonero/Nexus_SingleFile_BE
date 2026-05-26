@@ -13,13 +13,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Proceso, ProcesoUpdateRequest } from '../../../../../core/interfaces/proceso.interface';
 import { ProcesoService } from '../../../../../core/services/proceso.service';
 
-export interface ProcesoEditDialogData {
+export interface TipoVentaEditDialogData {
   proceso: Proceso;
   mode: 'edit' | 'create';
 }
 
 @Component({
-  selector: 'app-proceso-edit-dialog',
+  selector: 'app-tipo-venta-edit-dialog',
   standalone: true,
   imports: [
     CommonModule,
@@ -33,9 +33,9 @@ export interface ProcesoEditDialogData {
     MatSnackBarModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './proceso-edit-dialog.component.html'
+  templateUrl: './tipo-venta-edit-dialog.component.html'
 })
-export class ProcesoEditDialogComponent implements OnInit {
+export class TipoVentaEditDialogComponent implements OnInit {
   procesoForm!: FormGroup;
   loading = false;
 
@@ -43,8 +43,8 @@ export class ProcesoEditDialogComponent implements OnInit {
     private fb: FormBuilder,
     private procesoService: ProcesoService,
     private snackBar: MatSnackBar,
-    private dialogRef: MatDialogRef<ProcesoEditDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ProcesoEditDialogData
+    private dialogRef: MatDialogRef<TipoVentaEditDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: TipoVentaEditDialogData
   ) {
     this.initializeForm();
   }

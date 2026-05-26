@@ -22,10 +22,10 @@ import { Proceso, ProcesoCreateRequest, ProcesoUpdateRequest } from '../../../..
 import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { ProcesoService } from '../../../../core/services/proceso.service';
-import { ProcesoEditDialogComponent, ProcesoEditDialogData } from './proceso-edit-dialog/proceso-edit-dialog.component';
+import { TipoVentaEditDialogComponent, TipoVentaEditDialogData } from './tipo-venta-edit-dialog/tipo-venta-edit-dialog.component';
 
 @Component({
-  selector: 'app-procesos',
+  selector: 'app-tipos-venta',
   standalone: true,
   imports: [
     CommonModule,
@@ -48,10 +48,10 @@ import { ProcesoEditDialogComponent, ProcesoEditDialogData } from './proceso-edi
     MatDividerModule,
     MatProgressSpinnerModule
   ],
-  templateUrl: './procesos.component.html',
-  styleUrls: ['./procesos.component.scss']
+  templateUrl: './tipos-venta.component.html',
+  styleUrls: ['./tipos-venta.component.scss']
 })
-export class ProcesosComponent implements OnInit, AfterViewInit {
+export class TiposVentaComponent implements OnInit, AfterViewInit {
   procesos: Proceso[] = [];
   dataSource = new MatTableDataSource<Proceso>([]);
   totalProcesos = 0;
@@ -228,12 +228,12 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
   }
 
   openCreateDialog(): void {
-    const dialogData: ProcesoEditDialogData = {
+    const dialogData: TipoVentaEditDialogData = {
       proceso: {} as Proceso,
       mode: 'create'
     };
 
-    const dialogRef = this.dialog.open(ProcesoEditDialogComponent, {
+    const dialogRef = this.dialog.open(TipoVentaEditDialogComponent, {
       width: '600px',
       data: dialogData,
       disableClose: false
@@ -247,12 +247,12 @@ export class ProcesosComponent implements OnInit, AfterViewInit {
   }
 
   openEditDialog(proceso: Proceso): void {
-    const dialogData: ProcesoEditDialogData = {
+    const dialogData: TipoVentaEditDialogData = {
       proceso: proceso,
       mode: 'edit'
     };
 
-    const dialogRef = this.dialog.open(ProcesoEditDialogComponent, {
+    const dialogRef = this.dialog.open(TipoVentaEditDialogComponent, {
       width: '600px',
       data: dialogData,
       disableClose: false
