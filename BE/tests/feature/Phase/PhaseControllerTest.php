@@ -70,6 +70,10 @@ final class PhaseControllerTest extends FeatureApiTestCase
      * expedient_state.display_order (10=Integración, 20=Liquidación,
      * 30=Liberación). Aún si el admin cambia ese orden vía SQL, el
      * endpoint lo respeta.
+     *
+     * Tolerante a fases admin extra (is_navigable=1 agregadas después
+     * del seed) — solo valida que las 3 system aparezcan en orden,
+     * antes de cualquier extra.
      */
     public function testLegacyAllOrdersByDisplayOrder(): void
     {
@@ -78,8 +82,11 @@ final class PhaseControllerTest extends FeatureApiTestCase
 
         $stateIds = array_column($body['data']['phases'], 'id_expedient_state');
 
-        // Con el backfill default (10/20/30) Integración → Liquidación → Liberación.
-        $this->assertSame([1, 2, 3], $stateIds,
-            'legacy_all debe ordenar por display_order de expedient_state');
+        // Las 3 system phases deben aparecer en posiciones 0, 1, 2 con
+        // los ids 1, 2, 3 (display_order 10, 20, 30 backfilled).
+        $this->assertGreaterThanOrEqual(3, count($stateIds), 'Al menos 3 fases');
+        $this->assertSame(1, $stateIds[0], 'Posición 0 debe ser Integración (display_order=10)');
+        $this->assertSame(2, $stateIds[1], 'Posición 1 debe ser Liquidación (display_order=20)');
+        $this->assertSame(3, $stateIds[2], 'Posición 2 debe ser Liberación (display_order=30)');
     }
 }

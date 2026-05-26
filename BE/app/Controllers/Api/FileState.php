@@ -72,7 +72,13 @@ class FileState extends BaseController
 
     /**
      * GET /api/file-state/active
-     * Obtener solo las fases específicas: Integración, Liquidación y Liberación
+     * Obtener fases navegables del workflow (las que aparecen en sidebar
+     * y permiten asociar tipos de documento). Excluye terminales como
+     * Liberado, Cancelado, Excepción.
+     *
+     * Antes filtraba por whereIn('name', ['Integración', 'Liquidación',
+     * 'Liberación']) hardcoded — frágil si se renombra una fase. Ahora
+     * usa el flag semántico is_navigable=1.
      */
     public function active()
     {
@@ -88,15 +94,19 @@ class FileState extends BaseController
 
             $builder = $this->db->table('expedient_state fs');
             $builder->select('fs.*');
-            // Filtrar solo las fases específicas requeridas (fases activas del proceso)
-            $builder->whereIn('fs.name', ['Integración', 'Liquidación', 'Liberación']);
-            $builder->orderBy('fs.name', 'ASC');
+            // Solo fases navegables y activas — consistente con
+            // Phase::activeForUser branch legacy_all.
+            $builder->where('fs.is_navigable', 1);
+            $builder->where('fs.enabled', 1);
+            // Orden por display_order (incrementos de 10), fallback id.
+            $builder->orderBy('fs.display_order', 'ASC');
+            $builder->orderBy('fs.id', 'ASC');
 
             $results = $builder->get()->getResultArray();
 
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Fases específicas obtenidas exitosamente',
+                'message' => 'Fases navegables obtenidas exitosamente',
                 'data' => [
                     'file_states' => $results,
                     'count' => count($results)
@@ -107,7 +117,7 @@ class FileState extends BaseController
 
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error al obtener fases específicas: ' . $e->getMessage()
+                'message' => 'Error al obtener fases navegables: ' . $e->getMessage()
             ])->setStatusCode(500);
         }
     }
