@@ -172,6 +172,28 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * Bloquea una operación que solo puede ejecutar el operador del WIZARD
+     * desde la administración central (no desde la app web del tenant).
+     *
+     * Aplica a creación/eliminación/toggle de companies y agencies — el modelo
+     * de cobro es por agencia, así que el cliente no puede modificar el
+     * conteo billable. El operador edita estas tablas vía MySQL directo
+     * desde el WIZARD; este endpoint no tiene super-admin "real" que pueda
+     * bypasear, sólo es un bloqueo absoluto para clientes.
+     *
+     * Uso:  return $this->responseClientWriteBlocked('agency');
+     */
+    protected function responseClientWriteBlocked(string $resource)
+    {
+        return $this->response
+            ->setStatusCode(403)
+            ->setJSON([
+                'success' => false,
+                'message' => "La creación/eliminación de $resource está deshabilitada para clientes. Solicita el cambio al operador del wizard."
+            ]);
+    }
+
+    /**
      * IDs de agencias a las que el usuario tiene acceso (incluye su default_agency
      * + las asignadas en agency_user). Admin = null (sin filtro).
      *

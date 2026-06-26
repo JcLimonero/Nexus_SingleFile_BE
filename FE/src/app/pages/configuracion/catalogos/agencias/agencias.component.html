@@ -135,7 +135,13 @@
               class="!w-6 !h-6 !min-h-6 !p-0">
               <mat-icon class="!text-sm">edit</mat-icon>
             </button>
+            <!--
+              Eliminación de agencias deshabilitada para clientes — afecta el conteo
+              billable. Se gestiona desde el WIZARD (modo administración). El BE
+              también rechaza el endpoint con 403 (BaseController::responseClientWriteBlocked).
+            -->
             <button
+              *ngIf="false"
               (click)="deleteAgencia(agencia)"
               mat-icon-button
               color="warn"

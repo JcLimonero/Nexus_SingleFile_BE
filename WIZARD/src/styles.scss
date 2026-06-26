@@ -2,9 +2,85 @@
 
 @include mat.core();
 
-$wizard-primary: mat.define-palette(mat.$indigo-palette);
-$wizard-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+// Marca Nexus Q Tech — alineado con https://www.nexusqtech.com:
+//   navy  #0a2540  → primary (toolbar, headings, CTAs)
+//   cyan  #06b6d4  → accent (highlights, success-ish actions)
+//   gray  #f3f3f5  → app background
+//   tipografía: system-stack (Inter como fallback web cuando esté disponible)
+// Tonos derivados a mano (Material 17 sigue usando palette maps tradicional).
+$nexus-navy: (
+  50:  #e7eaef,
+  100: #c2cbd7,
+  200: #99a8bc,
+  300: #7186a0,
+  400: #496283,
+  500: #0a2540,
+  600: #082038,
+  700: #061a2e,
+  800: #051527,
+  900: #02101d,
+  A100: #5b78ff,
+  A200: #2845ff,
+  A400: #0021f1,
+  A700: #001cda,
+  contrast: (
+    50:  #0a2540,
+    100: #0a2540,
+    200: #0a2540,
+    300: #ffffff,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #ffffff,
+    A200: #ffffff,
+    A400: #ffffff,
+    A700: #ffffff,
+  )
+);
+
+$nexus-cyan: (
+  50:  #ecfeff,
+  100: #cffafe,
+  200: #a5f3fc,
+  300: #67e8f9,
+  400: #22d3ee,
+  500: #06b6d4,
+  600: #0891b2,
+  700: #0e7490,
+  800: #155e75,
+  900: #164e63,
+  A100: #a5f3fc,
+  A200: #22d3ee,
+  A400: #06b6d4,
+  A700: #0891b2,
+  contrast: (
+    50:  #0a2540,
+    100: #0a2540,
+    200: #0a2540,
+    300: #0a2540,
+    400: #0a2540,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #0a2540,
+    A200: #0a2540,
+    A400: #ffffff,
+    A700: #ffffff,
+  )
+);
+
+$wizard-primary: mat.define-palette($nexus-navy, 500);
+$wizard-accent: mat.define-palette($nexus-cyan, 500);
 $wizard-warn: mat.define-palette(mat.$red-palette);
+
+$wizard-typography: mat.define-typography-config(
+  $font-family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+);
 
 $wizard-theme: mat.define-light-theme((
   color: (
@@ -12,17 +88,35 @@ $wizard-theme: mat.define-light-theme((
     accent: $wizard-accent,
     warn: $wizard-warn,
   ),
-  typography: mat.define-typography-config(),
+  typography: $wizard-typography,
   density: 0,
 ));
 
 @include mat.all-component-themes($wizard-theme);
+@include mat.typography-hierarchy($wizard-typography);
+
+// === Tokens de marca expuestos como custom props para usar en HTML/inline. ===
+:root {
+  --nexus-navy:        #0a2540;
+  --nexus-navy-700:    #061a2e;
+  --nexus-navy-100:    #c2cbd7;
+  --nexus-cyan:        #06b6d4;
+  --nexus-cyan-600:    #0891b2;
+  --nexus-cyan-50:     #ecfeff;
+  --nexus-gray-bg:     #f3f3f5;
+  --nexus-gray-border: #e3e5ea;
+  --nexus-text:        #0a2540;
+  --nexus-text-muted:  #4b5b73;
+}
 
 html, body {
   height: 100%;
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  background: #f6f7fb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--nexus-gray-bg);
+  color: var(--nexus-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .wiz-shell {
@@ -41,6 +135,14 @@ html, body {
   box-sizing: border-box;
 }
 
+// Cards limpias estilo nexusqtech: borde sutil + sombra muy ligera.
+.wiz-card,
+.mat-mdc-card {
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(10, 37, 64, 0.04), 0 1px 3px rgba(10, 37, 64, 0.06) !important;
+  border: 1px solid var(--nexus-gray-border);
+}
+
 .wiz-card {
   padding: 24px;
   margin-bottom: 24px;
@@ -53,7 +155,60 @@ html, body {
   gap: 12px;
 }
 
-.wiz-stepper {
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
+// Toolbar = navy sólido, lockear los tokens internos del mdc-toolbar
+// para que el texto sea blanco aunque algún tema dependa de --mdc-*.
+.mat-toolbar.mat-primary {
+  background-color: var(--nexus-navy) !important;
+  color: #ffffff !important;
+  --mdc-text-button-label-text-color: #ffffff;
+}
+
+// Botones primarios — color navy con texto blanco.
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+  background-color: var(--nexus-navy) !important;
+  color: #ffffff !important;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+// Botones accent (cyan) — más claros, para CTAs secundarios.
+.mat-mdc-raised-button.mat-accent,
+.mat-mdc-unelevated-button.mat-accent {
+  background-color: var(--nexus-cyan) !important;
+  color: #ffffff !important;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+// Sidenav del shell con borde derecho sutil y fondo blanco-puro
+.mat-drawer.mat-drawer-side {
+  background: #ffffff;
+  border-right: 1px solid var(--nexus-gray-border);
+}
+
+// Links activos del sidebar — navy + tinta cyan en marker
+.active-nav {
+  background-color: rgba(6, 182, 212, 0.08) !important;
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 3px;
+    background: var(--nexus-cyan);
+    border-radius: 0 3px 3px 0;
+  }
+}
+
+// Mat tabs — underline cyan
+.mat-mdc-tab-group .mdc-tab-indicator__content--underline {
+  border-color: var(--nexus-cyan) !important;
+}
+
+// Chips — más sutiles
+.mat-mdc-chip.mat-primary.mat-mdc-chip-highlighted,
+.mat-mdc-chip-highlighted.mat-primary {
+  background-color: var(--nexus-cyan-50) !important;
+  color: var(--nexus-navy) !important;
 }

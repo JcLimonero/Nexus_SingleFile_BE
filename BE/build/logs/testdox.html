@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Test Documentation</title>
+        <style>
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                margin-left: 2rem;
+                background-color: #fff;
+                color: #000;
+            }
+
+            body > ul > li {
+                font-size: larger;
+            }
+
+            h2 {
+                font-size: larger;
+                text-decoration-line: underline;
+                text-decoration-thickness: 2px;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            ul {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0 0 0 1rem;
+                text-indent: -1rem;
+            }
+
+            .success:before {
+                color: #4e9a06;
+                content: '✓';
+                padding-right: 0.5rem;
+            }
+
+            .defect {
+                color: #a40000;
+            }
+
+            .defect:before {
+                color: #a40000;
+                content: '✗';
+                padding-right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Agency Controller (Tests\Feature\Agency\AgencyController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>Analytics Controller (Tests\Feature\Analytics\AnalyticsController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "dashboard"</li>
+            <li class="success">Endpoint requires auth with data set "widget-document-statistics"</li>
+            <li class="success">Endpoint requires auth with data set "widget-process-statistics"</li>
+            <li class="success">Endpoint requires auth with data set "widget-agency-statistics"</li>
+            <li class="success">Endpoint requires auth with data set "widget-agency-specific-metrics"</li>
+            <li class="success">Endpoint requires auth with data set "widget-file-trend-chart"</li>
+            <li class="success">Endpoint requires auth with data set "widget-file-distribution"</li>
+            <li class="success">Endpoint requires auth with data set "widget-process-distribution"</li>
+            <li class="success">Endpoint requires auth with data set "widget-status-distribution"</li>
+            <li class="success">Endpoint requires auth with data set "widget-current-month-status"</li>
+            <li class="success">Endpoint requires auth with data set "widget-previous-months"</li>
+            <li class="success">Endpoint requires auth with data set "widget-historical-status"</li>
+            <li class="success">Endpoint requires auth with data set "advisor-distribution"</li>
+            <li class="success">Endpoint requires auth with data set "weekly-data"</li>
+            <li class="success">Endpoint requires auth with data set "attention-period"</li>
+            <li class="success">Endpoint requires auth with data set "current-month-attention"</li>
+            <li class="success">Endpoint requires auth with data set "current-month-liberated"</li>
+            <li class="success">Endpoint requires auth with data set "total-liberated"</li>
+            <li class="success">Endpoint requires auth with data set "orders-by-attention-period"</li>
+            <li class="success">Endpoint requires auth with data set "widget-system-overview"</li>
+            <li class="success">Endpoint requires auth with data set "export"</li>
+            <li class="success">Endpoint responds with json shape with data set "dashboard"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-document-statistics"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-process-statistics"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-agency-statistics"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-agency-specific-metrics"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-file-trend-chart"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-file-distribution"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-process-distribution"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-status-distribution"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-current-month-status"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-previous-months"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-historical-status"</li>
+            <li class="success">Endpoint responds with json shape with data set "advisor-distribution"</li>
+            <li class="success">Endpoint responds with json shape with data set "weekly-data"</li>
+            <li class="success">Endpoint responds with json shape with data set "attention-period"</li>
+            <li class="success">Endpoint responds with json shape with data set "current-month-attention"</li>
+            <li class="success">Endpoint responds with json shape with data set "current-month-liberated"</li>
+            <li class="success">Endpoint responds with json shape with data set "total-liberated"</li>
+            <li class="success">Endpoint responds with json shape with data set "orders-by-attention-period"</li>
+            <li class="success">Endpoint responds with json shape with data set "widget-system-overview"</li>
+            <li class="success">Endpoint responds with json shape with data set "export"</li>
+        </ul>
+        <h2>Auth Controller (Tests\Feature\Auth\AuthController)</h2>
+        <ul>
+            <li class="success">Login rejects missing body</li>
+            <li class="success">Login rejects missing password</li>
+            <li class="success">Login rejects missing email</li>
+            <li class="success">Login rejects invalid credentials</li>
+            <li class="success">Verify rejects missing auth header</li>
+            <li class="success">Verify rejects empty bearer</li>
+            <li class="success">Verify rejects invalid token</li>
+            <li class="success">Verify rejects expired token</li>
+            <li class="success">Verify rejects wrong secret</li>
+            <li class="success">Verify accepts valid token</li>
+            <li class="success">Refresh rejects missing token</li>
+            <li class="success">Refresh rejects invalid token</li>
+            <li class="success">Refresh rejects access token instead of refresh</li>
+            <li class="success">Update email rejects missing fields</li>
+            <li class="success">Update email rejects missing password</li>
+            <li class="success">Update email rejects nonexistent user</li>
+            <li class="success">Logout rejects no auth</li>
+            <li class="success">Logout accepts valid auth</li>
+        </ul>
+        <h2>Backblaze Direct Upload Controller (Tests\Feature\BackblazeDirectUpload\BackblazeDirectUploadController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "POST upload"</li>
+            <li class="success">Endpoint requires auth with data set "POST direct-upload"</li>
+            <li class="success">Endpoint requires auth with data set "GET get-private-url"</li>
+            <li class="success">Endpoint requires auth with data set "GET download"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST upload"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST direct-upload"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET get-private-url"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET download"</li>
+        </ul>
+        <h2>Client Controller (Tests\Feature\Client\ClientController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET 1/expedientes"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET 1/expedientes"</li>
+        </ul>
+        <h2>Client Group Controller (Tests\Feature\ClientGroup\ClientGroupController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/1"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH estado/999999"</li>
+            <li class="success">Endpoint requires auth with data set "GET processes/1"</li>
+            <li class="success">Endpoint requires auth with data set "PUT processes/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET phases/1"</li>
+            <li class="success">Endpoint requires auth with data set "PUT phases/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH estado/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET processes/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT processes/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET phases/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT phases/1"</li>
+        </ul>
+        <h2>Client Search Controller (Tests\Feature\ClientSearch\ClientSearchController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET by-agency/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET by-agency/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+        </ul>
+        <h2>Company Client Import Controller (Tests\Feature\CompanyClientImport\CompanyClientImportController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "company-client-import"</li>
+            <li class="success">Endpoint requires auth with data set "NexFile alias"</li>
+            <li class="success">Endpoint responds with json shape with data set "company-client-import"</li>
+            <li class="success">Endpoint responds with json shape with data set "NexFile alias"</li>
+        </ul>
+        <h2>Company Controller (Tests\Feature\Company\CompanyController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+        </ul>
+        <h2>Config Controller (Tests\Feature\Config\ConfigController)</h2>
+        <ul>
+            <li class="success">Endpoint is public with data set "group_api_url"</li>
+            <li class="success">Endpoint is public with data set "activity-log-enabled"</li>
+        </ul>
+        <h2>Configuration Process Controller (Tests\Feature\ConfigurationProcess\ConfigurationProcessController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET enabled"</li>
+            <li class="success">Endpoint requires auth with data set "GET enabled-by-agency/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET enabled"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET enabled-by-agency/1"</li>
+        </ul>
+        <h2>Consolidacion Dms Controller (Tests\Feature\ConsolidacionDms\ConsolidacionDmsController)</h2>
+        <ul>
+            <li class="success">Pedidos requires auth</li>
+            <li class="success">Pedidos responds with json shape</li>
+        </ul>
+        <h2>Customer Type Controller (Tests\Feature\CustomerType\CustomerTypeController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>Document Controller (Tests\Feature\Document\DocumentController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET by-file/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET by-file/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>Document Type Controller (Tests\Feature\DocumentType\DocumentTypeController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET configs-to-add/1"</li>
+            <li class="success">Endpoint requires auth with data set "POST add-to-configs/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET configs/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE config/1/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET configs-to-add/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST add-to-configs/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET configs/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE config/1/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>Documento Requerido Controller (Tests\Feature\DocumentoRequerido\DocumentoRequeridoController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "PUT reorder"</li>
+            <li class="success">Endpoint requires auth with data set "POST duplicate"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT reorder"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST duplicate"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+        </ul>
+        <h2>Documents Controller (Tests\Feature\Documents\DocumentsController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET required"</li>
+            <li class="success">Endpoint requires auth with data set "GET missing-liberation"</li>
+            <li class="success">Endpoint requires auth with data set "GET get-file-name"</li>
+            <li class="success">Endpoint requires auth with data set "POST upload"</li>
+            <li class="success">Endpoint requires auth with data set "POST add-to-file"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET required"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET missing-liberation"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET get-file-name"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST upload"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST add-to-file"</li>
+        </ul>
+        <h2>Example Database</h2>
+        <ul>
+            <li class="success">Model find all</li>
+            <li class="success">Soft delete leaves row</li>
+        </ul>
+        <h2>Example Session</h2>
+        <ul>
+            <li class="success">Session simple</li>
+        </ul>
+        <h2>File Extraordinary Reason Controller (Tests\Feature\FileExtraordinaryReason\FileExtraordinaryReasonController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>File Reason Controller (Tests\Feature\FileReason\FileReasonController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>File State Controller (Tests\Feature\FileState\FileStateController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/1"</li>
+            <li class="success">Active excludes terminal states</li>
+        </ul>
+        <h2>File State Model Guard (Tests\Unit\FileStateModelGuard)</h2>
+        <ul>
+            <li class="success">Integracion is system</li>
+            <li class="success">Liquidacion is system</li>
+            <li class="success">Liberacion is not system</li>
+            <li class="success">Terminal states are not system</li>
+            <li class="success">Update rejects system phase rename</li>
+            <li class="success">Update rejects system phase disable</li>
+            <li class="success">Delete rejects system phase</li>
+            <li class="success">Update allows non system phase</li>
+        </ul>
+        <h2>File Sub State Controller (Tests\Feature\FileSubState\FileSubStateController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/1"</li>
+        </ul>
+        <h2>Files Controller (Tests\Feature\Files\FilesController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET by-client"</li>
+            <li class="success">Endpoint requires auth with data set "GET by-agency-client"</li>
+            <li class="success">Endpoint requires auth with data set "POST create-from-NexFile"</li>
+            <li class="success">Endpoint requires auth with data set "POST create-from-NexFile-new"</li>
+            <li class="success">Endpoint requires auth with data set "POST check-existing-orders"</li>
+            <li class="success">Endpoint requires auth with data set "POST repair-client-relation"</li>
+            <li class="success">Endpoint requires auth with data set "POST delete"</li>
+            <li class="success">Endpoint requires auth with data set "POST compare-dms-orders"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET by-client"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET by-agency-client"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create-from-NexFile"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create-from-NexFile-new"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST check-existing-orders"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST repair-client-relation"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST delete"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST compare-dms-orders"</li>
+        </ul>
+        <h2>Foundation Sanity (Tests\Feature\FoundationSanity)</h2>
+        <ul>
+            <li class="success">Can generate valid jwt</li>
+            <li class="success">Auth login rejects missing credentials</li>
+            <li class="success">Protected endpoint rejects no auth</li>
+            <li class="success">Protected endpoint accepts valid jwt</li>
+        </ul>
+        <h2>Health</h2>
+        <ul>
+            <li class="success">Is defined app path</li>
+            <li class="success">Base url has been set</li>
+        </ul>
+        <h2>Jwt Auth Filter (Tests\Unit\Filters\JwtAuthFilter)</h2>
+        <ul>
+            <li class="success">Options preflight passes without auth check</li>
+            <li class="success">Public path skips auth check</li>
+            <li class="success">Public prefix skips auth check</li>
+            <li class="success">Missing authorization header returns 401</li>
+            <li class="success">Empty bearer returns 401</li>
+            <li class="success">Invalid token returns 401</li>
+            <li class="success">After is noop</li>
+        </ul>
+        <h2>Nex File Proxy Controller (Tests\Feature\NexFileProxy\NexFileProxyController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET NexFileorderslastest"</li>
+            <li class="success">Endpoint requires auth with data set "GET NexFileinvoices"</li>
+            <li class="success">Endpoint requires auth with data set "GET NexFilecustomer"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET NexFileorderslastest"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET NexFileinvoices"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET NexFilecustomer"</li>
+        </ul>
+        <h2>Operation Type Controller (Tests\Feature\OperationType\OperationTypeController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH estado/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH estado/999999"</li>
+        </ul>
+        <h2>Password Manager Controller (Tests\Feature\PasswordManager\PasswordManagerController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "POST change"</li>
+            <li class="success">Endpoint requires auth with data set "POST reset"</li>
+            <li class="success">Endpoint requires auth with data set "GET migration-status"</li>
+            <li class="success">Endpoint requires auth with data set "POST force-migration"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST change"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST reset"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET migration-status"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST force-migration"</li>
+        </ul>
+        <h2>Payment Method Controller (Tests\Feature\PaymentMethod\PaymentMethodController)</h2>
+        <ul>
+            <li class="success">List requires auth</li>
+            <li class="success">List returns json shape</li>
+        </ul>
+        <h2>Phase Controller (Tests\Feature\Phase\PhaseController)</h2>
+        <ul>
+            <li class="success">Active for user requires auth</li>
+            <li class="success">Active for user returns json shape</li>
+            <li class="success">Legacy all excludes terminal states</li>
+            <li class="success">Phase response includes upload flag</li>
+            <li class="success">Legacy all orders by display order</li>
+        </ul>
+        <h2>Process Controller (Tests\Feature\Process\ProcessController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH estado/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH estado/999999"</li>
+        </ul>
+        <h2>Reportes Cumplimiento Controller (Tests\Feature\ReportesCumplimiento\ReportesCumplimientoController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "dashboard"</li>
+            <li class="success">Endpoint requires auth with data set "cases-pld-alert"</li>
+            <li class="success">Endpoint requires auth with data set "summary-by-agency"</li>
+            <li class="success">Endpoint requires auth with data set "pending-documents"</li>
+            <li class="success">Endpoint requires auth with data set "cases-without-beneficiary"</li>
+            <li class="success">Endpoint requires auth with data set "cases-without-notice"</li>
+            <li class="success">Endpoint responds with json shape with data set "dashboard"</li>
+            <li class="success">Endpoint responds with json shape with data set "cases-pld-alert"</li>
+            <li class="success">Endpoint responds with json shape with data set "summary-by-agency"</li>
+            <li class="success">Endpoint responds with json shape with data set "pending-documents"</li>
+            <li class="success">Endpoint responds with json shape with data set "cases-without-beneficiary"</li>
+            <li class="success">Endpoint responds with json shape with data set "cases-without-notice"</li>
+        </ul>
+        <h2>Response Snake Case Filter (Tests\Unit\Filters\ResponseSnakeCaseFilter)</h2>
+        <ul>
+            <li class="success">Does nothing when flag disabled</li>
+            <li class="success">Normalizes json response when flag enabled</li>
+            <li class="success">Skips non json content type</li>
+            <li class="success">Skips empty body</li>
+            <li class="success">Skips invalid json</li>
+        </ul>
+        <h2>Snake Keys (Tests\Unit\Traits\SnakeKeys)</h2>
+        <ul>
+            <li class="success">Converts camel case keys</li>
+            <li class="success">Converts pascal case keys</li>
+            <li class="success">Handles acronym boundaries</li>
+            <li class="success">All caps becomes lowercase</li>
+            <li class="success">Leaves snake case unchanged</li>
+            <li class="success">Recurses into nested arrays</li>
+            <li class="success">Converts objects to arrays</li>
+            <li class="success">Preserves numeric keys</li>
+            <li class="success">Preserves scalar values</li>
+        </ul>
+        <h2>Throttle Auth Filter (Tests\Unit\Filters\ThrottleAuthFilter)</h2>
+        <ul>
+            <li class="success">Options preflight skips throttle</li>
+            <li class="success">Within limit passes through</li>
+            <li class="success">Exceeding limit returns 429</li>
+            <li class="success">Different ips have separate buckets</li>
+        </ul>
+        <h2>Upload Guard (Tests\Feature\Documents\UploadGuard)</h2>
+        <ul>
+            <li class="success">Add to file rejects nonexistent expedient</li>
+            <li class="success">Backblaze upload rejects nonexistent expedient</li>
+            <li class="success">Liquidacion rejects nonexistent expedient</li>
+        </ul>
+        <h2>User Access Controller (Tests\Feature\UserAccess\UserAccessController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET access/1"</li>
+            <li class="success">Endpoint requires auth with data set "PUT access/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE access/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET access/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT access/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE access/1"</li>
+        </ul>
+        <h2>User Activity Log Controller (Tests\Feature\UserActivityLog\UserActivityLogController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET /"</li>
+            <li class="success">Endpoint requires auth with data set "POST /"</li>
+            <li class="success">Endpoint requires auth with data set "GET expediente/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET user/admin"</li>
+            <li class="success">Endpoint requires auth with data set "GET action/LOGIN"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE clean"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET /"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST /"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET expediente/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET user/admin"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET action/LOGIN"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE clean"</li>
+        </ul>
+        <h2>User Agency Controller (Tests\Feature\UserAgency\UserAgencyController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET agencies/1"</li>
+            <li class="success">Endpoint requires auth with data set "POST agencies/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE agencies/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE agencies/1/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET agencies/1/stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET agencies-batch"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET agencies/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST agencies/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE agencies/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE agencies/1/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET agencies/1/stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET agencies-batch"</li>
+        </ul>
+        <h2>User Controller (Tests\Feature\User\UserController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/1"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "GET can-delete/1"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH disable/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint requires auth with data set "POST change-pwd/999999"</li>
+            <li class="success">Endpoint requires auth with data set "POST reset-pwd/999999"</li>
+            <li class="success">Endpoint requires auth with data set "GET check-username"</li>
+            <li class="success">Endpoint requires auth with data set "GET check-email"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET can-delete/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH disable/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST change-pwd/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST reset-pwd/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET check-username"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET check-email"</li>
+        </ul>
+        <h2>User Process Controller (Tests\Feature\UserProcess\UserProcessController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET processes/1"</li>
+            <li class="success">Endpoint requires auth with data set "POST processes/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE processes/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE processes/1/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET processes/1/stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET processes/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST processes/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE processes/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE processes/1/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET processes/1/stats"</li>
+        </ul>
+        <h2>User Profile Controller (Tests\Feature\UserProfile\UserProfileController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET getProfile"</li>
+            <li class="success">Endpoint requires auth with data set "PUT default-agency"</li>
+            <li class="success">Endpoint requires auth with data set "POST upload-image"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE remove-image"</li>
+            <li class="success">Endpoint requires auth with data set "GET image/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET getProfile"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT default-agency"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST upload-image"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE remove-image"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET image/1"</li>
+        </ul>
+        <h2>User Profile Image Controller (Tests\Feature\UserProfileImage\UserProfileImageController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "POST upload"</li>
+            <li class="success">Endpoint requires auth with data set "GET get"</li>
+            <li class="success">Endpoint requires auth with data set "GET get/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET info"</li>
+            <li class="success">Endpoint requires auth with data set "GET info/1"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE remove"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST upload"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET get"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET get/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET info"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET info/1"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE remove"</li>
+        </ul>
+        <h2>User Rol Controller (Tests\Feature\UserRol\UserRolController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET list"</li>
+            <li class="success">Endpoint requires auth with data set "POST create"</li>
+            <li class="success">Endpoint requires auth with data set "GET search"</li>
+            <li class="success">Endpoint requires auth with data set "GET stats"</li>
+            <li class="success">Endpoint requires auth with data set "GET active"</li>
+            <li class="success">Endpoint requires auth with data set "GET show/999999"</li>
+            <li class="success">Endpoint requires auth with data set "PUT update/999999"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE 999999"</li>
+            <li class="success">Endpoint requires auth with data set "PATCH toggle/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET list"</li>
+            <li class="success">Endpoint responds with json shape with data set "POST create"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET search"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET stats"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET active"</li>
+            <li class="success">Endpoint responds with json shape with data set "GET show/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PUT update/999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "DELETE 999999"</li>
+            <li class="success">Endpoint responds with json shape with data set "PATCH toggle/999999"</li>
+        </ul>
+        <h2>Validacion Controller (Tests\Feature\Validacion\ValidacionController)</h2>
+        <ul>
+            <li class="success">Endpoint requires auth with data set "GET clientes"</li>
+            <li class="success">Endpoint requires auth with data set "GET estadisticas"</li>
+            <li class="success">Endpoint requires auth with data set "GET documentos"</li>
+            <li class="success">Endpoint requires auth with data set "GET diagnostico"</li>
+            <li class="success">Endpoint requires auth with data set "GET expedientes-corregir"</li>
+            <li class="success">Endpoint requires auth with data set "GET autoreparar"</li>
+            <li class="success">Endpoint requires auth with data set "POST reparar-relacion"</li>
+            <li class="success">Endpoint requires auth with data set "POST cancelar-pedido"</li>
+            <li class="success">Endpoint requires auth with data set "POST excepcion-pedido"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE eliminar-pedido"</li>
+            <li class="success">Endpoint requires auth with data set "PUT cambiar-estatus"</li>
+            <li class="success">Endpoint requires auth with data set "POST docs liquidacion"</li>
+            <li class="success">Endpoint requires auth with data set "POST validar-documento"</li>
+            <li class="success">Endpoint requires auth with data set "POST aprobar-documento"</li>
+            <li class="success">Endpoint requires auth with data set "POST preparar-documento"</li>
+            <li class="success">Endpoint requires auth with data set "POST generar-token"</li>
+            <li class="success">Endpoint requires auth with data set "GET imprimir-identificacion"</li>
+            <li class="success">Endpoint requires auth with data set "GET datos-identificacion"</li>
+            <li class="success">Endpoint requires auth with data set "PUT datos-identificacion"</li>
+            <li class="success">Endpoint requires auth with data set "GET cliente-detalle"</li>
+            <li class="success">Endpoint requires auth with data set "GET beneficiarios"</li>
+            <li class="success">Endpoint requires auth with data set "POST beneficiarios"</li>
+            <li class="success">Endpoint requires auth with data set "DELETE beneficiarios/1"</li>
+            <li class="success">Endpoint requires auth with data set "GET zip/1"</li>
+            <li class="success">Get clientes returns json shape</li>
+            <li class="success">Get estadisticas returns json shape</li>
+            <li class="success">Get documentos requires id file</li>
+            <li class="success">Diagnostico requires params</li>
+            <li class="success">Expedientes corregir returns json shape</li>
+            <li class="success">Datos identificacion requires id file</li>
+            <li class="success">Datos identificacion with id file returns expected keys</li>
+            <li class="success">Cliente detalle requires id file</li>
+            <li class="success">Get beneficiarios requires id file</li>
+            <li class="success">Get beneficiarios with id file returns array</li>
+            <li class="success">Imprimir identificacion requires id file</li>
+            <li class="success">Auto reparar endpoint responds</li>
+            <li class="success">Reparar relacion requires body</li>
+            <li class="success">Cancelar pedido requires body</li>
+            <li class="success">Excepcion pedido requires body</li>
+            <li class="success">Eliminar pedido requires body</li>
+            <li class="success">Cambiar estatus requires body</li>
+            <li class="success">Agregar doc liquidacion requires body</li>
+            <li class="success">Validar documento requires body</li>
+            <li class="success">Aprobar documento requires body</li>
+            <li class="success">Preparar documento requires body</li>
+            <li class="success">Generar token miniportal requires body</li>
+            <li class="success">Save datos identificacion requires id client</li>
+            <li class="success">Add beneficiario requires body</li>
+            <li class="success">Delete beneficiario invalid id responds</li>
+            <li class="success">Descargar zip invalid id responds</li>
+        </ul>
+    </body>
+</html>

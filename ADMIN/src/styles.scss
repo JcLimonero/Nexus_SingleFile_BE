@@ -2,9 +2,42 @@
 
 @include mat.core();
 
-$admin-primary: mat.define-palette(mat.$deep-purple-palette);
-$admin-accent:  mat.define-palette(mat.$amber-palette, A200, A100, A400);
+// === Marca Nexus Q Tech — espejo del theme del WIZARD ===
+//   navy  #0a2540  → primary
+//   cyan  #06b6d4  → accent
+//   gray  #f3f3f5  → background
+$nexus-navy: (
+  50: #e7eaef, 100: #c2cbd7, 200: #99a8bc, 300: #7186a0,
+  400: #496283, 500: #0a2540, 600: #082038, 700: #061a2e,
+  800: #051527, 900: #02101d,
+  A100: #5b78ff, A200: #2845ff, A400: #0021f1, A700: #001cda,
+  contrast: (
+    50: #0a2540, 100: #0a2540, 200: #0a2540,
+    300: #ffffff, 400: #ffffff, 500: #ffffff, 600: #ffffff,
+    700: #ffffff, 800: #ffffff, 900: #ffffff,
+    A100: #ffffff, A200: #ffffff, A400: #ffffff, A700: #ffffff,
+  )
+);
+$nexus-cyan: (
+  50: #ecfeff, 100: #cffafe, 200: #a5f3fc, 300: #67e8f9,
+  400: #22d3ee, 500: #06b6d4, 600: #0891b2, 700: #0e7490,
+  800: #155e75, 900: #164e63,
+  A100: #a5f3fc, A200: #22d3ee, A400: #06b6d4, A700: #0891b2,
+  contrast: (
+    50: #0a2540, 100: #0a2540, 200: #0a2540, 300: #0a2540,
+    400: #0a2540, 500: #ffffff, 600: #ffffff, 700: #ffffff,
+    800: #ffffff, 900: #ffffff,
+    A100: #0a2540, A200: #0a2540, A400: #ffffff, A700: #ffffff,
+  )
+);
+
+$admin-primary: mat.define-palette($nexus-navy, 500);
+$admin-accent:  mat.define-palette($nexus-cyan, 500);
 $admin-warn:    mat.define-palette(mat.$red-palette);
+
+$admin-typography: mat.define-typography-config(
+  $font-family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+);
 
 $admin-theme: mat.define-light-theme((
   color: (
@@ -12,28 +45,93 @@ $admin-theme: mat.define-light-theme((
     accent: $admin-accent,
     warn: $admin-warn,
   ),
-  typography: mat.define-typography-config(),
+  typography: $admin-typography,
   density: 0,
 ));
 
 @include mat.all-component-themes($admin-theme);
+@include mat.typography-hierarchy($admin-typography);
 
-html, body { height: 100%; margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background: #f6f7fb; }
+:root {
+  --nexus-navy:        #0a2540;
+  --nexus-navy-700:    #061a2e;
+  --nexus-navy-100:    #c2cbd7;
+  --nexus-cyan:        #06b6d4;
+  --nexus-cyan-600:    #0891b2;
+  --nexus-cyan-50:     #ecfeff;
+  --nexus-gray-bg:     #f3f3f5;
+  --nexus-gray-border: #e3e5ea;
+  --nexus-text:        #0a2540;
+  --nexus-text-muted:  #4b5b73;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--nexus-gray-bg);
+  color: var(--nexus-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
 .adm-shell { display: flex; flex-direction: column; height: 100%; }
-.adm-content { flex: 1; overflow: auto; padding: 24px; max-width: 1280px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.adm-content {
+  flex: 1; overflow: auto;
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
 .adm-card { padding: 24px; margin-bottom: 24px; }
 
+// Cards limpias
+.mat-mdc-card {
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(10, 37, 64, 0.04), 0 1px 3px rgba(10, 37, 64, 0.06) !important;
+  border: 1px solid var(--nexus-gray-border);
+}
+
+.mat-toolbar.mat-primary {
+  background-color: var(--nexus-navy) !important;
+  color: #ffffff !important;
+  --mdc-text-button-label-text-color: #ffffff;
+}
+
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+  background-color: var(--nexus-navy) !important;
+  color: #ffffff !important;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.mat-mdc-raised-button.mat-accent,
+.mat-mdc-unelevated-button.mat-accent {
+  background-color: var(--nexus-cyan) !important;
+  color: #ffffff !important;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+// Status chips de tenant — actualizados a la paleta navy/cyan donde aplica.
 .adm-status-chip {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.adm-status-active     { background: #e8f5e9; color: #1b5e20; }
+.adm-status-active     { background: var(--nexus-cyan-50); color: var(--nexus-cyan-600); }
 .adm-status-grace      { background: #fff8e1; color: #ff8f00; }
 .adm-status-readonly   { background: #fff3e0; color: #e65100; }
 .adm-status-suspended  { background: #ffebee; color: #c62828; }
 .adm-status-terminated { background: #efebe9; color: #4e342e; }
+
+// Link activo en toolbar (espejo del wizard sidebar)
+.active-link {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}

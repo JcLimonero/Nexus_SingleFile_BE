@@ -29,4 +29,46 @@ contextBridge.exposeInMainWorld('wizardApi', {
   fs: {
     pickFile: (opts: unknown) => ipcRenderer.invoke('fs:pick-file', opts),
   },
+  // Admin mode: edición de tenants ya deployados.
+  tenants: {
+    list: (centralCfg: unknown) => ipcRenderer.invoke('tenants:list', centralCfg),
+    get: (centralCfg: unknown, tenantId: number, encryptionKey: string) =>
+      ipcRenderer.invoke('tenants:get', centralCfg, tenantId, encryptionKey),
+  },
+  tenant: {
+    // companies
+    listCompanies: (tenantDb: unknown) => ipcRenderer.invoke('tenant:list-companies', tenantDb),
+    saveCompany: (tenantDb: unknown, row: unknown, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:save-company', tenantDb, row, actorUserId),
+    toggleCompanyEnabled: (tenantDb: unknown, id: number, enabled: number, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:toggle-company-enabled', tenantDb, id, enabled, actorUserId),
+    // agencies
+    listAgencies: (tenantDb: unknown) => ipcRenderer.invoke('tenant:list-agencies', tenantDb),
+    saveAgency: (tenantDb: unknown, row: unknown, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:save-agency', tenantDb, row, actorUserId),
+    toggleAgencyEnabled: (tenantDb: unknown, id: number, enabled: number, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:toggle-agency-enabled', tenantDb, id, enabled, actorUserId),
+    // users
+    listUsers: (tenantDb: unknown) => ipcRenderer.invoke('tenant:list-users', tenantDb),
+    saveUser: (tenantDb: unknown, row: unknown, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:save-user', tenantDb, row, actorUserId),
+    toggleUserEnabled: (tenantDb: unknown, id: number, enabled: number, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:toggle-user-enabled', tenantDb, id, enabled, actorUserId),
+    resetUserPassword: (tenantDb: unknown, id: number, newPlain: string, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:reset-user-password', tenantDb, id, newPlain, actorUserId),
+    listUserRoles: (tenantDb: unknown) => ipcRenderer.invoke('tenant:list-user-roles', tenantDb),
+    // phases
+    listPhases: (tenantDb: unknown) => ipcRenderer.invoke('tenant:list-phases', tenantDb),
+    savePhase: (tenantDb: unknown, row: unknown, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:save-phase', tenantDb, row, actorUserId),
+    togglePhaseEnabled: (tenantDb: unknown, id: number, enabled: number, actorUserId: number) =>
+      ipcRenderer.invoke('tenant:toggle-phase-enabled', tenantDb, id, enabled, actorUserId),
+    // branding + integrations (central.tenant_config)
+    listConfig: (centralCfg: unknown, tenantId: number, category?: string) =>
+      ipcRenderer.invoke('tenant:list-config', centralCfg, tenantId, category),
+    saveConfig: (centralCfg: unknown, tenantId: number, entries: unknown[]) =>
+      ipcRenderer.invoke('tenant:save-config', centralCfg, tenantId, entries),
+    deleteConfig: (centralCfg: unknown, tenantId: number, configKey: string) =>
+      ipcRenderer.invoke('tenant:delete-config', centralCfg, tenantId, configKey),
+  },
 });

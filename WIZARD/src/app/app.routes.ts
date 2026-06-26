@@ -86,5 +86,23 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
   },
+
+  // ===== Modo Administración (tenants ya deployados) =====
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./pages/admin/admin-home.component').then((m) => m.AdminHomeComponent),
+  },
+  {
+    path: 'admin/tenants',
+    loadComponent: () =>
+      import('./pages/admin/tenants/tenants-list.component').then((m) => m.TenantsListComponent),
+  },
+  {
+    path: 'admin/tenants/:id',
+    loadComponent: () =>
+      import('./pages/admin/tenants/edit/tenant-edit-shell.component').then((m) => m.TenantEditShellComponent),
+  },
+
   { path: '**', redirectTo: 'welcome' },
 ];

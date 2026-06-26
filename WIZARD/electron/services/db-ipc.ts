@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { testConnection, createDatabase, executeBatch, withConnection, DbConnectionConfig } from './db-connector';
 import { schemaMigrations } from './migrations';
-import { encryptTenantPassword, bcryptHash } from './crypto';
+import { encryptTenantPassword, decryptTenantPassword, bcryptHash } from './crypto';
 
 /**
  * Resolves the DEFAULTS/ folder both in dev (sibling of WIZARD) and in production
@@ -601,6 +601,456 @@ export function registerDbHandlers(ipcMain: IpcMain): void {
   });
 
   ipcMain.handle('fs:pick-file', () => ({ ok: false, message: 'TODO: file picker for branding logo' }));
+
+  // ====================================================================
+  // ADMIN MODE — edición de tenants ya deployados.
+  //
+  // tenants:* operan contra la central DB (lista, descifrar creds).
+  // tenant:* operan contra la DB del tenant (companies, agencies, users,
+  // phases) o contra tenant_config en central (branding, integrations).
+  //
+  // Convención de respuesta: { ok: boolean, data?: T, message?: string }.
+  // Cualquier excepción se atrapa y devuelve { ok: false, message }.
+  // ====================================================================
+
+  /** Lista tenants registrados en central. Sin descifrar passwords. */
+  ipcMain.handle('tenants:list', async (_e, centralCfg: DbConnectionConfig) => {
+    try {
+      const rows = await withConnection(centralCfg, async (c) => {
+        const [rs]: any = await c.query(
+          `SELECT id, slug, name, status, db_host, db_port, db_name, db_username,
+                  created_at, updated_at
+             FROM tenant
+            ORDER BY name`,
+        );
+        return rs;
+      });
+      return { ok: true, data: rows };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  /**
+   * Devuelve el tenant + sus credenciales DESCIFRADAS (host/port/db/user/password).
+   * El password descifrado vive sólo en memoria del proceso main durante esta
+   * llamada y en el signal del renderer; nunca se persiste a disco.
+   *
+   * Además resuelve un `actorUserId` válido para el tenant: id del primer
+   * admin user (rol 7/8/15) habilitado. Necesario porque cada INSERT/UPDATE
+   * graba `id_last_user_update` con FK a `user.id` del tenant — el id del
+   * super-admin (que vive en central) NO existe en el tenant y rompería la FK.
+   * Si no hay admin disponible cae a MIN(id) y como último recurso 1.
+   */
+  ipcMain.handle('tenants:get', async (_e, centralCfg: DbConnectionConfig, tenantId: number, encryptionKey: string) => {
+    try {
+      const row = await withConnection(centralCfg, async (c) => {
+        const [rs]: any = await c.query(
+          `SELECT id, slug, name, status, db_host, db_port, db_name, db_username,
+                  db_password_encrypted, created_at, updated_at
+             FROM tenant
+            WHERE id = ?
+            LIMIT 1`,
+          [tenantId],
+        );
+        return rs[0] ?? null;
+      });
+      if (!row) return { ok: false, message: `Tenant id=${tenantId} no existe` };
+      const plain = decryptTenantPassword(row.db_password_encrypted, encryptionKey);
+      const tenantDb: DbConnectionConfig = {
+        host: row.db_host,
+        port: row.db_port,
+        user: row.db_username,
+        password: plain,
+        database: row.db_name,
+      };
+
+      // Resolver actorUserId válido en el tenant — preferir admin activo,
+      // si no hay caer al menor id existente, y como último recurso 1.
+      let actorUserId = 1;
+      try {
+        await withConnection(tenantDb, async (c) => {
+          const [admins]: any = await c.query(
+            'SELECT id FROM `user` WHERE enabled = 1 AND id_user_role IN (7, 8, 15) ORDER BY id LIMIT 1',
+          );
+          if (admins.length) {
+            actorUserId = admins[0].id;
+            return;
+          }
+          const [anyUser]: any = await c.query('SELECT MIN(id) AS id FROM `user`');
+          if (anyUser[0]?.id) actorUserId = anyUser[0].id;
+        });
+      } catch {
+        // tenant inalcanzable: devolvemos los datos igual; el front mostrará el
+        // error real cuando intente listar. No bloqueamos el get por esto.
+      }
+
+      return {
+        ok: true,
+        data: {
+          id: row.id,
+          slug: row.slug,
+          name: row.name,
+          status: row.status,
+          tenantDb,
+          actorUserId,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        },
+      };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  // -------- companies --------
+  ipcMain.handle('tenant:list-companies', async (_e, tenantDb: DbConnectionConfig) => {
+    try {
+      const rows = await withConnection(tenantDb, async (c) => {
+        const [rs]: any = await c.query(
+          `SELECT id, name, id_client_group, enabled, agency_connection,
+                  registration_date, update_date
+             FROM company
+            ORDER BY name`,
+        );
+        return rs;
+      });
+      return { ok: true, data: rows };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  /**
+   * Upsert manual: si llega `id`, UPDATE; si no, INSERT. Asume que el
+   * client_group ya existe (lo dejamos heredar del existente si el caller
+   * no manda id_client_group — coge el primero).
+   */
+  ipcMain.handle('tenant:save-company', async (_e, tenantDb: DbConnectionConfig, row: {
+    id?: number; name: string; id_client_group?: number; agency_connection?: string | null;
+  }, actorUserId: number) => {
+    try {
+      const data = await withConnection(tenantDb, async (c) => {
+        if (row.id) {
+          await c.query(
+            'UPDATE company SET name = ?, agency_connection = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+            [row.name, row.agency_connection ?? null, actorUserId, row.id],
+          );
+          return { id: row.id };
+        }
+        // INSERT: si no viene id_client_group, usa el primero existente
+        let idGroup = row.id_client_group;
+        if (!idGroup) {
+          const [gr]: any = await c.query('SELECT id FROM client_group ORDER BY id LIMIT 1');
+          idGroup = gr[0]?.id;
+          if (!idGroup) throw new Error('No hay client_group en este tenant; crea uno primero.');
+        }
+        const [r]: any = await c.query(
+          'INSERT INTO company (name, id_client_group, enabled, agency_connection, id_last_user_update, registration_date, update_date) VALUES (?, ?, 1, ?, ?, NOW(), NOW())',
+          [row.name, idGroup, row.agency_connection ?? null, actorUserId],
+        );
+        return { id: r.insertId as number };
+      });
+      return { ok: true, data };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:toggle-company-enabled', async (_e, tenantDb: DbConnectionConfig, id: number, enabled: number, actorUserId: number) => {
+    try {
+      await withConnection(tenantDb, async (c) => {
+        await c.query(
+          'UPDATE company SET enabled = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+          [enabled ? 1 : 0, actorUserId, id],
+        );
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  // -------- agencies --------
+  ipcMain.handle('tenant:list-agencies', async (_e, tenantDb: DbConnectionConfig) => {
+    try {
+      const rows = await withConnection(tenantDb, async (c) => {
+        const [rs]: any = await c.query(
+          `SELECT a.id, a.name, a.id_company, a.id_agency_dms, a.enabled,
+                  a.registration_date, a.update_date, c.name AS company_name
+             FROM agency a
+        LEFT JOIN company c ON c.id = a.id_company
+            ORDER BY a.name`,
+        );
+        return rs;
+      });
+      return { ok: true, data: rows };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:save-agency', async (_e, tenantDb: DbConnectionConfig, row: {
+    id?: number; name: string; id_company?: number | null; id_agency_dms?: string | null;
+  }, actorUserId: number) => {
+    try {
+      const data = await withConnection(tenantDb, async (c) => {
+        if (row.id) {
+          await c.query(
+            'UPDATE agency SET name = ?, id_company = ?, id_agency_dms = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+            [row.name, row.id_company ?? null, row.id_agency_dms ?? null, actorUserId, row.id],
+          );
+          return { id: row.id };
+        }
+        const [r]: any = await c.query(
+          'INSERT INTO agency (name, id_company, id_agency_dms, enabled, id_last_user_update, registration_date, update_date) VALUES (?, ?, ?, 1, ?, NOW(), NOW())',
+          [row.name, row.id_company ?? null, row.id_agency_dms ?? null, actorUserId],
+        );
+        return { id: r.insertId as number };
+      });
+      return { ok: true, data };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:toggle-agency-enabled', async (_e, tenantDb: DbConnectionConfig, id: number, enabled: number, actorUserId: number) => {
+    try {
+      await withConnection(tenantDb, async (c) => {
+        await c.query(
+          'UPDATE agency SET enabled = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+          [enabled ? 1 : 0, actorUserId, id],
+        );
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  // -------- users --------
+  // Lista lectura completa; password reset bcrypt para soporte.
+  ipcMain.handle('tenant:list-users', async (_e, tenantDb: DbConnectionConfig) => {
+    try {
+      const rows = await withConnection(tenantDb, async (c) => {
+        const [rs]: any = await c.query(
+          `SELECT u.id, u.name, u.email, u.username, u.enabled, u.id_user_role,
+                  u.default_agency, u.last_login_at, r.name AS role_name
+             FROM \`user\` u
+        LEFT JOIN user_role r ON r.id = u.id_user_role
+            ORDER BY u.name`,
+        );
+        return rs;
+      });
+      return { ok: true, data: rows };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:save-user', async (_e, tenantDb: DbConnectionConfig, row: {
+    id?: number; email: string; name: string; username?: string | null;
+    id_user_role: number; default_agency?: number | null;
+  }, actorUserId: number) => {
+    try {
+      const data = await withConnection(tenantDb, async (c) => {
+        if (row.id) {
+          await c.query(
+            'UPDATE `user` SET email = ?, name = ?, username = ?, id_user_role = ?, default_agency = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+            [row.email, row.name, row.username ?? null, row.id_user_role, row.default_agency ?? null, actorUserId, row.id],
+          );
+          return { id: row.id };
+        }
+        // user.id no es AUTO_INCREMENT — calcular MAX(id)+1
+        const [maxRow]: any = await c.query('SELECT COALESCE(MAX(id), 0) + 1 AS next FROM `user`');
+        const newId = maxRow[0].next as number;
+        await c.query(
+          'INSERT INTO `user` (id, email, name, username, id_user_role, default_agency, enabled, password_migrated, id_last_user_update, registration_date, update_date) VALUES (?, ?, ?, ?, ?, ?, 1, 1, ?, NOW(), NOW())',
+          [newId, row.email, row.name, row.username ?? null, row.id_user_role, row.default_agency ?? null, actorUserId],
+        );
+        return { id: newId };
+      });
+      return { ok: true, data };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:toggle-user-enabled', async (_e, tenantDb: DbConnectionConfig, id: number, enabled: number, actorUserId: number) => {
+    try {
+      await withConnection(tenantDb, async (c) => {
+        await c.query(
+          'UPDATE `user` SET enabled = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+          [enabled ? 1 : 0, actorUserId, id],
+        );
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  /** Reset bcrypt — para cuando un cliente perdió su contraseña. */
+  ipcMain.handle('tenant:reset-user-password', async (_e, tenantDb: DbConnectionConfig, id: number, newPlain: string, actorUserId: number) => {
+    try {
+      const hash = await bcryptHash(newPlain);
+      await withConnection(tenantDb, async (c) => {
+        await c.query(
+          'UPDATE `user` SET pass = ?, user_pass = ?, password_migrated = 1, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+          [hash, hash, actorUserId, id],
+        );
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  // -------- phases (expedient_state + expedient_sub_state, ambas en tenant DB) --------
+  ipcMain.handle('tenant:list-phases', async (_e, tenantDb: DbConnectionConfig) => {
+    try {
+      const data = await withConnection(tenantDb, async (c) => {
+        const [phases]: any = await c.query(
+          `SELECT id, name, display_order, enabled, requires_payment_voucher,
+                  is_navigable, allows_document_upload, is_terminal, is_system
+             FROM expedient_state
+            ORDER BY display_order IS NULL, display_order, id`,
+        );
+        const [subs]: any = await c.query(
+          `SELECT id, id_expedient_state, name, enabled
+             FROM expedient_sub_state
+            ORDER BY id_expedient_state, id`,
+        );
+        return { phases, subStates: subs };
+      });
+      return { ok: true, data };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:save-phase', async (_e, tenantDb: DbConnectionConfig, row: {
+    id: number; name: string; display_order?: number | null;
+    requires_payment_voucher?: number; is_navigable?: number;
+    allows_document_upload?: number; is_terminal?: number; is_system?: number;
+  }, actorUserId: number) => {
+    try {
+      await withConnection(tenantDb, async (c) => {
+        // UPSERT: si existe el id, UPDATE; si no, INSERT.
+        const [exist]: any = await c.query('SELECT id FROM expedient_state WHERE id = ?', [row.id]);
+        if (exist.length) {
+          await c.query(
+            `UPDATE expedient_state
+                SET name = ?, display_order = ?, requires_payment_voucher = ?,
+                    is_navigable = ?, allows_document_upload = ?, is_terminal = ?,
+                    is_system = ?, id_last_user_update = ?, update_date = NOW()
+              WHERE id = ?`,
+            [row.name, row.display_order ?? null, row.requires_payment_voucher ?? 0,
+             row.is_navigable ?? 1, row.allows_document_upload ?? 0, row.is_terminal ?? 0,
+             row.is_system ?? 0, actorUserId, row.id],
+          );
+        } else {
+          await c.query(
+            `INSERT INTO expedient_state
+               (id, name, display_order, enabled, requires_payment_voucher,
+                is_navigable, allows_document_upload, is_terminal, is_system,
+                id_last_user_update, registration_date, update_date)
+             VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+            [row.id, row.name, row.display_order ?? null,
+             row.requires_payment_voucher ?? 0, row.is_navigable ?? 1,
+             row.allows_document_upload ?? 0, row.is_terminal ?? 0,
+             row.is_system ?? 0, actorUserId],
+          );
+        }
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:toggle-phase-enabled', async (_e, tenantDb: DbConnectionConfig, id: number, enabled: number, actorUserId: number) => {
+    try {
+      await withConnection(tenantDb, async (c) => {
+        await c.query(
+          'UPDATE expedient_state SET enabled = ?, id_last_user_update = ?, update_date = NOW() WHERE id = ?',
+          [enabled ? 1 : 0, actorUserId, id],
+        );
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  // -------- branding + integrations (viven en central.tenant_config) --------
+  ipcMain.handle('tenant:list-config', async (_e, centralCfg: DbConnectionConfig, tenantId: number, category?: string) => {
+    try {
+      const rows = await withConnection(centralCfg, async (c) => {
+        const sql = category
+          ? 'SELECT config_key, config_value, category, sensitive FROM tenant_config WHERE id_tenant = ? AND category = ? ORDER BY config_key'
+          : 'SELECT config_key, config_value, category, sensitive FROM tenant_config WHERE id_tenant = ? ORDER BY category, config_key';
+        const params = category ? [tenantId, category] : [tenantId];
+        const [rs]: any = await c.query(sql, params);
+        return rs;
+      });
+      return { ok: true, data: rows };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  /**
+   * Upsert por (id_tenant, config_key) — usa UNIQUE KEY existente.
+   * `sensitive` se infiere si el caller no lo manda: claves con
+   * password/secret/key (case-insensitive) → 1.
+   */
+  ipcMain.handle('tenant:save-config', async (_e, centralCfg: DbConnectionConfig, tenantId: number, entries: Array<{
+    config_key: string; config_value: string; category: string; sensitive?: number;
+  }>) => {
+    try {
+      await withConnection(centralCfg, async (c) => {
+        for (const e of entries) {
+          const sens = e.sensitive ?? (/password|secret|key/i.test(e.config_key) ? 1 : 0);
+          await c.query(
+            `INSERT INTO tenant_config (id_tenant, config_key, config_value, category, sensitive)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE config_value = VALUES(config_value),
+                                     category = VALUES(category),
+                                     sensitive = VALUES(sensitive)`,
+            [tenantId, e.config_key, e.config_value, e.category, sens],
+          );
+        }
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  ipcMain.handle('tenant:delete-config', async (_e, centralCfg: DbConnectionConfig, tenantId: number, configKey: string) => {
+    try {
+      await withConnection(centralCfg, async (c) => {
+        await c.query('DELETE FROM tenant_config WHERE id_tenant = ? AND config_key = ?', [tenantId, configKey]);
+      });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
+
+  // Helper para tab Agencies: lista user_role del tenant.
+  ipcMain.handle('tenant:list-user-roles', async (_e, tenantDb: DbConnectionConfig) => {
+    try {
+      const rows = await withConnection(tenantDb, async (c) => {
+        const [rs]: any = await c.query('SELECT id, name FROM user_role ORDER BY id');
+        return rs;
+      });
+      return { ok: true, data: rows };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
+  });
 
   /**
    * Returns the central DB config from config/central.env if present.

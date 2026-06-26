@@ -20,6 +20,17 @@ import { UpdateEmailDialogComponent } from './update-email-dialog.component';
 import { BrandingService } from '../../../../core/services/branding.service';
 import { AsyncPipe } from '@angular/common';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../../../environments/environment';
+
+/**
+ * Credenciales de admin precargadas SOLO en desarrollo (`!environment.production`).
+ * Edita aquí el email/usuario y la contraseña del admin que quieras por defecto.
+ * En producción el formulario siempre arranca vacío.
+ */
+const DEV_DEFAULT_ADMIN = {
+  email: 'demo@nexusqtech.com',
+  password: 'Demo1234!' // usuario demo admin (dev). Cambiar/limpiar antes de producción.
+};
 
 @Component({
   selector: 'vex-login',
@@ -48,8 +59,9 @@ export class LoginComponent {
   logoColor$ = this.brandingService.getBranding$().pipe(map((b) => b.theme?.logoColor));
 
   form = this.fb.group({
-    email: ['', [Validators.required]], // Removido Validators.email para permitir username también
-    password: ['', Validators.required]
+    // En dev se precargan las credenciales de admin (DEV_DEFAULT_ADMIN); en prod, vacío.
+    email: [environment.production ? '' : DEV_DEFAULT_ADMIN.email, [Validators.required]], // Removido Validators.email para permitir username también
+    password: [environment.production ? '' : DEV_DEFAULT_ADMIN.password, Validators.required]
   });
 
   inputType = 'password';

@@ -19,13 +19,24 @@ import { AuthService } from '../../core/auth.service';
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
   ],
   template: `
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
-      <mat-card style="width: 420px; padding: 32px;">
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;
+                background: linear-gradient(135deg, #f3f3f5 0%, #ecfeff 100%);">
+      <mat-card style="width: 420px; padding: 36px 32px;">
         <mat-card-content>
-          <div style="text-align: center; margin-bottom: 24px;">
-            <mat-icon style="font-size: 48px; height: 48px; width: 48px; color: #673ab7;">verified_user</mat-icon>
-            <h1 style="margin: 12px 0 4px;">NexFile Admin</h1>
-            <p style="margin: 0; color: #666; font-size: 14px;">Acceso super-admin</p>
+          <div style="text-align: center; margin-bottom: 28px;">
+            <div style="display:inline-flex; align-items:center; justify-content:center;
+                        width: 64px; height: 64px; border-radius: 14px;
+                        background: var(--nexus-navy);
+                        box-shadow: 0 6px 18px rgba(10, 37, 64, 0.25);">
+              <img src="assets/logo.svg" alt="Nexus Q Tech" style="width: 40px; height: 40px;" />
+            </div>
+            <h1 style="margin: 18px 0 4px; color: var(--nexus-navy); font-weight: 700; font-size: 22px;">
+              Nexus Q Tech
+            </h1>
+            <p style="margin: 0; color: var(--nexus-text-muted); font-size: 12px;
+                      text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">
+              NexFile · Admin Portal
+            </p>
           </div>
 
           <mat-form-field appearance="outline" style="width: 100%;">

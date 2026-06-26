@@ -1,0 +1,649 @@
+Agency Controller (Tests\Feature\Agency\AgencyController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+Analytics Controller (Tests\Feature\Analytics\AnalyticsController)
+ [x] Endpoint requires auth with data set "dashboard"
+ [x] Endpoint requires auth with data set "widget-document-statistics"
+ [x] Endpoint requires auth with data set "widget-process-statistics"
+ [x] Endpoint requires auth with data set "widget-agency-statistics"
+ [x] Endpoint requires auth with data set "widget-agency-specific-metrics"
+ [x] Endpoint requires auth with data set "widget-file-trend-chart"
+ [x] Endpoint requires auth with data set "widget-file-distribution"
+ [x] Endpoint requires auth with data set "widget-process-distribution"
+ [x] Endpoint requires auth with data set "widget-status-distribution"
+ [x] Endpoint requires auth with data set "widget-current-month-status"
+ [x] Endpoint requires auth with data set "widget-previous-months"
+ [x] Endpoint requires auth with data set "widget-historical-status"
+ [x] Endpoint requires auth with data set "advisor-distribution"
+ [x] Endpoint requires auth with data set "weekly-data"
+ [x] Endpoint requires auth with data set "attention-period"
+ [x] Endpoint requires auth with data set "current-month-attention"
+ [x] Endpoint requires auth with data set "current-month-liberated"
+ [x] Endpoint requires auth with data set "total-liberated"
+ [x] Endpoint requires auth with data set "orders-by-attention-period"
+ [x] Endpoint requires auth with data set "widget-system-overview"
+ [x] Endpoint requires auth with data set "export"
+ [x] Endpoint responds with json shape with data set "dashboard"
+ [x] Endpoint responds with json shape with data set "widget-document-statistics"
+ [x] Endpoint responds with json shape with data set "widget-process-statistics"
+ [x] Endpoint responds with json shape with data set "widget-agency-statistics"
+ [x] Endpoint responds with json shape with data set "widget-agency-specific-metrics"
+ [x] Endpoint responds with json shape with data set "widget-file-trend-chart"
+ [x] Endpoint responds with json shape with data set "widget-file-distribution"
+ [x] Endpoint responds with json shape with data set "widget-process-distribution"
+ [x] Endpoint responds with json shape with data set "widget-status-distribution"
+ [x] Endpoint responds with json shape with data set "widget-current-month-status"
+ [x] Endpoint responds with json shape with data set "widget-previous-months"
+ [x] Endpoint responds with json shape with data set "widget-historical-status"
+ [x] Endpoint responds with json shape with data set "advisor-distribution"
+ [x] Endpoint responds with json shape with data set "weekly-data"
+ [x] Endpoint responds with json shape with data set "attention-period"
+ [x] Endpoint responds with json shape with data set "current-month-attention"
+ [x] Endpoint responds with json shape with data set "current-month-liberated"
+ [x] Endpoint responds with json shape with data set "total-liberated"
+ [x] Endpoint responds with json shape with data set "orders-by-attention-period"
+ [x] Endpoint responds with json shape with data set "widget-system-overview"
+ [x] Endpoint responds with json shape with data set "export"
+
+Auth Controller (Tests\Feature\Auth\AuthController)
+ [x] Login rejects missing body
+ [x] Login rejects missing password
+ [x] Login rejects missing email
+ [x] Login rejects invalid credentials
+ [x] Verify rejects missing auth header
+ [x] Verify rejects empty bearer
+ [x] Verify rejects invalid token
+ [x] Verify rejects expired token
+ [x] Verify rejects wrong secret
+ [x] Verify accepts valid token
+ [x] Refresh rejects missing token
+ [x] Refresh rejects invalid token
+ [x] Refresh rejects access token instead of refresh
+ [x] Update email rejects missing fields
+ [x] Update email rejects missing password
+ [x] Update email rejects nonexistent user
+ [x] Logout rejects no auth
+ [x] Logout accepts valid auth
+
+Backblaze Direct Upload Controller (Tests\Feature\BackblazeDirectUpload\BackblazeDirectUploadController)
+ [x] Endpoint requires auth with data set "POST upload"
+ [x] Endpoint requires auth with data set "POST direct-upload"
+ [x] Endpoint requires auth with data set "GET get-private-url"
+ [x] Endpoint requires auth with data set "GET download"
+ [x] Endpoint responds with json shape with data set "POST upload"
+ [x] Endpoint responds with json shape with data set "POST direct-upload"
+ [x] Endpoint responds with json shape with data set "GET get-private-url"
+ [x] Endpoint responds with json shape with data set "GET download"
+
+Client Controller (Tests\Feature\Client\ClientController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET 1/expedientes"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET 1/expedientes"
+
+Client Group Controller (Tests\Feature\ClientGroup\ClientGroupController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET show/1"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "PATCH estado/999999"
+ [x] Endpoint requires auth with data set "GET processes/1"
+ [x] Endpoint requires auth with data set "PUT processes/1"
+ [x] Endpoint requires auth with data set "GET phases/1"
+ [x] Endpoint requires auth with data set "PUT phases/1"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET show/1"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "PATCH estado/999999"
+ [x] Endpoint responds with json shape with data set "GET processes/1"
+ [x] Endpoint responds with json shape with data set "PUT processes/1"
+ [x] Endpoint responds with json shape with data set "GET phases/1"
+ [x] Endpoint responds with json shape with data set "PUT phases/1"
+
+Client Search Controller (Tests\Feature\ClientSearch\ClientSearchController)
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET by-agency/1"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET by-agency/1"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+
+Company Client Import Controller (Tests\Feature\CompanyClientImport\CompanyClientImportController)
+ [x] Endpoint requires auth with data set "company-client-import"
+ [x] Endpoint requires auth with data set "NexFile alias"
+ [x] Endpoint responds with json shape with data set "company-client-import"
+ [x] Endpoint responds with json shape with data set "NexFile alias"
+
+Company Controller (Tests\Feature\Company\CompanyController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+
+Config Controller (Tests\Feature\Config\ConfigController)
+ [x] Endpoint is public with data set "group_api_url"
+ [x] Endpoint is public with data set "activity-log-enabled"
+
+Configuration Process Controller (Tests\Feature\ConfigurationProcess\ConfigurationProcessController)
+ [x] Endpoint requires auth with data set "GET enabled"
+ [x] Endpoint requires auth with data set "GET enabled-by-agency/1"
+ [x] Endpoint responds with json shape with data set "GET enabled"
+ [x] Endpoint responds with json shape with data set "GET enabled-by-agency/1"
+
+Consolidacion Dms Controller (Tests\Feature\ConsolidacionDms\ConsolidacionDmsController)
+ [x] Pedidos requires auth
+ [x] Pedidos responds with json shape
+
+Customer Type Controller (Tests\Feature\CustomerType\CustomerTypeController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+Document Controller (Tests\Feature\Document\DocumentController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET by-file/1"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET by-file/1"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+Document Type Controller (Tests\Feature\DocumentType\DocumentTypeController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET configs-to-add/1"
+ [x] Endpoint requires auth with data set "POST add-to-configs/1"
+ [x] Endpoint requires auth with data set "GET configs/1"
+ [x] Endpoint requires auth with data set "DELETE config/1/1"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET configs-to-add/1"
+ [x] Endpoint responds with json shape with data set "POST add-to-configs/1"
+ [x] Endpoint responds with json shape with data set "GET configs/1"
+ [x] Endpoint responds with json shape with data set "DELETE config/1/1"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+Documento Requerido Controller (Tests\Feature\DocumentoRequerido\DocumentoRequeridoController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "PUT reorder"
+ [x] Endpoint requires auth with data set "POST duplicate"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "PUT reorder"
+ [x] Endpoint responds with json shape with data set "POST duplicate"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+
+Documents Controller (Tests\Feature\Documents\DocumentsController)
+ [x] Endpoint requires auth with data set "GET required"
+ [x] Endpoint requires auth with data set "GET missing-liberation"
+ [x] Endpoint requires auth with data set "GET get-file-name"
+ [x] Endpoint requires auth with data set "POST upload"
+ [x] Endpoint requires auth with data set "POST add-to-file"
+ [x] Endpoint responds with json shape with data set "GET required"
+ [x] Endpoint responds with json shape with data set "GET missing-liberation"
+ [x] Endpoint responds with json shape with data set "GET get-file-name"
+ [x] Endpoint responds with json shape with data set "POST upload"
+ [x] Endpoint responds with json shape with data set "POST add-to-file"
+
+Example Database
+ [x] Model find all
+ [x] Soft delete leaves row
+
+Example Session
+ [x] Session simple
+
+File Extraordinary Reason Controller (Tests\Feature\FileExtraordinaryReason\FileExtraordinaryReasonController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+File Reason Controller (Tests\Feature\FileReason\FileReasonController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+File State Controller (Tests\Feature\FileState\FileStateController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET show/1"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET show/1"
+ [x] Active excludes terminal states
+
+File State Model Guard (Tests\Unit\FileStateModelGuard)
+ [x] Integracion is system
+ [x] Liquidacion is system
+ [x] Liberacion is not system
+ [x] Terminal states are not system
+ [x] Update rejects system phase rename
+ [x] Update rejects system phase disable
+ [x] Delete rejects system phase
+ [x] Update allows non system phase
+
+File Sub State Controller (Tests\Feature\FileSubState\FileSubStateController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET show/1"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET show/1"
+
+Files Controller (Tests\Feature\Files\FilesController)
+ [x] Endpoint requires auth with data set "GET by-client"
+ [x] Endpoint requires auth with data set "GET by-agency-client"
+ [x] Endpoint requires auth with data set "POST create-from-NexFile"
+ [x] Endpoint requires auth with data set "POST create-from-NexFile-new"
+ [x] Endpoint requires auth with data set "POST check-existing-orders"
+ [x] Endpoint requires auth with data set "POST repair-client-relation"
+ [x] Endpoint requires auth with data set "POST delete"
+ [x] Endpoint requires auth with data set "POST compare-dms-orders"
+ [x] Endpoint responds with json shape with data set "GET by-client"
+ [x] Endpoint responds with json shape with data set "GET by-agency-client"
+ [x] Endpoint responds with json shape with data set "POST create-from-NexFile"
+ [x] Endpoint responds with json shape with data set "POST create-from-NexFile-new"
+ [x] Endpoint responds with json shape with data set "POST check-existing-orders"
+ [x] Endpoint responds with json shape with data set "POST repair-client-relation"
+ [x] Endpoint responds with json shape with data set "POST delete"
+ [x] Endpoint responds with json shape with data set "POST compare-dms-orders"
+
+Foundation Sanity (Tests\Feature\FoundationSanity)
+ [x] Can generate valid jwt
+ [x] Auth login rejects missing credentials
+ [x] Protected endpoint rejects no auth
+ [x] Protected endpoint accepts valid jwt
+
+Health
+ [x] Is defined app path
+ [x] Base url has been set
+
+Jwt Auth Filter (Tests\Unit\Filters\JwtAuthFilter)
+ [x] Options preflight passes without auth check
+ [x] Public path skips auth check
+ [x] Public prefix skips auth check
+ [x] Missing authorization header returns 401
+ [x] Empty bearer returns 401
+ [x] Invalid token returns 401
+ [x] After is noop
+
+Nex File Proxy Controller (Tests\Feature\NexFileProxy\NexFileProxyController)
+ [x] Endpoint requires auth with data set "GET NexFileorderslastest"
+ [x] Endpoint requires auth with data set "GET NexFileinvoices"
+ [x] Endpoint requires auth with data set "GET NexFilecustomer"
+ [x] Endpoint responds with json shape with data set "GET NexFileorderslastest"
+ [x] Endpoint responds with json shape with data set "GET NexFileinvoices"
+ [x] Endpoint responds with json shape with data set "GET NexFilecustomer"
+
+Operation Type Controller (Tests\Feature\OperationType\OperationTypeController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH estado/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH estado/999999"
+
+Password Manager Controller (Tests\Feature\PasswordManager\PasswordManagerController)
+ [x] Endpoint requires auth with data set "POST change"
+ [x] Endpoint requires auth with data set "POST reset"
+ [x] Endpoint requires auth with data set "GET migration-status"
+ [x] Endpoint requires auth with data set "POST force-migration"
+ [x] Endpoint responds with json shape with data set "POST change"
+ [x] Endpoint responds with json shape with data set "POST reset"
+ [x] Endpoint responds with json shape with data set "GET migration-status"
+ [x] Endpoint responds with json shape with data set "POST force-migration"
+
+Payment Method Controller (Tests\Feature\PaymentMethod\PaymentMethodController)
+ [x] List requires auth
+ [x] List returns json shape
+
+Phase Controller (Tests\Feature\Phase\PhaseController)
+ [x] Active for user requires auth
+ [x] Active for user returns json shape
+ [x] Legacy all excludes terminal states
+ [x] Phase response includes upload flag
+ [x] Legacy all orders by display order
+
+Process Controller (Tests\Feature\Process\ProcessController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH estado/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH estado/999999"
+
+Reportes Cumplimiento Controller (Tests\Feature\ReportesCumplimiento\ReportesCumplimientoController)
+ [x] Endpoint requires auth with data set "dashboard"
+ [x] Endpoint requires auth with data set "cases-pld-alert"
+ [x] Endpoint requires auth with data set "summary-by-agency"
+ [x] Endpoint requires auth with data set "pending-documents"
+ [x] Endpoint requires auth with data set "cases-without-beneficiary"
+ [x] Endpoint requires auth with data set "cases-without-notice"
+ [x] Endpoint responds with json shape with data set "dashboard"
+ [x] Endpoint responds with json shape with data set "cases-pld-alert"
+ [x] Endpoint responds with json shape with data set "summary-by-agency"
+ [x] Endpoint responds with json shape with data set "pending-documents"
+ [x] Endpoint responds with json shape with data set "cases-without-beneficiary"
+ [x] Endpoint responds with json shape with data set "cases-without-notice"
+
+Response Snake Case Filter (Tests\Unit\Filters\ResponseSnakeCaseFilter)
+ [x] Does nothing when flag disabled
+ [x] Normalizes json response when flag enabled
+ [x] Skips non json content type
+ [x] Skips empty body
+ [x] Skips invalid json
+
+Snake Keys (Tests\Unit\Traits\SnakeKeys)
+ [x] Converts camel case keys
+ [x] Converts pascal case keys
+ [x] Handles acronym boundaries
+ [x] All caps becomes lowercase
+ [x] Leaves snake case unchanged
+ [x] Recurses into nested arrays
+ [x] Converts objects to arrays
+ [x] Preserves numeric keys
+ [x] Preserves scalar values
+
+Throttle Auth Filter (Tests\Unit\Filters\ThrottleAuthFilter)
+ [x] Options preflight skips throttle
+ [x] Within limit passes through
+ [x] Exceeding limit returns 429
+ [x] Different ips have separate buckets
+
+Upload Guard (Tests\Feature\Documents\UploadGuard)
+ [x] Add to file rejects nonexistent expedient
+ [x] Backblaze upload rejects nonexistent expedient
+ [x] Liquidacion rejects nonexistent expedient
+
+User Access Controller (Tests\Feature\UserAccess\UserAccessController)
+ [x] Endpoint requires auth with data set "GET access/1"
+ [x] Endpoint requires auth with data set "PUT access/1"
+ [x] Endpoint requires auth with data set "DELETE access/1"
+ [x] Endpoint responds with json shape with data set "GET access/1"
+ [x] Endpoint responds with json shape with data set "PUT access/1"
+ [x] Endpoint responds with json shape with data set "DELETE access/1"
+
+User Activity Log Controller (Tests\Feature\UserActivityLog\UserActivityLogController)
+ [x] Endpoint requires auth with data set "GET /"
+ [x] Endpoint requires auth with data set "POST /"
+ [x] Endpoint requires auth with data set "GET expediente/1"
+ [x] Endpoint requires auth with data set "GET user/admin"
+ [x] Endpoint requires auth with data set "GET action/LOGIN"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "DELETE clean"
+ [x] Endpoint responds with json shape with data set "GET /"
+ [x] Endpoint responds with json shape with data set "POST /"
+ [x] Endpoint responds with json shape with data set "GET expediente/1"
+ [x] Endpoint responds with json shape with data set "GET user/admin"
+ [x] Endpoint responds with json shape with data set "GET action/LOGIN"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "DELETE clean"
+
+User Agency Controller (Tests\Feature\UserAgency\UserAgencyController)
+ [x] Endpoint requires auth with data set "GET agencies/1"
+ [x] Endpoint requires auth with data set "POST agencies/1"
+ [x] Endpoint requires auth with data set "DELETE agencies/1"
+ [x] Endpoint requires auth with data set "DELETE agencies/1/1"
+ [x] Endpoint requires auth with data set "GET agencies/1/stats"
+ [x] Endpoint requires auth with data set "GET agencies-batch"
+ [x] Endpoint responds with json shape with data set "GET agencies/1"
+ [x] Endpoint responds with json shape with data set "POST agencies/1"
+ [x] Endpoint responds with json shape with data set "DELETE agencies/1"
+ [x] Endpoint responds with json shape with data set "DELETE agencies/1/1"
+ [x] Endpoint responds with json shape with data set "GET agencies/1/stats"
+ [x] Endpoint responds with json shape with data set "GET agencies-batch"
+
+User Controller (Tests\Feature\User\UserController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET show/1"
+ [x] Endpoint requires auth with data set "PUT update/1"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "GET can-delete/1"
+ [x] Endpoint requires auth with data set "PATCH disable/999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint requires auth with data set "POST change-pwd/999999"
+ [x] Endpoint requires auth with data set "POST reset-pwd/999999"
+ [x] Endpoint requires auth with data set "GET check-username"
+ [x] Endpoint requires auth with data set "GET check-email"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET show/1"
+ [x] Endpoint responds with json shape with data set "PUT update/1"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "GET can-delete/1"
+ [x] Endpoint responds with json shape with data set "PATCH disable/999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "POST change-pwd/999999"
+ [x] Endpoint responds with json shape with data set "POST reset-pwd/999999"
+ [x] Endpoint responds with json shape with data set "GET check-username"
+ [x] Endpoint responds with json shape with data set "GET check-email"
+
+User Process Controller (Tests\Feature\UserProcess\UserProcessController)
+ [x] Endpoint requires auth with data set "GET processes/1"
+ [x] Endpoint requires auth with data set "POST processes/1"
+ [x] Endpoint requires auth with data set "DELETE processes/1"
+ [x] Endpoint requires auth with data set "DELETE processes/1/1"
+ [x] Endpoint requires auth with data set "GET processes/1/stats"
+ [x] Endpoint responds with json shape with data set "GET processes/1"
+ [x] Endpoint responds with json shape with data set "POST processes/1"
+ [x] Endpoint responds with json shape with data set "DELETE processes/1"
+ [x] Endpoint responds with json shape with data set "DELETE processes/1/1"
+ [x] Endpoint responds with json shape with data set "GET processes/1/stats"
+
+User Profile Controller (Tests\Feature\UserProfile\UserProfileController)
+ [x] Endpoint requires auth with data set "GET getProfile"
+ [x] Endpoint requires auth with data set "PUT default-agency"
+ [x] Endpoint requires auth with data set "POST upload-image"
+ [x] Endpoint requires auth with data set "DELETE remove-image"
+ [x] Endpoint requires auth with data set "GET image/1"
+ [x] Endpoint responds with json shape with data set "GET getProfile"
+ [x] Endpoint responds with json shape with data set "PUT default-agency"
+ [x] Endpoint responds with json shape with data set "POST upload-image"
+ [x] Endpoint responds with json shape with data set "DELETE remove-image"
+ [x] Endpoint responds with json shape with data set "GET image/1"
+
+User Profile Image Controller (Tests\Feature\UserProfileImage\UserProfileImageController)
+ [x] Endpoint requires auth with data set "POST upload"
+ [x] Endpoint requires auth with data set "GET get"
+ [x] Endpoint requires auth with data set "GET get/1"
+ [x] Endpoint requires auth with data set "GET info"
+ [x] Endpoint requires auth with data set "GET info/1"
+ [x] Endpoint requires auth with data set "DELETE remove"
+ [x] Endpoint responds with json shape with data set "POST upload"
+ [x] Endpoint responds with json shape with data set "GET get"
+ [x] Endpoint responds with json shape with data set "GET get/1"
+ [x] Endpoint responds with json shape with data set "GET info"
+ [x] Endpoint responds with json shape with data set "GET info/1"
+ [x] Endpoint responds with json shape with data set "DELETE remove"
+
+User Rol Controller (Tests\Feature\UserRol\UserRolController)
+ [x] Endpoint requires auth with data set "GET list"
+ [x] Endpoint requires auth with data set "POST create"
+ [x] Endpoint requires auth with data set "GET search"
+ [x] Endpoint requires auth with data set "GET stats"
+ [x] Endpoint requires auth with data set "GET active"
+ [x] Endpoint requires auth with data set "GET show/999999"
+ [x] Endpoint requires auth with data set "PUT update/999999"
+ [x] Endpoint requires auth with data set "DELETE 999999"
+ [x] Endpoint requires auth with data set "PATCH toggle/999999"
+ [x] Endpoint responds with json shape with data set "GET list"
+ [x] Endpoint responds with json shape with data set "POST create"
+ [x] Endpoint responds with json shape with data set "GET search"
+ [x] Endpoint responds with json shape with data set "GET stats"
+ [x] Endpoint responds with json shape with data set "GET active"
+ [x] Endpoint responds with json shape with data set "GET show/999999"
+ [x] Endpoint responds with json shape with data set "PUT update/999999"
+ [x] Endpoint responds with json shape with data set "DELETE 999999"
+ [x] Endpoint responds with json shape with data set "PATCH toggle/999999"
+
+Validacion Controller (Tests\Feature\Validacion\ValidacionController)
+ [x] Endpoint requires auth with data set "GET clientes"
+ [x] Endpoint requires auth with data set "GET estadisticas"
+ [x] Endpoint requires auth with data set "GET documentos"
+ [x] Endpoint requires auth with data set "GET diagnostico"
+ [x] Endpoint requires auth with data set "GET expedientes-corregir"
+ [x] Endpoint requires auth with data set "GET autoreparar"
+ [x] Endpoint requires auth with data set "POST reparar-relacion"
+ [x] Endpoint requires auth with data set "POST cancelar-pedido"
+ [x] Endpoint requires auth with data set "POST excepcion-pedido"
+ [x] Endpoint requires auth with data set "DELETE eliminar-pedido"
+ [x] Endpoint requires auth with data set "PUT cambiar-estatus"
+ [x] Endpoint requires auth with data set "POST docs liquidacion"
+ [x] Endpoint requires auth with data set "POST validar-documento"
+ [x] Endpoint requires auth with data set "POST aprobar-documento"
+ [x] Endpoint requires auth with data set "POST preparar-documento"
+ [x] Endpoint requires auth with data set "POST generar-token"
+ [x] Endpoint requires auth with data set "GET imprimir-identificacion"
+ [x] Endpoint requires auth with data set "GET datos-identificacion"
+ [x] Endpoint requires auth with data set "PUT datos-identificacion"
+ [x] Endpoint requires auth with data set "GET cliente-detalle"
+ [x] Endpoint requires auth with data set "GET beneficiarios"
+ [x] Endpoint requires auth with data set "POST beneficiarios"
+ [x] Endpoint requires auth with data set "DELETE beneficiarios/1"
+ [x] Endpoint requires auth with data set "GET zip/1"
+ [x] Get clientes returns json shape
+ [x] Get estadisticas returns json shape
+ [x] Get documentos requires id file
+ [x] Diagnostico requires params
+ [x] Expedientes corregir returns json shape
+ [x] Datos identificacion requires id file
+ [x] Datos identificacion with id file returns expected keys
+ [x] Cliente detalle requires id file
+ [x] Get beneficiarios requires id file
+ [x] Get beneficiarios with id file returns array
+ [x] Imprimir identificacion requires id file
+ [x] Auto reparar endpoint responds
+ [x] Reparar relacion requires body
+ [x] Cancelar pedido requires body
+ [x] Excepcion pedido requires body
+ [x] Eliminar pedido requires body
+ [x] Cambiar estatus requires body
+ [x] Agregar doc liquidacion requires body
+ [x] Validar documento requires body
+ [x] Aprobar documento requires body
+ [x] Preparar documento requires body
+ [x] Generar token miniportal requires body
+ [x] Save datos identificacion requires id client
+ [x] Add beneficiario requires body
+ [x] Delete beneficiario invalid id responds
+ [x] Descargar zip invalid id responds
+

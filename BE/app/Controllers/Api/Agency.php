@@ -171,6 +171,9 @@ class Agency extends BaseController
      */
     public function create()
     {
+        // Modelo de cobro por agencia → el cliente no puede crear agencias
+        // propias; se gestionan desde el WIZARD. Ver BaseController.
+        return $this->responseClientWriteBlocked('agencias');
         try {
             // Obtener datos del request
             $data = $this->request->getJSON(true);
@@ -399,6 +402,8 @@ class Agency extends BaseController
      */
     public function delete($id = null)
     {
+        // Eliminación afecta el conteo billable → restringido al WIZARD.
+        return $this->responseClientWriteBlocked('agencias');
         try {
             if (!$id) {
                 return $this->response
@@ -490,6 +495,8 @@ class Agency extends BaseController
      */
     public function toggleStatus($id = null)
     {
+        // Toggle enabled afecta el conteo billable → restringido al WIZARD.
+        return $this->responseClientWriteBlocked('agencias');
         try {
             if (!$id) {
                 return $this->response

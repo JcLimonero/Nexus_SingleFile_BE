@@ -56,46 +56,9 @@ class Company extends BaseController
      */
     public function create()
     {
-        try {
-            $currentUser = $this->getAuthenticatedUser();
-            if (!$currentUser) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'Token de autorización requerido'
-                ])->setStatusCode(401);
-            }
-
-            $data = $this->request->getJSON(true);
-            if (empty(trim($data['Name'] ?? ''))) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'El nombre de la compañía es requerido'
-                ])->setStatusCode(400);
-            }
-
-            $id = $this->companyModel->insert([
-                'Name' => trim($data['Name'])
-            ]);
-
-            if ($id) {
-                $company = $this->companyModel->find($id);
-                return $this->response->setStatusCode(201)->setJSON([
-                    'success' => true,
-                    'message' => 'Compañía creada exitosamente',
-                    'data' => $company
-                ]);
-            }
-
-            return $this->response->setStatusCode(500)->setJSON([
-                'success' => false,
-                'message' => 'Error al crear la compañía'
-            ]);
-        } catch (\Exception $e) {
-            return $this->response->setStatusCode(500)->setJSON([
-                'success' => false,
-                'message' => 'Error interno del servidor',
-                'error' => $e->getMessage()
-            ]);
-        }
+        // Modelo de cobro por agencia → companies se gestionan exclusivamente
+        // desde el operador del WIZARD para mantener consistencia con el
+        // recuento billable. Cliente no puede crear razones sociales propias.
+        return $this->responseClientWriteBlocked('razones sociales');
     }
 }
