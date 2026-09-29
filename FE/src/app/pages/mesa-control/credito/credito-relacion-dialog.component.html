@@ -1,0 +1,104 @@
+<h2 mat-dialog-title class="dialog-title">
+  Relaciones de {{ data.cliente.cliente || data.cliente.razonSocial || data.cliente.ndCliente }}
+</h2>
+
+<mat-dialog-content class="dialog-body">
+  <div class="principal">
+    <div class="field-group">
+      <label class="field-label">N° Cliente</label>
+      <div class="field-value">{{ data.cliente.ndCliente || 'N/A' }}</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Nombre</label>
+      <div class="field-value">{{ data.cliente.cliente || 'N/A' }}</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">RFC</label>
+      <div class="field-value">{{ data.cliente.rfc || 'N/A' }}</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Razón social</label>
+      <div class="field-value">{{ data.cliente.razonSocial || 'N/A' }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="py-6 flex justify-center">
+    <mat-spinner diameter="36"></mat-spinner>
+  </div>
+
+  <div *ngIf="!cargando && relaciones.length === 0" class="empty">
+    Este cliente todavía no tiene relaciones.
+  </div>
+
+  <div *ngFor="let relacion of relaciones" class="relacion-card">
+    <div class="relacion-header">
+      <strong>{{ relacion.cliente || relacion.razonSocial || relacion.ndCliente }} · {{ relacion.agencia }}</strong>
+      <button mat-icon-button color="warn" type="button" (click)="quitar(relacion)" matTooltip="Quitar relación">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="ficha">
+      <div class="field-group">
+        <label class="field-label">N° Cliente</label>
+        <div class="field-value">{{ relacion.ndCliente || 'N/A' }}</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Razón Social</label>
+        <div class="field-value">{{ relacion.razonSocial || 'N/A' }}</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">RFC</label>
+        <div class="field-value">{{ relacion.rfc || 'N/A' }}</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Correo</label>
+        <div class="field-value">{{ relacion.email || 'N/A' }}</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Teléfono</label>
+        <div class="field-value">{{ relacion.telefono || 'N/A' }}</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Teléfono 2</label>
+        <div class="field-value">{{ relacion.telefono2 || 'N/A' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="agregar">
+    <div class="flex items-center gap-2 flex-wrap">
+      <mat-form-field appearance="outline" class="min-w-48">
+        <mat-label>Agencia</mat-label>
+        <mat-select [(ngModel)]="idAgenciaRelacion">
+          <mat-option *ngFor="let agency of agenciasDisponibles()" [value]="agency.Id">
+            {{ agency.Name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-1 min-w-64">
+        <mat-label>Cliente en esa agencia</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="buscar()"
+          placeholder="Número de cliente"
+          autocomplete="off">
+      </mat-form-field>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="buscar()"
+        [disabled]="guardando || !idAgenciaRelacion || searchTerm.trim().length < 1">
+        <mat-spinner *ngIf="guardando" diameter="18" class="inline-spinner"></mat-spinner>
+        <mat-icon *ngIf="!guardando">person_add</mat-icon>
+        Agregar relación
+      </button>
+    </div>
+    <p *ngIf="sinResultados" class="sin-resultados">No se encontraron clientes con ese término</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cerrar()">Cerrar</button>
+</mat-dialog-actions>

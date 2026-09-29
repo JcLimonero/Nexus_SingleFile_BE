@@ -372,6 +372,13 @@ $routes->group('documents', function($routes) {
         $routes->post('preparar-documento', 'Validacion::prepararDocumento');
     });
 
+    $routes->group('credito', function($routes) {
+        $routes->get('clientes', 'Credito::clientes');
+        $routes->get('relaciones', 'Credito::relaciones');
+        $routes->post('relaciones', 'Credito::crearRelacion');
+        $routes->delete('relaciones/(:num)', 'Credito::eliminarRelacion/$1');
+    });
+
     // Rutas de búsqueda de clientes usando vista
     $routes->group('client-search', function($routes) {
         $routes->get('search', 'ClientSearch::search');
