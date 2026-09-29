@@ -336,6 +336,13 @@ export const appRoutes: VexRoutes = [
               import('./pages/mesa-control/consolidacion-dms/consolidacion-dms.component').then(
                 (m) => m.ConsolidacionDmsComponent
               )
+          },
+          {
+            path: 'credito',
+            loadComponent: () =>
+              import('./pages/mesa-control/credito/credito.component').then(
+                (m) => m.CreditoComponent
+              )
           }
         ]
       },

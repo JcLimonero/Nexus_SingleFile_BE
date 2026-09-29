@@ -90,6 +90,12 @@ export class NavigationLoaderService {
             label: 'Validación',
             route: '/mesa-control/validacion',
             icon: 'mat:verified'
+          },
+          {
+            type: 'link',
+            label: 'Crédito',
+            route: '/mesa-control/credito',
+            icon: 'mat:account_balance_wallet'
           }
         ]
       },

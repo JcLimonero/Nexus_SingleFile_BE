@@ -1,0 +1,134 @@
+<div class="credito-container">
+  <div class="filters-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-content class="p-2">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="flex items-center gap-3">
+            <mat-form-field appearance="outline" class="min-w-48">
+              <mat-label>Agencia</mat-label>
+              <mat-select
+                [value]="selectedAgencyId"
+                (selectionChange)="onAgencyChange($event.value)"
+                [disabled]="agenciesLoading || !hasAgencies()">
+                <mat-option
+                  *ngFor="let agency of agencies; trackBy: trackByAgencyId"
+                  [value]="agency.Id">
+                  {{ agency.Name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <span class="text-sm text-gray-500">
+              {{ consultas.length }} {{ consultas.length === 1 ? 'consulta' : 'consultas' }}
+            </span>
+          </div>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="agregarRelacion()"
+            matTooltip="Agregar otra consulta de cliente">
+            <mat-icon>person_add</mat-icon>
+            Agregar relación
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div
+    *ngFor="let consulta of consultas; let i = index; trackBy: trackByConsulta"
+    class="consulta-section mb-2">
+    <mat-card class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <mat-card-header class="pb-1">
+        <mat-card-title class="flex items-center justify-between text-sm w-full">
+          <div class="flex items-center">
+            <mat-icon class="mr-1 text-blue-600" style="font-size: 18px;">person</mat-icon>
+            {{ tituloConsulta(consulta, i) }}
+            <span *ngIf="consulta.client" class="ml-2 font-normal text-gray-600">
+              {{ consulta.client.cliente || consulta.client.razonSocial || consulta.client.ndCliente }}
+            </span>
+          </div>
+          <button
+            *ngIf="consultas.length > 1"
+            mat-icon-button
+            color="warn"
+            type="button"
+            (click)="quitarRelacion(consulta)"
+            matTooltip="Quitar esta relación">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content class="p-2">
+        <div class="flex items-center gap-2 flex-wrap mb-2">
+          <mat-form-field appearance="outline" class="flex-1 min-w-64">
+            <mat-label>Buscar cliente</mat-label>
+            <input
+              matInput
+              [(ngModel)]="consulta.searchTerm"
+              (keyup.enter)="buscar(consulta)"
+              placeholder="Número de cliente o nombre completo"
+              autocomplete="off">
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="buscar(consulta)"
+            [disabled]="consulta.loading || consulta.searchTerm.trim().length < 1"
+            style="height: 40px; min-height: 40px;">
+            <mat-spinner *ngIf="consulta.loading" diameter="18" class="inline-block mr-1"></mat-spinner>
+            <mat-icon *ngIf="!consulta.loading">search</mat-icon>
+            Buscar
+          </button>
+
+          <button
+            *ngIf="consulta.searchTerm || consulta.client"
+            mat-raised-button
+            color="warn"
+            type="button"
+            (click)="limpiarConsulta(consulta)"
+            style="height: 40px; min-height: 40px;">
+            <mat-icon>clear</mat-icon>
+            Limpiar
+          </button>
+        </div>
+
+        <div *ngIf="consulta.sinResultados && !consulta.loading && !consulta.client" class="text-center py-4">
+          <mat-icon class="text-gray-400 mb-1" style="font-size: 32px;">search_off</mat-icon>
+          <p class="text-gray-500 text-sm">No se encontraron clientes con ese término</p>
+        </div>
+
+        <div *ngIf="consulta.client" class="client-info grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div class="field-group">
+            <label class="field-label">N° Cliente</label>
+            <div class="field-value">{{ consulta.client.ndCliente || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Razón Social</label>
+            <div class="field-value">{{ consulta.client.razonSocial || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">RFC</label>
+            <div class="field-value">{{ consulta.client.rfc || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Correo</label>
+            <div class="field-value">{{ consulta.client.email || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Teléfono</label>
+            <div class="field-value">{{ consulta.client.telefono || 'N/A' }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Teléfono 2</label>
+            <div class="field-value">{{ consulta.client.telefono2 || 'N/A' }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

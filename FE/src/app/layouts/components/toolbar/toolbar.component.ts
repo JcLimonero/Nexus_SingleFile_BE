@@ -173,6 +173,8 @@ export class ToolbarComponent implements OnInit {
         return 'Validación';
       } else if (url.includes('/consolidacion-dms')) {
         return 'Consolidación DMS';
+      } else if (url.includes('/credito')) {
+        return 'Crédito';
       } else if (url.includes('/dashboard')) {
         return 'Dashboard Principal';
       } else if (url.includes('/monitoreo')) {
